@@ -1,7 +1,7 @@
 /*! *********************************************************************************
-* Copyright (c) 2014, Freescale Semiconductor, Inc.
-* Copyright 2016-2017 NXP
-* All rights reserved.
+* Copyright 2014 Freescale Semiconductor, Inc.
+* Copyright 2016-2021, 2023 NXP
+*
 *
 * \file
 *
@@ -32,6 +32,7 @@
 #define DESCRIPTOR                              XSIZE_DESCRIPTOR
 #define DESCRIPTOR_UUID32                       XSIZE_DESCRIPTOR
 #define DESCRIPTOR_UUID128                      XSIZE_DESCRIPTOR
+#define CHARACTERISTIC_AGGREGATE                XSIZE_CHARACTERISTIC_AGGREGATE
 
 #include "gatt_db.h"
 
@@ -56,5 +57,6 @@
 #undef DESCRIPTOR
 #undef DESCRIPTOR_UUID32
 #undef DESCRIPTOR_UUID128
+#undef CHARACTERISTIC_AGGREGATE
 
 #endif /* GATT_SIZE_X_H */

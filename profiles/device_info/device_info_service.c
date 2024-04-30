@@ -3,9 +3,9 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2014, Freescale Semiconductor, Inc.
-* Copyright 2016-2019 NXP
-* All rights reserved.
+* Copyright 2014 Freescale Semiconductor, Inc.
+* Copyright 2016-2019, 2022-2023 NXP
+*
 *
 * \file
 *
@@ -125,8 +125,8 @@ bleResult_t Dis_Stop(disConfig_t *pServiceConfig)
 ************************************************************************************/
 static bleResult_t Dis_SetManufacturerName(uint16_t serviceHandle, utf8s_t manufacturerName)
 {
-    uint16_t  handle;
-    bleResult_t result;
+    uint16_t  handle = gGattDbInvalidHandle_d;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_ManufacturerNameString_d);
 
     /* Get handle of characteristic */
@@ -144,8 +144,8 @@ static bleResult_t Dis_SetManufacturerName(uint16_t serviceHandle, utf8s_t manuf
 
 static bleResult_t Dis_SetModelNumber(uint16_t serviceHandle, utf8s_t modelNumber)
 {
-    uint16_t  handle;
-    bleResult_t result;
+    uint16_t  handle = gGattDbInvalidHandle_d;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_ModelNumberString_d);
 
     /* Get handle of characteristic */
@@ -164,8 +164,8 @@ static bleResult_t Dis_SetModelNumber(uint16_t serviceHandle, utf8s_t modelNumbe
 
 static bleResult_t Dis_SetSerialNumber(uint16_t serviceHandle, utf8s_t serialNumber)
 {
-    uint16_t  handle;
-    bleResult_t result;
+    uint16_t  handle = gGattDbInvalidHandle_d;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_SerialNumberString_d);
 
     /* Get handle of characteristic */
@@ -183,8 +183,8 @@ static bleResult_t Dis_SetSerialNumber(uint16_t serviceHandle, utf8s_t serialNum
 
 static bleResult_t Dis_SetHwRevision(uint16_t serviceHandle, utf8s_t hwRevision)
 {
-    uint16_t  handle;
-    bleResult_t result;
+    uint16_t  handle = gGattDbInvalidHandle_d;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_HardwareRevisionString_d);
 
     /* Get handle of characteristic */
@@ -203,8 +203,8 @@ static bleResult_t Dis_SetHwRevision(uint16_t serviceHandle, utf8s_t hwRevision)
 
 static bleResult_t Dis_SetFwRevision(uint16_t serviceHandle, utf8s_t fwRevision)
 {
-    uint16_t  handle;
-    bleResult_t result;
+    uint16_t  handle = gGattDbInvalidHandle_d;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_FirmwareRevisionString_d);
 
     /* Get handle of characteristic */
@@ -223,8 +223,8 @@ static bleResult_t Dis_SetFwRevision(uint16_t serviceHandle, utf8s_t fwRevision)
 
 static bleResult_t Dis_SetSwRevision(uint16_t serviceHandle, utf8s_t swRevision)
 {
-    uint16_t  handle;
-    bleResult_t result;
+    uint16_t  handle = gGattDbInvalidHandle_d;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_SoftwareRevisionString_d);
 
     /* Get handle of characteristic */
@@ -242,8 +242,8 @@ static bleResult_t Dis_SetSwRevision(uint16_t serviceHandle, utf8s_t swRevision)
 
 static bleResult_t Dis_SetSystemId(uint16_t serviceHandle, systemId_t *pSystemId)
 {
-    uint16_t  handle;
-    bleResult_t result;
+    uint16_t  handle = gGattDbInvalidHandle_d;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_SystemId_d);
 
     /* Get handle of characteristic */
@@ -253,7 +253,7 @@ static bleResult_t Dis_SetSystemId(uint16_t serviceHandle, systemId_t *pSystemId
     if (result == gBleSuccess_c)
     {
         /* Update characteristic value */
-        result = GattDb_WriteAttribute(handle, sizeof(systemId_t), (void *)pSystemId);
+        result = GattDb_WriteAttribute(handle, (uint16_t)sizeof(systemId_t), (void *)pSystemId);
     }
 
     return result;
@@ -261,8 +261,8 @@ static bleResult_t Dis_SetSystemId(uint16_t serviceHandle, systemId_t *pSystemId
 
 static bleResult_t Dis_SetRcdl(uint16_t serviceHandle, regCertDataList_t rcdl)
 {
-    uint16_t  handle;
-    bleResult_t result;
+    uint16_t  handle = gGattDbInvalidHandle_d;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_IeeeRcdl_d);
 
     /* Get handle of characteristic */
@@ -280,8 +280,8 @@ static bleResult_t Dis_SetRcdl(uint16_t serviceHandle, regCertDataList_t rcdl)
 
 static bleResult_t Dis_SetPnpId(uint16_t serviceHandle, pnpId_t *pPnpId)
 {
-    uint16_t  handle;
-    bleResult_t result;
+    uint16_t  handle = gGattDbInvalidHandle_d;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_PnpId_d);
 
     /* Get handle of characteristic */
@@ -291,7 +291,7 @@ static bleResult_t Dis_SetPnpId(uint16_t serviceHandle, pnpId_t *pPnpId)
     if (result == gBleSuccess_c)
     {
         /* Update characteristic value */
-        result = GattDb_WriteAttribute(handle, sizeof(pnpId_t), (void *)pPnpId);
+        result = GattDb_WriteAttribute(handle, (uint16_t)sizeof(pnpId_t), (void *)pPnpId);
     }
 
     return result;

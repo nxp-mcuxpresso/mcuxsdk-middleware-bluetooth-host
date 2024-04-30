@@ -3,10 +3,10 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2017, 2021 NXP
-* All rights reserved.
-* 
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2018, 2020-2023 NXP
+*
+*
 * \file
 *
 * SPDX-License-Identifier: BSD-3-Clause
@@ -20,8 +20,10 @@
 * Include
 *************************************************************************************
 ************************************************************************************/
-#include "Messaging.h"
+#include "EmbeddedTypes.h"
+#include "fsl_component_messaging.h"
 #include "fsl_os_abstraction.h"
+#include "ble_general.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -29,12 +31,11 @@
 *************************************************************************************
 ************************************************************************************/
 /*! App to Host message queue for the Host Task */
-extern msgQueue_t   gApp2Host_TaskQueue;
+extern messaging_t   gApp2Host_TaskQueue;
 /*! HCI to Host message queue for the Host Task */
-extern msgQueue_t   gHci2Host_TaskQueue;
-
+extern messaging_t   gHci2Host_TaskQueue;
 /*! Event for the Host Task Queue */
-extern osaEventId_t gHost_TaskEvent;
+extern OSA_EVENT_HANDLE_DEFINE(gHost_TaskEvent);
 
 /************************************************************************************
 *************************************************************************************
@@ -42,6 +43,11 @@ extern osaEventId_t gHost_TaskEvent;
 *************************************************************************************
 ************************************************************************************/
 
+/************************************************************************************
+*************************************************************************************
+* Public type definitions
+*************************************************************************************
+************************************************************************************/
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -57,7 +63,7 @@ void Host_TaskHandler(void * args);
 
 #ifdef __cplusplus
 }
-#endif 
+#endif
 
 #endif /* BLE_HOST_TASKS_H */
 

@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2019 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2024 NXP
+*
 *
 * \file
 *
@@ -46,7 +46,7 @@
         (sizeof(uint16_t) + fsciBleGapGetSecurityRequirementsBufferSize(pSecurityRequirements))
 
 #define fsciBleGapGetDeviceSecurityRequirementsBufferSize(pDeviceSecurityRequirements)                              \
-        (fsciBleGapGetSecurityRequirementsBufferSize((pDeviceSecurityRequirements)->pMasterSecurityRequirements) +  \
+        (fsciBleGapGetSecurityRequirementsBufferSize((pDeviceSecurityRequirements)->pSecurityRequirements) +  \
         sizeof(uint8_t) + (pDeviceSecurityRequirements)->cNumServices *                                             \
         fsciBleGapGetServiceSecurityRequirementsBufferSize((pDeviceSecurityRequirements)->aServiceSecurityRequirements))
 
@@ -67,7 +67,7 @@
         sizeof(gapSmpKeyFlags_t) + sizeof(gapSmpKeyFlags_t) +               \
         sizeof(bool_t) + sizeof(bool_t))
 
-#define fsciBleGapGetSlaveSecurityRequestParametersBufferSize(pSlaveSecurityRequestParameters)  \
+#define fsciBleGapGetPeripheralSecurityRequestParametersBufferSize(pPeripheralSecurityRequestParameters)  \
         (sizeof(bool_t) + sizeof(gapSecurityModeAndLevel_t))
 
 #define fsciBleGapGetAdvertisingParametersBufferSize(pSecurityRequirements)                     \
@@ -97,7 +97,7 @@
 
 #define fsciBleGapGetConnectionParametersBufferSize(pConnectionParameters)  \
         (sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) +           \
-        sizeof(bleMasterClockAccuracy_t))
+        sizeof(bleCentralClockAccuracy_t))
 
 #define fsciBleGapGetAdStructureBufferSize(pAdStructure)    \
         (sizeof(uint8_t) + (uint16_t)(pAdStructure)->length)
@@ -125,7 +125,7 @@
 
 #define fsciBleGapGetScannedDeviceBufferSize(pScannedDevice)                \
         (sizeof(bleAddressType_t) + gcBleDeviceAddressSize_c +              \
-        sizeof(int8_t) + sizeof(uint8_t) + (uint16_t)(pScannedDevice)->dataLength +   \
+        sizeof(int8_t) + sizeof(uint8_t) + (uint32_t)(pScannedDevice)->dataLength +   \
         sizeof(bleAdvertisingReportEventType_t)+                            \
         sizeof(bool_t) + gcBleDeviceAddressSize_c + sizeof(bool_t))
 
@@ -134,11 +134,11 @@
         sizeof(bool_t) + sizeof(bleAdvReportEventProperties_t) + sizeof(int8_t) + \
         sizeof(int8_t) + sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint16_t) +   \
         sizeof(bool_t) + sizeof(bleAddressType_t) + sizeof(bleDeviceAddress_t) +  \
-        sizeof(uint16_t) + (pScannedDevice)->dataLength)
+        sizeof(uint16_t) + (uint32_t)(pScannedDevice)->dataLength)
 
 #define fsciBleGapGetPeriodicScannedDeviceBufferSize(pScannedDevice)               \
-        (sizeof(uint8_t) + sizeof(bleAddressType_t) + sizeof(bleDeviceAddress_t) + \
-        sizeof(int8_t) + sizeof(int8_t) + sizeof(uint16_t) + (pScannedDevice)->dataLength)
+        (sizeof(uint16_t) + sizeof(int8_t) + sizeof(int8_t) + \
+        (sizeof(bleCteType_t) + sizeof(uint16_t) + (uint32_t)(pScannedDevice)->dataLength))
 
 #define fsciBleGapGetSyncLostBufferSize(pSyncLost)               \
         (sizeof(uint8_t) + sizeof(bleAddressType_t) + sizeof(bleDeviceAddress_t))
@@ -177,7 +177,7 @@
         fsciBleGetBufferFromEnumValue((pAuthenticationRejectedEvent)->rejectReason, *(ppBuffer), gapAuthenticationRejectReason_t)
 
 #define fsciBleGapGetLongTermKeyRequestEventBufferSize(pLongTermKeyRequestEvent)    \
-        (sizeof(uint16_t) + sizeof(uint8_t) + (uint16_t)(pLongTermKeyRequestEvent)->randSize)
+        (sizeof(uint16_t) + sizeof(uint8_t) + (uint32_t)(pLongTermKeyRequestEvent)->randSize)
 
 #define fsciBleGapGetEncryptionChangedEventBufferSize(pEncryptionChangedEvent)  \
         sizeof(bool_t)
@@ -213,6 +213,9 @@
 #define fsciBleGapGetConnParameterUpdateCompleteBufferSize(pConnParameterUpdateComplete)  \
         (sizeof(bleResult_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t))
 
+#define fsciBleGapGetConnLeSetDataLengthFailureBufferSize(pConnLeDataLengthChanged)  \
+        (sizeof(uint16_t))
+
 #define fsciBleGapGetConnLeDataLengthChangedBufferSize(pConnLeDataLengthChanged)  \
         (4U * sizeof(uint16_t))
 
@@ -226,11 +229,123 @@
         (sizeof(gapCreateSyncReqFilterPolicy_t) + sizeof(uint8_t) + sizeof(bleAddressType_t) \
         + gcBleDeviceAddressSize_c + 2U * sizeof(uint16_t))
 
+#define fsciBleGapGetConnectionlessIqReportReceivedBufferSize(pIqReport)    \
+        (sizeof(uint16_t) + sizeof(uint8_t) + sizeof(int16_t) + sizeof(uint8_t) \
+        + sizeof(bleCteType_t) + sizeof(bleSlotDurations_t) + sizeof(bleIqReportPacketStatus_t) \
+        + sizeof(uint16_t) + sizeof(uint8_t) + 2U * (uint32_t)((pIqReport)->sampleCount))
+
+#define fsciBleGapGetConnectionIqReportReceivedBufferSize(pIqReport)    \
+        (sizeof(gapLePhyMode_t) + sizeof(uint8_t) + sizeof(int16_t) + sizeof(uint8_t) \
+        + sizeof(bleCteType_t) + sizeof(bleSlotDurations_t) + sizeof(bleIqReportPacketStatus_t) \
+        + sizeof(uint16_t) + sizeof(uint8_t) + 2U * (uint32_t)((pIqReport)->sampleCount))
+
+#define fsciBleGapGetPathLossThresholdBufferSize(pPathLossThreshold)    \
+        (sizeof(uint8_t) + sizeof(blePathLossThresholdZoneEntered_t))
+
+#define fsciBleGapGetTransmitPowerReportingBufferSize(pTransmitPowerReporting)  \
+        (sizeof(bleTxPowerReportingReason_t) + sizeof(blePowerControlPhyType_t) \
+        + sizeof(int8_t) + sizeof(bleTxPowerLevelFlags_t) + sizeof(int8_t))
+
+#define fsciBleGapGetTransmitPowerInfoBufferSize(pTransmitPowerInfo)    \
+        (sizeof(blePowerControlPhyType_t) + sizeof(int8_t) + sizeof(int8_t))
+
+#define fsciBleGapGetEattConnectionRequestBufferSize(pEattConnectionResponse)    \
+        (sizeof(uint16_t) + sizeof(int8_t) + sizeof(uint16_t))
+
+#define fsciBleGapGetEattConnectionCompleteBufferSize(pEattConnectionResponse)    \
+        (sizeof(l2caLeCbConnectionRequestResult_t) + sizeof(uint16_t) + sizeof(int8_t)   \
+        + (uint32_t)((pEattConnectionResponse)->cBearers))
+
+#define fsciBleGapGetEattReconfigureResponseBufferSize(pEattReconfigureResponse)    \
+        (sizeof(l2caLeCbConnectionRequestResult_t) + sizeof(uint16_t) + sizeof(int8_t)   \
+        + (uint32_t)((pEattReconfigureResponse)->cBearers))
+
+#define fsciBleGapGetEattBearerStatusNotificationBufferSize(pEattBearerStatusNotification)    \
+            (sizeof(gapEattBearerStatusNotification_t))
+
+#define MAX_ERR_IN_LIST         4U
+
+#define MAX_CUST_ERR_IN_LIST    2U
+
+#define NB_BUF_ENTRIES          24U
+
+#define NO_STATES               4U
+
 /************************************************************************************
 *************************************************************************************
 * Public type definitions
 *************************************************************************************
 ************************************************************************************/
+typedef PACKED_STRUCT nbuErrDebugInfo_tag
+{
+    uint32_t PCaddr;
+    uint32_t LRaddr;
+    uint32_t moreInfo;
+} nbuErrDebugInfo_t;
+
+typedef PACKED_STRUCT lmResState_tag
+{
+  uint8_t ucCurState;
+  uint8_t StatesCnt[NO_STATES];
+} lmResState_t;
+
+typedef PACKED_STRUCT nbuDbgStructCust_tag
+{
+    uint32_t             errorBitmask;
+    uint32_t             taskSOFmask;
+    uint32_t             idleTaskFreeRunningCounter;
+    lmResState_t         lmStateStatus;
+    uint8_t              advSchedFreeRunCnt;
+    uint8_t              scanSchedFreeRunCnt;
+    uint8_t              scanInitSchedFreeRunCnt;
+    uint8_t              scanCorrHitFreeRunningCounter;
+    uint8_t              scanCorrToFreeRunningCounter;
+    uint8_t              txLockFailRunningCounter;
+    uint8_t              rxLockFailRunningCounter;
+    uint32_t             rtErrorStatus;
+    uint32_t             reserved4;
+    uint8_t              reserved5;
+    uint8_t              scanGenReportFreeRunningCounter;
+    uint8_t              scanGenCloseFreeRunningCounter;
+    uint8_t              res2ScanHwErrorFreeRunningCounter;
+    uint8_t              advTxDoneFreeRunningCounter;
+    uint8_t              res3ScanRtErrorFreeRunningCounter;
+    uint8_t              res4AdvHwErrorFreeRunningCounter;
+    uint8_t              res5AdvRtErrorFreeRunningCounter;
+    uint32_t             hwAbortStatus;
+    uint8_t              errorList[MAX_CUST_ERR_IN_LIST];
+    uint8_t              reserved1[MAX_ERR_IN_LIST-MAX_CUST_ERR_IN_LIST];
+    nbuErrDebugInfo_t    errorInfo[MAX_CUST_ERR_IN_LIST];
+    uint8_t              warningList[MAX_CUST_ERR_IN_LIST];
+    uint8_t              reserved2[MAX_ERR_IN_LIST-MAX_CUST_ERR_IN_LIST];
+    nbuErrDebugInfo_t    warningInfo[MAX_CUST_ERR_IN_LIST];
+} nbuDbgStructCust_t;
+
+typedef PACKED_STRUCT nbuDebugInfo_tag
+{
+    uint8_t              debugMode;
+    uint8_t              errorCount;
+    uint8_t              warCount;
+    uint8_t              issueTriggered;
+    uint32_t             length;
+    uint32_t             sha1Nbu;
+    nbuDbgStructCust_t   cust;
+    uint32_t             reserved3;
+} nbuDebugInfo_t;
+
+typedef PACKED_STRUCT nbuDebugInfo2_tag
+{
+    uint8_t              debugMode;
+    uint8_t              errorCount;
+    uint8_t              warCount;
+    uint8_t              issueTriggered;
+    uint32_t             length;
+    uint32_t             sha1Nbu;
+    uint32_t             errorBitmask;
+    uint32_t             taskSOFmask;
+    uint32_t             idleTaskFreeRunningCounter;
+    uint32_t             bufferInfo[NB_BUF_ENTRIES];
+} nbuDebugInfo2_t;
 
 /************************************************************************************
 *************************************************************************************
@@ -258,7 +373,7 @@ gapSmpKeys_t* fsciBleGapAllocSmpKeys
     void
 );
 
-uint16_t fsciBleGapGetSmpKeysBufferSize
+uint32_t fsciBleGapGetSmpKeysBufferSize
 (
     const gapSmpKeys_t* pSmpKeys
 );
@@ -352,15 +467,15 @@ void fsciBleGapGetBufferFromPairingParameters
     uint8_t**               ppBuffer
 );
 
-void fsciBleGapGetSlaveSecurityRequestParametersFromBuffer
+void fsciBleGapGetPeripheralSecurityRequestParametersFromBuffer
 (
-    gapSlaveSecurityRequestParameters_t*    pSlaveSecurityRequestParameters,
+    gapPeripheralSecurityRequestParameters_t*    pPeripheralSecurityRequestParameters,
     uint8_t**                               ppBuffer
 );
 
-void fsciBleGapGetBufferFromSlaveSecurityRequestParameters
+void fsciBleGapGetBufferFromPeripheralSecurityRequestParameters
 (
-    gapSlaveSecurityRequestParameters_t*    pSlaveSecurityRequestParameters,
+    gapPeripheralSecurityRequestParameters_t*    pPeripheralSecurityRequestParameters,
     uint8_t**                               ppBuffer
 );
 
@@ -375,6 +490,82 @@ void fsciBleGapGetExtAdvertisingParametersFromBuffer
 (
     gapExtAdvertisingParameters_t* pAdvertisingParameters,
     uint8_t**                      ppBuffer
+);
+#endif
+
+#if defined(gBLE51_d) && (gBLE51_d == 1U)
+void fsciBleGapGetConnectionlessCteTransmitParametersFromBuffer
+(
+    gapConnectionlessCteTransmitParams_t* pTransmitParams,
+    uint8_t** ppBuffer
+);
+
+void fsciBleGapGetConnectionlessIqSamplingParametersFromBuffer
+(
+    gapConnectionlessIqSamplingParams_t* pSamplingParams,
+    uint8_t** ppBuffer
+);
+
+void fsciBleGapGetConnectionCteReceiveParametersFromBuffer
+(
+    gapConnectionCteReceiveParams_t* pReceiveParams,
+    uint8_t** ppBuffer
+);
+
+void fsciBleGapGetConnectionCteTransmitParametersFromBuffer
+(
+    gapConnectionCteTransmitParams_t* pTransmitParams,
+    uint8_t** ppBuffer
+);
+
+void fsciBleGapGetConnectionCteReqParametersFromBuffer
+(
+    gapConnectionCteReqEnableParams_t* pReqEnableParams,
+    uint8_t** ppBuffer
+);
+
+void fsciBleGapGetPeriodicAdvSncTransferParametersFromBuffer
+(
+    gapPeriodicAdvSyncTransfer_t* pParams,
+    uint8_t** ppBuffer
+);
+
+void fsciBleGapGetPeriodicAdvSetInfoTransferFromBuffer
+(
+    gapPeriodicAdvSetInfoTransfer_t* pParams,
+    uint8_t** ppBuffer
+);
+
+void fsciBleGapSetPeriodicAdvSyncTransferParamsFromBuffer
+(
+    gapSetPeriodicAdvSyncTransferParams_t* pParams,
+    uint8_t** ppBuffer
+);
+
+void fsciBleGapGetBufferFromConnectionlessIqReportReceived
+(
+    gapConnectionlessIqReport_t* pIqReport,
+    uint8_t** ppBuffer
+);
+
+void fsciBleGapGetConnectionlessIqReportReceivedFromBuffer
+(
+    gapConnectionlessIqReport_t* pIqReport,
+    uint8_t** ppBuffer
+);
+
+void fsciBleGapGetBufferFromPeriodicAdvSyncTransferReceived
+(
+    gapSyncTransferReceivedEventData_t* pSyncTransferReceived,
+    uint8_t** ppBuffer
+);
+#endif
+
+#if defined(gBLE52_d) && (gBLE52_d == 1U)
+void fsciBleGapGetPathLossReportingParametersFromBuffer
+(
+    gapPathLossReportingParams_t* pParams,
+    uint8_t** ppBuffer
 );
 #endif
 
@@ -456,7 +647,7 @@ void fsciBleGapGetAdvertisingDataFromBuffer
     uint8_t**               ppBuffer
 );
 
-uint16_t fsciBleGapGetAdvertisingDataBufferSize
+uint32_t fsciBleGapGetAdvertisingDataBufferSize
 (
     const gapAdvertisingData_t* pAdvertisingData
 );
@@ -481,18 +672,6 @@ void fsciBleGapGetBufferFromScannedDevice
 
 
 #if defined(gBLE50_d) && (gBLE50_d == 1U)
-void fsciBleGapGetSyncLostFromBuffer
-(
-    gapSyncLostEventData_t* syncLost,
-    uint8_t**               ppBuffer
-);
-
-void fsciBleGapGetBufferFromSyncLost
-(
-    gapSyncLostEventData_t* syncLost,
-    uint8_t**               ppBuffer
-);
-
 void fsciBleGapGetExtScannedDeviceFromBuffer
 (
     gapExtScannedDevice_t* pScannedDevice,
@@ -542,7 +721,7 @@ void fsciBleGapGetBufferFromKeyExchangeRequestEvent
     uint8_t**                       ppBuffer
 );
 
-uint16_t fsciBleGapGetPairingCompleteEventBufferSize
+uint32_t fsciBleGapGetPairingCompleteEventBufferSize
 (
     gapPairingCompleteEvent_t* pPairingCompleteEvent
 );
@@ -583,7 +762,7 @@ void fsciBleGapGetBufferFromInternalError
     uint8_t**           ppBuffer
 );
 
-uint16_t fsciBleGapGetGenericEventBufferSize
+uint32_t fsciBleGapGetGenericEventBufferSize
 (
     gapGenericEvent_t*  pGenericEvent
 );
@@ -600,7 +779,7 @@ void fsciBleGapGetBufferFromGenericEvent
     uint8_t**           ppBuffer
 );
 
-uint16_t fsciBleGapGetAdvertisingEventBufferSize
+uint32_t fsciBleGapGetAdvertisingEventBufferSize
 (
     gapAdvertisingEvent_t* pAdvertisingEvent
 );
@@ -623,7 +802,7 @@ gapScanningEvent_t* fsciBleGapAllocScanningEventForBuffer
     uint8_t*                pBuffer
 );
 
-uint16_t fsciBleGapGetScanningEventBufferSize
+uint32_t fsciBleGapGetScanningEventBufferSize
 (
     gapScanningEvent_t* pScanningEvent
 );
@@ -646,7 +825,7 @@ gapConnectionEvent_t* fsciBleGapAllocConnectionEventForBuffer
     uint8_t*                    pBuffer
 );
 
-uint16_t fsciBleGapGetConnectionEventBufferSize
+uint32_t fsciBleGapGetConnectionEventBufferSize
 (
     gapConnectionEvent_t* pConnectionEvent
 );
@@ -715,6 +894,12 @@ void fsciBleGapGetConnLeDataLengthChangedFromBuffer
     uint8_t**                       ppBuffer
 );
 
+void fsciBleGapGetBufferFromConnLeSetDataLengthChangedFailure
+(
+    bleResult_t reason,
+    uint8_t** ppBuffer
+);
+
 void fsciBleGapGetBufferFromConnLeDataLengthChanged
 (
     gapConnLeDataLengthChanged_t*   pConnLeDataLengthChanged,
@@ -731,6 +916,18 @@ void fsciBleGapGetBufferFromIdentityInformation
 (
     const gapIdentityInformation_t*       pIdentityInformation,
     uint8_t**                       ppBuffer
+);
+
+void fsciBleGapGetBufferFromHostVersion
+(
+    gapHostVersion_t    *pHostVersion,
+    uint8_t             **ppBuffer
+);
+
+void fsciBleGapGetBufferFromGetConnParamsCompleteEvent
+(
+    getConnParams_t *pGetConnParams,
+    uint8_t         **ppBuffer
 );
 
 #if defined(gBLE50_d) && (gBLE50_d == 1U)
@@ -758,6 +955,79 @@ void fsciBleGapGetPeriodicAdvParametersFromBuffer
     uint8_t**                       ppBuffer
 );
 #endif
+
+#if defined(gBLE52_d) && (gBLE52_d == TRUE) && defined(gEATT_d) && (gEATT_d == TRUE)
+void fsciBleGapGetBufferFromEattConnectionRequest
+(
+    gapEattConnectionRequest_t *pEattConnectionRequest, uint8_t **ppBuffer
+);
+
+void fsciBleGapGetBufferFromEattConnectionComplete
+(
+    gapEattConnectionComplete_t *pEattConnectionComplete, uint8_t **ppBuffer
+);
+
+void fsciBleGapGetBufferFromEattReconfigureResponse
+(
+    gapEattReconfigureResponse_t *pEattReconfigureResponse, uint8_t **ppBuffer
+);
+
+void fsciBleGapGetPathLossThresholdFromBuffer
+(
+    gapPathLossThresholdEvent_t *pPathLossThreshold,
+    uint8_t                     **ppBuffer
+);
+
+void fsciBleGapGetBufferFromEattBearerStatusNotification
+(
+    gapEattBearerStatusNotification_t   *pEattBearerStatusNotification,
+    uint8_t                             **ppBuffer
+);
+
+void fsciBleGapGetTransmitPowerReportingFromBuffer
+(
+    gapTransmitPowerReporting_t *pTransmitPowerReporting,
+    uint8_t                     **ppBuffer
+);
+
+void fsciBleGapGetTransmitPowerInfoFromBuffer
+(
+    gapTransmitPowerInfo_t      *pTransmitPowerInfo,
+    uint8_t                     **ppBuffer
+);
+
+void fsciBleGapGetBufferFromPathLossThreshold
+(
+    gapPathLossThresholdEvent_t *pPathLossThreshold,
+    uint8_t                     **ppBuffer
+);
+
+void fsciBleGapGetBufferFromTransmitPowerReporting
+(
+    gapTransmitPowerReporting_t *pTransmitPowerReporting,
+    uint8_t                     **ppBuffer
+);
+
+void fsciBleGapGetBufferFromTransmitPowerInfo
+(
+    gapTransmitPowerInfo_t      *pTransmitPowerInfo,
+    uint8_t                     **ppBuffer
+);
+#endif
+
+#if defined(gBLE51_d) && (gBLE51_d == 1U)
+void fsciBleGapGetConnIqReportReceivedFromBuffer
+(
+    gapConnIqReport_t   *pIqReport,
+    uint8_t             **ppBuffer
+);
+
+void fsciBleGapGetBufferFromConnIqReportReceived
+(
+    gapConnIqReport_t   *pIqReport,
+    uint8_t             **ppBuffer
+);
+#endif /* gBLE51_d */
 
 #ifdef __cplusplus
 }

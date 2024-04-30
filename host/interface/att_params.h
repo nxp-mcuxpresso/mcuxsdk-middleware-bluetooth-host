@@ -3,9 +3,9 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2021 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2021, 2023 NXP
+*
 *
 * \file
 *
@@ -225,6 +225,27 @@ typedef struct
     uint16_t  attributeLength;
     uint8_t   attributeValue[1];
 } attVarHandleValueNotificationIndicationParams_t;
+
+/*! The Handle Length Value Tuple List shall be a concatenation of Handle Length Value Tuples
+*   for each of the attributes being notified.*/
+typedef struct
+{
+    uint32_t totalLength;
+    uint8_t  pHandleLengthValueTupleList[1];
+}attVarMultipleHandleValueNotificationParams_t;
+
+typedef struct
+{
+    uint32_t totalLength;
+    uint8_t  pHandleLengthValueTupleList[gAttMaxDataSize_d(gAttMaxMtu_c)];
+}attMultipleHandleValueNotificationParams_t;
+
+/*! Read Multiple Variable Response Parameters */
+typedef struct
+{
+    uint16_t listLength;
+    uint8_t  lengthValueTupleList[gAttMaxDataSize_d(gAttMaxMtu_c)];
+} attReadMultipleVariableResponseParams_t;
 
 typedef struct
 {

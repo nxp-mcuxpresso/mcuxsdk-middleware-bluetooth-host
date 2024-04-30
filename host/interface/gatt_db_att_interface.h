@@ -4,9 +4,9 @@
  ********************************************************************************** */
 
 /*! *********************************************************************************
-* Copyright (c) 2014, Freescale Semiconductor, Inc.
-* Copyright 2016-2017, 2021 NXP
-* All rights reserved.
+* Copyright 2014 Freescale Semiconductor, Inc.
+* Copyright 2016-2019, 2021, 2023 NXP
+*
 *
 * \file
 *
@@ -42,6 +42,7 @@ extern "C" {
  * in a Find Information Response parameter structure.
  *
  * \param[in] deviceId                  The device ID of the requesting ATT Client.
+*  \param[in] bearerId                  The bearer ID on which the transaction takes place.
  * \param[in] pReqParams                The request parameters.
  * \param[out] pOutRspParams            The pre-allocated response parameter to be filled.
  * \param[out] outErrorAttributeHandle  The attribute handle where an error occurred.
@@ -50,6 +51,7 @@ extern "C" {
 attErrorCode_t GattDb_AttFindInformation
 (
     deviceId_t                          deviceId,
+    bearerId_t                          bearerId,
     attFindInformationRequestParams_t*  pReqParams,
     attFindInformationResponseParams_t* pOutRspParams,
     uint16_t*                           outErrorAttributeHandle
@@ -62,6 +64,7 @@ attErrorCode_t GattDb_AttFindInformation
  * in a Find By Type Value Response parameter structure.
  *
  * \param[in] deviceId                   The device ID of the requesting ATT Client.
+*  \param[in] bearerId                   The bearer ID on which the transaction takes place.
  * \param[in] pReqParams                 The request parameters.
  * \param[out] pOutRspParams             The pre-allocated response parameter to be filled.
  * \param[out] outErrorAttributeHandle   The attribute handle where an error occurred.
@@ -70,6 +73,7 @@ attErrorCode_t GattDb_AttFindInformation
 attErrorCode_t GattDb_AttFindByTypeValue
 (
     deviceId_t                          deviceId,
+    bearerId_t                          bearerId,
     attFindByTypeValueRequestParams_t*  pReqParams,
     attFindByTypeValueResponseParams_t* pOutRspParams,
     uint16_t*                           outErrorAttributeHandle
@@ -82,6 +86,7 @@ attErrorCode_t GattDb_AttFindByTypeValue
  * in a Read By Type Response parameter structure.
  *
  * \param[in] deviceId                   The device ID of the requesting ATT Client.
+ * \param[in] bearerId                   The bearer ID on which the transaction takes place.
  * \param[in] pReqParams                 The request parameters.
  * \param[out] pOutRspParams             The pre-allocated response parameter to be filled.
  * \param[out] outErrorAttributeHandle   The attribute handle where an error occurred.
@@ -90,6 +95,7 @@ attErrorCode_t GattDb_AttFindByTypeValue
 attErrorCode_t GattDb_AttReadByType
 (
     deviceId_t                     deviceId,
+    bearerId_t                     bearerId,
     attReadByTypeRequestParams_t*  pReqParams,
     attReadByTypeResponseParams_t* pOutRspParams,
     uint16_t*                      outErrorAttributeHandle
@@ -102,6 +108,7 @@ attErrorCode_t GattDb_AttReadByType
  * in a Read Response parameter structure.
  *
  * \param[in] deviceId                   The device ID of the requesting ATT Client.
+ * \param[in] bearerId                   The bearer ID on which the transaction takes place.
  * \param[in] pReqParams                 The request parameters.
  * \param[out] pOutRspParams             The pre-allocated response parameter to be filled.
  * \param[out] outErrorAttributeHandle   The attribute handle where an error occurred.
@@ -110,6 +117,7 @@ attErrorCode_t GattDb_AttReadByType
 attErrorCode_t GattDb_AttRead
 (
     deviceId_t               deviceId,
+    bearerId_t               bearerId,
     attReadRequestParams_t*  pReqParams,
     attReadResponseParams_t* pOutRspParams,
     uint16_t*                outErrorAttributeHandle
@@ -122,6 +130,7 @@ attErrorCode_t GattDb_AttRead
  * in a Read Blob Response parameter structure.
  *
  * \param[in] deviceId                   The device ID of the requesting ATT Client.
+ * \param[in] bearerId                   The bearer ID on which the transaction takes place.
  * \param[in] pReqParams                 The request parameters.
  * \param[out] pOutRspParams             The pre-allocated response parameter to be filled.
  * \param[out] outErrorAttributeHandle   The attribute handle where an error occurred.
@@ -130,6 +139,7 @@ attErrorCode_t GattDb_AttRead
 attErrorCode_t GattDb_AttReadBlob
 (
     deviceId_t                         deviceId,
+    bearerId_t                         bearerId,
     const attReadBlobRequestParams_t*  pReqParams,
     attReadBlobResponseParams_t*       pOutRspParams,
     uint16_t*                          outErrorAttributeHandle
@@ -142,6 +152,7 @@ attErrorCode_t GattDb_AttReadBlob
  * in a Read Multiple Response parameter structure.
  *
  * \param[in] deviceId                   The device ID of the requesting ATT Client.
+ * \param[in] bearerId                   The bearer ID on which the transaction takes place.
  * \param[in] pReqParams                 The request parameters.
  * \param[out] pOutRspParams             The pre-allocated response parameter to be filled.
  * \param[out] outErrorAttributeHandle   The attribute handle where an error occurred.
@@ -150,7 +161,8 @@ attErrorCode_t GattDb_AttReadBlob
 attErrorCode_t GattDb_AttReadMultiple
 (
     deviceId_t                            deviceId,
-    const attReadMultipleRequestParams_t* pReqParams,
+    bearerId_t                            bearerId,
+    attReadMultipleRequestParams_t*       pReqParams,
     attReadMultipleResponseParams_t*      pOutRspParams,
     uint16_t*                             outErrorAttributeHandle
 );
@@ -162,6 +174,7 @@ attErrorCode_t GattDb_AttReadMultiple
  * in a Read By Group Type Response parameter structure.
  *
  * \param[in] deviceId                   The device ID of the requesting ATT Client.
+ * \param[in] bearerId                   The bearer ID on which the transaction takes place.
  * \param[in] pReqParams                 The request parameters.
  * \param[out] pOutRspParams             The pre-allocated response parameter to be filled.
  * \param[out] outErrorAttributeHandle   The attribute handle where an error occurred.
@@ -170,6 +183,7 @@ attErrorCode_t GattDb_AttReadMultiple
 attErrorCode_t GattDb_AttReadByGroupType
 (
     deviceId_t                          deviceId,
+    bearerId_t                          bearerId,
     attReadByGroupTypeRequestParams_t*  pReqParams,
     attReadByGroupTypeResponseParams_t* pOutRspParams,
     uint16_t*                           outErrorAttributeHandle
@@ -182,6 +196,7 @@ attErrorCode_t GattDb_AttReadByGroupType
  * in a Write Response parameter structure.
  *
  * \param[in] deviceId                   The device ID of the requesting ATT Client.
+ * \param[in] bearerId                   The bearer ID on which the transaction takes place.
  * \param[in] pReqParams                 The request parameters.
  * \param[out] outErrorAttributeHandle   The attribute handle where an error occurred.
  * \return                               Success or error code (bleResult_t)
@@ -189,6 +204,7 @@ attErrorCode_t GattDb_AttReadByGroupType
 attErrorCode_t GattDb_AttWrite
 (
     deviceId_t                          deviceId,
+    bearerId_t                          bearerId,
     attWriteRequestAndCommandParams_t*  pReqParams,
     uint16_t*                           outErrorAttributeHandle
 );
@@ -199,12 +215,14 @@ attErrorCode_t GattDb_AttWrite
  * This function handles an ATT Write Command.
  *
  * \param[in] deviceId       The device ID of the requesting ATT Client.
+ * \param[in] bearerId       The bearer ID on which the transaction takes place
  * \param[in] pReqParams     The command parameters.
  * \return                   TRUE if value has been written, FALSE otherwise
   */
 void GattDb_AttWriteCommand
 (
     deviceId_t                          deviceId,
+    bearerId_t                          bearerId,
     attWriteRequestAndCommandParams_t*  pReqParams
 );
 
@@ -229,6 +247,7 @@ void GattDb_AttSignedWriteCommand
  * in a Prepare Write Response parameter structure.
  *
  * \param[in]  deviceId                  The device ID of the requesting ATT Client.
+ * \param[in]  bearerId                   The bearer ID on which the transaction takes place
  * \param[in]  pReqParams                The request parameters.
  * \param[out] pOutRspParams             The pre-allocated response parameter to be filled.
  * \param[out] outErrorAttributeHandle   The attribute handle where an error occurred.
@@ -237,6 +256,7 @@ void GattDb_AttSignedWriteCommand
 attErrorCode_t GattDb_AttPrepareWrite
 (
     deviceId_t                              deviceId,
+    bearerId_t                              bearerId,
     attPrepareWriteRequestResponseParams_t* pReqParams,
     attPrepareWriteRequestResponseParams_t* pOutRspParams,
     uint16_t*                               outErrorAttributeHandle
@@ -249,6 +269,7 @@ attErrorCode_t GattDb_AttPrepareWrite
  * in an Execute Write Response parameter structure.
  *
  * \param[in] deviceId                   The device ID of the requesting ATT Client.
+ * \param[in] bearerId                   The bearer ID on which the transaction takes place
  * \param[in] pReqParams                 The request parameters.
  * \param[out] outErrorAttributeHandle   The attribute handle where an error occurred.
  * \return                               Success or error code (bleResult_t)
@@ -256,6 +277,7 @@ attErrorCode_t GattDb_AttPrepareWrite
 attErrorCode_t GattDb_AttExecuteWrite
 (
     deviceId_t                      deviceId,
+    bearerId_t                      bearerId,
     attExecuteWriteRequestParams_t* pReqParams,
     uint16_t*                       outErrorAttributeHandle
 );
@@ -267,6 +289,7 @@ attErrorCode_t GattDb_AttExecuteWrite
  * operation from a Prepare Write Queue.
  *
  * \param[in] deviceId                   The device ID of the requesting ATT Client.
+ * \param[in] bearerId                   The bearer ID on which the transaction takes place
  * \param[in] pReqParams                 The request parameters.
  * \param[out] outErrorAttributeHandle   The attribute handle where an error occurred.
  * \return                               Success or error code (bleResult_t)
@@ -274,6 +297,7 @@ attErrorCode_t GattDb_AttExecuteWrite
 attErrorCode_t GattDb_AttExecuteWriteFromQueue
 (
     deviceId_t                              deviceId,
+    bearerId_t                              bearerId,
     attPrepareWriteRequestResponseParams_t* pReqParams,
     uint16_t*                               outErrorAttributeHandle
 );
@@ -284,17 +308,40 @@ attErrorCode_t GattDb_AttExecuteWriteFromQueue
  * This function prepares a parameter structure for sending a Notification or an Indication.
  *
  * \param[in] deviceId                   The device ID of the target Client.
+ * \param[in] bearerId                   The bearer ID on which the transaction takes place.
  * \param[inout] pIoParams               The pre-allocated parameter to be filled.
  * \param[out] outErrorAttributeHandle   The attribute handle where an error occurred.
  * \return                               Success or error code (bleResult_t)
  */
 attErrorCode_t GattDb_AttPrepareNotificationIndication
 (
-    deviceId_t                                      deviceId,
-    attVarHandleValueNotificationIndicationParams_t*   pIoParams,
-    uint16_t*                                       outErrorAttributeHandle
+    deviceId_t                                       deviceId,
+    bearerId_t                                       bearerId,
+    attVarHandleValueNotificationIndicationParams_t* pIoParams,
+    uint16_t*                                        outErrorAttributeHandle
 );
 
+/*!
+ * \brief Read Multiple Variable Length Request handler
+ *
+ * This function handles an ATT Read Multiple Variable Length Request and writes the result
+ * in a Read Multiple Variable Length Response parameter structure.
+ *
+ * \param[in] deviceId                   The device ID of the requesting ATT Client.
+ * \param[in] bearerId                   The bearer ID on which the transaction takes place.
+ * \param[in] pReqParams                 The request parameters.
+ * \param[out] pOutRspParams             The pre-allocated response parameter to be filled.
+ * \param[out] outErrorAttributeHandle   The attribute handle where an error occurred.
+ * \return                               Success or error code (bleResult_t)
+ */
+attErrorCode_t GattDb_AttReadMultipleVariableLength
+(
+    deviceId_t                               deviceId,
+    bearerId_t                               bearerId,
+    attReadMultipleRequestParams_t*          pReqParams,
+    attReadMultipleVariableResponseParams_t* pOutRspParams,
+    uint16_t*                                outErrorAttributeHandle
+);
 #ifdef __cplusplus
 }
 #endif

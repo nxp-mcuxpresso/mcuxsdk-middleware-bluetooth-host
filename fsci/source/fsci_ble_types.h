@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2019 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2019, 2021, 2023-2024 NXP
+*
 *
 * \file
 *
@@ -67,15 +67,23 @@
         (value) = Utils_ExtractFourByteValue((pBuff));  \
         (pBuff) += 4U
 
+#define fsciBleGetUint64ValueFromBuffer(value, pBuff)   \
+        (value) = Utils_ExtractEightByteValue((pBuff));  \
+        (pBuff) += 8U
+
 #define fsciBleGetBufferFromUint32Value(value, pBuff)   \
         Utils_PackFourByteValue((value), (pBuff));      \
         (pBuff) += 4U
 
+#define fsciBleGetBufferFromUint64Value(value, pBuff)   \
+        Utils_PackEightByteValue((value), (pBuff));      \
+        (pBuff) += 8U
+
 #define fsciBleGetUint128ValueFromBuffer(pValue, pBuff) \
-        fsciBleGetArrayFromBuffer((pValue), (pBuff), 16)
+        fsciBleGetArrayFromBuffer((pValue), (pBuff), 16U)
 
 #define fsciBleGetBufferFromUint128Value(pValue, pBuff) \
-        fsciBleGetBufferFromArray((pValue), (pBuff), 16)
+        fsciBleGetBufferFromArray((pValue), (pBuff), 16U)
 
 #define fsciBleGetArrayFromBuffer(pArray, pBuff, nbOfBytes) \
         FLib_MemCpy((void*)(pArray), (pBuff), (nbOfBytes)); \
@@ -124,6 +132,15 @@
 #define fsciBleGetBufferFromDeviceId(pDeviceId, ppBuff) \
         fsciBleGetBufferFromUint8Value(*(pDeviceId), *(ppBuff))
 
+#define fsciBleGetBearerIdBufferSize(pBearerId) \
+        sizeof(uint8_t)
+
+#define fsciBleGetBearerIdFromBuffer(pBearerId, ppBuff) \
+        fsciBleGetUint8ValueFromBuffer(*(pBearerId), *(ppBuff))
+
+#define fsciBleGetBufferFromBearerId(pBearerId, ppBuff) \
+        fsciBleGetBufferFromUint8Value(*(pBearerId), *(ppBuff))
+
 /************************************************************************************
 *************************************************************************************
 * Public type definitions
@@ -146,7 +163,7 @@
 extern "C" {
 #endif
 
-uint16_t fsciBleGetUuidBufferSize
+uint32_t fsciBleGetUuidBufferSize
 (
     bleUuidType_t uuidType
 );

@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2017, 2021 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2023 NXP
+*
 *
 * \file
 *
@@ -24,9 +24,10 @@
 ************************************************************************************/
 
 #include "EmbeddedTypes.h"
-#include "MemManager.h"
+#include "fsl_component_mem_manager.h"
 #include "fsci_ble_interface.h"
 #include "fsci_ble_types.h"
+#include "fwk_mem_manager.h"
 #include "ble_utils.h"
 
 /************************************************************************************
@@ -63,11 +64,12 @@
     BIT6 - if set, FSCI for GATT Database (application) is enabled
     BIT7 - if set, FSCI for GATT Database (ATT) is enabled
     BIT8 - if set, FSCI for GAP is enabled
+    BIT9 - if set, FSCI for CS is enabled
 */
 
 #ifndef gFsciBleEnabledLayersMask_d
     #if gFsciBleTest_d
-        #define gFsciBleEnabledLayersMask_d             0x9B        
+        #define gFsciBleEnabledLayersMask_d             0x9F
     #elif gFsciBleBBox_d || gFsciBleHost_d
         #define gFsciBleEnabledLayersMask_d             0x0164
     #else
@@ -137,7 +139,27 @@
 #else
     #define gFsciBleGapLayerEnabled_d               0
 #endif
-  
+
+/*! Macro which indicates if FSCI for CS is enabled or not */
+#if ((gFsciBleEnabledLayersMask_d & 0x0200U) != 0U)
+    #define gFsciCSLayerEnabled_d                   1
+#else
+    #define gFsciCSLayerEnabled_d                   0
+#endif
+
+/*! Macro which indicates if FSCI for Handover is enabled or not */
+#if ((gFsciBleEnabledLayersMask_d & 0x0400U) != 0U)
+    #define gFsciBleGapHandoverLayerEnabled_d       1
+#else
+    #define gFsciBleGapHandoverLayerEnabled_d       0
+#endif
+
+/*! Macro which indicates if FSCI for GAP2 is enabled or not */
+#if ((gFsciBleEnabledLayersMask_d & 0x0800U) != 0U)
+    #define gFsciBleGap2LayerEnabled_d       1
+#else
+    #define gFsciBleGap2LayerEnabled_d       0
+#endif
 
 #define fsciBleRegisterOpGroup(opGroup, pfHandler, fsciInterface)                FSCI_RegisterOpGroup(opGroup, gFsciMonitorMode_c, pfHandler, NULL, fsciInterface)
 #define fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceIdentifier) FSCI_transmitFormatedPacket((void*)pClientPacket, fsciBleInterfaceIdentifier)
@@ -156,7 +178,7 @@
 *************************************************************************************
 ************************************************************************************/
 
-/*! FSCI interface on which the monitored commands, events or statuses 
+/*! FSCI interface on which the monitored commands, events or statuses
 should be printed */
 extern uint32_t fsciBleInterfaceId;
 
@@ -171,18 +193,18 @@ extern "C" {
 #endif
 
 /*! *********************************************************************************
-* \brief  Creates the FSCI packet which contains the status of the last executed BLE 
+* \brief  Creates the FSCI packet which contains the status of the last executed BLE
 *         command and sends it over UART.
 *
-* \param[in]    opCodeGroup     FSCI operation group of the command's layer. 
+* \param[in]    opCodeGroup     FSCI operation group of the command's layer.
 * \param[in]    opCode          FSCI status operation code.
 * \param[in]    result          Status of the executed command.
 *
 ********************************************************************************** */
 void fsciBleStatusMonitor
 (
-    opGroup_t   opCodeGroup, 
-    uint8_t     opCode, 
+    opGroup_t   opCodeGroup,
+    uint8_t     opCode,
     bleResult_t result
  );
 
@@ -199,8 +221,8 @@ void fsciBleStatusMonitor
 clientPacketStructured_t* fsciBleAllocFsciPacket
 (
     opGroup_t   opCodeGroup,
-    uint8_t     opCode, 
-    uint16_t    dataSize
+    uint8_t     opCode,
+    uint32_t    dataSize
 );
 
 /*! *********************************************************************************
@@ -212,13 +234,13 @@ clientPacketStructured_t* fsciBleAllocFsciPacket
 ********************************************************************************** */
 void fsciBleNoParamCmdOrEvtMonitor
 (
-    opGroup_t   opCodeGroup, 
+    opGroup_t   opCodeGroup,
     uint8_t     opCode
 );
 
 #ifdef __cplusplus
 }
-#endif 
+#endif
 
 #endif /* FSCI_BLE_H */
 

@@ -3,10 +3,10 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2014, Freescale Semiconductor, Inc.
-* Copyright 2016-2017 NXP
-* All rights reserved.
-* 
+* Copyright 2014 Freescale Semiconductor, Inc.
+* Copyright 2016-2019, 2021-2023 NXP
+*
+*
 * \file
 *
 * SPDX-License-Identifier: BSD-3-Clause
@@ -67,6 +67,7 @@
     0x0100-0xFFFF   Reserved Not applicable
 */
 #define gL2caLePsmSigAssignedFirst_c            (0x0001U)
+#define gL2caLePsmSigAssignedEatt_c             (0x0027U)
 #define gL2caLePsmSigAssignedLast_c             (0x007FU)
 
 #define gL2caLePsmDynamicFirst_c                (0x0080U)
@@ -75,12 +76,15 @@
 #define gL2capDefaultMtu_c                      (23U)
 #define gL2capDefaultMps_c                      (23U)
 #define gL2capMaximumMps_c                      (65533U)
+#define gEnhancedL2capMinimumMps_c              (64U)
 
 #define gL2capHeaderLength_c                    (4U)
 
 #define gExpandAsEnum_m(a,b,c) b = c,
 #define gExpandAsTable_m(a,b,c) c,
 
+/* Maximum number of channels that can be included in one Enhanced Connect/Reconfigure Request */
+#define gL2capEnhancedMaxChannels_c             (5U)
 /*
 *   Add here all Bluetooth SIG Assigned Numbers for L2CAP LE_PSM
 */
@@ -105,8 +109,15 @@ typedef enum
     gL2ca_LePsmConnectionComplete_c,
     gL2ca_LePsmDisconnectNotification_c,
     gL2ca_NoPeerCredits_c,
+    gL2ca_LowPeerCredits_c,
     gL2ca_LocalCreditsNotification_c,
-    gL2ca_Error_c
+    gL2ca_Error_c,
+    gL2ca_ChannelStatusNotification_c,
+    gL2ca_LePsmEnhancedConnectRequest_c,
+    gL2ca_LePsmEnhancedConnectionComplete_c,
+    gL2ca_EnhancedReconfigureRequest_c,
+    gL2ca_EnhancedReconfigureResponse_c,
+    gL2ca_HandoverConnectionComplete_c,
 } l2capControlMessageType_t;
 
 /************************************************************************************
@@ -116,6 +127,12 @@ typedef enum
 ************************************************************************************/
 typedef void(*l2caGenericCallback_t)
                 (deviceId_t deviceId,
+                 uint8_t*   pPacket,
+                 uint16_t   packetLength);
+
+typedef void(*l2caEattCallback_t)
+                (deviceId_t deviceId,
+                 uint16_t   channelId,
                  uint8_t*   pPacket,
                  uint16_t   packetLength);
 

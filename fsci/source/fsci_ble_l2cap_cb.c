@@ -3,9 +3,9 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2019 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2019, 2021-2023 NXP
+*
 *
 * \file
 *
@@ -49,10 +49,8 @@
 * Private functions prototypes
 *************************************************************************************
 ************************************************************************************/
-#if !defined(MULTICORE_APPLICATION_CORE) || (!MULTICORE_APPLICATION_CORE) || (defined(gFsciBleHost_d) && (gFsciBleHost_d == 1U))
 static void fsciBleL2capCbLeCbDataCallback(deviceId_t deviceId, uint16_t lePsm, uint8_t* pPacket, uint16_t packetLength);
 static void fsciBleL2capCbLeCbControlCallback(l2capControlMessage_t *pMessage);
-#endif
 
 /************************************************************************************
 *************************************************************************************
@@ -69,13 +67,11 @@ static void fsciBleL2capCbLeCbControlCallback(l2capControlMessage_t *pMessage);
 #endif /* gFsciBleTest_d */
 
 
-#if !defined(MULTICORE_APPLICATION_CORE) || (!MULTICORE_APPLICATION_CORE) || (defined(gFsciBleHost_d) && (gFsciBleHost_d == 1U))
 /* L2CAP Credit Based data callback initialized with FSCI empty static function */
 static l2caLeCbDataCallback_t       l2capCbLeCbDataCallback     = fsciBleL2capCbLeCbDataCallback;
 
 /* L2CAP Credit Based control callback initialized with FSCI empty static function */
 static l2caLeCbControlCallback_t    l2capCbLeCbControlCallback  = fsciBleL2capCbLeCbControlCallback;
-#endif
 
 
 /************************************************************************************
@@ -86,25 +82,21 @@ static l2caLeCbControlCallback_t    l2capCbLeCbControlCallback  = fsciBleL2capCb
 
 void fsciBleSetL2capCbLeCbDataCallback(l2caLeCbDataCallback_t dataCallback)
 {
-#if !defined(MULTICORE_APPLICATION_CORE) || (!MULTICORE_APPLICATION_CORE) || (defined(gFsciBleHost_d) && (gFsciBleHost_d == 1U))
     /* Set callback to an application desired function, only
     if not NULL. Otherwise set it to the FSCI empty static function */
     l2capCbLeCbDataCallback = (NULL != dataCallback) ?
                               dataCallback :
                               fsciBleL2capCbLeCbDataCallback;
-#endif
 }
 
 
 void fsciBleSetL2capCbLeCbControlCallback(l2caLeCbControlCallback_t controlCallback)
 {
-#if !defined(MULTICORE_APPLICATION_CORE) || (!MULTICORE_APPLICATION_CORE) || (defined(gFsciBleHost_d) && (gFsciBleHost_d == 1U))
     /* Set callback to an application desired function, only
     if not NULL. Otherwise set it to the FSCI empty static function */
     l2capCbLeCbControlCallback = (NULL != controlCallback) ?
                                  controlCallback :
                                  fsciBleL2capCbLeCbControlCallback;
-#endif
 }
 
 
@@ -118,7 +110,7 @@ void fsciBleL2capCbHandler(void* pData, void* param, uint32_t fsciInterface)
     bFsciBleL2capCbCmdInitiatedByFsci = TRUE;
 
     /* Verify if the command is Mode Select */
-    if(gBleL2capCbModeSelectOpCode_c == pClientPacket->structured.header.opCode)
+    if(gBleL2capCbModeSelectOpCode_c == (fsciBleL2capCbOpCode_t)pClientPacket->structured.header.opCode)
     {
         fsciBleGetBoolValueFromBuffer(bFsciBleL2capCbEnabled, pBuffer);
         /* Return status */
@@ -136,9 +128,7 @@ void fsciBleL2capCbHandler(void* pData, void* param, uint32_t fsciInterface)
 #if gFsciBleBBox_d || gFsciBleTest_d
                 case (uint8_t)gBleL2capCbCmdRegisterLeCbCallbacksOpCode_c:
                     {
-#if !defined(MULTICORE_APPLICATION_CORE) || (!MULTICORE_APPLICATION_CORE)
                         fsciBleL2capCbCallApiFunction(L2ca_RegisterLeCbCallbacks(l2capCbLeCbDataCallback, l2capCbLeCbControlCallback));
-#endif
                     }
                     break;
 
@@ -227,7 +217,7 @@ void fsciBleL2capCbHandler(void* pData, void* param, uint32_t fsciInterface)
                         if(NULL != pPacket)
                         {
                             /* Get pPacket parameter from the received packet */
-                            fsciBleGetArrayFromBuffer(pPacket, pBuffer, packetLength);
+                            fsciBleGetArrayFromBuffer(pPacket, pBuffer, ((uint32_t)packetLength));
 
                             fsciBleL2capCbCallApiFunction(L2ca_SendLeCbData(deviceId, channelId, pPacket, packetLength));
 
@@ -257,6 +247,86 @@ void fsciBleL2capCbHandler(void* pData, void* param, uint32_t fsciInterface)
                         fsciBleL2capCbCallApiFunction(L2ca_SendLeCredit(deviceId, channelId, credits));
                     }
                     break;
+
+#if defined(gBLE52_d) && (gBLE52_d == 1)
+                    case (uint8_t)gBleL2capCbCmdEnhancedConnectLePsmOpCode_c:
+                    {
+                        uint16_t    lePsm;
+                        deviceId_t  deviceId;
+                        uint16_t    mtu;
+                        uint16_t    initialCredits;
+                        uint8_t     noOfChannels;
+                        uint16_t    aCids[gL2capEnhancedMaxChannels_c] = {0};
+                        uint8_t     iCount = 0;
+
+                        /* Get lePsm, deviceId and initialCredits parameters from the received packet */
+                        fsciBleGetUint16ValueFromBuffer(lePsm, pBuffer);
+                        fsciBleGetDeviceIdFromBuffer(&deviceId, &pBuffer);
+                        fsciBleGetUint16ValueFromBuffer(mtu, pBuffer);
+                        fsciBleGetUint16ValueFromBuffer(initialCredits, pBuffer);
+                        /* Get number of channels (and list of channels if given) */
+                        fsciBleGetUint8ValueFromBuffer(noOfChannels, pBuffer);
+                        if(pClientPacket->structured.header.len >= (sizeof(uint16_t) + sizeof(deviceId_t)
+                                                                    + sizeof(uint16_t) + sizeof(uint16_t)
+                                                                    + sizeof(uint8_t) + noOfChannels * sizeof(uint16_t)))
+                        {
+                            for (iCount = 0; iCount < noOfChannels; iCount++)
+                            {
+                                fsciBleGetUint16ValueFromBuffer(aCids[iCount], pBuffer);
+                            }
+                        }
+                        fsciBleL2capCbCallApiFunction(L2ca_EnhancedConnectLePsm(lePsm, deviceId, mtu, initialCredits, noOfChannels, aCids));
+                    }
+                    break;
+
+                    case (uint8_t)gBleL2capCbCmdEnhancedChannelReconfigureOpCode_c:
+                    {
+                        deviceId_t  deviceId;
+                        uint16_t    newMtu;
+                        uint16_t    newMps;
+                        uint8_t     noOfChannels;
+                        uint16_t    aCids[gL2capEnhancedMaxChannels_c] = {0};
+                        uint8_t     iCount = 0;
+
+                        /* Get deviceId, new MTU and new MPS parameters from the received packet */
+                        fsciBleGetDeviceIdFromBuffer(&deviceId, &pBuffer);
+                        fsciBleGetUint16ValueFromBuffer(newMtu, pBuffer);
+                        fsciBleGetUint16ValueFromBuffer(newMps, pBuffer);
+                        /* Get number of channels and list of channels to reconfigure */
+                        fsciBleGetUint8ValueFromBuffer(noOfChannels, pBuffer);
+                        for (iCount = 0; iCount < noOfChannels; iCount++)
+                        {
+                            fsciBleGetUint16ValueFromBuffer(aCids[iCount], pBuffer);
+                        }
+                        fsciBleL2capCbCallApiFunction(L2ca_EnhancedChannelReconfigure(deviceId, newMtu, newMps, noOfChannels, aCids));
+                    }
+                    break;
+
+                    case (uint8_t)gBleL2capCbCmdEnhancedCancelConnectionOpCode_c:
+                    {
+                        uint16_t    lePsm;
+                        deviceId_t  deviceId;
+                        l2caLeCbConnectionRequestResult_t refuseReason;
+                        uint8_t     noOfChannels;
+                        uint16_t    aCids[gL2capEnhancedMaxChannels_c] = {0};
+                        uint8_t     iCount = 0;
+
+                        /* Get lePsm, deviceId and refuseReason parameters from the received packet */
+                        fsciBleGetUint16ValueFromBuffer(lePsm, pBuffer);
+                        fsciBleGetDeviceIdFromBuffer(&deviceId, &pBuffer);
+                        fsciBleGetEnumValueFromBuffer(refuseReason, pBuffer, l2caLeCbConnectionRequestResult_t);
+
+                        /* Get number and list of channels for which to cancel the pending connection */
+                        fsciBleGetUint8ValueFromBuffer(noOfChannels, pBuffer);
+                        for (iCount = 0; iCount < noOfChannels; iCount++)
+                        {
+                            fsciBleGetUint16ValueFromBuffer(aCids[iCount], pBuffer);
+                        }
+                        fsciBleL2capCbCallApiFunction(L2ca_EnhancedCancelConnection(lePsm, deviceId, refuseReason, noOfChannels, aCids));
+                    }
+                    break;
+
+#endif /* gBLE52_d */
 #endif /* gFsciBleBBox_d || gFsciBleTest_d */
 
 #if gFsciBleHost_d
@@ -273,7 +343,15 @@ void fsciBleL2capCbHandler(void* pData, void* param, uint32_t fsciInterface)
                 case gBleL2capCbEvtLePsmDisconnectNotificationOpCode_c:
                 case gBleL2capCbEvtNoPeerCreditsOpCode_c:
                 case gBleL2capCbEvtLocalCreditsNotificationOpCode_c:
+#if defined(gBLE52_d) && (gBLE52_d == 1)
+                case gBleL2capCbEvtLePsmEnhancedConnectRequestOpCode_c:
+                case gBleL2capCbEvtLePsmEnhancedConnectionCompleteOpCode_c:
+                case gBleL2capCbEvtEnhancedReconfigureRequestOpCode_c:
+                case gBleL2capCbEvtEnhancedReconfigureResponseOpCode_c:
+#endif /* gBLE52_d */
+                case gBleL2capCbEvtLowPeerCreditsOpCode_c:
                 case gBleL2capCbEvtErrorOpCode_c:
+                case gBleL2capCbEvtChannelStatusNotificationOpCode_c:
                     {
                         l2capControlMessageType_t   messageType = gL2ca_LePsmConnectRequest_c;
                         uint16_t                    messageSize = 0;
@@ -281,6 +359,38 @@ void fsciBleL2capCbHandler(void* pData, void* param, uint32_t fsciInterface)
 
                         switch(pClientPacket->structured.header.opCode)
                         {
+#if defined(gBLE52_d) && (gBLE52_d == 1)
+                            case gBleL2capCbEvtLePsmEnhancedConnectRequestOpCode_c:
+                                {
+                                    messageType = gL2ca_LePsmEnhancedConnectRequest_c;
+                                    messageSize = sizeof(l2caEnhancedConnectionRequest_t) +
+                                                  sizeof(uint16_t) * gL2capEnhancedMaxChannels_c;
+                                }
+                                break;
+
+                            case gBleL2capCbEvtLePsmEnhancedConnectionCompleteOpCode_c:
+                                {
+                                    messageType = gL2ca_LePsmEnhancedConnectionComplete_c;
+                                    messageSize = sizeof(l2caEnhancedConnectionComplete_t) +
+                                                  sizeof(uint16_t) * gL2capEnhancedMaxChannels_c;
+                                }
+                                break;
+
+                            case gBleL2capCbEvtEnhancedReconfigureRequestOpCode_c:
+                                {
+                                    messageType = gL2ca_EnhancedReconfigureRequest_c;
+                                    messageSize = sizeof(l2caEnhancedReconfigureRequest_t) +
+                                                  sizeof(uint16_t) * gL2capEnhancedMaxChannels_c;
+                                }
+                                break;
+
+                            case gBleL2capCbEvtEnhancedReconfigureResponseOpCode_c:
+                                {
+                                    messageType = gL2ca_EnhancedReconfigureResponse_c;
+                                    messageSize = sizeof(l2caEnhancedReconfigureResponse_t);
+                                }
+                                break;
+#endif /* gBLE52_d */
                             case gBleL2capCbEvtLePsmConnectRequestOpCode_c:
                                 {
                                     messageType = gL2ca_LePsmConnectRequest_c;
@@ -323,6 +433,20 @@ void fsciBleL2capCbHandler(void* pData, void* param, uint32_t fsciInterface)
                                 }
                                 break;
 
+                            case gBleL2capCbEvtChannelStatusNotificationOpCode_c:
+                                {
+                                    messageType = gL2ca_ChannelStatusNotification_c;
+                                    messageSize = sizeof(l2caLeCbChannelStatusNotification_t);
+                                }
+                                break;
+
+                            case gBleL2capCbEvtLowPeerCreditsOpCode_c:
+                                {
+                                    messageType = gL2ca_LowPeerCredits_c;
+                                    messageSize = sizeof(l2caLeCbLowPeerCredits_t);
+                                }
+                                break;
+
                             default:
                                 ; /* For MISRA compliance */
                                 break;
@@ -338,6 +462,31 @@ void fsciBleL2capCbHandler(void* pData, void* param, uint32_t fsciInterface)
                             {
                                 switch(pClientPacket->structured.header.opCode)
                                 {
+#if defined(gBLE52_d) && (gBLE52_d == 1)
+                                    case gBleL2capCbEvtLePsmEnhancedConnectRequestOpCode_c:
+                                        {
+                                            fsciBleL2capCbGetEnhancedConnReqFromBuffer((l2caEnhancedConnectionRequest_t*)pMessage, &pBuffer);
+                                        }
+                                        break;
+
+                                    case gBleL2capCbEvtLePsmEnhancedConnectionCompleteOpCode_c:
+                                        {
+                                            fsciBleL2capCbGetEnhancedConnCompleteFromBuffer((l2caEnhancedConnectionComplete_t*)pMessage, &pBuffer);
+                                        }
+                                        break;
+
+                                    case gBleL2capCbEvtEnhancedReconfigureRequestOpCode_c:
+                                        {
+                                            fsciBleL2capCbGetEnhancedReconfigureReqFromBuffer((l2caEnhancedReconfigureRequest_t*)pMessage, &pBuffer);
+                                        }
+                                        break;
+
+                                    case gBleL2capCbEvtEnhancedReconfigureResponseOpCode_c:
+                                        {
+                                            fsciBleL2capCbGetEnhancedReconfigureRspFromBuffer((l2caEnhancedReconfigureResponse_t*)pMessage, &pBuffer);
+                                        }
+                                        break;
+#endif /* gBLE52_d */
                                     case gBleL2capCbEvtLePsmConnectRequestOpCode_c:
                                         {
                                             fsciBleL2capCbGetLeCbConnReqFromBuffer((l2caLeCbConnectionRequest_t*)pMessage, &pBuffer);
@@ -371,6 +520,18 @@ void fsciBleL2capCbHandler(void* pData, void* param, uint32_t fsciInterface)
                                     case gBleL2capCbEvtErrorOpCode_c:
                                         {
                                             fsciBleL2capCbGetLeCbErrorFromBuffer((l2caLeCbError_t*)pMessage, &pBuffer);
+                                        }
+                                        break;
+
+                                    case gBleL2capCbEvtChannelStatusNotificationOpCode_c:
+                                        {
+                                            fsciBleL2capCbGetLeCbChannelStatusNotificationFromBuffer((l2caLeCbChannelStatusNotification_t*)pMessage, &pBuffer);
+                                        }
+                                        break;
+
+                                    case gBleL2capCbEvtLowPeerCreditsOpCode_c:
+                                        {
+                                            fsciBleL2capCbGetLeCbLowPeerCreditsFromBuffer((l2caLeCbLowPeerCredits_t*)pMessage, &pBuffer);
                                         }
                                         break;
 
@@ -488,7 +649,7 @@ void fsciBleL2capCbNoParamCmdMonitor(fsciBleL2capCbOpCode_t opCode)
     }
 
     /* Call the generic FSCI BLE monitor for commands or events that have no parameters */
-    fsciBleNoParamCmdOrEvtMonitor(gFsciBleL2capCbOpcodeGroup_c, opCode);
+    fsciBleNoParamCmdOrEvtMonitor(gFsciBleL2capCbOpcodeGroup_c, (uint8_t)opCode);
 #endif /* gFsciBleTest_d */
 }
 
@@ -496,6 +657,170 @@ void fsciBleL2capCbNoParamCmdMonitor(fsciBleL2capCbOpCode_t opCode)
 
 
 #if gFsciBleHost_d
+
+#if defined(gBLE52_d) && (gBLE52_d == 1)
+void fsciBleL2capCbEnhancedConnectLePsmCmdMonitor
+(
+    uint16_t                lePsm,
+    deviceId_t              deviceId,
+    uint16_t                initialCredits,
+    uint8_t                 noOfChannels,
+    uint16_t                *aCids
+)
+{
+    clientPacketStructured_t*   pClientPacket;
+    uint8_t*                    pBuffer;
+    uint8_t                     aCidsLength = 0, iCount = 0;
+
+#if gFsciBleTest_d
+    /* If L2CAP CB is disabled or if the command was initiated by FSCI it must be not monitored */
+    if((FALSE == bFsciBleL2capCbEnabled) ||
+       (TRUE == bFsciBleL2capCbCmdInitiatedByFsci))
+    {
+        return;
+    }
+#endif /* gFsciBleTest_d */
+
+    if (aCids != NULL)
+    {
+        aCidsLength = sizeof(uint16_t) * noOfChannels;
+    }
+
+    /* Allocate the packet to be sent over UART */
+    pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdEnhancedConnectLePsmOpCode_c,
+                                                  sizeof(uint16_t) +
+                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                  sizeof(uint16_t) +
+                                                  sizeof(uint8_t) +
+                                                  aCidsLength);
+
+    if(NULL == pClientPacket)
+    {
+        return;
+    }
+
+    pBuffer = &pClientPacket->payload[0];
+
+    /* Set command parameters in the buffer */
+    fsciBleGetBufferFromUint16Value(lePsm, pBuffer);
+    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+    fsciBleGetBufferFromUint16Value(initialCredits, pBuffer);
+    fsciBleGetBufferFromUint8Value(noOfChannels, pBuffer);
+    if (aCidsLength != 0)
+    {
+        for (iCount = 0; iCount < noOfChannels; iCount++)
+        {
+            fsciBleGetBufferFromUint16Value(aCids[iCount], pBuffer);
+        }
+    }
+
+    /* Transmit the packet over UART */
+    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+}
+
+
+void fsciBleL2capCbEnhancedChannelReconfigureCmdMonitor
+(
+    deviceId_t              deviceId,
+    uint16_t                newMtu,
+    uint16_t                newMps,
+    uint8_t                 noOfChannels,
+    uint16_t                *aCids
+)
+{
+    clientPacketStructured_t*   pClientPacket;
+    uint8_t*                    pBuffer;
+    uint8_t                     iCount = 0;
+
+#if gFsciBleTest_d
+    /* If L2CAP CB is disabled or if the command was initiated by FSCI it must be not monitored */
+    if((FALSE == bFsciBleL2capCbEnabled) ||
+       (TRUE == bFsciBleL2capCbCmdInitiatedByFsci))
+    {
+        return;
+    }
+#endif /* gFsciBleTest_d */
+
+    /* Allocate the packet to be sent over UART */
+    pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdEnhancedChannelReconfigureOpCode_c,
+                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                  sizeof(uint16_t) +
+                                                  sizeof(uint16_t) +
+                                                  sizeof(uint8_t) +
+                                                  noOfChannnels * sizeof(uint16_t));
+
+    if(NULL == pClientPacket)
+    {
+        return;
+    }
+
+    pBuffer = &pClientPacket->payload[0];
+
+    /* Set command parameters in the buffer */
+    fsciBleGetBufferFromUint16Value(lePsm, pBuffer);
+    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+    fsciBleGetBufferFromUint16Value(initialCredits, pBuffer);
+    fsciBleGetBufferFromUint8Value(noOfChannels, pBuffer);
+    for (iCount = 0; iCount < noOfChannels; iCount++)
+    {
+        fsciBleGetBufferFromUint16Value(aCids[iCount], pBuffer);
+    }
+
+    /* Transmit the packet over UART */
+    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+}
+
+void fsciBleL2capCbEnhancedCancelConnectionCmdMonitor
+(
+    uint16_t    lePsm,
+    deviceId_t  deviceId,
+    l2caLeCbConnectionRequestResult_t refuseReason,
+    uint8_t     noOfChannels,
+    uint16_t    *aCids
+)
+{
+    clientPacketStructured_t*   pClientPacket;
+    uint8_t*                    pBuffer;
+    uint8_t                     iCount = 0;
+
+#if gFsciBleTest_d
+    /* If L2CAP CB is disabled or if the command was initiated by FSCI it must be not monitored */
+    if((FALSE == bFsciBleL2capCbEnabled) ||
+       (TRUE == bFsciBleL2capCbCmdInitiatedByFsci))
+    {
+        return;
+    }
+#endif /* gFsciBleTest_d */
+
+    /* Allocate the packet to be sent over UART */
+    pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdEnhancedCancelConnectionOpCode_c,
+                                                  sizeof(uint16_t) +
+                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                  sizeof(l2caLeCbConnectionRequestResult_t) +
+                                                  sizeof(uint8_t) +
+                                                  noOfChannnels * sizeof(uint16_t));
+
+    if(NULL == pClientPacket)
+    {
+        return;
+    }
+
+    pBuffer = &pClientPacket->payload[0];
+
+    /* Set command parameters in the buffer */
+    fsciBleGetBufferFromUint16Value(lePsm, pBuffer);
+    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+    fsciBleGetBufferFromEnumValue(refuseReason, pBuffer, l2caLeCbConnectionRequestResult_t);
+    fsciBleGetBufferFromUint8Value(noOfChannels, pBuffer);
+    for (iCount = 0; iCount < noOfChannels; iCount++)
+    {
+        fsciBleGetBufferFromUint16Value(aCids[iCount], pBuffer);
+    }
+
+    /* Transmit the packet over UART */
+    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+}
+#endif /* gBLE52_d */
 
 void fsciBleL2capCbConnectLePsmCmdMonitor(uint16_t lePsm, deviceId_t deviceId, uint16_t credits)
 {
@@ -712,6 +1037,7 @@ void fsciBleL2capCbCancelConnectionCmdMonitor(uint16_t lePsm, deviceId_t deviceI
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
+#endif /* gFsciBleHost_d */
 
 void fsciBleL2capCbSendLeCbDataCmdMonitor(deviceId_t deviceId, uint16_t channelId, const uint8_t* pPacket, uint16_t packetLength)
 {
@@ -728,10 +1054,10 @@ void fsciBleL2capCbSendLeCbDataCmdMonitor(deviceId_t deviceId, uint16_t channelI
 #endif /* gFsciBleTest_d */
 
     /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdSendLeCbDataOpCode_c,
+    pClientPacket = fsciBleL2capCbAllocFsciPacket((uint8_t)gBleL2capCbCmdSendLeCbDataOpCode_c,
                                                   sizeof(uint16_t) +
                                                   fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                  sizeof(uint16_t) + packetLength);
+                                                  sizeof(uint16_t) + (uint32_t)packetLength);
 
     if(NULL == pClientPacket)
     {
@@ -750,9 +1076,6 @@ void fsciBleL2capCbSendLeCbDataCmdMonitor(deviceId_t deviceId, uint16_t channelI
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
-#endif /* gFsciBleHost_d */
-
-
 #if gFsciBleBBox_d || gFsciBleTest_d
 
 void fsciBleL2capCbLeCbDataEvtMonitor(deviceId_t deviceId, uint16_t srcCid, uint8_t* pPacket, uint16_t packetLength)
@@ -768,10 +1091,17 @@ void fsciBleL2capCbLeCbDataEvtMonitor(deviceId_t deviceId, uint16_t srcCid, uint
     }
 #endif /* gFsciBleTest_d */
 
+    union
+    {
+        uint32_t dataLenTemp;
+        uint16_t dataLen;
+    }dataLength = {0};
+
+    dataLength.dataLen = packetLength;
     /* Allocate the packet to be sent over UART */
     pClientPacket = fsciBleL2capCbAllocFsciPacket((uint8_t)gBleL2capCbEvtLeCbDataOpCode_c,
                                                   fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                  sizeof(uint16_t) + sizeof(uint16_t) + packetLength);
+                                                  sizeof(uint16_t) + sizeof(uint16_t) + dataLength.dataLenTemp);
 
     if(NULL == pClientPacket)
     {
@@ -793,7 +1123,7 @@ void fsciBleL2capCbLeCbDataEvtMonitor(deviceId_t deviceId, uint16_t srcCid, uint
 
 void fsciBleL2capCbLeCbControlEvtMonitor(l2capControlMessage_t* pMessage)
 {
-    uint16_t                    dataSize    = sizeof(bool_t);
+    uint32_t                    dataSize    = sizeof(bool_t);
     fsciBleL2capCbOpCode_t      opCode;
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
@@ -812,6 +1142,35 @@ void fsciBleL2capCbLeCbControlEvtMonitor(l2capControlMessage_t* pMessage)
         /* Get FSCI opCode and update size needed for buffer */
         switch(pMessage->messageType)
         {
+#if defined(gBLE52_d) && (gBLE52_d == 1)
+            case gL2ca_LePsmEnhancedConnectRequest_c:
+                {
+                    opCode      = gBleL2capCbEvtLePsmEnhancedConnectRequestOpCode_c;
+                    dataSize   += fsciBleL2capCbGetEnhancedConnectionRequestBufferSize(pMessage->messageData.enhancedConnRequest);
+                }
+                break;
+
+            case gL2ca_LePsmEnhancedConnectionComplete_c:
+                {
+                    opCode      = gBleL2capCbEvtLePsmEnhancedConnectionCompleteOpCode_c;
+                    dataSize   += fsciBleL2capCbGetEnhancedConnectionCompleteBufferSize(pMessage->messageData.enhancedConnComplete);
+                }
+                break;
+
+            case gL2ca_EnhancedReconfigureRequest_c:
+                {
+                    opCode      = gBleL2capCbEvtEnhancedReconfigureRequestOpCode_c;
+                    dataSize   += fsciBleL2capCbGetEnhancedReconfigureRequestBufferSize(pMessage->messageData.reconfigureRequest);
+                }
+                break;
+
+            case gL2ca_EnhancedReconfigureResponse_c:
+                {
+                    opCode      = gBleL2capCbEvtEnhancedReconfigureResponseOpCode_c;
+                    dataSize   += fsciBleL2capCbGetEnhancedReconfigureResponseBufferSize(pMessage->messageData.reconfigureResponse);
+                }
+                break;
+#endif /* gBLE52_d */
             case gL2ca_LePsmConnectRequest_c:
                 {
                     opCode      = gBleL2capCbEvtLePsmConnectRequestOpCode_c;
@@ -854,6 +1213,20 @@ void fsciBleL2capCbLeCbControlEvtMonitor(l2capControlMessage_t* pMessage)
                 }
                 break;
 
+            case gL2ca_ChannelStatusNotification_c:
+                {
+                    opCode      = gBleL2capCbEvtChannelStatusNotificationOpCode_c;
+                    dataSize   += fsciBleL2capCbGetLeCbChannelStatusNotificationBufferSize(pMessage->messageData.channelStatusNotification);
+                }
+                break;
+
+            case gL2ca_LowPeerCredits_c:
+                {
+                    opCode      = gBleL2capCbEvtLowPeerCreditsOpCode_c;
+                    dataSize   += fsciBleL2capCbGetLeCbLowPeerCreditsBufferSize(pMessage->messageData.lowPeerCredits);
+                }
+                break;
+
             default:
                 {
                     /* Unknown message type */
@@ -876,11 +1249,36 @@ void fsciBleL2capCbLeCbControlEvtMonitor(l2capControlMessage_t* pMessage)
             pBuffer = &pClientPacket->payload[0];
 
             /* Set event parameters in the buffer */
-            fsciBleGetBufferFromBoolValue(TRUE, pBuffer);
+            fsciBleGetBufferFromBoolValue(!earlyReturn, pBuffer);
 
             /* pMessage is not NULL and must be monitored */
             switch(pMessage->messageType)
             {
+#if defined(gBLE52_d) && (gBLE52_d == 1)
+                case gL2ca_LePsmEnhancedConnectRequest_c:
+                    {
+                        fsciBleL2capCbGetBuffFromEnhancedConnReq(&pMessage->messageData.enhancedConnRequest, &pBuffer);
+                    }
+                    break;
+
+                case gL2ca_LePsmEnhancedConnectionComplete_c:
+                    {
+                        fsciBleL2capCbGetBuffFromEnhancedConnComplete(&pMessage->messageData.enhancedConnComplete, &pBuffer);
+                    }
+                    break;
+
+                case gL2ca_EnhancedReconfigureRequest_c:
+                    {
+                        fsciBleL2capCbGetBuffFromEnhancedReconfigureReq(&pMessage->messageData.reconfigureRequest, &pBuffer);
+                    }
+                    break;
+
+                case gL2ca_EnhancedReconfigureResponse_c:
+                    {
+                        fsciBleL2capCbGetBuffFromEnhancedReconfigureRsp(&pMessage->messageData.reconfigureResponse, &pBuffer);
+                    }
+                    break;
+#endif /* gBLE52_d */
                 case gL2ca_LePsmConnectRequest_c:
                     {
                         fsciBleL2capCbGetBuffFromLeCbConnRequest(&pMessage->messageData.connectionRequest, &pBuffer);
@@ -917,6 +1315,18 @@ void fsciBleL2capCbLeCbControlEvtMonitor(l2capControlMessage_t* pMessage)
                     }
                     break;
 
+                case gL2ca_ChannelStatusNotification_c:
+                    {
+                        fsciBleL2capCbGetBuffFromLeCbChannelStatusNotification(&pMessage->messageData.channelStatusNotification, &pBuffer);
+                    }
+                    break;
+
+                case gL2ca_LowPeerCredits_c:
+                    {
+                        fsciBleL2capCbGetBuffFromLeCbLowPeerCredits(&pMessage->messageData.lowPeerCredits, &pBuffer);
+                    }
+                    break;
+
                 default:
                     ; /* For MISRA compliance */
                     break;
@@ -936,8 +1346,6 @@ void fsciBleL2capCbLeCbControlEvtMonitor(l2capControlMessage_t* pMessage)
 *************************************************************************************
 ************************************************************************************/
 
-#if !defined(MULTICORE_APPLICATION_CORE) || (!MULTICORE_APPLICATION_CORE) || (defined(gFsciBleHost_d) && (gFsciBleHost_d == 1U))
-
 static void fsciBleL2capCbLeCbDataCallback(deviceId_t deviceId, uint16_t lePsm, uint8_t* pPacket, uint16_t packetLength)
 {
     fsciBleL2capCbLeCbDataEvtMonitor(deviceId, lePsm, pPacket, packetLength);
@@ -947,8 +1355,6 @@ static void fsciBleL2capCbLeCbControlCallback(l2capControlMessage_t *pMessage)
 {
     fsciBleL2capCbLeCbControlEvtMonitor(pMessage);
 }
-
-#endif /* !MULTICORE_APPLICATION_CORE || gFsciBleHost_d */
 
 #endif /* gFsciIncluded_c && gFsciBleL2capCbLayerEnabled_d */
 

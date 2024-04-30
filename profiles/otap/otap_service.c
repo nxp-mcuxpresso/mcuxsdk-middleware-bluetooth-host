@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2019 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2019, 2021, 2023 NXP
+*
 *
 * \file
 *
@@ -25,14 +25,8 @@
 #include "gatt_server_interface.h"
 #include "gap_interface.h"
 #include "otap_interface.h"
-
-#if defined(MULTICORE_APPLICATION_CORE) && (MULTICORE_APPLICATION_CORE)
-#define UUID128(name, ...) extern uint8_t name[];
-#include "gatt_uuid128.h"
-#undef UUID128
-#else
 #include "gatt_db_handles.h" // Include this file for the 128 bit characteristic UUIDs. Do not access the handles directly!
-#endif
+
 
 /************************************************************************************
 *************************************************************************************
@@ -102,7 +96,7 @@ bleResult_t OtapCS_SendCommandToOtapServer (uint16_t serviceHandle,
         bleUuid_t*              bleUuidTemp;
     }bleUuidVars;
 
-    uint16_t  handle;
+    uint16_t  handle = 0U;
     bleResult_t result;
     bleUuidVars.uuid_char_otap_control_pointTemp = uuid_char_otap_control_point;
     bleUuid_t* pUuid = bleUuidVars.bleUuidTemp;
@@ -145,8 +139,8 @@ bleResult_t OtapCS_SendCommandToOtapServer (uint16_t serviceHandle,
 ************************************************************************************/
 static bleResult_t OtapCS_SendControlPointIndication (uint16_t handle)
 {
-    uint16_t    hCccd;
-    bool_t      isIndicationActive;
+    uint16_t    hCccd = 0U;
+    bool_t      isIndicationActive = FALSE;
     bleResult_t result;
 
     /* Get handle of CCCD */

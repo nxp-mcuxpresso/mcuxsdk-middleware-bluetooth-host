@@ -3,9 +3,9 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2014, Freescale Semiconductor, Inc.
-* Copyright 2016-2021 NXP
-* All rights reserved.
+* Copyright 2014 Freescale Semiconductor, Inc.
+* Copyright 2016-2024 NXP
+*
 *
 * \file
 *
@@ -23,7 +23,6 @@
 *************************************************************************************
 ************************************************************************************/
 #include "ble_general.h"
-#include "vendor_debug_commands.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -40,7 +39,7 @@
 
 #if defined(gBLE50_d) && (gBLE50_d == TRUE)
 #define gHciNumLeMetaSubEvents_c            (21U)
-#else 
+#else
 #define gHciNumLeMetaSubEvents_c            (11U)
 #endif
 #define gHciNumEvents_c                     (9U)
@@ -56,7 +55,11 @@
 #define gHciMaxPeriodicAdvReportDataLen_c   (247U) /* ESR11: E8909 - Wrong Maximum */
 #endif
 
-/* Hci packets header lengths */
+#if defined(gBLE51_d) && (gBLE51_d == TRUE)
+#define gHciMaxSwitchingPatternLength_c     (75U)
+#endif
+
+/* HCI packets header lengths */
 #define gHciCommandPacketHeaderLength_c     (3U)
 #define gHciAclDataPacketHeaderLength_c     (4U)
 #define gHciEventPacketHeaderLength_c       (2U)
@@ -82,8 +85,9 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 #define gHciSetControllerToHostFlowControl_c      0x0031U
 #define gHciHostBufferSize_c                      0x0033U
 #define gHciHostNumberOfCompletedPackets_c        0x0035U
-#if defined(gLePingIsSupported_d) && (gLePingIsSupported_d == TRUE)
 #define gHciSetEventMaskPage2_c                   0x0063U
+
+#if defined(gLePingIsSupported_d) && (gLePingIsSupported_d == TRUE)
 #define gHciReadAuthenticatedPayloadTimeout_c     0x007BU
 #define gHciWriteAuthenticatedPayloadTimeout_c    0x007CU
 #endif
@@ -107,27 +111,27 @@ the data portion (excluding header) contained in the packets is 500 - header siz
     /*! HCI OGF : 0x08 : LE Controller Commands */
 #define gHciLeControllerCommands_c                      0x08U
     /*! HCI Commands OCF for OGF : 0x08 : LE Controller Commands */
-#define gHciLeSetEventMask_c                    0x0001U
-#define gHciLeReadBufferSize_c                  0x0002U
-#define gHciLeReadLocalSupportedFeatures_c      0x0003U
-#define gHciLeSetRandomAddress_c                0x0005U
-#define gHciLeSetAdvertisingParameters_c        0x0006U
-#define gHciLeReadAdvertisingChannelTxPower_c   0x0007U
-#define gHciLeSetAdvertisingData_c              0x0008U
-#define gHciLeSetScanResponseData_c             0x0009U
-#define gHciLeSetAdvertisingEnable_c            0x000AU
-#define gHciLeSetScanParameters_c               0x000BU
-#define gHciLeSetScanEnable_c                   0x000CU
-#define gHciLeCreateConnection_c                0x000DU
-#define gHciLeCreateConnectionCancel_c          0x000EU
-#define gHciLeReadWhiteListSize_c               0x000FU
-#define gHciLeClearWhiteList_c                  0x0010U
-#define gHciLeAddDeviceToWhiteList_c            0x0011U
-#define gHciLeRemoveDeviceFromWhiteList_c       0x0012U
-#define gHciLeConnectionUpdate_c                0x0013U
-#define gHciLeSetHostChannelClassification_c    0x0014U
-#define gHciLeReadChannelMap_c                  0x0015U
-#define gHciLeReadRemoteFeatures_c              0x0016U
+#define gHciLeSetEventMask_c                        0x0001U
+#define gHciLeReadBufferSize_c                      0x0002U
+#define gHciLeReadLocalSupportedFeatures_c          0x0003U
+#define gHciLeSetRandomAddress_c                    0x0005U
+#define gHciLeSetAdvertisingParameters_c            0x0006U
+#define gHciLeReadAdvertisingChannelTxPower_c       0x0007U
+#define gHciLeSetAdvertisingData_c                  0x0008U
+#define gHciLeSetScanResponseData_c                 0x0009U
+#define gHciLeSetAdvertisingEnable_c                0x000AU
+#define gHciLeSetScanParameters_c                   0x000BU
+#define gHciLeSetScanEnable_c                       0x000CU
+#define gHciLeCreateConnection_c                    0x000DU
+#define gHciLeCreateConnectionCancel_c              0x000EU
+#define gHciLeReadFilterAcceptListSize_c            0x000FU
+#define gHciLeClearFilterAcceptList_c               0x0010U
+#define gHciLeAddDeviceToFilterAcceptList_c         0x0011U
+#define gHciLeRemoveDeviceFromFilterAcceptList_c    0x0012U
+#define gHciLeConnectionUpdate_c                    0x0013U
+#define gHciLeSetHostChannelClassification_c        0x0014U
+#define gHciLeReadChannelMap_c                      0x0015U
+#define gHciLeReadRemoteFeatures_c                  0x0016U
 
 #if defined(gHciLeEncryptSupport_d) && (gHciLeEncryptSupport_d == TRUE)
 #define gHciLeEncrypt_c                         0x0017U
@@ -201,27 +205,109 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 #define gHciLeWriteRfPathCompensation_c             0x004DU
 #endif /* gBLE50_d */
 
+#if defined(gBLE51_d) && (gBLE51_d == TRUE)
+
+#if defined(gBLE51_ConnectionlessCTESupport_d) && (gBLE51_ConnectionlessCTESupport_d == TRUE)
+#define gHciLeSetConnectionlessCteTransmitParams_c          0x0051U
+#define gHciLeSetConnectionlessCteTransmitEnable_c          0x0052U
+#define gHciLeSetConnectionlessIqSamplingEnable_c           0x0053U
+#endif /* (gBLE51_ConnectionlessCTESupport_d == TRUE) */
+
+#if defined(gBLE51_ConnectionCTESupport_d) && (gBLE51_ConnectionCTESupport_d == TRUE)
+#define gHciLeSetConnectionCteReceiveParams_c               0x0054U
+#define gHciLeSetConnectionCteTransmitParams_c              0x0055U
+#define gHciLeConnectionCteReqEnable_c                      0x0056U
+#define gHciLeConnectionCteRspEnable_c                      0x0057U
+#endif /* (gBLE51_ConnectionCTESupport_d == TRUE) */
+
+#if ((defined(gBLE51_ConnectionCTESupport_d) && (gBLE51_ConnectionCTESupport_d == TRUE)) || \
+    (defined(gBLE51_ConnectionlessCTESupport_d) && (gBLE51_ConnectionlessCTESupport_d == TRUE)))
+#define gHciLeReadAntennaInformation_c                      0x0058U
+#endif /* ((gBLE51_ConnectionCTESupport_d == TRUE) || (gBLE51_ConnectionlessCTESupport_d == TRUE)) */
+#define gHciLeSetPeriodicAdvReceiveEnable_c                 0x0059U
+
+#if defined(gBLE51_PeriodicAdvSyncTransferSupport_d) && (gBLE51_PeriodicAdvSyncTransferSupport_d == TRUE)
+#define gHciLePeriodicAdvSyncTransfer_c                     0x005AU
+#define gHciLePeriodicAdvSetInfoTransfer_c                  0x005BU
+#define gHciLeSetPeriodicAdvSyncTransferParameters_c        0x005CU
+#define gHciLeSetDefaultPeriodicAdvSyncTransferParameters_c 0x005DU
+#endif /* (gBLE51_PeriodicAdvSyncTransferSupport_d == TRUE) */
+#define gHciLeGenerateDhKeyV2_c                             0x005EU
+#define gHciLeModifySleepClockAccuracy_c                    0x005FU
+#endif /* gBLE51_d */
+
+/* LE Set Host Feature command */
+#define gHciLeSetHostFeature_c                              0x0074U
+
+#if defined(gBLE52_LePowerControlSupport_d) && (gBLE52_LePowerControlSupport_d == TRUE)
+#define gHciLeEnhancedReadTransmitPowerLevel_c              0x0076U
+#define gHciLeReadRemoteTransmitPowerLevel_c                0x0077U
+#define gHciLeSetPathLossReportingParams_c                  0x0078U
+#define gHciLeSetPathLossReportingEnable_c                  0x0079U
+#define gHciLeSetTransmitPowerReportingEnable_c             0x007AU
+#endif /* gBLE52_LePowerControlSupport_d */
+
+#if (gBLE54_d == TRUE)
+#if (gBLE54_AdvertisingCodingSelectionSupport_d == TRUE)
+#define gHciLeSetExtAdvParamsV2_c                           0x007FU
+#endif /* gBLE54_AdvertisingCodingSelectionSupport_d */
+#endif /* gBLE54_d */
+
+/* Temporary values for Channel Sounding support, values to be finalized in the core spec */
+#if (defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == TRUE))
+#define gHciLeReadLocalSupportedHadmCapabilities_c               0x0089U
+#define gHciLeReadRemoteSupportedHadmCapabilities_c              0x008AU
+#define gHciLeWriteRemoteCachedCapabilities_c                    0x008BU
+#define gHciLeSetHadmSecurityEnable_c                            0x008CU
+#define gHciLeHadmSetDefaultSettings_c                           0x008DU
+#define gHciLeReadRemoteFaeTable_c                               0x008EU
+#define gHciLeWriteRemoteFaeTable_c                              0x008FU
+#define gHciLeCreateHadmConfig_c                                 0x0090U
+#define gHciLeRemoveHadmConfig_c                                 0x0091U
+#define gHciLeSetChannelClassification_c                         0x0092U
+#define gHciLeHadmSetProcedureParameters_c                       0x0093U
+#define gHciLeSetHadmProcedureEnable_c                           0x0094U
+#define gHciLeHadmTest_c                                         0x0095U
+#define gHciLeHadmTestEnd_c                                      0x0096U
+#endif /* gBLE_ChannelSounding_d */
+
+#define gHciLeSetDecisionData_c                     0x0080U
+#define gHciLeSetDecisionInstructions_c             0x0081U
+
      /*! HCI OGF : 0x3F : Vendor Specific Debug Commands */
-#define gHciVendorSpecificDebugCommands_c           0x03FU
-#define gHciSetTxPowerCommand_c                     0x012DU
-#define gHciVendorEnhancedNotificationCommand_c     0x01F0U
+#define gHciVendorSpecificDebugCommands_c                       0x03FU
+#define gHciSetTxPowerCommand_c                                 0x012DU
+#define gHciVendorEnhancedNotificationCommand_c                 0x01F0U
+#define gHciVendorSetExpmSupportedFeaturesCommand_c             0x009EU
+#define gHciVendorGetConnectionParameters_c                     0x00A3U
         /*! HCI Commands OCF for OGF : 0x3F : Vendor Specific Debug Commands */
         /* Will be inherited from "vendor_debug_commands.h" */
+/* Vendor specific command HCI_CMD_BLE_ADV_INDEX_CHANGE */
+#define gHciVendorBleAdvIndexChangeCommand_c                     0x009DU
+
+#define gHciVendorSetEncSessionKeyCommand_c                      0x00B0U
+
+/* Vendor specific command LE_Set_Scheduler_Priority */
+#define gHciVendorLeSetSchedulerPriority_c                       0x00B2U
 
 
-    /* Macros used to build full HCI OpCodes */
+#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == TRUE)
+#define gHciVendorHadmConfig_c                                   0x00AFU
+#endif
+
+/* Macros used to build full HCI OpCodes */
 #define HciCmdOpcode(cmdOgf, cmdOcf)        (((uint16_t)(cmdOgf) << SHIFT10) | (cmdOcf))
 #define HciLeCmdOpcode(leCmdOcf)            (HciCmdOpcode(gHciLeControllerCommands_c, leCmdOcf))
 #define HciInfoCmdOpcode(infoCmdOcf)        (HciCmdOpcode(gHciInformationalParameters_c, infoCmdOcf))
 #define HciControllerCmdOpcode(ctrlCmdOcf)  (HciCmdOpcode(gHciControllerBasebandCommands_c, ctrlCmdOcf))
 #define HciStatusCmdOpcode(statusCmdOcf)    (HciCmdOpcode(gHciStatusParameters_c, statusCmdOcf))
+#define HciLeCsCmdOpcode(leCmdOcf)          (HciCmdOpcode(gHciLeControllerCommands_c, leCmdOcf))
 
-#ifndef BIT
 #define BIT(x) (1 << (x))
-#endif
+#define BIT64(x) (((uint64_t)1) << (x))
 
 #define gHciAddrTypePrivacyOffset_c      (0x02U)
-#define gHciFilterPolicyPrivacyOffset_c  (0x02U)
+#define gHciFilterPolicyPrivacyOffset_c  (BIT1)
 
 #if defined(gBLE50_d) && (gBLE50_d == TRUE)
 #define gHciAdvReportTypeMask_c     (0x1FU)
@@ -239,6 +325,11 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 #define gHciBleAddrTypeNone_c           (0xFFU) /*!< No address provided (anonymous advertisement) */
 #endif
 
+#define gAdvertisingCodingSelectionSupportShift_c           (5U * 8U)
+#define gAdvertisingCodingSelectionHostSupportShift_c       (5U * 8U + 1U)
+#define gLeDecisionBasedAdvertisingFilteringSupportShift_c  (5U * 8U + 2U)
+
+#define gExtAdvDecisionDataTypeFlags_ResolvableTag_c  BIT0
 /************************************************************************************
 *************************************************************************************
 * Public type definitions
@@ -289,6 +380,8 @@ typedef enum
     gHciEncryptionKeyRefreshCompleteEvent_c             = 0x30,
     gHciLeMetaEvent_c                                   = 0x3E,
     gHciAuthenticatedPayloadTimeoutExpiredEvent_c       = 0x57,
+    /* Vendor - Handover */
+    gHciVendorHandoverMetaEvent_c                       = 0xFF,
 } hciEventCode_tag;
 
 typedef uint8_t hciLeMetaSubEventCode_t;
@@ -317,44 +410,84 @@ typedef enum
     gHciLeAdvSetTerminatedEvent_c                   = 0x12,
     gHciLeScanReqReceivedEvent_c                    = 0x13,
     gHciLeChannelSelAlgorithmEvent_c                = 0x14,
-    gHciLeVendorEnhancedNotificationEvent_c         = 0xFF,
+    /* BLE v5.1 */
+    gHciLeConnectionlessIqReportEvent_c             = 0x15,
+    gHciLeConnectionIqReportEvent_c                 = 0x16,
+    gHciLeCteRequestFailedEvent_c                   = 0x17,
+    gHciLePeriodicAdvSyncTransferReceived_c         = 0x18,
+
+    /* BLE v5.2 */
+    gHciLePathLossThresholdEvent_c                  = 0x20,
+    gHciLeTransmitPowerReportingEvent_c             = 0x21,
+
+    gHciLeSkdReportEvent_c                          = 0x40,
+
+    /* BLE v6.0 - Channel Sounding */
+    gHciLeHadmReadRemoteSupportedCapabilitiesCompleteEvent_c = 0x2C,
+    gHciLeHadmReadRemoteFaeTableCompleteEvent_c              = 0x2D,
+    gHciLeHadmSetSecurityEnableCompleteEvent_c               = 0x2E,
+    gHciLeHadmConfigCompleteEvent_c                          = 0x2F,
+    gHciLeHadmProcedureEnableCompleteEvent_c                 = 0x30,
+    gHciLeHadmSubeventResultEvent_c                          = 0x31,
+    gHciLeHadmSubeventResultContinueEvent_c                  = 0x32,
+    gHciLeHadmTestEndCompleteEvent_c                         = 0x33,
+    gHciLeHadmSubeventDebugResultEvent_c                     = 0xF0,
+
+    gHciLeVendorEnhancedNotificationEvent_c                  = 0xFF,
 } hciLeMetaSubEventCode_tag;
 
-typedef uint32_t hciLeMetaSubEventMask_t;
+typedef uint64_t hciLeMetaSubEventMask_t;
 typedef enum
 {
-    gHciLeConnectionCompleteEventMask_c                 = BIT(0 * 8 + 0),
-    gHciLeAdvertisingReportEventMask_c                  = BIT(0 * 8 + 1),
-    gHciLeConnectionUpdateCompleteEventMask_c           = BIT(0 * 8 + 2),
-    gHciLeReadRemoteFeaturesCompleteEventMask_c         = BIT(0 * 8 + 3),
-    gHciLeLongTermKeyRequestEventMask_c                 = BIT(0 * 8 + 4),
+    gHciLeConnectionCompleteEventMask_c                 = BIT((0 * 8) + 0),
+    gHciLeAdvertisingReportEventMask_c                  = BIT((0 * 8) + 1),
+    gHciLeConnectionUpdateCompleteEventMask_c           = BIT((0 * 8) + 2),
+    gHciLeReadRemoteFeaturesCompleteEventMask_c         = BIT((0 * 8) + 3),
+    gHciLeLongTermKeyRequestEventMask_c                 = BIT((0 * 8) + 4),
     /* BLE v4.1 */
-    gHciLeRemoteConnectionParameterRequestEventMask_c   = BIT(0 * 8 + 5),
+    gHciLeRemoteConnectionParameterRequestEventMask_c   = BIT((0 * 8) + 5),
     /* BLE v4.2 */
-    gHciLeDataLengthChangeEventMask_c                   = BIT(0 * 8 + 6),
-    gHciLeReadLocalP256PublicKeyCompleteEventMask_c     = BIT(0 * 8 + 7),
-    gHciLeGenerateDhKeyCompleteEventMask_c              = BIT(1 * 8 + 0),
-    gHciLeEnhancedConnectionCompleteEventMask_c         = BIT(1 * 8 + 1),
-    gHciLeDirectedAdvertisingReportEventMask_c          = BIT(1 * 8 + 2),
+    gHciLeDataLengthChangeEventMask_c                   = BIT((0 * 8) + 6),
+    gHciLeReadLocalP256PublicKeyCompleteEventMask_c     = BIT((0 * 8) + 7),
+    gHciLeGenerateDhKeyCompleteEventMask_c              = BIT((1 * 8) + 0),
+    gHciLeEnhancedConnectionCompleteEventMask_c         = BIT((1 * 8) + 1),
+    gHciLeDirectedAdvertisingReportEventMask_c          = BIT((1 * 8) + 2),
     /* BLE v5.0 */
-    gHciLePhyUpdateCompleteEventMask_c                  = BIT(1 * 8 + 3),
-    gHciLeExtAdvReportEventMask_c                       = BIT(1 * 8 + 4),
-    gHciLePeriodicAdvSyncEstbEventMask_c                = BIT(1 * 8 + 5),
-    gHciLePeriodicAdvReportEventMask_c                  = BIT(1 * 8 + 6),
-    gHciLePeriodicAdvSyncLostEventMask_c                = BIT(1 * 8 + 7),
-    gHciLeScanTimeoutEventMask_c                        = BIT(2 * 8 + 0),
-    gHciLeAdvSetTerminatedEventMask_c                   = BIT(2 * 8 + 1),
-    gHciLeScanReqReceivedEventMask_c                    = BIT(2 * 8 + 2),
-    gHciLeChannelSelAlgorithmEventMask_c                = BIT(2 * 8 + 3),
+    gHciLePhyUpdateCompleteEventMask_c                  = BIT((1 * 8) + 3),
+    gHciLeExtAdvReportEventMask_c                       = BIT((1 * 8) + 4),
+    gHciLePeriodicAdvSyncEstbEventMask_c                = BIT((1 * 8) + 5),
+    gHciLePeriodicAdvReportEventMask_c                  = BIT((1 * 8) + 6),
+    gHciLePeriodicAdvSyncLostEventMask_c                = BIT((1 * 8) + 7),
+    gHciLeScanTimeoutEventMask_c                        = BIT((2 * 8) + 0),
+    gHciLeAdvSetTerminatedEventMask_c                   = BIT((2 * 8) + 1),
+    gHciLeScanReqReceivedEventMask_c                    = BIT((2 * 8) + 2),
+    gHciLeChannelSelAlgorithmEventMask_c                = BIT((2 * 8) + 3),
+    /* BLE v5.2 */
+    gHciLePathLossThresholdEventMask_c                  = BIT((3 * 8) + 7),
+    gHciLeTransmitPowerReportingEventMask_c             = BIT64((4 * 8) + 0),
 } hciLeMetaSubEventMask_tag;
 
-typedef uint32_t hciLeSupportedFeatures_t;
+/* Event mask values assigned by CS IOP test plan r18 */
+#define gHciLeCsReadRemoteSupportedCapabilitiesEventMask_c  0x2B
+#define gHciLeCsReadRemoteFAETableEventMask_c               0x2C
+#define gHciLeCsSecurityEnableEventMask_c                   0x2D
+#define gHciLeCsConfigCompleteEventMask_c                   0x2E
+#define gHciLeCsProcEnableCompleteEventMask_c               0x2F
+#define gHciLeCsSubeventResultEventMask_c                   0x30
+#define gHciLeCsSubeventResultContinueEventMask_c           0x31
+#define gHciLeTestEndEventMask_c                            0x32
+
+/* LL Feature bits */
+/* Channel Sounding (Host Support) */
+#define gChannelSoundingHostSupport_c                       0x2F /* 47 decimal */
+
+typedef leSupportedFeatures_t hciLeSupportedFeatures_t;
 typedef enum
 {
     gHciLeEncryption_c                            = BIT((0 * 8) + 0), /* 0 */
     gHciConnectionParametersRequestProcedure_c    = BIT((0 * 8) + 1), /* 1 */
     gHciExtendedRejectIndication_c                = BIT((0 * 8) + 2), /* 2 */
-    gHciSlaveInitiatedFeaturesExchange_c          = BIT((0 * 8) + 3), /* 3 */
+    gHciPeripheralInitiatedFeaturesExchange_c     = BIT((0 * 8) + 3), /* 3 */
     gHciLePing_c                                  = BIT((0 * 8) + 4), /* 4 */
     gHciLeDataPacketLengthExtension_c             = BIT((0 * 8) + 5), /* 5 */
     gHciLlPrivacy_c                               = BIT((0 * 8) + 6), /* 6 */
@@ -389,10 +522,10 @@ typedef enum
 typedef uint8_t hciBleAddressType_t;
 
 typedef enum {
-    gHciScanAll_c              =  0x00,    /*!< Scans all advertising packets. */
-    gHciScanWithWhiteList_c    =  0x01,    /*!< Scans advertising packets using the White List. */
-    gHciScanAllRpa_c           =  0x02,
-    gHciScanWithWhiteListRpa_c =  0x03
+    gHciScanAll_c                       =  0x00,    /*!< Scans all advertising packets. */
+    gHciScanWithFilterAcceptList_c      =  0x01,    /*!< Scans advertising packets using the Filter Accept List. */
+    gHciScanAllRpa_c                    =  0x02,
+    gHciScanWithFilterAcceptListRpa_c   =  0x03
 } hciBleScanningFilterPolicy_t;
 
 #if defined(gBLE50_d) && (gBLE50_d == TRUE)
@@ -420,7 +553,8 @@ typedef enum
     gHciExtDataIntermediateFrag_c = 0x00, /*!< Intermediate fragment of extended advertising or scan response data. */
     gHciExtDataFirstFrag_c        = 0x01, /*!< First fragment of extended advertising or scan response data. */
     gHciExtDataLastFrag_c         = 0x02, /*!< Last fragment of extended advertising or scan response data. */
-    gHciExtDataComplete_c         = 0x03  /*!< Complete extended advertising or scan response data. No fragmentation. */
+    gHciExtDataComplete_c         = 0x03, /*!< Complete extended advertising or scan response data. No fragmentation. */
+    gHciExtDataUnchanged_c        = 0x04  /*!< Unchanged data (just update the Advertising DID of the periodic advertising. */
 } hciBleExtDataOperation_tag;
 
 typedef uint8_t hciBleFragmentPreference_t;

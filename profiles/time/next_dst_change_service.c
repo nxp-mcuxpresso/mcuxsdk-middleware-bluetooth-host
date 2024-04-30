@@ -3,8 +3,8 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2016-2019 NXP
-* All rights reserved.
+* Copyright 2016-2019, 2022-2023 NXP
+*
 *
 * \file
 *
@@ -67,8 +67,8 @@ bleResult_t Ndcs_Unsubscribe(void)
 
 bleResult_t Ndcs_RecordCurrentTime (ndcsConfig_t *pServiceConfig)
 {
-    uint16_t  handle;
-    bleResult_t result;
+    uint16_t  handle = gGattDbInvalidHandle_d;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_TimeWithDST_d);
 
     /* Get handle of  characteristic */
@@ -78,7 +78,7 @@ bleResult_t Ndcs_RecordCurrentTime (ndcsConfig_t *pServiceConfig)
     if (result == gBleSuccess_c)
     {
         /* Update characteristic value */
-        result = GattDb_WriteAttribute(handle, sizeof(ndcsTimeWithDst_t), (uint8_t*)(&pServiceConfig->timeWithDst));
+        result = GattDb_WriteAttribute(handle, (uint16_t)sizeof(ndcsTimeWithDst_t), (uint8_t*)(&pServiceConfig->timeWithDst));
     }
 
     return result;

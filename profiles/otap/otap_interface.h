@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2019 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2020, 2022-2023 NXP
+*
 *
 * \file
 *
@@ -22,9 +22,6 @@
 * Include
 *************************************************************************************
 ************************************************************************************/
-#if defined (SOTA_ENABLED)
-#include "blob_utils.h"
-#endif
 
 /************************************************************************************
 *************************************************************************************
@@ -38,9 +35,6 @@
 #define gOtap_ImageVersionFieldSize_c               (8U)
 #define gOtap_ChunkSeqNumberSize_c                  (1U)
 #define gOtap_MaxChunksPerBlock_c                   (256U)
-#if defined (SOTA_ENABLED)
-#define gOtap_ImageCompatibilityListMaxSize_c   (SOTA_MAX_BLOB_NB_WITHOUT_SSBL*sizeof(sotaCompatibilityListElem_t))
-#endif
 
 /*!< ATT_MTU - 3 - 1 - 1 = 23 - 3 - 1 - 1 = 20 - 2 = 18 for ATT Write Without Response */
 #define gOtap_AttCommandMtuDataChunkOverhead_c      (3U + gOtap_CmdIdFieldSize_c + gOtap_ChunkSeqNumberSize_c) /*!< 3 for Att Opcode [1] and Attribute Handle [2] - ATT Write Without Response */
@@ -96,9 +90,7 @@ typedef enum bleOtaFileHeaderVersion_tag
 #define gOtapStatusInvalidImageFileSize_c           0x19U /*!< The image file size is not valid. */
 #define gOtapStatusInvalidL2capPsm_c                0x1AU /*!< A block transfer request has been made via the L2CAP CoC method but the specified Psm is not known. */
 #define gOtapStatusNoL2capPsmConnection_c           0x1BU /*!< A block transfer request has been made via the L2CAP CoC method but there is no valid PSM connection. */
-#define gOtapStatusInvalidCompatibilityList_c       0x1CU /*!< The compatibility list format or content is wrong. */
-#define gOtapStatusCompatibilityError_c             0x1DU /*!< In case of Selective OTA, the blob being notified requires another blob to be upgraded first. */
-#define gOtapNumberOfStatuses_c                     0x1EU
+#define gOtapNumberOfStatuses_c                     0x1CU
 
 /* otapCmdIdt_t */
 #define gOtapCmdIdNoCommand_c                       0x00U /*!< No command. */
@@ -135,8 +127,6 @@ typedef enum bleOtaImageFileSubElementTagId_tag
     gBleOtaSubElemTagIdSectorBitmap_c       = 0xF000,   /*!< Sub-element contains the sector bitmap specific to the FLASH memory of a the target device.
                                                          *   The size of this sub-element value is implementation specific. */
     gBleOtaSubElemTagIdImageFileCrc_c       = 0xF100,   /*!< Sub-element contains the CRC of the image file (The CRC does not cover this sub-element)
-                                                         *   The size of this sub-element value is implementation specific. */
-    gBleOtaSubElemTagIdCompatibilityList_c  = 0xF200,   /*!< Sub-element contains the compatibility list of the image file
                                                          *   The size of this sub-element value is implementation specific. */
 } bleOtaImageFileSubElementTagId_t;
 
@@ -271,6 +261,7 @@ typedef PACKED_STRUCT otapCommand_tag
         otapCmdImgTransferComplete_t        imgTransComplete;
         otapErrNotification_t               errNotif;
         otapCmdStopImgTransfer_t            stopImgTransf;
+        otapCmdImgChunkCoc_t                imgChunkCoc;               
     } cmd;
 } otapCommand_t;
 
@@ -291,21 +282,6 @@ typedef union cmd_tag
 * Public memory declarations
 *************************************************************************************
 ************************************************************************************/
-
-/*! OTAP Protocol Command Id to Command Length table.
- *  The length includes the Command Id and the Command Payload. */
-static const uint8_t  cmdIdToCmdLengthTable[] =
-{
-    [gOtapCmdIdNoCommand_c]             = 0,
-    [gOtapCmdIdNewImageNotification_c]  = sizeof(otapCmdNewImgNotification_t) + gOtap_CmdIdFieldSize_c,
-    [gOtapCmdIdNewImageInfoRequest_c]   = sizeof(otapCmdNewImgInfoReq_t) + gOtap_CmdIdFieldSize_c,
-    [gOtapCmdIdNewImageInfoResponse_c]  = sizeof(otapCmdNewImgInfoRes_t) + gOtap_CmdIdFieldSize_c,
-    [gOtapCmdIdImageBlockRequest_c]     = sizeof(otapCmdImgBlockReq_t) + gOtap_CmdIdFieldSize_c,
-    [gOtapCmdIdImageChunk_c]            = sizeof(otapCmdImgChunkAtt_t) + gOtap_CmdIdFieldSize_c, /*!< For ATT transfer method only, maximum length. */
-    [gOtapCmdIdImageTransferComplete_c] = sizeof(otapCmdImgTransferComplete_t) + gOtap_CmdIdFieldSize_c,
-    [gOtapCmdIdErrorNotification_c]     = sizeof(otapErrNotification_t) + gOtap_CmdIdFieldSize_c,
-    [gOtapCmdIdStopImageTransfer_c]     = sizeof(otapCmdStopImgTransfer_t) + gOtap_CmdIdFieldSize_c,
-};
 
 #define gOtapCmdImageChunkCocMaxLength_c   (sizeof(otapCmdImgChunkCoc_t) + gOtap_CmdIdFieldSize_c)
 #define gOtapCmdImageChunkAttMaxLength_c   (gOtap_ImageChunkDataSizeAttMax_c + gOtap_ChunkSeqNumberSize_c + gOtap_CmdIdFieldSize_c)

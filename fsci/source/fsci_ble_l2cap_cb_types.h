@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2017 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2021, 2023 NXP
+*
 *
 * \file
 *
@@ -31,6 +31,25 @@
 * Public constants & macros
 *************************************************************************************
 ************************************************************************************/
+#define fsciBleL2capCbGetEnhancedConnectionRequestBufferSize(pEnhancedConnectionRequest)    \
+        (fsciBleGetDeviceIdBufferSize(&(pEnhancedConnectionRequest)->deviceId) +        \
+        sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) +  sizeof(uint16_t) + \
+        sizeof(uint8_t) + gL2capEnhancedMaxChannels_c * sizeof(uint16_t))
+
+#define fsciBleL2capCbGetEnhancedConnectionCompleteBufferSize(pEnhancedConnectionComplete)    \
+        (fsciBleGetDeviceIdBufferSize(&(pEnhancedConnectionComplete)->deviceId) +        \
+        sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + \
+        sizeof(l2caLeCbConnectionRequestResult_t) + sizeof(uint8_t) + \
+        gL2capEnhancedMaxChannels_c * sizeof(uint16_t))
+
+#define fsciBleL2capCbGetEnhancedReconfigureRequestBufferSize(pEnhancedReconfigureRequest)    \
+        (fsciBleGetDeviceIdBufferSize(&(pEnhancedReconfigureRequest)->deviceId) +        \
+        sizeof(uint16_t) + sizeof(uint16_t) + sizeof(l2capReconfigureResponse_t) + sizeof(uint8_t) + \
+        gL2capEnhancedMaxChannels_c * sizeof(uint16_t))
+
+#define fsciBleL2capCbGetEnhancedReconfigureResponseBufferSize(pEnhancedReconfigureResponse)    \
+        (fsciBleGetDeviceIdBufferSize(&(pEnhancedReconfigureResponse)->deviceId) +        \
+        sizeof(l2capReconfigureResponse_t))
 
 #define fsciBleL2capCbGetLeCbConnectionRequestBufferSize(pLeCbConnectionRequest)    \
         (fsciBleGetDeviceIdBufferSize(&(pLeCbConnectionRequest)->deviceId) +        \
@@ -57,6 +76,14 @@
         (fsciBleGetDeviceIdBufferSize(&(pLeCbError)->deviceId) + \
         sizeof(bleResult_t) + sizeof(l2caErrorSource_t))
 
+#define fsciBleL2capCbGetLeCbChannelStatusNotificationBufferSize(pLeCbChannelStatusNotification) \
+        (fsciBleGetDeviceIdBufferSize(&(pLeCbChannelStatusNotification)->deviceId) + \
+        sizeof(uint16_t) + sizeof(l2caChannelStatus_t))
+
+#define fsciBleL2capCbGetLeCbLowPeerCreditsBufferSize(pLeCbLowPeerCredits)    \
+        (fsciBleGetDeviceIdBufferSize(&(pLeCbLowPeerCredits)->deviceId) +    \
+        sizeof(uint16_t))
+
 /************************************************************************************
 *************************************************************************************
 * Public type definitions
@@ -78,6 +105,57 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#if defined(gBLE52_d) && (gBLE52_d == 1)
+void fsciBleL2capCbGetEnhancedConnReqFromBuffer
+(
+    l2caEnhancedConnectionRequest_t*    pEnhancedConnectionRequest,
+    uint8_t**                           ppBuffer
+);
+
+void fsciBleL2capCbGetBuffFromEnhancedConnReq
+(
+    l2caEnhancedConnectionRequest_t*    pEnhancedConnectionRequest,
+    uint8_t**                           ppBuffer
+);
+
+
+void fsciBleL2capCbGetEnhancedConnCompleteFromBuffer
+(
+    l2caEnhancedConnectionComplete_t*    pEnhancedConnectionComplete,
+    uint8_t**                            ppBuffer
+);
+
+void fsciBleL2capCbGetBuffFromEnhancedConnComplete
+(
+    l2caEnhancedConnectionComplete_t*    pEnhancedConnectionComplete,
+    uint8_t**                            ppBuffer
+);
+
+void fsciBleL2capCbGetEnhancedReconfigureReqFromBuffer
+(
+    l2caEnhancedReconfigureRequest_t*    pEnhancedReconfigureRequest,
+    uint8_t**                            ppBuffer
+);
+
+void fsciBleL2capCbGetBuffFromEnhancedReconfigureReq
+(
+    l2caEnhancedReconfigureRequest_t*    pEnhancedReconfigureRequest,
+    uint8_t**                            ppBuffer
+);
+
+void fsciBleL2capCbGetEnhancedReconfigureRspFromBuffer
+(
+    l2caEnhancedReconfigureResponse_t*    pEnhancedReconfigureResponse,
+    uint8_t**                             ppBuffer
+);
+
+void fsciBleL2capCbGetBuffFromEnhancedReconfigureRsp
+(
+    l2caEnhancedReconfigureResponse_t*    pEnhancedReconfigureResponse,
+    uint8_t**                             ppBuffer
+);
+#endif /* gBLE52_d */
 
 void fsciBleL2capCbGetLeCbConnReqFromBuffer
 (
@@ -127,6 +205,18 @@ void fsciBleL2capCbGetBuffFromLeCbNoPeerCredits
     uint8_t**                   ppBuffer
 );
 
+void fsciBleL2capCbGetLeCbLowPeerCreditsFromBuffer
+(
+    l2caLeCbLowPeerCredits_t*   pLeCbLowPeerCredits,
+    uint8_t**                   ppBuffer
+);
+
+void fsciBleL2capCbGetBuffFromLeCbLowPeerCredits
+(
+    l2caLeCbLowPeerCredits_t*   pLeCbLowPeerCredits,
+    uint8_t**                   ppBuffer
+);
+
 void fsciBleL2capCbGetLeCbLocalCreditsNotificationFromBuffer
 (
     l2caLeCbLocalCreditsNotification_t* pLeCbLocalCreditsNotification,
@@ -149,6 +239,18 @@ void fsciBleL2capCbGetBuffFromLeCbError
 (
     l2caLeCbError_t* pLeCbError,
     uint8_t**        ppBuffer
+);
+
+void fsciBleL2capCbGetLeCbChannelStatusNotificationFromBuffer
+(
+    l2caLeCbChannelStatusNotification_t* pLeCbChannelStatusNotification,
+    uint8_t** ppBuffer
+);
+
+void fsciBleL2capCbGetBuffFromLeCbChannelStatusNotification
+(
+    l2caLeCbChannelStatusNotification_t* pLeCbChannelStatusNotification,
+    uint8_t** ppBuffer
 );
 
 #ifdef __cplusplus

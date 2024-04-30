@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2014, Freescale Semiconductor, Inc.
-* Copyright 2016-2020 NXP
-* All rights reserved.
+* Copyright 2014 Freescale Semiconductor, Inc.
+* Copyright 2016-2024 NXP
+*
 *
 * \file
 *
@@ -21,6 +21,8 @@
 *************************************************************************************
 ************************************************************************************/
 #include "ble_general.h"
+#include "SecLib.h"
+#include "l2ca_cb_interface.h"
 
 /*************************************************************************************
  *************************************************************************************
@@ -78,7 +80,7 @@
 /*! The default value for the Device Security (no requirements) */
 #define gGapDefaultDeviceSecurity_d \
 { \
-  /* masterSecurityRequirements */      NULL, \
+  /* centralSecurityRequirements */     NULL, \
   /* cNumServices */                    0U, \
   /* aServiceSecurityRequirements */    NULL \
 }
@@ -379,6 +381,20 @@
 #define gIoNone_c                       (0x03U)     /*!< No input and no display. */
 #define gIoKeyboardDisplay_c            (0x04U)     /*!< Has keyboard input and display. */
 
+/*! AoA/AoD */
+#define gGapCteMinLength_c                  (0x02U) /*!< Min CTE length in 8 us units. */
+#define gGapCteMaxLength_c                  (0x14U) /*!< Max CTE length in 8 us units. */
+#define gGapCteMinCount_c                   (0x01U) /*!< Min number of CTEs to transmit in each periodic advertising interval. */
+#define gGapCteMaxCount_c                   (0x10U) /*!< Max number of CTEs to transmit in each periodic advertising interval. */
+#define gGapMinSwitchingPatternLength_c     (0x02U) /*!< Min number of antennae in the pattern. */
+#define gGapMaxSwitchingPatternLength_c     (0x4BU) /*!< Max number of antennae in the pattern. */
+#define gGapEattMaxBearers                  (5U)    /*!< Maximum number of bearer Ids in one GAP request/response. */
+
+/* gapDecisionInstructionsAdvMode_t values */
+#define gbmpDIAM_NonConnectableNonScannableUndirected_c   BIT0 /* The check passes for non-connectable non-scannable undirected events. */
+#define gbmpDIAM_ConnectableUndirected_c                  BIT1 /* The check passes for connectable undirected events. */
+#define gbmpDIAM_ScannableUndirected_c                    BIT2 /* The check passes for scannable undirected events. */
+
 /*************************************************************************************
  *************************************************************************************
  * Public type definitions
@@ -437,9 +453,9 @@ typedef struct {
     gapSecurityRequirements_t   requirements;   /*!< Requirements for all attributes in this service. */
 } gapServiceSecurityRequirements_t;
 
-/*! Device Security - Master Security Requirements + Service Security Requirements */
+/*! Device Security - Security Requirements + Service Security Requirements */
 typedef struct {
-    gapSecurityRequirements_t*          pMasterSecurityRequirements;    /*!< Security requirements added to all services. */
+    gapSecurityRequirements_t*          pSecurityRequirements;          /*!< Security requirements added to all services. */
     uint8_t                             cNumServices;                   /*!< Number of service-specific requirements; must be less than or equal to gcGapMaxServiceSpecificSecurityRequirements_c. */
     gapServiceSecurityRequirements_t*   aServiceSecurityRequirements;   /*!< Array of service-specific requirements. */
 } gapDeviceSecurityRequirements_t;
@@ -483,11 +499,11 @@ typedef struct {
                                                                      Conflict if this is TRUE and localIoCapabilities is set to gIoNone_c. */
 } gapPairingParameters_t;
 
-/*! Parameters of a Slave Security Request. */
+/*! Parameters of a Peripheral Security Request. */
 typedef struct {
-    bool_t                      bondAfterPairing;       /*!< TRUE if the Slave supports bonding. */
-    bool_t                      authenticationRequired; /*!< TRUE if the Slave requires authentication for MITM protection. */
-} gapSlaveSecurityRequestParameters_t;
+    bool_t                      bondAfterPairing;       /*!< TRUE if the Peripheral supports bonding. */
+    bool_t                      authenticationRequired; /*!< TRUE if the Peripheral requires authentication for MITM protection. */
+} gapPeripheralSecurityRequestParameters_t;
 
 /*! Reason for rejecting the pairing request. */
 typedef uint8_t gapAuthenticationRejectReason_t;
@@ -510,9 +526,9 @@ typedef enum {
 /*! Advertising Filter Policy values */
 typedef enum {
     gProcessAll_c                    = 0x00U,     /*!< Default value: accept all connect and scan requests. */
-    gProcessConnAllScanWL_c          = 0x01U,     /*!< Accept all connect requests, but scan requests only from devices in White List. */
-    gProcessScanAllConnWL_c          = 0x02U,     /*!< Accept all scan requests, but connect requests only from devices in White List. */
-    gProcessWhiteListOnly_c          = 0x03U,     /*!< Accept connect and scan requests only from devices in White List. */
+    gProcessConnAllScanWL_c          = 0x01U,     /*!< Accept all connect requests, but scan requests only from devices in Filter Accept List. */
+    gProcessScanAllConnWL_c          = 0x02U,     /*!< Accept all scan requests, but connect requests only from devices in Filter Accept List. */
+    gProcessFilterAcceptListOnly_c   = 0x03U,     /*!< Accept connect and scan requests only from devices in Filter Accept List. */
 } gapAdvertisingFilterPolicy_t;
 
 /*! Advertising Parameters; for defaults see gGapDefaultAdvertisingParameters_d. */
@@ -525,7 +541,7 @@ typedef struct {
     bleAddressType_t                    peerAddressType;        /*!< Address type of the peer; only used in directed advertising and Enhanced Privacy. */
     bleDeviceAddress_t                  peerAddress;            /*!< Address of the peer; same as above. */
     gapAdvertisingChannelMapFlags_t     channelMap;             /*!< Bit mask indicating which of the three advertising channels are used. Default: all three. */
-    gapAdvertisingFilterPolicy_t        filterPolicy;           /*!< Indicates whether the connect and scan requests are filtered using the White List. Default: does not use White List (process all). */
+    gapAdvertisingFilterPolicy_t        filterPolicy;           /*!< Indicates whether the connect and scan requests are filtered using the Filter Accept List. Default: does not use Filter Accept List (process all). */
 } gapAdvertisingParameters_t;
 
 /*! Extended Advertising Parameters; for defaults see gGapDefaultExtAdvertisingParameters_d. */
@@ -540,7 +556,7 @@ typedef struct gapExtAdvertisingParameters_tag {
     bleAddressType_t                    peerAddressType;        /*!< Address type of the peer; only used in directed advertising and Enhanced Privacy. */
     bleDeviceAddress_t                  peerAddress;            /*!< Address of the peer; same as above. */
     gapAdvertisingChannelMapFlags_t     channelMap;             /*!< Bit mask indicating which of the three advertising channels are used for primary advertising */
-    gapAdvertisingFilterPolicy_t        filterPolicy;           /*!< Indicates whether the connect and scan requests are filtered using the White List */
+    gapAdvertisingFilterPolicy_t        filterPolicy;           /*!< Indicates whether the connect and scan requests are filtered using the Filter Accept List */
 
     bleAdvRequestProperties_t           extAdvProperties;       /*!< Type of advertising event */
     int8_t                              txPower;                /*!< The maximum power level at which the adv packets are to be transmitted.
@@ -552,6 +568,32 @@ typedef struct gapExtAdvertisingParameters_tag {
     bool_t                              enableScanReqNotification; /*!< Indicates whether the Controller shall send notifications upon the receipt of a scan request PDU */
 } gapExtAdvertisingParameters_t;
 
+/*! Extended Advertising Parameters V2; for defaults see gGapDefaultExtAdvertisingParametersV2_d. */
+typedef struct gapExtAdvertisingParametersV2_tag {
+    uint8_t                             SID;                    /*!< ID of the advertising set chosen by application. Shall be lower than gBleExtAdvMaxSetId_c */
+    uint8_t                             handle;                 /*!< ID of the advertising set handled by controller. Shall be lower than gMaxAdvSets_c */
+    uint32_t                            minInterval;            /*!< Minimum desired advertising interval. Shall be at least equal or higher than gGapExtAdvertisingIntervalRangeMinimum_c */
+    uint32_t                            maxInterval;            /*!< Maximum desired advertising interval. Shall be higher than gGapExtAdvertisingIntervalRangeMinimum_c and higher than minInterval */
+    bleAddressType_t                    ownAddressType;         /*!< Indicates whether the advertising address is the public address (BD_ADDR) or the random address (set by Gap_SetRandomAddress). Default: public address.
+                                                                     If Controller Privacy is enabled, this parameter is irrelevant as Private Resolvable Addresses are always used. */
+    bleDeviceAddress_t                  ownRandomAddr;          /*!< The random address used for advertising on the current handle */
+    bleAddressType_t                    peerAddressType;        /*!< Address type of the peer; only used in directed advertising and Enhanced Privacy. */
+    bleDeviceAddress_t                  peerAddress;            /*!< Address of the peer; same as above. */
+    gapAdvertisingChannelMapFlags_t     channelMap;             /*!< Bit mask indicating which of the three advertising channels are used for primary advertising */
+    gapAdvertisingFilterPolicy_t        filterPolicy;           /*!< Indicates whether the connect and scan requests are filtered using the Filter Accept List */
+
+    bleAdvRequestProperties_t           extAdvProperties;       /*!< Type of advertising event */
+    int8_t                              txPower;                /*!< The maximum power level at which the adv packets are to be transmitted.
+                                                                     The Controller shall choose a power level lower than or equal to the one specified by the Host.
+                                                                     Valid range: -127 to 20 */
+    gapLePhyMode_t                      primaryPHY;             /*!< The PHY on which the advertising packets are transmitted (1M or Coded PHY). Used for sending ADV_EXT_IND */
+    gapLePhyMode_t                      secondaryPHY;           /*!< The PHY used for sending AUX_ADV_IND PDU. Used only for Extended Advertising Events */
+    uint8_t                             secondaryAdvMaxSkip;    /*!< Maximum number of advertising events that can be skipped before the AUX_ADV_IND can be sent*/
+    bool_t                              enableScanReqNotification; /*!< Indicates whether the Controller shall send notifications upon the receipt of a scan request PDU */
+    gapLePhyOptionsFlags_t              primaryAdvPhyOptions;   /*!< Preferred or required coding when transmitting on the primary LE Coded PHY */
+    gapLePhyOptionsFlags_t              secondaryAdvPhyOptions; /*!< Preferred or required coding when transmitting on the secondary LE Coded PHY */
+} gapExtAdvertisingParametersV2_t;
+
 /*! Periodic Advertising Parameters; for defaults see gGapDefaultPeriodicAdvParameters_d. */
 typedef struct gapPeriodicAdvParameters_tag {
     uint8_t                             handle;             /*!< ID of the advertising set handled by controller. Shall be lower than gMaxAdvSets_c */
@@ -559,6 +601,41 @@ typedef struct gapPeriodicAdvParameters_tag {
     uint16_t                            minInterval;        /*!< Minimum advertising interval for periodic advertising. */
     uint16_t                            maxInterval;        /*!< Maximum advertising interval for periodic advertising. Should be different and higher than minInterval. */
 } gapPeriodicAdvParameters_t;
+
+/*! Periodic Advertisement Sync Transfer parameters */
+typedef enum gapPeriodicAdvSyncMode_tag
+{
+    gapPeriodicSyncNoSyncMode_c = 0x00U,                    /*!< No attempt is made to synchronize to the periodic advertising and no gHciLePeriodicAdvSyncTransferReceived_c event is sent to the Host */
+    gapPeriodicSyncNoReports_c  = 0x01U,                    /*!< A gHciLePeriodicAdvSyncTransferReceived_c event is sent to the Host. gHciLePeriodicAdvReportEvent_c events will be disabled. */
+    gapPeriodicSyncReportsEnabled_c = 0x02U,                /*!< A gHciLePeriodicAdvSyncTransferReceived_c event is sent to the Host. gHciLePeriodicAdvReportEvent_c events will be enabled with duplicate filtering disabled */
+    gapPeriodicSyncReportsEnabledWithDF_c = 0x03U           /*!< A gHciLePeriodicAdvSyncTransferReceived_c event is sent to the Host. gHciLePeriodicAdvReportEvent_c events will be enabled with duplicate filtering enabled */
+} gapPeriodicAdvSyncMode_t;
+
+typedef struct gapPeriodicAdvSyncTransfer_tag
+{
+    deviceId_t deviceId;                                    /*!< Connection identifier */
+    uint16_t serviceData;                                   /*!< Value provided by the host */
+    uint16_t syncHandle;                                    /*!< Identifier for the periodic advertising train */
+} gapPeriodicAdvSyncTransfer_t;
+
+typedef struct gapPeriodicAdvSetInfoTransfer_tag
+{
+    deviceId_t deviceId;                                    /*!< Connection identifier */
+    uint16_t serviceData;                                   /*!< Value provided by the host */
+    uint16_t advHandle;                                     /*!< Identifier for the advertising set */
+} gapPeriodicAdvSetInfoTransfer_t;
+
+typedef struct gapSetPeriodicAdvSyncTransferParams_tag
+{
+    deviceId_t deviceId;                                    /*!< Connection identifier */
+    gapPeriodicAdvSyncMode_t mode;                          /*!< The action to be taken when periodic advertising synchronization information is received */
+    uint16_t skip;                                          /*!< The number of periodic advertising packets that can be skipped after a successful receive */
+    uint16_t syncTimeout;                                   /*!< Synchronization timeout for the periodic advertising train */
+    bleSyncCteType_t CTEType;                               /*!< 0: Do not sync to packets with an AoA Constant Tone Extension
+                                                                 1: Do not sync to packets with an AoD Constant Tone Extension with 1 us slots
+                                                                 2: Do not sync to packets with an AoD Constant Tone Extension with 2 us slots
+                                                                 4: Do not sync to packets without a Constant Tone Extension */
+} gapSetPeriodicAdvSyncTransferParams_t;
 
 /*
 *
@@ -573,7 +650,7 @@ typedef struct {
     uint16_t                    window;             /*!< Scanning window. Default: 10 ms. */
     bleAddressType_t            ownAddressType;     /*!< Indicates whether the address used in scan requests is the public address (BD_ADDR) or the random address (set by Gap_SetRandomAddress). Default: public address.
                                                          If Controller Privacy is enabled, this parameter is irrelevant as Private Resolvable Addresses are always used. */
-    bleScanningFilterPolicy_t   filterPolicy;       /*!< Indicates whether the advertising packets are filtered using the White List. Default: does not use White List (scan all). */
+    bleScanningFilterPolicy_t   filterPolicy;       /*!< Indicates whether the advertising packets are filtered using the Filter Accept List. Default: does not use Filter Accept List (scan all). */
     /* BLE 5.0: Extended Scan only. */
     gapLePhyFlags_t             scanningPHYs;       /*!< Indicates the PHYs on which the advertising packets should be received on the primary advertising channel. */
 } gapScanningParameters_t;
@@ -593,15 +670,22 @@ typedef enum {
     gUsePeriodicAdvList_c            = 0x01,     /*!< Use the Periodic Advertiser List to determine which advertiser to listen to */
 } gapCreateSyncReqFilterPolicy_tag;
 
+/*! Create Sync Request Options */
+typedef struct gapCreateSyncReqOptions_tag {
+  gapCreateSyncReqFilterPolicy_t filterPolicy :1;
+  uint8_t reportingEnabled                    :1;
+  uint8_t duplicateFilteringEnabled           :1;
+} gapCreateSyncReqOptions_t;
+
 /*! Periodic Advertising Sync Request parameters */
 typedef struct gapPeriodicAdvSyncReq_tag {
-    gapCreateSyncReqFilterPolicy_t      filterPolicy;   /*!< Indicates whether the periodic advertiser list is used or listen for a single device described by the following parameters.
-                                                             When the periodic advertiser list is used, the following parameters are ignored. */
+    gapCreateSyncReqOptions_t           options;        /*!< Bit 0: Filter Policy. Bit 1: Reporting enabled/disabled. Bit 2: Duplicate filtering disabled/enabled. */
     uint8_t                             SID;            /*!< The SID advertised by the periodic advertiser in the ADI field. */
     bleAddressType_t                    peerAddressType;/*!< Periodic advertiser's address type (Public or Random )*/
     bleDeviceAddress_t                  peerAddress;    /*!< Periodic advertiser's address */
     uint16_t                            skipCount;      /*!< The number of consecutive periodic advertising packets that the receiver may skip after successfully receiving a periodic advertising packet.*/
     uint16_t                            timeout;        /*!< The maximum permitted time between successful receives. If this time is exceeded, synchronization is lost. */
+    bleSyncCteType_t                    cteType;        /*!< Specifies whether to only sync to certain types of CTE */
 } gapPeriodicAdvSyncReq_t;
 
 
@@ -615,13 +699,13 @@ typedef struct gapPeriodicAdvSyncReq_tag {
 typedef struct {
     uint16_t                    scanInterval;           /*!< Scanning interval. Default: 10 ms. */
     uint16_t                    scanWindow;             /*!< Scanning window. Default: 10 ms. */
-    bleInitiatorFilterPolicy_t  filterPolicy;           /*!< Indicates whether the connection request is issued for a specific device or for all the devices in the White List. Default: specific device.*/
+    bleInitiatorFilterPolicy_t  filterPolicy;           /*!< Indicates whether the connection request is issued for a specific device or for all the devices in the Filter Accept List. Default: specific device.*/
     bleAddressType_t            ownAddressType;         /*!< Indicates whether the address used in connection requests is the public address (BD_ADDR) or the random address (set by Gap_SetRandomAddress). Default: public address. */
     bleAddressType_t            peerAddressType;        /*!< When connecting to a specific device (see filterPolicy), this indicates that device's address type. Default: public address. */
     bleDeviceAddress_t          peerAddress;            /*!< When connecting to a specific device (see filterPolicy), this indicates that device's address. */
     uint16_t                    connIntervalMin;        /*!< The minimum desired connection interval. Default: 100 ms. */
     uint16_t                    connIntervalMax;        /*!< The maximum desired connection interval. Default: 200 ms. */
-    uint16_t                    connLatency;            /*!< The desired connection latency (the maximum number of consecutive connection events the Slave is allowed to ignore). Default: 0. */
+    uint16_t                    connLatency;            /*!< The desired connection latency (the maximum number of consecutive connection events the Peripheral is allowed to ignore). Default: 0. */
     uint16_t                    supervisionTimeout;     /*!< The maximum time interval between consecutive over-the-air packets; if this timer expires, the connection is dropped. Default: 10 s. */
     uint16_t                    connEventLengthMin;     /*!< The minimum desired connection event length. Default: 0 ms. */
     uint16_t                    connEventLengthMax;     /*!< The maximum desired connection event length. Default: maximum possible, ~41 s. (lets the Controller decide). */
@@ -634,10 +718,83 @@ typedef struct {
 /*! Connection parameters as received in the gConnEvtConnected_c connection event. */
 typedef struct {
     uint16_t                    connInterval;           /*!< Interval between connection events. */
-    uint16_t                    connLatency;            /*!< Number of consecutive connection events the Slave may ignore. */
+    uint16_t                    connLatency;            /*!< Number of consecutive connection events the Peripheral may ignore. */
     uint16_t                    supervisionTimeout;     /*!< The maximum time interval between consecutive over-the-air packets; if this timer expires, the connection is dropped. */
-    bleMasterClockAccuracy_t    masterClockAccuracy;    /*!< Accuracy of master's clock, allowing for frame detection optimizations. */
+    bleCentralClockAccuracy_t   centralClockAccuracy;   /*!< Accuracy of central's clock, allowing for frame detection optimizations. */
 } gapConnectionParameters_t;
+/*
+*
+* BLE 5.1
+*
+*/
+typedef enum {
+    gUseGeneratedKey_c      = 0x00U,    /*!< The private key generated by LE_Read_Local_P-256_Public_Key command, used for DH key generation */
+    gUseDebugKey_c          = 0x01U,    /*!< The private debug key, used for DH key generation */
+}gapPrivateKeyType_t;
+
+/*! DH Key Generate V2 */
+typedef struct {
+    ecdhPublicKey_t     remoteP256PublicKey;    /*!< The remote P-256 public key */
+    gapPrivateKeyType_t keyType;                /*!< The private key type used for generating the DH key */
+}gapGenerateDHKeyV2Params_t;
+
+/*
+*
+* AoA/AoD Parameters
+*
+*/
+
+/*! Parameter structure to be used in the Gap_SetConnectionlessCteTransmitParameters function. */
+typedef struct {
+    uint8_t         handle;                 /*!< Advertising set handle. */
+    uint8_t         cteLength;              /*!< Constant Tone Extension length in 8 us. */
+    bleCteType_t    cteType;                /*!< Type of CTE. */
+    uint8_t         cteCount;               /*!< Number of CTEs to transmit in each periodic advertising interval. */
+    uint8_t         switchingPatternLength; /*!< Number of Antenna IDs in pattern. */
+    uint8_t         aAntennaIds[1];         /*!< List of Antenna IDs in pattern. */
+} gapConnectionlessCteTransmitParams_t;
+
+/*! Parameter structure to be used in the Gap_EnableConnectionlessIqSampling function. */
+typedef struct {
+    bleIqSamplingEnable_t   iqSamplingEnable;       /*!< Enable or disable IQ sampling. */
+    bleSlotDurations_t      slotDurations;          /*!< Switching and sampling slot durations. */
+    uint8_t                 maxSampledCtes;         /*!< Maximum number of CTEs to sample and report in each periodic adv interval. */
+    uint8_t                 switchingPatternLength; /*!< Number of Antenna IDs in pattern. */
+    uint8_t                 aAntennaIds[1];         /*!< List of Antenna IDs in pattern. */
+} gapConnectionlessIqSamplingParams_t;
+
+/*! Parameter structure to be used in the Gap_SetConnectionCteTransmitParameters function. */
+typedef struct {
+    bleCteAllowedTypesMap_t cteTypes;                   /*!< Allowed CTE types. */
+    uint8_t                 switchingPatternLength;     /*!< Number of Antenna IDs in pattern. */
+    uint8_t                 aAntennaIds[1];             /*!< List of Antenna IDs in pattern. */
+} gapConnectionCteTransmitParams_t;
+
+/*! Parameter structure to be used in the Gap_SetConnectionCteReceiveParameters function. */
+typedef struct {
+    bleIqSamplingEnable_t   iqSamplingEnable;       /*!< Enable or disable IQ sampling. */
+    bleSlotDurations_t      slotDurations;          /*!< Switching and sampling slot durations. */
+    uint8_t                 switchingPatternLength; /*!< Number of Antenna IDs in pattern. */
+    uint8_t                 aAntennaIds[1];         /*!< List of Antenna IDs in pattern. */
+} gapConnectionCteReceiveParams_t;
+
+/*! Parameter structure to be used in the Gap_EnableConnectionCteRequest function. */
+typedef struct {
+    bleCteReqEnable_t   cteReqEnable;        /*!< Enable or disable CTE Req procedure. */
+    uint16_t            cteReqInterval;      /*!< Requested interval for initiating CTE Req procedure. */
+    uint8_t             requestedCteLength;  /*!< Minimum length of CTEs requested in 8 us units. */
+    bleCteType_t        requestedCteType;    /*!< Requested types of CTE. */
+} gapConnectionCteReqEnableParams_t;
+
+/*! Parameter structure to be used in the Gap_SetPathLossReportingParameters function. */
+typedef struct {
+    uint8_t     highThreshold;      /*!< High threshold for the path loss. Units: dB. */
+    uint8_t     highHysteresis;     /*!< Hysteresis value for the high threshold. Units: dB.  */
+    uint8_t     lowThreshold;       /*!< Low threshold for the path loss. Units: dB.  */
+    uint8_t     lowHysteresis;      /*!< Hysteresis value for the low threshold. Units: dB.  */
+    uint16_t    minTimeSpent;       /*!< Minimum time in number of connection events to be observed once the
+                                         path crosses the threshold before an event is generated.*/
+} gapPathLossReportingParams_t;
 
 /*
 *
@@ -662,7 +819,7 @@ typedef enum {
     gAdSimplePairingRandomizerR192_c         = 0x0FU,    /*!< Defined by the Bluetooth SIG. */
     gAdSecurityManagerTkValue_c              = 0x10U,    /*!< Defined by the Bluetooth SIG. */
     gAdSecurityManagerOobFlags_c             = 0x11U,    /*!< Defined by the Bluetooth SIG. */
-    gAdSlaveConnectionIntervalRange_c        = 0x12U,    /*!< Defined by the Bluetooth SIG. */
+    gAdPeripheralConnectionIntervalRange_c   = 0x12U,    /*!< Defined by the Bluetooth SIG. */
     gAdServiceSolicitationList16bit_c        = 0x14U,    /*!< Defined by the Bluetooth SIG. */
     gAdServiceSolicitationList32bit_c        = 0x1FU,    /*!< Defined by the Bluetooth SIG. */
     gAdServiceSolicitationList128bit_c       = 0x15U,    /*!< Defined by the Bluetooth SIG. */
@@ -681,6 +838,7 @@ typedef enum {
     gAdUniformResourceIdentifier_c           = 0x24U,    /*!< Defined by the Bluetooth SIG. */
     gAdLeSupportedFeatures_c                 = 0x27U,    /*!< Defined by the Bluetooth SIG. */
     gAdChannelMapUpdateIndication_c          = 0x28U,    /*!< Defined by the Bluetooth SIG. */
+    gAdAdvertisingIntervalLong_c             = 0x2FU,    /*!< Defined by the Bluetooth SIG. */
     gAdManufacturerSpecificData_c            = 0xFFU     /*!< Defined by the Bluetooth SIG. */
 } gapAdType_t;
 
@@ -700,6 +858,111 @@ typedef struct {
     uint8_t             cNumAdStructures;   /*!< Number of AD Structures. */
     gapAdStructure_t*   aAdStructures;      /*!< Array of AD Structures. */
 } gapAdvertisingData_t;
+
+/*! Extended Advertising Decision Data structure. */
+typedef struct {
+    uint8_t*      pKey;                /*!< Pointer to the key for the resolvable tag. When pKey != NULL Decision data should contain only arbitrary data or pDecisionData should be NULL. */
+    uint8_t*      pPrand;              /*!<  Used only when pKey != NULL. When pPrand != NULL it should point the 3 bytes value of the  prand. Otherwise it will be generated by the host. */
+    uint8_t*      pDecisionData;       /*!< Pointer to the decision data. When pDecisionData != NULL decision data may contain the resolvable tag and/or arbitrary data. */
+    uint8_t       dataLength;          /*!< The length of the decision data pointed by pDecisionData. When pKey is NULL it should not exceed 8. Otherwise it should not exceed 2*/
+    bool_t        resolvableTagPresent;/*!< When pKey is NULL it indicates whether decision data contains the resolvable tag. In this case the 6 <= dataLength <= 8 */
+} gapAdvertisingDecisionData_t;
+
+/*! Decision Instruction Relevant Field Type. */
+typedef enum
+{
+    gDIRF_ResolvableTag_c                 = 0x00U,
+    gDIRF_AdvMode_c                       = 0x06U,
+    gDIRF_RSSI_c                          = 0x07U,
+    gDIRF_PathLoss_c                      = 0x08U,
+    gDIRF_AdvAddress_c                    = 0x09U,
+    gDIRF_ArbitraryDataOfExactly_1Byte_c  = 0x11U,
+    gDIRF_ArbitraryDataOfExactly_2Bytes_c = 0x12U,
+    gDIRF_ArbitraryDataOfExactly_3Bytes_c = 0x13U,
+    gDIRF_ArbitraryDataOfExactly_4Bytes_c = 0x14U,
+    gDIRF_ArbitraryDataOfExactly_5Bytes_c = 0x15U,
+    gDIRF_ArbitraryDataOfExactly_6Bytes_c = 0x16U,
+    gDIRF_ArbitraryDataOfExactly_7Bytes_c = 0x17U,
+    gDIRF_ArbitraryDataOfExactly_8Bytes_c = 0x18U,
+    gDIRF_ArbitraryDataOfAtLeast_1Byte_c =  0x21U,/* 1 <= arbitrary data length <= 8*/
+    gDIRF_ArbitraryDataOfAtLeast_2Bytes_c = 0x22U,/* 2 <= arbitrary data length <= 8*/
+    gDIRF_ArbitraryDataOfAtLeast_3Bytes_c = 0x23U,/* 3 <= arbitrary data length <= 8*/
+    gDIRF_ArbitraryDataOfAtLeast_4Bytes_c = 0x24U,/* 4 <= arbitrary data length <= 8*/
+    gDIRF_ArbitraryDataOfAtLeast_5Bytes_c = 0x25U,/* 5 <= arbitrary data length <= 8*/
+    gDIRF_ArbitraryDataOfAtLeast_6Bytes_c = 0x26U,/* 6 <= arbitrary data length <= 8*/
+    gDIRF_ArbitraryDataOfAtLeast_7Bytes_c = 0x27U,/* 7 <= arbitrary data length <= 8*/
+    gDIRF_ArbitraryDataOfAtLeast_8Bytes_c = 0x28U,/* 8 <= arbitrary data length <= 8 the same as gDIRF_ArbitraryDataOfExactly_8Bytes_c*/
+    gDIRF_ArbitraryDataOfAtMost_1Byte_c   = 0x31U,/* 1 <= arbitrary data length <= 1 the same as gDIRF_ArbitraryDataOfExactly_1Bytes_c*/
+    gDIRF_ArbitraryDataOfAtMost_2Bytes_c  = 0x32U,/* 1 <= arbitrary data length <= 2 */
+    gDIRF_ArbitraryDataOfAtMost_3Bytes_c  = 0x33U,/* 1 <= arbitrary data length <= 3 */
+    gDIRF_ArbitraryDataOfAtMost_4Bytes_c  = 0x34U,/* 1 <= arbitrary data length <= 4 */
+    gDIRF_ArbitraryDataOfAtMost_5Bytes_c  = 0x35U,/* 1 <= arbitrary data length <= 5 */
+    gDIRF_ArbitraryDataOfAtMost_6Bytes_c  = 0x36U,/* 1 <= arbitrary data length <= 6 */
+    gDIRF_ArbitraryDataOfAtMost_7Bytes_c  = 0x37U,/* 1 <= arbitrary data length <= 7 */
+    gDIRF_ArbitraryDataOfAtMost_8Bytes_c  = 0x38U,/* 1 <= arbitrary data length <= 8 the same as gDIRF_ArbitraryDataOfAtLeast_1Byte_c*/
+}gapDecisionInstructionsRelevantField_t;
+
+typedef enum
+{
+    gDITPC_Never_c                                = 0x00U, /* test always fails*/
+    gDITPC_CheckPasses_c                          = 0x01U, /* The decision data contains the relevant field and the check passes*/
+    gDITPC_CheckFails_c                           = 0x02U, /* The decision data contains the relevant field and the check fails*/
+    gDITPC_RelevantFieldPresent_c                 = 0x03U, /* The decision data contains the relevant field, irrespective of whether the check passes */
+    gDITPC_RelevantFieldNotPresent_c              = 0x04U, /* The decision data does not contain the relevant field */
+    gDITPC_CheckPassesOrRelevantFieldNotPresent_c = 0x05U, /* Either the decision data contains the relevant field and the check passes, OR the decision data does not contain the relevant field */
+    gDITPC_CheckFailsOrRelevantFieldNotPresent_c  = 0x06U, /* Either the decision data contains the relevant field and the check fails, OR the decision data does not contain the relevant field */
+    gDITPC_Always_c                               = 0x07U, /* test always passes*/
+}gapDecisionInstructionsTestPassCriteria_t;
+typedef enum
+{
+    gDITG_SameTestGroup_c     = 0x00U, /* The test is in the same group as the previous test */
+    gDITG_NewTestGroup_c      = 0x01U, /* The test is in a different group from all lower-numbered tests. The first test must be this type */
+}gapDecisionInstructionsTestGroup_t;
+
+/* Checks to be made when the relevant field is advertiser address*/
+typedef enum
+{
+    gDIAAC_AdvAinFilterAcceptList_c       = 0x00U, /* The check passes if the AdvA field is for a device in the Filter Accept List. The Addresses are ignored. */
+    gDIAAC_AdvAmatchAddress1_c            = 0x01U, /* The check passes if the AdvA field specifies the same device as Address 1. Address 2 is ignored. */
+    gDIAAC_AdvAmatchAddress1orAddress2_c  = 0x02U, /* The check passes if the AdvA field specifies the same device as Address 1 or as Address 2. */
+}gapDecisionInstructionsAdvAChecks_t;
+
+/* Checks to be made when the relevant field is advertising mode. */
+/* gbmpDIAM_NonConnectableNonScannableUndirected_c, gbmpDIAM_ConnectableUndirected_c, gbmpDIAM_ScannableUndirected_c */
+/* Any bitwise OR operation of them is valid.*/
+/*e.g.(gbmpDIAM_NonConnectableNonScannableUndirected_c | gbmpDIAM_ScannableUndirected_c) means the check passes for non-connectable undirected events.*/
+typedef uint8_t gapDecisionInstructionsAdvMode_t;
+
+typedef struct gapDecisionInstructionsData_tag
+{
+    gapDecisionInstructionsTestGroup_t         testGroup;
+    gapDecisionInstructionsTestPassCriteria_t  passCriteria;
+    gapDecisionInstructionsRelevantField_t     relevantField;
+    union
+    {
+        uint8_t resolvableTagKey[gcDecisionDataKeySize_c]; /* test parameter for resolvable tag relevant field*/
+        struct{
+            uint8_t mask[gcDecisionInstructionsArbitraryDataMaskSize_c];
+            uint8_t target[gcDecisionInstructionsArbitraryDataTargetSize_c];
+        }arbitraryData; /* test parameter for arbitrary data relevant field*/
+        struct{
+            int8_t min;
+            int8_t max;
+        }rssi;/* test parameter for RSSI relevant field*/
+        struct{
+            uint8_t min;
+            uint8_t max;
+        }pathLoss;/* test parameter for path loss relevant field*/
+        struct{
+            gapDecisionInstructionsAdvAChecks_t check;
+            bleAddressType_t                    address1Type;
+            bleDeviceAddress_t                  address1;
+            bleAddressType_t                    address2Type;
+            bleDeviceAddress_t                  address2;
+        }advA;/* test parameter for advertiser address relevant field*/
+        gapDecisionInstructionsAdvMode_t advMode;/* test parameter for advertising mode relevant field*/
+    }testParameters;
+}gapDecisionInstructionsData_t;
 
 /*! Scan Response Data structure : a list of several gapAdStructure_t structures. */
 typedef gapAdvertisingData_t gapScanResponseData_t;
@@ -724,15 +987,22 @@ typedef enum
 typedef uint8_t gapControllerTestTxType_t;
 typedef enum
 {
-    gControllerTestTxPrbs9_c,   /*!< PRBS9 sequence ‘11111111100000111101…’ */
-    gControllerTestTxF0_c,      /*!< Repeated ‘11110000’ */
-    gControllerTestTxAA_c,      /*!< Repeated ‘10101010’ */
+    gControllerTestTxPrbs9_c,   /*!< PRBS9 sequence '11111111100000111101'... */
+    gControllerTestTxF0_c,      /*!< Repeated '11110000' */
+    gControllerTestTxAA_c,      /*!< Repeated '10101010' */
     gControllerTestTxPrbs15_c,  /*!< PRBS15 sequence */
-    gControllerTestTxFF_c,      /*!< Repeated ‘11111111’ */
-    gControllerTestTx00_c,      /*!< Repeated ‘00000000’ */
-    gControllerTestTx0F_c,      /*!< Repeated ‘00001111’ */
-    gControllerTestTx55_c,      /*!< Repeated ‘01010101’ */
+    gControllerTestTxFF_c,      /*!< Repeated '11111111' */
+    gControllerTestTx00_c,      /*!< Repeated '00000000' */
+    gControllerTestTx0F_c,      /*!< Repeated '00001111' */
+    gControllerTestTx55_c,      /*!< Repeated '01010101' */
 } gapControllerTestTxType_tag;
+
+/*! Enumeration for Sleep Clock Accuracy command. */
+typedef enum
+{
+    gSwitchToMoreAccurateClock_c    = 0x00U,
+    gSwitchToLessAccurateClock_c    = 0x01U,
+}gapSleepClockAccuracy_t;
 
 /*
 *
@@ -750,7 +1020,6 @@ typedef enum {
     gExtAdvertisingStateChanged_c,      /*!< Event received when extended advertising has been successfully enabled or disabled. */
     gAdvertisingSetTerminated_c,        /*!< Event received when advertising in a given advertising set has stopped. */
     gExtScanNotification_c,             /*!< Event indicates that a SCAN_REQ PDU or an AUX_SCAN_REQ PDU has been received by the extended advertiser. */
-    gPeriodicAdvertisingStateChanged_c, /*!< Event received when periodic advertising has been successfully enabled or disabled. */
 } gapAdvertisingEventType_t;
 
 typedef struct {
@@ -774,6 +1043,7 @@ typedef struct {
         bleResult_t                     failReason;         /*!< Event data for gAdvertisingCommandFailed_c event type: reason of failure to enable or disable advertising. */
         gapExtScanNotification_t        scanNotification;   /*!< Event data for gExtScanNotification_c event type: Scan Request Received Event. */
         gapAdvertisingSetTerminated_t   advSetTerminated;   /*!< Event received when advertising in a given advertising set has stopped. */
+        uint8_t                         advHandle;          /*!< Event data for gExtAdvertisingStateChanged_c event type. */
     } eventData;                                            /*!< Event data, to be interpreted according to gapAdvertisingEvent_t.eventType. */
 } gapAdvertisingEvent_t;
 
@@ -790,6 +1060,8 @@ typedef enum {
     gPeriodicAdvSyncEstablished_c, /*!< Event received when a sync with a periodic advertiser was established. */
     gPeriodicAdvSyncLost_c,        /*!< Event received when a sync with a periodic advertiser have been lost. */
     gPeriodicAdvSyncTerminated_c,  /*!< Event received when a sync with a periodic advertiser have been terminated. */
+    /* BLE 5.1 */
+    gConnectionlessIqReportReceived_c,      /*!< Event received when the Controller has reported IQ information from the CTE of a received advertising packet */
 } gapScanningEventType_t;
 
 /*! Scanned device information structure, obtained from LE Advertising Reports. */
@@ -831,6 +1103,7 @@ typedef struct
     uint16_t                       syncHandle;          /*!< Sync Handle */
     int8_t                         txPower;             /*!< The Tx power level of the advertiser */
     int8_t                         rssi;                /*!< RSSI on the advertising channel; may be compared to the TX power contained in the AD Structure of type gAdTxPowerLevel_c to estimate distance from the advertiser.  */
+    bleCteType_t                   cteType;             /*!< Type of Constant Tone Extension in the periodic advertising packets. */
     uint16_t                       dataLength;          /*!< Length of the advertising or scan response data. */
     uint8_t*                       pData;               /*!< Advertising or scan response data. */
 } gapPeriodicScannedDevice_t;
@@ -846,16 +1119,32 @@ typedef struct
     uint16_t                       syncHandle;          /*!< Sync Handle */
 } gapSyncLostEventData_t;
 
+typedef struct
+{
+    uint16_t                        syncHandle;             /*!< Sync Handle. */
+    uint8_t                         channelIndex;           /*!< Index of the channel on which the packet was received. */
+    int16_t                         rssi;                   /*!< RSSI of the packet. */
+    uint8_t                         rssiAntennaId;          /*!< Antenna ID. */
+    bleCteType_t                    cteType;                /*!< Type of CTE on the received packet (AoA, AoD 1 us, AoD 2 us). */
+    bleSlotDurations_t              slotDurations;          /*!< Durations of switching/sampling slots. */
+    bleIqReportPacketStatus_t       packetStatus;           /*!< Packet status, information about CRC. */
+    uint16_t                        periodicEventCounter;   /*!< The value of paEventCounter for the reported AUX_SYNC_IND PDU. */
+    uint8_t                         sampleCount;            /*!< Total number of sample pairs. */
+    int8_t                          *aI_samples;            /*!< List of sampleCount I_samples. */
+    int8_t                          *aQ_samples;            /*!< List of sampleCount Q_samples. */
+} gapConnectionlessIqReport_t;
+
 /*! Scanning event structure: type + data. */
 typedef struct {
     gapScanningEventType_t eventType;   /*!< Event type. */
     union {
-        bleResult_t                failReason;       /*!< Event data for gScanCommandFailed_c or gPeriodicAdvSyncEstablished_c event type: reason of failure to enable/disable scanning or to establish sync. */
-        gapScannedDevice_t         scannedDevice;    /*!< Event data for gDeviceScanned_c event type: scanned device information. */
-        gapExtScannedDevice_t      extScannedDevice; /*!< Event data for gExtDeviceScanned_c event type: extended scanned device information. */
-        gapPeriodicScannedDevice_t periodicScannedDevice;
-        gapSyncEstbEventData_t     syncEstb;         /*!< Event data for gPeriodicAdvSyncEstablished_c event type: Sync handle information for the application. */
-        gapSyncLostEventData_t     syncLost;         /*!< Event data for gPeriodicAdvSyncLost_c event type: Sync handle information for the application. */
+        bleResult_t                 failReason;       /*!< Event data for gScanCommandFailed_c or gPeriodicAdvSyncEstablished_c event type: reason of failure to enable/disable scanning or to establish sync. */
+        gapScannedDevice_t          scannedDevice;    /*!< Event data for gDeviceScanned_c event type: scanned device information. */
+        gapExtScannedDevice_t       extScannedDevice; /*!< Event data for gExtDeviceScanned_c event type: extended scanned device information. */
+        gapPeriodicScannedDevice_t  periodicScannedDevice;
+        gapSyncEstbEventData_t      syncEstb;         /*!< Event data for gPeriodicAdvSyncEstablished_c event type: Sync handle information for the application. */
+        gapSyncLostEventData_t      syncLost;         /*!< Event data for gPeriodicAdvSyncLost_c event type: Sync handle information for the application. */
+        gapConnectionlessIqReport_t iqReport;         /*!< Event data for gConnectionlessIqReportReceived_c event type: IQ information for the application. */
     } eventData;                                     /*!< Event data, to be interpreted according to gapScanningEvent_t.eventType. */
 } gapScanningEvent_t;
 
@@ -863,37 +1152,61 @@ typedef struct {
 
 /*! Connection event type enumeration, as contained in the gapConnectionEvent_t. */
 typedef enum {
-    gConnEvtConnected_c                 = 0x00U, /*!< A connection has been established. Data in gapConnectionEvent_t.eventData.connectedEvent. */
-    gConnEvtPairingRequest_c            = 0x01U, /*!< A pairing request has been received from the peer Master. Data in gapConnectionEvent_t.eventData.pairingEvent. */
-    gConnEvtSlaveSecurityRequest_c      = 0x02U, /*!< A Slave Security Request has been received from the peer Slave. Data in gapConnectionEvent_t.eventData.slaveSecurityRequestEvent. */
-    gConnEvtPairingResponse_c           = 0x03U, /*!< A pairing response has been received from the peer Slave. Data in gapConnectionEvent_t.eventData.pairingEvent. */
-    gConnEvtAuthenticationRejected_c    = 0x04U, /*!< A link encryption or pairing request has been rejected by the peer device. Data in gapConnectionEvent_t.eventData.authenticationRejectedEvent. */
-    gConnEvtPasskeyRequest_c            = 0x05U, /*!< Peer Slave has requested a passkey (maximum 6 digit PIN) for the pairing procedure. Master should respond with Gap_EnterPasskey. Slave will not receive this event! Slave's application must call Gap_SetLocalPasskey before any connection. */
-    gConnEvtOobRequest_c                = 0x06U, /*!< Out-of-Band data must be provided for the pairing procedure. Master or Slave should respond with Gap_ProvideOob. */
-    gConnEvtPasskeyDisplay_c            = 0x07U, /*!< The pairing procedure requires this Slave to display the passkey for the Master's user. */
-    gConnEvtKeyExchangeRequest_c        = 0x08U, /*!< The pairing procedure requires the SMP keys to be distributed to the peer. Data in gapConnectionEvent_t.eventData.keyExchangeRequestEvent. */
-    gConnEvtKeysReceived_c              = 0x09U, /*!< SMP keys distributed by the peer during pairing have been received. Data in gapConnectionEvent_t.eventData.keysReceivedEvent. */
-    gConnEvtLongTermKeyRequest_c        = 0x0AU, /*!< The bonded peer Master has requested link encryption and the LTK must be provided. Slave should respond with Gap_ProvideLongTermKey. Data in gapConnectionEvent_t.eventData.longTermKeyRequestEvent. */
-    gConnEvtEncryptionChanged_c         = 0x0BU, /*!< Link's encryption state has changed, e.g., during pairing or after a reconnection with a bonded peer. Data in gapConnectionEvent_t.eventData.encryptionChangedEvent. */
-    gConnEvtPairingComplete_c           = 0x0CU, /*!< Pairing procedure is complete, either successfully or with failure. Data in gapConnectionEvent_t.eventData.pairingCompleteEvent. */
-    gConnEvtDisconnected_c              = 0x0DU, /*!< A connection has been terminated. Data in gapConnectionEvent_t.eventData.disconnectedEvent. */
-    gConnEvtRssiRead_c                  = 0x0EU, /*!< RSSI for an active connection has been read. Data in gapConnectionEvent_t.eventData.rssi_dBm. */
-    gConnEvtTxPowerLevelRead_c          = 0x0FU, /*!< TX power level for an active connection has been read. Data in gapConnectionEvent_t.eventData.txPowerLevel_dBm. */
-    gConnEvtPowerReadFailure_c          = 0x10U, /*!< Power reading could not be performed. Data in gapConnectionEvent_t.eventData.failReason. */
-    gConnEvtParameterUpdateRequest_c    = 0x11U, /*!< A connection parameter update request has been received. Data in gapConnectionEvent_t.eventData.connectionUpdateRequest. */
-    gConnEvtParameterUpdateComplete_c   = 0x12U, /*!< The connection has new parameters. Data in gapConnectionEvent_t.eventData.connectionUpdateComplete. */
-    gConnEvtLeDataLengthChanged_c       = 0x13U, /*!< The new TX/RX Data Length parameters. Data in gapConnectionEvent_t.eventData.rssi_dBm.leDataLengthChanged. */
-    gConnEvtLeScOobDataRequest_c        = 0x14U, /*!< Event sent to request LE SC OOB Data (r, Cr and Addr) received from a peer. */
-    gConnEvtLeScDisplayNumericValue_c   = 0x15U, /*!< Event sent to display and confirm a Numeric Comparison Value when using the LE SC Numeric Comparison pairing method. */
-    gConnEvtLeScKeypressNotification_c  = 0x16U, /*!< Remote Keypress Notification received during Passkey Entry Pairing Method. */
-    gConnEvtChannelMapRead_c            = 0x17U, /*!< Channel Map was read for a connection. Data is contained in gapConnectionEvent_t.eventData.channelMap */
-    gConnEvtChannelMapReadFailure_c     = 0x18U, /*!< Channel Map reading could not be performed. Data in gapConnectionEvent_t.eventData.failReason. */
+    gConnEvtConnected_c                     = 0x00U, /*!< A connection has been established. Data in gapConnectionEvent_t.eventData.connectedEvent. */
+    gConnEvtPairingRequest_c                = 0x01U, /*!< A pairing request has been received from the peer Central. Data in gapConnectionEvent_t.eventData.pairingEvent. */
+    gConnEvtPeripheralSecurityRequest_c     = 0x02U, /*!< A Peripheral Security Request has been received from the peer Peripheral. Data in gapConnectionEvent_t.eventData.peripheralSecurityRequestEvent. */
+    gConnEvtPairingResponse_c               = 0x03U, /*!< A pairing response has been received from the peer Peripheral. Data in gapConnectionEvent_t.eventData.pairingEvent. */
+    gConnEvtAuthenticationRejected_c        = 0x04U, /*!< A link encryption or pairing request has been rejected by the peer device. Data in gapConnectionEvent_t.eventData.authenticationRejectedEvent. */
+    gConnEvtPasskeyRequest_c                = 0x05U, /*!< Peer has requested a passkey (maximum 6 digit PIN) for the pairing procedure. Device should respond with Gap_EnterPasskey. */
+    gConnEvtOobRequest_c                    = 0x06U, /*!< Out-of-Band data must be provided for the pairing procedure. Central or Peripheral should respond with Gap_ProvideOob. */
+    gConnEvtPasskeyDisplay_c                = 0x07U, /*!< The pairing procedure requires this Peripheral to display the passkey for the Central's user. */
+    gConnEvtKeyExchangeRequest_c            = 0x08U, /*!< The pairing procedure requires the SMP keys to be distributed to the peer. Data in gapConnectionEvent_t.eventData.keyExchangeRequestEvent. */
+    gConnEvtKeysReceived_c                  = 0x09U, /*!< SMP keys distributed by the peer during pairing have been received. Data in gapConnectionEvent_t.eventData.keysReceivedEvent. */
+    gConnEvtLongTermKeyRequest_c            = 0x0AU, /*!< The bonded peer Central has requested link encryption and the LTK must be provided. Peripheral should respond with Gap_ProvideLongTermKey. Data in gapConnectionEvent_t.eventData.longTermKeyRequestEvent. */
+    gConnEvtEncryptionChanged_c             = 0x0BU, /*!< Link's encryption state has changed, e.g., during pairing or after a reconnection with a bonded peer. Data in gapConnectionEvent_t.eventData.encryptionChangedEvent. */
+    gConnEvtPairingComplete_c               = 0x0CU, /*!< Pairing procedure is complete, either successfully or with failure. Data in gapConnectionEvent_t.eventData.pairingCompleteEvent. */
+    gConnEvtDisconnected_c                  = 0x0DU, /*!< A connection has been terminated. Data in gapConnectionEvent_t.eventData.disconnectedEvent. */
+    gConnEvtRssiRead_c                      = 0x0EU, /*!< RSSI for an active connection has been read. Data in gapConnectionEvent_t.eventData.rssi_dBm. */
+    gConnEvtTxPowerLevelRead_c              = 0x0FU, /*!< TX power level for an active connection has been read. Data in gapConnectionEvent_t.eventData.txPowerLevel_dBm. */
+    gConnEvtPowerReadFailure_c              = 0x10U, /*!< Power reading could not be performed. Data in gapConnectionEvent_t.eventData.failReason. */
+    gConnEvtParameterUpdateRequest_c        = 0x11U, /*!< A connection parameter update request has been received. Data in gapConnectionEvent_t.eventData.connectionUpdateRequest. */
+    gConnEvtParameterUpdateComplete_c       = 0x12U, /*!< The connection has new parameters. Data in gapConnectionEvent_t.eventData.connectionUpdateComplete. */
+    gConnEvtLeDataLengthChanged_c           = 0x13U, /*!< The new TX/RX Data Length parameters. Data in gapConnectionEvent_t.eventData.rssi_dBm.leDataLengthChanged. */
+    gConnEvtLeScOobDataRequest_c            = 0x14U, /*!< Event sent to request LE SC OOB Data (r, Cr and Addr) received from a peer. */
+    gConnEvtLeScDisplayNumericValue_c       = 0x15U, /*!< Event sent to display and confirm a Numeric Comparison Value when using the LE SC Numeric Comparison pairing method. */
+    gConnEvtLeScKeypressNotification_c      = 0x16U, /*!< Remote Keypress Notification received during Passkey Entry Pairing Method. */
+    gConnEvtChannelMapRead_c                = 0x17U, /*!< Channel Map was read for a connection. Data is contained in gapConnectionEvent_t.eventData.channelMap */
+    gConnEvtChannelMapReadFailure_c         = 0x18U, /*!< Channel Map reading could not be performed. Data in gapConnectionEvent_t.eventData.failReason. */
     /* BLE 5.0: Advertising extensions */
-    gConnEvtChanSelectionAlgorithm2_c   = 0x19U, /*!< LE Channel Selection Algorithm #2 is used on the data channel connection. */
+    gConnEvtChanSelectionAlgorithm2_c       = 0x19U, /*!< LE Channel Selection Algorithm #2 is used on the data channel connection. */
 
-    gConnEvtPairingNoLtk_c              = 0x1AU, /*!< No LTK was found for the Master peer. Pairing shall be performed again. */
-    gConnEvtPairingAlreadyStarted_c     = 0x1BU, /*!< Pairing process was already started */
+    gConnEvtPairingNoLtk_c                  = 0x1AU, /*!< No LTK was found for the Central peer. Pairing shall be performed again. */
+    gConnEvtPairingAlreadyStarted_c         = 0x1BU, /*!< Pairing process was already started */
 
+    /* BLE 5.1 */
+    gConnEvtIqReportReceived_c                  = 0x1CU, /*!< Controller has reported IQ information received from a connected peer. Data in gapConnectionEvent_t.eventData.connIqReport. */
+    gConnEvtCteRequestFailed_c                  = 0x1DU, /*!< CTE Request to a connected peer has failed. Data in gapConnectionEvent_t.eventData.cteRequestFailedEvent. */
+    gConnEvtCteReceiveParamsSetupComplete_c     = 0x1EU, /*!< Connection CTE receive parameters have been successfully set. */
+    gConnEvtCteTransmitParamsSetupComplete_c    = 0x1FU, /*!< Connection CTE transmit parameters have been successfully set. */
+    gConnEvtCteReqStateChanged_c                = 0x20U, /*!< Controller started or stopped initiating the CTE Request procedure. */
+    gConnEvtCteRspStateChanged_c                = 0x21U, /*!< Controller enabled or disabled sending CTE Responses for a connection. */
+    /* BLE 5.2 */
+    gConnEvtPathLossThreshold_c                     = 0x22U, /*!< Received a Path Loss Threshold event. Data in gapConnectionEvent_t.eventData.pathLossThreshold. */
+    gConnEvtTransmitPowerReporting_c                = 0x23U, /*!< Received a Transmit Power report. Data in gapConnectionEvent_t.eventData.transmitPowerReporting. */
+    gConnEvtEnhancedReadTransmitPowerLevel_c        = 0x24U, /*!< Local information has been read from Controller. Data in gapConnectionEvent_t.eventData.transmitPowerInfo. */
+    gConnEvtPathLossReportingParamsSetupComplete_c  = 0x25U, /*!< Path Loss Reporting parameters have been successfully set. */
+    gConnEvtPathLossReportingStateChanged_c         = 0x26U, /*!< Path Loss Reporting has been enabled or disabled. */
+    gConnEvtTransmitPowerReportingStateChanged_c    = 0x27U, /*!< Transmit Power Reporting has been enabled or disabled for local and/or remote Controllers. */
+    /* BLE 5.2 EATT */
+    gConnEvtEattConnectionRequest_c                 = 0x28U, /*!< Received Enhanced Connection Request for EATT channels. */
+    gConnEvtEattConnectionComplete_c                = 0x29U, /*!< Received Enhanced Connection Response for EATT channels. */
+    gConnEvtEattChannelReconfigureResponse_c        = 0x2AU, /*!< Received Enhanced Channel Reconfigure Response for EATT channels. */
+    gConnEvtEattBearerStatusNotification_c          = 0x2BU, /*!< Enhanced Bearer status updated */
+    /* Handover */
+    gConnEvtHandoverConnected_c                     = 0x2CU, /*!< A connection has been established through the Handover feature. Data in gapConnectionEvent_t.eventData.handoverConnectedEvent. */
+    gHandoverDisconnected_c                         = 0x2DU, /*!< A connection has been terminated as a result of connection handover. */
+
+    gConnEvtLeSetDataLengthFailure_c        = 0x2EU, /*!< The Set Data Length command has failed. */
 } gapConnectionEventType_t;
 
 /*! Event data structure for the gConnEvtConnected_c event. */
@@ -908,7 +1221,7 @@ typedef struct {
     bool_t                      localRpaUsed;           /*!< If this is TRUE, the Controller has used an RPA contained in the localRpa field. This parameter is irrelevant
                                                              if Controller Privacy is not enabled. */
     bleDeviceAddress_t          localRpa;               /*!< Local Resolvable Private Address if Controller Privacy is active and localRpaUsed is TRUE. */
-    bleLlConnectionRole_t       connectionRole;         /*!< Connection Role - master or slave. */
+    bleLlConnectionRole_t       connectionRole;         /*!< Connection Role - central or peripheral. */
 } gapConnectedEvent_t;
 
 /*! Event data structure for the gConnEvtKeyExchangeRequest_c event. */
@@ -924,7 +1237,7 @@ typedef struct {
 
 /*! Event data structure for the gConnEvtAuthenticationRejected_c event. */
 typedef struct {
-    gapAuthenticationRejectReason_t rejectReason;   /*!< Slave's reason for rejecting the authentication. */
+    gapAuthenticationRejectReason_t rejectReason;   /*!< Peripheral's reason for rejecting the authentication. */
 } gapAuthenticationRejectedEvent_t;
 
 /*! Event data structure for the gConnEvtPairingComplete_c event. */
@@ -960,7 +1273,7 @@ typedef struct {
 typedef struct {
     uint16_t    intervalMin;        /*!< Minimum interval between connection events. */
     uint16_t    intervalMax;        /*!< Maximum interval between connection events. */
-    uint16_t    slaveLatency;       /*!< Number of consecutive connection events the Slave may ignore. */
+    uint16_t    peripheralLatency;  /*!< Number of consecutive connection events the Peripheral may ignore. */
     uint16_t    timeoutMultiplier;  /*!< The maximum time interval between consecutive over-the-air packets; if this timer expires, the connection is dropped. */
 } gapConnParamsUpdateReq_t;
 
@@ -968,7 +1281,7 @@ typedef struct {
 typedef struct {
     bleResult_t status;
     uint16_t    connInterval;       /*!< Interval between connection events. */
-    uint16_t    connLatency;        /*!< Number of consecutive connection events the Slave may ignore. */
+    uint16_t    connLatency;        /*!< Number of consecutive connection events the Peripheral may ignore. */
     uint16_t    supervisionTimeout; /*!< The maximum time interval between consecutive over-the-air packets; if this timer expires, the connection is dropped. */
 } gapConnParamsUpdateComplete_t;
 
@@ -980,6 +1293,102 @@ typedef struct {
     uint16_t    maxRxTime;         /*!< The maximum time that the local Controller will take to receive a Link Layer Data Channel PDU on this connection. */
 } gapConnLeDataLengthChanged_t;
 
+/*! Event data structure for the gConnEvtIqReportReceived_c event. */
+typedef struct {
+    gapLePhyMode_t                  rxPhy;              /*!< Identifies receiver PHY for this connection. */
+    uint8_t                         dataChannelIndex;   /*!< Index of the data channel on which the Data Physical Channel PDU was received. */
+    int16_t                         rssi;               /*!< RSSI of the packet. */
+    uint8_t                         rssiAntennaId;      /*!< Antenna ID. */
+    bleCteType_t                    cteType;            /*!< Type of CTE on the received packet (AoA, AoD 1 us, AoD 2 us). */
+    bleSlotDurations_t              slotDurations;      /*!< Durations of switching/sampling slots. */
+    bleIqReportPacketStatus_t       packetStatus;       /*!< Packet status, information about CRC. */
+    uint16_t                        connEventCounter;   /*!< The value of the connEventCounter for the reported PDU. */
+    uint8_t                         sampleCount;        /*!< Total number of sample pairs. */
+    int8_t                          *aI_samples;        /*!< List of sampleCount I_samples */
+    int8_t                          *aQ_samples;        /*!< List of sampleCount Q_samples */
+} gapConnIqReport_t;
+
+/*! Event data structure for the gConnEvtCteRequestFailed_c event. */
+typedef struct {
+    bleResult_t     status;     /*!< Status (0x00 - received response but without CTE, 0x01-0xFF - peer rejected request */
+} gapConnCteRequestFailed_t;
+
+/*! Event data structure for the gConnEvtPathLossThreshold_c event. */
+typedef struct {
+    uint8_t                             currentPathLoss;    /*!< Current path loss. Units: dB. */
+    blePathLossThresholdZoneEntered_t   zoneEntered;        /*!< Low, middle or high. */
+} gapPathLossThresholdEvent_t;
+
+/*! Event data structure for the gConnEvtTransmitPowerReporting_c event. */
+typedef struct {
+    bleTxPowerReportingReason_t         reason;         /*!< Reason for generating this event
+                                                             - local tx power changed
+                                                             - remote tx power changed
+                                                             - a HCI_LE_Read_Remote_Transmit_Power_Level command completed */
+    blePowerControlPhyType_t            phy;            /*!< The PHY for which the event is generated. */
+    int8_t                              txPowerLevel;   /*!< New transmit power level on this connection and PHY. */
+    bleTxPowerLevelFlags_t              flags;          /*!< Tx power level flags. */
+    int8_t                              delta;          /*!< Change in tx power level. Units: dB. */
+} gapTransmitPowerReporting_t;
+
+/*! Event data structure for the gConnEvtEnhancedReadTransmitPowerLevel_c event. */
+typedef struct {
+    blePowerControlPhyType_t    phy;                /*!< The PHY for which the event is generated. */
+    int8_t                      currTxPowerLevel;   /*!< Current tx power level on this connection and PHY. */
+    int8_t                      maxTxPowerLevel;    /*!< Maximum tx power level on this connection and PHY. */
+} gapTransmitPowerInfo_t;
+
+/*! Event data structure for the gConnEvtEattConnectionRequest_c event. */
+typedef struct {
+    uint16_t            mtu;
+    uint8_t             cBearers;
+    uint16_t            initialCredits;
+} gapEattConnectionRequest_t;
+
+/*! Event data structure for the gConnEvtEattConnectionComplete_c event. */
+typedef struct {
+    l2caLeCbConnectionRequestResult_t           status;
+    uint16_t                                    mtu;
+    uint8_t                                     cBearers;
+    bearerId_t                                  aBearerIds[gGapEattMaxBearers];
+} gapEattConnectionComplete_t;
+
+/*! Event data structure for the gConnEvtEattChannelReconfigureResponse_c event. */
+typedef struct {
+    l2capReconfigureResponse_t          status;
+    uint16_t                            localMtu;
+    uint8_t                             cBearers;
+    bearerId_t                          aBearerIds[gGapEattMaxBearers];
+} gapEattReconfigureResponse_t;
+
+/*! Enumeration for Bearer Status Notification command status. */
+typedef enum
+{
+    gEnhancedBearerActive_c                             = 0x00U,
+    gEnhancedBearerSuspendedNoLocalCredits_c            = 0x01U,
+    gEnhancedBearerNoPeerCredits_c                      = 0x02U,
+    gEnhancedBearerDisconnected_c                       = 0x03U,
+    gEnhancedBearerStatusEnd_c,
+}gapEattBearerStatus_t;
+
+/*! Event data structure for the bearer status update event. */
+typedef struct {
+    bearerId_t                  bearerId;
+    gapEattBearerStatus_t       status;
+} gapEattBearerStatusNotification_t;
+
+/*! Event data structure for the gConnEvtHandoverConnected_c event. */
+typedef struct {
+    bleAddressType_t            peerAddressType;        /*!< Connected device's address type. */
+    bleDeviceAddress_t          peerAddress;            /*!< Connected device's address. */
+    bleLlConnectionRole_t       connectionRole;         /*!< Connection Role - master or slave. */
+} gapHandoverConnectedEvent_t;
+
+/*! Event data structure for the gHandoverDisconnected_c event. */
+typedef struct {
+    bleResult_t     status;     /*!< Status for the handover disconnect command */
+} gapHandoverDisconnectedEvent_t;
+
 /*! Connection event structure: type + data. */
 typedef struct {
     gapConnectionEventType_t eventType;  /*!< Event type */
@@ -987,7 +1396,7 @@ typedef struct {
         gapConnectedEvent_t                 connectedEvent;                 /*!< Data for gConnEvtConnected_c: information about the connection parameters. */
         gapPairingParameters_t              pairingEvent;                   /*!< Data for gConnEvtPairingRequest_c, gConnEvtPairingResponse_c: pairing parameters. */
         gapAuthenticationRejectedEvent_t    authenticationRejectedEvent;    /*!< Data for gConnEvtAuthenticationRejected_c: reason for rejection. */
-        gapSlaveSecurityRequestParameters_t slaveSecurityRequestEvent;      /*!< Data for gConnEvtSlaveSecurityRequest_c: Slave's security requirements. */
+        gapPeripheralSecurityRequestParameters_t    peripheralSecurityRequestEvent; /*!< Data for gConnEvtPeripheralSecurityRequest_c: Peripheral's security requirements. */
         gapKeyExchangeRequestEvent_t        keyExchangeRequestEvent;        /*!< Data for gConnEvtKeyExchangeRequest_c: mask indicating the keys that were requested by the peer. */
         gapKeysReceivedEvent_t              keysReceivedEvent;              /*!< Data for gConnEvtKeysReceived_c: the keys received from the peer. */
         gapPairingCompleteEvent_t           pairingCompleteEvent;           /*!< Data for gConnEvtPairingComplete_c: fail reason or (if successful) bonding state. */
@@ -1004,6 +1413,18 @@ typedef struct {
         gapKeypressNotification_t           incomingKeypressNotification;
         uint32_t                            numericValueForDisplay;
         bleChannelMap_t                     channelMap;                      /*!< Data for gConnEvtChannelMapRead_c: channel map read from the Controller */
+        gapConnIqReport_t                   connIqReport;                    /*!< Data for gConnEvtIqReportReceived_c: IQ information received from a peer */
+        gapConnCteRequestFailed_t           cteRequestFailedEvent;           /*!< Data for gConnEvtCteRequestFailed_c: CTE Request to peer has failed */
+        bleResult_t                         perAdvSyncTransferStatus;
+        gapPathLossThresholdEvent_t         pathLossThreshold;               /*!< Data for gConnEvtPathLossThreshold_c: current path loss and zone entered. */
+        gapTransmitPowerReporting_t         transmitPowerReporting;          /*!< Data for gConnEvtTransmitPowerReporting_c: changes in power levels. */
+        gapTransmitPowerInfo_t              transmitPowerInfo;               /*!< Data for gConnEvtEnhancedReadTransmitPowerLevel_c: local power level information. */
+        gapEattConnectionRequest_t          eattConnectionRequest;           /*!< Data for gConnEvtEattConnectionRequest_c: notification of L2Cap Enhanced Connect request for EATT. */
+        gapEattConnectionComplete_t         eattConnectionComplete;          /*!< Data for gConnEvtEattConnectionComplete_c: result of Gap_EattConnectionRequest(). */
+        gapEattReconfigureResponse_t        eattReconfigureResponse;         /*!< Data for gConnEvtEattChannelReconfigureResponse_c: result of Gap_EattReconfigureRequest(). */
+        gapEattBearerStatusNotification_t   eattBearerStatusNotification;    /*!< Data for gConnEvtEattBearerStatusNotification_c: bearer status update. */
+        gapHandoverConnectedEvent_t         handoverConnectedEvent;          /*!< Data for gConnEvtHandoverConnected_c: information about the connection parameters. */
+        gapHandoverDisconnectedEvent_t      handoverDisconnectedEvent;       /*!< Data for gHandoverDisconnected_c: status of the Gap_HandoverDisconnect. */
     } eventData;                        /*!< Event data, to be interpreted according to gapConnectionEvent_t.eventType. */
 } gapConnectionEvent_t;
 
@@ -1051,9 +1472,9 @@ typedef void (*gapConnectionCallback_t)
 
 /*! Parameters for the Auto Connect Scan Mode. */
 typedef struct {
-    uint8_t                             cNumAddresses;      /*!< Number of device addresses to automatically connect to. */
-    bool_t                              writeInWhiteList;   /*!< If set to TRUE, the device addresses are written in the White List before scanning is enabled. */
-    gapConnectionRequestParameters_t*   aAutoConnectData;   /*!< The array of connection request parameters, of size equal to cNumAddresses. */
+    uint8_t                             cNumAddresses;              /*!< Number of device addresses to automatically connect to. */
+    bool_t                              writeInFilterAcceptList;    /*!< If set to TRUE, the device addresses are written in the Filter Accept List before scanning is enabled. */
+    gapConnectionRequestParameters_t*   aAutoConnectData;           /*!< The array of connection request parameters, of size equal to cNumAddresses. */
 } gapAutoConnectParams_t;
 
 /*
@@ -1120,6 +1541,14 @@ typedef enum gapAppearance_tag {
     gLocationPod_c                          = 5187,
     gLocationAndNavigationPod_c             = 5188
 }gapAppearance_t;
+
+/* Host Version */
+typedef struct gapHostVersion_tag
+{
+    uint8_t bleHostVerMajor;
+    uint8_t bleHostVerMinor;
+    uint8_t bleHostVerPatch;
+} gapHostVersion_t;
 
 #endif /* GAP_TYPES_H */
 

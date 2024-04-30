@@ -1,0 +1,1325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ksdk:manifest xmlns:ksdk="http://nxp.com/ksdk/2.0/ksdk_manifest_v3.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="SDK_2.x_middleware_nxp_ble_stack_K32W1480_manifest_v3_14" name="Wireless BLE stack" brief="Bluetooth LE" format_version="3.14" api_version="2.0.0" xsi:schemaLocation="http://nxp.com/ksdk/2.0/ksdk_manifest_v3.0.xsd http://nxp.com/mcuxpresso/sdk/sdk_manifest_v3.14.xsd">
+
+  <externalDefinitions>
+    <definition extID="K32W1480xxxA"/>
+    <definition extID="armgcc"/>
+    <definition extID="mcuxpresso"/>
+    <definition extID="k32w148evk"/>
+  </externalDefinitions>
+  <ksdk id="MCUXpressoSDK215000_middleware_nxp_ble_stack_K32W1480_manifest_v3_14" name="MCUXpressoSDK215000_middleware_nxp_ble_stack_K32W1480_manifest_v3_14" version="2.15.000" revision="2.15.000"/>
+  <components>
+    <component id="middleware.wireless.ble_xml_fsci.K32W1480" name="wireless ble_xml_fsci" brief="Middleware wireless ble_xml_fsci" version="1.6.1" full_name="middleware.wireless.ble_xml_fsci" category="wireless/ble_xml_fsci" user_visible="false" type="middleware" package_base_path="../../../../tools/wireless" project_base_path="xml_fsci">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../../../../../xml_fsci" project_relative_path="xml_fsci" type="xml">
+        <files mask="BLE_1.8.18.xml"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_xml_fsci.cmake" hidden="true"/>
+      </source>
+    </component>
+    <component id="middleware.wireless.ble_xml_hci.K32W1480" name="wireless ble_xml_hci" brief="Middleware wireless ble_xml_hci" version="1.5.0" full_name="middleware.wireless.ble_xml_hci" category="wireless/ble_xml_hci" user_visible="false" type="middleware" package_base_path="../../../../tools/wireless" project_base_path="xml_hci">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../../../../../xml_hci" project_relative_path="xml_hci" type="xml">
+        <files mask="BLE HCI 5.0 1.6.1.xml"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_xml_hci.cmake" hidden="true"/>
+      </source>
+    </component>
+    <component id="middleware.wireless.ble_host_sdk.K32W1480" name="wireless ble_host_sdk" brief="Middleware wireless ble_host_sdk" version="1.9.0" full_name="middleware.wireless.ble_host_sdk" category="wireless/ble_host_sdk" user_visible="false" type="middleware" package_base_path="../../../../tools/wireless/host_sdk" project_base_path="host_sdk">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="./" type="other">
+        <files mask="CHANGELOG"/>
+        <files mask="HOWTO-FSCIACK"/>
+        <files mask="HOWTO-SPI"/>
+      </source>
+      <source relative_path="./" type="doc">
+        <files mask="README.txt"/>
+      </source>
+      <source relative_path="../../../../../../hsdk" project_relative_path="hsdk" type="other">
+        <files mask="ConnectivityLibrary.sln"/>
+        <files mask="ConnectivityLibrary.vcxproj"/>
+        <files mask="ConnectivityLibrary.vcxproj.filters"/>
+        <files mask="HSDK.rc"/>
+        <files mask="Makefile"/>
+      </source>
+      <source relative_path="../../../../../../hsdk" project_relative_path="hsdk" type="doc">
+        <files mask="README.md"/>
+      </source>
+      <source relative_path="../../../../../../hsdk" project_relative_path="hsdk" type="c_include">
+        <files mask="resource.h"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-c" project_relative_path="hsdk-c" type="doc">
+        <files mask="README.md"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-python" project_relative_path="hsdk-python" type="doc">
+        <files mask="README.md"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/demo" project_relative_path="hsdk/demo" type="src">
+        <files mask="FsciBootloader.c"/>
+        <files mask="GetKinetisDevices.c"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/demo" project_relative_path="hsdk/demo" type="other">
+        <files mask="Makefile"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/doc" project_relative_path="hsdk/doc" type="doc">
+        <files mask="Protocol.md"/>
+        <files mask="Serial.md"/>
+        <files mask="Sys.md"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/physical" project_relative_path="hsdk/physical" type="src">
+        <files mask="PhysicalDevice.c"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/protocol" project_relative_path="hsdk/protocol" type="src">
+        <files mask="Framer.c"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/res" project_relative_path="hsdk/res" type="other">
+        <files mask="77-mm-usb-device-blacklist.rules"/>
+        <files mask="hsdk.conf"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/sys" project_relative_path="hsdk/sys" type="src">
+        <files mask="EventManager.c"/>
+        <files mask="MessageQueue.c"/>
+        <files mask="RawFrame.c"/>
+        <files mask="hsdkEvent.c"/>
+        <files mask="hsdkFile.c"/>
+        <files mask="hsdkLock.c"/>
+        <files mask="hsdkLogger.c"/>
+        <files mask="hsdkSemaphore.c"/>
+        <files mask="hsdkThread.c"/>
+        <files mask="utils.c"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/demo/bin/dk07" project_relative_path="hsdk/demo/bin/dk07" type="other">
+        <files mask="libframer.so"/>
+        <files mask="libfsci.so"/>
+        <files mask="libphysical.so"/>
+        <files mask="libspi.so"/>
+        <files mask="libsys.so"/>
+        <files mask="libuart.so"/>
+        <files mask="Thread_Shell"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/demo/bin/dk07" project_relative_path="hsdk/demo/bin/dk07" type="script">
+        <files mask="setup.dk07.sh"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/include/physical" project_relative_path="hsdk/include/physical" type="c_include">
+        <files mask="PhysicalDevice.h"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/include/protocol" project_relative_path="hsdk/include/protocol" type="c_include">
+        <files mask="Framer.h"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/include/sys" project_relative_path="hsdk/include/sys" type="c_include">
+        <files mask="EventManager.h"/>
+        <files mask="MessageQueue.h"/>
+        <files mask="RawFrame.h"/>
+        <files mask="hsdkError.h"/>
+        <files mask="hsdkLogger.h"/>
+        <files mask="hsdkOSCommon.h"/>
+        <files mask="utils.h"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/include/physical/PCAP" project_relative_path="hsdk/include/physical/PCAP" type="c_include">
+        <files mask="PCAPDevice.h"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/include/physical/SPI" project_relative_path="hsdk/include/physical/SPI" type="c_include">
+        <files mask="SPIConfiguration.h"/>
+        <files mask="SPIDevice.h"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/include/physical/UART" project_relative_path="hsdk/include/physical/UART" type="c_include">
+        <files mask="UARTConfiguration.h"/>
+        <files mask="UARTDevice.h"/>
+        <files mask="UARTDiscovery.h"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/include/protocol/FSCI" project_relative_path="hsdk/include/protocol/FSCI" type="c_include">
+        <files mask="FSCIFrame.h"/>
+        <files mask="FSCIFramer.h"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/physical/PCAP" project_relative_path="hsdk/physical/PCAP" type="src">
+        <files mask="PCAPDevice.c"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/physical/SPI" project_relative_path="hsdk/physical/SPI" type="src">
+        <files mask="SPIConfiguration.c"/>
+        <files mask="SPIDevice.c"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/physical/UART" project_relative_path="hsdk/physical/UART" type="src">
+        <files mask="UARTConfiguration.c"/>
+        <files mask="UARTDevice.c"/>
+        <files mask="UARTDiscovery.c"/>
+      </source>
+      <source relative_path="../../../../../../hsdk/protocol/FSCI" project_relative_path="hsdk/protocol/FSCI" type="src">
+        <files mask="FSCIFrame.c"/>
+        <files mask="FSCIFramer.c"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-c/demo" project_relative_path="hsdk-c/demo" type="src">
+        <files mask="HeartRateSensor.c"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-c/demo" project_relative_path="hsdk-c/demo" type="other">
+        <files mask="Makefile"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-c/inc" project_relative_path="hsdk-c/inc" type="c_include">
+        <files mask="ble_sig_defines.h"/>
+        <files mask="cmd_ble.h"/>
+        <files mask="os_abstraction.h"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-c/src" project_relative_path="hsdk-c/src" type="src">
+        <files mask="cmd_ble.c"/>
+        <files mask="evt_ble.c"/>
+        <files mask="evt_printer_ble.c"/>
+        <files mask="unload_ble.c"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-python/lib" project_relative_path="hsdk-python/lib" type="doc">
+        <files mask="README.md"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-python/src" project_relative_path="hsdk-python/src" type="script">
+        <files mask="__init__.py"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-python/lib/x64" project_relative_path="hsdk-python/lib/x64" type="other">
+        <files mask="HSDK.dll"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-python/lib/x86" project_relative_path="hsdk-python/lib/x86" type="other">
+        <files mask="HSDK.dll"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-python/src/com" project_relative_path="hsdk-python/src/com" type="script">
+        <files mask="__init__.py"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-python/src/com/nxp" project_relative_path="hsdk-python/src/com/nxp" type="script">
+        <files mask="__init__.py"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-python/src/com/nxp/wireless_connectivity" project_relative_path="hsdk-python/src/com/nxp/wireless_connectivity" type="script">
+        <files mask="__init__.py"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-python/src/com/nxp/wireless_connectivity/commands" project_relative_path="hsdk-python/src/com/nxp/wireless_connectivity/commands" type="script">
+        <files mask="__init__.py"/>
+        <files mask="comm.py"/>
+        <files mask="fsci_data_packet.py"/>
+        <files mask="fsci_frame_description.py"/>
+        <files mask="fsci_operation.py"/>
+        <files mask="fsci_parameter.py"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-python/src/com/nxp/wireless_connectivity/hsdk" project_relative_path="hsdk-python/src/com/nxp/wireless_connectivity/hsdk" type="script">
+        <files mask="CFsciLibrary.py"/>
+        <files mask="CUartLibrary.py"/>
+        <files mask="__init__.py"/>
+        <files mask="config.py"/>
+        <files mask="library_loader.py"/>
+        <files mask="ota_server.py"/>
+        <files mask="singleton.py"/>
+        <files mask="sniffer.py"/>
+        <files mask="utils.py"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-python/src/com/nxp/wireless_connectivity/test" project_relative_path="hsdk-python/src/com/nxp/wireless_connectivity/test" type="script">
+        <files mask="__init__.py"/>
+        <files mask="hrs.py"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-python/src/com/nxp/wireless_connectivity/commands/ble" project_relative_path="hsdk-python/src/com/nxp/wireless_connectivity/commands/ble" type="script">
+        <files mask="__init__.py"/>
+        <files mask="ble_sig_defines.py"/>
+        <files mask="enums.py"/>
+        <files mask="events.py"/>
+        <files mask="frames.py"/>
+        <files mask="gatt_database_dynamic.py"/>
+        <files mask="heart_rate_interface.py"/>
+        <files mask="operations.py"/>
+        <files mask="spec.py"/>
+        <files mask="sync_requests.py"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-python/src/com/nxp/wireless_connectivity/commands/firmware" project_relative_path="hsdk-python/src/com/nxp/wireless_connectivity/commands/firmware" type="script">
+        <files mask="__init__.py"/>
+        <files mask="enums.py"/>
+        <files mask="events.py"/>
+        <files mask="frames.py"/>
+        <files mask="operations.py"/>
+        <files mask="spec.py"/>
+        <files mask="sync_requests.py"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-python/src/com/nxp/wireless_connectivity/hsdk/device" project_relative_path="hsdk-python/src/com/nxp/wireless_connectivity/hsdk/device" type="script">
+        <files mask="__init__.py"/>
+        <files mask="device_manager.py"/>
+        <files mask="physical_device.py"/>
+      </source>
+      <source relative_path="../../../../../../hsdk-python/src/com/nxp/wireless_connectivity/hsdk/framing" project_relative_path="hsdk-python/src/com/nxp/wireless_connectivity/hsdk/framing" type="script">
+        <files mask="__init__.py"/>
+        <files mask="fsci_command.py"/>
+        <files mask="fsci_framer.py"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_sdk.cmake" hidden="true"/>
+      </source>
+    </component>
+    <component id="middleware.wireless.ble_host.K32W1480" name="Wireless BLE Host stack" brief="Middleware wireless ble_host" version="1.0.0" full_name="Wireless BLE Host stack" category="wireless/ble_host" user_visible="false" type="middleware" package_base_path=".././" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="./host/interface" project_relative_path="host/interface" type="c_include">
+        <files mask="att_callbacks.h"/>
+        <files mask="att_errors.h"/>
+        <files mask="att_params.h"/>
+        <files mask="att_types.h"/>
+        <files mask="ble_constants.h"/>
+        <files mask="ble_general.h"/>
+        <files mask="ble_host_tasks.h"/>
+        <files mask="ble_sig_defines.h"/>
+        <files mask="ble_utils.h"/>
+        <files mask="gap_interface.h"/>
+        <files mask="gap_types.h"/>
+        <files mask="gatt_client_interface.h"/>
+        <files mask="gatt_database.h"/>
+        <files mask="gatt_db_app_interface.h"/>
+        <files mask="gatt_db_att_interface.h"/>
+        <files mask="gatt_db_dynamic.h"/>
+        <files mask="gatt_interface.h"/>
+        <files mask="gatt_server_interface.h"/>
+        <files mask="gatt_types.h"/>
+        <files mask="hci_interface.h"/>
+        <files mask="hci_types.h"/>
+        <files mask="l2ca_cb_interface.h"/>
+        <files mask="l2ca_interface.h"/>
+        <files mask="l2ca_types.h"/>
+        <files mask="vendor_debug_commands.h"/>
+      </source>
+      <source relative_path="./port" project_relative_path="port" type="c_include">
+        <files mask="fwk_generic_list.h"/>
+        <files mask="fwk_mem_manager.h"/>
+        <files mask="fwk_messaging.h"/>
+        <files mask="fwk_os_abs.h"/>
+        <files mask="fwk_panic.h"/>
+        <files mask="fwk_timer_manager.h"/>
+        <files mask="fwk_seclib.h"/>
+      </source>
+      <source relative_path="./port" project_relative_path="port" type="src">
+        <files mask="fwk_generic_list.c"/>
+        <files mask="fwk_messaging.c"/>
+        <files mask="fwk_os_abs.c"/>
+        <files mask="fwk_timer_manager.c"/>
+      </source>
+      <source relative_path="./application/common" project_relative_path="../source/common" type="src">
+        <files mask="ble_host_tasks.c"/>
+        <files mask="ble_conn_manager.c"/>
+      </source>
+      <source relative_path="./application/common" project_relative_path="../source/common" type="c_include">
+        <files mask="ble_host_task_config.h"/>
+        <files mask="ble_conn_manager.h"/>
+      </source>
+      <source relative_path="./host/config" project_relative_path="host/config" type="c_include">
+        <files mask="ble_config.h"/>
+      </source>
+      <source relative_path="./host/config" project_relative_path="host/config" type="src">
+        <files mask="ble_globals.c"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="./host/interface" project_relative_path="host/interface" type="c_include"/>
+        <include_path relative_path="./application/common" project_relative_path="../source/common" type="c_include"/>
+        <include_path relative_path="./host/config" project_relative_path="host/config" type="c_include"/>
+        <include_path relative_path="./port" project_relative_path="port" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_host_AE_component_lib_iar.K32W1480" name="Wireless BLE Host stack for AE component lib" brief="Middleware wireless ble_host_ae_component_iar lib" version="1.0.0" full_name="Wireless BLE Host stack AE component lib" category="wireless/ble_host_AE_component_lib_iar" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+    </component>
+    <component id="middleware.wireless.ble_host_AE_component_lib_mcux.K32W1480" name="Wireless BLE Host stack for AE component lib" brief="Middleware wireless ble_host_ae_component_mcux lib" version="1.0.0" full_name="Wireless BLE Host stack AE component lib" category="wireless/ble_host_AE_component_lib_mcux" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source toolchain="mcuxpresso" relative_path="../bluetooth/host/lib" project_relative_path="./" type="lib">
+        <files mask="lib_ble_OPT_host_cm33_gcc.a"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_AE_component_lib_mcux.cmake" hidden="true"/>
+      </source>
+    </component>
+    <component id="middleware.wireless.ble_host_AE_central_component_lib_iar.K32W1480" name="Wireless BLE Host stack for AE central component lib" brief="Middleware wireless ble_host_ae_central_component_iar lib" version="1.0.0" full_name="Wireless BLE Host stack AE central component lib" category="wireless/ble_host_AE_central_component_li" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+    </component>
+    <component id="middleware.wireless.ble_host_AE_central_component_lib_mcux.K32W1480" name="Wireless BLE Host stack for AE central component lib" brief="Middleware wireless ble_host_ae_central_component_mcux lib" version="1.0.0" full_name="Wireless BLE Host stack AE central component lib" category="wireless/ble_host_AE_central_component_li" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source toolchain="mcuxpresso" relative_path="../bluetooth/host/lib" project_relative_path="./" type="lib">
+        <files mask="lib_ble_OPT_host_central_cm33_gcc.a"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_AE_central_component_lib_mcux.cmake" hidden="true"/>
+      </source>
+    </component>
+    <component id="middleware.wireless.ble_host_AE_peripheral_component_lib_iar.K32W1480" name="Wireless BLE Host stack for AE peripheral component lib" brief="Middleware wireless ble_host_ae_peripheral_component_iar lib" version="1.0.0" full_name="Wireless BLE Host stack AE peripheral component lib" category="wireless/ble_host_AE_peripheral_component" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+    </component>
+    <component id="middleware.wireless.ble_host_AE_peripheral_component_lib_mcux.K32W1480" name="Wireless BLE Host stack for AE peripheral component lib" brief="Middleware wireless ble_host_ae_peripheral_component_mcux lib" version="1.0.0" full_name="Wireless BLE Host stack AE peripheral component lib" category="wireless/ble_host_AE_peripheral_component" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source toolchain="mcuxpresso" relative_path="../bluetooth/host/lib" project_relative_path="./" type="lib">
+        <files mask="lib_ble_OPT_host_peripheral_cm33_gcc.a"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_AE_peripheral_component_lib_mcux.cmake" hidden="true"/>
+      </source>
+    </component>
+    <component id="middleware.wireless.ble_host_component_lib_iar.K32W1480" name="Wireless BLE Host stack component lib" brief="Middleware wireless ble_host_component_lib_iar" version="1.0.0" full_name="Wireless BLE Host stack integration lib" category="wireless/ble_host_component_lib_iar" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+    </component>
+    <component id="middleware.wireless.ble_host_component_lib_mcux.K32W1480" name="Wireless BLE Host stack component lib" brief="Middleware wireless ble_host_component_lib_mcux" version="1.0.0" full_name="Wireless BLE Host stack integration lib" category="wireless/ble_host_component_lib_mcux" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source toolchain="mcuxpresso" relative_path="../bluetooth/host/lib" project_relative_path="./" type="lib">
+        <files mask="lib_ble_host_cm33_gcc.a"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_component_lib_mcux.cmake" hidden="true"/>
+      </source>
+    </component>
+    <component id="middleware.wireless.ble_host_central_component_lib_iar.K32W1480" name="Wireless BLE Host stack central for lib" brief="Middleware wireless ble_host_central_component_iar_iar lib" version="1.0.0" full_name="Wireless BLE Host stack central component lib" category="wireless/ble_host_central_component_lib_i" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+    </component>
+    <component id="middleware.wireless.ble_host_central_component_lib_mcux.K32W1480" name="Wireless BLE Host stack central for lib" brief="Middleware wireless ble_host_central_component_mcux lib" version="1.0.0" full_name="Wireless BLE Host stack central component lib" category="wireless/ble_host_central_component_lib_m" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source toolchain="mcuxpresso" relative_path="../bluetooth/host/lib" project_relative_path="./" type="lib">
+        <files mask="lib_ble_host_central_cm33_gcc.a"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_central_component_lib_mcux.cmake" hidden="true"/>
+      </source>
+    </component>
+    <component id="middleware.wireless.ble_host_peripheral_component_lib_iar.K32W1480" name="Wireless BLE Host stack peripheral for lib" brief="Middleware wireless ble_host_peripheral_component_iar lib" version="1.0.0" full_name="Wireless BLE Host stack peripheral component lib" category="wireless/ble_host_peripheral_component_li" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+    </component>
+    <component id="middleware.wireless.ble_host_peripheral_component_lib_iar_mcxw.K32W1480" name="Wireless BLE Host stack peripheral for mcxw lib" brief="Middleware wireless ble_host_peripheral_component_iar mcxw lib" version="1.0.0" full_name="Wireless BLE Host stack peripheral component mcxw lib" category="wireless/ble_host_peripheral_component_li" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+    </component>
+    <component id="middleware.wireless.ble_host_peripheral_component_lib_mcux.K32W1480" name="Wireless BLE Host stack peripheral for lib" brief="Middleware wireless ble_host_peripheral_component_mcux lib" version="1.0.0" full_name="Wireless BLE Host stack peripheral component lib" category="wireless/ble_host_peripheral_component_li" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source toolchain="mcuxpresso" relative_path="../bluetooth/host/lib" project_relative_path="./" type="lib">
+        <files mask="lib_ble_host_peripheral_cm33_gcc.a"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_peripheral_component_lib_mcux.cmake" hidden="true"/>
+      </source>
+    </component>
+    <component id="middleware.wireless.ble_host_interface.K32W1480" name="Wireless BLE Host Interface" brief="Middleware wireless ble_host_interface" version="1.0.0" full_name="Wireless BLE Host Interface" category="wireless/ble_host_interface" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/host/interface" project_relative_path="host/interface" type="c_include">
+        <files mask="att_callbacks.h"/>
+        <files mask="att_errors.h"/>
+        <files mask="att_params.h"/>
+        <files mask="att_types.h"/>
+        <files mask="ble_constants.h"/>
+        <files mask="ble_general.h"/>
+        <files mask="ble_host_tasks.h"/>
+        <files mask="ble_sig_defines.h"/>
+        <files mask="ble_utils.h"/>
+        <files mask="gap_interface.h"/>
+        <files mask="gap_types.h"/>
+        <files mask="gatt_client_interface.h"/>
+        <files mask="gatt_database.h"/>
+        <files mask="gatt_db_app_interface.h"/>
+        <files mask="gatt_db_dynamic.h"/>
+        <files mask="gatt_interface.h"/>
+        <files mask="gatt_server_interface.h"/>
+        <files mask="gatt_types.h"/>
+        <files mask="hci_interface.h"/>
+        <files mask="hci_types.h"/>
+        <files mask="l2ca_cb_interface.h"/>
+        <files mask="l2ca_interface.h"/>
+        <files mask="l2ca_types.h"/>
+        <files mask="vendor_debug_commands.h"/>
+      </source>
+      <source relative_path="../bluetooth/host/config" project_relative_path="host/config" type="c_include">
+        <files mask="ble_config.h"/>
+      </source>
+      <source relative_path="../bluetooth/application/common" project_relative_path="host/config" type="c_include">
+        <files mask="ble_host_task_config.h"/>
+      </source>
+      <source relative_path="../bluetooth/port" project_relative_path="port" type="c_include">
+        <files mask="fwk_generic_list.h"/>
+        <files mask="fwk_mem_manager.h"/>
+        <files mask="fwk_messaging.h"/>
+        <files mask="fwk_os_abs.h"/>
+        <files mask="fwk_panic.h"/>
+        <files mask="fwk_timer_manager.h"/>
+        <files mask="fwk_seclib.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_interface.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/host/interface" project_relative_path="host/interface" type="c_include"/>
+        <include_path relative_path="../bluetooth/host/config" project_relative_path="host/config" type="c_include"/>
+        <include_path relative_path="../bluetooth/application/common" project_relative_path="host/config" type="c_include"/>
+        <include_path relative_path="../bluetooth/port" project_relative_path="bluetooth/port" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_host_interface_black_box.K32W1480" name="Wireless BLE Host Black Box" brief="Middleware wireless ble_host_interface_black_box" version="1.0.0" full_name="Wireless BLE Host Black Box" category="wireless/ble_host_interface_black_box" user_visible="false" type="middleware" package_base_path=".././" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="./host/interface" project_relative_path="host/interface" type="c_include">
+        <files mask="att_callbacks.h"/>
+        <files mask="att_errors.h"/>
+        <files mask="att_params.h"/>
+        <files mask="att_types.h"/>
+        <files mask="ble_constants.h"/>
+        <files mask="ble_general.h"/>
+        <files mask="ble_host_tasks.h"/>
+        <files mask="ble_sig_defines.h"/>
+        <files mask="ble_utils.h"/>
+        <files mask="gap_interface.h"/>
+        <files mask="gap_types.h"/>
+        <files mask="gatt_client_interface.h"/>
+        <files mask="gatt_database.h"/>
+        <files mask="gatt_db_app_interface.h"/>
+        <files mask="gatt_db_dynamic.h"/>
+        <files mask="gatt_interface.h"/>
+        <files mask="gatt_server_interface.h"/>
+        <files mask="gatt_types.h"/>
+        <files mask="hci_interface.h"/>
+        <files mask="hci_types.h"/>
+        <files mask="l2ca_cb_interface.h"/>
+        <files mask="l2ca_interface.h"/>
+        <files mask="l2ca_types.h"/>
+        <files mask="vendor_debug_commands.h"/>
+      </source>
+      <source relative_path="./application/common" project_relative_path="../source/common" type="src">
+        <files mask="ble_host_tasks.c"/>
+      </source>
+      <source relative_path="./application/common" project_relative_path="../source/common" type="c_include">
+        <files mask="ble_host_task_config.h"/>
+      </source>
+      <source relative_path="./host/config" project_relative_path="host/config" type="c_include">
+        <files mask="ble_config.h"/>
+      </source>
+      <source relative_path="./host/config" project_relative_path="host/config" type="src">
+        <files mask="ble_globals.c"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_interface_black_box.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="./host/interface" project_relative_path="host/interface" type="c_include"/>
+        <include_path relative_path="./application/common" project_relative_path="../source/common" type="c_include"/>
+        <include_path relative_path="./host/config" project_relative_path="host/config" type="c_include"/>
+        <include_path relative_path="./bluetooth/port" project_relative_path="bluetooth/port" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_host_interface_host.K32W1480" name="Wireless BLE Host Interface Host" brief="Middleware wireless ble_host_interface_host" version="1.0.0" full_name="Wireless BLE Host Interface Host" category="wireless/ble_host_interface_host" user_visible="false" type="middleware" package_base_path=".././" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="./host/interface" project_relative_path="host/interface" type="c_include">
+        <files mask="att_errors.h"/>
+        <files mask="att_types.h"/>
+        <files mask="ble_constants.h"/>
+        <files mask="ble_general.h"/>
+        <files mask="ble_sig_defines.h"/>
+        <files mask="ble_utils.h"/>
+        <files mask="gap_interface.h"/>
+        <files mask="gap_types.h"/>
+        <files mask="gatt_client_interface.h"/>
+        <files mask="gatt_database.h"/>
+        <files mask="gatt_db_app_interface.h"/>
+        <files mask="gatt_interface.h"/>
+        <files mask="gatt_server_interface.h"/>
+        <files mask="gatt_types.h"/>
+        <files mask="gatt_db_dynamic.h"/>
+        <files mask="l2ca_cb_interface.h"/>
+        <files mask="l2ca_interface.h"/>
+        <files mask="l2ca_types.h"/>
+        <files mask="vendor_debug_commands.h"/>
+      </source>
+      <source relative_path="./application/common" project_relative_path="../source/common" type="src">
+        <files mask="ble_conn_manager.c"/>
+      </source>
+      <source relative_path="./application/common" project_relative_path="../source/common" type="c_include">
+        <files mask="ble_conn_manager.h"/>
+      </source>
+      <source relative_path="./host/config" project_relative_path="host/config" type="c_include">
+        <files mask="ble_config.h"/>
+      </source>
+      <source relative_path="./host/config" project_relative_path="host/config" type="src">
+        <files mask="ble_globals.c"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_interface_host.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="./host/interface" project_relative_path="host/interface" type="c_include"/>
+        <include_path relative_path="./application/common" project_relative_path="../source/common" type="c_include"/>
+        <include_path relative_path="./host/config" project_relative_path="host/config" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_host_interface_genfsk.K32W1480" name="Wireless BLE Host Genfsk" brief="Middleware wireless ble_host_interface_genfsk" version="1.0.0" full_name="Wireless BLE Host Genfsk" category="wireless/ble_host_interface_genfsk" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/host/interface" project_relative_path="host/interface" type="c_include">
+        <files mask="ble_constants.h"/>
+        <files mask="ble_general.h"/>
+        <files mask="hci_types.h"/>
+        <files mask="ble_sig_defines.h"/>
+        <files mask="ble_utils.h"/>
+        <files mask="vendor_debug_commands.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_interface_genfsk.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/host/interface" project_relative_path="host/interface" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_fsci_interface.K32W1480" name="Wireless BLE Host Fsci Interface" brief="Middleware wireless ble_fsci_interface" version="1.0.0" full_name="Wireless BLE Host Fsci Interface" category="wireless/ble_fsci_interface" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/fsci/interface" project_relative_path="fsci/interface" type="c_include">
+        <files mask="fsci_ble_interface.h"/>
+        <files mask="fsci_ble_private_interface.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_fsci_interface.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/fsci/interface" project_relative_path="fsci/interface" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_fsci_private_interface.K32W1480" name="Wireless BLE Host Fsci Interface" brief="Middleware wireless ble_fsci_private_interface" version="1.0.0" full_name="Wireless BLE Host Fsci Interface" category="wireless/ble_fsci_private_interface" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/fsci/interface" project_relative_path="fsci/private_interface" type="c_include">
+        <files mask="fsci_ble_private_interface.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_fsci_private_interface.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/fsci/interface" project_relative_path="fsci/private_interface" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_fsci_source.K32W1480" name="Wireless BLE Host Fsci Source" brief="Middleware wireless ble_fsci_source" version="1.0.0" full_name="Wireless BLE Host Fsci Source" category="wireless/ble_fsci_source" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/fsci/source" project_relative_path="fsci/source" type="src">
+        <files mask="fsci_ble.c"/>
+        <files mask="fsci_ble_gap.c"/>
+        <files mask="fsci_ble_gap_types.c"/>
+        <files mask="fsci_ble_gap_handlers.c"/>
+        <files mask="fsci_ble_gap2_handlers.c"/>
+        <files mask="fsci_ble_gatt.c"/>
+        <files mask="fsci_ble_gatt_db_app.c"/>
+        <files mask="fsci_ble_gatt_db_app_types.c"/>
+        <files mask="fsci_ble_gatt_types.c"/>
+        <files mask="fsci_ble_l2cap_cb.c"/>
+        <files mask="fsci_ble_l2cap_cb_types.c"/>
+        <files mask="fsci_ble_types.c"/>
+      </source>
+      <source relative_path="../bluetooth/fsci/source" project_relative_path="fsci/source" type="c_include">
+        <files mask="fsci_ble.h"/>
+        <files mask="fsci_ble_gap.h"/>
+        <files mask="fsci_ble_gap_types.h"/>
+        <files mask="fsci_ble_gap_handlers.h"/>
+        <files mask="fsci_ble_gap2_handlers.h"/>
+        <files mask="fsci_ble_gatt.h"/>
+        <files mask="fsci_ble_gatt_db_app.h"/>
+        <files mask="fsci_ble_gatt_db_app_types.h"/>
+        <files mask="fsci_ble_gatt_types.h"/>
+        <files mask="fsci_ble_l2cap_cb.h"/>
+        <files mask="fsci_ble_l2cap_cb_types.h"/>
+        <files mask="fsci_ble_types.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_fsci_source.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/fsci/source" project_relative_path="fsci/source" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_fsci_source_handover.K32W1480" name="Wireless BLE Host Fsci Source Handover" brief="Middleware wireless ble_fsci_source_handover" version="1.0.0" full_name="Wireless BLE Host Fsci Source Handover" category="wireless/ble_fsci_source_handover" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/fsci/source" project_relative_path="fsci/source" type="src">
+        <files mask="fsci_ble_gap_handover.c"/>
+        <files mask="fsci_ble_gap_handover_types.c"/>
+      </source>
+      <source relative_path="../bluetooth/fsci/source" project_relative_path="fsci/source" type="c_include">
+        <files mask="fsci_ble_gap_handover.h"/>
+        <files mask="fsci_ble_gap_handover_types.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_fsci_source_handover.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/fsci/source" project_relative_path="fsci/source" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_fsci_host.K32W1480" name="Wireless BLE Host Fsci Host" brief="Middleware wireless ble_fsci_host" version="1.0.0" full_name="Wireless BLE Host Fsci Host" category="wireless/ble_fsci_host" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/fsci/host" project_relative_path="host/source" type="src">
+        <files mask="host_ble.c"/>
+        <files mask="host_gap.c"/>
+        <files mask="host_gatt.c"/>
+        <files mask="host_gatt_db.c"/>
+        <files mask="host_l2cap_cb.c"/>
+      </source>
+      <source relative_path="../bluetooth/fsci/host" project_relative_path="host/source" type="c_include">
+        <files mask="host_ble.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_fsci_host.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/fsci/host" project_relative_path="host/source" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_host_interface_handover.K32W1480" name="Wireless BLE Host Interface Handover" brief="Middleware wireless ble_host_interface_handover" version="1.0.0" full_name="Wireless BLE Host Interface Handover" category="wireless/ble_host_interface_handover" user_visible="false" type="middleware" package_base_path=".././" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="./host/interface" project_relative_path="host/interface" type="c_include">
+        <files mask="gap_handover_interface.h"/>
+        <files mask="gap_handover_types.h"/>
+        <files mask="hci_handover_interface.h"/>
+        <files mask="hci_handover_types.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_interface_handover.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="./bluetooth/host/interface" project_relative_path="host/interface" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_host_handover_component_lib_iar.K32W1480" name="Wireless BLE Host stack Handover lib" brief="Middleware wireless lib_ble_handover_iar lib" version="1.0.0" full_name="Wireless BLE Host stack Handover component lib" category="wireless/ble_host_handover_component_lib_" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+    </component>
+    <component id="middleware.wireless.ble_host_handover_component_lib_mcux.K32W1480" name="Wireless BLE Host stack for AE component lib" brief="Middleware wireless lib_ble_handover_mcux lib" version="1.0.0" full_name="Wireless BLE Host stack Handover component lib" category="wireless/ble_host_handover_component_lib_" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source toolchain="mcuxpresso" relative_path="../bluetooth/host/lib" project_relative_path="./" type="lib">
+        <files mask="lib_ble_handover_cm33_gcc.a"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_handover_component_lib_mcux.cmake" hidden="true"/>
+      </source>
+    </component>
+    <component id="middleware.wireless.auto.K32W1480" name="Wireless BLE Auto" brief="Middleware wireless auto" version="1.0.0" full_name="Wireless BLE Auto" category="wireless/auto" user_visible="false" type="middleware" package_base_path="../../" project_base_path="source">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/application/common/auto" project_relative_path="common/auto" type="src">
+        <files mask="app_a2a_interface.c"/>
+        <files mask="app_a2b.c"/>
+        <files mask="app_handover.c"/>
+      </source>
+      <source relative_path="../bluetooth/application/common/auto" project_relative_path="common/auto" type="c_include">
+        <files mask="app_a2a_interface.h"/>
+        <files mask="app_a2b.h"/>
+        <files mask="app_handover.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_auto.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/application/common/auto" project_relative_path="common/auto" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_hci_transport_serial.K32W1480" name="Wireless BLE Hci Transport serial" brief="Middleware wireless ble_hci_transport_serial" version="1.0.0" full_name="Wireless BLE Hci Transport for serial" category="wireless/ble_hci_transport_serial" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/hci_transport/interface" project_relative_path="hci_transport/interface" type="c_include">
+        <files mask="hci_transport.h"/>
+      </source>
+      <source relative_path="../bluetooth/hci_transport/source" project_relative_path="hci_transport/source" type="src">
+        <files mask="hcit_serial_interface.c"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_hci_transport_serial.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/hci_transport/interface" project_relative_path="hci_transport/interface" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_hci_transport_rpmsg.K32W1480" name="Wireless BLE Hci Transport generic" brief="Middleware wireless ble_hci_transport_generic" version="1.0.0" full_name="Wireless BLE Hci Transport for generic" category="wireless/ble_hci_transport_rpmsg" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/hci_transport/interface" project_relative_path="hci_transport/interface" type="c_include">
+        <files mask="hci_transport.h"/>
+      </source>
+      <source relative_path="../bluetooth/hci_transport/source" project_relative_path="hci_transport/source" type="src">
+        <files mask="hcit_generic_adapter_interface.c"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_hci_transport_rpmsg.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/hci_transport/interface" project_relative_path="hci_transport/interface" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_hci_transport_adapter.K32W1480" name="Wireless BLE Hci Transport adapter" brief="Middleware wireless ble_hci_transport_adapter" version="1.0.0" full_name="Wireless BLE Hci Transport for adapter" category="wireless/ble_hci_transport_adapter" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/hci_transport/interface" project_relative_path="hci_transport/interface" type="c_include">
+        <files mask="hci_transport.h"/>
+      </source>
+      <source relative_path="../bluetooth/hci_transport/source" project_relative_path="hci_transport/source" type="src">
+        <files mask="hcit_adapter_interface.c"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_hci_transport_adapter.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/hci_transport/interface" project_relative_path="hci_transport/interface" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_hci_transport_interface.K32W1480" name="Wireless BLE Hci Transport Interface" brief="Middleware wireless ble_hci_transport_interface" version="1.0.0" full_name="Wireless BLE Hci Transport Interface" category="wireless/ble_hci_transport_interface" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/hci_transport/interface" project_relative_path="hci_transport/interface" type="c_include">
+        <files mask="hci_transport.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_hci_transport_interface.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/hci_transport/interface" project_relative_path="hci_transport/interface" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_gatt_db_dynamic.K32W1480" name="Wireless BLE Gattdb Dynamic" brief="Middleware wireless ble_gatt_db_dynamic" version="1.0.0" full_name="Wireless BLE Gattdb Dynamic" category="wireless/ble_gatt_db_dynamic" user_visible="false" type="middleware" package_base_path="../../" project_base_path="source">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/application/common/gatt_db" project_relative_path="common/gatt_db" type="src">
+        <files mask="gatt_database.c"/>
+        <files mask="gatt_database_dynamic.c"/>
+      </source>
+      <source relative_path="../bluetooth/application/common/gatt_db" project_relative_path="common/gatt_db" type="c_include">
+        <files mask="gatt_database_dynamic.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_gatt_db_dynamic.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/application/common/gatt_db" project_relative_path="common/gatt_db" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_gatt_service_discovery.K32W1480" name="Wireless BLE Gatt Service Discovery" brief="Middleware wireless ble_gatt_service_discovery" version="1.0.0" full_name="Wireless BLE Gatt Service Discovery" category="wireless/ble_gatt_service_discovery" user_visible="false" type="middleware" package_base_path="../../" project_base_path="source">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/application/common" project_relative_path="common" type="src">
+        <files mask="ble_service_discovery.c"/>
+      </source>
+      <source relative_path="../bluetooth/application/common" project_relative_path="common" type="c_include">
+        <files mask="ble_service_discovery.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_gatt_service_discovery.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/application/common" project_relative_path="common" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_gatt_db.K32W1480" name="Wireless BLE Gatt DB" brief="Middleware wireless ble_gatt_db" version="1.0.0" full_name="Wireless BLE Gatt DB" category="wireless/ble_gatt_db" user_visible="false" type="middleware" package_base_path="../../" project_base_path="source">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/application/common/gatt_db/macros" project_relative_path="common/gatt_db/macros" type="c_include">
+        <files mask="gatt_alloc_x.h"/>
+        <files mask="gatt_db_macros.h"/>
+        <files mask="gatt_db_x_macros.h"/>
+        <files mask="gatt_decl_x.h"/>
+        <files mask="gatt_enum_x.h"/>
+        <files mask="gatt_init_x.h"/>
+        <files mask="gatt_size_x.h"/>
+        <files mask="gatt_uuid_decl_x.h"/>
+        <files mask="gatt_uuid_def_x.h"/>
+      </source>
+      <source relative_path="../bluetooth/application/common/gatt_db" project_relative_path="common/gatt_db" type="src">
+        <files mask="gatt_database.c"/>
+      </source>
+      <source relative_path="../bluetooth/application/common/gatt_db" project_relative_path="common/gatt_db" type="c_include">
+        <files mask="gatt_db_handles.h"/>
+      </source>
+      <source relative_path="../bluetooth/application/common" project_relative_path="common" type="c_include">
+        <files mask="ieee11073.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_gatt_db.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/application/common/gatt_db/macros" project_relative_path="common/gatt_db/macros" type="c_include"/>
+        <include_path relative_path="../bluetooth/application/common/gatt_db" project_relative_path="common/gatt_db" type="c_include"/>
+        <include_path relative_path="../bluetooth/application/common" project_relative_path="common" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_profiles.battery_service.K32W1480" name="Wireless BLE Profiles Battery Service" brief="Middleware wireless ble_profiles_battery_service" version="1.0.0" full_name="Wireless BLE Profiles Battery Service" category="wireless/ble_profiles_battery_service" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/profiles/battery" project_relative_path="profiles/battery" type="src">
+        <files mask="battery_service.c"/>
+      </source>
+      <source relative_path="../bluetooth/profiles/battery" project_relative_path="profiles/battery" type="c_include">
+        <files mask="battery_interface.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_profiles_battery_service.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/profiles/battery" project_relative_path="profiles/battery" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_profiles.wireless_uart.K32W1480" name="Wireless BLE Profiles Wireless Uart" brief="Middleware wireless ble_profiles_wireless_uart" version="1.0.0" full_name="Wireless BLE Profiles Wireless Uart" category="wireless/ble_profiles_wireless_uart" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/profiles/wireless_uart" project_relative_path="profiles/wireless_uart" type="src">
+        <files mask="wireless_uart_service.c"/>
+      </source>
+      <source relative_path="../bluetooth/profiles/wireless_uart" project_relative_path="profiles/wireless_uart" type="c_include">
+        <files mask="wireless_uart_interface.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_profiles_wireless_uart.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/profiles/wireless_uart" project_relative_path="profiles/wireless_uart" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_profiles.ranging.K32W1480" name="Wireless BLE Profiles Ranging Service" brief="Middleware wireless ble_profiles_ranging" version="1.0.0" full_name="Wireless BLE Profiles Ranging Service" category="wireless/ble_profiles_ranging" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/profiles/ranging" project_relative_path="profiles/ranging" type="src">
+        <files mask="ranging_service.c"/>
+      </source>
+      <source relative_path="../bluetooth/profiles/ranging" project_relative_path="profiles/ranging" type="c_include">
+        <files mask="ranging_interface.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_profiles_ranging.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/profiles/ranging" project_relative_path="profiles/ranging" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_controller_init.K32W1480" name="Wireless BLE Controller Init" brief="Middleware wireless ble_controller_init" version="1.0.0" full_name="Wireless BLE Controller Init" category="wireless/ble_controller_init" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+    </component>
+    <component id="middleware.wireless.ble_controller_dtm.K32W1480" name="Wireless BLE Controller DTM" brief="Middleware wireless ble_controller_dtm" version="1.0.0" full_name="Wireless BLE Controller DTM" category="wireless/ble_controller_dtm" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../ble_controller/src/dtm" project_relative_path="controller/dtm" type="src">
+        <files mask="dtm.c"/>
+      </source>
+      <source relative_path="../ble_controller/interface" project_relative_path="controller/dtm" type="c_include">
+        <files mask="dtm.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_controller_dtm.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../ble_controller/interface" project_relative_path="controller/dtm" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.controller_api.K32W1480" name="Wireless Controller API" brief="Middleware wireless controller API" version="1.0.0" full_name="Wireless BLE Controller API" category="wireless/controller_api" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../ble_controller/src" project_relative_path="controller/interface" type="src">
+        <files mask="controller_api.c"/>
+      </source>
+      <source relative_path="../ble_controller/interface" project_relative_path="controller/interface" type="c_include">
+        <files mask="controller_api.h"/>
+        <files mask="controller_interface.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_controller_api.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../ble_controller/interface" project_relative_path="controller/interface" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_controller_component_lib.K32W1480" name="Wireless BLE Controller component lib" brief="middleware wireless ble_controller_component_lib" version="1.0.0" full_name="Wireless BLE Controller" category="wireless/ble_controller_component_lib" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+    </component>
+    <component id="middleware.wireless.ble_controller_interface.K32W1480" name="Wireless BLE Controller Interface" brief="Middleware wireless ble_controller_interface" version="1.0.0" full_name="Wireless BLE Controller Interface" category="wireless/ble_controller_interface" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../ble_controller/interface" project_relative_path="controller/interface" type="c_include">
+        <files mask="controller_interface.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_controller_interface.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../ble_controller/interface" project_relative_path="controller/interface" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_controller_thread_interface.K32W1480" name="Wireless BLE Controller Thread Interface" brief="Middleware wireless ble_controller_thread_interface" version="1.0.0" full_name="Wireless BLE Controller Thread Interface" category="wireless/ble_controller_thread_interface" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_controller_thread_interface.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../ble_controller/interface/connected_mcu" project_relative_path="controller/interface" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.xcvr_kw38z.K32W1480" name="Wireless XCVR KW38 driver" brief="Middleware wireless xcvr_kw38_driver" version="1.0.0" full_name="Wireless XCVR KW38 driver" category="wireless/XCVR_KW38_driver" user_visible="false" type="middleware" package_base_path="../../" project_base_path="framework">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_XCVR_KW38_driver.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../framework/XCVR/MKW38Z4/drv" project_relative_path="XCVR/MKW38Z4" type="c_include"/>
+        <include_path relative_path="../framework/XCVR/MKW38Z4/drv/nb2p4ghz" project_relative_path="XCVR/MKW38Z4/nb2p4ghz" type="c_include"/>
+        <include_path relative_path="../framework/XCVR/MKW38Z4/drv/nb2p4ghz/configs/gen35" project_relative_path="XCVR/MKW38Z4/nb2p4ghz/configs" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.xcvr_gen40.K32W1480" name="Wireless XCVR  GEN4.0 driver" brief="Middleware wireless xcvr_gen40_driver" version="1.0.0" full_name="Wireless XCVR GEN4.0 driver" category="wireless/XCVR_GEN40_driver" user_visible="false" type="middleware" package_base_path="../../" project_base_path="framework">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_XCVR_GEN40_driver.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../framework/XCVR/MKW38Z4/drv" project_relative_path="XCVR/GEN40" type="c_include"/>
+        <include_path relative_path="../framework/XCVR/MKW38Z4/drv/nb2p4ghz" project_relative_path="XCVR/GEN40/nb2p4ghz" type="c_include"/>
+        <include_path relative_path="../framework/XCVR/MKW38Z4/drv/nb2p4ghz/configs/gen40" project_relative_path="XCVR/GEN40/nb2p4ghz/configs" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.xcvr_gen45.K32W1480" name="Wireless XCVR  GEN4.5 driver" brief="Middleware wireless xcvr_gen45_driver" version="1.0.0" full_name="Wireless XCVR GEN4.5 driver" category="wireless/XCVR_GEN45_driver" user_visible="false" type="middleware" package_base_path="../../" project_base_path="XCVR">
+      <defines>
+        <define name="RF_OSC_26MHZ" value="0"/>
+        <define name="TEST_BUILD_COEX" value="0"/>
+        <define name="ARM_MATH_CM3" value="1"/>
+      </defines>
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../XCVR/drv" project_relative_path="./" type="c_include">
+        <files mask="nxp_xcvr_ext_ctrl.h"/>
+        <files mask="mathfp.h"/>
+        <files mask="dma_capture.h"/>
+        <files mask="rfmc_ctrl.h"/>
+        <files mask="nxp_xcvr_lcl_ctrl.h"/>
+        <files mask="dbg_ram_capture.h"/>
+      </source>
+      <source relative_path="../XCVR/drv" project_relative_path="./" type="src">
+        <files mask="mathfp.c"/>
+        <files mask="dma_capture.c"/>
+        <files mask="rfmc_ctrl.c"/>
+        <files mask="dbg_ram_capture.c"/>
+        <files mask="nxp_xcvr_lcl_ctrl.c"/>
+        <files mask="nxp_xcvr_ext_ctrl.c"/>
+      </source>
+      <source relative_path="../XCVR/drv/nb2p4ghz" project_relative_path="nb2p4ghz" type="src">
+        <files mask="nxp2p4_xcvr.c"/>
+        <files mask="nxp_xcvr_trim.c"/>
+      </source>
+      <source relative_path="../XCVR/drv/nb2p4ghz" project_relative_path="nb2p4ghz" type="c_include">
+        <files mask="nxp2p4_xcvr.h"/>
+        <files mask="nxp_xcvr_trim.h"/>
+      </source>
+      <source relative_path="../XCVR/drv/nb2p4ghz/configs/gen45" project_relative_path="nb2p4ghz/configs" type="src">
+        <files mask="nxp_xcvr_coding_config.c"/>
+        <files mask="nxp_xcvr_common_config.c"/>
+        <files mask="nxp_xcvr_lcl_config.c"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p5_config.c"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p7_config.c"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p32_config.c"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_1p0_config.c"/>
+        <files mask="nxp_xcvr_oqpsk_802p15p4_config.c"/>
+        <files mask="nxp_xcvr_mode_config.c"/>
+        <files mask="nxp_xcvr_msk_config.c"/>
+      </source>
+      <source relative_path="../XCVR/drv/nb2p4ghz/configs/gen45" project_relative_path="nb2p4ghz/configs" type="c_include">
+        <files mask="nxp_xcvr_coding_config.h"/>
+        <files mask="nxp_xcvr_common_config.h"/>
+        <files mask="nxp_xcvr_lcl_config.h"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p5_config.h"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p7_config.h"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p32_config.h"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_1p0_config.h"/>
+        <files mask="nxp_xcvr_oqpsk_802p15p4_config.h"/>
+        <files mask="nxp_xcvr_mode_config.h"/>
+        <files mask="nxp_xcvr_msk_config.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_XCVR_GEN45_driver.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../XCVR/drv" project_relative_path="./" type="c_include"/>
+        <include_path relative_path="../XCVR/drv/nb2p4ghz" project_relative_path="nb2p4ghz" type="c_include"/>
+        <include_path relative_path="../XCVR/drv/nb2p4ghz/configs/gen45" project_relative_path="nb2p4ghz/configs" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.XCVR.K32W1480" name="Wireless XCVR GEN4.0 driver" brief="Middleware wireless xcvr_gen40_driver" version="1.0.0" full_name="Wireless XCVR GEN4.0 driver" category="wireless/XCVR_driver" user_visible="false" type="middleware" package_base_path="../../" project_base_path="XCVR">
+      <dependencies>
+        <device_dependency value="K32W1480xxxA"/>
+      </dependencies>
+      <source relative_path="../XCVR/drv" project_relative_path="GEN40" type="src">
+        <files mask="mathfp.c"/>
+        <files mask="rfmc_ctrl.c"/>
+        <files mask="dbg_ram_capture.c"/>
+      </source>
+      <source relative_path="../XCVR/drv" project_relative_path="GEN40" type="c_include">
+        <files mask="mathfp.h"/>
+        <files mask="rfmc_ctrl.h"/>
+        <files mask="dbg_ram_capture.h"/>
+      </source>
+      <source relative_path="../XCVR/drv/nb2p4ghz" project_relative_path="GEN40/nb2p4ghz" type="src">
+        <files mask="nxp2p4_xcvr.c"/>
+        <files mask="nxp_xcvr_trim.c"/>
+      </source>
+      <source relative_path="../XCVR/drv/nb2p4ghz" project_relative_path="GEN40/nb2p4ghz" type="c_include">
+        <files mask="nxp2p4_xcvr.h"/>
+        <files mask="nxp_xcvr_trim.h"/>
+      </source>
+      <source relative_path="../XCVR/drv/nb2p4ghz/configs/gen40" project_relative_path="GEN40/nb2p4ghz/configs" type="src">
+        <files mask="nxp_xcvr_coding_config.c"/>
+        <files mask="nxp_xcvr_common_config.c"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p5_config.c"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p7_config.c"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p32_config.c"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_1p0_config.c"/>
+        <files mask="nxp_xcvr_oqpsk_802p15p4_config.c"/>
+        <files mask="nxp_xcvr_mode_config.c"/>
+        <files mask="nxp_xcvr_msk_config.c"/>
+      </source>
+      <source relative_path="../XCVR/drv/nb2p4ghz/configs/gen40" project_relative_path="GEN40/nb2p4ghz/configs" type="c_include">
+        <files mask="nxp_xcvr_coding_config.h"/>
+        <files mask="nxp_xcvr_common_config.h"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p5_config.h"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p7_config.h"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p32_config.h"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_1p0_config.h"/>
+        <files mask="nxp_xcvr_oqpsk_802p15p4_config.h"/>
+        <files mask="nxp_xcvr_mode_config.h"/>
+        <files mask="nxp_xcvr_msk_config.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_XCVR_driver.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../XCVR/drv" project_relative_path="GEN40" type="c_include"/>
+        <include_path relative_path="../XCVR/drv/nb2p4ghz" project_relative_path="GEN40/nb2p4ghz" type="c_include"/>
+        <include_path relative_path="../XCVR/drv/nb2p4ghz/configs/gen40" project_relative_path="GEN40/nb2p4ghz/configs" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_host_matter_lib_iar.K32W1480" name="Wireless BLE Host Matter component lib" brief="Middleware wireless ble_host_matter_component_lib_iar" version="1.0.0" full_name="Wireless BLE Host Matter component lib" category="wireless/ble_host_matter_component_lib_ia" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <all>
+          <board_dependency value="k32w148evk"/>
+          <device_dependency value="K32W1480xxxA"/>
+        </all>
+      </dependencies>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_matter_component_lib_iar.cmake" hidden="true"/>
+      </source>
+    </component>
+    <component id="middleware.wireless.ble_host_matter_lib_mcux.K32W1480" name="Wireless BLE Host Matter component lib" brief="Middleware wireless ble_host_matter_component_lib_mcux" version="1.0.0" full_name="Wireless BLE Host Matter component lib" category="wireless/ble_host_matter_component_lib_mc" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <all>
+          <board_dependency value="k32w148evk"/>
+          <device_dependency value="K32W1480xxxA"/>
+        </all>
+      </dependencies>
+      <source toolchain="mcuxpresso" relative_path="../bluetooth/host/lib" project_relative_path="./" type="lib">
+        <files mask="lib_ble_host_matter_cm33_gcc.a"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_matter_component_lib_mcux.cmake" hidden="true"/>
+      </source>
+    </component>
+    <component id="middleware.wireless.ble_init_matter.K32W1480" name="Wireless BLE Ble Init for Matter" brief="Middleware wireless ble_init_matter" version="1.0.0" full_name="Wireless BLE Ble Init for Matter" category="wireless/ble_init_matter" user_visible="false" type="middleware" package_base_path="../../" project_base_path="source">
+      <dependencies>
+        <all>
+          <board_dependency value="k32w148evk"/>
+          <device_dependency value="K32W1480xxxA"/>
+        </all>
+      </dependencies>
+      <source relative_path="../bluetooth/application/common/matter" project_relative_path="bluetooth/application/common/matter" type="src">
+        <files mask="ble_init.c"/>
+      </source>
+      <source relative_path="../bluetooth/application/common/matter" project_relative_path="bluetooth/application/common/matter" type="c_include">
+        <files mask="ble_init.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_init_matter.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/application/common/matter" project_relative_path="common/matter" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_profiles.device_info_service.K32W1480" name="Wireless BLE Profiles DeviceInfo Service" brief="Middleware wireless ble_profiles_device_info_service" version="1.0.0" full_name="Wireless BLE Profiles DeviceInfo Service" category="wireless/ble_profiles_device_info_service" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <all>
+          <board_dependency value="k32w148evk"/>
+          <device_dependency value="K32W1480xxxA"/>
+        </all>
+      </dependencies>
+      <source relative_path="../bluetooth/profiles/device_info" project_relative_path="profiles/device_info" type="src">
+        <files mask="device_info_service.c"/>
+      </source>
+      <source relative_path="../bluetooth/profiles/device_info" project_relative_path="profiles/device_info" type="c_include">
+        <files mask="device_info_interface.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_profiles_device_info_service.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/profiles/device_info" project_relative_path="profiles/device_info" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_profiles.ancs.K32W1480" name="Wireless BLE Profiles Alert Notification client" brief="Middleware wireless ble_profiles_ancs" version="1.0.0" full_name="Wireless BLE Profiles Alert Notification client" category="wireless/ble_profiles_ancs" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <all>
+          <board_dependency value="k32w148evk"/>
+          <device_dependency value="K32W1480xxxA"/>
+        </all>
+      </dependencies>
+      <source relative_path="../bluetooth/profiles/ancs" project_relative_path="profiles/ancs" type="c_include">
+        <files mask="ancs_interface.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_profiles_ancs.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/profiles/ancs" project_relative_path="profiles/ancs" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_profiles.time.K32W1480" name="Wireless BLE Profiles Time" brief="Middleware wireless ble_profiles_time" version="1.0.0" full_name="Wireless BLE Profiles Time" category="wireless/ble_profiles_time" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <all>
+          <board_dependency value="k32w148evk"/>
+          <device_dependency value="K32W1480xxxA"/>
+        </all>
+      </dependencies>
+      <source relative_path="../bluetooth/profiles/time" project_relative_path="profiles/time" type="c_include">
+        <files mask="current_time_interface.h"/>
+        <files mask="next_dst_change_interface.h"/>
+        <files mask="reference_time_update_interface.h"/>
+      </source>
+      <source relative_path="../bluetooth/profiles/time" project_relative_path="profiles/time" type="src">
+        <files mask="current_time_service.c"/>
+        <files mask="next_dst_change_service.c"/>
+        <files mask="reference_time_update_service.c"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_profiles_time.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/profiles/time" project_relative_path="profiles/time" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_profiles.hid.K32W1480" name="Wireless BLE Profiles Hid" brief="Middleware wireless ble_profiles_hid" version="1.0.0" full_name="Wireless BLE Profiles Hid" category="wireless/ble_profiles_hid" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <all>
+          <board_dependency value="k32w148evk"/>
+          <device_dependency value="K32W1480xxxA"/>
+        </all>
+      </dependencies>
+      <source relative_path="../bluetooth/profiles/hid" project_relative_path="profiles/hid" type="src">
+        <files mask="hid_service.c"/>
+      </source>
+      <source relative_path="../bluetooth/profiles/hid" project_relative_path="profiles/hid" type="c_include">
+        <files mask="hid_interface.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_profiles_hid.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/profiles/hid" project_relative_path="profiles/hid" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_profiles.temperature.K32W1480" name="Wireless BLE Profiles Temperature" brief="Middleware wireless ble_profiles_temperature" version="1.0.0" full_name="Wireless BLE Profiles Temperature" category="wireless/ble_profiles_temperature" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <all>
+          <board_dependency value="k32w148evk"/>
+          <device_dependency value="K32W1480xxxA"/>
+        </all>
+      </dependencies>
+      <source relative_path="../bluetooth/profiles/temperature" project_relative_path="profiles/temperature" type="src">
+        <files mask="temperature_service.c"/>
+      </source>
+      <source relative_path="../bluetooth/profiles/temperature" project_relative_path="profiles/temperature" type="c_include">
+        <files mask="temperature_interface.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_profiles_temperature.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/profiles/temperature" project_relative_path="profiles/temperature" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.ble_profiles.otap.K32W1480" name="Wireless BLE Profiles Otap" brief="Middleware wireless ble_profiles_otap" version="1.0.0" full_name="Wireless BLE Profiles Otap" category="wireless/ble_profiles_otap" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <all>
+          <board_dependency value="k32w148evk"/>
+          <device_dependency value="K32W1480xxxA"/>
+        </all>
+      </dependencies>
+      <source relative_path="../bluetooth/profiles/otap" project_relative_path="profiles/otap" type="src">
+        <files mask="otap_service.c"/>
+      </source>
+      <source relative_path="../bluetooth/profiles/otap" project_relative_path="profiles/otap" type="c_include">
+        <files mask="otap_interface.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_profiles_otap.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/profiles/otap" project_relative_path="profiles/otap" type="c_include"/>
+      </include_paths>
+    </component>
+  </components>
+</ksdk:manifest>

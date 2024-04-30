@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2021 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2021, 2023 NXP
+*
 *
 * \file
 *
@@ -17,96 +17,112 @@
 * Include
 *************************************************************************************
 ************************************************************************************/
+#include "fsl_component_messaging.h"
+#include "fsl_component_panic.h"
 #include "ble_host_tasks.h"
 #include "ble_host_task_config.h"
-#include "Panic.h"
+#include "fsl_component_mem_manager.h"
 
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
 *************************************************************************************
 ************************************************************************************/
-osaTaskId_t  gHost_TaskId = NULL;
-osaEventId_t gHost_TaskEvent;
+OSA_EVENT_HANDLE_DEFINE(gHost_TaskEvent);
+messaging_t   gApp2Host_TaskQueue;
+messaging_t   gHci2Host_TaskQueue;
 
-msgQueue_t   gApp2Host_TaskQueue;
-msgQueue_t   gHci2Host_TaskQueue;
 
 /************************************************************************************
 *************************************************************************************
 * Private prototypes
 *************************************************************************************
 ************************************************************************************/
-static void Host_Task(osaTaskParam_t argument);
+static void Host_Task(osa_task_param_t argument);
+
 /************************************************************************************
 *************************************************************************************
 * Private memory declarations
 *************************************************************************************
 ************************************************************************************/
-OSA_TASK_DEFINE(Host_Task, gHost_TaskPriority_c, 1, gHost_TaskStackSize_c, FALSE);
+static OSA_TASK_HANDLE_DEFINE(mHost_TaskId);
+static OSA_TASK_DEFINE(Host_Task, gHost_TaskPriority_c, 1, gHost_TaskStackSize_c, (uint8_t)FALSE);
 
 /************************************************************************************
 *************************************************************************************
 * Public functions
 *************************************************************************************
 ************************************************************************************/
-
 /*! *********************************************************************************
-* \brief  Initializes the two tasks of the BLE Host Stack.
+*\fn           osa_status_t Ble_HostTaskInit(void)
+*\brief        Initializes the two tasks of the BLE Host Stack.
 *
-*\param[in] none
+*\param  [in]  none.
 *
-* \return  Osa status message
-*
+*\return       osa_status_t    Initialization return status.
 ********************************************************************************** */
-osaStatus_t Ble_HostTaskInit(void)
-{     
-    /* Already initialized? */
-    if (NULL != gHost_TaskId)
-    {
-        return osaStatus_Error;
-    }
+osa_status_t Ble_HostTaskInit(void)
+{
+    osa_status_t status;
 
     /* Initialization of task related */
-    gHost_TaskEvent = OSA_EventCreate(TRUE);
-
-    if (gHost_TaskEvent == NULL)
+    if (KOSA_StatusSuccess != OSA_EventCreate((osa_event_handle_t)gHost_TaskEvent,
+                                              1U))
     {
-        return osaStatus_Error;
+        return KOSA_StatusError;
     }
 
     /* Initialization of task message queue */
-    MSG_InitQueue(&gApp2Host_TaskQueue);
-    MSG_InitQueue(&gHci2Host_TaskQueue);
+    MSG_QueueInit(&gApp2Host_TaskQueue);
+    MSG_QueueInit(&gHci2Host_TaskQueue);
 
     /* Task creation */
+    status = OSA_TaskCreate((osa_task_handle_t)mHost_TaskId,
+                            OSA_TASK(Host_Task),
+                            NULL);
+    (void)status;
+    assert(KOSA_StatusSuccess == status);
 
-    gHost_TaskId = OSA_TaskCreate(OSA_TASK(Host_Task), NULL);
-
-    if (NULL == gHost_TaskId)
-    {
-        panic(0, 0, 0, 0);
-        return osaStatus_Error;
-    }
-
-    return osaStatus_Success;
+    return KOSA_StatusSuccess;
 }
+
+/*! *********************************************************************************
+*\fn           osa_status_t Ble_HostTaskDeInit(void)
+*\brief        Destroys the BLE Host Stack tasks and its event.
+*
+*\param  [in]  none.
+*
+*\return       osa_status_t    Initialization return status.
+********************************************************************************** */
+osa_status_t Ble_HostTaskDeInit(void)
+{
+    osa_status_t status;
+    /* Destroy the host task */
+    status = OSA_TaskDestroy((osa_task_handle_t)mHost_TaskId);
+    if(status == KOSA_StatusSuccess)
+    {
+        /* Destroy the host task event*/
+        status = OSA_EventDestroy((osa_event_handle_t)gHost_TaskEvent);
+    }
+    return status;
+}
+
 
 /************************************************************************************
 *************************************************************************************
 * Private functions
 *************************************************************************************
 ************************************************************************************/
-
 /*! *********************************************************************************
-* \brief  Application wrapper Host_TaskHandler
+*\private
+*\fn           void Host_Task(osa_task_param_t argument)
+*\brief        Definition of the host task.
 *
-* \param[in] argument Osa task parameter
+*\param  [in]  argument       Not used.
 *
-* \return none
-*
+*\retval       void.
 ********************************************************************************** */
-static void Host_Task(osaTaskParam_t argument)
+static void Host_Task(osa_task_param_t argument)
 {
     Host_TaskHandler((void *) NULL);
 }

@@ -3,10 +3,10 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2014, Freescale Semiconductor, Inc.
-* Copyright 2016-2017 NXP
-* All rights reserved.
-* 
+* Copyright 2014 Freescale Semiconductor, Inc.
+* Copyright 2016-2019, 2021-2023 NXP
+*
+*
 * \file
 *
 * SPDX-License-Identifier: BSD-3-Clause
@@ -27,15 +27,15 @@
 * Public constants & macros
 *************************************************************************************
 ************************************************************************************/
-/*! Special value returned by GattDb_GetIndexOfHandle to signal that 
+/*! Special value returned by GattDb_GetIndexOfHandle to signal that
     an invalid attribute handle was given as parameter.  */
 #define gGattDbInvalidHandleIndex_d     (0xFFFFU)
-/*! Special value used to mark an invalid attribute handle. 
+/*! Special value used to mark an invalid attribute handle.
     Attribute handles are strictly positive. */
 #define gGattDbInvalidHandle_d          (0x0000U)
 
 #define    gPermissionNone_c                         0U       /*!< No permissions selected. */
-    
+
 /* Reading Permissions */
 #define    gPermissionFlagReadable_c                 BIT0     /*!< Attribute can be read. */
 /* if gPermissionFlagReadable_c == 1 */
@@ -51,6 +51,8 @@
 #define    gPermissionFlagWriteWithAuthentication_c  BIT6     /*!< Attribute may be written only by authenticated peers. */
 #define    gPermissionFlagWriteWithAuthorization_c   BIT7     /*!< Attribute may be written only by authorized peers. */
 /* endif */
+
+#define gGattDatabaseHashSize_c                      16U
 
 /************************************************************************************
 *************************************************************************************
@@ -105,6 +107,17 @@ extern uint16_t gGattDbAttributeCount_c;
 /*! Reference to the GATT database */
 extern gattDbAttribute_t* gattDatabase;
 
+#if defined(gBLE51_d) && (gBLE51_d == 1U)
+#if defined(gGattCaching_d) && (gGattCaching_d == 1U)
+extern uint16_t mActiveServiceChangedCharHandle[];
+extern uint16_t mActiveServiceChangedCCCDHandle[];
+extern uint16_t gGattActiveClientSupportedFeaturesHandles[];
+#endif /* gGattCaching_d */
+#endif /* gBLE51_d */
+
+extern uint16_t mServerServiceChangedCharHandle;
+extern uint16_t mServerServiceChangedCCCDHandle;
+
 /************************************************************************************
 *************************************************************************************
 * Public prototypes
@@ -116,38 +129,74 @@ extern "C" {
 #endif
 
 /*! *********************************************************************************
-* \brief   Returns the database index for a given attribute handle.
+* \brief     Returns the database index for a given attribute handle.
 *
 * \param[in] handle  The attribute handle.
 *
-* \return  The index of the given attribute in the database or gGattDbInvalidHandleIndex_d.
+* \return    The index of the given attribute in the database or gGattDbInvalidHandleIndex_d.
 *
 ********************************************************************************** */
 uint16_t GattDb_GetIndexOfHandle(uint16_t handle);
 
-#if defined(SOTA_ENABLED)
 /*! *********************************************************************************
-* \brief   Returns the address of the database.
+* \brief     Returns the handle of the service to which the given attribute belongs.
 *
+* \param[in] handle  The attribute handle.
 *
-* \return  The address of the database
+* \return    The handle of the service or gGattDbInvalidHandleIndex_d.
 *
 ********************************************************************************** */
-gattDbAttribute_t* GattDb_GetDatabase();
+uint16_t GattDb_ServiceStartHandle
+(
+    uint16_t handle
+);
 
 /*! *********************************************************************************
-* \brief   Returns the size of the database.
+* \brief     Finds the start index and attribute count for a given service
 *
+* \param[in] serviceHandle       The service handle.
+* \param[in] pOutStartIndex      The index in the database where the service declaration begins.
+* \param[in] pOutAttributeCount  The number of attributes contained by the service.
 *
-* \return  The size of the database
+* \retval   gBleSuccess_c
+* \retval   gGattDbInvalidHandleIndex_d     Service does not exist in gatt database.
 *
 ********************************************************************************** */
-uint16_t GattDb_GetAttributeCount();
-#endif /* SOTA_ENABLED */
+bleResult_t GattDb_FindServiceRange
+(
+    uint16_t serviceHandle,
+    uint16_t* pOutStartIndex,
+    uint16_t* pOutAttributeCount
+);
+
+/*! *********************************************************************************
+* \brief     Returns the value length for a given attribute handle.
+*
+* \param[in] handle  The attribute handle.
+*
+* \return    The length of the value of the attribute at the given handle or
+*            maxVariableValueLength in case of variable length attributes.
+*
+********************************************************************************** */
+uint16_t GattDb_GetAttributeValueSize(uint16_t handle);
+
+/*! *********************************************************************************
+* \brief     Computes the database hash for a static or a dynamic database
+*
+* \param[in] void.
+*
+* \retval   gBleSuccess_c
+* \retval   gBleInvalidState_c              Database not initialized or empty.
+* \retval   gBleOutOfMemory_c               Could not allocate memory for the database
+*                                           content used to compute the database hash.
+* \retval   gGattDbInvalidHandleIndex_d     Service does not exist in gatt database.
+*
+********************************************************************************** */
+bleResult_t GattDb_ComputeDatabaseHash(void);
 
 #ifdef __cplusplus
 }
-#endif 
+#endif
 
 #endif /* GATT_DATABASE_H */
 

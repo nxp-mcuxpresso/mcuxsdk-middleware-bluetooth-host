@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2021 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2021, 2023 NXP
+*
 *
 * \file
 *
@@ -91,10 +91,18 @@ typedef enum
     gAttOpcodePrepareWriteResponse_c         = 0x17U,
     gAttOpcodeExecuteWriteRequest_c          = 0x18U,
     gAttOpcodeExecuteWriteResponse_c         = 0x19U,
+    /* Read Multiple Variable Attributes */
+    gAttOpcodeReadMultipleVariableRequest_c  = 0x20U,
+    gAttOpcodeReadMultipleVariableResponse_c = 0x21U,
+
+    gAttOpCodeMultipleHandleValueNotification_c = 0x23U,
+
+
     /* Server Initiated */
     gAttOpcodeHandleValueNotification_c      = 0x1BU,
     gAttOpcodeHandleValueIndication_c        = 0x1DU,
     gAttOpcodeHandleValueConfirmation_c      = 0x1EU,
+
 
     gAttInvalidPduReceived_c                 = 0xDEU, /* internal purposes */
     gAttTimeoutOpcode_c                      = 0xDFU, /* internal purposes */

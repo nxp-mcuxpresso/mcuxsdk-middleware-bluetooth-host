@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2019 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2019, 2022-2023 NXP
+*
 *
 * \file
 *
@@ -125,8 +125,8 @@ bleResult_t Tms_Unsubscribe(void)
 ************************************************************************************/
 bleResult_t Tms_RecordTemperatureMeasurement(uint16_t serviceHandle, int16_t temperature)
 {
-    uint16_t  handle;
-    bleResult_t result;
+    uint16_t  handle = gGattDbInvalidHandle_d;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_Temperature_d);
 
     /* Get handle of Temperature characteristic */
@@ -136,7 +136,7 @@ bleResult_t Tms_RecordTemperatureMeasurement(uint16_t serviceHandle, int16_t tem
     if (result == gBleSuccess_c)
     {
         /* Update characteristic value */
-        result = GattDb_WriteAttribute(handle, sizeof(uint16_t), (uint8_t *)&temperature);
+        result = GattDb_WriteAttribute(handle, (uint16_t)sizeof(uint16_t), (uint8_t *)&temperature);
 
         if (result == gBleSuccess_c)
         {
@@ -163,8 +163,8 @@ static void Hts_SendTemperatureMeasurementNotification
     uint16_t handle
 )
 {
-    uint16_t  hCccd;
-    bool_t isNotificationActive;
+    uint16_t  hCccd = gGattDbInvalidHandle_d;
+    bool_t isNotificationActive = FALSE;
 
     /* Get handle of CCCD */
     if (GattDb_FindCccdHandleForCharValueHandle(handle, &hCccd) == gBleSuccess_c)

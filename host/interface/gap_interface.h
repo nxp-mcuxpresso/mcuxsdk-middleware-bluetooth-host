@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2022 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2024 NXP
+*
 *
 * \file
 *
@@ -25,7 +25,6 @@
 #include "gatt_types.h"
 #include "gatt_database.h"
 #include "SecLib.h"
-#include "SecLib_ecp256.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -41,7 +40,7 @@
 * \return  The resulting security mode-level.
 *
 * \remarks This macro is useful when two different security requirements
-* must be satisfied at the same time, such as a device master security requirement
+* must be satisfied at the same time, such as a device central security requirement
 * and a service-specific security requirement.
 *
 ********************************************************************************** */
@@ -53,7 +52,10 @@
 /*! *********************************************************************************
 * \brief  Macro used to cancel a connection initiated by Gap_Connect(...).
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 * \remarks This macro can only be used for a connection that has not yet been established, such as
 * the "gConnEvtConnected_c" has not been received. For example, call this when a connection
@@ -65,7 +67,8 @@
 /*! *********************************************************************************
 * \brief  Macro used to read the radio transmitter power when advertising.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 * \remarks The result is contained in the gAdvTxPowerLevelRead_c generic event.
 ********************************************************************************** */
@@ -77,7 +80,8 @@
 *
 * \param[in] deviceId Device ID identifying the radio connection.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 * \remarks The result is contained in the gConnEvtRssiRead_c connection event. The RSSI
 * value is a signed byte, and the unit is dBm. If the RSSI cannot be read, the gConnEvtPowerReadFailure_c
@@ -91,7 +95,8 @@
 *
 * \param[in] deviceId Device ID identifying the radio connection.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 * \remarks The result is contained in the gConnEvtTxPowerLevelRead_c connection event.
 * If the TX Power cannot be read, the gConnEvtPowerReadFailure_c
@@ -112,12 +117,14 @@ extern "C" {
 
 /*! *********************************************************************************
 * \brief  Registers the device security requirements.
-* This function includes a master security for all services and, optionally, additional stronger security
+* This function includes a central security for all services and, optionally, additional stronger security
 * settings for services as required by the profile and/or application.
 *
 * \param[in] pSecurity A pointer to the application-allocated gapDeviceSecurityRequirements_t structure.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleInvalidParameter_c   A parameter has an invalid value or is outside
+*                                   the accepted range
 *
 * \remarks pSecurity or any other contained security structure pointers that are NULL are ignored,
 * i.e., defaulted to No Security (Security Mode 1 Level 1, No Authorization, Minimum encryption key size).
@@ -134,7 +141,12 @@ bleResult_t Gap_RegisterDeviceSecurityRequirements
 *
 * \param[in] pAdvertisingParameters   Pointer to gapAdvertisingParameters_t structure.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version
 *
 * \remarks GAP Peripheral-only API function.
 *
@@ -150,7 +162,13 @@ bleResult_t Gap_SetAdvertisingParameters
 * \param[in] pAdvertisingData   Pointer to gapAdvertisingData_t structure or NULL.
 * \param[in] pScanResponseData  Pointer to gapScanResponseData_t structure or NULL.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range
+* \retval  gGapAdvDataTooLong_c         The advertising data length is too big
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by
+*                                       this stack version
 *
 * \remarks Any of the parameters may be NULL, in which case they are ignored.
 * Therefore, this function can be used to set any of the parameters individually or both at once.
@@ -176,7 +194,14 @@ bleResult_t Gap_SetAdvertisingData
 * \param[in] connectionCallback    Callback used by the application to receive connection events.
 *                                  Can be NULL.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version
+* \retval  gBleInvalidState_c           Advertising is already started or pending to
+*                                       be started
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by
+*                                       this stack version
 *
 * \remarks The advertisingCallback confirms or denies whether the advertising has started.
 * The connectionCallback is only used if a connection gets established during advertising.
@@ -193,7 +218,12 @@ bleResult_t Gap_StartAdvertising
 /*! *********************************************************************************
 * \brief  Commands the controller to stop advertising.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleInvalidState_c           Advertising is already stopped or pending to
+*                                       be stopped
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by
+*                                       this stack version
 *
 * \remarks GAP Peripheral-only API function.
 *
@@ -207,7 +237,22 @@ bleResult_t Gap_StopAdvertising(void);
 * \param[in] handle     The attribute handle.
 * \param[in] access     The type of access granted (gAccessRead_c or gAccessWrite_c).
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range
+* \retval  gBleOutOfMemory_c            The nvm index of the deviceId is bigger than
+*                                       the number of allowed bonded devices, or the
+*                                       nvm saving operation did not have enough memory
+* \retval  gBleInvalidParameter_c       The deviceId parameter is not valid or the
+*                                       access parameter is not gAccessRead_c or
+*                                       gAccessWrite_c
+* \retval  gBleUnexpectedError_c        Saving to NVM failed (module not initialized
+*                                       or corrupted NVM)
+* \retval  gBleOverflow_c               the number of handles to be read or written
+*                                       from the NVM is bigger than
+*                                       gcGapMaxAuthorizationHandles_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version
 *
 * \remarks This function executes synchronously.
 *
@@ -228,7 +273,17 @@ bleResult_t Gap_Authorize
 * \param[in] handle      The handle of the CCCD as defined in the GATT Database.
 * \param[in] cccd        The bit mask representing the CCCD value to be saved.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range
+* \retval  gBleUnexpectedError_c        Saving to NVM failed (module not initialized
+*                                       or corrupted NVM)
+* \retval  gBleOutOfMemory_c            The nvm index of the deviceId is bigger than
+*                                       the number of allowed bonded devices, or the
+*                                       nvm saving operation did not have enough memory
+* \retval  gDevDbCccdLimitReached_c     No more room in NVM
 *
 * \remarks The GATT Server layer saves the CCCD value automatically when it is written by the Client.
 * This API should only be used to save the CCCD in other situations, e.g., when for some reason
@@ -253,7 +308,14 @@ bleResult_t Gap_SaveCccd
 * \param[in]  handle        The handle of the CCCD.
 * \param[out] pOutIsActive  The address to store the status into.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range
+* \retval  gDevDbCccdNotFound_c         The handle is not CCCD
+* \retval  gBleUnavailable_c            The bond data entry for this device is
+*                                       corrupted
 *
 * \remarks This function executes synchronously.
 *
@@ -274,7 +336,14 @@ bleResult_t Gap_CheckNotificationStatus
 * \param[in]  handle        The handle of the CCCD.
 * \param[out] pOutIsActive  The address to store the status into.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gDevDbCccdNotFound_c         The handle is not CCCD.
+* \retval  gBleUnavailable_c            The bond data entry for this device is
+*                                       corrupted.
 *
 * \remarks This function executes synchronously.
 *
@@ -295,9 +364,14 @@ bleResult_t Gap_CheckIndicationStatus
 * \param[in]  maxDevices             Maximum number of identities to be obtained.
 * \param[out] pOutActualCount        The actual number of identities written.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value, is
+*                                       outside the accepted range, or the NVM entry
+*                                       is invalid
 *
-* \remarks This API may be useful when creating a white list or a resolving list.
+* \remarks This API may be useful when creating a filter accept list or a resolving list.
 *
 * \remarks This function executes synchronously.
 *
@@ -315,7 +389,12 @@ bleResult_t Gap_GetBondedDevicesIdentityInformation
 * \param[in] deviceId            The peer to pair with.
 * \param[in] pPairingParameters  Pairing parameters as required by the SMP.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task
 *
 * \remarks GAP Central-only API function.
 *
@@ -327,20 +406,23 @@ bleResult_t Gap_Pair
 );
 
 /*! *********************************************************************************
-* \brief  Informs the peer Master about the local security requirements.
+* \brief  Informs the peer Central about the local security requirements.
 *
 * \param[in] deviceId               The GAP peer to pair with.
 * \param[in] pPairingParameters     Pairing parameters as required by the SMP.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task
 *
 * \remarks The procedure has the same parameters as the pairing request, but, because it is initiated
-* by the Slave, it has no pairing effect. It only informs the Master about the requirements.
+* by the Peripheral, it has no pairing effect. It only informs the Central about the requirements.
 *
 * \remarks GAP Peripheral-only API function.
 *
 ********************************************************************************** */
-bleResult_t Gap_SendSlaveSecurityRequest
+bleResult_t Gap_SendPeripheralSecurityRequest
 (
     deviceId_t                      deviceId,
     const gapPairingParameters_t    *pPairingParameters
@@ -351,8 +433,12 @@ bleResult_t Gap_SendSlaveSecurityRequest
 *
 * \param[in] deviceId   Device ID of the peer.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gGapDeviceNotBonded_c        Trying to execute an API that is only available
+*                                       for bonded devices.
 * \remarks GAP Central-only API function.
 *
 ********************************************************************************** */
@@ -367,8 +453,12 @@ bleResult_t Gap_EncryptLink
 * \param[in] deviceId            The peer requesting authentication.
 * \param[in] pPairingParameters  Pairing parameters as required by the SMP.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 * \remarks This should be called in response to a gPairingRequest_c event.
 *
 * \remarks GAP Peripheral-only API function.
@@ -387,8 +477,10 @@ bleResult_t Gap_AcceptPairingRequest
 *
 * \param[in] reason Reason why the current device rejects the authentication.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 ********************************************************************************** */
 bleResult_t Gap_RejectPairing
 (
@@ -402,8 +494,12 @@ bleResult_t Gap_RejectPairing
 * \param[in] deviceId      The GAP peer that requested a passkey entry.
 * \param[in] passkey       The peer's secret passkey.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 ********************************************************************************** */
 bleResult_t Gap_EnterPasskey
 (
@@ -417,8 +513,12 @@ bleResult_t Gap_EnterPasskey
 * \param[in] deviceId   The pairing device.
 * \param[in] aOob       Pointer to OOB data (array of gcSmpOobSize_d size).
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 ********************************************************************************** */
 bleResult_t Gap_ProvideOob
 (
@@ -431,8 +531,11 @@ bleResult_t Gap_ProvideOob
 *
 * \param[in] deviceId The GAP peer that requested a passkey entry.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+
 * \remarks GAP Central-only API function.
 *
 ********************************************************************************** */
@@ -447,8 +550,12 @@ bleResult_t Gap_RejectPasskeyRequest
 * \param[in] deviceId   The GAP peer who initiated the procedure.
 * \param[in] pKeys      The SMP keys of the local device.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 ********************************************************************************** */
 bleResult_t Gap_SendSmpKeys
 (
@@ -461,8 +568,10 @@ bleResult_t Gap_SendSmpKeys
 *
 * \param[in] deviceId  The GAP peer who requested the Key Exchange procedure.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 ********************************************************************************** */
 bleResult_t Gap_RejectKeyExchangeRequest
 (
@@ -472,7 +581,8 @@ bleResult_t Gap_RejectKeyExchangeRequest
 /*! *********************************************************************************
 * \brief  Regenerates the private/public key pair used for LE Secure Connections pairing.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 * \remarks The application should listen for the gLeScPublicKeyRegenerated_c generic event.
 *
@@ -480,14 +590,14 @@ bleResult_t Gap_RejectKeyExchangeRequest
 bleResult_t Gap_LeScRegeneratePublicKey(void);
 
 /*! *********************************************************************************
-* \brief  Validates the numeric value during the Numeric Comparison LE Secure Connections pairing.
+* \brief     Validates the numeric value during the Numeric Comparison LE Secure Connections pairing.
 *
-* \param deviceId  Device ID of the peer.
+* \param[in] deviceId  Device ID of the peer.
 *
-* \param valid  TRUE if user has indicated that numeric values are matched, FALSE otherwise.
+* \param[in] valid     TRUE if user has indicated that numeric values are matched, FALSE otherwise.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval    gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 ********************************************************************************** */
 bleResult_t Gap_LeScValidateNumericValue
 (
@@ -498,7 +608,8 @@ bleResult_t Gap_LeScValidateNumericValue
 /*! *********************************************************************************
 * \brief  Retrieves local OOB data used for LE Secure Connections pairing.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 * \remarks The application should listen for the gLeScLocalOobData_c generic event.
 *
@@ -506,14 +617,16 @@ bleResult_t Gap_LeScValidateNumericValue
 bleResult_t Gap_LeScGetLocalOobData(void);
 
 /*! *********************************************************************************
-* \brief  Sets peer OOB data used for LE Secure Connections pairing.
+* \brief     Sets peer OOB data used for LE Secure Connections pairing.
 *
-* \param deviceId       Device ID of the peer.
+* \param[in] deviceId       Device ID of the peer.
 *
-* \param pPeerOobData   OOB data received from the peer.
+* \param[in] pPeerOobData   OOB data received from the peer.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 * \remarks This function should be called in response to the gConnEvtLeScOobDataRequest_c event.
 *
 ********************************************************************************** */
@@ -524,15 +637,16 @@ bleResult_t Gap_LeScSetPeerOobData
 );
 
 /*! *********************************************************************************
-* \brief  Sends a Keypress Notification to the peer.
+* \brief     Sends a Keypress Notification to the peer.
 *
-* \param deviceId               Device ID of the peer.
-* \param keypressNotification   Value of the Keypress Notification.
+* \param[in] deviceId               Device ID of the peer.
+* \param[in] keypressNotification   Value of the Keypress Notification.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
-* \remarks This function shall only be called during the passkey entry process and
-           only if both peers support Keypress Notifications.
+* \remarks   This function shall only be called during the passkey entry process and
+             only if both peers support Keypress Notifications.
 *
 ********************************************************************************** */
 bleResult_t Gap_LeScSendKeypressNotification
@@ -548,7 +662,12 @@ bleResult_t Gap_LeScSendKeypressNotification
 * \param[in] aLtk       The Long Term Key.
 * \param[in] ltkSize    The Long Term Key size.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 *
 * \remarks The application should provide the same LTK used during bonding with the respective peer.
 *
@@ -567,8 +686,10 @@ bleResult_t Gap_ProvideLongTermKey
 *
 * \param[in] deviceId The GAP peer who requested encryption.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 * \remarks GAP Peripheral-only API function.
 *
 ********************************************************************************** */
@@ -584,8 +705,13 @@ bleResult_t Gap_DenyLongTermKey
 * \param[out] aOutLtk           Array of size gcMaxLtkSize_d to be filled with the LTK.
 * \param[out] pOutLtkSize       The LTK size.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleUnavailable_c            The bond data entry for this device is
+*                                       corrupted.
 * \remarks This function executes synchronously.
 *
 ********************************************************************************** */
@@ -601,8 +727,33 @@ bleResult_t Gap_LoadEncryptionInformation
 *
 * \param[in] passkey    The SMP passkey.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleInvalidParameter_c           A parameter has an invalid value or is
+*                                           outside the accepted range.
+* \retval  gSmInvalidDeviceId_c             The device ID is not valid or it has been
+*                                           disconnected in the meantime.
+* \retval  gSmInvalidCommandCode_c          An invalid internal state machine code was
+*                                           requested.
+* \retval  gSmPairingAlreadyStarted_c       Pairing process was already started.
+* \retval  gSmInvalidInternalOperation_c    A memory corruption or invalid operation
+*                                           may have occurred.
+* \retval  gSmSmpTimeoutOccurred_c          An SMP timeout has occurred for the peer
+*                                           device.
+* \retval  gSmInvalidCommandParameter_c     One of the parameters of the SM command is
+*                                           not valid.
+* \retval  gSmCommandNotSupported_c         The Security Manager does not have the
+*                                           required features or version to support
+*                                           this command
+* \retval  gSmUnexpectedCommand_c           This command is not or cannot be handled in
+*                                           the current context of the SM.
+* \retval  gSmSmpPacketReceivedAfterTimeoutOccurred_c   A SMP packet has been received
+*                                                       from a peer device for which a
+*                                                       pairing procedure has timed out.
+* \retval  gSmUnexpectedPairingTerminationReason_c      The upper layer tried to cancel
+*                                                       the pairing procedure with an
+*                                                       unexpected pairing failure
+*                                                       reason for the current phase of
+*                                                       the pairing procedure.
 * \remarks This is the PIN that the peer's user must enter during pairing.
 *
 * \remarks This function executes synchronously.
@@ -625,8 +776,11 @@ bleResult_t Gap_SetLocalPasskey
 *                               another Gap_SetScanMode is called.
 * \param[in] connCallback       Auto-Connect callback. Must be set if scanMode is set to gAutoConnect_c.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 * \remarks This function can be called before Gap_StartScanning. If this function is
 * never called, then the default value of gDefaultScan_c is considered and all scanned
 * devices are reported to the application without any additional filtering or action.
@@ -641,6 +795,33 @@ bleResult_t Gap_SetScanMode
     gapScanMode_t           scanMode,
     gapAutoConnectParams_t* pAutoConnectParams,
     gapConnectionCallback_t connCallback
+);
+
+/*!*************************************************************************************************
+*\fn    bleResult_t Gap_SetDecisionInstructions(uint8_t numTest,
+*       const gapDecisionInstructionsData_t *pDecisionInstructions)
+*
+* \brief  Sets up the Decision Instructions.
+*
+* \param[in] numTest             The number of tests in the decision instructions.
+* \param[in] pDecisionInstructions   Pointer to an array of gapDecisionInstructionsData_t structures.
+*                                    containing decision instruction for each test.
+*
+* \retval  gBleFeatureNotSupported_c in case gLeExtendedAdv_c or gLeDecisionBasedAdvertisingFiltering_c are not supported.
+* \retval  gBleInvalidParameter_c in case at least 1 parameter is incorrect.
+* \retval  gBleOutOfMemory_c in case the memory allocation for the app to host message fails.
+* \retval  gBleSuccess_c otherwise.
+*
+* \remarks GAP Central-only API function.
+*
+* \remarks Application should wait for gDecisionInstructionsSetupComplete_c
+*          generic event or for gInternalError_c generic event with errorSource = gSetDecisionInstructions_c.
+*
+********************************************************************************** */
+bleResult_t Gap_SetDecisionInstructions
+(
+    uint8_t numTest,
+    const gapDecisionInstructionsData_t *pDecisionInstructions
 );
 
 /*! *********************************************************************************
@@ -658,8 +839,14 @@ bleResult_t Gap_SetScanMode
 *                      until it begins the subsequent Scan_Duration.
 *                      Set 0 to disable periodic scanning.
 *                      Used only for BLE5.0, otherwise ignored.
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidState_c           The requested API cannot be called in the
+*                                       current state, scanning was already started.
 * \remarks Use this API to both set the scanning parameters and start scanning.
 * If pScanningParameters is NULL, scanning is started with the existing settings.
 *
@@ -679,8 +866,13 @@ bleResult_t Gap_StartScanning
 /*! *********************************************************************************
 * \brief  Commands the controller to stop scanning.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidState_c           The requested API cannot be called in the
+*                                       current state, scanning is in the process of
+*                                       stopping.
 * \remarks GAP Central-only API function.
 *
 ********************************************************************************** */
@@ -692,8 +884,12 @@ bleResult_t Gap_StopScanning(void);
 * \param[in] pParameters  Create Connection command parameters.
 * \param[in] connCallback Callback used to receive connection events.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 * \remarks GAP Central-only API function.
 *
 ********************************************************************************** */
@@ -708,7 +904,10 @@ bleResult_t Gap_Connect
 *
 * \param[in] deviceId The connected peer to disconnect from.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 ********************************************************************************** */
 bleResult_t Gap_Disconnect
@@ -724,8 +923,14 @@ bleResult_t Gap_Disconnect
 * \param[in] offset            Offset from the beginning of the reserved memory area.
 * \param[in] infoSize          Data size (maximum equal to gcReservedFlashSizeForCustomInformation_d).
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            The nvm index of the deviceId is bigger than
+*                                       the number of allowed bonded devices, or the
+*                                       nvm saving operation did not have enough memory.
 * \remarks This function can be called by the application to save custom information about the
 * peer device, e.g., Service Discovery data (to avoid doing it again on reconnection).
 *
@@ -748,8 +953,16 @@ bleResult_t Gap_SaveCustomPeerInformation
 * \param[in] offset             Offset from the beginning of the reserved memory area.
 * \param[in] infoSize           Data size (maximum equal to gcReservedFlashSizeForCustomInformation_d).
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleUnavailable_c            The bond data entry for this device is
+*                                       corrupted.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            The nvm index of the deviceId is bigger than
+*                                       the number of allowed bonded devices, or the
+*                                       nvm saving operation did not have enough memory.
 * \remarks This function can be called by the application to load custom information about the
 * peer device, e.g., Service Discovery data (to avoid doing it again on reconnection).
 *
@@ -771,7 +984,9 @@ bleResult_t Gap_LoadCustomPeerInformation
 * \param[out] pOutIsBonded      Boolean to be filled with the bonded flag.
 * \param[out] pOutNvmIndex      If bonded, to be filled optionally with the NVM index.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 *
 * \remarks This function executes synchronously.
 *
@@ -784,12 +999,43 @@ bleResult_t Gap_CheckIfBonded
 );
 
 /*! *********************************************************************************
+*\fn    bleResult_t Gap_CheckIfConnected(bleAddressType_t addressType,
+*                                        const bleDeviceAddress_t aAddress,
+*                                        bool_t addrResolved,
+*                                        bool_t* pOutIsConnected)
+*
+*\brief Checks if a connection exists between the local device and another device
+*       that has the provided address information.
+*       This function executes synchronously.
+*
+*\param [in]   addressType      Peer address type
+*\param [in]   aAddress         Peer address
+*\param [in]   addrResolved     Set to TRUE if the address contained in the
+*                               addressType and aAddress fields is the identity
+*                               address of a resolved RPA.
+*\param [out]  pOutIsConnected  TRUE if the device is found
+*
+* \retval  bleResult_t
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+********************************************************************************** */
+bleResult_t Gap_CheckIfConnected
+(
+    bleAddressType_t addressType,
+    const bleDeviceAddress_t aAddress,
+    bool_t addrResolved,
+    bool_t* pOutIsConnected
+);
+
+/*! *********************************************************************************
 * \brief  Returns whether or not the given NVM index is free.
 *
 * \param[in]  nvmIndex          NVM index.
 * \param[out] pOutIsFree        TRUE if free, FALSE if occupied.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 *
 * \remarks This function executes synchronously.
 *
@@ -801,50 +1047,53 @@ bleResult_t Gap_CheckNvmIndex
 );
 
 /*! *********************************************************************************
-* \brief  Retrieves the size of the White List.
+* \brief  Retrieves the size of the Filter Accept List.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
-* \remarks Response is received in the gWhiteListSizeReady_c generic event.
-*
-********************************************************************************** */
-bleResult_t Gap_ReadWhiteListSize(void);
-
-/*! *********************************************************************************
-* \brief  Removes all addresses from the White List, if any.
-*
-* \return  gBleSuccess_c or error.
-*
-* \remarks Confirmation is received in the gWhiteListCleared_c generic event.
+* \remarks Response is received in the gFilterAcceptListSizeRead_c generic event.
 *
 ********************************************************************************** */
-bleResult_t Gap_ClearWhiteList(void);
+bleResult_t Gap_ReadFilterAcceptListSize(void);
 
 /*! *********************************************************************************
-* \brief  Adds a device address to the White List.
+* \brief  Removes all addresses from the Filter Accept List, if any.
 *
-* \param[in] address The address of the white-listed device.
+* \retval  gBleSuccess_c
+*
+* \remarks Confirmation is received in the gFilterAcceptListCleared_c generic event.
+*
+********************************************************************************** */
+bleResult_t Gap_ClearFilterAcceptList(void);
+
+/*! *********************************************************************************
+* \brief  Adds a device address to the Filter Accept List.
+*
+* \param[in] address The address of the filter accept listed device.
 * \param[in] addressType The device address type (public or random).
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 ********************************************************************************** */
-bleResult_t Gap_AddDeviceToWhiteList
+bleResult_t Gap_AddDeviceToFilterAcceptList
 (
     bleAddressType_t          addressType,
     const bleDeviceAddress_t  address
 );
 
 /*! *********************************************************************************
-* \brief  Removes a device address from the White List.
+* \brief  Removes a device address from the Filter Accept List.
 *
-* \param[in] address The address of the white-listed device.
+* \param[in] address The address of the filter accept listed device.
 * \param[in] addressType The device address type (public or random).
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 ********************************************************************************** */
-bleResult_t Gap_RemoveDeviceFromWhiteList
+bleResult_t Gap_RemoveDeviceFromFilterAcceptList
 (
     bleAddressType_t          addressType,
     const bleDeviceAddress_t  address
@@ -853,7 +1102,8 @@ bleResult_t Gap_RemoveDeviceFromWhiteList
 /*! *********************************************************************************
 * \brief  Reads the device's public address from the controller.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 * \remarks The application should listen for the gPublicAddressRead_c generic event.
 *
@@ -870,7 +1120,8 @@ bleResult_t Gap_ReadPublicDeviceAddress(void);
 *                           two bits of the most significant byte (aRandomPart[3] & 0xC0) are ignored.
 *                           This may be NULL, in which case the Random Part is randomly generated internally.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 * \remarks The application should listen for the gRandomAddressReady_c generic event.
 *          Note that this does not set the random address in the Controller. To set the random address,
@@ -890,7 +1141,15 @@ bleResult_t Gap_CreateRandomDeviceAddress
 * \param[in]  pName         Array of characters holding the name.
 * \param[in]  cNameSize     Number of characters to be saved.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            The nvm index of the deviceId is bigger than
+*                                       the number of allowed bonded devices, or the
+*                                       nvm saving operation did not have enough memory.
+*
 * \remarks This function copies cNameSize characters from the pName array and
 * adds the NULL character to terminate the string.
 *
@@ -909,7 +1168,11 @@ bleResult_t Gap_SaveDeviceName
 *
 * \param[out] pOutBondedDevicesCount   Pointer to integer to be written.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 *
 * \remarks This function executes synchronously.
 *
@@ -927,7 +1190,13 @@ bleResult_t Gap_GetBondedDevicesCount
 * \param[in]  maxNameSize   Maximum number of characters to be copied,
 *                           including the terminating NULL character.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleUnavailable_c            The bond data entry for this device is
+*                                       corrupted.
 *
 * \remarks nvmIndex is an integer ranging from 0 to N-1, where N is the number of
 * bonded devices and can be obtained by calling Gap_GetBondedDevicesCount(&N).
@@ -947,11 +1216,18 @@ bleResult_t Gap_GetBondedDeviceName
 *
 * \param[in] nvmIndex           Index of the device in the NVM bonding area.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleUnavailable_c            The bond data entry for this device is
+*                                       corrupted.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleInvalidState_c           The bond is not active.
 *
 * \remarks This API requires that there are no active connections at call time.
-* nvmIndex is an integer ranging from 0 to N-1, where N is the number of
-* bonded devices and can be obtained by calling Gap_GetBondedDevicesCount(&N).
+*          The Gap_CheckIfBonded() API can be called to obtain the nvmIndex
+*          of a bonded peer.
 *
 * \remarks This function executes synchronously.
 *
@@ -964,8 +1240,11 @@ bleResult_t Gap_RemoveBond
 /*! *********************************************************************************
 * \brief  Removes all bonds with other devices.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version
+* \retval  gBleInvalidState_c           At least one bond is still active.
+**
 * \remarks This API requires that there are no active connections at call time.
 *
 * \remarks This function executes synchronously.
@@ -974,17 +1253,16 @@ bleResult_t Gap_RemoveBond
 bleResult_t Gap_RemoveAllBonds(void);
 
 /*! *********************************************************************************
-*\fn    bleResult_t Gap_ReadRadioPowerLevel(gapRadioPowerLevelReadType_t txReadType, deviceId_t deviceId)
-*
 *\brief Reads the power level of the controller's radio.
 *       The response is contained in the gConnEvtTxPowerLevelRead_c connection event when
 *       reading connection TX power level, the gAdvTxPowerLevelRead_c generic event when reading
 *       the advertising TX power level, or the gConnEvtRssiRead_c connection event when reading the RSSI.
 *
-*\param [in]    txReadType     Adertising or connection Tx power
+*\param [in]    txReadType     Advertising or connection Tx power
 *\param [in]    deviceId       Peer identifier (for connections only, otherwise ignored)
 *
-*\return        bleResult_t    gBleSuccess_c or error.
+*\retval  gBleSuccess_c
+*\retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 ********************************************************************************** */
 bleResult_t Gap_ReadRadioPowerLevel
 (
@@ -998,7 +1276,7 @@ bleResult_t Gap_ReadRadioPowerLevel
 * \param[in]  powerLevel      Power level as specified in the controller interface.
 * \param[in]  channelType     The advertising or connection channel type.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
 *
 * \remarks The application should listen for the gTxPowerLevelSetComplete_c generic event.
 * \remarks This function executes synchronously.
@@ -1018,7 +1296,10 @@ bleResult_t Gap_SetTxPowerLevel
 * \param[in]  nvmIndex      Index of the device in NVM bonding area whose IRK must be checked.
 * \param[in]  aAddress      The Private Resolvable Address to be verified.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 * \remarks nvmIndex is an integer ranging from 0 to N-1, where N is the number of
 * bonded devices and can be obtained by calling Gap_GetBondedDevicesCount(&N); the application
@@ -1036,7 +1317,8 @@ bleResult_t Gap_VerifyPrivateResolvableAddress
 *
 * \param[in] aAddress  The Private Resolvable, Private Non-Resolvable, or Static Random Address.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 * \remarks The application should listen for the gRandomAddressSet_c generic event.
 *
@@ -1047,14 +1329,33 @@ bleResult_t Gap_SetRandomAddress
 );
 
 /*! *********************************************************************************
+* \brief  Reads the device's Local Private Address for a specific peer device from the controller.
+*
+*\param [in]    pIdAddress pointer to the peer identity address the local private address
+*               should be retrieved for.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidState_c           The Controller privacy is not enabled.
+*
+* \remarks The application should listen for the gControllerLocalRPARead_c generic event.
+*
+    ********************************************************************************** */
+bleResult_t Gap_ReadControllerLocalRPA(const bleIdentityAddress_t *pIdAddress);
+
+/*! *********************************************************************************
 * \brief  Sets the default pairing parameters to be used by automatic pairing procedures.
 *
 * \param[in] pPairingParameters  Pairing parameters as required by the SMP or NULL.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 *
 * \remarks When these parameters are set, the Security Manager automatically responds
-* to a Pairing Request or a Slave Security Request using these parameters. If NULL is provided,
+* to a Pairing Request or a Peripheral Security Request using these parameters. If NULL is provided,
 * it returns to the default state where all security requests are sent to the application.
 *
 * \remarks This function executes synchronously.
@@ -1071,12 +1372,17 @@ bleResult_t Gap_SetDefaultPairingParameters
 * \param[in]    deviceId            The DeviceID for which the command is intended
 * \param[in]    intervalMin         The minimum value for the connection event interval
 * \param[in]    intervalMax         The maximum value for the connection event interval
-* \param[in]    slaveLatency        The slave latency parameter
+* \param[in]    peripheralLatency        The peripheral latency parameter
 * \param[in]    timeoutMultiplier   The connection timeout parameter
 * \param[in]    minCeLength         The minimum value for the connection event length
 * \param[in]    maxCeLength         The maximum value for the connection event length
 *
-* \return       gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 *
 * \pre          A connection must be in place
 *
@@ -1086,7 +1392,7 @@ bleResult_t Gap_UpdateConnectionParameters
     deviceId_t  deviceId,
     uint16_t    intervalMin,
     uint16_t    intervalMax,
-    uint16_t    slaveLatency,
+    uint16_t    peripheralLatency,
     uint16_t    timeoutMultiplier,
     uint16_t    minCeLength,
     uint16_t    maxCeLength
@@ -1098,11 +1404,15 @@ bleResult_t Gap_UpdateConnectionParameters
 * \param[in]    deviceId            The DeviceID for which the command is intended
 * \param[in]    enable              Allow/disallow the parameters update
 *
-* \return       Result of the operation
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidParameter_c       The device id is not valid.
 *
 * \pre          A connection must be in place
 *
-* \remarks      The LE master Host may accept the requested parameters or reject the request
+* \remarks      The LE central Host may accept the requested parameters or reject the request
 *
 ********************************************************************************** */
 bleResult_t Gap_EnableUpdateConnectionParameters
@@ -1118,7 +1428,9 @@ bleResult_t Gap_EnableUpdateConnectionParameters
 * \param[in]    txOctets            Maximum transmission number of payload octets
 * \param[in]    txTime              Maximum transmission time
 *
-* \return       Result of the operation
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidParameter_c       The device id is not valid.
 *
 * \pre          A connection must be in place
 *
@@ -1133,15 +1445,16 @@ bleResult_t Gap_UpdateLeDataLength
 );
 
 /*! *********************************************************************************
-* \brief  Enables or disables Host Privacy (automatic regeneration of a Private Address).
+* \brief     Enables or disables Host Privacy (automatic regeneration of a Private Address).
 *
-* \param enable TRUE to enable, FALSE to disable.
-* \param aIrk   Local IRK to be used for Resolvable Private Address generation
-*               or NULL for Non-Resolvable Private Address generation. Ignored if enable is FALSE.
+* \param[in] enable TRUE to enable, FALSE to disable.
+* \param[in] aIrk   Local IRK to be used for Resolvable Private Address generation
+*                   or NULL for Non-Resolvable Private Address generation. Ignored if enable is FALSE.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
-* \remarks The application should listen for the gHostPrivacyStateChanged_c generic event.
+* \remarks   The application should listen for the gHostPrivacyStateChanged_c generic event.
 *
 ********************************************************************************** */
 bleResult_t Gap_EnableHostPrivacy
@@ -1151,18 +1464,23 @@ bleResult_t Gap_EnableHostPrivacy
 );
 
 /*! *********************************************************************************
-* \brief  Enables or disables Controller Privacy (Enhanced Privacy feature).
+* \brief     Enables or disables Controller Privacy (Enhanced Privacy feature).
 *
-* \param enable             TRUE to enable, FALSE to disable.
-* \param aOwnIrk            Local IRK. Ignored if enable is FALSE, otherwise shall not be NULL.
-* \param peerIdCount        Size of aPeerIdentities array. Shall not be zero or greater than
-*                           gcGapControllerResolvingListSize_c. Ignored if enable is FALSE.
-* \param aPeerIdentities    Array of peer identity addresses and IRKs. Ignored if enable is FALSE,
-*                           otherwise shall not be NULL.
+* \param[in] enable             TRUE to enable, FALSE to disable.
+* \param[in] aOwnIrk            Local IRK. Ignored if enable is FALSE, otherwise shall not be NULL.
+* \param[in] peerIdCount        Size of aPeerIdentities array. Shall not be zero or greater than
+*                               gcGapControllerResolvingListSize_c. Ignored if enable is FALSE.
+* \param[in] aPeerIdentities    Array of peer identity addresses and IRKs. Ignored if enable is FALSE,
+*                               otherwise shall not be NULL.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleFeatureNotSupported_c    Cannot use Device Privacy mode if controller
+*                                       does not support LE Set Privacy Mode Command.
 *
-* \remarks The application should listen for the gControllerPrivacyStateChanged_c generic event.
+* \remarks   The application should listen for the gControllerPrivacyStateChanged_c generic event.
 *
 ********************************************************************************** */
 bleResult_t Gap_EnableControllerPrivacy
@@ -1179,8 +1497,15 @@ bleResult_t Gap_EnableControllerPrivacy
 * \param[in] nvmIndex       Index of the device in the NVM bonding area.
 * \param[in] privacyMode    Controller privacy mode: Network or Device
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    Cannot use Device Privacy mode if controller
+*                                       does not support LE Set Privacy Mode Command.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleUnavailable_c            The bond data entry for this device is
+*                                       corrupted.
+* \retval  gBleOutOfMemory_c            There is no more room to allocate memory for
+*                                       a bonding entry.
 * \remarks The change has no effect (other than the change in NVM) unless controller
 *          privacy is enabled for the bonded identities.
 *
@@ -1203,7 +1528,11 @@ bleResult_t Gap_SetPrivacyMode
 * \param txPayloadType      Type of packet payload for TX tests.
 *                           Ignored if command is "start RX test" or "end test".
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 *
 * \remarks The application should listen for the gControllerTestEvent_c generic event.
 * \remarks This API function is available only in the full-featured host library.
@@ -1218,14 +1547,35 @@ bleResult_t Gap_ControllerTest
 );
 
 /*! *********************************************************************************
-* \brief  Read the Tx and Rx Phy on the connection with a device
+* \brief  Requests the Controller to change its sleep clock accuracy for testing purposes.
 *
-* \param deviceId  Device ID of the peer.
+* \param  action          Specifies whether the sleep clock should be changed to
+*                         one that is more accurate or one that is less accurate.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 *
-* \remarks  The application should listen for the gLePhyEvent_c generic event.
-*           This API is available only in the Bluetooth 5.0 Host Stack.
+* \remarks The application should listen for the generic event.
+*
+********************************************************************************** */
+bleResult_t Gap_ModifySleepClockAccuracy
+(
+    gapSleepClockAccuracy_t action
+);
+
+/*! *********************************************************************************
+* \brief     Read the Tx and Rx Phy on the connection with a device
+*
+* \param[in] deviceId  Device ID of the peer.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+* \remarks   The application should listen for the gLePhyEvent_c generic event.
+*            This API is available only in the Bluetooth 5.0 Host Stack.
 *
 ********************************************************************************** */
 bleResult_t Gap_LeReadPhy
@@ -1234,21 +1584,26 @@ bleResult_t Gap_LeReadPhy
 );
 
 /*! *********************************************************************************
-* \brief  Set the Tx and Rx Phy preferences on the connection with a device or all subsequent connections
+* \brief     Set the Tx and Rx Phy preferences on the connection with a device or all subsequent connections
 *
-* \param defaultMode   Use the provided values for all subsequent connections
-* \param deviceId      Device ID of the peer
-*                      Ignored if defaultMode is TRUE.
-* \param allPhys       Host preferences on Tx and Rx Phy, as defined by gapLeAllPhyFlags_t
-* \param txPhys        Host preferences on Tx Phy, as defined by gapLePhyFlags_t, ignored for gLeTxPhyNoPreference_c
-* \param rxPhys        Host preferences on Rx Phy, as defined by gapLePhyFlags_t, ignored for gLeRxPhyNoPreference_c
-* \param phyOptions    Host preferences on Coded Phy, as defined by gapLePhyOptionsFlags_t
-*                      Ignored if defaultMode is TRUE.
+* \param[in] defaultMode   Use the provided values for all subsequent connections
+* \param[in] deviceId      Device ID of the peer
+*                          Ignored if defaultMode is TRUE.
+* \param[in] allPhys       Host preferences on Tx and Rx Phy, as defined by gapLeAllPhyFlags_t
+* \param[in] txPhys        Host preferences on Tx Phy, as defined by gapLePhyFlags_t, ignored for gLeTxPhyNoPreference_c
+* \param[in] rxPhys        Host preferences on Rx Phy, as defined by gapLePhyFlags_t, ignored for gLeRxPhyNoPreference_c
+* \param[in] phyOptions    Host preferences on Coded Phy, as defined by gapLePhyOptionsFlags_t
+*                          Ignored if defaultMode is TRUE.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by
+*                                       this stack version
 *
-* \remarks  The application should listen for the gLePhyEvent_c generic event.
-*           This API is available only in the Bluetooth 5.0 Host Stack.
+* \remarks   The application should listen for the gLePhyEvent_c generic event.
+*            This API is available only in the Bluetooth 5.0 Host Stack.
 *
 ********************************************************************************** */
 bleResult_t Gap_LeSetPhy
@@ -1262,13 +1617,18 @@ bleResult_t Gap_LeSetPhy
 );
 
 /*! *********************************************************************************
-* \brief  Configure enhanced notifications on advertising, scanning and connection events
+* \brief  Configures enhanced notifications on advertising, scanning and connection events
 *         on the controller.
 *
 * \param[in]  eventType       Event type selection as specified by bleNotificationEventType_t.
 * \param[in]  deviceId        Device ID of the peer, used only for connection events.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            The nvm index of the deviceId is bigger than
+*                                       the number of allowed bonded devices, or the
+*                                       nvm saving operation did not have enough memory.
 *
 * \remarks The application should listen for the gControllerNotificationEvent_c generic event.
 * \remarks This function executes synchronously.
@@ -1280,6 +1640,22 @@ bleResult_t Gap_ControllerEnhancedNotification
     deviceId_t  deviceId
 );
 
+/*!*************************************************************************************************
+* \brief This function configures the advertising index type.
+*
+* \param [in]    advIndexType           Advertising index type
+* \param [in]    aUserDefinedChannels   User defined channels array
+*
+* \retval  gBleSuccess_c
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+***************************************************************************************************/
+bleResult_t Gap_BleAdvIndexChange
+(
+    bleAdvIndexType_t     advIndexType,
+    uint8_t               aUserDefinedChannels[3]
+);
+
 /*! *********************************************************************************
 * \brief  Retrieves the keys from an existing bond with a device.
 *
@@ -1289,7 +1665,9 @@ bleResult_t Gap_ControllerEnhancedNotification
 * \param[out] pOutLeSc           Pointer to mark if LE Secure Connections was used during pairing.
 * \param[out] pOutAuth           Pointer to mark if the device was authenticated for MITM during pairing.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 *
 * \remarks This API requires that the aAddress in the pOutKeys shall not be NULL.
 * \remarks The application will check pOutKeyFlags to see which information is valid in pOutKeys.
@@ -1313,8 +1691,10 @@ bleResult_t Gap_LoadKeys
 * \param[in] leSc            Indicates if LE Secure Connections was used during pairing.
 * \param[in] auth            Indicates if the device was authenticated for MITM during pairing.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 * \remarks This API requires that the aAddress in the pKeys shall not be NULL.
 * \remarks If any of the keys are passed as NULL, they will not be saved.
 * \remarks The application listen for gBondCreatedEvent_c to confirm the bond was created.
@@ -1329,16 +1709,19 @@ bleResult_t Gap_SaveKeys
 );
 
 /*! *********************************************************************************
-* \brief  Set the channel map in the Controller and trigger a LL channel map update.
+* \brief  Set the channel map in the Controller and trigger an LL channel map update.
+*         Specifies the channel map for data, secondary advertising and periodic physical channels.
 *
 * \param[in]  channelMap      Array with the channels using 0 for bad channels and 1 for unknown.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
 *
 * \remarks The application should listen for the gChannelMapSet_c generic event.
 * \remarks This function executes synchronously.
 *
-* \remarks GAP Central-only API function.
+* \remarks API supported on GAP Central devices or Broadcaster with Extended Advertising support.
 *
 ********************************************************************************** */
 bleResult_t Gap_SetChannelMap
@@ -1351,7 +1734,11 @@ bleResult_t Gap_SetChannelMap
 *
 * \param[in]  deviceId        Device ID of the peer.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 *
 * \remarks The application should listen for the gConnEvtChannelMapRead_c connection event.
 * \remarks This function executes synchronously.
@@ -1367,8 +1754,14 @@ bleResult_t Gap_ReadChannelMap
 *
 * \param[in] pAdvertisingParameters   Pointer to gapExtAdvertisingParameters_t structure.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gGapAnotherProcedureInProgress_c Another set extended advertisment parameters
+*                                           command is in progress.
 * \remarks GAP Peripheral-only API function.
 *
 ********************************************************************************** */
@@ -1378,13 +1771,46 @@ bleResult_t Gap_SetExtAdvertisingParameters
 );
 
 /*! *********************************************************************************
+* \brief  Sets up the Extended Advertising Parameters V2.
+*
+* \param[in] pAdvertisingParametersV2   Pointer to gapExtAdvertisingParametersV2_t structure.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gGapAnotherProcedureInProgress_c Another set extended advertising parameters
+*                                           command is in progress.
+* \remarks GAP Peripheral-only API function.
+*
+********************************************************************************** */
+bleResult_t Gap_SetExtAdvertisingParametersV2
+(
+    gapExtAdvertisingParametersV2_t*   pAdvertisingParametersV2
+);
+
+/*! *********************************************************************************
 * \brief  Sets up the Extended Advertising and Extended Scan Response Data.
 *
 * \param[in] handle             The ID of the advertising set
 * \param[in] pAdvertisingData   Pointer to gapAdvertisingData_t structure or NULL.
 * \param[in] pScanResponseData  Pointer to gapScanResponseData_t structure or NULL.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            The nvm index of the deviceId is bigger than
+*                                       the number of allowed bonded devices, or the
+*                                       nvm saving operation did not have enough memory.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleInvalidState_c           The advertising set was not configured
+*                                       previously using Gap_SetExtAdvertisingParameters.
+* \retval  gGapAdvDataTooLong_c         The advertising  data is too long.
 *
 * \remarks Any of the parameters may be NULL, in which case they are ignored.
 * Therefore, this function can be used to set any of the parameters individually or both at once.
@@ -1399,6 +1825,34 @@ bleResult_t Gap_SetExtAdvertisingData
     gapScanResponseData_t* pScanResponseData
 );
 
+/*!*************************************************************************************************
+*\fn    bleResult_t Gap_SetExtAdvertisingDecisionData(uint8_t handle,
+*       const gapAdvertisingDecisionData_t *pAdvertisingDecisionData)
+*
+* \brief  Sets up the Extended Advertising Decision Data.
+*
+* \param[in] handle             The ID of the advertising set
+* \param[in] pAdvertisingDecisionData   Pointer to gapAdvertisingDecisionData_t structure.
+*
+* \retval  gBleFeatureNotSupported_c in case gLeExtendedAdv_c or gLeDecisionBasedAdvertisingFiltering_c are not supported.
+* \retval  gBleInvalidParameter_c in case at least 1 parameter is incorrect.
+* \retval  gBleOutOfMemory_c in case the memory allocation for the app to host message fails.
+* \retval  gBleSuccess_c otherwise.
+*
+* \remarks pDecisionData or pKey in the gapAdvertisingDecisionData_t structure may be NULL but not both.
+*
+* \remarks GAP Peripheral-only API function.
+*
+* \remarks Application should wait for gExtAdvertisingDecisionDataSetupComplete_c or
+*          generic event or for gInternalError_c generic event with errorSource = gSetExtAdvDecisionData_c.
+*
+********************************************************************************** */
+bleResult_t Gap_SetExtAdvertisingDecisionData
+(
+    uint8_t handle,
+    const gapAdvertisingDecisionData_t *pAdvertisingDecisionData
+);
+
 /*! *********************************************************************************
 * \brief  Commands the controller to start the extended advertising.
 *
@@ -1411,7 +1865,14 @@ bleResult_t Gap_SetExtAdvertisingData
 * \param[in] duration              The duration of the advertising
 * \param[in] maxExtAdvEvents       The maximum number of advertising events
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidState_c           The advertising is already started or pending
+*                                       to be started.
 *
 * \remarks The advertisingCallback confirms or denies whether the advertising has started.
 * The connectionCallback is only used if a connection gets established during advertising.
@@ -1433,7 +1894,13 @@ bleResult_t Gap_StartExtAdvertising
 *
 * \param[in] handle                   The ID of the advertising set
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleInvalidState_c           The advertising set is not started.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 * \remarks GAP Peripheral-only API function.
 *
@@ -1449,7 +1916,12 @@ bleResult_t Gap_StopExtAdvertising
 *
 * \param[in] handle   The ID of the advertising set
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 * \remarks GAP Peripheral-only API function.
 *
@@ -1464,7 +1936,12 @@ bleResult_t Gap_RemoveAdvSet
 *
 * \param[in] pAdvertisingParameters   Pointer to gapPeriodicAdvParameters_t structure.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 * \remarks GAP Peripheral-only API function.
 *
@@ -1479,8 +1956,17 @@ bleResult_t Gap_SetPeriodicAdvParameters
 *
 * \param[in] handle             The ID of the periodic advertising set
 * \param[in] pAdvertisingData   Pointer to gapAdvertisingData_t structure.
+* \param [in] bUpdateDid        If TRUE, use operation mode gHciExtDataUnchanged_c.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleInvalidState_c           The advertising set was not previously
+*                                       configured using Gap_SetPeriodicAdvParameters.
+* \retval  gGapAdvDataTooLong_c         The advertising data is too long.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 * \remarks GAP Peripheral-only API function.
 *
@@ -1488,22 +1974,32 @@ bleResult_t Gap_SetPeriodicAdvParameters
 bleResult_t Gap_SetPeriodicAdvertisingData
 (
     uint8_t handle,
-    gapAdvertisingData_t*  pAdvertisingData
+    gapAdvertisingData_t*  pAdvertisingData,
+    bool_t bUpdateDID
 );
 
 /*! *********************************************************************************
 * \brief  Commands the controller to start periodic advertising for set ID.
 *
 * \param[in] handle                   The ID of the periodic advertising set
+* \param [in] bIncludeADI     If TRUE, include ADI field in AUX_SYNC_IND PDUs
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleInvalidState_c           The advertising set was not previously
+*                                       configured using Gap_SetPeriodicAdvParameters.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 * \remarks GAP Peripheral-only API function.
 *
 ********************************************************************************** */
 bleResult_t Gap_StartPeriodicAdvertising
 (
-    uint8_t handle
+    uint8_t handle,
+    bool_t  bIncludeADI
 );
 
 /*! *********************************************************************************
@@ -1511,7 +2007,14 @@ bleResult_t Gap_StartPeriodicAdvertising
 *
 * \param[in] handle                   The ID of the periodic advertising set
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleInvalidState_c           The advertising set was not previously
+*                                       configured using Gap_SetPeriodicAdvParameters.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 * \remarks GAP Peripheral-only API function.
 *
@@ -1529,7 +2032,14 @@ bleResult_t Gap_StopPeriodicAdvertising
 * \param[in] pAddr      Pointer to the advertiser's address.
 * \param[in] SID        The ID of the advertising set.
 *
-* \return  gBleSuccess_c or error.
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gGapAnotherProcedureInProgress_c Periodic advertising create sync is in
+*                                           progress.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 *
 * \remarks GAP Central-only API function.
 *
@@ -1543,13 +2053,19 @@ bleResult_t Gap_UpdatePeriodicAdvList
 );
 
 /*! *********************************************************************************
-* \brief  Start tracking periodic advertisings.
+* \brief  Start tracking periodic advertisements.
 * Scanning is required to be ON for this request to be processed,
 * so the scanning callback will receive the periodic advertising events.
 * \param[in] pReq              Pointer to the Sync Request parameters.
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gGapAnotherProcedureInProgress_c Periodic advertising create sync is in
+*                                           progress.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 * \remarks GAP Central-only API function.
 *
 ********************************************************************************** */
@@ -1559,12 +2075,18 @@ bleResult_t Gap_PeriodicAdvCreateSync
 );
 
 /*! *********************************************************************************
-* \brief  Stop tracking periodic advertisings.
+* \brief  Stop tracking periodic advertisements.
 *
 * \param[in] syncHandle        Used to identify the periodic advertiser
 *
-* \return  gBleSuccess_c or error.
-*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gGapAnotherProcedureInProgress_c Periodic advertising create sync is in
+*                                           progress.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
 * \remarks GAP Central-only API function.
 *
 ********************************************************************************** */
@@ -1574,22 +2096,653 @@ bleResult_t Gap_PeriodicAdvTerminateSync
 );
 
 /*! *********************************************************************************
-* \brief Resume the pairing process. At this point the ecdh key must be computed.
+* \brief  Enable Periodic Advertisement Sync Transfer Controller feature.
+*
+* \param[in] syncHandle        Used to identify the periodic advertiser
+* \param[in] enableDuplicateFiltering   Used to enable or disable duplicate filtering
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_PeriodicAdvReceiveEnable(uint16_t syncHandle, bool_t enableDuplicateFiltering);
+
+/*! *********************************************************************************
+* \brief  Disable Periodic Advertisement Sync Transfer Controller feature.
+*
+* \param[in] syncHandle        Used to identify the periodic advertiser
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_PeriodicAdvReceiveDisable(uint16_t syncHandle);
+
+/*! *********************************************************************************
+* \brief  Instruct the Controller to send synchronization information about the
+*         periodic advertising train identified by the sync handle to a connected device.
+*
+* \param[in] pParam             Pointer to the command arguments
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_PeriodicAdvSyncTransfer(gapPeriodicAdvSyncTransfer_t *pParam);
+
+/*! *********************************************************************************
+* \brief  Instruct the Controller to send synchronization information about the
+*         periodic advertising to a connected device.
+*
+* \param[in] pParam             Pointer to the command arguments
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_PeriodicAdvSetInfoTransfer(gapPeriodicAdvSetInfoTransfer_t *pParam);
+
+/*! *********************************************************************************
+* \brief  Specify how the Controller will process periodic advertising
+*         synchronization information received from the device identified by the
+*         device id.
+*
+* \param[in] pParam             Pointer to the command arguments
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_SetPeriodicAdvSyncTransferParams(gapSetPeriodicAdvSyncTransferParams_t *pParam);
+
+/*! *********************************************************************************
+* \brief  Specify the initial value for the mode, skip, timeout, and Constant Tone
+*         Extension type (set by the Gap_SetPeriodicAdvSyncTransferParams command) to
+*         be used for all subsequent connections over the LE transport.
+*
+* \param[in] pParam             Pointer to the command arguments
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_SetDefaultPeriodicAdvSyncTransferParams(gapSetPeriodicAdvSyncTransferParams_t *pParam);
+
+/*! *********************************************************************************
+* \brief Resume the pairing process. At this point the ECDH key must be computed.
 *        This function should be called only for secured LE connections. In any other
 *        cases the user should make his own code for handling the case when the ECDH
 *        computation is completed.
 *
 * \param[in] pData Pointer to the data used to resume the host state machine. The
-*                  data is allocated by the stack when it requested an ECDH
+*                  data is allocated by the stack when it requests an ECDH
 *                  multiplication. It is also freed by the stack at the end of the
 *                  multiplication.
 *
-* \return  status of the procedure.
+* \retval  gBleSuccess_c
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
 *
 ********************************************************************************** */
 bleResult_t Gap_ResumeLeScStateMachine
 (
     computeDhKeyParam_t *pData
+);
+
+/*! *********************************************************************************
+* \brief  Set Connectionless CTE Transmit Parameters for an advertising set.
+*
+* \param[in] pTransmitParams    Pointer to struct containing parameters.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_SetConnectionlessCteTransmitParameters
+(
+    gapConnectionlessCteTransmitParams_t *pTransmitParams
+);
+
+/*! *********************************************************************************
+* \brief Enable or disable Connectionless CTE Transmit for an advertising set.
+*
+* \param[in] handle    Advertising set handle.
+* \param[in] enable    Enable or disable CTE Transmit.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_EnableConnectionlessCteTransmit
+(
+    uint8_t                 handle,
+    bleCteTransmitEnable_t  enable
+);
+
+/*! *********************************************************************************
+* \brief  Enable or disable Connectionless IQ sampling for an advertising train.
+*
+* \param[in] syncHandle         Used to identify advertising train.
+* \param[in] pIqSamplingParams  Pointer to struct containing parameters.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_EnableConnectionlessIqSampling
+(
+    uint16_t                             syncHandle,
+    gapConnectionlessIqSamplingParams_t  *pIqSamplingParams
+);
+
+/*! *********************************************************************************
+* \brief  Set CTE Receive Parameters for a certain connection.
+*
+* \param[in] deviceId        Peer device ID.
+* \param[in] pReceiveParams  Pointer to struct containing parameters.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_SetConnectionCteReceiveParameters
+(
+    deviceId_t                      deviceId,
+    gapConnectionCteReceiveParams_t *pReceiveParams
+);
+
+/*! *********************************************************************************
+* \brief  Set CTE Transmit Parameters for a certain connection.
+*
+* \param[in] deviceId        Peer device ID.
+* \param[in] pTransmitParams  Pointer to struct containing parameters.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_SetConnectionCteTransmitParameters
+(
+    deviceId_t                        deviceId,
+    gapConnectionCteTransmitParams_t *pTransmitParams
+);
+
+/*! *********************************************************************************
+* \brief  Enable or disable CTE Request procedure for a certain connection.
+*
+* \param[in] deviceId              Peer device ID.
+* \param[in] pCteReqEnableParams  Pointer to struct containing parameters.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_EnableConnectionCteRequest
+(
+    deviceId_t                        deviceId,
+    gapConnectionCteReqEnableParams_t *pCteReqEnableParams
+);
+
+/*! *********************************************************************************
+* \brief  Enable or disable sending CTE Responses for a certain connection.
+*
+* \param[in] deviceId   Peer device ID.
+* \param[in] enable     Enable or disable sending CTE Responses.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_EnableConnectionCteResponse
+(
+    deviceId_t        deviceId,
+    bleCteRspEnable_t enable
+);
+
+/*! *********************************************************************************
+* \brief Read Antenna Information.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+* \remarks Antenna information contained in gAntennaInformationRead_c generic event.
+********************************************************************************** */
+bleResult_t Gap_ReadAntennaInformation(void);
+
+/*! *********************************************************************************
+* \brief  Read local current and maximum tx power levels for a certain connection
+*         and PHY.
+*
+* \param[in] deviceId   Peer device ID.
+* \param[in] phy        PHY.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_EnhancedReadTransmitPowerLevel
+(
+    deviceId_t                  deviceId,
+    blePowerControlPhyType_t    phy
+);
+
+/*! *********************************************************************************
+* \brief  Read remote tx power for a certain connection and PHY.
+*
+* \param[in] deviceId   Peer device ID.
+* \param[in] phy        PHY.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_ReadRemoteTransmitPowerLevel
+(
+    deviceId_t                  deviceId,
+    blePowerControlPhyType_t    phy
+);
+
+/*! *********************************************************************************
+* \brief Set path loss threshold reporting parameters for a certain connection.
+*
+* \param[in] deviceId                     Peer device ID.
+* \param[in] pPathLossReportingParams     Pointer to struct containing parameters.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_SetPathLossReportingParameters
+(
+    deviceId_t                      deviceId,
+    gapPathLossReportingParams_t    *pPathLossReportingParams
+);
+
+/*! *********************************************************************************
+* \brief  Enable or disable path loss threshold reporting for a certain connection.
+*
+* \param[in] deviceId   Peer device ID.
+* \param[in] enable     Enable or disable path loss threshold reporting.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_EnablePathLossReporting
+(
+    deviceId_t                   deviceId,
+    blePathLossReportingEnable_t enable
+);
+
+/*! *********************************************************************************
+* \brief  Enable or disable tx power reporting for a certain connection.
+*
+* \param[in] deviceId         Peer device ID.
+* \param[in] localEnable      Enable or disable local tx power reports.
+* \param[in] removeEnable     Enable or disable remote tx power reports.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_EnableTransmitPowerReporting
+(
+    deviceId_t                  deviceId,
+    bleTxPowerReportingEnable_t localEnable,
+    bleTxPowerReportingEnable_t remoteEnable
+);
+
+/*! *********************************************************************************
+* \brief Initiates generation of a Diffie-Hellman key in the Controller for use
+*           over the LE transport. Version 2 of LE Generate DHKey command.
+*
+* \param[in] pRemoteP256PublicKey   Pointer to the remote P-256 public key used as input for DH key generation.
+* \param[in] keyType                The private key used of DH key generation.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+* \remarks Generated key is contained in gHciLeGenerateDhKeyCompleteEvent_c event.
+********************************************************************************** */
+bleResult_t Gap_GenerateDhKeyV2
+(
+    ecdhPublicKey_t*    pRemoteP256PublicKey,
+    gapPrivateKeyType_t keyType
+);
+
+/*! *********************************************************************************
+* \brief     Open up to 5 Enhanced ATT bearers.
+*
+* \param[in] deviceId              Peer device id
+* \param[in] mtu                   MTU
+* \param[in] cBearers              Number of bearers
+* \param[in] initialCredits        Initial credits
+* \param[in] autoCreditsMgmt       EATT will automatically send credits
+*                                  in chunks of initialCredits if TRUE.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_EattConnectionRequest
+(
+    deviceId_t  deviceId,
+    uint16_t    mtu,
+    uint8_t     cBearers,
+    uint16_t    initialCredits,
+    bool_t      autoCreditsMgmt
+);
+
+/*! *********************************************************************************
+* \brief     Accept or reject a received EATT Connection Request
+*
+* \param[in] deviceId             Peer device id
+* \param[in] accept               TRUE - accept received EattConnectionRequest
+*                                 FALSE - reject incoming EattConnectionRequest
+* \param[in] localMtu             Local MTU
+* \param[in] initialCredits,      Initial credits
+* \param[in] autoCreditsMgmt      EATT will automatically send credits
+*                                 in chunks of initialCredits if TRUE.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_EattConnectionAccept
+(
+    deviceId_t  deviceId,
+    bool_t      accept,
+    uint16_t    localMtu,
+    uint16_t    initialCredits,
+    bool_t      autoCreditsMgmt
+);
+
+/*! *********************************************************************************
+* \brief     Reconfigure the MTU of up to 5 Enhanced ATT bearers.
+*
+* \param[in] deviceId      Peer device id
+* \param[in] mtu           New MTU value to be configured.
+* \param[in] mps           New MPS value to be configured. Set to 0 to use
+*                          current maximum mps value of the channels being
+*                          reconfigured
+* \param[in] cBearers      Number of bearers
+* \param[in] *pBearers     Initial credits
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_EattReconfigureRequest
+(
+    deviceId_t  deviceId,
+    uint16_t    mtu,
+    uint16_t    mps,
+    uint8_t     cBearers,
+    bearerId_t  *pBearers
+);
+
+/*! *********************************************************************************
+* \brief     Send L2cap credits for Enhanced ATT bearers.
+*
+* \param[in] deviceId      Peer device id
+* \param[in] bearerId      Enhanced ATT bearer id.
+* \param[in] credits       Number of credits.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_EattSendCredits
+(
+    deviceId_t  deviceId,
+    bearerId_t  bearerId,
+    uint16_t    credits
+);
+
+/*! *********************************************************************************
+* \brief     Disconnect the specified bearer.
+*
+* \param[in] deviceId      Peer device id
+* \param[in] bearerId      Enhanced ATT bearer id to be disconnected.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+********************************************************************************** */
+bleResult_t Gap_EattDisconnect
+(
+    deviceId_t  deviceId,
+    bearerId_t  bearerId
+);
+
+/*!*************************************************************************************************
+*\brief        Returns the deviceId associated with the received connection handle.
+*
+*\param [in]   connHandle              Connection identifier
+*\param [out]  pDeviceId               Corresponding device id
+*
+* \retval  gBleSuccess_c
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+*
+***************************************************************************************************/
+bleResult_t Gap_GetDeviceIdFromConnHandle
+(
+    uint16_t    connHandle,
+    deviceId_t* pDeviceId
+);
+
+/*!*************************************************************************************************
+*\brief        Returns the deviceId associated with the received connection handle.
+*
+*\param [in]   deviceId         Connection identifier
+*\param [out]  pConnHandle       Corresponding connection handle
+*
+* \retval  gBleSuccess_c
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+*
+***************************************************************************************************/
+bleResult_t Gap_GetConnectionHandleFromDeviceId
+(
+    deviceId_t deviceId,
+    uint16_t*  pConnHandle
+);
+
+/*!*************************************************************************************************
+ * \fn           bleResult_t Gap_GetHostVersion(gapHostVersion_t *pOutHostVersion)
+ *
+ * \brief        Retrieves Host Version information.
+ *
+ * \param [out]   pOutHostVersion   Pointer to the memory location where the Host Version
+                                    information should be stored.
+ *
+ * \retval  gBleSuccess_c
+ * \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+ *                                       outside the accepted range.
+ *
+***************************************************************************************************/
+bleResult_t Gap_GetHostVersion
+(
+    gapHostVersion_t *pOutHostVersion
+);
+
+/*!*************************************************************************************************
+ * \fn           bleResult_t Gap_ReadRemoteVersionInformation(deviceId_t deviceId)
+ *
+ * \brief        Reads the version information of a peer device.
+ *
+ * \param [in]   deviceId       Peer device identifier.
+ *
+ * \retval       gBleSuccess_c
+ * \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+ *
+***************************************************************************************************/
+bleResult_t Gap_ReadRemoteVersionInformation
+(
+    deviceId_t  deviceId
+);
+
+/*!*************************************************************************************************
+* \fn           bleResult_t Gap_GetConnParams(deviceId_t deviceId)
+*
+* \brief        Get the Connection parameters for the given deviceId.
+*
+* \param [in]   deviceId   Peer device Id.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+***************************************************************************************************/
+#define Gap_GetConnParams(deviceId) \
+	Gap_GetConnParamsMonitoring(deviceId, 0U)
+
+/*!*************************************************************************************************
+* \fn           bleResult_t Gap_GetConnParamsMonitoring(deviceId_t deviceId, uint8_t mode)
+*
+* \brief        Get the Connection parameters for the given deviceId in the given mode.
+*
+* \param [in]   deviceId   Peer device Id.
+* \param [in]   mode       Connection parameters event report mode:
+*                               bit 0: update the local sequence number for central / peripheral differentiation
+*                                       and send the LE_Handover_Connection_Parameters_Update_Event 
+*                                       after remote sequence number change.
+*                               bit 1: Send LE_Handover_Connection_Parameters_Update_Event when the connection 
+*                                       parameters are updated following an LL procedure
+*
+* \retval       gBleSuccess_c
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+***************************************************************************************************/
+bleResult_t Gap_GetConnParamsMonitoring
+(
+    deviceId_t deviceId,
+    uint8_t    mode
+);
+
+/*!*************************************************************************************************
+*\fn    void InternalGap_LeSetSchedulerPriority(uint16_t  priorityHandle)
+*
+*\brief This function sets the priority for one connection in case of several connections by calling
+*       the corresponding HCI command.
+*
+*\param [in]    priorityHandle         Parameter that sets the priority for connections
+*
+*\retval  gBleSuccess_c
+*\retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+***************************************************************************************************/
+bleResult_t Gap_LeSetSchedulerPriority
+(
+    uint16_t  priorityHandle
+);
+
+/*!*************************************************************************************************
+*\fn    void Gap_LeSetHostFeature(uint8_t bitNumber, bool_t enable)
+*
+*\brief This function is used by the Host to set or clear a bit controlled by the Host in the
+*       Link Layer FeatureSet.
+*
+*\param [in]    bitNumber         Bit position in the FeatureSet
+*\param [in]    enable            Host feature is enabled/disabled
+*
+*\retval  gBleSuccess_c
+*\retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+***************************************************************************************************/
+bleResult_t Gap_LeSetHostFeature
+(
+    uint8_t bitNumber,
+    bool_t  enable
 );
 
 #ifdef __cplusplus

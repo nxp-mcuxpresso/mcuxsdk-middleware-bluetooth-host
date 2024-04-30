@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2017 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2023 NXP
+*
 *
 * \file
 *
@@ -360,6 +360,7 @@
         fsciBleGattClientNotificationOrIndicationEvtMonitor(                \
                                     gBleGattEvtClientNotificationOpCode_c,  \
                                     (deviceId),                               \
+                                    gUnenhancedBearerId_c,                    \
                                     (characteristicValueHandle),              \
                                     (aValue),                                 \
                                     (valueLength))
@@ -381,8 +382,57 @@
         fsciBleGattClientNotificationOrIndicationEvtMonitor(                \
                                     gBleGattEvtClientIndicationOpCode_c,    \
                                     (deviceId),                               \
+                                    gUnenhancedBearerId_c,                    \
                                     (characteristicValueHandle),              \
                                     (aValue),                                 \
+                                    (valueLength))
+
+/*! *********************************************************************************
+* \brief  gattClientEnhancedNotificationCallback event monitoring macro.
+*
+* \param[in]    deviceId                    Device ID of the connected peer.
+* \param[in]    bearerId                    Bearer ID of the of the ATT bearer used.
+* \param[in]    characteristicValueHandle   Handle of the value of the characteristic
+*                                           that is notified.
+* \param[in]    aValue                      Characteristic value.
+* \param[in]    valueLength                 Characteristic value length.
+*
+********************************************************************************** */
+#define fsciBleGattClientEnhancedNotificationEvtMonitor(deviceId,           \
+                                                bearerId,                   \
+                                                characteristicValueHandle,  \
+                                                aValue,                     \
+                                                valueLength)                \
+        fsciBleGattClientNotificationOrIndicationEvtMonitor(                            \
+                                    gBleGattEvtClientEnhancedNotificationOpCode_c,      \
+                                    (deviceId),                                         \
+                                    (bearerId),                                         \
+                                    (characteristicValueHandle),                        \
+                                    (aValue),                                           \
+                                    (valueLength))
+
+/*! *********************************************************************************
+* \brief  gattClientEnhancedIndicationCallback event monitoring macro.
+*
+* \param[in]    deviceId                    Device ID of the connected peer.
+* \param[in]    bearerId                    Bearer ID of the of the ATT bearer used.
+* \param[in]    characteristicValueHandle   Handle of the value of the characteristic
+*                                           that is notified.
+* \param[in]    aValue                      Characteristic value.
+* \param[in]    valueLength                 Characteristic value length.
+*
+********************************************************************************** */
+#define fsciBleGattClientEnhancedIndicationEvtMonitor(deviceId,             \
+                                              bearerId,                     \
+                                              characteristicValueHandle,    \
+                                              aValue,                       \
+                                              valueLength)                  \
+        fsciBleGattClientNotificationOrIndicationEvtMonitor(                            \
+                                    gBleGattEvtClientEnhancedIndicationOpCode_c,        \
+                                    (deviceId),                                         \
+                                    (bearerId),                                         \
+                                    (characteristicValueHandle),                        \
+                                    (aValue),                                           \
                                     (valueLength))
 
 /************************************************************************************
@@ -394,74 +444,134 @@
 /*! FSCI operation codes for GATT */
 typedef enum
 {
-    gBleGattModeSelectOpCode_c                  = 0x00,                         /*! GAP Mode Select operation code */
+    gBleGattModeSelectOpCode_c                                                         = 0x00,                         /*! GAP Mode Select operation code */
 
-    gBleGattCmdFirstOpCode_c                    = 0x01,
-    gBleGattCmdInitOpCode_c                     = gBleGattCmdFirstOpCode_c,     /*! Gatt_Init command operation code */
-    gBleGattCmdGetMtuOpCode_c,                                                  /*! Gatt_GetMtu command operation code */
+    gBleGattCmdFirstOpCode_c                                                           = 0x01,
+    gBleGattCmdInitOpCode_c                                                            = gBleGattCmdFirstOpCode_c,     /*! Gatt_Init command operation code */
+    gBleGattCmdGetMtuOpCode_c                                                          = 0x02,                          /*! Gatt_GetMtu command operation code */
 
-    gBleGattCmdClientInitOpCode_c,                                              /*! GattClient_Init command operation code */
-    gBleGattCmdClientResetProceduresOpCode_c,                                   /*! GattClient_ResetProcedures command operation code */
-    gBleGattCmdClientRegisterProcedureCallbackOpCode_c,                         /*! GattClient_RegisterProcedureCallback command operation code */
-    gBleGattCmdClientRegisterNotificationCallbackOpCode_c,                      /*! GattClient_RegisterNotificationCallback command operation code */
-    gBleGattCmdClientRegisterIndicationCallbackOpCode_c,                        /*! GattClient_RegisterIndicationCallback command operation code */
-    gBleGattCmdClientExchangeMtuOpCode_c,                                       /*! GattClient_ExchangeMtu command operation code */
-    gBleGattCmdClientDiscoverAllPrimaryServicesOpCode_c,                        /*! GattClient_DiscoverAllPrimaryServices command operation code */
-    gBleGattCmdClientDiscoverPrimaryServicesByUuidOpCode_c,                     /*! GattClient_DiscoverPrimaryServicesByUuid command operation code */
-    gBleGattCmdClientFindIncludedServicesOpCode_c,                              /*! GattClient_FindIncludedServices command operation code */
-    gBleGattCmdClientDiscoverAllCharacteristicsOfServiceOpCode_c,               /*! GattClient_DiscoverAllCharacteristicsOfService command operation code */
-    gBleGattCmdClientDiscoverCharacteristicOfServiceByUuidOpCode_c,             /*! GattClient_DiscoverCharacteristicOfServiceByUuid command operation code */
-    gBleGattCmdClientDiscoverAllCharacteristicDescriptorsOpCode_c,              /*! GattClient_DiscoverAllCharacteristicDescriptors command operation code */
-    gBleGattCmdClientReadCharacteristicValueOpCode_c,                           /*! GattClient_ReadCharacteristicValue command operation code */
-    gBleGattCmdClientReadUsingCharacteristicUuidOpCode_c,                       /*! GattClient_ReadUsingCharacteristicUuid command operation code */
-    gBleGattCmdClientReadMultipleCharacteristicValuesOpCode_c,                  /*! GattClient_ReadMultipleCharacteristicValues command operation code */
-    gBleGattCmdClientWriteCharacteristicValueOpCode_c,                          /*! GattClient_WriteCharacteristicValue command operation code */
-    gBleGattCmdClientReadCharacteristicDescriptorsOpCode_c,                     /*! GattClient_ReadCharacteristicDescriptors command operation code */
-    gBleGattCmdClientWriteCharacteristicDescriptorsOpCode_c,                    /*! GattClient_WriteCharacteristicDescriptors command operation code */
+    gBleGattCmdClientInitOpCode_c                                                      = 0x03,                         /*! GattClient_Init command operation code */
+    gBleGattCmdClientResetProceduresOpCode_c                                           = 0x04,                         /*! GattClient_ResetProcedures command operation code */
+    gBleGattCmdClientRegisterProcedureCallbackOpCode_c                                 = 0x05,                         /*! GattClient_RegisterProcedureCallback command operation code */
+    gBleGattCmdClientRegisterNotificationCallbackOpCode_c                              = 0x06,                         /*! GattClient_RegisterNotificationCallback command operation code */
+    gBleGattCmdClientRegisterIndicationCallbackOpCode_c                                = 0x07,                         /*! GattClient_RegisterIndicationCallback command operation code */
+    gBleGattCmdClientExchangeMtuOpCode_c                                               = 0x08,                         /*! GattClient_ExchangeMtu command operation code */
+    gBleGattCmdClientDiscoverAllPrimaryServicesOpCode_c                                = 0x09,                         /*! GattClient_DiscoverAllPrimaryServices command operation code */
+    gBleGattCmdClientDiscoverPrimaryServicesByUuidOpCode_c                             = 0x0A,                         /*! GattClient_DiscoverPrimaryServicesByUuid command operation code */
+    gBleGattCmdClientFindIncludedServicesOpCode_c                                      = 0x0B,                         /*! GattClient_FindIncludedServices command operation code */
+    gBleGattCmdClientDiscoverAllCharacteristicsOfServiceOpCode_c                       = 0x0C,                         /*! GattClient_DiscoverAllCharacteristicsOfService command operation code */
+    gBleGattCmdClientDiscoverCharacteristicOfServiceByUuidOpCode_c                     = 0x0D,                         /*! GattClient_DiscoverCharacteristicOfServiceByUuid command operation code */
+    gBleGattCmdClientDiscoverAllCharacteristicDescriptorsOpCode_c                      = 0x0E,                         /*! GattClient_DiscoverAllCharacteristicDescriptors command operation code */
+    gBleGattCmdClientReadCharacteristicValueOpCode_c                                   = 0x0F,                         /*! GattClient_ReadCharacteristicValue command operation code */
+    gBleGattCmdClientReadUsingCharacteristicUuidOpCode_c                               = 0x10,                         /*! GattClient_ReadUsingCharacteristicUuid command operation code */
+    gBleGattCmdClientReadMultipleCharacteristicValuesOpCode_c                          = 0x11,                         /*! GattClient_ReadMultipleCharacteristicValues command operation code */
+    gBleGattCmdClientWriteCharacteristicValueOpCode_c                                  = 0x12,                         /*! GattClient_WriteCharacteristicValue command operation code */
+    gBleGattCmdClientReadCharacteristicDescriptorsOpCode_c                             = 0x13,                         /*! GattClient_ReadCharacteristicDescriptors command operation code */
+    gBleGattCmdClientWriteCharacteristicDescriptorsOpCode_c                            = 0x14,                         /*! GattClient_WriteCharacteristicDescriptors command operation code */
 
-    gBleGattCmdServerInitOpCode_c,                                              /*! GattServer_Init command operation code */
-    gBleGattCmdServerRegisterCallbackOpCode_c,                                  /*! GattServer_RegisterCallback command operation code */
-    gBleGattCmdServerRegisterHandlesForWriteNotificationsOpCode_c,              /*! GattServer_RegisterHandlesForWriteNotifications command operation code */
-    gBleGattCmdServerSendAttributeWrittenStatusOpCode_c,                        /*! GattServer_SendAttributeWrittenStatus command operation code */
-    gBleGattCmdServerSendNotificationOpCode_c,                                  /*! GattServer_SendNotification command operation code */
-    gBleGattCmdServerSendIndicationOpCode_c,                                    /*! GattServer_SendIndication command operation code */
-    gBleGattCmdServerSendInstantValueNotificationOpCode_c,                      /*! GattServer_SendInstantValueNotification command operation code */
-    gBleGattCmdServerSendInstantValueIndicationOpCode_c,                        /*! GattServer_SendInstantValueIndication command operation code */
-    gBleGattCmdServerRegisterHandlesForReadNotificationsOpCode_c,               /*! GattServer_RegisterHandlesForReadNotifications command operation code */
-    gBleGattCmdServerSendAttributeReadStatusOpCode_c,                           /*! GattServer_SendAttributeReadStatus command operation code */
-    gBleGattCmdServerRegisterUniqueHandlesForNotificationsOpCode_c,             /*! GattServer_RegisterUniqueHandlesForNotifications command operation code */
-    gBleGattCmdServerUnregisterHandlesForWriteNotificationsOpCode_c,            /*! GattServer_UnregisterHandlesForWriteNotifications command operation code */
-    gBleGattCmdServerUnregisterHandlesForReadNotificationsOpCode_c,             /*! GattServer_UnregisterHandlesForReadNotifications command operation code */
+    gBleGattCmdServerInitOpCode_c                                                      = 0x15,                         /*! GattServer_Init command operation code */
+    gBleGattCmdServerRegisterCallbackOpCode_c                                          = 0x16,                         /*! GattServer_RegisterCallback command operation code */
+    gBleGattCmdServerRegisterHandlesForWriteNotificationsOpCode_c                      = 0x17,                         /*! GattServer_RegisterHandlesForWriteNotifications command operation code */
+    gBleGattCmdServerSendAttributeWrittenStatusOpCode_c                                = 0x18,                         /*! GattServer_SendAttributeWrittenStatus command operation code */
+    gBleGattCmdServerSendNotificationOpCode_c                                          = 0x19,                         /*! GattServer_SendNotification command operation code */
+    gBleGattCmdServerSendIndicationOpCode_c                                            = 0x1A,                         /*! GattServer_SendIndication command operation code */
+    gBleGattCmdServerSendInstantValueNotificationOpCode_c                              = 0x1B,                         /*! GattServer_SendInstantValueNotification command operation code */
+    gBleGattCmdServerSendInstantValueIndicationOpCode_c                                = 0x1C,                         /*! GattServer_SendInstantValueIndication command operation code */
+    gBleGattCmdServerRegisterHandlesForReadNotificationsOpCode_c                       = 0x1D,                         /*! GattServer_RegisterHandlesForReadNotifications command operation code */
+    gBleGattCmdServerSendAttributeReadStatusOpCode_c                                   = 0x1E,                         /*! GattServer_SendAttributeReadStatus command operation code */
+    gBleGattCmdServerRegisterUniqueHandlesForNotificationsOpCode_c                     = 0x1F,                         /*! GattServer_RegisterUniqueHandlesForNotifications command operation code */
+    gBleGattCmdServerUnregisterHandlesForWriteNotificationsOpCode_c                    = 0x20,                         /*! GattServer_UnregisterHandlesForWriteNotifications command operation code */
+    gBleGattCmdServerUnregisterHandlesForReadNotificationsOpCode_c                     = 0x21,                         /*! GattServer_UnregisterHandlesForReadNotifications command operation code */
+    gBleGattCmdServerSendMultipleHandleValueNotificationOpCode_c                       = 0x22,                         /*! GattServer_SendMultipleHandleValueNotification command operation code */
+    gBleGattCmdClientRegisterMultipleValueNotificationCallbackOpCode_c                 = 0x23,                         /*! GattClient_RegisterMultipleValueNotificationCallback command operation code */
+    gBleGattCmdClientReadMultipleVariableCharacteristicValuesOpCode_c                  = 0x24,                         /*! GattClient_ReadMultipleVariableCharacteristicValues*/
 
-    gBleGattStatusOpCode_c                      = 0x80,                         /*! GAP status operation code */
+    gBleGattCmdClientRegisterEnhancedProcedureCallbackOpCode_c                         = 0x25,                         /*! GattClient_RegisterEnhancedProcedureCallback command operation code */
+    gBleGattCmdClientRegisterEnhancedNotificationCallbackOpCode_c                      = 0x26,                         /*! GattClient_RegisterEnhancedNotificationCallback command operation code */
+    gBleGattCmdClientRegisterEnhancedIndicationCallbackOpCode_c                        = 0x27,                         /*! GattClient_RegisterEnhancedIndicationCallback command operation code */
+    gBleGattCmdClientRegisterEnhancedMultipleValueNotificationCallbackOpCode_c         = 0x28,                         /*! GattClient_RegisterMultipleValueNotificationCallback command operation code */
+    gBleGattCmdClientEnhancedDiscoverAllPrimaryServicesOpCode_c                        = 0x29,                         /*! GattClient_EnhancedDiscoverAllPrimaryServices command operation code */
+    gBleGattCmdClientEnhancedDiscoverPrimaryServicesByUuidOpCode_c                     = 0x2A,                         /*! GattClient_EnhancedDiscoverPrimaryServicesByUuid command operation code */
+    gBleGattCmdClientEnhancedFindIncludedServicesOpCode_c                              = 0x2B,                         /*! GattClient_EnhancedFindIncludedServices command operation code */
+    gBleGattCmdClientEnhancedDiscoverAllCharacteristicsOfServiceOpCode_c               = 0x2C,                         /*! GattClient_EnhancedDiscoverAllCharacteristicsOfService command operation code */
+    gBleGattCmdClientEnhancedDiscoverCharacteristicOfServiceByUuidOpCode_c             = 0x2D,                         /*! GattClient_EnhancedDiscoverCharacteristicOfServiceByUuid command operation code */
+    gBleGattCmdClientEnhancedDiscoverAllCharacteristicDescriptorsOpCode_c              = 0x2E,                         /*! GattClient_EnhancedDiscoverAllCharacteristicDescriptors command operation code */
+    gBleGattCmdClientEnhancedReadCharacteristicValueOpCode_c                           = 0x2F,                         /*! GattClient_EnhancedReadCharacteristicValue command operation code */
+    gBleGattCmdClientEnhancedReadUsingCharacteristicUuidOpCode_c                       = 0x30,                         /*! GattClient_EnhancedReadUsingCharacteristicUuid command operation code */
+    gBleGattCmdClientEnhancedReadMultipleCharacteristicValuesOpCode_c                  = 0x31,                         /*! GattClient_EnhancedReadMultipleCharacteristicValues command operation code */
+    gBleGattCmdClientEnhancedWriteCharacteristicValueOpCode_c                          = 0x32,                         /*! GattClient_EnhancedWriteCharacteristicValue command operation code */
+    gBleGattCmdClientEnhancedReadCharacteristicDescriptorsOpCode_c                     = 0x33,                         /*! GattClient_EnhancedReadCharacteristicDescriptors command operation code */
+    gBleGattCmdClientEnhancedWriteCharacteristicDescriptorsOpCode_c                    = 0x34,                         /*! GattClient_EnhancedWriteCharacteristicDescriptors command operation code */
+    gBleGattCmdClientEnhancedReadMultipleVariableCharacteristicValuesOpCode_c          = 0x35,                         /*! GattClient_EnhancedReadMultipleVariableCharacteristicValues*/
 
-    gBleGattEvtFirstOpCode_c                    = 0x81,
-    gBleGattEvtGetMtuOpCode_c                   = gBleGattEvtFirstOpCode_c,     /*! Gatt_GetMtu command out parameter event operation code */
+    gBleGattCmdServerRegisterEnhancedCallbackOpCode_c                                  = 0x36,                         /*! GattServer_RegisterEnhancedCallback command operation code */
+    gBleGattCmdServerEnhancedSendAttributeWrittenStatusOpCode_c                        = 0x37,                         /*! GattServer_EnhancedSendAttributeWrittenStatus command operation code */
+    gBleGattCmdServerEnhancedSendNotificationOpCode_c                                  = 0x38,                         /*! GattServer_EnhancedSendNotification command operation code */
+    gBleGattCmdServerEnhancedSendIndicationOpCode_c                                    = 0x39,                         /*! GattServer_EnhancedSendIndication command operation code */
+    gBleGattCmdServerEnhancedSendInstantValueNotificationOpCode_c                      = 0x3A,                         /*! GattServer_EnhancedSendInstantValueNotification command operation code */
+    gBleGattCmdServerEnhancedSendInstantValueIndicationOpCode_c                        = 0x3B,                         /*! GattServer_EnhancedSendInstantValueIndication command operation code */
+    gBleGattCmdServerEnhancedSendAttributeReadStatusOpCode_c                           = 0x3C,                         /*! GattServer_EnhancedSendAttributeReadStatus command operation code */
+    gBleGattCmdServerEnhancedSendMultipleHandleValueNotificationOpCode_c               = 0x3D,                         /*! GattServer_EnhancedSendMultipleHandleValueNotification command operation code */
 
-    gBleGattEvtClientProcedureExchangeMtuOpCode_c,                              /*! gattClientProcedureCallback (procedureType == gGattProcExchangeMtu_c) event operation code */
-    gBleGattEvtClientProcedureDiscoverAllPrimaryServicesOpCode_c,               /*! gattClientProcedureCallback (procedureType == gGattProcDiscoverAllPrimaryServices_c) event operation code */
-    gBleGattEvtClientProcedureDiscoverPrimaryServicesByUuidOpCode_c,            /*! gattClientProcedureCallback (procedureType == gGattProcDiscoverPrimaryServicesByUuid_c) event operation code */
-    gBleGattEvtClientProcedureFindIncludedServicesOpCode_c,                     /*! gattClientProcedureCallback (procedureType == gGattProcFindIncludedServices_c) event operation code */
-    gBleGattEvtClientProcedureDiscoverAllCharacteristicsOpCode_c,               /*! gattClientProcedureCallback (procedureType == gGattProcDiscoverAllCharacteristics_c) event operation code */
-    gBleGattEvtClientProcedureDiscoverCharacteristicByUuidOpCode_c,             /*! gattClientProcedureCallback (procedureType == gGattProcDiscoverCharacteristicByUuid_c) event operation code */
-    gBleGattEvtClientProcedureDiscoverAllCharacteristicDescriptorsOpCode_c,     /*! gattClientProcedureCallback (procedureType == gGattProcDiscoverAllCharacteristicDescriptors_c) event operation code */
-    gBleGattEvtClientProcedureReadCharacteristicValueOpCode_c,                  /*! gattClientProcedureCallback (procedureType == gGattProcReadCharacteristicValue_c) event operation code */
-    gBleGattEvtClientProcedureReadUsingCharacteristicUuidOpCode_c,              /*! gattClientProcedureCallback (procedureType == gGattProcReadUsingCharacteristicUuid_c) event operation code */
-    gBleGattEvtClientProcedureReadMultipleCharacteristicValuesOpCode_c,         /*! gattClientProcedureCallback (procedureType == gGattProcReadMultipleCharacteristicValues_c) event operation code */
-    gBleGattEvtClientProcedureWriteCharacteristicValueOpCode_c,                 /*! gattClientProcedureCallback (procedureType == gGattProcWriteCharacteristicValue_c) event operation code */
-    gBleGattEvtClientProcedureReadCharacteristicDescriptorOpCode_c,             /*! gattClientProcedureCallback (procedureType == gGattProcReadCharacteristicDescriptor_c) event operation code */
-    gBleGattEvtClientProcedureWriteCharacteristicDescriptorOpCode_c,            /*! gattClientProcedureCallback (procedureType == gGattProcWriteCharacteristicDescriptor_c) event operation code */
-    gBleGattEvtClientNotificationOpCode_c,                                      /*! gattClientNotificationCallback event operation code */
-    gBleGattEvtClientIndicationOpCode_c,                                        /*! gattClientIndicationCallback event operation code */
+    gBleGattCmdClientGetDatabaseHashOpCode_c                                           = 0x3E,                         /*! GattClient_GetDatabaseHash command operation code */
 
-    gBleGattEvtServerMtuChangedOpCode_c,                                        /*! gattServerCallback (eventType == gEvtMtuChanged_c) event operation code */
-    gBleGattEvtServerHandleValueConfirmationOpCode_c,                           /*! gattServerCallback (eventType == gEvtHandleValueConfirmation_c) event operation code */
-    gBleGattEvtServerAttributeWrittenOpCode_c,                                  /*! gattServerCallback (eventType == gEvtAttributeWritten_c) event operation code */
-    gBleGattEvtServerCharacteristicCccdWrittenOpCode_c,                         /*! gattServerCallback (eventType == gEvtCharacteristicCccdWritten_c) event operation code */
-    gBleGattEvtServerAttributeWrittenWithoutResponseOpCode_c,                   /*! gattServerCallback (eventType == gEvtAttributeWrittenWithoutResponse_c) event operation code */
-    gBleGattEvtServerErrorOpCode_c,                                             /*! gattServerCallback (eventType == gEvtErrorOpCode_c) event operation code */
-    gBleGattEvtServerLongCharacteristicWrittenOpCode_c,                         /*! gattServerCallback (eventType == gEvtLongCharacteristicWritten_c) event operation code */
-    gBleGattEvtServerAttributeReadOpCode_c                                      /*! gattServerCallback (eventType == gEvtAttributeRead_c) event operation code */
+
+    gBleGattStatusOpCode_c                                                             = 0x80,                         /*! GAP status operation code */
+
+    gBleGattEvtFirstOpCode_c                                                           = 0x81,
+    gBleGattEvtGetMtuOpCode_c                                                          = gBleGattEvtFirstOpCode_c,     /*! Gatt_GetMtu command out parameter event operation code */
+
+    gBleGattEvtClientProcedureExchangeMtuOpCode_c                                      = 0x82,                         /*! gattClientProcedureCallback (procedureType == gGattProcExchangeMtu_c) event operation code */
+    gBleGattEvtClientProcedureDiscoverAllPrimaryServicesOpCode_c                       = 0x83,                         /*! gattClientProcedureCallback (procedureType == gGattProcDiscoverAllPrimaryServices_c) event operation code */
+    gBleGattEvtClientProcedureDiscoverPrimaryServicesByUuidOpCode_c                    = 0x84,                         /*! gattClientProcedureCallback (procedureType == gGattProcDiscoverPrimaryServicesByUuid_c) event operation code */
+    gBleGattEvtClientProcedureFindIncludedServicesOpCode_c                             = 0x85,                         /*! gattClientProcedureCallback (procedureType == gGattProcFindIncludedServices_c) event operation code */
+    gBleGattEvtClientProcedureDiscoverAllCharacteristicsOpCode_c                       = 0x86,                         /*! gattClientProcedureCallback (procedureType == gGattProcDiscoverAllCharacteristics_c) event operation code */
+    gBleGattEvtClientProcedureDiscoverCharacteristicByUuidOpCode_c                     = 0x87,                         /*! gattClientProcedureCallback (procedureType == gGattProcDiscoverCharacteristicByUuid_c) event operation code */
+    gBleGattEvtClientProcedureDiscoverAllCharacteristicDescriptorsOpCode_c             = 0x88,                         /*! gattClientProcedureCallback (procedureType == gGattProcDiscoverAllCharacteristicDescriptors_c) event operation code */
+    gBleGattEvtClientProcedureReadCharacteristicValueOpCode_c                          = 0x89,                         /*! gattClientProcedureCallback (procedureType == gGattProcReadCharacteristicValue_c) event operation code */
+    gBleGattEvtClientProcedureReadUsingCharacteristicUuidOpCode_c                      = 0x8A,                         /*! gattClientProcedureCallback (procedureType == gGattProcReadUsingCharacteristicUuid_c) event operation code */
+    gBleGattEvtClientProcedureReadMultipleCharacteristicValuesOpCode_c                 = 0x8B,                         /*! gattClientProcedureCallback (procedureType == gGattProcReadMultipleCharacteristicValues_c) event operation code */
+    gBleGattEvtClientProcedureWriteCharacteristicValueOpCode_c                         = 0x8C,                         /*! gattClientProcedureCallback (procedureType == gGattProcWriteCharacteristicValue_c) event operation code */
+    gBleGattEvtClientProcedureReadCharacteristicDescriptorOpCode_c                     = 0x8D,                         /*! gattClientProcedureCallback (procedureType == gGattProcReadCharacteristicDescriptor_c) event operation code */
+    gBleGattEvtClientProcedureWriteCharacteristicDescriptorOpCode_c                    = 0x8E,                         /*! gattClientProcedureCallback (procedureType == gGattProcWriteCharacteristicDescriptor_c) event operation code */
+    gBleGattEvtClientNotificationOpCode_c                                              = 0x8F,                         /*! gattClientNotificationCallback event operation code */
+    gBleGattEvtClientIndicationOpCode_c                                                = 0x90,                         /*! gattClientIndicationCallback event operation code */
+
+    gBleGattEvtServerMtuChangedOpCode_c                                                = 0x91,                         /*! gattServerCallback (eventType == gEvtMtuChanged_c) event operation code */
+    gBleGattEvtServerHandleValueConfirmationOpCode_c                                   = 0x92,                         /*! gattServerCallback (eventType == gEvtHandleValueConfirmation_c) event operation code */
+    gBleGattEvtServerAttributeWrittenOpCode_c                                          = 0x93,                         /*! gattServerCallback (eventType == gEvtAttributeWritten_c) event operation code */
+    gBleGattEvtServerCharacteristicCccdWrittenOpCode_c                                 = 0x94,                         /*! gattServerCallback (eventType == gEvtCharacteristicCccdWritten_c) event operation code */
+    gBleGattEvtServerAttributeWrittenWithoutResponseOpCode_c                           = 0x95,                         /*! gattServerCallback (eventType == gEvtAttributeWrittenWithoutResponse_c) event operation code */
+    gBleGattEvtServerErrorOpCode_c                                                     = 0x96,                         /*! gattServerCallback (eventType == gEvtErrorOpCode_c) event operation code */
+    gBleGattEvtServerLongCharacteristicWrittenOpCode_c                                 = 0x97,                         /*! gattServerCallback (eventType == gEvtLongCharacteristicWritten_c) event operation code */
+    gBleGattEvtServerAttributeReadOpCode_c                                              = 0x98,                         /*! gattServerCallback (eventType == gEvtAttributeRead_c) event operation code */
+    gBleGattEvtClientMultipleValueNotificationOpCode_c                                 = 0x99,                         /*! gattClientMultipleValueNotificationCallback event operation code */
+    gBleGattEvtClientProcedureReadMultipleVariableLenCharValuesOpCode_c                = 0x9A,                         /*! gattClientProcedureCallback (procedureType == gGattProcReadMultipleVarLengthCharValues_c) event operation code */
+
+    gBleGattEvtClientProcedureEnhancedDiscoverAllPrimaryServicesOpCode_c               = 0x9B,                         /*! gattClientProcedureCallback (procedureType == gGattProcDiscoverAllPrimaryServices_c) event operation code */
+    gBleGattEvtClientProcedureEnhancedDiscoverPrimaryServicesByUuidOpCode_c            = 0x9C,                         /*! gattClientProcedureCallback (procedureType == gGattProcDiscoverPrimaryServicesByUuid_c) event operation code */
+    gBleGattEvtClientProcedureEnhancedFindIncludedServicesOpCode_c                     = 0x9D,                         /*! gattClientProcedureCallback (procedureType == gGattProcFindIncludedServices_c) event operation code */
+    gBleGattEvtClientProcedureEnhancedDiscoverAllCharacteristicsOpCode_c               = 0x9E,                         /*! gattClientProcedureCallback (procedureType == gGattProcDiscoverAllCharacteristics_c) event operation code */
+    gBleGattEvtClientProcedureEnhancedDiscoverCharacteristicByUuidOpCode_c             = 0x9F,                         /*! gattClientProcedureCallback (procedureType == gGattProcDiscoverCharacteristicByUuid_c) event operation code */
+    gBleGattEvtClientProcedureEnhancedDiscoverAllCharacteristicDescriptorsOpCode_c     = 0xA0,                         /*! gattClientProcedureCallback (procedureType == gGattProcDiscoverAllCharacteristicDescriptors_c) event operation code */
+    gBleGattEvtClientProcedureEnhancedReadCharacteristicValueOpCode_c                  = 0xA1,                         /*! gattClientProcedureCallback (procedureType == gGattProcReadCharacteristicValue_c) event operation code */
+    gBleGattEvtClientProcedureEnhancedReadUsingCharacteristicUuidOpCode_c              = 0xA2,                         /*! gattClientProcedureCallback (procedureType == gGattProcReadUsingCharacteristicUuid_c) event operation code */
+    gBleGattEvtClientProcedureEnhancedReadMultipleCharacteristicValuesOpCode_c         = 0xA3,                         /*! gattClientProcedureCallback (procedureType == gGattProcReadMultipleCharacteristicValues_c) event operation code */
+    gBleGattEvtClientProcedureEnhancedWriteCharacteristicValueOpCode_c                 = 0xA4,                         /*! gattClientProcedureCallback (procedureType == gGattProcWriteCharacteristicValue_c) event operation code */
+    gBleGattEvtClientProcedureEnhancedReadCharacteristicDescriptorOpCode_c             = 0xA5,                         /*! gattClientProcedureCallback (procedureType == gGattProcReadCharacteristicDescriptor_c) event operation code */
+    gBleGattEvtClientProcedureEnhancedWriteCharacteristicDescriptorOpCode_c            = 0xA6,                         /*! gattClientProcedureCallback (procedureType == gGattProcWriteCharacteristicDescriptor_c) event operation code */
+    gBleGattEvtClientProcedureEnhancedReadMultipleVariableLenCharValuesOpCode_c        = 0xA7,                         /*! gattClientProcedureCallback (procedureType == gGattProcReadMultipleVarLengthCharValues_c) event operation code */
+    gBleGattEvtClientEnhancedMultipleValueNotificationOpCode_c                         = 0xA8,                         /*! gattClientMultipleValueNotificationCallback event operation code */
+    gBleGattEvtClientEnhancedNotificationOpCode_c                                      = 0xA9,                         /*! gattClientNotificationCallback event operation code */
+    gBleGattEvtClientEnhancedIndicationOpCode_c                                        = 0xAA,                         /*! gattClientIndicationCallback event operation code */
+
+    gBleGattEvtServerEnhancedHandleValueConfirmationOpCode_c                           = 0xAB,                         /*! gattServerCallback (eventType == gEvtHandleValueConfirmation_c) event operation code */
+    gBleGattEvtServerEnhancedAttributeWrittenOpCode_c                                  = 0xAC,                         /*! gattServerCallback (eventType == gEvtAttributeWritten_c) event operation code */
+    gBleGattEvtServerEnhancedCharacteristicCccdWrittenOpCode_c                         = 0xAD,                         /*! gattServerCallback (eventType == gEvtCharacteristicCccdWritten_c) event operation code */
+    gBleGattEvtServerEnhancedAttributeWrittenWithoutResponseOpCode_c                   = 0xAE,                         /*! gattServerCallback (eventType == gEvtAttributeWrittenWithoutResponse_c) event operation code */
+    gBleGattEvtServerEnhancedErrorOpCode_c                                             = 0xAF,                         /*! gattServerCallback (eventType == gEvtErrorOpCode_c) event operation code */
+    gBleGattEvtServerEnhancedLongCharacteristicWrittenOpCode_c                         = 0xB0,                         /*! gattServerCallback (eventType == gEvtLongCharacteristicWritten_c) event operation code */
+    gBleGattEvtServerEnhancedAttributeReadOpCode_c                                     = 0xB1,                         /*! gattServerCallback (eventType == gEvtAttributeRead_c) event operation code */
 }fsciBleGattOpCode_t;
 
 /************************************************************************************
@@ -930,6 +1040,7 @@ void fsciBleGattGetMtuEvtMonitor
 void fsciBleGattClientProcedureEvtMonitor
 (
     deviceId_t              deviceId,
+    bearerId_t              bearerId,
     gattProcedureType_t     procedureType,
     gattProcedureResult_t   procedureResult,
     bleResult_t             error
@@ -951,21 +1062,37 @@ void fsciBleGattClientNotificationOrIndicationEvtMonitor
 (
     fsciBleGattOpCode_t opCode,
     deviceId_t          deviceId,
+    bearerId_t          bearerId,
     uint16_t            characteristicValueHandle,
     uint8_t*            aValue,
     uint16_t            valueLength
 );
 
+#if defined(gBLE52_d) && (gBLE52_d == TRUE)
+/*! *********************************************************************************
+* \brief  GattClientMultipleValueNotificationCallback event monitoring function.
+*
+* \param[in]    opCode                      GATT event operation code.
+* \param[in]    deviceId                    Device ID of the connected peer.
+* \param[in]    aHandleLenValue             Array of handle, value length and value tuples.
+* \param[in]    totalLength                 Total length of the array.
+*
+********************************************************************************** */
+void fsciBleGattClientMultipleValueNotificationEvtMonitor(deviceId_t  deviceId, bearerId_t bearerId, uint8_t* aHandleLenValue, uint32_t totalLength);
+#endif /* gBLE52_d */
+
 /*! *********************************************************************************
 * \brief  gattServerCallback event monitoring function.
 *
 * \param[in]    deviceId                    Device ID of the connected peer.
+* \param[in]    bearerId                    Bearer ID of the ATT bearer used.
 * \param[in]    pServerEvent                Server event information.
 *
 ********************************************************************************** */
 void fsciBleGattServerEvtMonitor
 (
     deviceId_t          deviceId,
+    bearerId_t          bearerId,
     gattServerEvent_t*  pServerEvent
 );
 

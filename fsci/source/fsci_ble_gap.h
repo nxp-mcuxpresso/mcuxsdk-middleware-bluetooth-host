@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2022 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2024 NXP
+*
 *
 * \file
 *
@@ -36,9 +36,15 @@
     #define gFsciBleGapLayerEnabled_d           0
 #endif /* gFsciBleGapLayerEnabled_d */
 
+#ifndef gFsciBleGap2LayerEnabled_d
+    #define gFsciBleGap2LayerEnabled_d           0
+#endif /* gFsciBleGap2LayerEnabled_d */
+
 /*! FSCI operation group for GAP */
 #define gFsciBleGapOpcodeGroup_c                0x48
 
+/*! FSCI operation group for GAP2 */
+#define gFsciBleGap2OpcodeGroup_c               0x4C
 
 #if defined(FsciCmdMonitor)
     //#warning "FsciCmdMonitor macro is already defined"
@@ -95,6 +101,20 @@
                                (dataSize))
 
 /*! *********************************************************************************
+* \brief  Allocates a FSCI packet for GAP2.
+*
+* \param[in]    opCode      FSCI GAP2 operation code
+* \param[in]    dataSize    Size of the payload
+*
+* \return The allocated FSCI packet
+*
+********************************************************************************** */
+#define fsciBleGap2AllocFsciPacket(opCode, dataSize)         \
+        fsciBleAllocFsciPacket(gFsciBleGap2OpcodeGroup_c,    \
+                               (opCode),                      \
+                               (dataSize))
+
+/*! *********************************************************************************
 * \brief  Gap_StopAdvertising command monitoring macro.
 *
 ********************************************************************************** */
@@ -109,18 +129,18 @@
         fsciBleGapNoParamCmdMonitor(gBleGapCmdStopScanningOpCode_c)
 
 /*! *********************************************************************************
-* \brief  Gap_ReadWhiteListSize command monitoring macro.
+* \brief  Gap_ReadFilterAcceptListSize command monitoring macro.
 *
 ********************************************************************************** */
-#define fsciBleGapReadWhiteListSizeCmdMonitor() \
-        fsciBleGapNoParamCmdMonitor(gBleGapCmdReadWhiteListSizeOpCode_c)
+#define fsciBleGapReadFilterAcceptListSizeCmdMonitor() \
+        fsciBleGapNoParamCmdMonitor(gBleGapCmdReadFilterAcceptListSizeOpCode_c)
 
 /*! *********************************************************************************
-* \brief  Gap_ClearWhiteList command monitoring macro.
+* \brief  Gap_ClearFilterAcceptList command monitoring macro.
 *
 ********************************************************************************** */
-#define fsciBleGapClearWhiteListCmdMonitor()    \
-        fsciBleGapNoParamCmdMonitor(gBleGapCmdClearWhiteListOpCode_c)
+#define fsciBleGapClearFilterAcceptListCmdMonitor()    \
+        fsciBleGapNoParamCmdMonitor(gBleGapCmdClearFilterAcceptListOpCode_c)
 
 /*! *********************************************************************************
 * \brief  Gap_RemoveAllBonds command monitoring macro.
@@ -222,28 +242,29 @@
                                                              (pOutIsActive))
 
 /*! *********************************************************************************
-* \brief  Gap_AddDeviceToWhiteList command monitoring macro.
+* \brief  Gap_AddDeviceToFilterAcceptList command monitoring macro.
 *
-* \param[in]    address         The address of the white-listed device.
+* \param[in]    address         The address of the device to be added to the filter
+*                               accept list.
 * \param[in]    addressType     The device address type (public or random).
 *
 ********************************************************************************** */
-#define fsciBleGapAddDeviceToWhiteListCmdMonitor(addressType,                       \
+#define fsciBleGapAddDeviceToFilterAcceptListCmdMonitor(addressType,                       \
                                                  address)                           \
-        fsciBleGapAddressParamsCmdMonitor(gBleGapCmdAddDeviceToWhiteListOpCode_c,   \
+        fsciBleGapAddressParamsCmdMonitor(gBleGapCmdAddDeviceToFilterAcceptListOpCode_c,   \
                                           (addressType),                              \
                                           (address))
 
 /*! *********************************************************************************
-* \brief  Gap_RemoveDeviceFromWhiteList command monitoring macro.
+* \brief  Gap_RemoveDeviceFromFilterAcceptList command monitoring macro.
 *
-* \param[in]    address         The address of the white-listed device.
+* \param[in]    address         The address of the device in the filter accept list.
 * \param[in]    addressType     The device address type (public or random).
 *
 ********************************************************************************** */
-#define fsciBleGapRemoveDeviceFromWhiteListCmdMonitor(addressType,                      \
+#define fsciBleGapRemoveDeviceFromFilterAcceptListCmdMonitor(addressType,                      \
                                                       address)                          \
-        fsciBleGapAddressParamsCmdMonitor(gBleGapCmdRemoveDeviceFromWhiteListOpCode_c,  \
+        fsciBleGapAddressParamsCmdMonitor(gBleGapCmdRemoveDeviceFromFilterAcceptListOpCode_c,  \
                                           (addressType),                                  \
                                           (address))
 
@@ -384,6 +405,7 @@
         fsciBleGapUint8ParamCmdMonitor(gBleGapCmdPeriodicAdvTerminateSyncOpCode_c,   \
                                        (SID))
 #endif
+
 /************************************************************************************
 *************************************************************************************
 * Public type definitions
@@ -393,197 +415,291 @@
 /*! FSCI operation codes for GAP */
 typedef enum
 {
-    gBleGapModeSelectOpCode_c                   = 0x00,                     /*! GAP Mode Select operation code */
+    gBleGapModeSelectOpCode_c                                                      = 0x00,                       /*! GAP Mode Select operation code */
 
-    gBleGapCmdFirstOpCode_c                     = 0x01,
-    gBleGapCmdBleHostInitializeOpCode_c         = gBleGapCmdFirstOpCode_c,  /*! Ble_HostInitialize command operation code */
-    gBleGapCmdRegisterDeviceSecurityRequirementsOpCode_c,                   /*! Gap_RegisterDeviceSecurityRequirements command operation code */
-    gBleGapCmdSetAdvertisingParametersOpCode_c,                             /*! Gap_SetAdvertisingParameters command operation code */
-    gBleGapCmdSetAdvertisingDataOpCode_c,                                   /*! Gap_SetAdvertisingData command operation code */
-    gBleGapCmdStartAdvertisingOpCode_c,                                     /*! Gap_StartAdvertising command operation code */
-    gBleGapCmdStopAdvertisingOpCode_c,                                      /*! Gap_StopAdvertising command operation code */
-    gBleGapCmdAuthorizeOpCode_c,                                            /*! Gap_Authorize command operation code */
-    gBleGapCmdSaveCccdOpCode_c,                                             /*! Gap_SaveCccd command operation code */
-    gBleGapCmdCheckNotificationStatusOpCode_c,                              /*! Gap_CheckNotificationStatus command operation code */
-    gBleGapCmdCheckIndicationStatusOpCode_c,                                /*! Gap_CheckIndicationStatus command operation code */
-    gFsciBleGapReserved1_c,                                                 /*! Removed: Gap_GetBondedStaticAddresses command operation code */
-    gBleGapCmdPairOpCode_c,                                                 /*! Gap_Pair command operation code */
-    gBleGapCmdSendSlaveSecurityRequestOpCode_c,                             /*! Gap_SendSlaveSecurityRequest command operation code */
-    gBleGapCmdEncryptLinkOpCode_c,                                          /*! Gap_EncryptLink command operation code */
-    gBleGapCmdAcceptPairingRequestOpCode_c,                                 /*! Gap_AcceptPairingRequest command operation code */
-    gBleGapCmdRejectPairingOpCode_c,                                        /*! Gap_RejectAuthentication command operation code */
-    gBleGapCmdEnterPasskeyOpCode_c,                                         /*! Gap_EnterPasskey command operation code */
-    gBleGapCmdProvideOobOpCode_c,                                           /*! Gap_ProvideOob command operation code */
-    gBleGapCmdRejectPasskeyRequestOpCode_c,                                 /*! Gap_RejectPasskeyRequest command operation code */
-    gBleGapCmdSendSmpKeysOpCode_c,                                          /*! Gap_SendSmpKeys command operation code */
-    gBleGapCmdRejectKeyExchangeRequestOpCode_c,                             /*! Gap_RejectKeyExchangeRequest command operation code */
-    gBleGapCmdProvideLongTermKeyOpCode_c,                                   /*! Gap_ProvideLongTermKey command operation code */
-    gBleGapCmdDenyLongTermKeyOpCode_c,                                      /*! Gap_DenyLongTermKey command operation code */
-    gBleGapCmdLoadEncryptionInformationOpCode_c,                            /*! Gap_LoadEncryptionInformation command operation code */
-    gBleGapCmdSetLocalPasskeyOpCode_c,                                      /*! Gap_SetLocalPasskey command operation code */
-    gBleGapCmdStartScanningOpCode_c,                                        /*! Gap_StartScanning command operation code */
-    gBleGapCmdStopScanningOpCode_c,                                         /*! Gap_StopScanning command operation code */
-    gBleGapCmdConnectOpCode_c,                                              /*! Gap_Connect command operation code */
-    gBleGapCmdDisconnectOpCode_c,                                           /*! Gap_Disconnect command operation code */
-    gBleGapCmdSaveCustomPeerInformationOpCode_c,                            /*! Gap_SaveCustomPeerInformation command operation code */
-    gBleGapCmdLoadCustomPeerInformationOpCode_c,                            /*! Gap_LoadCustomPeerInformation command operation code */
-    gBleGapCmdCheckIfBondedOpCode_c,                                        /*! Gap_CheckIfBonded command operation code */
-    gBleGapCmdReadWhiteListSizeOpCode_c,                                    /*! Gap_ReadWhiteListSize command operation code */
-    gBleGapCmdClearWhiteListOpCode_c,                                       /*! Gap_ClearWhiteList command operation code */
-    gBleGapCmdAddDeviceToWhiteListOpCode_c,                                 /*! Gap_AddDeviceToWhiteList command operation code */
-    gBleGapCmdRemoveDeviceFromWhiteListOpCode_c,                            /*! Gap_RemoveDeviceFromWhiteList command operation code */
-    gBleGapCmdReadPublicDeviceAddressOpCode_c,                              /*! Gap_ReadPublicDeviceAddress command operation code */
-    gBleGapCmdCreateRandomDeviceAddressOpCode_c,                            /*! Gap_CreateRandomDeviceAddress command operation code */
-    gBleGapCmdSaveDeviceNameOpCode_c,                                       /*! Gap_SaveDeviceName command operation code */
-    gBleGapCmdGetBondedDevicesCountOpCode_c,                                /*! Gap_GetBondedDevicesCount command operation code */
-    gBleGapCmdGetBondedDeviceNameOpCode_c,                                  /*! Gap_GetBondedDeviceName command operation code */
-    gBleGapCmdRemoveBondOpCode_c,                                           /*! Gap_RemoveBond command operation code */
-    gBleGapCmdRemoveAllBondsOpCode_c,                                       /*! Gap_RemoveAllBonds command operation code */
-    gBleGapCmdReadRadioPowerLevelOpCode_c,                                  /*! Gap_ReadRadioPowerLevel command operation code */
-    gBleGapCmdVerifyPrivateResolvableAddressOpCode_c,                       /*! Gap_VerifyPrivateResolvableAddress command operation code */
-    gBleGapCmdSetRandomAddressOpCode_c,                                     /*! Gap_SetRandomAddress command operation code */
-    gBleGapCmdSetScanModeOpCode_c,                                          /*! Gap_SetScanMode command operation code */
-    gBleGapCmdSetDefaultPairingParameters_c,                                /*! Gap_SetDefaultPairingParameters command operation code */
-    gBleGapCmdUpdateConnectionParametersOpCode_c,                           /*! Gap_UpdateConnectionParameters command operation code */
-    gBleGapCmdEnableUpdateConnectionParametersOpCode_c,                     /*! Gap_EnableUpdateConnectionParameters command operation code */
-    gBleGapCmdUpdateLeDataLengthOpCode_c,                                   /*! Gap_UpdateLeDataLength command operation code */
-    gReserved1_c,
-    gBleGapCmdEnableHostPrivacyOpCode_c,                                    /*! Gap_EnableHostPrivacy command operation code */
-    gBleGapCmdEnableControllerPrivacyOpCode_c,                              /*! Gap_EnableControllerPrivacy command operation code */
-    gBleGapCmdLeScRegeneratePublicKeyOpCode_c,                              /*! Gap_LeScRegeneratePublicKey command operation code */
-    gBleGapCmdLeScValidateNumericValueOpCode_c,                             /*! Gap_LeScValidateNumericValue command operation code */
-    gBleGapCmdLeScGetLocalOobDataOpCode_c,                                  /*! Gap_LeScGetLocalOobData command operation code */
-    gBleGapCmdLeScSetPeerOobDataOpCode_c,                                   /*! Gap_LeScSetPeerOobData command operation code */
-    gBleGapCmdLeScSendKeypressNotificationPrivacyOpCode_c,                  /*! Gap_LeScSendKeypressNotification command operation code */
-    gBleGapCmdGetBondedDevicesIdentityInformationOpCode_c,                  /*! Gap_GetBondedDevicesIdentityInformation command operation code */
-    gBleGapCmdSetTxPowerLevelOpCode_c,                                      /*! Gap_SetTxPowerLevel command operation code */
-    gBleGapCmdLeReadPhyOpCode_c,                                            /*! Gap_LeReadPhy command operation code */
-    gBleGapCmdLeSetPhyOpCode_c,                                             /*! Gap_LeSetPhy command operation code */
-    gBleGapCmdControllerNotificationOpCode_c,                               /*! Gap_ControllerEnhancedNotification command operation code */
-    gBleGapCmdLoadKeysOpCode_c,                                             /*! Gap_LoadKeys command operation code */
-    gBleGapCmdSaveKeysOpCode_c,                                             /*! Gap_SaveKeys command operation code */
-    gBleGapCmdSetChannelMapOpCode_c,                                        /*! Gap_SetChannelMap command operation code */
-    gBleGapCmdReadChannelMapOpCode_c,                                       /*! Gap_ReadChannelMap command operation code */
+    gBleGapCmdFirstOpCode_c                                                        = 0x01,
+    gBleGapCmdBleHostInitializeOpCode_c                                            = gBleGapCmdFirstOpCode_c,    /*! Ble_HostInitialize command operation code */
+    gBleGapCmdRegisterDeviceSecurityRequirementsOpCode_c                           = 0x02,                       /*! Gap_RegisterDeviceSecurityRequirements command operation code */
+    gBleGapCmdSetAdvertisingParametersOpCode_c                                     = 0x03,                       /*! Gap_SetAdvertisingParameters command operation code */
+    gBleGapCmdSetAdvertisingDataOpCode_c                                           = 0x04,                       /*! Gap_SetAdvertisingData command operation code */
+    gBleGapCmdStartAdvertisingOpCode_c                                             = 0x05,                       /*! Gap_StartAdvertising command operation code */
+    gBleGapCmdStopAdvertisingOpCode_c                                              = 0x06,                       /*! Gap_StopAdvertising command operation code */
+    gBleGapCmdAuthorizeOpCode_c                                                    = 0x07,                       /*! Gap_Authorize command operation code */
+    gBleGapCmdSaveCccdOpCode_c                                                     = 0x08,                       /*! Gap_SaveCccd command operation code */
+    gBleGapCmdCheckNotificationStatusOpCode_c                                      = 0x09,                       /*! Gap_CheckNotificationStatus command operation code */
+    gBleGapCmdCheckIndicationStatusOpCode_c                                        = 0x0A,                       /*! Gap_CheckIndicationStatus command operation code */
+    gFsciBleGapReserved1_c                                                         = 0x0B,                       /*! Removed: Gap_GetBondedStaticAddresses command operation code */
+    gBleGapCmdPairOpCode_c                                                         = 0x0C,                       /*! Gap_Pair command operation code */
+    gBleGapCmdSendPeripheralSecurityRequestOpCode_c                                = 0x0D,                       /*! Gap_SendPeripheralSecurityRequest command operation code */
+    gBleGapCmdEncryptLinkOpCode_c                                                  = 0x0E,                       /*! Gap_EncryptLink command operation code */
+    gBleGapCmdAcceptPairingRequestOpCode_c                                         = 0x0F,                       /*! Gap_AcceptPairingRequest command operation code */
+    gBleGapCmdRejectPairingOpCode_c                                                = 0x10,                       /*! Gap_RejectAuthentication command operation code */
+    gBleGapCmdEnterPasskeyOpCode_c                                                 = 0x11,                       /*! Gap_EnterPasskey command operation code */
+    gBleGapCmdProvideOobOpCode_c                                                   = 0x12,                       /*! Gap_ProvideOob command operation code */
+    gBleGapCmdRejectPasskeyRequestOpCode_c                                         = 0x13,                       /*! Gap_RejectPasskeyRequest command operation code */
+    gBleGapCmdSendSmpKeysOpCode_c                                                  = 0x14,                       /*! Gap_SendSmpKeys command operation code */
+    gBleGapCmdRejectKeyExchangeRequestOpCode_c                                     = 0x15,                       /*! Gap_RejectKeyExchangeRequest command operation code */
+    gBleGapCmdProvideLongTermKeyOpCode_c                                           = 0x16,                       /*! Gap_ProvideLongTermKey command operation code */
+    gBleGapCmdDenyLongTermKeyOpCode_c                                              = 0x17,                       /*! Gap_DenyLongTermKey command operation code */
+    gBleGapCmdLoadEncryptionInformationOpCode_c                                    = 0x18,                       /*! Gap_LoadEncryptionInformation command operation code */
+    gBleGapCmdSetLocalPasskeyOpCode_c                                              = 0x19,                       /*! Gap_SetLocalPasskey command operation code */
+    gBleGapCmdStartScanningOpCode_c                                                = 0x1A,                       /*! Gap_StartScanning command operation code */
+    gBleGapCmdStopScanningOpCode_c                                                 = 0x1B,                       /*! Gap_StopScanning command operation code */
+    gBleGapCmdConnectOpCode_c                                                      = 0x1C,                       /*! Gap_Connect command operation code */
+    gBleGapCmdDisconnectOpCode_c                                                   = 0x1D,                       /*! Gap_Disconnect command operation code */
+    gBleGapCmdSaveCustomPeerInformationOpCode_c                                    = 0x1E,                       /*! Gap_SaveCustomPeerInformation command operation code */
+    gBleGapCmdLoadCustomPeerInformationOpCode_c                                    = 0x1F,                       /*! Gap_LoadCustomPeerInformation command operation code */
+    gBleGapCmdCheckIfBondedOpCode_c                                                = 0x20,                       /*! Gap_CheckIfBonded command operation code */
+    gBleGapCmdReadFilterAcceptListSizeOpCode_c                                     = 0x21,                       /*! Gap_ReadFilterAcceptListSize command operation code */
+    gBleGapCmdClearFilterAcceptListOpCode_c                                        = 0x22,                       /*! Gap_ClearFilterAcceptList command operation code */
+    gBleGapCmdAddDeviceToFilterAcceptListOpCode_c                                  = 0x23,                       /*! Gap_AddDeviceToFilterAcceptList command operation code */
+    gBleGapCmdRemoveDeviceFromFilterAcceptListOpCode_c                             = 0x24,                       /*! Gap_RemoveDeviceFromFilterAcceptList command operation code */
+    gBleGapCmdReadPublicDeviceAddressOpCode_c                                      = 0x25,                       /*! Gap_ReadPublicDeviceAddress command operation code */
+    gBleGapCmdCreateRandomDeviceAddressOpCode_c                                    = 0x26,                       /*! Gap_CreateRandomDeviceAddress command operation code */
+    gBleGapCmdSaveDeviceNameOpCode_c                                               = 0x27,                       /*! Gap_SaveDeviceName command operation code */
+    gBleGapCmdGetBondedDevicesCountOpCode_c                                        = 0x28,                       /*! Gap_GetBondedDevicesCount command operation code */
+    gBleGapCmdGetBondedDeviceNameOpCode_c                                          = 0x29,                       /*! Gap_GetBondedDeviceName command operation code */
+    gBleGapCmdRemoveBondOpCode_c                                                   = 0x2A,                       /*! Gap_RemoveBond command operation code */
+    gBleGapCmdRemoveAllBondsOpCode_c                                               = 0x2B,                       /*! Gap_RemoveAllBonds command operation code */
+    gBleGapCmdReadRadioPowerLevelOpCode_c                                          = 0x2C,                       /*! Gap_ReadRadioPowerLevel command operation code */
+    gBleGapCmdVerifyPrivateResolvableAddressOpCode_c                               = 0x2D,                       /*! Gap_VerifyPrivateResolvableAddress command operation code */
+    gBleGapCmdSetRandomAddressOpCode_c                                             = 0x2E,                       /*! Gap_SetRandomAddress command operation code */
+    gBleGapCmdSetScanModeOpCode_c                                                  = 0x2F,                       /*! Gap_SetScanMode command operation code */
+    gBleGapCmdSetDefaultPairingParameters_c                                        = 0x30,                       /*! Gap_SetDefaultPairingParameters command operation code */
+    gBleGapCmdUpdateConnectionParametersOpCode_c                                   = 0x31,                       /*! Gap_UpdateConnectionParameters command operation code */
+    gBleGapCmdEnableUpdateConnectionParametersOpCode_c                             = 0x32,                       /*! Gap_EnableUpdateConnectionParameters command operation code */
+    gBleGapCmdUpdateLeDataLengthOpCode_c                                           = 0x33,                       /*! Gap_UpdateLeDataLength command operation code */
+    gReserved1_c                                                                   = 0x34,
+    gBleGapCmdEnableHostPrivacyOpCode_c                                            = 0x35,                       /*! Gap_EnableHostPrivacy command operation code */
+    gBleGapCmdEnableControllerPrivacyOpCode_c                                      = 0x36,                       /*! Gap_EnableControllerPrivacy command operation code */
+    gBleGapCmdLeScRegeneratePublicKeyOpCode_c                                      = 0x37,                       /*! Gap_LeScRegeneratePublicKey command operation code */
+    gBleGapCmdLeScValidateNumericValueOpCode_c                                     = 0x38,                       /*! Gap_LeScValidateNumericValue command operation code */
+    gBleGapCmdLeScGetLocalOobDataOpCode_c                                          = 0x39,                       /*! Gap_LeScGetLocalOobData command operation code */
+    gBleGapCmdLeScSetPeerOobDataOpCode_c                                           = 0x3A,                       /*! Gap_LeScSetPeerOobData command operation code */
+    gBleGapCmdLeScSendKeypressNotificationPrivacyOpCode_c                          = 0x3B,                       /*! Gap_LeScSendKeypressNotification command operation code */
+    gBleGapCmdGetBondedDevicesIdentityInformationOpCode_c                          = 0x3C,                       /*! Gap_GetBondedDevicesIdentityInformation command operation code */
+    gBleGapCmdSetTxPowerLevelOpCode_c                                              = 0x3D,                       /*! Gap_SetTxPowerLevel command operation code */
+    gBleGapCmdLeReadPhyOpCode_c                                                    = 0x3E,                       /*! Gap_LeReadPhy command operation code */
+    gBleGapCmdLeSetPhyOpCode_c                                                     = 0x3F,                       /*! Gap_LeSetPhy command operation code */
+    gBleGapCmdControllerNotificationOpCode_c                                       = 0x40,                       /*! Gap_ControllerEnhancedNotification command operation code */
+    gBleGapCmdLoadKeysOpCode_c                                                     = 0x41,                       /*! Gap_LoadKeys command operation code */
+    gBleGapCmdSaveKeysOpCode_c                                                     = 0x42,                       /*! Gap_SaveKeys command operation code */
+    gBleGapCmdSetChannelMapOpCode_c                                                = 0x43,                       /*! Gap_SetChannelMap command operation code */
+    gBleGapCmdReadChannelMapOpCode_c                                               = 0x44,                       /*! Gap_ReadChannelMap command operation code */
 
-    gBleGapCmdSetPrivacyModeOpCode_c,                                       /*! Gap_SetPrivacyMode command operation code */
-    gBleCtrlCmdSetScanDupFiltModeOpCode_c,                                  /*! Controller_SetScanDupFiltMode command operation code */
-    gBleGapCmdCheckNvmIndexOpCode_c,                                        /*! Gap_CheckNvmIndex command operation code */
-    gBleCtrlWritePublicDeviceAddressOpCode_c,                               /*! Write Public Device Address */
-
+    gBleGapCmdSetPrivacyModeOpCode_c                                               = 0x45,                       /*! Gap_SetPrivacyMode command operation code */
+    gBleCtrlCmdSetScanDupFiltModeOpCode_c                                          = 0x46,                       /*! Controller_SetScanDupFiltMode command operation code */
+    gBleGapCmdReadControllerLocalRPAOpCode_c                                       = 0x47,                       /*! Gap_ReadLocalPrivateAddress command operation code */
+    gBleCtrlWritePublicDeviceAddressOpCode_c                                       = 0x48,                       /*! Write Public Device Address */
+    gBleGapCmdCheckNvmIndexOpCode_c                                                = 0x49,                       /*! Gap_CheckNvmIndex command operation code */
+    gBleGapCmdGetDeviceIdFromConnHandleOpCode_c                                    = 0x4A,                       /*! Gap_GetDeviceIdFromConnHandle command operation code */
+    gBleGapCmdGetConnectionHandleFromDeviceIdOpCode_c                              = 0x4B,                       /*! Gap_GetConnectionHandleFromDeviceId command operation code */
+    gBleGapCmdAdvIndexChangeOpCode_c                                               = 0x4C,                       /*! Gap_BleAdvIndexChange command operation code */
+    gBleGapCmdGetHostVersionOpCode_c                                               = 0x4D,                       /*! Gap_GetHostVersion command operation code */
+    gBleGapCmdGetReadRemoteVersionInfoOpCode_c                                     = 0x4E,                       /*! Gap_ReadRemoteVersionInformation command operation code */
+    gBleGapCmdGetConnParamsOpCode_c                                                = 0x4F,                       /*! Gap_GetConnParamsMonitoring command operation code */
 
     /* BLE 5.0 */
-    gBleGapCmd50FirstOpCode_c                   = 0x50,
-    gBleGapCmdSetExtAdvertisingParametersOpCode_c = gBleGapCmd50FirstOpCode_c, /*! Gap_SetExtAdvertisingParameters command operation code */
-    gBleGapCmdStartExtAdvertisingOpCode_c,                                  /*! Gap_StartExtAdvertising command operation code */
-    gBleGapCmdRemoveAdvSetOpCode_c,                                         /*! Gap_RemoveAdvSet command operation code */
-    gBleGapCmdStopExtAdvertisingOpCode_c,                                   /*! Gap_StopExtAdvertising command operation code */
-    gBleGapCmdUpdatePeriodicAdvListOpCode_c,                                /*! Gap_UpdatePeriodicAdvList command operation code */
-    gBleGapCmdSetPeriodicAdvParametersOpCode_c,                             /*! Gap_SetPeriodicAdvParameters command operation code */
-    gBleGapCmdStartPeriodicAdvOpCode_c,                                     /*! Gap_StartPeriodicAdvertising command operation code */
-    gBleGapCmdStopPeriodicAdvOpCode_c,                                      /*! Gap_StopPeriodicAdvertising command operation code */
-    gBleGapCmdSetExtAdvertisingDataOpCode_c,                                /*! Gap_SetExtAdvertisingData command operation code */
-    gBleGapCmdSetPeriodicAdvDataOpCode_c,                                   /*! Gap_SetPeriodicAdvData command operation code */
-    gBleGapCmdPeriodicAdvCreateSyncOpCode_c,                                /*! Gap_PeriodicAdvCreateSync command operation code */
-    gBleGapCmdPeriodicAdvTerminateSyncOpCode_c,                             /*! Gap_PeriodicAdvTerminateSync command operation code */
-    gBleCtrlCmdConfigureAdvCodingSchemeOpCode_c,                            /*! Controller_ConfigureAdvCodingScheme command operation code */
+    gBleGapCmd50FirstOpCode_c                                                      = 0x50,
+    gBleGapCmdSetExtAdvertisingParametersOpCode_c                                  = gBleGapCmd50FirstOpCode_c,  /*! Gap_SetExtAdvertisingParameters command operation code */
+    gBleGapCmdStartExtAdvertisingOpCode_c                                          = 0x51,                       /*! Gap_StartExtAdvertising command operation code */
+    gBleGapCmdRemoveAdvSetOpCode_c                                                 = 0x52,                       /*! Gap_RemoveAdvSet command operation code */
+    gBleGapCmdStopExtAdvertisingOpCode_c                                           = 0x53,                       /*! Gap_StopExtAdvertising command operation code */
+    gBleGapCmdUpdatePeriodicAdvListOpCode_c                                        = 0x54,                       /*! Gap_UpdatePeriodicAdvList command operation code */
+    gBleGapCmdSetPeriodicAdvParametersOpCode_c                                     = 0x55,                       /*! Gap_SetPeriodicAdvParameters command operation code */
+    gBleGapCmdStartPeriodicAdvOpCode_c                                             = 0x56,                       /*! Gap_StartPeriodicAdvertising command operation code */
+    gBleGapCmdStopPeriodicAdvOpCode_c                                              = 0x57,                       /*! Gap_StopPeriodicAdvertising command operation code */
+    gBleGapCmdSetExtAdvertisingDataOpCode_c                                        = 0x58,                       /*! Gap_SetExtAdvertisingData command operation code */
+    gBleGapCmdSetPeriodicAdvDataOpCode_c                                           = 0x59,                       /*! Gap_SetPeriodicAdvData command operation code */
+    gBleGapCmdPeriodicAdvCreateSyncOpCode_c                                        = 0x5A,                       /*! Gap_PeriodicAdvCreateSync command operation code */
+    gBleGapCmdPeriodicAdvTerminateSyncOpCode_c                                     = 0x5B,                       /*! Gap_PeriodicAdvTerminateSync command operation code */
+    gBleCtrlCmdConfigureAdvCodingSchemeOpCode_c                                    = 0x5C,                       /*! Controller_ConfigureAdvCodingScheme command operation code */
 
-    gBleGapStatusOpCode_c                       = 0x80,                     /*! GAP status operation code */
+    /* BLE 5.1 */
+    gBleGapCmdSetConnectionlessCteTransmitParametersOpCode_c                       = 0x5D,                       /*! Gap_SetConnectionlessCteTransmitParameters command operation code */
+    gBleGapCmdEnableConnectionlessCteTransmitOpCode_c                              = 0x5E,                       /*! Gap_EnableConnectionlessCteTransmit command operation code */
+    gBleGapCmdEnableConnectionlessIqSamplingOpCode_c                               = 0x5F,                       /*! Gap_EnableConnectionlessIqSampling command operation code */
+    gBleGapCmdSetConnectionCteReceiveParametersOpCode_c                            = 0x60,                       /*! Gap_SetConnectionCteReceiveParameters command operation code */
+    gBleGapCmdSetConnectionCteTransmitParametersOpCode_c                           = 0x61,                       /*! Gap_SetConnectionCteTransmitParameters command operation code */
+    gBleGapCmdEnableConnectionCteRequestOpCode_c                                   = 0x62,                       /*! Gap_EnableConnectionCteRequest command operation code */
+    gBleGapCmdEnableConnectionCteResponseOpCode_c                                  = 0x63,                       /*! Gap_EnableConnectionCteResponse command operation code */
+    gBleGapCmdReadAntennaInformationOpCode_c                                       = 0x64,                       /*! Gap_ReadAntennaInformation command operation code */
+    gBleGapCmdGenerateDhKeyV2OpCode_c                                              = 0x65,                       /*! Gap_GenerateDhKeyV2 command operation code */
+    gBleGapCmdModifySleepClockAccuracy_c                                           = 0x66,                       /*! Gap_ModifySleepClockAccuracy command operation code */
 
-    gBleGapEvtFirstOpCode_c                     = 0x81,
-    gBleGapEvtCheckNotificationStatusOpCode_c   = gBleGapEvtFirstOpCode_c,  /*! Gap_CheckNotificationStatus command out parameters event operation code */
-    gBleGapEvtCheckIndicationStatusOpCode_c,                                /*! Gap_CheckIndicationStatus command out parameters event operation code */
-    gBleGapEvtLoadKeysOpCode_c,                                             /*! Gap_LoadKeys command out parameters event operation code */
-    gBleGapEvtLoadEncryptionInformationOpCode_c,                            /*! Gap_LoadEncryptionInformation command out parameters event operation code */
-    gBleGapEvtLoadCustomPeerInformationOpCode_c,                            /*! Gap_LoadCustomPeerInformation command out parameters event operation code */
-    gBleGapEvtCheckIfBondedOpCode_c,                                        /*! Gap_CheckIfBonded command out parameters event operation code */
-    gBleGapEvtGetBondedDevicesCountOpCode_c,                                /*! Gap_GetBondedDevicesCount command out parameters event operation code */
-    gBleGapEvtGetBondedDeviceNameOpCode_c,                                  /*! Gap_GetBondedDeviceName command out parameters event operation code */
+    gBleGapCmdSetPeriodicAdvRecvEnableOpCode_c                                     = 0x67,                       /*! Gap_PeriodicAdvReceiveEnable command operation code */
+    gBleGapCmdSetPeriodicAdvRecvDisableOpCode_c                                    = 0x68,                       /*! Gap_PeriodicAdvReceiveDisable command operation code */
+    gBleGapCmdPeriodicAdvSyncTransferOpCode_c                                      = 0x69,                       /*! Gap_PeriodicAdvSyncTransfer command operation code */
+    gBleGapCmdPeriodicAdvSetInfoTransferOpCode_c                                   = 0x6A,                       /*! Gap_PeriodicAdvSetInfoTransfer command operation code */
+    gBleGapCmdSetPeriodicAdvSyncTransferParamsOpCode_c                             = 0x6B,                       /*! Gap_SetPeriodicAdvSyncTransferParams command operation code */
+    gBleGapCmdSetDefaultPeriodicAdvSyncTransferParamsOpCode_c                      = 0x6C,                       /*! Gap_SetDefaultPeriodicAdvSyncTransferParams command operation code */
 
-    gBleGapEvtGenericEventInitializationCompleteOpCode_c,                   /*! gapGenericCallback (type = gInitializationComplete_c) event operation code */
-    gBleGapEvtGenericEventInternalErrorOpCode_c,                            /*! gapGenericCallback (type = gInternalError_c) event operation code */
-    gBleGapEvtGenericEventAdvertisingSetupFailedOpCode_c,                   /*! gapGenericCallback (type = gAdvertisingSetupFailed_c) event operation code */
-    gBleGapEvtGenericEventAdvertisingParametersSetupCompleteOpCode_c,       /*! gapGenericCallback (type = gAdvertisingParametersSetupComplete_c) event operation code */
-    gBleGapEvtGenericEventAdvertisingDataSetupCompleteOpCode_c,             /*! gapGenericCallback (type = gAdvertisingDataSetupComplete_c) event operation code */
-    gBleGapEvtGenericEventWhiteListSizeReadOpCode_c,                        /*! gapGenericCallback (type = gWhiteListSizeRead_c) event operation code */
-    gBleGapEvtGenericEventDeviceAddedToWhiteListOpCode_c,                   /*! gapGenericCallback (type = gDeviceAddedToWhiteList_c) event operation code */
-    gBleGapEvtGenericEventDeviceRemovedFromWhiteListOpCode_c,               /*! gapGenericCallback (type = gDeviceRemovedFromWhiteList_c) event operation code */
-    gBleGapEvtGenericEventWhiteListClearedOpCode_c,                         /*! gapGenericCallback (type = gWhiteListCleared_c) event operation code */
-    gBleGapEvtGenericEventRandomAddressReadyOpCode_c,                       /*! gapGenericCallback (type = gRandomAddressReady_c) event operation code */
-    gBleGapEvtGenericEventCreateConnectionCanceledOpCode_c,                 /*! gapGenericCallback (type = gCreateConnectionCanceled_c) event operation code */
-    gBleGapEvtGenericEventPublicAddressReadOpCode_c,                        /*! gapGenericCallback (type = gPublicAddressRead_c) event operation code */
-    gBleGapEvtGenericEventAdvTxPowerLevelReadOpCode_c,                      /*! gapGenericCallback (type = gAdvTxPowerLevelRead_c) event operation code */
-    gBleGapEvtGenericEventPrivateResolvableAddressVerifiedOpCode_c,         /*! gapGenericCallback (type = gPrivateResolvableAddressVerified_c) event operation code */
-    gBleGapEvtGenericEventRandomAddressSetOpCode_c,                         /*! gapGenericCallback (type = gRandomAddressSet_c) event operation code */
+    /* BLE 5.2 */
+    gBleGapCmdEnhancedReadTransmitPowerLevelOpCode_c                               = 0x6D,                       /*! Gap_EnhancedReadTransmitPowerLevel command operation code */
+    gBleGapCmdReadRemoteTransmitPowerLevelOpCode_c                                 = 0x6E,                       /*! Gap_ReadRemoteTransmitPowerLevel command operation code */
+    gBleGapCmdSetPathLossReportingParamsOpCode_c                                   = 0x6F,                       /*! Gap_SetPathLossReportingParameters command operation code */
+    gBleGapCmdEnablePathLossReportingOpCode_c                                      = 0x70,                       /*! Gap_EnablePathLossReporting command operation code */
+    gBleGapCmdEnableTransmitPowerReportingOpCode_c                                 = 0x71,                       /*! Gap_EnableTransmitPowerReporting command operation code */
 
-    gBleGapEvtAdvertisingEventAdvertisingStateChangedOpCode_c,              /*! gapAdvertisingCallback (type = gAdvertisingStateChanged_c) event operation code */
-    gBleGapEvtAdvertisingEventAdvertisingCommandFailedOpCode_c,             /*! gapAdvertisingCallback (type = gAdvertisingCommandFailed_c) event operation code */
+    /* EATT */
+    gBleGapCmdEattConnectionRequestOpCode_c                                        = 0x72,                       /*! Gap_EattConnectionRequest command operation code */
+    gBleGapCmdEattConnectionAcceptOpCode_c                                         = 0x73,                       /*! Gap_EattConnectionRequest command operation code */
+    gBleGapCmdEattReconfigureRequestOpCode_c                                       = 0x74,                       /*! Gap_EattReconfigureRequest command operation code */
+    gBleGapCmdEattSendCreditsRequestOpCode_c                                       = 0x75,                       /*! Gap_EattSendCreditsRequest command operation code */
+    gBleGapCmdEattDisconnectRequestOpCode_c                                        = 0x76,                       /*! Gap_EattDisconnect command operation code */
+    gBleCtrlCmdSetConnNotificationModeOpCode_c                                     = 0x77,                       /*! Controller_SetConnNotificationMode command operation code*/
 
-    gBleGapEvtScanningEventScanStateChangedOpCode_c,                        /*! gapScanningCallback (type = gScanStateChanged_c) event operation code */
-    gBleGapEvtScanningEventScanCommandFailedOpCode_c,                       /*! gapScanningCallback (type = gScanCommandFailed_c) event operation code */
-    gBleGapEvtScanningEventDeviceScannedOpCode_c,                           /*! gapScanningCallback (type = gDeviceScanned_c) event operation code */
+    gBleCmdDisablePrivacyPerAdvSetOpCode_c                                         = 0x78,                       /*! Configure an advertising set to ignore the Privacy setting */
+    gBleGapCmdLeSetSchedulerPriority_c                                             = 0x79,                       /*! Set priority for one connection in case of several connections */
+    gBleGapCmdLeSetHostFeature_c                                                   = 0x7B,                       /*! Set or clear a bit controlled by the Host in the Link Layer FeatureSet */
+    gBleGapCmdPlatformRegisterErrorCallbackOpCode_c                                = 0x7C,                       /*! Register platform error callback */
 
-    gBleGapEvtConnectionEventConnectedOpCode_c,                             /*! gapConnectionCallback (type = gConnected_c) event operation code */
-    gBleGapEvtConnectionEventPairingRequestOpCode_c,                        /*! gapConnectionCallback (type = gPairingRequest_c) event operation code */
-    gBleGapEvtConnectionEventSlaveSecurityRequestOpCode_c,                  /*! gapConnectionCallback (type = gSlaveSecurityRequest_c) event operation code */
-    gBleGapEvtConnectionEventPairingResponseOpCode_c,                       /*! gapConnectionCallback (type = gPairingResponse_c) event operation code */
-    gBleGapEvtConnectionEventAuthenticationRejectedOpCode_c,                /*! gapConnectionCallback (type = gAuthenticationRejected_c) event operation code */
-    gBleGapEvtConnectionEventPasskeyRequestOpCode_c,                        /*! gapConnectionCallback (type = gPasskeyRequest_c) event operation code */
-    gBleGapEvtConnectionEventOobRequestOpCode_c,                            /*! gapConnectionCallback (type = gOobRequest_c) event operation code */
-    gBleGapEvtConnectionEventPasskeyDisplayOpCode_c,                        /*! gapConnectionCallback (type = gPasskeyDisplay_c) event operation code */
-    gBleGapEvtConnectionEventKeyExchangeRequestOpCode_c,                    /*! gapConnectionCallback (type = gKeyExchangeRequest_c) event operation code */
-    gBleGapEvtConnectionEventKeysReceivedOpCode_c,                          /*! gapConnectionCallback (type = gKeysReceived_c) event operation code */
-    gBleGapEvtConnectionEventLongTermKeyRequestOpCode_c,                    /*! gapConnectionCallback (type = gLongTermKeyRequest_c) event operation code */
-    gBleGapEvtConnectionEventEncryptionChangedOpCode_c,                     /*! gapConnectionCallback (type = gEncryptionChanged_c) event operation code */
-    gBleGapEvtConnectionEventPairingCompleteOpCode_c,                       /*! gapConnectionCallback (type = gPairingComplete_c) event operation code */
-    gBleGapEvtConnectionEventDisconnectedOpCode_c,                          /*! gapConnectionCallback (type = gDisconnected_c) event operation code */
-    gBleGapEvtConnectionEventRssiReadOpCode_c,                              /*! gapConnectionCallback (type = gRssiRead_c) event operation code */
-    gBleGapEvtConnectionEventTxPowerLevelReadOpCode_c,                      /*! gapConnectionCallback (type = gTxPowerLevelRead_c) event operation code */
-    gBleGapEvtConnectionEventPowerReadFailureOpCode_c,                      /*! gapConnectionCallback (type = gPowerReadFailureOpCode_c) event operation code */
-    gBleGapEvtConnectionEventParameterUpdateRequestOpCode_c,                /*! gapConnectionCallback (type = gConnEvtParameterUpdateRequest_c) event operation code */
-    gBleGapEvtConnectionEventParameterUpdateCompleteOpCode_c,               /*! gapConnectionCallback (type = gConnEvtParameterUpdateComplete_c) event operation code */
-    gBleGapEvtConnectionEventLeDataLengthChangedOpCode_c,                   /*! gapConnectionCallback (type = gConnEvtLeDataLengthChanged_c) event operation code */
-    gBleGapEvtConnectionEventLeScOobDataRequestOpCode_c,                    /*! gapConnectionCallback (type = gConnEvtLeScOobDataRequest_c) event operation code */
-    gBleGapEvtConnectionEventLeScDisplayNumericValueOpCode_c,               /*! gapConnectionCallback (type = gConnEvtLeScDisplayNumericValue_c) event operation code */
-    gBleGapEvtConnectionEventLeScKeypressNotificationOpCode_c,              /*! gapConnectionCallback (type = gConnEvtLeScKeypressNotification_c) event operation code */
+    gBleGapStatusOpCode_c                                                          = 0x80,                       /*! GAP status operation code */
 
-    gReserved2_c,
-    gBleGapEvtGenericEventLeScPublicKeyRegeneratedOpCode_c,                 /*! gapGenericCallback (type = gLeScPublicKeyRegenerated_c) event operation code */
-    gBleGapEvtGenericEventLeScLocalOobDataOpCode_c,                         /*! gapGenericCallback (type = gLeScLocalOobData_c) event operation code */
-    gBleGapEvtGenericEventHostPrivacyStateChangedOpCode_c,                  /*! gapGenericCallback (type = gHostPrivacyStateChanged_c) event operation code */
-    gBleGapEvtGenericEventControllerPrivacyStateChangedOpCode_c,            /*! gapGenericCallback (type = gControllerPrivacyStateChanged_c) event operation code */
-    gBleGapEvtGenericEventTxPowerLevelSetCompleteOpCode_c,                  /*! gapGenericCallback (type = gTxPowerLevelSetComplete_c) event operation code */
-    gBleGapEvtGenericEventLePhyEventOpCode_c,                               /*! gapGenericCallback (type = gLePhyEvent_c) event operation code */
+    gBleGapEvtFirstOpCode_c                                                        = 0x81,
+    gBleGapEvtCheckNotificationStatusOpCode_c                                      = gBleGapEvtFirstOpCode_c,    /*! Gap_CheckNotificationStatus command out parameters event operation code */
+    gBleGapEvtCheckIndicationStatusOpCode_c                                        = 0x82,                       /*! Gap_CheckIndicationStatus command out parameters event operation code */
+    gBleGapEvtLoadKeysOpCode_c                                                     = 0x83,                       /*! Gap_LoadKeys command out parameters event operation code */
+    gBleGapEvtLoadEncryptionInformationOpCode_c                                    = 0x84,                       /*! Gap_LoadEncryptionInformation command out parameters event operation code */
+    gBleGapEvtLoadCustomPeerInformationOpCode_c                                    = 0x85,                       /*! Gap_LoadCustomPeerInformation command out parameters event operation code */
+    gBleGapEvtCheckIfBondedOpCode_c                                                = 0x86,                       /*! Gap_CheckIfBonded command out parameters event operation code */
+    gBleGapEvtGetBondedDevicesCountOpCode_c                                        = 0x87,                       /*! Gap_GetBondedDevicesCount command out parameters event operation code */
+    gBleGapEvtGetBondedDeviceNameOpCode_c                                          = 0x88,                       /*! Gap_GetBondedDeviceName command out parameters event operation code */
 
-    gBleGapEvtGetBondedDevicesIdentityInformationOpCode_c,                  /*! Gap_GetBondedDevicesIdentityInformation command out parameters event operation code */
-    gBleGapEvtGenericEventControllerNotificationOpCode_c,                   /*! gapGenericCallback (type = gControllerNotificationEvent_c) event operation code */
-    gBleGapEvtGenericEventBondCreatedOpCode_c,                              /*! gapGenericCallback (type = gBondCreatedEvent_c) event operation code */
-    gBleGapEvtGenericEventChannelMapSetOpCode_c,                            /*! gapGenericCallback (type = gChannelMapSet_c) event operation code */
+    gBleGapEvtGenericEventInitializationCompleteOpCode_c                           = 0x89,                       /*! gapGenericCallback (type = gInitializationComplete_c) event operation code */
+    gBleGapEvtGenericEventInternalErrorOpCode_c                                    = 0x8A,                       /*! gapGenericCallback (type = gInternalError_c) event operation code */
+    gBleGapEvtGenericEventAdvertisingSetupFailedOpCode_c                           = 0x8B,                       /*! gapGenericCallback (type = gAdvertisingSetupFailed_c) event operation code */
+    gBleGapEvtGenericEventAdvertisingParametersSetupCompleteOpCode_c               = 0x8C,                       /*! gapGenericCallback (type = gAdvertisingParametersSetupComplete_c) event operation code */
+    gBleGapEvtGenericEventAdvertisingDataSetupCompleteOpCode_c                     = 0x8D,                       /*! gapGenericCallback (type = gAdvertisingDataSetupComplete_c) event operation code */
+    gBleGapEvtGenericEventFilterAcceptListSizeReadOpCode_c                         = 0x8E,                       /*! gapGenericCallback (type = gFilterAcceptListSizeRead_c) event operation code */
+    gBleGapEvtGenericEventDeviceAddedToFilterAcceptListOpCode_c                    = 0x8F,                       /*! gapGenericCallback (type = gDeviceAddedToFilterAcceptList_c) event operation code */
+    gBleGapEvtGenericEventDeviceRemovedFromFilterAcceptListOpCode_c                = 0x90,                       /*! gapGenericCallback (type = gDeviceRemovedFromFilterAcceptList_c) event operation code */
+    gBleGapEvtGenericEventFilterAcceptListClearedOpCode_c                          = 0x91,                       /*! gapGenericCallback (type = gFilterAcceptListCleared_c) event operation code */
+    gBleGapEvtGenericEventRandomAddressReadyOpCode_c                               = 0x92,                       /*! gapGenericCallback (type = gRandomAddressReady_c) event operation code */
+    gBleGapEvtGenericEventCreateConnectionCanceledOpCode_c                         = 0x93,                       /*! gapGenericCallback (type = gCreateConnectionCanceled_c) event operation code */
+    gBleGapEvtGenericEventPublicAddressReadOpCode_c                                = 0x94,                       /*! gapGenericCallback (type = gPublicAddressRead_c) event operation code */
+    gBleGapEvtGenericEventAdvTxPowerLevelReadOpCode_c                              = 0x95,                       /*! gapGenericCallback (type = gAdvTxPowerLevelRead_c) event operation code */
+    gBleGapEvtGenericEventPrivateResolvableAddressVerifiedOpCode_c                 = 0x96,                       /*! gapGenericCallback (type = gPrivateResolvableAddressVerified_c) event operation code */
+    gBleGapEvtGenericEventRandomAddressSetOpCode_c                                 = 0x97,                       /*! gapGenericCallback (type = gRandomAddressSet_c) event operation code */
 
-    gBleGapEvtConnectionEventChannelMapReadOpCode_c,                        /*! gapConnectionCallback (type = gConnEvtChannelMapRead_c) event operation code */
-    gBleGapEvtConnectionEventChannelMapReadFailureOpCode_c,                 /*! gapConnectionCallback (type = gConnEvtChannelMapReadFailure_c) event operation code */
+    gBleGapEvtAdvertisingEventAdvertisingStateChangedOpCode_c                      = 0x98,                       /*! gapAdvertisingCallback (type = gAdvertisingStateChanged_c) event operation code */
+    gBleGapEvtAdvertisingEventAdvertisingCommandFailedOpCode_c                     = 0x99,                       /*! gapAdvertisingCallback (type = gAdvertisingCommandFailed_c) event operation code */
+
+    gBleGapEvtScanningEventScanStateChangedOpCode_c                                = 0x9A,                       /*! gapScanningCallback (type = gScanStateChanged_c) event operation code */
+    gBleGapEvtScanningEventScanCommandFailedOpCode_c                               = 0x9B,                       /*! gapScanningCallback (type = gScanCommandFailed_c) event operation code */
+    gBleGapEvtScanningEventDeviceScannedOpCode_c                                   = 0x9C,                       /*! gapScanningCallback (type = gDeviceScanned_c) event operation code */
+
+    gBleGapEvtConnectionEventConnectedOpCode_c                                     = 0x9D,                       /*! gapConnectionCallback (type = gConnected_c) event operation code */
+    gBleGapEvtConnectionEventPairingRequestOpCode_c                                = 0x9E,                       /*! gapConnectionCallback (type = gPairingRequest_c) event operation code */
+    gBleGapEvtConnectionEventPeripheralSecurityRequestOpCode_c                     = 0x9F,                       /*! gapConnectionCallback (type = gPeripheralSecurityRequest_c) event operation code */
+    gBleGapEvtConnectionEventPairingResponseOpCode_c                               = 0xA0,                       /*! gapConnectionCallback (type = gPairingResponse_c) event operation code */
+    gBleGapEvtConnectionEventAuthenticationRejectedOpCode_c                        = 0xA1,                       /*! gapConnectionCallback (type = gAuthenticationRejected_c) event operation code */
+    gBleGapEvtConnectionEventPasskeyRequestOpCode_c                                = 0xA2,                       /*! gapConnectionCallback (type = gPasskeyRequest_c) event operation code */
+    gBleGapEvtConnectionEventOobRequestOpCode_c                                    = 0xA3,                       /*! gapConnectionCallback (type = gOobRequest_c) event operation code */
+    gBleGapEvtConnectionEventPasskeyDisplayOpCode_c                                = 0xA4,                       /*! gapConnectionCallback (type = gPasskeyDisplay_c) event operation code */
+    gBleGapEvtConnectionEventKeyExchangeRequestOpCode_c                            = 0xA5,                       /*! gapConnectionCallback (type = gKeyExchangeRequest_c) event operation code */
+    gBleGapEvtConnectionEventKeysReceivedOpCode_c                                  = 0xA6,                       /*! gapConnectionCallback (type = gKeysReceived_c) event operation code */
+    gBleGapEvtConnectionEventLongTermKeyRequestOpCode_c                            = 0xA7,                       /*! gapConnectionCallback (type = gLongTermKeyRequest_c) event operation code */
+    gBleGapEvtConnectionEventEncryptionChangedOpCode_c                             = 0xA8,                       /*! gapConnectionCallback (type = gEncryptionChanged_c) event operation code */
+    gBleGapEvtConnectionEventPairingCompleteOpCode_c                               = 0xA9,                       /*! gapConnectionCallback (type = gPairingComplete_c) event operation code */
+    gBleGapEvtConnectionEventDisconnectedOpCode_c                                  = 0xAA,                       /*! gapConnectionCallback (type = gDisconnected_c) event operation code */
+    gBleGapEvtConnectionEventRssiReadOpCode_c                                      = 0xAB,                       /*! gapConnectionCallback (type = gRssiRead_c) event operation code */
+    gBleGapEvtConnectionEventTxPowerLevelReadOpCode_c                              = 0xAC,                       /*! gapConnectionCallback (type = gTxPowerLevelRead_c) event operation code */
+    gBleGapEvtConnectionEventPowerReadFailureOpCode_c                              = 0xAD,                       /*! gapConnectionCallback (type = gPowerReadFailureOpCode_c) event operation code */
+    gBleGapEvtConnectionEventParameterUpdateRequestOpCode_c                        = 0xAE,                       /*! gapConnectionCallback (type = gConnEvtParameterUpdateRequest_c) event operation code */
+    gBleGapEvtConnectionEventParameterUpdateCompleteOpCode_c                       = 0xAF,                       /*! gapConnectionCallback (type = gConnEvtParameterUpdateComplete_c) event operation code */
+    gBleGapEvtConnectionEventLeDataLengthChangedOpCode_c                           = 0xB0,                       /*! gapConnectionCallback (type = gConnEvtLeDataLengthChanged_c) event operation code */
+    gBleGapEvtConnectionEventLeScOobDataRequestOpCode_c                            = 0xB1,                       /*! gapConnectionCallback (type = gConnEvtLeScOobDataRequest_c) event operation code */
+    gBleGapEvtConnectionEventLeScDisplayNumericValueOpCode_c                       = 0xB2,                       /*! gapConnectionCallback (type = gConnEvtLeScDisplayNumericValue_c) event operation code */
+    gBleGapEvtConnectionEventLeScKeypressNotificationOpCode_c                      = 0xB3,                       /*! gapConnectionCallback (type = gConnEvtLeScKeypressNotification_c) event operation code */
+
+    gBleGapEvtConnectionEventLeSetDataLengthFailedOpCode_c                         = 0xB4,
+    gBleGapEvtGenericEventLeScPublicKeyRegeneratedOpCode_c                         = 0xB5,                       /*! gapGenericCallback (type = gLeScPublicKeyRegenerated_c) event operation code */
+    gBleGapEvtGenericEventLeScLocalOobDataOpCode_c                                 = 0xB6,                       /*! gapGenericCallback (type = gLeScLocalOobData_c) event operation code */
+    gBleGapEvtGenericEventHostPrivacyStateChangedOpCode_c                          = 0xB7,                       /*! gapGenericCallback (type = gHostPrivacyStateChanged_c) event operation code */
+    gBleGapEvtGenericEventControllerPrivacyStateChangedOpCode_c                    = 0xB8,                       /*! gapGenericCallback (type = gControllerPrivacyStateChanged_c) event operation code */
+    gBleGapEvtGenericEventTxPowerLevelSetCompleteOpCode_c                          = 0xB9,                       /*! gapGenericCallback (type = gTxPowerLevelSetComplete_c) event operation code */
+    gBleGapEvtGenericEventLePhyEventOpCode_c                                       = 0xBA,                       /*! gapGenericCallback (type = gLePhyEvent_c) event operation code */
+
+    gBleGapEvtGetBondedDevicesIdentityInformationOpCode_c                          = 0xBB,                       /*! Gap_GetBondedDevicesIdentityInformation command out parameters event operation code */
+    gBleGapEvtGenericEventControllerNotificationOpCode_c                           = 0xBC,                       /*! gapGenericCallback (type = gControllerNotificationEvent_c) event operation code */
+    gBleGapEvtGenericEventBondCreatedOpCode_c                                      = 0xBD,                       /*! gapGenericCallback (type = gBondCreatedEvent_c) event operation code */
+    gBleGapEvtGenericEventChannelMapSetOpCode_c                                    = 0xBE,                       /*! gapGenericCallback (type = gChannelMapSet_c) event operation code */
+
+    gBleGapEvtConnectionEventChannelMapReadOpCode_c                                = 0xBF,                       /*! gapConnectionCallback (type = gConnEvtChannelMapRead_c) event operation code */
+    gBleGapEvtConnectionEventChannelMapReadFailureOpCode_c                         = 0xC0,                       /*! gapConnectionCallback (type = gConnEvtChannelMapReadFailure_c) event operation code */
 
     /* BLE 5.0: Advertising extensions */
-    gBleGapEvtGenericEventExtAdvertisingParametersSetupCompleteOpCode_c,    /*! gapGenericCallback (type = gExtAdvertisingParametersSetupComplete_c) event operation code */
-    gBleGapEvtGenericEventExtAdvertisingDataSetupCompleteOpCode_c,          /*! gapGenericCallback (type = gExtAdvertisingDataSetupComplete_c) event operation code */
-    gBleGapEvtGenericEventPeriodicAdvParamSetupCompleteOpCode_c,            /*! gapGenericCallback (type = gPeriodicAdvParamSetupComplete_c) event operation code */
-    gBleGapEvtGenericEventPeriodicAdvDataSetupCompleteOpCode_c,             /*! gapGenericCallback (type = gPeriodicAdvDataSetupComplete_c) event operation code */
-    gBleGapEvtGenericEventPeriodicAdvListUpdateCompleteOpCode_c,            /*! gapGenericCallback (type = gPeriodicAdvListUpdateComplete_c) event operation code */
+    gBleGapEvtGenericEventExtAdvertisingParametersSetupCompleteOpCode_c            = 0xC1,                       /*! gapGenericCallback (type = gExtAdvertisingParametersSetupComplete_c) event operation code */
+    gBleGapEvtGenericEventExtAdvertisingDataSetupCompleteOpCode_c                  = 0xC2,                       /*! gapGenericCallback (type = gExtAdvertisingDataSetupComplete_c) event operation code */
+    gBleGapEvtGenericEventPeriodicAdvParamSetupCompleteOpCode_c                    = 0xC3,                       /*! gapGenericCallback (type = gPeriodicAdvParamSetupComplete_c) event operation code */
+    gBleGapEvtGenericEventPeriodicAdvDataSetupCompleteOpCode_c                     = 0xC4,                       /*! gapGenericCallback (type = gPeriodicAdvDataSetupComplete_c) event operation code */
+    gBleGapEvtGenericEventPeriodicAdvListUpdateCompleteOpCode_c                    = 0xC5,                       /*! gapGenericCallback (type = gPeriodicAdvListUpdateComplete_c) event operation code */
 
-    gBleGapEvtAdvertisingEventExtAdvertisingStateChangedOpCode_c,           /*! gapAdvertisingCallback (type = gExtAdvertisingStateChanged_c) event operation code */
-    gBleGapEvtAdvertisingEventAdvertisingSetTerminatedOpCode_c,             /*! gapAdvertisingCallback (type = gAdvertisingSetTerminated_c) event operation code */
-    gBleGapEvtAdvertisingEventExtAdvertisingSetRemovedOpCode_c,             /*! gapAdvertisingCallback (type = gExtAdvertisingSetRemoveComplete_c) event operation code */
-    gBleGapEvtAdvertisingEventExtScanReqReceivedOpCode_c,                   /*! gapAdvertisingCallback (type = gExtScanNotification_c) event operation code */
-    gBleGapEvtAdvertisingEventPeriodicAdvertisingStateChangedOpCode_c,      /*! gapAdvertisingCallback (type = gPeriodicAdvertisingStateChanged_c) event operation code */
+    gBleGapEvtAdvertisingEventExtAdvertisingStateChangedOpCode_c                   = 0xC6,                       /*! gapAdvertisingCallback (type = gExtAdvertisingStateChanged_c) event operation code */
+    gBleGapEvtAdvertisingEventAdvertisingSetTerminatedOpCode_c                     = 0xC7,                       /*! gapAdvertisingCallback (type = gAdvertisingSetTerminated_c) event operation code */
+    gBleGapEvtAdvertisingEventExtAdvertisingSetRemovedOpCode_c                     = 0xC8,                       /*! gapAdvertisingCallback (type = gExtAdvertisingSetRemoveComplete_c) event operation code */
+    gBleGapEvtAdvertisingEventExtScanReqReceivedOpCode_c                           = 0xC9,                       /*! gapAdvertisingCallback (type = gExtScanNotification_c) event operation code */
+    gBleGapEvtGenericEventPeriodicAdvertisingStateChangedOpCode_c                  = 0xCA,                       /*! gapGenericCallback  (type = gPeriodicAdvertisingStateChanged_c) event operation code */
 
-    gBleGapEvtScanningEventExtDeviceScannedOpCode_c,                        /*! gapScanningCallback (type = gExtDeviceScanned_c) event operation code */
-    gBleGapEvtScanningEventPeriodicAdvSyncEstablishedOpCode_c,              /*! gapScanningCallback (type = gPeriodicAdvSyncEstablished_c) event operation code */
-    gBleGapEvtScanningEventPeriodicAdvSyncTerminatedOpCode_c,               /*! gapScanningCallback (type = gPeriodicAdvSyncTerminated_c) event operation code */
-    gBleGapEvtScanningEventPeriodicAdvSyncLostOpCode_c,                     /*! gapScanningCallback (type = gPeriodicAdvSyncLost_c) event operation code */
-    gBleGapEvtScanningEventPeriodicDeviceScannedOpCode_c,                   /*! gapScanningCallback (type = gPeriodicDeviceScanned_c) event operation code */
-    gBleGapEvtGenericEventPeriodicAdvCreateSyncCancelledOpCode_c,           /*! gapGenericCallback (type = gPeriodicAdvCreateSyncCancelled_c) event operation code */
-    gBleGapEvtConnectionEventChannelSelectionAlgorithm2OpCode_c,            /*! gapConnectionCallback (type = gConnEvtChanSelectionAlgorithm2_c) event operation code */
-    gBleGapEvtGenericEventTxEntryAvailableOpCode_c,                         /*! gapGenericCallback (type = gTxEntryAvailable_c) event operation code */
-    gBleGapEvtCheckNvmIndexOpCode_c,                                        /*! Gap_CheckNvmIndex command out parameters event operation code */
+    gBleGapEvtScanningEventExtDeviceScannedOpCode_c                                = 0xCB,                       /*! gapScanningCallback (type = gExtDeviceScanned_c) event operation code */
+    gBleGapEvtScanningEventPeriodicAdvSyncEstablishedOpCode_c                      = 0xCC,                       /*! gapScanningCallback (type = gPeriodicAdvSyncEstablished_c) event operation code */
+    gBleGapEvtScanningEventPeriodicAdvSyncTerminatedOpCode_c                       = 0xCD,                       /*! gapScanningCallback (type = gPeriodicAdvSyncTerminated_c) event operation code */
+    gBleGapEvtScanningEventPeriodicAdvSyncLostOpCode_c                             = 0xCE,                       /*! gapScanningCallback (type = gPeriodicAdvSyncLost_c) event operation code */
+    gBleGapEvtScanningEventPeriodicDeviceScannedOpCode_c                           = 0xCF,                       /*! gapScanningCallback (type = gPeriodicDeviceScanned_c) event operation code */
+    gBleGapEvtGenericEventPeriodicAdvCreateSyncCancelledOpCode_c                   = 0xD0,                       /*! gapGenericCallback (type = gPeriodicAdvCreateSyncCancelled_c) event operation code */
+    gBleGapEvtConnectionEventChannelSelectionAlgorithm2OpCode_c                    = 0xD1,                       /*! gapConnectionCallback (type = gConnEvtChanSelectionAlgorithm2_c) event operation code */
+    gBleGapEvtGenericEventTxEntryAvailableOpCode_c                                 = 0xD2,                       /*! gapGenericCallback (type = gTxEntryAvailable_c) event operation code */
+    
+    gBleGapEvtGenericEventControllerLocalRPAReadOpCode_c                           = 0xD3,                       /*! gapGenericCallback (type = gLocalPrivateAddressRead_c) event operation code */
+
+    gBleGapEvtCheckNvmIndexOpCode_c                                                = 0xD4,                       /*! Gap_CheckNvmIndex command out parameters event operation code */
+    gBleGapEvtGetDeviceIdFromConnHandleOpCode_c                                    = 0xD5,                       /*! Gap_GetDeviceIdFromConnHandle command operation code */
+    gBleGapEvtGetConnectionHandleFromDeviceIdOpCode_c                              = 0xD6,                       /*! Gap_GetConnectionHandleFromDeviceId command operation code */
+    gBleGapEvtPairingEventNoLtkOpCode_c                                            = 0xD7,                       /*! gapConnectionCallback (type = gConnEvtPairingNoLtk_c ) event operation code */
+    gBleGapEvtPairingAlreadyStartedOpCode_c                                        = 0xD8,                       /*! gapConnectionCallback (type = gConnEvtPairingAlreadyStarted_c  ) event operation code */
+
+    /* BLE 5.1: AoA/AoD */
+    gBleGapEvtGenericEventConnectionlessCteTransmitParamsSetupCompleteOpCode_c     = 0xD9,                       /*! gapGenericCallback (type = gConnectionlessCteTransmitParamsSetupComplete_c) event operation code */
+    gBleGapEvtGenericEventConnectionlessCteTransmitStateChangedOpCode_c            = 0xDA,                       /*! gapGenericCallback (type = gConnectionlessCteTransmitStateChanged_c) event operation code */
+    gBleGapEvtGenericEventConnectionlessIqSamplingStateChangedOpCode_c             = 0xDB,                       /*! gapGenericCallback (type = gConnectionlessIqSamplingStateChanged_c) event operation code */
+    gBleGapEvtGenericEventAntennaInformationReadOpCode_c                           = 0xDC,                       /*! gapGenericCallback (type = gAntennaInformationRead_c) event operation code */
+    gBleGapEvtScanningEventConnectionlessIqReportReceivedOpCode_c                  = 0xDD,                       /*! gapScanningCallback (type = gConnectionlessIqReportReceived_c) event operation code */
+    gBleGapEvtConnectionEventIqReportReceivedOpCode_c                              = 0xDE,                       /*! gapConnectionCallback (type = gConnEvtIqReportReceived_c) event operation code */
+    gBleGapEvtConnectionEventCteRequestFailedOpCode_c                              = 0xDF,                       /*! gapConnectionCallback (type = gConnEvtCteRequestFailed_c) event operation code */
+    gBleGapEvtConnectionEventCteReceiveParamsSetupCompleteOpCode_c                 = 0xE0,                       /*! gapConnectionCallback (type = gConnEvtCteReceiveParamsSetupComplete_c) event operation code */
+    gBleGapEvtConnectionEventCteTransmitParamsSetupCompleteOpCode_c                = 0xE1,                       /*! gapConnectionCallback (type = gConnEvtCteTransmitParamsSetupComplete_c) event operation code */
+    gBleGapEvtConnectionEventCteReqStateChangedOpCode_c                            = 0xE2,                       /*! gapConnectionCallback (type = gConnEvtCteReqStateChanged_c) event operation code */
+    gBleGapEvtConnectionEventCteRspStateChangedOpCode_c                            = 0xE3,                       /*! gapConnectionCallback (type = gConnEvtCteRspStateChanged_c) event operation code */
+
+    /* Periodic Advertisement Sync Transfer */
+    gBleGapEvtGenericEventPeriodicAdvRecvEnableCompleteOpCode_c                    = 0xE4,                       /*! gapGenericCallback (type = gPeriodicAdvRecvEnableComplete_c) event operation code */
+    gBleGapEvtGenericEventPeriodicAdvSyncTransferCompleteOpCode_c                  = 0xE5,                       /*! gapGenericCallback (type = gPeriodicAdvSyncTransferComplete_c) event operation code */
+    gBleGapEvtGenericEventPeriodicAdvSetInfoTransferCompleteOpCode_c               = 0xE6,                       /*! gapGenericCallback (type = gPeriodicAdvSetInfoTransferComplete_c) event operation code */
+    gBleGapEvtGenericEventSetPeriodicAdvSyncTransferParamsCompleteOpCode_c         = 0xE7,                       /*! gapGenericCallback (type = gSetPeriodicAdvSyncTransferParamsComplete_c) event operation code */
+    gBleGapEvtGenericEventSetDefaultPeriodicAdvSyncTransferParamsCompleteOpCode_c  = 0xE8,                       /*! gapGenericCallback (type = gSetDefaultPeriodicAdvSyncTransferParamsComplete_c) event operation code */
+    gBleGapEvtScanningEventPeriodicAdvSyncTransferReceivedOpCode_c                 = 0xE9,                       /*! gapScanningCallback (type = gPeriodicAdvSyncTransferSucceeded_c) event operation code */
+
+    /* BLE 5.2 */
+    gBleGapEvtConnectionEventPathLossThreshold_c                                   = 0xEA,                       /*! gapConnectionCallback (type = gConnEvtPathLossThreshold_c) event operation code */
+    gBleGapEvtConnectionEventTransmitPowerReporting_c                              = 0xEB,                       /*! gapConnectionCallback (type = gConnEvtTransmitPowerReporting_c) event operation code */
+    gBleGapEvtConnectionEventEnhancedReadTransmitPowerLevel_c                      = 0xEC,                       /*! gapConnectionCallback (type = gConnEvtEnhancedReadTransmitPowerLevel_c) event operation code */
+    gBleGapEvtConnectionEventPathLossReportingParamsSetupComplete_c                = 0xED,                       /*! gapConnectionCallback (type = gConnEvtPathLossReportingParamsSetupComplete_c) event operation code */
+    gBleGapEvtConnectionEventPathLossReportingStateChanged_c                       = 0xEE,                       /*! gapConnectionCallback (type = gConnEvtPathLossReportingStateChanged_c) event operation code */
+    gBleGapEvtConnectionEventTransmitPowerReportingStateChanged_c                  = 0xEF,                       /*! gapConnectionCallback (type = gConnEvtTransmitPowerReportingStateChanged_c) event operation code */
+
+    /* EATT */
+    gBleGapEvtConnectionEventEattConnectionRequest_c                               = 0xF0,                       /*! gapConnectionCallback (type = gConnEvtEattConnectionRequest_c) event operation code */
+    gBleGapEvtConnectionEventEattConnectionComplete_c                              = 0xF1,                       /*! gapConnectionCallback (type = gConnEvtEattConnectionComplete_c) event operation code */
+    gBleGapEvtConnectionEventEattReconfigureResponse_c                             = 0xF2,                       /*! gapConnectionCallback (type = gConnEvtEattChannelReconfigureResponse_c) event operation code */
+    gBleGapEvtConnectionEventEattBearerStatusNotification_c                        = 0xF3,                       /*! gapConnectionCallback (type = gConnEvtEattBearerStatusNotification_c) event operation code */
+    gBleGapEvtGenericEventLeGenerateDhKeyComplete_c                                = 0xF4,                       /*! gapGenericCallback (type = gConnEvtLeGenerateDhKeyComplete_c) event operation code */
+
+    gBleGapEvtGetHostVersionOpCode_c                                               = 0xF5,                       /*! Gap_GetHostVersion command out parameters event operation code */
+    gBleGapEvtGenericEventReadRemoteVersionInfoComplete_c                          = 0xF6,                       /*! gapGenericCallback (type = gRemoteVersionInformationRead_c) event operation code */
+    gBleGapEvtGenericEventGetConnParamsComplete_c                                  = 0xF7,                       /*! gapGenericCallback (type = gGetConnParamsComplete_c) event operation code */
+    
+    gBleGapEvtPlatformError_c                                                      = 0xF8,                       /*! platform error callback event operation code */
 }fsciBleGapOpCode_t;
 
 /************************************************************************************
@@ -690,11 +806,11 @@ void fsciBleGapCheckNotificationsAndIndicationsCmdMonitor
 );
 
 /*! *********************************************************************************
-* \brief  Gap_AddDeviceToWhiteList and Gap_RemoveDeviceFromWhiteList commands
+* \brief  Gap_AddDeviceToFilterAcceptList and Gap_RemoveDeviceFromFilterAcceptList commands
 *         monitoring function.
 *
 * \param[in]    opCode          GAP command operation code.
-* \param[in]    address         The address of the white-listed device.
+* \param[in]    address         The address of the device.
 * \param[in]    addressType     The device address type (public or random).
 *
 ********************************************************************************** */
@@ -703,26 +819,6 @@ void fsciBleGapAddressParamsCmdMonitor
     fsciBleGapOpCode_t  opCode,
     bleAddressType_t    addressType,
     const bleDeviceAddress_t  address
-);
-
-/*! *********************************************************************************
-* \brief  Gap_SaveCustomPeerInformation and Gap_LoadCustomPeerInformation commands
-*         monitoring function.
-*
-* \param[in]    opCode      GAP command operation code.
-* \param[in]    deviceId    Device ID of the GAP peer.
-* \param[in]    aInfo       Pointer to the beginning of the data.
-* \param[in]    offset      Offset from the beginning of the reserved memory area.
-* \param[in]    infoSize    Data size (maximum equal to gcReservedFlashSizeForCustomInformation_d).
-*
-********************************************************************************** */
-void fsciBleGapSaveOrLoadCustomPeerInformationCmdMonitor
-(
-    fsciBleGapOpCode_t  opCode,
-    deviceId_t          deviceId,
-    const uint8_t*            aInfo,
-    uint16_t            offset,
-    uint16_t            infoSize
 );
 
 /*! *********************************************************************************
@@ -803,8 +899,8 @@ void fsciBleGapSetExtAdvertisingDataCmdMonitor
 ********************************************************************************** */
 void fsciBleGapSetAdvertisingDataCmdMonitor
 (
-    const gapAdvertisingData_t*   pAdvertisingData,
-    const gapScanResponseData_t*  pScanResponseData
+    gapAdvertisingData_t*   pAdvertisingData,
+    gapScanResponseData_t*  pScanResponseData
 );
 
 /*! *********************************************************************************
@@ -822,7 +918,7 @@ void fsciBleGapStartAdvertisingCmdMonitor
     gapConnectionCallback_t     connectionCallback
 );
 
-#if gBLE50_d
+#if defined(gBLE50_d) && (gBLE50_d == 1U)
 /*! *********************************************************************************
 * \brief  Gap_StartExtAdvertising command monitoring function.
 *
@@ -945,13 +1041,13 @@ void fsciBleGapPairCmdMonitor
 );
 
 /*! *********************************************************************************
-* \brief  Gap_SendSlaveSecurityRequest command monitoring function.
+* \brief  Gap_SendPeripheralSecurityRequest command monitoring function.
 *
 * \param[in]    deviceId            The GAP peer to pair with.
 * \param[in]    pPairingParameters  Pairing parameters as required by the SMP.
 *
 ********************************************************************************** */
-void fsciBleGapSendSlaveSecurityRequestCmdMonitor
+void fsciBleGapSendPeripheralSecurityRequestCmdMonitor
 (
     deviceId_t                    deviceId,
     const gapPairingParameters_t  *pPairingParameters
@@ -1152,6 +1248,28 @@ void fsciBleGapCheckNvmIndexCmdMonitor
 (
     uint8_t  nvmIndex,
     bool_t*  pOutIsFree
+);
+
+/*! *********************************************************************************
+* \brief  Gap_GetConnectionHandleFromDeviceId command monitoring macro.
+*
+* \param[in]    deviceId    The peer identifier.
+*
+********************************************************************************** */
+void fsciBleGapGetConnectionHandleFromDeviceIdCmdMonitor
+(
+    deviceId_t deviceId
+);
+
+/*! *********************************************************************************
+* \brief  Gap_GetDeviceIdFromConnHandle command monitoring macro.
+*
+* \param[in]    connHandle  Corresponding connection handle.
+*
+********************************************************************************** */
+void fsciBleGapGetDeviceIdFromConnHandleCmdMonitor
+(
+    uint16_t    connHandle
 );
 
 /*! *********************************************************************************
@@ -1491,7 +1609,7 @@ void fsciBleGapSetDefaultPairingParametersCmdMonitor
 * \param[in]    deviceId            The DeviceID for which the command is intended.
 * \param[in]    intervalMin         The minimum value for the connection event interval.
 * \param[in]    intervalMax         The maximum value for the connection event interval.
-* \param[in]    slaveLatency        The slave latency parameter.
+* \param[in]    peripheralLatency        The peripheral latency parameter.
 * \param[in]    timeoutMultiplier   The connection timeout parameter.
 * \param[in]    minCeLength         The minimum connection event length.
 * \param[in]    maxCeLength         The maximum connection event length.
@@ -1502,7 +1620,7 @@ void fsciBleGapUpdateConnectionParametersCmdMonitor
     deviceId_t  deviceId,
     uint16_t    intervalMin,
     uint16_t    intervalMax,
-    uint16_t    slaveLatency,
+    uint16_t    peripheralLatency,
     uint16_t    timeoutMultiplier,
     uint16_t    minCeLength,
     uint16_t    maxCeLength
@@ -1532,6 +1650,26 @@ void fsciBleGapSetPeriodicAdvParametersCmdMonitor
 (
     gapPeriodicAdvParameters_t* pAdvertisingParameters
 );
+
+#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA))
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdPlatformRegisterErrorCallback(uint8_t *pBuffer,
+*                                                       uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleGapCmdPlatformRegisterErrorCallbackOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+void HandleGapCmdPlatformRegisterErrorCallback
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA)) */
+
 #endif /* gFsciBleHost_d || gFsciBleTest_d */
 /*! *********************************************************************************
 * \brief  Creates a GAP FSCI packet with a boolean payload and sends it over UART.
@@ -1599,6 +1737,28 @@ void fsciBleGapCheckIfBondedEvtMonitor
 (
     bool_t*     pOutIsBonded,
     uint8_t*    pOutNvmIndex
+);
+
+/*! *********************************************************************************
+* \brief  Gap_GetDeviceIdFromConnHandle out parameter monitoring macro.
+*
+* \param[in]    pDeviceId    Pointer to the device id value.
+*
+********************************************************************************** */
+void fsciBleGapGetDeviceIdFromConnHandleEvtMonitor
+(
+    deviceId_t    deviceId
+);
+
+/*! *********************************************************************************
+* \brief  GetConnectionHandleFromDeviceId out parameter monitoring macro.
+*
+* \param[in]    pConnHandle    Pointer to the connection handle value.
+*
+********************************************************************************** */
+void fsciBleGapGetConnectionHandleFromDeviceIdEvtMonitor
+(
+    uint16_t    connHandle
 );
 
 /*! *********************************************************************************
@@ -1673,6 +1833,17 @@ void fsciBleGapConnectionEvtMonitor
 (
     deviceId_t              deviceId,
     gapConnectionEvent_t*   pConnectionEvent
+);
+
+/*! *********************************************************************************
+* \brief  GetHostVersion out parameter monitoring macro.
+*
+* \param[in]    pOutHostVersion          Pointer to the Host Version structure.
+*
+********************************************************************************** */
+void fsciBleGapGetHostVersionEvtMonitor
+(
+    gapHostVersion_t *pOutHostVersion
 );
 
 #ifdef __cplusplus

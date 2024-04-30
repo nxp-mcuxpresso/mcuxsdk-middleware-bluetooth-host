@@ -3,9 +3,9 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2017 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2018, 2021-2023 NXP
+*
 *
 * \file
 *
@@ -62,10 +62,10 @@ void fsciBleRegister
 
 
 /*! *********************************************************************************
-* \brief   This function sets the HCI host to controller interface to an application  
+* \brief   This function sets the HCI host to controller interface to an application
 *          desired function.
 *
-* \param[in]    hostToControllerInterface   The function desired by the application to be 
+* \param[in]    hostToControllerInterface   The function desired by the application to be
 *                                           used as host to controller interface, or NULL.
 *                                           If NULL, the FSCI will use an empty function.
 *
@@ -80,7 +80,7 @@ void fsciBleSetHciHostToControllerInterface
 * \brief   This function sets the GAP controller callback to an application desired
 *          function.
 *
-* \param[in]    genericCallback         The function desired by the application to be 
+* \param[in]    genericCallback         The function desired by the application to be
 *                                       used as controller callback, or NULL.
 *                                       If NULL, the FSCI will use an empty function.
 *
@@ -95,7 +95,7 @@ void fsciBleSetGapGenericCallback
 * \brief   This function sets the GAP advertising callback to an application desired
 *          function.
 *
-* \param[in]    advertisingCallback     The function desired by the application to be 
+* \param[in]    advertisingCallback     The function desired by the application to be
 *                                       used as advertising callback, or NULL.
 *                                       If NULL, the FSCI will use an empty function.
 *
@@ -110,7 +110,7 @@ void fsciBleSetGapAdvertisingCallback
 * \brief   This function sets the GAP connection callback to an application desired
 *          function.
 *
-* \param[in]    connectionCallback      The function desired by the application to be 
+* \param[in]    connectionCallback      The function desired by the application to be
 *                                       used as connection callback, or NULL.
 *                                       If NULL, the FSCI will use an empty function.
 *
@@ -125,7 +125,7 @@ void fsciBleSetGapConnectionCallback
 * \brief   This function sets the GAP scanning callback to an application desired
 *          function.
 *
-* \param[in]    scanningCallback        The function desired by the application to be 
+* \param[in]    scanningCallback        The function desired by the application to be
 *                                       used as scanning callback, or NULL.
 *                                       If NULL, the FSCI will use an empty function.
 *
@@ -140,7 +140,7 @@ void fsciBleSetGapScanningCallback
 * \brief   This function sets the GATT Client procedure callback to an application desired
 *          function.
 *
-* \param[in]    clientProcedureCallback     The function desired by the application to be 
+* \param[in]    clientProcedureCallback     The function desired by the application to be
 *                                           used as Client procedure callback, or NULL.
 *                                           If NULL, the FSCI will use an empty function.
 *
@@ -152,10 +152,10 @@ void fsciBleSetGattClientProcedureCallback
 
 
 /*! *********************************************************************************
-* \brief   This function sets the GATT Client notification callback to an application 
+* \brief   This function sets the GATT Client notification callback to an application
 *          desired function.
 *
-* \param[in]    clientNotificationCallback      The function desired by the application to be 
+* \param[in]    clientNotificationCallback      The function desired by the application to be
 *                                               used as Client notification callback, or NULL.
 *                                               If NULL, the FSCI will use an empty function.
 *
@@ -167,10 +167,10 @@ void fsciBleSetGattClientNotificationCallback
 
 
 /*! *********************************************************************************
-* \brief   This function sets the GATT Client indication callback to an application 
+* \brief   This function sets the GATT Client indication callback to an application
 *          desired function.
 *
-* \param[in]    clientIndicationCallback        The function desired by the application to be 
+* \param[in]    clientIndicationCallback        The function desired by the application to be
 *                                               used as Client indication callback, or NULL.
 *                                               If NULL, the FSCI will use an empty function.
 *
@@ -180,11 +180,63 @@ void fsciBleSetGattClientIndicationCallback
     gattClientIndicationCallback_t clientIndicationCallback
 );
 
+#if defined(gBLE52_d) && (gBLE52_d == TRUE)
+/*! *********************************************************************************
+* \brief   This function sets the GATT Client Multiple Value Notification callback to an application
+*          desired function.
+*
+* \param[in]    clientMultipleValueNtfCallback  The function desired by the application to be
+*                                               used as Client Multiple Value Notification callback,
+*                                               or NULL.
+*                                               If NULL, the FSCI will use an empty function.
+*
+********************************************************************************** */
+void fsciBleSetGattClientMultipleValueNotificationCallback
+(
+    gattClientMultipleValueNotificationCallback_t clientMultipleValueNtfCallback
+);
+
+#if (defined gEATT_d) && (gEATT_d == TRUE)
+/*! *********************************************************************************
+* \brief   This function sets the GATT Client Enhanced Procedure callback to an application
+*          desired function when EATT is used.
+*
+* \param[in]    clientEnhancedProcedureCallback  The function desired by the application to be
+*                                                used as Client Enhanced Procedure callback,
+*                                                or NULL. If NULL, the FSCI will use an empty function.
+*
+********************************************************************************** */
+void fsciBleSetGattClientEnhancedProcedureCallback
+(
+    gattClientEnhancedProcedureCallback_t clientEnhancedProcedureCallback
+);
+
+void fsciBleSetGattClientEnhancedMultipleValueNotificationCallback
+(
+    gattClientEnhancedMultipleValueNotificationCallback_t clientEnhancedMultipleValueNtfCallback
+);
+
+void fsciBleSetGattClientEnhancedNotificationCallback
+(
+    gattClientEnhancedNotificationCallback_t clientEnhancedNotificationCallback
+);
+
+void fsciBleSetGattClientEnhancedIndicationCallback
+(
+    gattClientEnhancedIndicationCallback_t clientEnhancedIndicationCallback
+);
+
+void fsciBleSetGattServerEnhancedCallback
+(
+    gattServerEnhancedCallback_t serverEnhancedCallback
+);
+#endif /* gEATT_d */
+#endif /* gBLE52_d */
 
 /*! *********************************************************************************
 * \brief   This function sets the GATT Server callback to an application desired function.
 *
-* \param[in]    serverCallback      The function desired by the application to be 
+* \param[in]    serverCallback      The function desired by the application to be
 *                                   used as Server callback, or NULL.
 *                                   If NULL, the FSCI will use an empty function.
 *
@@ -197,7 +249,7 @@ void fsciBleSetGattServerCallback
 
 #ifdef __cplusplus
 }
-#endif 
+#endif
 
 #endif /* FSCI_BLE_INTERFACE_H */
 

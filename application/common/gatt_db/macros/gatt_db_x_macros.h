@@ -1,7 +1,7 @@
 /*! *********************************************************************************
-* Copyright (c) 2014, Freescale Semiconductor, Inc.
-* Copyright 2016-2017 NXP
-* All rights reserved.
+* Copyright 2014 Freescale Semiconductor, Inc.
+* Copyright 2016-2017, 2019, 2021, 2023 NXP
+*
 *
 * \file
 *
@@ -31,6 +31,7 @@
 #define XALLOC_DESCRIPTOR(name, uuid, permissions, size, ...)                           DESCRIPTOR_ALLOC(name, (size), __VA_ARGS__)
 #define XALLOC_UUID32_DESCRIPTOR(name, uuid, permissions, size, ...)                    DESCRIPTOR_ALLOC(name, (size), __VA_ARGS__)
 #define XALLOC_UUID128_DESCRIPTOR(name, uuid, permissions, size, ...)                   DESCRIPTOR_ALLOC(name, (size), __VA_ARGS__)
+#define XALLOC_CHARACTERISTIC_AGGREGATE(name, uuid, permissions, size, ...)             DESCRIPTOR_ALLOC(name, (size), __VA_ARGS__)
 
 #define XDECL_PRIMARY_SERVICE(name, uuid)                                               PRIMARY_SERVICE_DECL(name)
 #define XDECL_PRIMARY_SERVICE_UUID32(name, uuid32)                                      PRIMARY_SERVICE_UUID32_DECL(name)
@@ -53,6 +54,7 @@
 #define XDECL_DESCRIPTOR(name, uuid, permissions, size, ...)                            DESCRIPTOR_DECL(name, (size), (uuid), (permissions) )
 #define XDECL_DESCRIPTOR_UUID32(name, uuid32, permissions, size, ...)                   DESCRIPTOR_UUID32_DECL(name, (size), (uuid32), (permissions) )
 #define XDECL_DESCRIPTOR_UUID128(name, uuid128, permissions, size, ...)                 DESCRIPTOR_UUID128_DECL(name, (size), (uuid128), (permissions) )
+#define XDECL_CHARACTERISTIC_AGGREGATE(name, uuid, permissions, size, ...)              DESCRIPTOR_DECL(name, (size), (uuid), (permissions) )
 
 #define XINIT_PRIMARY_SERVICE_UUID128(name, uuid128)                                    PRIMARY_SERVICE_UUID128_INIT(name, uuid128 )
 #define XINIT_SECONDARY_SERVICE_UUID128(name, uuid128)                                  SECONDARY_SERVICE_UUID128_INIT(name, uuid128 )
@@ -81,6 +83,7 @@
 #define XSIZE_DESCRIPTOR(name, uuid, permissions, size, ...)                            UNIVERSAL_MACRO_SIZE(name)
 #define XSIZE_DESCRIPTOR_UUID32(name, uuid, permissions, size, ...)                     UNIVERSAL_MACRO_SIZE(name)
 #define XSIZE_DESCRIPTOR_UUID128(name, uuid, permissions, size, ...)                    UNIVERSAL_MACRO_SIZE(name)
+#define XSIZE_CHARACTERISTIC_AGGREGATE(name, uuid, permissions, size, ...)              UNIVERSAL_MACRO_SIZE(name)
 
 #define XENUM_PRIMARY_SERVICE(name, uuid)                                               UNIVERSAL_MACRO_ENUM(name)
 #define XENUM_PRIMARY_SERVICE_UUID32(name, uuid32)                                      UNIVERSAL_MACRO_ENUM(name)
@@ -103,5 +106,6 @@
 #define XENUM_DESCRIPTOR(name, uuid, permissions, size, ...)                            UNIVERSAL_MACRO_ENUM(name)
 #define XENUM_DESCRIPTOR_UUID32(name, uuid, permissions, size, ...)                     UNIVERSAL_MACRO_ENUM(name)
 #define XENUM_DESCRIPTOR_UUID128(name, uuid, permissions, size, ...)                    UNIVERSAL_MACRO_ENUM(name)
+#define XENUM_CHARACTERISTIC_AGGREGATE(name, uuid, permissions, size, ...)              UNIVERSAL_MACRO_ENUM(name)
 
 #endif /* GATT_DB_X_MACROS_H */

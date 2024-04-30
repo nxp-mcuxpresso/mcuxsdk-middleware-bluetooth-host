@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2018 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2019, 2023 NXP
+*
 *
 * \file
 *
@@ -35,10 +35,26 @@ extern "C" {
 *
 * \remarks This function executes synchronously.
 *
-* \return   gBleSuccess_c or error.
+* \retval   gBleSuccess_c
+* \retval   gBleOutOfMemory_c           Could not allocate memory for the GATT
+*                                       dynamic database.
+* \retval   gBleAlreadyInitialized_c    GATT database already initialized.
 *
 ********************************************************************************** */
 extern bleResult_t GattDb_Init(void);
+
+/*! *********************************************************************************
+*\fn            bleResult_t GattDb_Deinit(void)
+*\brief         Function performing runtime deinitialization of the GATT database.
+*
+*\param  [in]   none.
+*
+*\retval   gBleSuccess_c
+*\retval   gBleInvalidState_c       GATT dynamic database not initialized.
+*
+*\remarks       This function has effect for dynamic data base only .
+********************************************************************************** */
+bleResult_t GattDb_Deinit(void);
 
 /*!
  * \brief Writes an attribute from the application level.
@@ -51,7 +67,13 @@ extern bleResult_t GattDb_Init(void);
  * \param[in] valueLength        The number of bytes to be written.
  * \param[in] aValue             The source buffer containing the value to be written.
  *
- * \return                       gBleSuccess_c or error.
+ * \retval  gBleSuccess_c
+ * \retval  gBleInvalidParameter_c                          aValue NULL and length higher than 0.
+ * \retval  gAttStatusBase_c + gAttErrCodeInvalidHandle_c   handle not found in GATT database.
+ * \retval  gGattInvalidValueLength_c                       valueLength not equal to attribute value
+ *                                                          length, or higher than the maximum
+ *                                                          length for variable size attributes.
+ * \retval  gBleFeatureNotSupported_c                       GATT Server not enabled.
  *
  * \remarks This function executes synchronously.
  */
@@ -72,7 +94,11 @@ bleResult_t GattDb_WriteAttribute
  * \param[out] aOutValue        The pre-allocated buffer ready to receive the bytes.
  * \param[out] pOutValueLength  The actual number of bytes received.
  *
- * \return                  gBleSuccess_c or error.
+ * \retval  gBleSuccess_c
+ * \retval  gBleInvalidParameter_c                          aOutValue NULL, pOutValueLength NULL
+ *                                                          or maxBytes 0.
+ * \retval  gAttStatusBase_c + gAttErrCodeInvalidHandle_c   handle not found in GATT database.
+ * \retval  gBleFeatureNotSupported_c                       GATT Server not enabled.
  *
  * \remarks This function executes synchronously.
  */
@@ -92,11 +118,11 @@ bleResult_t GattDb_ReadAttribute
  * \param[in]  pServiceUuid             Service UUID.
  * \param[out] pOutServiceHandle        Pointer to the service declaration handle to be written.
  *
- * \return                          gBleSuccess_c or error.
- *
- * \retval  gBleSuccess_c                       Service Declaration found, handle written in pOutCharValueHandle.
- * \retval  gGattDbInvalidHandle_c              Invalid Start Handle.
- * \retval  gGattDbServiceNotFound_c            Service with given UUID not found.
+ * \retval  gBleSuccess_c                   Service Declaration found, handle written in pOutCharValueHandle.
+ * \retval  gGattDbInvalidHandle_c          Invalid Start Handle.
+ * \retval  gBleInvalidParameter_c          pServiceUuid or pOutServiceHandle NULL.
+ * \retval  gGattDbServiceNotFound_c        Service with given UUID not found.
+ * \retval  gBleFeatureNotSupported_c       GATT Server not enabled.
  *
  * \remarks This function executes synchronously.
  * \remarks The startHandle should be set to 0x0001 when this function is called for the first time.
@@ -121,11 +147,12 @@ bleResult_t GattDb_FindServiceHandle
  * \param[in]  pCharacteristicUuid      Characteristic UUID.
  * \param[out] pOutCharValueHandle      Pointer to the characteristic value handle to be written.
  *
- * \return                          gBleSuccess_c or error.
- *
- * \retval  gBleSuccess_c                    Characteristic Value found, handle written in pOutCharValueHandle.
+ * \retval  gBleSuccess_c                    Characteristic Value found, handle written
+ *                                           in pOutCharValueHandle.
  * \retval  gGattDbInvalidHandle_c           Handle not found or not a Service declaration.
+ * \retval  gBleInvalidParameter_c           pCharacteristicUuid or pOutCharValueHandle NULL.
  * \retval  gGattDbCharacteristicNotFound_c  Characteristic Value with given UUID not found.
+ * \retval  gBleFeatureNotSupported_c        GATT Server not enabled.
  *
  * \remarks This function executes synchronously.
  */
@@ -143,11 +170,11 @@ bleResult_t GattDb_FindCharValueHandleInService
  * \param[in]  charValueHandle      The handle of the Service declaration.
  * \param[out] pOutCccdHandle       Pointer to the CCCD handle to be written.
  *
- * \return                          gBleSuccess_c or error.
- *
  * \retval  gBleSuccess_c              CCCD found, handle written in pOutCccdHandle.
+ * \retval  gBleInvalidParameter_c     pOutCccdHandle is NULL.
  * \retval  gGattDbInvalidHandle_c     Invalid Characteristic Value handle.
  * \retval  gGattDbCccdNotFound_c      CCCD not found for this Characteristic.
+ * \retval  gBleFeatureNotSupported_c  GATT Server not enabled.
  *
  * \remarks This function executes synchronously.
  */
@@ -165,11 +192,11 @@ bleResult_t GattDb_FindCccdHandleForCharValueHandle
  * \param[in]  pDescriptorUuid          Descriptor's UUID.
  * \param[out] pOutDescriptorHandle     Pointer to the Descriptor handle to be written.
  *
- * \return                          gBleSuccess_c or error.
- *
- * \retval  gBleSuccess_c                    Descriptor found, handle written in pOutDescriptorHandle.
+ * \retval  gBleSuccess_c                    Descriptor found.
+ * \retval  gBleInvalidParameter_c           pDescriptorUuid or pOutDescriptorHandle are NULL.
  * \retval  gGattDbInvalidHandle_c           Invalid Characteristic Value handle.
  * \retval  gGattDbDescriptorNotFound_c      Descriptor not found for this Characteristic.
+ * \retval  gBleFeatureNotSupported_c  GATT Server not enabled.
  *
  * \remarks This function executes synchronously.
  */

@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2014, Freescale Semiconductor, Inc.
-* Copyright 2016-2017 NXP
-* All rights reserved.
+* Copyright 2014 Freescale Semiconductor, Inc.
+* Copyright 2016-2018, 2023 NXP
+*
 * 
 * \file
 *
@@ -42,6 +42,8 @@ extern "C" {
 *
 * \remarks This function executes synchronously.
 *
+* \retval   gBleSuccess_c
+*
 ********************************************************************************** */
 bleResult_t Gatt_Init(void);
 
@@ -51,9 +53,10 @@ bleResult_t Gatt_Init(void);
 * \param[in]  deviceId The device ID of the connected peer.
 * \param[out] pOutMtu  Pointer to integer to be written.
 *
-* \return  gBleSuccess_c or error.
-*
 * \remarks This function executes synchronously.
+*
+* \retval   gBleSuccess_c
+* \retval   gBleInvalidParameter_c  An invalid parameter was provided.
 *
 ********************************************************************************** */
 bleResult_t Gatt_GetMtu

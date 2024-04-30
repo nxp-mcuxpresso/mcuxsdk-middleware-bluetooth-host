@@ -3,9 +3,9 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2014, Freescale Semiconductor, Inc.
-* Copyright 2016-2019 NXP
-* All rights reserved.
+* Copyright 2014 Freescale Semiconductor, Inc.
+* Copyright 2016-2019, 2021, 2023 NXP
+*
 *
 * \file
 *
@@ -57,7 +57,7 @@ static void Bas_SendNotifications(basConfig_t *pServiceConfig, uint16_t handle);
 
 bleResult_t Bas_Start(basConfig_t *pServiceConfig)
 {
-    uint8_t mClientId = 0;
+    uint8_t mClientId = 0U;
 
     /* reset all slots for valid subscribers */
     for (mClientId = 0; mClientId < pServiceConfig->validSubscriberListSize; mClientId++)
@@ -71,7 +71,7 @@ bleResult_t Bas_Start(basConfig_t *pServiceConfig)
 
 bleResult_t Bas_Stop(basConfig_t *pServiceConfig)
 {
-    uint8_t mClientId = 0;
+    uint8_t mClientId = 0U;
 
     /* reset all slots for valid subscribers */
     for (mClientId = 0; mClientId < pServiceConfig->validSubscriberListSize; mClientId++)
@@ -116,8 +116,8 @@ bleResult_t Bas_Unsubscribe(basConfig_t *pServiceConfig, deviceId_t clientDevice
 
 bleResult_t Bas_RecordBatteryMeasurement(basConfig_t *pServiceConfig)
 {
-    uint16_t  handle;
-    bleResult_t result;
+    uint16_t  handle = gGattDbInvalidHandle_d;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_BatteryLevel_d);
 
     /* Get handle of  characteristic */
@@ -127,7 +127,7 @@ bleResult_t Bas_RecordBatteryMeasurement(basConfig_t *pServiceConfig)
     if (result == gBleSuccess_c)
     {
         /* Update characteristic value and send notification */
-        result = GattDb_WriteAttribute(handle, sizeof(uint8_t), &pServiceConfig->batteryLevel);
+        result = GattDb_WriteAttribute(handle, (uint16_t)sizeof(uint8_t), &pServiceConfig->batteryLevel);
 
         if (result == gBleSuccess_c)
         {
@@ -149,14 +149,14 @@ static void Bas_SendNotifications
     uint16_t     handle
 )
 {
-    uint16_t  handleCccd;
-    bool_t    isNotifActive;
-    uint8_t   mClientId = 0;
+    uint16_t  handleCccd = gGattDbInvalidHandle_d;
+    bool_t    isNotifActive = FALSE;
+    uint8_t   mClientId = 0U;
 
     /* Get handle of CCCD */
     if (GattDb_FindCccdHandleForCharValueHandle(handle, &handleCccd) == gBleSuccess_c)
     {
-        for (mClientId = 0; mClientId < pServiceConfig->validSubscriberListSize; mClientId++)
+        for (mClientId = 0U; mClientId < pServiceConfig->validSubscriberListSize; mClientId++)
         {
             if (pServiceConfig->aValidSubscriberList[mClientId])
             {

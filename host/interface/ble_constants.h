@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2014, Freescale Semiconductor, Inc.
-* Copyright 2016-2020 NXP
-* All rights reserved.
+* Copyright 2014 Freescale Semiconductor, Inc.
+* Copyright 2016-2024 NXP
+*
 *
 * \file
 *
@@ -24,15 +24,25 @@
 #define gcBleDeviceAddressSize_c        (6U)
 
 /*! Size of bond data structures for a bonded device  */
-#define gBleBondIdentityHeaderSize_c    (32U)
+/* gBleBondIdentityHeaderSize_c defined in app_preinclude_common.h */
+
 #define gBleBondDataDynamicSize_c       (8U)
-#define gBleBondDataStaticSize_c        (56U)
+
+#if ((defined(gAppSecureMode_d) && (gAppSecureMode_d == TRUE)) || (defined(gHostSecureMode_d) && (gHostSecureMode_d == TRUE)))
+#define gBleBondDataStaticSize_c        (54U)
+#else /* (gAppSecureMode_d == TRUE) || (gHostSecureMode_d == TRUE) */
+#define gBleBondDataStaticSize_c        (30U)
+#endif /* (gAppSecureMode_d == TRUE) || (gHostSecureMode_d == TRUE) */
+
+#define gBleBondDataLegacySize_c        (28U)
 #define gBleBondDataDeviceInfoSize_c    (60U)
 #define gBleBondDataDescriptorSize_c    (4U)
 
+#define gcSecureModeSavedLocalKeysNo_c  (2U)
+
 /*! Maximum number of CCCDs */
 #ifndef gcGapMaximumSavedCccds_c
-#define gcGapMaximumSavedCccds_c        (16U)
+#define gcGapMaximumSavedCccds_c        (5U)
 #endif
 
 /*! Maximum number of attributes that require authorization */
@@ -49,8 +59,14 @@
 /*! Maximum Long Term Key size in bytes */
 #define gcSmpMaxLtkSize_c               (16U)
 
+/*! Maximum Long Term Key blob size in bytes */
+#define gcSmpMaxBlobSize_c              (40U)
+
 /*! Identity Resolving Key size in bytes */
 #define gcSmpIrkSize_c                  (16U)
+
+/*! Maximum Identity Resolving Key blob size in bytes */
+#define gcSmpMaxIrkBlobSize_c           (40U)
 
 /*! Connection Signature Resolving Key size in bytes */
 #define gcSmpCsrkSize_c                 (16U)
@@ -79,8 +95,14 @@
 /*! Maximum possible value of the ATT_MTU for this device. This is used during the MTU Exchange. */
 #define gAttMaxMtu_c                    (247U)
 
+/*! Maximum possible value of the ATT_MTU for enhanced ATT bearers on this device. */
+#define gEattMaxMtu_c                   (247U)
+
 /*! The maximum length of an attribute value shall be 512 octets. */
 #define gAttMaxValueLength_c            (512U)
+
+/*! Minimum MTU size for enhanced ATT channels is 64. */
+#define gEattMinMtu_c                   (64U)
 
 /*! Channel the number of the UART hardware module (For example, if UART1 is used, this value should be 1). */
 #define gHciTransportUartChannel_c                  (1U)
@@ -96,6 +118,15 @@
 #define gBleMaxTxOctets_c       (251U)      /*! Data Packet Length Extension, regardless of PHY */
 #define gBleMaxTxTime_c         (2120U)     /*! Data Packet Length Extension, Coded PHY not supported */
 #define gBleMaxTxTimeCodedPhy_c (17040U)    /*! Data Packet Length Extension, Coded PHY supported */
+
+#define gBleCteMinTxOctets_c    (27U)       /*! Minimum number of octets transmitted in the payload
+                                             *  taking into account CTE, regardless of PHY */
+#define gBleCteMinTxTime_c      (328U)      /*! Minimum number of microseconds taken to transmit a packet
+                                             *  taking into account CTE, regardless of PHY */
+#define gBleCteMaxTxOctets_c    (251U)      /*! Maximum number of octets transmitted in the payload
+                                             *  taking into account CTE, regardless of PHY */
+#define gBleCteMaxTxTime_c      (2128U)     /*! Maximum number of microseconds taken to transmit a packet
+                                             *  taking into account CTE, Coded PHY not supported */
 
 /*! Maximum value of the advertising SID. */
 #define gBleExtAdvMaxSetId_c            (0x0FU)
@@ -147,6 +178,34 @@
 
 /*! Maximum value in us of AUX Offset(13 bits) in AuxPtr in 300us units, i.e. ((1 << 13) - 1) * 300 */
 #define gBleExtAdvMaxAuxOffsetUsec_c    (0x257ED4U)
+
+/*! Length of P-256 key in octets */
+#define gBleP256KeyLength_c             (64U)
+
+/*! decision data key size in bytes */
+#define gcDecisionDataKeySize_c            (16U)
+
+/*! decision instructions parameter size in bytes */
+#define gcDecisionInstructionsParamSize_c            (16U)
+
+/*! decision instructions arbitrary data mask size in bytes */
+#define gcDecisionInstructionsArbitraryDataMaskSize_c            (8U)
+
+/*! decision instructions arbitrary data target size in bytes */
+#define gcDecisionInstructionsArbitraryDataTargetSize_c            (8U)
+
+/*! decision data random part size in bytes */
+#define gcDecisionDataPrandSize_c          (3U)
+
+/*! decision data maximum size in bytes */
+#define gcDecisionDataMaxSize_c            (8U)
+
+/*! decision data maximum size in bytes */
+#define gcDecisionDataResolvableTagSize_c  (6U)
+
+/*! The maximum number of tests in the Gap_SetDecisionInstructions
+((max param length) - sizeof(numTests))/((sizeof(TestFlag) + sizeof(TestField) + sizeof(TestParameters)) = (255-1)/(1 + 1 + 16) */
+#define gcMaxNumTestsInDecisionInstruction_c  (14U)
 
 #endif /* BLE_CONSTANTS_H */
 

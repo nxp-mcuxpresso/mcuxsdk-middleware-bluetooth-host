@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2014, Freescale Semiconductor, Inc.
-* Copyright 2016-2017 NXP
-* All rights reserved.
+* Copyright 2014 Freescale Semiconductor, Inc.
+* Copyright 2016-2017, 2019, 2021, 2023 NXP
+*
 *
 * \file
 *
@@ -97,7 +97,7 @@
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; \
 
 #define CHARACTERISTIC_UUID128_INIT(name, uuid128) \
-    for (uint8_t j = 0; j < gcBleLongUuidSize_c; j++) { (name##_valueArray)[3 + j] = (uuid128)[j]; }
+    for (uint8_t j = 0; j < gcBleLongUuidSize_c; j++) { (name##_valueArray)[3U + j] = (uuid128)[j]; }
 
 /*
 *
@@ -425,6 +425,23 @@
         gBleSig_CCCD_d,\
         name##_valueArray,\
         2, \
+        (uint16_t)gBleUuidType16_c, \
+        0, \
+    },
+
+/*
+* Characteristic Aggregate Format declaration
+*  - UUID = 0x2905
+*  - permissions = none
+*/
+
+#define CCCD_CHARACTERISTIC_AGGREGATE(name)\
+    {\
+        HANDLE,\
+        (uint16_t)((uint16_t)gPermissionFlagReadable_c),\
+        gBleSig_CharAggregateFormat_d,\
+        name##_valueArray,\
+        (uint16_t)size, \
         (uint16_t)gBleUuidType16_c, \
         0, \
     },

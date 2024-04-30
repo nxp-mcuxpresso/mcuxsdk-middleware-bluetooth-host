@@ -3,9 +3,9 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2014, Freescale Semiconductor, Inc.
-* Copyright 2016-2017 NXP
-* All rights reserved.
+* Copyright 2014 Freescale Semiconductor, Inc.
+* Copyright 2016-2017, 2019, 2022-2023 NXP
+*
 *
 * \file
 *
@@ -90,7 +90,9 @@ typedef struct hidcConfig_tag
 {
     uint16_t    hService;
     uint16_t    hHidReport;
-    uint16_t    hHidReportCccd; 
+    uint16_t    hHidReportCccd;
+    uint16_t    hHidBootReport;
+    uint16_t    hHidBootReportCccd;
 } hidcConfig_t;
 
 /************************************************************************************

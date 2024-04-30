@@ -3,9 +3,9 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2014, Freescale Semiconductor, Inc.
-* Copyright 2016-2019 NXP
-* All rights reserved.
+* Copyright 2014 Freescale Semiconductor, Inc.
+* Copyright 2016-2019, 2022-2023 NXP
+*
 *
 * \file
 *
@@ -85,8 +85,8 @@ bleResult_t Hid_Unsubscribe(void)
 
 bleResult_t Hid_SetProtocolMode(uint16_t serviceHandle, hidProtocolMode_t protocolMode)
 {
-    uint16_t  hProtocolMode;
-    bleResult_t result;
+    uint16_t  hProtocolMode = 0U;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_ProtocolMode_d);
 
     /* Get characteristic handle */
@@ -95,7 +95,7 @@ bleResult_t Hid_SetProtocolMode(uint16_t serviceHandle, hidProtocolMode_t protoc
     if (result == gBleSuccess_c)
     {
         /* Write attribute value */
-        result = GattDb_WriteAttribute(hProtocolMode, sizeof(hidProtocolMode_t), &protocolMode);
+        result = GattDb_WriteAttribute(hProtocolMode, (uint16_t)sizeof(hidProtocolMode_t), &protocolMode);
     }
 
     return result;
@@ -103,10 +103,10 @@ bleResult_t Hid_SetProtocolMode(uint16_t serviceHandle, hidProtocolMode_t protoc
 
 bleResult_t Hid_GetProtocolMode(uint16_t serviceHandle, hidProtocolMode_t *pOutProtocolMode)
 {
-    uint16_t  hProtocolMode;
-    bleResult_t result;
+    uint16_t  hProtocolMode = 0U;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_ProtocolMode_d);
-    uint16_t outLen;
+    uint16_t outLen = 0U;
 
     /* Get characteristic handle */
     result = GattDb_FindCharValueHandleInService(serviceHandle, gBleUuidType16_c, &uuid, &hProtocolMode);
@@ -114,7 +114,7 @@ bleResult_t Hid_GetProtocolMode(uint16_t serviceHandle, hidProtocolMode_t *pOutP
     if (result == gBleSuccess_c)
     {
         /* Read attribute value */
-        result = GattDb_ReadAttribute(hProtocolMode, sizeof(hidProtocolMode_t), pOutProtocolMode, &outLen);
+        result = GattDb_ReadAttribute(hProtocolMode, (uint16_t)sizeof(hidProtocolMode_t), pOutProtocolMode, &outLen);
     }
 
     return result;
@@ -122,8 +122,8 @@ bleResult_t Hid_GetProtocolMode(uint16_t serviceHandle, hidProtocolMode_t *pOutP
 
 bleResult_t Hid_SendInputReport(uint16_t serviceHandle, uint16_t reportlen, void* pInReport)
 {
-    uint16_t  hReport;
-    bleResult_t result;
+    uint16_t  hReport = 0U;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_Report_d);
 
     /* Get characteristic handle */
@@ -145,8 +145,8 @@ bleResult_t Hid_SendInputReport(uint16_t serviceHandle, uint16_t reportlen, void
 
 bleResult_t Hid_SendBootMouseInputReport(uint16_t serviceHandle, uint16_t reportlen, void* pInReport)
 {
-    uint16_t  hReport;
-    bleResult_t result;
+    uint16_t  hReport = 0U;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_BootMouseInputReport_d);
 
     /* Get characteristic handle */
@@ -197,15 +197,15 @@ static void Hid_SendReportNotifications
     uint16_t handle
 )
 {
-    uint16_t  hCccd;
-    bool_t isNotifActive;
+    uint16_t  hCccd = 0U;
+    bool_t isNotifActive = FALSE;
 
     /* Get handle of CCCD */
     if (GattDb_FindCccdHandleForCharValueHandle(handle, &hCccd) == gBleSuccess_c)
     {
-        if (gBleSuccess_c == Gap_CheckNotificationStatus
-            (mHid_SubscribedClientId, hCccd, &isNotifActive) &&
-            TRUE == isNotifActive)
+        if ((gBleSuccess_c == Gap_CheckNotificationStatus
+            (mHid_SubscribedClientId, hCccd, &isNotifActive)) &&
+            (TRUE == isNotifActive))
         {
             (void)GattServer_SendNotification(mHid_SubscribedClientId, handle);
         }

@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2017 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2019, 2021-2023 NXP
+*
 *
 * \file
 *
@@ -44,7 +44,7 @@
     //#warning "FsciCmdMonitor macro is already defined"
     #undef FsciCmdMonitor
 #endif
-    
+
 #if defined(FsciStatusMonitor)
     //#warning "FsciStatusMonitor macro is already defined"
     #undef FsciStatusMonitor
@@ -63,13 +63,13 @@
     #else
         #define FsciCmdMonitor(function, ...)
     #endif
-        
+
     #if gFsciBleBBox_d || gFsciBleTest_d
         #define FsciStatusMonitor(function, ...)    fsciBleGattDbAppStatusMonitor(__VA_ARGS__)
         #define FsciEvtMonitor(function, ...)       fsciBleGattDbApp##function##EvtMonitor(__VA_ARGS__)
     #else
         #define FsciStatusMonitor(function, ...)
-        #define FsciEvtMonitor(function, ...)   
+        #define FsciEvtMonitor(function, ...)
     #endif
 
 #else
@@ -122,7 +122,7 @@
 * \param[in]    serviceHandle           The handle of the Service declaration.
 * \param[in]    characteristicUuidType  CharacteristicUUID type.
 * \param[in]    pCharacteristicUuid     CharacteristicUUID.
-* \param[out]   pOutCharValueHandle     Pointer to the characteristic value handle 
+* \param[out]   pOutCharValueHandle     Pointer to the characteristic value handle
 *                                       to be written.
 *
 ********************************************************************************** */
@@ -138,7 +138,7 @@
                         (pOutCharValueHandle))
 
 /*! *********************************************************************************
-* \brief  GattDb_FindDescriptorHandleForCharValueHandle command monitoring macro. 
+* \brief  GattDb_FindDescriptorHandleForCharValueHandle command monitoring macro.
 *
 * \param[in]    charValueHandle         The handle of the Service declaration.
 * \param[in]    descriptorUuidType      Descriptor's UUID type.
@@ -177,7 +177,7 @@
 * \param[in]    desiredHandle
 * \param[in]    serviceUuidType
 * \param[in]    pServiceUuid
-* \param[out]   pOutHandle          
+* \param[out]   pOutHandle
 *
 ********************************************************************************** */
 #define fsciBleGattDbAppAddPrimaryServiceDeclarationCmdMonitor(desiredHandle,                                   \
@@ -189,13 +189,13 @@
                                                     (serviceUuidType),                                          \
                                                     (pServiceUuid),                                               \
                                                     (pOutHandle))
-                                                       
+
 /*! *********************************************************************************
 * \brief  GattDbDynamic_AddSecondaryServiceDeclaration command monitoring macro.
 *
 * \param[in]    serviceUuidType
 * \param[in]    pServiceUuid
-* \param[out]   pOutHandle          
+* \param[out]   pOutHandle
 *
 ********************************************************************************** */
 #define fsciBleGattDbAppAddSecondaryServiceDeclarationCmdMonitor(desiredHandle,                                 \
@@ -229,7 +229,7 @@
                                               (characteristicHandle))
 
 /*! *********************************************************************************
-* \brief  GattDb_FindServiceHandle command out parameters monitoring 
+* \brief  GattDb_FindServiceHandle command out parameters monitoring
 *         function.
 *
 * \param[in]    pOutCharValueHandle     Pointer to the service declaration handle to be written.
@@ -240,7 +240,7 @@
                                               (pOutServiceHandle))
 
 /*! *********************************************************************************
-* \brief  GattDb_FindCharValueHandleInService command out parameters monitoring 
+* \brief  GattDb_FindCharValueHandleInService command out parameters monitoring
 *         function.
 *
 * \param[in]    pOutCharValueHandle     Pointer to the characteristic value handle to be written.
@@ -251,7 +251,7 @@
                                               (pOutCharValueHandle))
 
 /*! *********************************************************************************
-* \brief  GattDb_FindCccdHandleForCharValueHandle command out parameters monitoring 
+* \brief  GattDb_FindCccdHandleForCharValueHandle command out parameters monitoring
 *         function.
 *
 * \param[in]    pOutCccdHandle      Pointer to the CCCD handle to be written.
@@ -262,7 +262,7 @@
                                               (pOutCccdHandle))
 
 /*! *********************************************************************************
-* \brief  GattDb_FindDescriptorHandleForCharValueHandle command out parameters monitoring 
+* \brief  GattDb_FindDescriptorHandleForCharValueHandle command out parameters monitoring
 *         function.
 *
 * \param[in]    pOutDescriptorHandle    Pointer to the Descriptor handle to be written.
@@ -273,10 +273,10 @@
                                               (pOutDescriptorHandle))
 
 /*! *********************************************************************************
-* \brief  GattDbDynamic_AddPrimaryServiceDeclaration command out parameters monitoring 
+* \brief  GattDbDynamic_AddPrimaryServiceDeclaration command out parameters monitoring
 *         function.
 *
-* \param[in]    pOutHandle      Resulting attribute handle of the Service declaration. 
+* \param[in]    pOutHandle      Resulting attribute handle of the Service declaration.
 *                               Ignored if NULL.
 *
 ********************************************************************************** */
@@ -285,10 +285,10 @@
                                               (pOutHandle))
 
 /*! *********************************************************************************
-* \brief  GattDbDynamic_AddSecondaryServiceDeclaration command out parameters monitoring 
+* \brief  GattDbDynamic_AddSecondaryServiceDeclaration command out parameters monitoring
 *         function.
 *
-* \param[in]    pOutHandle      Resulting attribute handle of the Service declaration. 
+* \param[in]    pOutHandle      Resulting attribute handle of the Service declaration.
 *                               Ignored if NULL.
 *
 ********************************************************************************** */
@@ -297,10 +297,10 @@
                                               (pOutHandle))
 
 /*! *********************************************************************************
-* \brief  GattDbDynamic_AddIncludeDeclaration command out parameters monitoring 
+* \brief  GattDbDynamic_AddIncludeDeclaration command out parameters monitoring
 *         function.
 *
-* \param[in]    pOutHandle      Resulting attribute handle of the Include declaration. 
+* \param[in]    pOutHandle      Resulting attribute handle of the Include declaration.
 *                               Ignored if NULL.
 *
 ********************************************************************************** */
@@ -309,11 +309,11 @@
                                               (pOutHandle))
 
 /*! *********************************************************************************
-* \brief  GattDbDynamic_AddCharacteristicDeclarationAndValue command out parameters monitoring 
+* \brief  GattDbDynamic_AddCharacteristicDeclarationAndValue command out parameters monitoring
 *         function.
 *
 * \param[[in]    pOutHandle     Resulting attribute handle of the Characteristic declaration.
-*                               Ignored if NULL.          
+*                               Ignored if NULL.
 *
 ********************************************************************************** */
 #define fsciBleGattDbAppAddCharacteristicDeclarationAndValueEvtMonitor(pOutHandle)                          \
@@ -321,10 +321,10 @@
                                               (pOutHandle))
 
 /*! *********************************************************************************
-* \brief  GattDbDynamic_AddCharDescriptor command out parameters monitoring 
+* \brief  GattDbDynamic_AddCharDescriptor command out parameters monitoring
 *         function.
 *
-* \param[[in]    pOutHandle     Resulting attribute handle of the Descriptor declaration. 
+* \param[[in]    pOutHandle     Resulting attribute handle of the Descriptor declaration.
 *                               Ignored if NULL.
 *
 ********************************************************************************** */
@@ -333,7 +333,7 @@
                                               (pOutHandle))
 
 /*! *********************************************************************************
-* \brief  GattDbDynamic_AddCccd command out parameters monitoring 
+* \brief  GattDbDynamic_AddCccd command out parameters monitoring
 *         function.
 *
 * \param[out]   pOutHandle      Resulting attribute handle of the CCCD. Ignored if NULL.
@@ -343,29 +343,50 @@
         fsciBleGattDbAppUint16ParamEvtMonitor(gBleGattDbAppEvtAddCccdOpCode_c,  \
                                               (pOutHandle))
 
+#if defined(gBLE52_d) && (gBLE52_d == TRUE)
 /*! *********************************************************************************
-* \brief  GattDbDynamic_AddCharDeclWithUniqueValue command out parameters monitoring 
+* \brief  GattDbDynamic_AddCharAggregateFormat command out parameters monitoring
 *         function.
 *
-* \param[out]   pOutHandle      Resulting attribute handle of the Characteristic declaration. 
+* \param[out]   pOutHandle      Resulting attribute handle of the characteristic aggregate.
+*                               Ignored if NULL.
+*
+********************************************************************************** */
+#define fsciBleGattDbAppAddCharAggregateFormatEvtMonitor(pOutHandle)                           \
+        fsciBleGattDbAppUint16ParamEvtMonitor(gBleGattDbAppEvtAddCharAggregateFormatOpCode_c,  \
+                                              (pOutHandle))
+#endif
+
+/*! *********************************************************************************
+* \brief  GattDbDynamic_AddCharDeclWithUniqueValue command out parameters monitoring
+*         function.
+*
+* \param[out]   pOutHandle      Resulting attribute handle of the Characteristic declaration.
 *                               Ignored if NULL.
 *
 ********************************************************************************** */
 #define fsciBleGattDbAppAddCharacteristicDeclarationWithUniqueValueEvtMonitor(pOutHandle)                           \
         fsciBleGattDbAppUint16ParamEvtMonitor(gBleGattDbAppEvtAddCharacteristicDeclarationWithUniqueValueOpCode_c,  \
                                               (pOutHandle))
-          
+
 /*! *********************************************************************************
-* \brief  GattDbDynamic_AddCharDescriptorWithUniqueValue command out parameters monitoring 
+* \brief  GattDbDynamic_AddCharDescriptorWithUniqueValue command out parameters monitoring
 *         function.
 *
-* \param[out]   pOutHandle      Resulting attribute handle of the Characteristic declaration. 
+* \param[out]   pOutHandle      Resulting attribute handle of the Characteristic declaration.
 *                               Ignored if NULL.
 *
 ********************************************************************************** */
 #define fsciBleGattDbAppAddCharDescriptorWithUniqueValueEvtMonitor(pOutHandle)                           \
         fsciBleGattDbAppUint16ParamEvtMonitor(gBleGattDbAppEvtAddCharDescriptorWithUniqueValueOpCode_c,  \
                                               (pOutHandle))
+
+/*! *********************************************************************************
+* \brief  GattDbDynamic_EndDatabaseUpdate command monitoring macro.
+*
+********************************************************************************** */
+#define fsciBleGattDbAppEndDatabaseUpdateCmdMonitor() \
+        fsciBleGattDbAppNoParamCmdMonitor(gBleGattDbAppCmdEndDatabaseUpdateOpCode_c)
 
 /************************************************************************************
 *************************************************************************************
@@ -376,45 +397,52 @@
 /*! FSCI operation codes for GATT Database (application) */
 typedef enum
 {
-    gBleGattDbAppModeSelectOpCode_c             = 0x00,                             /*! GATT Database (application) Mode Select operation code */
+    gBleGattDbAppModeSelectOpCode_c                                      = 0x00,                             /*! GATT Database (application) Mode Select operation code */
 
-    gBleGattDbAppCmdFirstOpCode_c               = 0x01,
-    gFsciBleGattDbReserved1_c                   = gBleGattDbAppCmdFirstOpCode_c,    /*! Removed: GattDb_Init command operation code */
-    gBleGattDbAppCmdWriteAttributeOpCode_c,                                         /*! GattDb_WriteAttribute command operation code */
-    gBleGattDbAppCmdReadAttributeOpCode_c,                                          /*! GattDb_ReadAttribute command operation code */
-    gBleGattDbAppCmdFindServiceHandleOpCode_c,                                      /*! GattDb_FindServiceHandle command operation code */
-    gBleGattDbAppCmdFindCharValueHandleInServiceOpCode_c,                           /*! GattDb_FindCharValueHandleInService command operation code */
-    gBleGattDbAppCmdFindCccdHandleForCharValueHandleOpCode_c,                       /*! GattDb_FindCccdHandleForCharValueHandle command operation code */
-    gBleGattDbAppCmdFindDescriptorHandleForCharValueHandleOpCode_c,                 /*! GattDb_FindDescriptorHandleForCharValueHandle command operation code */
-    gBleGattDbAppCmdInitDatabaseOpCode_c,                                           /*! GattDbDynamic_Init command operation code */
-    gBleGattDbAppCmdReleaseDatabaseOpCode_c,                                        /*! GattDbDynamic_ReleaseDatabase command operation code */
-    gBleGattDbAppCmdAddPrimaryServiceDeclarationOpCode_c,                           /*! GattDbDynamic_AddPrimaryServiceDeclaration command operation code */
-    gBleGattDbAppCmdAddSecondaryServiceDeclarationOpCode_c,                         /*! GattDbDynamic_AddSecondaryServiceDeclaration command operation code */
-    gBleGattDbAppCmdAddIncludeDeclarationOpCode_c,                                  /*! GattDbDynamic_AddIncludeDeclaration command operation code */
-    gBleGattDbAppCmdAddCharacteristicDeclarationAndValueOpCode_c,                   /*! GattDbDynamic_AddCharacteristicDeclarationAndValue command operation code */
-    gBleGattDbAppCmdAddCharacteristicDescriptorOpCode_c,                            /*! GattDbDynamic_AddCharDescriptor command operation code */
-    gBleGattDbAppCmdAddCccdOpCode_c,                                                /*! GattDbDynamic_AddCccd command operation code */
-    gBleGattDbAppCmdAddCharacteristicDeclarationWithUniqueValueOpCode_c,            /*! GattDbDynamic_AddCharDeclWithUniqueValue command operation code */
-    gBleGattDbAppCmdRemoveServiceOpCode_c,                                          /*! GattDbDynamic_RemoveService command operation code */
-    gBleGattDbAppCmdRemoveCharacteristicOpCode_c,                                   /*! GattDbDynamic_RemoveCharacteristic command operation code */
-    gBleGattDbAppCmdAddCharDescriptorWithUniqueValueOpCode_c,                       /*! GattDbDynamic_AddCharDescriptorWithUniqueValue command operation code */
-    
-    gBleGattDbAppStatusOpCode_c                 = 0x80,                             /*! GATT Database (application) status operation code */
+    gBleGattDbAppCmdFirstOpCode_c                                        = 0x01,
+    gFsciBleGattDbReserved1_c                                            = gBleGattDbAppCmdFirstOpCode_c,    /*! Removed: GattDb_Init command operation code */
+    gBleGattDbAppCmdWriteAttributeOpCode_c                               = 0x02,                             /*! GattDb_WriteAttribute command operation code */
+    gBleGattDbAppCmdReadAttributeOpCode_c                                = 0x03,                             /*! GattDb_ReadAttribute command operation code */
+    gBleGattDbAppCmdFindServiceHandleOpCode_c                            = 0x04,                             /*! GattDb_FindServiceHandle command operation code */
+    gBleGattDbAppCmdFindCharValueHandleInServiceOpCode_c                 = 0x05,                             /*! GattDb_FindCharValueHandleInService command operation code */
+    gBleGattDbAppCmdFindCccdHandleForCharValueHandleOpCode_c             = 0x06,                             /*! GattDb_FindCccdHandleForCharValueHandle command operation code */
+    gBleGattDbAppCmdFindDescriptorHandleForCharValueHandleOpCode_c       = 0x07,                             /*! GattDb_FindDescriptorHandleForCharValueHandle command operation code */
+    gBleGattDbAppCmdInitDatabaseOpCode_c                                 = 0x08,                             /*! GattDbDynamic_Init command operation code */
+    gBleGattDbAppCmdReleaseDatabaseOpCode_c                              = 0x09,                             /*! GattDbDynamic_ReleaseDatabase command operation code */
+    gBleGattDbAppCmdAddPrimaryServiceDeclarationOpCode_c                 = 0x0A,                             /*! GattDbDynamic_AddPrimaryServiceDeclaration command operation code */
+    gBleGattDbAppCmdAddSecondaryServiceDeclarationOpCode_c               = 0x0B,                             /*! GattDbDynamic_AddSecondaryServiceDeclaration command operation code */
+    gBleGattDbAppCmdAddIncludeDeclarationOpCode_c                        = 0x0C,                             /*! GattDbDynamic_AddIncludeDeclaration command operation code */
+    gBleGattDbAppCmdAddCharacteristicDeclarationAndValueOpCode_c         = 0x0D,                             /*! GattDbDynamic_AddCharacteristicDeclarationAndValue command operation code */
+    gBleGattDbAppCmdAddCharacteristicDescriptorOpCode_c                  = 0x0E,                             /*! GattDbDynamic_AddCharDescriptor command operation code */
+    gBleGattDbAppCmdAddCccdOpCode_c                                      = 0x0F,                             /*! GattDbDynamic_AddCccd command operation code */
+    gBleGattDbAppCmdAddCharacteristicDeclarationWithUniqueValueOpCode_c  = 0x10,                             /*! GattDbDynamic_AddCharDeclWithUniqueValue command operation code */
+    gBleGattDbAppCmdRemoveServiceOpCode_c                                = 0x11,                             /*! GattDbDynamic_RemoveService command operation code */
+    gBleGattDbAppCmdRemoveCharacteristicOpCode_c                         = 0x12,                             /*! GattDbDynamic_RemoveCharacteristic command operation code */
+    gBleGattDbAppCmdAddCharDescriptorWithUniqueValueOpCode_c             = 0x13,                             /*! GattDbDynamic_AddCharDescriptorWithUniqueValue command operation code */
+    gBleGattDbAppCmdEndDatabaseUpdateOpCode_c                            = 0x14,                             /*! GattDbDynamic_EndDatabaseUpdate command operation code */
+#if defined(gBLE52_d) && (gBLE52_d == TRUE)
+    gBleGattDbAppCmdAddCharAggregateFormatOpCode_c                       = 0x15,                             /*! GattDbDynamic_AddCharAggregateFormat command operation code */
+#endif
 
-    gBleGattDbAppEvtFirstOpCode_c               = 0x81,
-    gBleGattDbAppEvtReadAttributeValueOpCode_c  = gBleGattDbAppEvtFirstOpCode_c,    /*! GattDb_ReadAttributeValue command out parameters event operation code */
-    gBleGattDbAppEvtFindServiceHandleOpCode_c,                                      /*! GattDb_FindServiceHandle command out parameters event operation code */
-    gBleGattDbAppEvtFindCharValueHandleInServiceOpCode_c,                           /*! GattDb_FindCharValueHandleInService command out parameters event operation code */
-    gBleGattDbAppEvtFindCccdHandleForCharValueHandleOpCode_c,                       /*! GattDb_FindCccdHandleForCharValueHandle command out parameters event operation code */
-    gBleGattDbAppEvtFindDescriptorHandleForCharValueHandleOpCode_c,                 /*! GattDb_FindDescriptorHandleForCharValueHandle command out parameters event operation code */
-    gBleGattDbAppEvtAddPrimaryServiceDeclarationOpCode_c,                           /*! GattDbDynamic_AddPrimaryServiceDeclaration command out parameters event operation code */
-    gBleGattDbAppEvtAddSecondaryServiceDeclarationOpCode_c,                         /*! GattDbDynamic_AddSecondaryServiceDeclaration command out parameters event operation code */
-    gBleGattDbAppEvtAddIncludeDeclarationOpCode_c,                                  /*! GattDbDynamic_AddIncludeDeclaration command out parameters event operation code */
-    gBleGattDbAppEvtAddCharacteristicDeclarationAndValueOpCode_c,                   /*! GattDbDynamic_AddCharacteristicDeclarationAndValue command out parameters event operation code */
-    gBleGattDbAppEvtAddCharacteristicDescriptorOpCode_c,                            /*! GattDbDynamic_AddCharDescriptor command out parameters event operation code */
-    gBleGattDbAppEvtAddCccdOpCode_c,                                                /*! GattDbDynamic_AddCccd command out parameters event operation code */
-    gBleGattDbAppEvtAddCharacteristicDeclarationWithUniqueValueOpCode_c,            /*! GattDbDynamic_AddCharDeclWithUniqueValue command out parameters event operation code */      
-    gBleGattDbAppEvtAddCharDescriptorWithUniqueValueOpCode_c,                       /*! GattDbDynamic_AddCharDescriptorWithUniqueValue command out parameters event operation code */
+    gBleGattDbAppStatusOpCode_c                                          = 0x80,                             /*! GATT Database (application) status operation code */
+
+    gBleGattDbAppEvtFirstOpCode_c                                        = 0x81,
+    gBleGattDbAppEvtReadAttributeValueOpCode_c                           = gBleGattDbAppEvtFirstOpCode_c,    /*! GattDb_ReadAttributeValue command out parameters event operation code */
+    gBleGattDbAppEvtFindServiceHandleOpCode_c                            = 0x82,                             /*! GattDb_FindServiceHandle command out parameters event operation code */
+    gBleGattDbAppEvtFindCharValueHandleInServiceOpCode_c                 = 0x83,                             /*! GattDb_FindCharValueHandleInService command out parameters event operation code */
+    gBleGattDbAppEvtFindCccdHandleForCharValueHandleOpCode_c             = 0x84,                             /*! GattDb_FindCccdHandleForCharValueHandle command out parameters event operation code */
+    gBleGattDbAppEvtFindDescriptorHandleForCharValueHandleOpCode_c       = 0x85,                             /*! GattDb_FindDescriptorHandleForCharValueHandle command out parameters event operation code */
+    gBleGattDbAppEvtAddPrimaryServiceDeclarationOpCode_c                 = 0x86,                             /*! GattDbDynamic_AddPrimaryServiceDeclaration command out parameters event operation code */
+    gBleGattDbAppEvtAddSecondaryServiceDeclarationOpCode_c               = 0x87,                             /*! GattDbDynamic_AddSecondaryServiceDeclaration command out parameters event operation code */
+    gBleGattDbAppEvtAddIncludeDeclarationOpCode_c                        = 0x88,                             /*! GattDbDynamic_AddIncludeDeclaration command out parameters event operation code */
+    gBleGattDbAppEvtAddCharacteristicDeclarationAndValueOpCode_c         = 0x89,                             /*! GattDbDynamic_AddCharacteristicDeclarationAndValue command out parameters event operation code */
+    gBleGattDbAppEvtAddCharacteristicDescriptorOpCode_c                  = 0x8A,                             /*! GattDbDynamic_AddCharDescriptor command out parameters event operation code */
+    gBleGattDbAppEvtAddCccdOpCode_c                                      = 0x8B,                             /*! GattDbDynamic_AddCccd command out parameters event operation code */
+    gBleGattDbAppEvtAddCharacteristicDeclarationWithUniqueValueOpCode_c  = 0X8C,                             /*! GattDbDynamic_AddCharDeclWithUniqueValue command out parameters event operation code */
+    gBleGattDbAppEvtAddCharDescriptorWithUniqueValueOpCode_c             = 0x8D,                             /*! GattDbDynamic_AddCharDescriptorWithUniqueValue command out parameters event operation code */
+#if defined(gBLE52_d) && (gBLE52_d == TRUE)
+    gBleGattDbAppEvtAddCharAggregateFormatOpCode_c                       = 0x8E,                             /*! GattDbDynamic_AddCharAggregateFormat command out parameters event operation code */
+#endif
 }fsciBleGattDbAppOpCode_t;
 
 /************************************************************************************
@@ -434,26 +462,26 @@ extern "C" {
 #endif
 
 /*! *********************************************************************************
-* \brief  Calls the GATT Database (application) function associated with the operation code received 
-*         over UART. The GAP function parameters are extracted from the received 
+* \brief  Calls the GATT Database (application) function associated with the operation code received
+*         over UART. The GAP function parameters are extracted from the received
 *         FSCI payload.
 *
-* \param[in]    pData               Packet (containing FSCI header and FSCI 
-*                                   payload) received over UART   
+* \param[in]    pData               Packet (containing FSCI header and FSCI
+*                                   payload) received over UART
 * \param[in]    pParam              Pointer given when this function is registered in
 *                                   FSCI
-* \param[in]    fsciInterfaceId     FSCI interface on which the packet was received  
+* \param[in]    fsciInterfaceId     FSCI interface on which the packet was received
 *
 ********************************************************************************** */
 void fsciBleGattDbAppHandler
 (
-    void*       pData, 
-    void*       pParam, 
+    void*       pData,
+    void*       pParam,
     uint32_t    fsciInterfaceId
 );
 
 /*! *********************************************************************************
-* \brief  Creates the FSCI packet which contains the status of the last executed GAP 
+* \brief  Creates the FSCI packet which contains the status of the last executed GAP
 *         command and sends it over UART.
 *
 * \param[in]    result      Status of the last executed GATT Database (application) command.
@@ -477,7 +505,7 @@ void fsciBleGattDbAppNoParamCmdMonitor
 );
 
 /*! *********************************************************************************
-* \brief  Creates a GATT Database FSCI packet with an uint16_t parameter as payload 
+* \brief  Creates a GATT Database FSCI packet with an uint16_t parameter as payload
 *         and sends it over UART.
 *
 * \param[in]    opCode      GATT Database (application) command operation code.
@@ -486,7 +514,7 @@ void fsciBleGattDbAppNoParamCmdMonitor
 ********************************************************************************** */
 void fsciBleGattDbAppUint16ParamCmdMonitor
 (
-    fsciBleGattDbAppOpCode_t    opCode, 
+    fsciBleGattDbAppOpCode_t    opCode,
     uint16_t                    value
 );
 
@@ -499,13 +527,13 @@ void fsciBleGattDbAppUint16ParamCmdMonitor
 * \param[in]    uuidType        UUID type.
 * \param[in]    pUuid           Service UUID.
 * \param[out]   pOutHandle      Allocated handle for this service.
-*                          
+*
 ********************************************************************************** */
 void fsciBleGattDbAppUuidTypeAndUuidParamCmdMonitor
 (
     fsciBleGattDbAppOpCode_t    opCode,
     uint16_t                    desiredHandle,
-    bleUuidType_t               uuidType, 
+    bleUuidType_t               uuidType,
     const bleUuid_t*            pUuid,
     uint16_t*                   pOutHandle
 );
@@ -520,8 +548,8 @@ void fsciBleGattDbAppUuidTypeAndUuidParamCmdMonitor
 ********************************************************************************** */
 void fsciBleGattDbAppWriteAttributeCmdMonitor
 (
-    uint16_t       handle, 
-    uint16_t       valueLength, 
+    uint16_t       handle,
+    uint16_t       valueLength,
     const uint8_t* aValue
 );
 
@@ -536,9 +564,9 @@ void fsciBleGattDbAppWriteAttributeCmdMonitor
 ********************************************************************************** */
 void fsciBleGattDbAppReadAttributeCmdMonitor
 (
-    uint16_t    handle, 
-    uint16_t    maxBytes, 
-    uint8_t*    aOutValue, 
+    uint16_t    handle,
+    uint16_t    maxBytes,
+    uint8_t*    aOutValue,
     uint16_t*   pOutValueLength
 );
 
@@ -551,28 +579,28 @@ void fsciBleGattDbAppReadAttributeCmdMonitor
 ********************************************************************************** */
 void fsciBleGattDbAppFindCccdHandleForCharValueHandleCmdMonitor
 (
-    uint16_t    charValueHandle, 
+    uint16_t    charValueHandle,
     uint16_t*   pOutCccdHandle
 );
 
 /*! *********************************************************************************
-* \brief  GattDb_FindServiceHandle, GattDb_FindCharValueHandleInService and 
+* \brief  GattDb_FindServiceHandle, GattDb_FindCharValueHandleInService and
 *         GattDb_FindDescriptorHandleForCharValueHandle commands monitoring function
 *
 * \param[in]    opCode          GATT Database (application) command operation code.
 * \param[in]    handle          The given handle.
 * \param[in]    uuidType        Service, Characteristic or Descriptor UUID type.
 * \param[in]    pUuid           Service, Characteristic or Descriptor UUID.
-* \param[out]   pOutHandle      Pointer to the service, characteristic or descriptor 
+* \param[out]   pOutHandle      Pointer to the service, characteristic or descriptor
 *                               value handle to be written.
 *
 ********************************************************************************** */
 void fsciBleGattDbAppFindServiceCharValueOrDescriptorHandleCmdMonitor
 (
-    fsciBleGattDbAppOpCode_t    opCode, 
-    uint16_t                    handle, 
-    bleUuidType_t               uuidType, 
-    const bleUuid_t*            pUuid, 
+    fsciBleGattDbAppOpCode_t    opCode,
+    uint16_t                    handle,
+    bleUuidType_t               uuidType,
+    const bleUuid_t*            pUuid,
     uint16_t*                   pOutHandle
 );
 
@@ -592,7 +620,7 @@ void fsciBleGattDbAppAddIncludeDeclarationCmdMonitor
     uint16_t         endGroupHandle,
     bleUuidType_t    serviceUuidType,
     const bleUuid_t* pServiceUuid,
-    uint16_t*        pOutHandle 
+    uint16_t*        pOutHandle
 );
 
 /*! *********************************************************************************
@@ -636,7 +664,7 @@ void fsciBleGattDbAppAddCharDeclWithUniqueValCmdMonitor
     const bleUuid_t*                            pCharacteristicUuid,
     gattCharacteristicPropertiesBitFields_t     characteristicProperties,
     gattAttributePermissionsBitFields_t         valueAccessPermissions,
-    uint16_t*                                   pOutHandle 
+    uint16_t*                                   pOutHandle
 );
 
 /*! *********************************************************************************
@@ -657,19 +685,36 @@ void fsciBleGattDbAppAddCharDescrCmdMonitor
     uint16_t                                    descriptorValueLength,
     const uint8_t*                              aInitialValue,
     gattAttributePermissionsBitFields_t         descriptorAccessPermissions,
-    uint16_t*                                   pOutHandle 
+    uint16_t*                                   pOutHandle
 );
 
 /*! *********************************************************************************
 * \brief  GattDbDynamic_AddCccd command monitoring function.
 *
-* \param[out]   pOutHandle          
+* \param[out]   pOutHandle
 *
 ********************************************************************************** */
 void fsciBleGattDbAppAddCccdCmdMonitor
 (
     uint16_t* pOutHandle
 );
+
+#if defined(gBLE52_d) && (gBLE52_d == TRUE)
+/*! *********************************************************************************
+* \brief  GattDbDynamic_AddCharAggregateFormat command monitoring function.
+*
+* \param[in]    descriptorValueLength
+* \param[in]    aInitialValue
+* \param[out]   pOutHandle
+*
+********************************************************************************** */
+void fsciBleGattDbAppAddCharAggrFormatCmdMonitor
+(
+    uint16_t descriptorValueLength,
+    const uint8_t* aInitialValue,
+    uint16_t* pOutHandle
+);
+#endif
 
 /*! *********************************************************************************
 * \brief  GattDbDynamic_AddCharDescriptorWithUniqueValue command monitoring function.
@@ -685,7 +730,7 @@ void fsciBleGattDbAppAddCharDescriptorWithUniqueValueCmdMonitor
     bleUuidType_t                               descriptorUuidType,
     bleUuid_t*                                  pDescriptorUuid,
     gattAttributePermissionsBitFields_t         descriptorAccessPermissions,
-    uint16_t*                                   pOutHandle 
+    uint16_t*                                   pOutHandle
 );
 
 #endif /* gFsciBleHost_d || gFsciBleTest_d */
@@ -699,13 +744,13 @@ void fsciBleGattDbAppAddCharDescriptorWithUniqueValueCmdMonitor
 ********************************************************************************** */
 void fsciBleGattDbAppReadAttributeEvtMonitor
 (
-    uint8_t*    aOutValue, 
+    uint8_t*    aOutValue,
     uint16_t*   pOutValueLength
 );
 
 /*! *********************************************************************************
-* \brief  GattDb_FindCharValueHandleInService, GattDb_FindCccdHandleForCharValueHandle 
-*         and GattDb_FindDescriptorHandleForCharValueHandle commands out parameter 
+* \brief  GattDb_FindCharValueHandleInService, GattDb_FindCccdHandleForCharValueHandle
+*         and GattDb_FindDescriptorHandleForCharValueHandle commands out parameter
 *         monitoring function
 *
 * \param[in]    opCode      GATT Database (application) command operation code.
@@ -714,13 +759,13 @@ void fsciBleGattDbAppReadAttributeEvtMonitor
 ********************************************************************************** */
 void fsciBleGattDbAppUint16ParamEvtMonitor
 (
-    fsciBleGattDbAppOpCode_t    opCode, 
+    fsciBleGattDbAppOpCode_t    opCode,
     const uint16_t*             pValue
 );
 
 #ifdef __cplusplus
 }
-#endif 
+#endif
 
 #endif /* FSCI_BLE_GATT_DB_APP_H */
 

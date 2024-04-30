@@ -3,8 +3,8 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2016-2019 NXP
-* All rights reserved.
+* Copyright 2016-2020, 2022-2023 NXP
+*
 *
 * \file
 *
@@ -77,8 +77,8 @@ bleResult_t Cts_Unsubscribe(void)
 
 bleResult_t Cts_RecordCurrentTime (ctsConfig_t *pServiceConfig)
 {
-    uint16_t  handle;
-    bleResult_t result;
+    uint16_t  handle = gGattDbInvalidHandle_d;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_CurrentTime_d);
     ctsMeasurement_t ctsMeasurement;
 
@@ -93,7 +93,7 @@ bleResult_t Cts_RecordCurrentTime (ctsConfig_t *pServiceConfig)
         ctsMeasurement.adjustReason = pServiceConfig->adjustReason;
 
         /* Update characteristic value and send notification */
-        result = GattDb_WriteAttribute(handle, sizeof(ctsMeasurement_t), (uint8_t*)&ctsMeasurement);
+        result = GattDb_WriteAttribute(handle, (uint16_t)sizeof(ctsMeasurement_t), (uint8_t*)&ctsMeasurement);
 
         if (result == gBleSuccess_c)
         {
@@ -128,8 +128,8 @@ bleResult_t Cts_RecordCurrentTime (ctsConfig_t *pServiceConfig)
 
 bleResult_t Cts_RecordLocalTimeInfo (ctsConfig_t *pServiceConfig)
 {
-    uint16_t  handle;
-    bleResult_t result;
+    uint16_t  handle = gGattDbInvalidHandle_d;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_LocalTimeInformation_d);
 
     /* Get handle of  characteristic */
@@ -139,7 +139,7 @@ bleResult_t Cts_RecordLocalTimeInfo (ctsConfig_t *pServiceConfig)
     if (result == gBleSuccess_c)
     {
         /* Update characteristic value */
-        result = GattDb_WriteAttribute(handle, sizeof(ctsLocalTimeInfo_t), (uint8_t*)&pServiceConfig->localTimeInfo);
+        result = GattDb_WriteAttribute(handle, (uint16_t)sizeof(ctsLocalTimeInfo_t), (uint8_t*)&pServiceConfig->localTimeInfo);
     }
 
     return result;
@@ -147,8 +147,8 @@ bleResult_t Cts_RecordLocalTimeInfo (ctsConfig_t *pServiceConfig)
 
 bleResult_t Cts_RecordReferenceTimeInfo (ctsConfig_t *pServiceConfig)
 {
-    uint16_t  handle;
-    bleResult_t result;
+    uint16_t  handle = gGattDbInvalidHandle_d;
+    bleResult_t result = gBleSuccess_c;
     bleUuid_t uuid = Uuid16(gBleSig_ReferenceTimeInformation_d);
 
     /* Get handle of  characteristic */
@@ -158,7 +158,7 @@ bleResult_t Cts_RecordReferenceTimeInfo (ctsConfig_t *pServiceConfig)
     if (result == gBleSuccess_c)
     {
         /* Update characteristic value */
-        result = GattDb_WriteAttribute(handle, sizeof(ctsReferenceTimeInfo_t), (uint8_t*)&pServiceConfig->referenceTimeInfo);
+        result = GattDb_WriteAttribute(handle, (uint16_t)sizeof(ctsReferenceTimeInfo_t), (uint8_t*)&pServiceConfig->referenceTimeInfo);
     }
 
     return result;
@@ -166,8 +166,8 @@ bleResult_t Cts_RecordReferenceTimeInfo (ctsConfig_t *pServiceConfig)
 
 void Cts_SendNotifications (uint16_t handle)
 {
-    uint16_t  handleCccd;
-    bool_t isNotifActive;
+    uint16_t  handleCccd = gGattDbInvalidHandle_d;
+    bool_t isNotifActive = FALSE;
 
     /* Get handle of CCCD */
     if (GattDb_FindCccdHandleForCharValueHandle(handle, &handleCccd) == gBleSuccess_c)

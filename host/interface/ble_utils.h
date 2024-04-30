@@ -3,10 +3,10 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2017, 2022 NXP
-* All rights reserved.
-* 
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2019, 2021-2024 NXP
+*
+*
 * \file
 *
 * SPDX-License-Identifier: BSD-3-Clause
@@ -14,6 +14,10 @@
 
 #ifndef BLE_UTILS_H
 #define BLE_UTILS_H
+/*==================================================================================================
+Include Files
+==================================================================================================*/
+#include "EmbeddedTypes.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -82,7 +86,7 @@
 
 /*! Returns a uint16_t from a buffer, little-endian */
 #define Utils_ExtractTwoByteValue(buf) \
-    (((uint16_t)(*(buf))) | ( ((uint16_t)(*((buf) + 1U))) << 8U) )
+    (((uint16_t)(*(buf))) | ( ((uint16_t)(buf)[1]) << 8U) )
 
 /*! Returns a 3-byte value from a buffer, little-endian */
 #define Utils_ExtractThreeByteValue(buf) \
@@ -96,14 +100,27 @@
 #define Utils_ExtractFourByteValue(buf) \
 ( \
     (*(buf)) \
-    | ( ((uint32_t)(*((buf) + 1U))) << 8U) \
-    | ( ((uint32_t)(*((buf) + 2U))) << 16U) \
-    | ( ((uint32_t)(*((buf) + 3U))) << 24U) \
+    | ( ((uint32_t)(buf)[1]) << 8U) \
+    | ( ((uint32_t)(buf)[2]) << 16U) \
+    | ( ((uint32_t)(buf)[3]) << 24U) \
+)
+
+/*! Returns a uint64_t from a buffer, little-endian */
+#define Utils_ExtractEightByteValue(buf) \
+( \
+    ((uint64_t)(buf)[0]) \
+    | ( ((uint64_t)(buf)[1]) << 8U) \
+    | ( ((uint64_t)(buf)[2]) << 16U) \
+    | ( ((uint64_t)(buf)[3]) << 24U) \
+    | ( ((uint64_t)(buf)[4]) << 32U) \
+    | ( ((uint64_t)(buf)[5]) << 40U) \
+    | ( ((uint64_t)(buf)[6]) << 48U) \
+    | ( ((uint64_t)(buf)[7]) << 56U) \
 )
 
 /*! Returns a uint16_t from a buffer, big-endian */
 #define Utils_BeExtractTwoByteValue(buf) \
-    ((*((buf) + 1U)) | ( (*(buf)) << 8U) )
+    ((*((buf) + 1U)) | ( (uint16_t)(*(buf)) << 8U) )
 
 /*! Returns a 3-byte value from a buffer, big-endian */
 #define Utils_BeExtractThreeByteValue(buf) \
@@ -144,6 +161,19 @@
     (buf)[1] = (uint8_t) (((value) >> 8U) & 0xFFU); \
     (buf)[2] = (uint8_t) (((value) >> 16U) & 0xFFU); \
     (buf)[3] = (uint8_t) (((value) >> 24U) & 0xFFU); \
+}
+
+/*! Writes a uint64_t into a buffer, little-endian */
+#define Utils_PackEightByteValue(value, buf) \
+{ \
+    (buf)[0] = (uint8_t) ((value) & 0xFFU); \
+    (buf)[1] = (uint8_t) (((value) >> 8U) & 0xFFU); \
+    (buf)[2] = (uint8_t) (((value) >> 16U) & 0xFFU); \
+    (buf)[3] = (uint8_t) (((value) >> 24U) & 0xFFU); \
+    (buf)[4] = (uint8_t) (((value) >> 32U) & 0xFFU); \
+    (buf)[5] = (uint8_t) (((value) >> 40U) & 0xFFU); \
+    (buf)[6] = (uint8_t) (((value) >> 48U) & 0xFFU); \
+    (buf)[7] = (uint8_t) (((value) >> 56U) & 0xFFU); \
 }
 
 /*! Writes a uint16_t into a buffer, big-endian */

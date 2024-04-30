@@ -3,7 +3,7 @@ Outgoing License: LA_OPT_NXP_SOFTWARE_License v44 - Additional distribution lice
 License in File: LICENSE.htm
 
 Package: mcux-sdk-middleware-bluetooth-host.git
-Version: 1.7.4  
+Version: 1.8.18
 Outgoing License: BSD-3-Clause 
 License File: LICENSE.htm
 Description and comments: Bluetooth Low Energy Application Firmware 
@@ -11,7 +11,7 @@ Release Location: https://github.com/nxp-mcuxpresso/mcux-sdk-middleware-bluetoot
 Origin: NXP (BSD-3-clause)
 
 Package: host/lib
-Version: 1.7.4  
+Version: 1.8.18
 Outgoing License: LA_OPT_NXP_SOFTWARE_License v44 - Additional distribution license granted, license in Section 2.3 applies
 License File: LICENSE.htm
 Description and comments: Bluetooth Low Energy Host Firmware 

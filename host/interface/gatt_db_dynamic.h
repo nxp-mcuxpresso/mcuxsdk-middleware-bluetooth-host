@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2014, Freescale Semiconductor, Inc.
-* Copyright 2016-2017, 2021 NXP
-* All rights reserved.
+* Copyright 2014 Freescale Semiconductor, Inc.
+* Copyright 2016-2019, 2021-2023 NXP
+*
 *
 * \file
 *
@@ -201,8 +201,29 @@ bleResult_t GattDbDynamic_AddCccd
     uint16_t*       pOutHandle
 );
 
+#if defined(gBLE52_d) && (gBLE52_d == TRUE)
+/************************************************************************************
+*\brief Adds a Characteristic Aggregate Format Descriptor in the database.
+*
+*\param [in]   descriptorValueLength    Fixed length of the descriptor attribute value.
+*\param [in]   pInitialValue            Initial value of the descriptor attribute.
+*\param [out]  pOutHandle               Handle of the Characteristic Aggregate Format Descriptor.
+*
+*\return  Returns        The status of the GattDbDynamic_AddCharAggregateFormat request.
+*                        Return type is \ref bleResult_t.
+*
+*\retval  gBleSuccess_c  The GattDbDynamic_AddCharAggregateFormat request was successful.
+************************************************************************************/
+bleResult_t GattDbDynamic_AddCharAggregateFormat
+(
+    uint16_t        descriptorValueLength,
+    const uint8_t*  pInitialValue,
+    uint16_t*       pOutHandle
+);
+#endif
+
 /*! *********************************************************************************
-* \brief  Adds a Characteristic declaration with a Value contained in an universal 512-byte value buffer.
+* \brief  Adds a Characteristic declaration with a Value contained in a universal 512-byte value buffer.
 *
 * \param[in]  characteristicUuidType    Characteristic UUID type.
 * \param[in]  pCharacteristicUuid       Characteristic UUID.
@@ -225,7 +246,7 @@ bleResult_t GattDbDynamic_AddCharDeclWithUniqueValue
 );
 
 /*! *********************************************************************************
-* \brief  Adds a Characteristic descriptor with a Value contained in an universal 512-byte value buffer.
+* \brief  Adds a Characteristic descriptor with a Value contained in a universal 512-byte value buffer.
 *
 * \param[in]  descriptorUuidType            Descriptor UUID type.
 * \param[in]  pDescriptorUuid               Descriptor UUID.

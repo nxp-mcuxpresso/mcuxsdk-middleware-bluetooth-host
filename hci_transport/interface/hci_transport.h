@@ -3,9 +3,9 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2014, Freescale Semiconductor, Inc.
-* Copyright 2016-2018 NXP
-* All rights reserved.
+* Copyright 2014 Freescale Semiconductor, Inc.
+* Copyright 2017, 2019-2023 NXP
+*
 *
 * \file
 *
@@ -23,7 +23,7 @@
 #include "ble_general.h"
 #include "hci_types.h"
 
-#include "SerialManager.h"
+#include "fsl_component_serial_manager.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -31,45 +31,24 @@
 *************************************************************************************
 ************************************************************************************/
 #ifndef gHcitMaxPayloadLen_c
-#define gHcitMaxPayloadLen_c    (gHcLeAclDataPacketLengthDefault_c + gHciAclDataPacketHeaderLength_c)
-#endif
+#define gHcitMaxPayloadLen_c            (gHcLeAclDataPacketLengthDefault_c + gHciAclDataPacketHeaderLength_c)
+#endif /* gHcitMaxPayloadLen_c */
 
 /* Enables Upward HCI Transport.
-   The controller sends HCI packets to be transported through the serial interface */
+ * The controller sends HCI packets to be transported through the serial interface */
 #ifndef gUseHciTransportUpward_d
-#define gUseHciTransportUpward_d      0
-#endif
+#define gUseHciTransportUpward_d        0
+#endif /* gUseHciTransportUpward_d */
 
 /* Enables Downward HCI Transport.
-   The Host sends HCI packets to be transported through the serial interface */
+ * The Host sends HCI packets to be transported through the serial interface */
 #ifndef gUseHciTransportDownward_d
-#define gUseHciTransportDownward_d    0
-#endif
+#define gUseHciTransportDownward_d      0
+#endif /* gUseHciTransportDownward_d */
 
 #if (gUseHciTransportDownward_d) && (gUseHciTransportUpward_d)
 #error "Select maximum one HCI transport method!"
-#endif
-
-/* Interface configuration */
-#ifndef gHcitInterfaceType_d
-#define gHcitInterfaceType_d        (APP_SERIAL_INTERFACE_TYPE)
-#endif
-
-#ifndef gHcitInterfaceNumber_d
-#define gHcitInterfaceNumber_d      (APP_SERIAL_INTERFACE_INSTANCE)
-#endif
-
-#ifndef gHcitInterfaceSpeed_d
-#define gHcitInterfaceSpeed_d        (gUARTBaudRate115200_c)
-#if defined(gBoard_ExtPaSupport_d) && (gBoard_ExtPaSupport_d > 0)
-    #undef  gHcitInterfaceSpeed_d
-    #define gHcitInterfaceSpeed_d    (gUARTBaudRate57600_c)
-#endif
-#endif
-
-#ifndef gHcitSerialManagerSupport_d
-#define gHcitSerialManagerSupport_d 1
-#endif
+#endif /* (gUseHciTransportDownward_d) && (gUseHciTransportUpward_d) */
 
 /************************************************************************************
 *************************************************************************************
@@ -80,17 +59,9 @@
 typedef bleResult_t (* hciTransportInterface_t)
 (
     hciPacketType_t packetType,     /*!< HCI Packet Type. */
-    void* pPacket,                  /*!< Pointer to packet payload. */
-    uint16_t packetSize             /*!< Packet payload size. */
+    void*           pPacket,        /*!< Pointer to packet payload. */
+    uint16_t        packetSize      /*!< Packet payload size. */
 );
-
-typedef struct hcitConfigStruct_tag
-{
-    serialInterfaceType_t   interfaceType;
-    uint8_t                 interfaceChannel;
-    uint32_t                interfaceBaudrate;
-    hciTransportInterface_t transportInterface;
-}hcitConfigStruct_t;
 
 /************************************************************************************
 *************************************************************************************
@@ -113,55 +84,78 @@ typedef struct hcitConfigStruct_tag
     extern "C" {
 #endif
 
+#if (defined(gUseHciTransportDownward_d) && (gUseHciTransportDownward_d)) || \
+    (defined(gUseHciTransportUpward_d) && gUseHciTransportUpward_d)
 /*! *********************************************************************************
-* \brief
+* \fn             bleResult_t Hcit_Init(hciTransportInterface_t hcitConfigStruct)
+* \brief          Reconfigures the HCI Transport module.
 *
-* \param[in]
+* \param  [in]    hcitConfigStruct      HCI Transport interface function.
 *
-* \param[out]
-*
-* \return
-*
-* \pre
-*
-* \remarks
-*
+* \retval         gHciSuccess_c         Initialization was successful.
+* \retval         gHciAlreadyInit_c     The module has already been initialized.
+* \retval         gHciTransportError_c  Initialization was unsuccessful.
+* \retval         gBleOsError_c         Initialization of OS object was unsucessfull.
+* \retval         gBleOutOfMemory_c     Memory allocation failure.
 ********************************************************************************** */
-bleResult_t Hcit_Init(hcitConfigStruct_t* hcitConfigStruct);
+bleResult_t Hcit_Init(hciTransportInterface_t hcitConfigStruct);
 
 /*! *********************************************************************************
-* \brief
+* \fn             bleResult_t Hcit_Deinit(void)
+* \brief          Terminates HCI Transport module and release allocated memory
 *
-* \param[in]    pPacket
-* \param[in]    packetSize
-*
-* \param[out]
-*
-* \return
-*
-* \pre
-*
-* \remarks
-*
+* \retval         gHciSuccess_c         Termination was successful.
+* \retval         gBleOsError_c         Termination of OS object was unsucessfull.
+* \retval         gBleOutOfMemory_c     Memory disallocation failure.
 ********************************************************************************** */
-bleResult_t Hcit_SendPacket(hciPacketType_t packetType, void* pPacket, uint16_t packetSize);
+bleResult_t Hcit_Deinit(void);
 
 /*! *********************************************************************************
-* \brief
+* \fn             bleResult_t Hcit_Reconfigure(
+*                                   hciTransportInterface_t hcitConfigStruct)
+* \brief          Initializes the HCI Transport module.
 *
-* \param[in]
+* \param  [in]    hcitConfigStruct      HCI Transport interface function.
 *
-* \param[out]   pPacket
-* \param[out]   packetSize
+* \retval         gHciSuccess_c         Reconfiguration was successful.
+* \retval         gHciTransportError_c  Reconfiguratoion was unsuccessful.
+********************************************************************************** */
+bleResult_t Hcit_Reconfigure(hciTransportInterface_t hcitConfigStruct);
+
+/*! *********************************************************************************
+* \fn             bleResult_t Hcit_SendPacket(
+*                           hciPacketType_t packetType,
+*                           void*           pPacket,
+*                           uint16_t        packetSize)
+* \brief          Sends a packet to controller.
 *
-* \return
+* \param  [in]    packetType             HCI packet type.
+* \param  [in]    pPacket                Pointer to the packet payload.
+* \param  [in]    packetSize             Packet payload size.
 *
-* \pre
+* \retval         gBleSuccess_c          Packet is successfully sent.
+* \retval         gBleOutOfMemory_c      Memory allocation for the packet fails.
+* \retval         gHciTransportError_c   Packet is unsuccessfully sent.
+********************************************************************************** */
+bleResult_t Hcit_SendPacket
+(
+    hciPacketType_t packetType,
+    void*           pPacket,
+    uint16_t        packetSize
+);
+
+/*! *********************************************************************************
+* \fn             bleResult_t Hcit_RecvPacket(void* pPacket, uint16_t packetSize)
+* \brief          Calls the HCI module to handle a received packet.
 *
-* \remarks
+* \param  [in]    pPacket        Pointer to the received packet.
+* \param  [in]    packetSize     Packet size.
 *
+* \return         bleResult_t    Result of the operation.
 ********************************************************************************** */
 bleResult_t Hcit_RecvPacket(void* pPacket, uint16_t packetSize);
+
+#endif /*gUseHciTransportDownward_d || gUseHciTransportUpward_d*/
 
 #ifdef __cplusplus
     }

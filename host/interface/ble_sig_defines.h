@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2014, Freescale Semiconductor, Inc.
-* Copyright 2016-2019 NXP
-* All rights reserved.
+* Copyright 2014 Freescale Semiconductor, Inc.
+* Copyright 2016-2023 NXP
+*
 *
 * \file
 *
@@ -20,6 +20,23 @@
 * Public constants & macros
 *************************************************************************************
 ************************************************************************************/
+/*! Placeholders for RAS related UUIDs until official numbers are allocated
+    by the Bluetooth SIG */
+
+/*! Ranging Service UUID */
+#define gBleSig_RangingService_d                0x0000U
+/*! RAS Control Point Characteristic UUID */
+#define gBleSig_RasControlPoint_d               0x0001U
+/*! RAS Real-time Procedure Data Characteristic UUID */
+#define gBleSig_RasRealTimeProcData_d           0x0002U
+/*! RAS On-demand Procedure Data Characteristic UUID */
+#define gBleSig_RasOnDemandProcData_d           0x0003U
+/*! RAS Procedure Data Ready Characteristic UUID */
+#define gBleSig_RasProcDataReady_d              0x0004U
+/*! RAS Procedure Data Overwritten Characteristic UUID */
+#define gBleSig_RasprocDataOverwritten_d        0x0005U
+/*! RAS Feature Characteristic UUID */
+#define gBleSig_RasFeature_d                    0x0006U
 
 /*! Bluetooth SIG UUID constants for GATT declarations */
 
@@ -32,15 +49,20 @@
 /*! Characteristic declaration UUID */
 #define gBleSig_Characteristic_d                0x2803U
 
+/*! Characteristic Extended Properties UUID */
+#define gBleSig_CharExtendedProperties_d        0x2900U
+/*! Client Characteristic User Description UUID */
+#define gBleSig_CharUserDescription_d           0x2901U
 /*! Client Characteristic Configuration Descriptor declaration UUID */
 #define gBleSig_CCCD_d                          0x2902U
 /*! Server Characteristic Configuration Descriptor declaration UUID */
 #define gBleSig_SCCD_d                          0x2903U
 /*! Characteristic Presentation Format declaration UUID */
 #define gBleSig_CharPresFormatDescriptor_d      0x2904U
+/*! Characteristic Aggregate Format UUID */
+#define gBleSig_CharAggregateFormat_d           0x2905U
 /*! Valid Range Descriptor declaration UUID */
 #define gBleSig_ValidRangeDescriptor_d          0x2906U
-
 
 /*! GAP Service UUID */
 #define gBleSig_GenericAccessProfile_d          0x1800U
@@ -103,6 +125,12 @@
 #define gBleSig_GapPpcp_d                       0x2A04U
 /*! GATT Service Changed Characteristic UUID */
 #define gBleSig_GattServiceChanged_d            0x2A05U
+/*! GATT Client Supported Features Characteristic UUID */
+#define gBleSig_GattClientSupportedFeatures_d   0x2B29U
+/*! GATT Server Supported Features Characteristic UUID */
+#define gBleSig_GattServerSupportedFeatures_d   0x2B3AU
+/*! GATT Database Hash Characteristic UUID */
+#define gBleSig_GattDatabaseHash_d              0x2B2AU
 /*! Alert Level Characteristic UUID */
 #define gBleSig_AlertLevel_d                    0x2A06U
 /*! TX Power Characteristic UUID */
@@ -157,6 +185,10 @@
 #define gBleSig_GlucoseMeasurementContext_d     0x2A34U
 /*! Blood Pressure Measurement UUID */
 #define gBleSig_BpMeasurement_d                 0x2A35U
+/*! Blood Pressure Enhanced Measurement UUID */
+#define gBleSig_BpEnhancedMeasurement_d         0x2B34U
+/*! Blood Pressure Record UUID */
+#define gBleSig_BpRecord_d                      0x2B36U
 /*! Intermediate Cuff Pressure UUID */
 #define gBleSig_IntermediateCuffPressure_d      0x2A36U
 /*! Heart Rate Measurement UUID */
@@ -185,6 +217,8 @@
 #define gBleSig_BloodPressureFeature_d          0x2A49U
 /*! HID Information UUID */
 #define gBleSig_HidInformation_d                0x2A4AU
+/*! HID Boot Mouse Input Report UUID */
+#define gBleSig_HidBootMouseInputReport_d       0x2A33U
 /*! HID Control Point UUID */
 #define gBleSig_HidCtrlPoint_d                  0x2A4CU
 /*! Report UUID */
@@ -266,6 +300,9 @@
 #define gBleSig_MeshProxyDataIn_d               0x2ADDU
 /*! BLE Mesh Proxy Data Out Char UUID */
 #define gBleSig_MeshProxyDataOut_d              0x2ADEU
+
+/*! LE GATT Security Levels characteristic UUID */
+#define gBleSig_GattSecurityLevels_d            0x2BF5U
 
 /*! Central Address Resolution Characteristic Values */
 #define gBleSig_CAR_NotSupported_d              0x00U

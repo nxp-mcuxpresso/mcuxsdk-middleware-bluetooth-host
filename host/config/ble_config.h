@@ -3,8 +3,8 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2016-2020 NXP
-* All rights reserved.
+* Copyright 2016-2024 NXP
+*
 *
 * \file
 *
@@ -37,7 +37,7 @@
 
 /*! Maximum number of entries in the controller resolving list. Adjust based on controller */
 #ifndef gMaxResolvingListSize_c
-#define gMaxResolvingListSize_c         6
+#define gMaxResolvingListSize_c         8
 #endif
 
 /*! Maximum number of handles that can be registered for write notifications. */
@@ -70,7 +70,7 @@
  * Range 0x0148 - 0x0848
  */
 #ifndef gBleDefaultTxTime_c
-#define gBleDefaultTxTime_c        	 0x0848
+#define gBleDefaultTxTime_c          0x0848
 #endif
 
 /* Timeout for Resolvable Private Address generation in Host
@@ -94,14 +94,6 @@
 #define gBleControllerPrivacyTimeout_c    900
 #endif
 
-/* Flag indicating whether device is set into LE Secure Connections Only Mode.
- * If this flag is overwritten as TRUE, then only LE Secure Connections Pairing is accepted.
- * Default: FALSE
- */
-#ifndef gBleLeSecureConnectionsOnlyMode_c
-#define gBleLeSecureConnectionsOnlyMode_c    (FALSE)
-#endif
-
 /* Flag indicating whether OOB channel used in LE Secure Connections pairing has MITM protection (BLE 4.2 only).
  * Default: FALSE
  */
@@ -116,6 +108,54 @@
 #define gAppMaxConnections_c             (1U)
 #endif
 
+/* Maximum number of devices without bonding. */
+#ifndef gMaxNonBondedDevices_c
+#define gMaxNonBondedDevices_c             gAppMaxConnections_c
+#endif
+
+/*! Number of maximum enhanced ATT bearers supported at application level. Do not modify this
+    directly. Redefine it according to application capabilities in app_preinclude.h */
+#ifndef gAppEattMaxNoOfBearers_c
+#if defined(gEATT_d) && (gEATT_d == TRUE)
+#define gAppEattMaxNoOfBearers_c        (2U)
+#else
+#define gAppEattMaxNoOfBearers_c        (0U)
+#endif
+#endif
+
+/*! This define is used to compute the sizes of arrays used by the EATT feature. Should be 0 if EATT
+    is not supported at application level and equal to the maximum number of connections supported otherwise. */
+#ifndef gBleAppMaxActiveConnectionsEatt_c
+#if defined(gEATT_d) && (gEATT_d == TRUE)
+#define gBleAppMaxActiveConnectionsEatt_c     gAppMaxConnections_c
+#else
+#define gBleAppMaxActiveConnectionsEatt_c     (0U)
+#endif
+#endif
+
+#ifndef gAppEattDefaultMtu_c
+#define gAppEattDefaultMtu_c            (64U)
+#endif
+
+/*! This define is used to compute the sizes of arrays used by the GATT caching feature. Should be 0 if GATT caching
+    is not supported at application level and equal to the maximum number of bonded devices supported otherwise. */
+#ifndef gcAppMaximumBondedDevicesGattCaching_c
+#if defined(gGattCaching_d) && (gGattCaching_d == TRUE)
+#define gcAppMaximumBondedDevicesGattCaching_c  gMaxBondedDevices_c
+#else
+#define gcAppMaximumBondedDevicesGattCaching_c  (0U)
+#endif
+#endif
+
+/*! This define is used to compute the sizes of arrays used by the GATT caching feature. Should be 0 if GATT caching
+    is not supported at application level and equal to the maximum number of connections supported otherwise. */
+#ifndef gBleAppMaxActiveConnectionsGattCaching_c
+#if defined(gGattCaching_d) && (gGattCaching_d == TRUE)
+#define gBleAppMaxActiveConnectionsGattCaching_c     gAppMaxConnections_c
+#else
+#define gBleAppMaxActiveConnectionsGattCaching_c     (0U)
+#endif
+#endif
 
 /*! Number of credit-based channels supported */
 #ifndef gL2caMaxLeCbChannels_c
@@ -124,7 +164,13 @@
 
 /*! Number of LE_PSM supported */
 #ifndef gL2caMaxLePsmSupported_c
-#define gL2caMaxLePsmSupported_c         (1U)
+#define gL2caMaxLePsmSupported_c         (2U)
+#endif
+
+/*! Peer credits threshold to trigger the gL2ca_LowPeerCredits_c control message to be sent to the application.
+    If set to 0 the feature is disabled. */
+#ifndef gL2caLowPeerCreditsThreshold_c
+#define gL2caLowPeerCreditsThreshold_c      (0U)
 #endif
 
 /*! Maximum number of pending L2CA packets.
@@ -156,6 +202,13 @@
 #define gBleHostExtAdvUseSameRandomAddr_c   (TRUE)
 #endif
 
+/*! How the Host handles LTK requests from LL for unbonded devices:
+ * TRUE - deny LTK (default behavior)
+ * FALSE - generate gConnEvtLongTermKeyRequest_c event to allow application to provide LTK */
+#ifndef gBleHostAutoRejectLtkRequestForUnbondedDevices_c
+#define gBleHostAutoRejectLtkRequestForUnbondedDevices_c   (TRUE)
+#endif
+
 /*! Maximum number of gapServiceSecurityRequirements_t structures that can be registered
     with Gap_RegisterDeviceSecurityRequirements() */
 #ifndef gGapMaxServiceSpecificSecurityRequirements_c
@@ -163,7 +216,7 @@
 #endif
 
 /* The maximum number of BLE connection supported by platform */
-#if defined(CPU_QN9080C) || defined(CPU_QN9090HN) || defined(CPU_QN9090THN)
+#if defined(CPU_QN9080C)
     #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     16
 
 #elif (defined(CPU_MKW36A512VHT4) || defined(CPU_MKW36A512VFP4) || defined(CPU_MKW36A512VFT4) || \
@@ -172,8 +225,14 @@
        defined(CPU_K32W032S1M2CAx_cm0plus) || defined(CPU_K32W032S1M2VPJ_cm0plus) || \
        defined(CPU_K32W032S1M2CAx_cm4) || defined(CPU_K32W032S1M2VPJ_cm4) || \
        defined(CPU_MKW38A512VFT4) || defined (CPU_MKW38Z512VFT4) || defined(CPU_MKW39A512VFT4) || \
-       defined(CPU_MKW37A512VFT4) || defined(CPU_MKW37Z512VFT4))
+       defined(CPU_MKW37A512VFT4) || defined(CPU_MKW37Z512VFT4) || \
+       defined(CPU_K32W232H050VFTA) || defined(CPU_NHS52S04HN40) || \
+       defined(CPU_MCXW345CHNA))
+
     #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     8
+
+#elif defined(KW45B41Z82_SERIES) || defined(KW45B41Z83_SERIES) || defined(K32W1480_SERIES) || defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA)
+    #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     24
 
 #elif (defined(CPU_MKW41Z256VHT4) || defined(CPU_MKW41Z512CAT4) || defined(CPU_MKW41Z512VHT4) || \
        defined(CPU_MKW31Z256VHT4) || defined(CPU_MKW31Z512CAT4) || defined(CPU_MKW31Z512VHT4))
@@ -182,8 +241,12 @@
 #elif defined(CPU_MKW40Z160VHT4) || defined(CPU_MKW30Z160VHM4)
     #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     1
 
-#elif defined(CPU_JN518X)
-    #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     16
+#elif (defined(KW47B42ZB7_cm33_core0_SERIES) || defined(CPU_KW47B42ZB7AFTA_cm33_core0) || defined(KW47B42ZB6_cm33_core0_SERIES) || defined(CPU_KW47B42ZB6AFTA_cm33_core0) || \
+       defined(KW47B42ZB3_cm33_core0_SERIES) || defined(CPU_KW47B42ZB3AFTA_cm33_core0) || defined(KW47B42ZB2_cm33_core0_SERIES) || defined(CPU_KW47B42ZB2AFTA_cm33_core0) || \
+       defined(KW47B42Z97_cm33_core0_SERIES) || defined(CPU_KW47B42Z97AFTA_cm33_core0) || defined(KW47B42Z96_cm33_core0_SERIES) || defined(CPU_KW47B42Z96AFTA_cm33_core0) || \
+       defined(KW47B42Z83_cm33_core0_SERIES) || defined(CPU_KW47B42Z83AFTA_cm33_core0))
+    #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     24
+
 #else
     #warning Undefined platform!
 #endif

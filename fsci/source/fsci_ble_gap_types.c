@@ -3,9 +3,9 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2019 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2024 NXP
+*
 *
 * \file
 *
@@ -21,8 +21,14 @@
 ************************************************************************************/
 #include "EmbeddedTypes.h"
 #include "fsci_ble_gap_types.h"
+#include "ble_general.h"
+#include "ble_config.h"
+#if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))
+#include "SecLib.h"
+#endif
 
-
+#include "fsci_ble_gap_handlers.h"
+#include "fwk_seclib.h"
 #if gFsciIncluded_c && gFsciBleGapLayerEnabled_d
 
 /************************************************************************************
@@ -46,6 +52,12 @@
 /************************************************************************************
 *************************************************************************************
 * Private functions prototypes
+*************************************************************************************
+************************************************************************************/
+
+/************************************************************************************
+*************************************************************************************
+* Public memory declarations
 *************************************************************************************
 ************************************************************************************/
 
@@ -79,6 +91,12 @@ gapSmpKeys_t* fsciBleGapAllocSmpKeysForBuffer(uint8_t* pBuffer)
 
     /* Go to bIrkIncluded */
     pBuffer += ltkSize;
+#if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))
+    if(ltkSize > 0U)
+    {
+        ltkSize = gcSmpMaxBlobSize_c;
+    } 
+#endif /* (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U)) */    
 
     /* Verify if IRK is included or not */
     fsciBleGetBoolValueFromBuffer(bIrkIncluded, pBuffer);
@@ -180,10 +198,15 @@ gapSmpKeys_t* fsciBleGapAllocSmpKeysForBuffer(uint8_t* pBuffer)
 gapSmpKeys_t *fsciBleGapAllocSmpKeys(void)
 {
     gapSmpKeys_t   *pSmpKeys;
-
+    uint32_t        ltkSize;
+#if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))
+    ltkSize = gcSmpMaxBlobSize_c;
+#else
+    ltkSize = gcSmpMaxLtkSize_c;
+#endif    
     /* Allocate buffer for SMP keys */
     pSmpKeys = (gapSmpKeys_t *)MEM_BufferAlloc(sizeof(gapSmpKeys_t) +
-                                               gcSmpMaxLtkSize_c +
+                                               ltkSize +
                                                gcSmpIrkSize_c +
                                                gcSmpCsrkSize_c +
                                                gcSmpMaxRandSize_c +
@@ -193,7 +216,7 @@ gapSmpKeys_t *fsciBleGapAllocSmpKeys(void)
     {
         /* Set pointers in gapSmpKeys_t structure */
         pSmpKeys->aLtk      = (uint8_t *)pSmpKeys + sizeof(gapSmpKeys_t);
-        pSmpKeys->aIrk      = pSmpKeys->aLtk + gcSmpMaxLtkSize_c;
+        pSmpKeys->aIrk      = pSmpKeys->aLtk + ltkSize;
         pSmpKeys->aCsrk     = pSmpKeys->aIrk + gcSmpIrkSize_c;
         pSmpKeys->aRand     = pSmpKeys->aCsrk + gcSmpCsrkSize_c;
         pSmpKeys->aAddress  = pSmpKeys->aRand + gcSmpMaxRandSize_c;
@@ -204,15 +227,15 @@ gapSmpKeys_t *fsciBleGapAllocSmpKeys(void)
 }
 
 
-uint16_t fsciBleGapGetSmpKeysBufferSize(const gapSmpKeys_t* pSmpKeys)
+uint32_t fsciBleGapGetSmpKeysBufferSize(const gapSmpKeys_t* pSmpKeys)
 {
     /* bLtkIncluded */
-    uint16_t bufferSize = sizeof(bool_t);
+    uint32_t bufferSize = sizeof(bool_t);
 
     if(NULL != pSmpKeys->aLtk)
     {
         /* cLtkSIze and aLtk */
-        bufferSize += sizeof(uint8_t) + (uint16_t)pSmpKeys->cLtkSize;
+        bufferSize += sizeof(uint8_t) + (uint32_t)pSmpKeys->cLtkSize;
     }
 
     /* bIrkIncluded */
@@ -236,7 +259,7 @@ uint16_t fsciBleGapGetSmpKeysBufferSize(const gapSmpKeys_t* pSmpKeys)
     if(NULL != pSmpKeys->aLtk)
     {
         /* cRandSize, aRand and ediv */
-        bufferSize += sizeof(uint8_t) + (uint16_t)pSmpKeys->cRandSize + sizeof(uint16_t);
+        bufferSize += sizeof(uint8_t) + (uint32_t)pSmpKeys->cRandSize + sizeof(uint16_t);
     }
 
     if(NULL != pSmpKeys->aIrk)
@@ -271,7 +294,17 @@ void fsciBleGapGetSmpKeysFromBuffer(gapSmpKeys_t* pSmpKeys, uint8_t** ppBuffer)
     {
         /* Get LTK size and LTK value from buffer */
         fsciBleGetUint8ValueFromBuffer(pSmpKeys->cLtkSize, *ppBuffer);
+#if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))
+        uint8_t tempKey[gcSmpMaxLtkSize_c] = {0U};
+        fsciBleGetArrayFromBuffer(tempKey, *ppBuffer, pSmpKeys->cLtkSize);
+        if (gSecLibFunctions.pfSecLib_ObfuscateKey != NULL)
+        {
+            (void)gSecLibFunctions.pfSecLib_ObfuscateKey(tempKey, pSmpKeys->aLtk, 1U);
+        }
+        pSmpKeys->cLtkSize = gcSmpMaxBlobSize_c;
+#else        
         fsciBleGetArrayFromBuffer(pSmpKeys->aLtk, *ppBuffer, pSmpKeys->cLtkSize);
+#endif                
     }
 
     /* Verify if IRK is included or not */
@@ -420,11 +453,11 @@ gapDeviceSecurityRequirements_t* fsciBleGapAllocDeviceSecurityRequirementsForBuf
     {
         uint8_t*                             pSecurityRequirementsTemp;
         gapServiceSecurityRequirements_t*    aServiceSecurityRequirementsTemp;
-        gapSecurityRequirements_t*           pMasterSecurityRequirementsTemp;
-    }securityRequirementsVars;
+        gapSecurityRequirements_t*           pDeviceSecurityRequirementsTemp;
+    }securityRequirementsVars = {0};
 
-    uint8_t                             nbOfServices;
-    gapDeviceSecurityRequirements_t*    pDeviceSecurityRequirements;
+    uint8_t                             nbOfServices = 0U;
+    gapDeviceSecurityRequirements_t*    pDeviceSecurityRequirements = NULL;
 
     /* Go in buffer to the number of services position */
     pBuffer += sizeof(gapSecurityModeAndLevel_t) + sizeof(bool_t) + sizeof(uint16_t);
@@ -446,8 +479,8 @@ gapDeviceSecurityRequirements_t* fsciBleGapAllocDeviceSecurityRequirementsForBuf
 
     /* Set pointers in gapDeviceSecurityRequirements_t structure */
     securityRequirementsVars.pSecurityRequirementsTemp = (uint8_t*)pDeviceSecurityRequirements + sizeof(gapDeviceSecurityRequirements_t);
-    pDeviceSecurityRequirements->pMasterSecurityRequirements    = securityRequirementsVars.pMasterSecurityRequirementsTemp;
-    securityRequirementsVars.pSecurityRequirementsTemp = (uint8_t*)pDeviceSecurityRequirements->pMasterSecurityRequirements + sizeof(gapSecurityRequirements_t);
+    pDeviceSecurityRequirements->pSecurityRequirements    = securityRequirementsVars.pDeviceSecurityRequirementsTemp;
+    securityRequirementsVars.pSecurityRequirementsTemp = (uint8_t*)pDeviceSecurityRequirements->pSecurityRequirements + sizeof(gapSecurityRequirements_t);
     pDeviceSecurityRequirements->aServiceSecurityRequirements   = securityRequirementsVars.aServiceSecurityRequirementsTemp;
 
     /* Return the allocated buffer for the device security requirements */
@@ -457,30 +490,33 @@ gapDeviceSecurityRequirements_t* fsciBleGapAllocDeviceSecurityRequirementsForBuf
 
 void fsciBleGapGetDeviceSecurityRequirementsFromBuffer(gapDeviceSecurityRequirements_t* pDeviceSecurityRequirements, uint8_t** ppBuffer)
 {
-    uint32_t iCount;
+    uint32_t iCount = 0U;
 
     /* Read gapDeviceSecurityRequirements_t fields from buffer */
-    fsciBleGapGetSecurityRequirementsFromBuffer(pDeviceSecurityRequirements->pMasterSecurityRequirements, ppBuffer);
+    fsciBleGapGetSecurityRequirementsFromBuffer(pDeviceSecurityRequirements->pSecurityRequirements, ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pDeviceSecurityRequirements->cNumServices, *ppBuffer);
 
     /* Read all the service security requirements */
-    for(iCount = 0; iCount < pDeviceSecurityRequirements->cNumServices; iCount++)
-    {
-        fsciBleGapGetServiceSecurityRequirementsFromBuffer(&pDeviceSecurityRequirements->aServiceSecurityRequirements[iCount], ppBuffer);
+    if ( pDeviceSecurityRequirements->cNumServices <= gGapMaxServiceSpecificSecurityRequirements_c)
+    {    
+        for(iCount = 0U; iCount < pDeviceSecurityRequirements->cNumServices; iCount++)
+        {
+            fsciBleGapGetServiceSecurityRequirementsFromBuffer(&pDeviceSecurityRequirements->aServiceSecurityRequirements[iCount], ppBuffer);
+        }
     }
 }
 
 
 void fsciBleGapGetBufferFromDeviceSecurityRequirements(const gapDeviceSecurityRequirements_t* pDeviceSecurityRequirements, uint8_t** ppBuffer)
 {
-    uint32_t iCount;
+    uint32_t iCount = 0U;
 
     /* Write gapDeviceSecurityRequirements_t fields in buffer */
-    fsciBleGapGetBufferFromSecurityRequirements(pDeviceSecurityRequirements->pMasterSecurityRequirements, ppBuffer);
+    fsciBleGapGetBufferFromSecurityRequirements(pDeviceSecurityRequirements->pSecurityRequirements, ppBuffer);
     fsciBleGetBufferFromUint8Value(pDeviceSecurityRequirements->cNumServices, *ppBuffer);
 
     /* Write all the service security requirements */
-    for(iCount = 0; iCount < pDeviceSecurityRequirements->cNumServices; iCount++)
+    for(iCount = 0U; iCount < pDeviceSecurityRequirements->cNumServices; iCount++)
     {
         fsciBleGapGetBufferFromServiceSecurityRequirements(&pDeviceSecurityRequirements->aServiceSecurityRequirements[iCount], ppBuffer);
     }
@@ -551,19 +587,19 @@ void fsciBleGapGetBufferFromPairingParameters(const gapPairingParameters_t* pPai
 }
 
 
-void fsciBleGapGetSlaveSecurityRequestParametersFromBuffer(gapSlaveSecurityRequestParameters_t* pSlaveSecurityRequestParameters, uint8_t** ppBuffer)
+void fsciBleGapGetPeripheralSecurityRequestParametersFromBuffer(gapPeripheralSecurityRequestParameters_t* pPeripheralSecurityRequestParameters, uint8_t** ppBuffer)
 {
-    /* Read gapSlaveSecurityRequestParameters_t fields from buffer */
-    fsciBleGetBoolValueFromBuffer(pSlaveSecurityRequestParameters->bondAfterPairing, *ppBuffer);
-    fsciBleGetBoolValueFromBuffer(pSlaveSecurityRequestParameters->authenticationRequired, *ppBuffer);
+    /* Read gapPeripheralSecurityRequestParameters_t fields from buffer */
+    fsciBleGetBoolValueFromBuffer(pPeripheralSecurityRequestParameters->bondAfterPairing, *ppBuffer);
+    fsciBleGetBoolValueFromBuffer(pPeripheralSecurityRequestParameters->authenticationRequired, *ppBuffer);
 }
 
 
-void fsciBleGapGetBufferFromSlaveSecurityRequestParameters(gapSlaveSecurityRequestParameters_t* pSlaveSecurityRequestParameters, uint8_t** ppBuffer)
+void fsciBleGapGetBufferFromPeripheralSecurityRequestParameters(gapPeripheralSecurityRequestParameters_t* pPeripheralSecurityRequestParameters, uint8_t** ppBuffer)
 {
-    /* Write gapSlaveSecurityRequestParameters_t fields in buffer */
-    fsciBleGetBufferFromBoolValue(pSlaveSecurityRequestParameters->bondAfterPairing, *ppBuffer);
-    fsciBleGetBufferFromBoolValue(pSlaveSecurityRequestParameters->authenticationRequired, *ppBuffer);
+    /* Write gapPeripheralSecurityRequestParameters_t fields in buffer */
+    fsciBleGetBufferFromBoolValue(pPeripheralSecurityRequestParameters->bondAfterPairing, *ppBuffer);
+    fsciBleGetBufferFromBoolValue(pPeripheralSecurityRequestParameters->authenticationRequired, *ppBuffer);
 }
 
 
@@ -596,7 +632,7 @@ void fsciBleGapGetExtAdvertisingParametersFromBuffer(gapExtAdvertisingParameters
     fsciBleGetEnumValueFromBuffer(  pAdvertisingParameters->channelMap,                *ppBuffer, gapAdvertisingChannelMapFlags_t);
     fsciBleGetEnumValueFromBuffer(  pAdvertisingParameters->filterPolicy,              *ppBuffer, gapAdvertisingFilterPolicy_t);
     fsciBleGetEnumValueFromBuffer(  pAdvertisingParameters->extAdvProperties,          *ppBuffer, bleAdvRequestProperties_t);
-    fsciBleGetUint8ValueFromBuffer( pAdvertisingParameters->txPower,                   *ppBuffer);
+    fsciBleGetUint8ValueFromBufferSigned( pAdvertisingParameters->txPower,             *ppBuffer);
     fsciBleGetEnumValueFromBuffer(  pAdvertisingParameters->primaryPHY,                *ppBuffer, gapLePhyMode_t);
     fsciBleGetEnumValueFromBuffer(  pAdvertisingParameters->secondaryPHY,              *ppBuffer, gapLePhyMode_t);
     fsciBleGetUint8ValueFromBuffer( pAdvertisingParameters->secondaryAdvMaxSkip,       *ppBuffer);
@@ -605,25 +641,72 @@ void fsciBleGapGetExtAdvertisingParametersFromBuffer(gapExtAdvertisingParameters
 
 void fsciBleGapGetPeriodicAdvSyncReqFromBuffer(gapPeriodicAdvSyncReq_t* pReq, uint8_t** ppBuffer)
 {
-    fsciBleGetEnumValueFromBuffer(pReq->filterPolicy, *ppBuffer, gapCreateSyncReqFilterPolicy_t);
+    fsciBleGetEnumValueFromBuffer(pReq->options, *ppBuffer, gapCreateSyncReqOptions_t);
     fsciBleGetUint8ValueFromBuffer(pReq->SID, *ppBuffer);
     fsciBleGetEnumValueFromBuffer(pReq->peerAddressType, *ppBuffer, bleAddressType_t);
     fsciBleGetAddressFromBuffer(pReq->peerAddress, *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pReq->skipCount, *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pReq->timeout, *ppBuffer);
+    fsciBleGetEnumValueFromBuffer(pReq->cteType, *ppBuffer, bleSyncCteType_t);
 }
 
 void fsciBleGapGetBufferFromPerAdvSyncReq(gapPeriodicAdvSyncReq_t* pReq, uint8_t** ppBuffer)
 {
-    fsciBleGetBufferFromEnumValue(pReq->filterPolicy, *ppBuffer, gapCreateSyncReqFilterPolicy_t);
+    fsciBleGetBufferFromEnumValue(pReq->options, *ppBuffer, gapCreateSyncReqOptions_t);
     fsciBleGetBufferFromUint8Value(pReq->SID, *ppBuffer);
     fsciBleGetBufferFromEnumValue(pReq->peerAddressType, *ppBuffer, bleAddressType_t);
     fsciBleGetBufferFromAddress(pReq->peerAddress, *ppBuffer);
     fsciBleGetBufferFromUint16Value(pReq->skipCount, *ppBuffer);
     fsciBleGetBufferFromUint16Value(pReq->timeout, *ppBuffer);
+    fsciBleGetBufferFromEnumValue(pReq->cteType, *ppBuffer, bleCteType_t);
 }
 #endif
 
+#if defined(gBLE51_d) && (gBLE51_d == 1U)
+
+void fsciBleGapGetConnectionCteReqParametersFromBuffer(gapConnectionCteReqEnableParams_t* pReqEnableParams, uint8_t** ppBuffer)
+{
+    fsciBleGetEnumValueFromBuffer(pReqEnableParams->cteReqEnable, *ppBuffer, bleCteReqEnable_t);
+    fsciBleGetUint16ValueFromBuffer(pReqEnableParams->cteReqInterval, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pReqEnableParams->requestedCteLength, *ppBuffer);
+    fsciBleGetEnumValueFromBuffer(pReqEnableParams->requestedCteType, *ppBuffer, bleCteType_t);
+}
+
+void fsciBleGapGetPeriodicAdvSncTransferParametersFromBuffer(gapPeriodicAdvSyncTransfer_t* pParams, uint8_t** ppBuffer)
+{
+    fsciBleGetDeviceIdFromBuffer(&pParams->deviceId, ppBuffer);
+    fsciBleGetUint16ValueFromBuffer(pParams->serviceData, *ppBuffer);
+    fsciBleGetUint16ValueFromBuffer(pParams->syncHandle, *ppBuffer);
+}
+
+void fsciBleGapGetPeriodicAdvSetInfoTransferFromBuffer(gapPeriodicAdvSetInfoTransfer_t* pParams, uint8_t** ppBuffer)
+{
+    fsciBleGetDeviceIdFromBuffer(&pParams->deviceId, ppBuffer);
+    fsciBleGetUint16ValueFromBuffer(pParams->serviceData, *ppBuffer);
+    fsciBleGetUint16ValueFromBuffer(pParams->advHandle, *ppBuffer);
+}
+
+void fsciBleGapSetPeriodicAdvSyncTransferParamsFromBuffer(gapSetPeriodicAdvSyncTransferParams_t* pParams, uint8_t** ppBuffer)
+{
+    fsciBleGetDeviceIdFromBuffer(&pParams->deviceId, ppBuffer);
+    fsciBleGetBufferFromEnumValue(pParams->mode, *ppBuffer, gapPeriodicAdvSyncMode_t);
+    fsciBleGetUint16ValueFromBuffer(pParams->skip, *ppBuffer);
+    fsciBleGetUint16ValueFromBuffer(pParams->syncTimeout, *ppBuffer);
+    fsciBleGetEnumValueFromBuffer(pParams->CTEType, *ppBuffer, bleSyncCteType_t);
+}
+
+#endif /* gBLE51_d */
+
+#if defined(gBLE52_d) && (gBLE52_d == 1U)
+void fsciBleGapGetPathLossReportingParametersFromBuffer(gapPathLossReportingParams_t* pParams, uint8_t** ppBuffer)
+{
+    fsciBleGetUint8ValueFromBuffer(pParams->highThreshold, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pParams->highHysteresis, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pParams->lowThreshold, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pParams->lowHysteresis, *ppBuffer);
+    fsciBleGetUint16ValueFromBuffer(pParams->minTimeSpent, *ppBuffer);
+}
+#endif /* gBLE52_d */
 
 void fsciBleGapGetBuffFromAdvParameters(const gapAdvertisingParameters_t* pAdvertisingParameters, uint8_t** ppBuffer)
 {
@@ -654,7 +737,7 @@ void fsciBleGapGetBufferFromExtAdvertisingParameters(gapExtAdvertisingParameters
     fsciBleGetBufferFromEnumValue(  pAdvertisingParameters->channelMap,                *ppBuffer, gapAdvertisingChannelMapFlags_t);
     fsciBleGetBufferFromEnumValue(  pAdvertisingParameters->filterPolicy,              *ppBuffer, gapAdvertisingFilterPolicy_t);
     fsciBleGetBufferFromEnumValue(  pAdvertisingParameters->extAdvProperties,          *ppBuffer, bleAdvRequestProperties_t);
-    fsciBleGetBufferFromUint8Value( pAdvertisingParameters->txPower,                   *ppBuffer);
+    fsciBleGetBufferFromUint8ValueSigned( pAdvertisingParameters->txPower,             *ppBuffer);
     fsciBleGetBufferFromEnumValue(  pAdvertisingParameters->primaryPHY,                *ppBuffer, gapLePhyMode_t);
     fsciBleGetBufferFromEnumValue(  pAdvertisingParameters->secondaryPHY,              *ppBuffer, gapLePhyMode_t);
     fsciBleGetBufferFromUint8Value( pAdvertisingParameters->secondaryAdvMaxSkip,       *ppBuffer);
@@ -731,7 +814,7 @@ void fsciBleGapGetConnectionParametersFromBuffer(gapConnectionParameters_t* pCon
     fsciBleGetUint16ValueFromBuffer(pConnectionParameters->connInterval, *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pConnectionParameters->connLatency, *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pConnectionParameters->supervisionTimeout, *ppBuffer);
-    fsciBleGetEnumValueFromBuffer(pConnectionParameters->masterClockAccuracy, *ppBuffer, bleMasterClockAccuracy_t);
+    fsciBleGetEnumValueFromBuffer(pConnectionParameters->centralClockAccuracy, *ppBuffer, bleCentralClockAccuracy_t);
 }
 
 
@@ -741,7 +824,7 @@ void fsciBleGapGetBuffFromConnParameters(gapConnectionParameters_t* pConnectionP
     fsciBleGetBufferFromUint16Value(pConnectionParameters->connInterval, *ppBuffer);
     fsciBleGetBufferFromUint16Value(pConnectionParameters->connLatency, *ppBuffer);
     fsciBleGetBufferFromUint16Value(pConnectionParameters->supervisionTimeout, *ppBuffer);
-    fsciBleGetBufferFromEnumValue(pConnectionParameters->masterClockAccuracy, *ppBuffer, bleMasterClockAccuracy_t);
+    fsciBleGetBufferFromEnumValue(pConnectionParameters->centralClockAccuracy, *ppBuffer, bleCentralClockAccuracy_t);
 }
 
 
@@ -774,16 +857,31 @@ void fsciBleGapGetAdStructureFromBuffer(gapAdStructure_t* pAdStructure, uint8_t*
     fsciBleGetEnumValueFromBuffer(pAdStructure->adType, *ppBuffer, gapAdType_t);
     fsciBleGetArrayFromBuffer(pAdStructure->aData, *ppBuffer, pAdStructure->length);
 
+    union
+    {
+        uint32_t lenTemp;
+        uint8_t advLen;
+    }advLength = {0};
+
     /* The length value must contain also the type (uint8_t) */
-    pAdStructure->length += sizeof(uint8_t);
+    advLength.lenTemp = sizeof(uint8_t);
+    pAdStructure->length += advLength.advLen;
 }
 
 
 void fsciBleGapGetBufferFromAdStructure(gapAdStructure_t* pAdStructure, uint8_t** ppBuffer)
 {
     /* Write gapAdStructure_t fields in buffer */
+    union
+    {
+        uint32_t lenTemp;
+        uint8_t advLen;
+    }advLength = {0};
+
+    advLength.advLen = pAdStructure->length;
+
     /* In TestTool, the length is only the data length */
-    fsciBleGetBufferFromUint8Value((pAdStructure->length - sizeof(uint8_t)), *ppBuffer);
+    fsciBleGetBufferFromUint8Value((uint8_t)(advLength.lenTemp - sizeof(uint8_t)), *ppBuffer);
     fsciBleGetBufferFromEnumValue(pAdStructure->adType, *ppBuffer, gapAdType_t);
     fsciBleGetBufferFromArray(pAdStructure->aData, *ppBuffer, ((uint32_t)pAdStructure->length - sizeof(uint8_t)));
 }
@@ -795,9 +893,9 @@ gapAdvertisingData_t* fsciBleGapAllocAdvertisingDataForBuffer(uint8_t* pBuffer)
     {
         uint8_t*                    pAdvertisingDataTemp;
         gapAdStructure_t*           aAdStructuresTemp;
-    }advertisingVars;
+    }advertisingVars = {0};
 
-    uint16_t                advertisingDataSize = sizeof(gapAdvertisingData_t);
+    uint32_t                advertisingDataSize = sizeof(gapAdvertisingData_t);
     uint8_t                 nbOfAdStructures = 0U;
     uint8_t*                aDataSizeArray = NULL;
     gapAdvertisingData_t*   pAdvertisingData = NULL;
@@ -807,7 +905,7 @@ gapAdvertisingData_t* fsciBleGapAllocAdvertisingDataForBuffer(uint8_t* pBuffer)
     /* Get from buffer the number of AdStructures */
     fsciBleGetUint8ValueFromBuffer(nbOfAdStructures, pBuffer);
 
-    if( nbOfAdStructures > 0U )
+    if(nbOfAdStructures > 0U)
     {
         /* Allocate buffer to keep each AdStructure length */
         aDataSizeArray = MEM_BufferAlloc(nbOfAdStructures);
@@ -819,7 +917,7 @@ gapAdvertisingData_t* fsciBleGapAllocAdvertisingDataForBuffer(uint8_t* pBuffer)
         }
 
         /* Read from buffer each AdStructure length */
-        for(iCount = 0; iCount < nbOfAdStructures; iCount++)
+        for(iCount = 0U; iCount < nbOfAdStructures; iCount++)
         {
             /* Get from buffer the AdStructure data length */
             fsciBleGetUint8ValueFromBuffer(aDataSizeArray[iCount], pBuffer);
@@ -848,10 +946,10 @@ gapAdvertisingData_t* fsciBleGapAllocAdvertisingDataForBuffer(uint8_t* pBuffer)
     pAdvertisingData->aAdStructures = advertisingVars.aAdStructuresTemp;
     pData                           = (uint8_t*)pAdvertisingData->aAdStructures + nbOfAdStructures * sizeof(gapAdStructure_t);
 
-    if( nbOfAdStructures > 0U )
+    if(nbOfAdStructures > 0U)
     {
         /* Set data pointer in each AdStructure */
-        for(iCount = 0; iCount < nbOfAdStructures; iCount++)
+        for(iCount = 0U; iCount < nbOfAdStructures; iCount++)
         {
             pAdvertisingData->aAdStructures[iCount].aData = pData;
 
@@ -867,14 +965,14 @@ gapAdvertisingData_t* fsciBleGapAllocAdvertisingDataForBuffer(uint8_t* pBuffer)
 }
 
 
-uint16_t fsciBleGapGetAdvertisingDataBufferSize(const gapAdvertisingData_t* pAdvertisingData)
+uint32_t fsciBleGapGetAdvertisingDataBufferSize(const gapAdvertisingData_t* pAdvertisingData)
 {
     /* Get the constant size for the needed buffer */
-    uint16_t    bufferSize = sizeof(uint8_t);
-    uint32_t    iCount;
+    uint32_t    bufferSize = sizeof(uint8_t);
+    uint32_t    iCount = 0U;
 
     /* Get the variable size for the needed buffer */
-    for(iCount = 0; iCount < pAdvertisingData->cNumAdStructures; iCount++)
+    for(iCount = 0U; iCount < pAdvertisingData->cNumAdStructures; iCount++)
     {
         bufferSize += (uint16_t)fsciBleGapGetAdStructureBufferSize(&pAdvertisingData->aAdStructures[iCount]);
     }
@@ -886,12 +984,12 @@ uint16_t fsciBleGapGetAdvertisingDataBufferSize(const gapAdvertisingData_t* pAdv
 
 void fsciBleGapGetAdvertisingDataFromBuffer(gapAdvertisingData_t* pAdvertisingData, uint8_t** ppBuffer)
 {
-    uint32_t iCount;
+    uint32_t iCount = 0U;
 
     /* Read gapAdvertisingData_t fields from buffer */
     fsciBleGetUint8ValueFromBuffer(pAdvertisingData->cNumAdStructures, *ppBuffer);
 
-    for(iCount = 0; iCount < pAdvertisingData->cNumAdStructures; iCount++)
+    for(iCount = 0U; iCount < pAdvertisingData->cNumAdStructures; iCount++)
     {
         fsciBleGapGetAdStructureFromBuffer(&pAdvertisingData->aAdStructures[iCount], ppBuffer);
     }
@@ -900,12 +998,12 @@ void fsciBleGapGetAdvertisingDataFromBuffer(gapAdvertisingData_t* pAdvertisingDa
 
 void fsciBleGapGetBufferFromAdvertisingData(const gapAdvertisingData_t* pAdvertisingData, uint8_t** ppBuffer)
 {
-    uint32_t iCount;
+    uint32_t iCount = 0U;
 
     /* Write gapAdvertisingData_t fields in buffer */
     fsciBleGetBufferFromUint8Value(pAdvertisingData->cNumAdStructures, *ppBuffer);
 
-    for(iCount = 0; iCount < pAdvertisingData->cNumAdStructures; iCount++)
+    for(iCount = 0U; iCount < pAdvertisingData->cNumAdStructures; iCount++)
     {
         fsciBleGapGetBufferFromAdStructure(&pAdvertisingData->aAdStructures[iCount], ppBuffer);
     }
@@ -935,7 +1033,7 @@ void fsciBleGapGetBufferFromScannedDevice(gapScannedDevice_t* pScannedDevice, ui
     /* Write gapScannedDevice_t fields in buffer */
     fsciBleGetBufferFromEnumValue(pScannedDevice->addressType, *ppBuffer, bleAddressType_t);
     fsciBleGetBufferFromAddress(pScannedDevice->aAddress, *ppBuffer);
-    fsciBleGetBufferFromUint8Value((uint8_t)pScannedDevice->rssi, *ppBuffer);
+    fsciBleGetBufferFromUint8ValueSigned(pScannedDevice->rssi, *ppBuffer);
     fsciBleGetBufferFromUint8Value(pScannedDevice->dataLength, *ppBuffer);
     fsciBleGetBufferFromArray(pScannedDevice->data, *ppBuffer, pScannedDevice->dataLength);
     fsciBleGetBufferFromEnumValue(pScannedDevice->advEventType, *ppBuffer, bleAdvertisingReportEventType_t);
@@ -957,8 +1055,8 @@ void fsciBleGapGetExtScannedDeviceFromBuffer(gapExtScannedDevice_t* pScannedDevi
     fsciBleGetUint8ValueFromBuffer(pScannedDevice->SID, *ppBuffer);
     fsciBleGetBoolValueFromBuffer(pScannedDevice->advertisingAddressResolved, *ppBuffer);
     fsciBleGetEnumValueFromBuffer(pScannedDevice->advEventProperties, *ppBuffer, bleAdvReportEventProperties_t);
-    fsciBleGetUint8ValueFromBuffer(pScannedDevice->rssi, *ppBuffer);
-    fsciBleGetUint8ValueFromBuffer(pScannedDevice->txPower, *ppBuffer);
+    fsciBleGetUint8ValueFromBufferSigned(pScannedDevice->rssi, *ppBuffer);
+    fsciBleGetUint8ValueFromBufferSigned(pScannedDevice->txPower, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pScannedDevice->primaryPHY, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pScannedDevice->secondaryPHY, *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pScannedDevice->periodicAdvInterval, *ppBuffer);
@@ -977,8 +1075,8 @@ void fsciBleGapGetBufferFromExtScannedDevice(gapExtScannedDevice_t* pScannedDevi
     fsciBleGetBufferFromUint8Value(pScannedDevice->SID, *ppBuffer);
     fsciBleGetBufferFromBoolValue(pScannedDevice->advertisingAddressResolved, *ppBuffer);
     fsciBleGetBufferFromEnumValue(pScannedDevice->advEventProperties, *ppBuffer, bleAdvReportEventProperties_t);
-    fsciBleGetBufferFromUint8Value(pScannedDevice->rssi, *ppBuffer);
-    fsciBleGetBufferFromUint8Value(pScannedDevice->txPower, *ppBuffer);
+    fsciBleGetBufferFromUint8ValueSigned(pScannedDevice->rssi, *ppBuffer);
+    fsciBleGetBufferFromUint8ValueSigned(pScannedDevice->txPower, *ppBuffer);
     fsciBleGetBufferFromUint8Value(pScannedDevice->primaryPHY, *ppBuffer);
     fsciBleGetBufferFromUint8Value(pScannedDevice->secondaryPHY, *ppBuffer);
     fsciBleGetBufferFromUint16Value(pScannedDevice->periodicAdvInterval, *ppBuffer);
@@ -993,8 +1091,8 @@ void fsciBleGapGetPeriodicScannedDeviceFromBuffer(gapPeriodicScannedDevice_t* pS
 {
     /* Read gapExtScannedDevice_t fields from buffer */
     fsciBleGetUint16ValueFromBuffer(pScannedDevice->syncHandle, *ppBuffer);
-    fsciBleGetUint8ValueFromBuffer(pScannedDevice->rssi, *ppBuffer);
-    fsciBleGetUint8ValueFromBuffer(pScannedDevice->txPower, *ppBuffer);
+    fsciBleGetUint8ValueFromBufferSigned(pScannedDevice->rssi, *ppBuffer);
+    fsciBleGetUint8ValueFromBufferSigned(pScannedDevice->txPower, *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pScannedDevice->dataLength, *ppBuffer);
     fsciBleGetArrayFromBuffer(pScannedDevice->pData, *ppBuffer, pScannedDevice->dataLength);
 }
@@ -1003,13 +1101,195 @@ void fsciBleGapGetBufferFromPerScannedDevice(gapPeriodicScannedDevice_t* pScanne
 {
     /* Write gapExtScannedDevice_t fields in buffer */
     fsciBleGetBufferFromUint16Value(pScannedDevice->syncHandle, *ppBuffer);
-    fsciBleGetBufferFromUint8Value(pScannedDevice->rssi, *ppBuffer);
-    fsciBleGetBufferFromUint8Value(pScannedDevice->txPower, *ppBuffer);
+    fsciBleGetBufferFromUint8ValueSigned(pScannedDevice->rssi, *ppBuffer);
+    fsciBleGetBufferFromUint8ValueSigned(pScannedDevice->txPower, *ppBuffer);
     fsciBleGetBufferFromUint16Value(pScannedDevice->dataLength, *ppBuffer);
     fsciBleGetBufferFromArray(pScannedDevice->pData, *ppBuffer, pScannedDevice->dataLength);
 }
-
 #endif  /* gBLE50_d */
+
+
+#if defined(gBLE51_d) && (gBLE51_d == 1U)
+void fsciBleGapGetBufferFromConnectionlessIqReportReceived(gapConnectionlessIqReport_t* pIqReport, uint8_t** ppBuffer)
+{
+    /* Write gapConnectionlessIqReport_t fields in buffer */
+    fsciBleGetBufferFromUint16Value(pIqReport->syncHandle, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pIqReport->channelIndex, *ppBuffer);
+    fsciBleGetBufferFromUint16Value((uint16_t)pIqReport->rssi, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pIqReport->rssiAntennaId, *ppBuffer);
+    fsciBleGetBufferFromEnumValue(pIqReport->cteType, *ppBuffer, bleCteType_t);
+    fsciBleGetBufferFromEnumValue(pIqReport->slotDurations, *ppBuffer, bleSlotDurations_t);
+    fsciBleGetBufferFromEnumValue(pIqReport->packetStatus, *ppBuffer, bleIqReportPacketStatus_t);
+    fsciBleGetBufferFromUint16Value(pIqReport->periodicEventCounter, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pIqReport->sampleCount, *ppBuffer);
+    fsciBleGetBufferFromArray(pIqReport->aI_samples, *ppBuffer, pIqReport->sampleCount);
+    fsciBleGetBufferFromArray(pIqReport->aQ_samples, *ppBuffer, pIqReport->sampleCount);
+}
+
+void fsciBleGapGetBufferFromConnIqReportReceived(gapConnIqReport_t* pIqReport, uint8_t** ppBuffer)
+{
+    /* Write gapConnIqReport_t fields in buffer */
+    fsciBleGetBufferFromEnumValue(pIqReport->rxPhy, *ppBuffer, gapLePhyMode_t);
+    fsciBleGetBufferFromUint8Value(pIqReport->dataChannelIndex, *ppBuffer);
+    fsciBleGetBufferFromUint16Value((uint16_t)pIqReport->rssi, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pIqReport->rssiAntennaId, *ppBuffer);
+    fsciBleGetBufferFromEnumValue(pIqReport->cteType, *ppBuffer, bleCteType_t);
+    fsciBleGetBufferFromEnumValue(pIqReport->slotDurations, *ppBuffer, bleSlotDurations_t);
+    fsciBleGetBufferFromEnumValue(pIqReport->packetStatus, *ppBuffer, bleIqReportPacketStatus_t);
+    fsciBleGetBufferFromUint16Value(pIqReport->connEventCounter, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pIqReport->sampleCount, *ppBuffer);
+    fsciBleGetBufferFromArray(pIqReport->aI_samples, *ppBuffer, pIqReport->sampleCount);
+    fsciBleGetBufferFromArray(pIqReport->aQ_samples, *ppBuffer, pIqReport->sampleCount);
+}
+
+void fsciBleGapGetConnectionlessIqReportReceivedFromBuffer(gapConnectionlessIqReport_t* pIqReport, uint8_t** ppBuffer)
+{
+    uint16_t temp = (uint16_t)pIqReport->rssi;
+    
+     /* Read gapConnectionlessIqReport_t fields from buffer */
+    fsciBleGetUint16ValueFromBuffer(pIqReport->syncHandle, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pIqReport->channelIndex, *ppBuffer);
+    fsciBleGetUint16ValueFromBuffer(temp, *ppBuffer);
+    pIqReport->rssi = (int16_t)temp;
+    fsciBleGetUint8ValueFromBuffer(pIqReport->rssiAntennaId, *ppBuffer);
+    fsciBleGetEnumValueFromBuffer(pIqReport->cteType, *ppBuffer, bleCteType_t);
+    fsciBleGetEnumValueFromBuffer(pIqReport->slotDurations, *ppBuffer, bleSlotDurations_t);
+    fsciBleGetEnumValueFromBuffer(pIqReport->packetStatus, *ppBuffer, bleIqReportPacketStatus_t);
+    fsciBleGetUint16ValueFromBuffer(pIqReport->periodicEventCounter, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pIqReport->sampleCount, *ppBuffer);
+    fsciBleGetArrayFromBuffer(pIqReport->aI_samples, *ppBuffer, pIqReport->sampleCount);
+    fsciBleGetArrayFromBuffer(pIqReport->aQ_samples, *ppBuffer, pIqReport->sampleCount);
+}
+
+void fsciBleGapGetConnIqReportReceivedFromBuffer(gapConnIqReport_t* pIqReport, uint8_t** ppBuffer)
+{
+    uint16_t temp = (uint16_t)pIqReport->rssi;
+    
+     /* Read gapConnIqReport_t fields from buffer */
+    fsciBleGetBufferFromEnumValue(pIqReport->rxPhy, *ppBuffer, gapLePhyMode_t);
+    fsciBleGetUint8ValueFromBuffer(pIqReport->dataChannelIndex, *ppBuffer);
+    fsciBleGetUint16ValueFromBuffer(temp, *ppBuffer);
+    pIqReport->rssi = (int16_t)temp;
+    fsciBleGetUint8ValueFromBuffer(pIqReport->rssiAntennaId, *ppBuffer);
+    fsciBleGetEnumValueFromBuffer(pIqReport->cteType, *ppBuffer, bleCteType_t);
+    fsciBleGetEnumValueFromBuffer(pIqReport->slotDurations, *ppBuffer, bleSlotDurations_t);
+    fsciBleGetEnumValueFromBuffer(pIqReport->packetStatus, *ppBuffer, bleIqReportPacketStatus_t);
+    fsciBleGetUint16ValueFromBuffer(pIqReport->connEventCounter, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pIqReport->sampleCount, *ppBuffer);
+    fsciBleGetArrayFromBuffer(pIqReport->aI_samples, *ppBuffer, pIqReport->sampleCount);
+    fsciBleGetArrayFromBuffer(pIqReport->aQ_samples, *ppBuffer, pIqReport->sampleCount);
+}
+
+void fsciBleGapGetBufferFromPeriodicAdvSyncTransferReceived(gapSyncTransferReceivedEventData_t* pSyncTransferReceived, uint8_t** ppBuffer)
+{
+    /* Write gapSyncTransferReceivedEventData_t fields in buffer */
+    fsciBleGetBufferFromUint16Value((uint16_t)pSyncTransferReceived->status, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pSyncTransferReceived->deviceId, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pSyncTransferReceived->serviceData, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pSyncTransferReceived->syncHandle, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pSyncTransferReceived->advSID, *ppBuffer);
+    fsciBleGetBufferFromEnumValue(pSyncTransferReceived->advAddressType, *ppBuffer, bleAddressType_t);
+    fsciBleGetBufferFromAddress(pSyncTransferReceived->advAddress, *ppBuffer);
+    fsciBleGetBufferFromEnumValue(pSyncTransferReceived->advPhy, *ppBuffer, gapLePhyMode_t);
+    fsciBleGetBufferFromUint16Value(pSyncTransferReceived->periodicAdvInt, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pSyncTransferReceived->advClockAccuracy, *ppBuffer);
+}
+#endif  /* gBLE51_d */
+
+#if defined(gBLE52_d) && (gBLE52_d == 1U)
+void fsciBleGapGetPathLossThresholdFromBuffer(gapPathLossThresholdEvent_t *pPathLossThreshold, uint8_t **ppBuffer)
+{
+    /* Read gapPathLossThresholdEvent_t fields from buffer */
+    fsciBleGetUint8ValueFromBuffer(pPathLossThreshold->currentPathLoss, *ppBuffer);
+    fsciBleGetEnumValueFromBuffer(pPathLossThreshold->zoneEntered, *ppBuffer, blePathLossThresholdZoneEntered_t);
+}
+
+void fsciBleGapGetTransmitPowerReportingFromBuffer(gapTransmitPowerReporting_t *pTransmitPowerReporting, uint8_t **ppBuffer)
+{
+    /* Read gapTransmitPowerReporting_t fields from buffer */
+    fsciBleGetEnumValueFromBuffer(pTransmitPowerReporting->reason, *ppBuffer, bleTxPowerReportingReason_t);
+    fsciBleGetEnumValueFromBuffer(pTransmitPowerReporting->phy, *ppBuffer, blePowerControlPhyType_t);
+    fsciBleGetUint8ValueFromBufferSigned(pTransmitPowerReporting->txPowerLevel, *ppBuffer);
+    fsciBleGetEnumValueFromBuffer(pTransmitPowerReporting->flags, *ppBuffer, bleTxPowerLevelFlags_t);
+    fsciBleGetUint8ValueFromBufferSigned(pTransmitPowerReporting->delta, *ppBuffer);
+}
+
+void fsciBleGapGetTransmitPowerInfoFromBuffer(gapTransmitPowerInfo_t *pTransmitPowerInfo, uint8_t **ppBuffer)
+{
+    /* Read gapTransmitPowerInfo_t fields from buffer */
+    fsciBleGetEnumValueFromBuffer(pTransmitPowerInfo->phy, *ppBuffer, blePowerControlPhyType_t);
+    fsciBleGetUint8ValueFromBufferSigned(pTransmitPowerInfo->currTxPowerLevel, *ppBuffer);
+    fsciBleGetUint8ValueFromBufferSigned(pTransmitPowerInfo->maxTxPowerLevel, *ppBuffer);
+}
+
+void fsciBleGapGetBufferFromPathLossThreshold(gapPathLossThresholdEvent_t *pPathLossThreshold, uint8_t **ppBuffer)
+{
+    /* Write gapPathLossThresholdEvent_t fields into buffer */
+    fsciBleGetBufferFromUint8Value(pPathLossThreshold->currentPathLoss, *ppBuffer);
+    fsciBleGetBufferFromEnumValue(pPathLossThreshold->zoneEntered, *ppBuffer, blePathLossThresholdZoneEntered_t);
+}
+
+void fsciBleGapGetBufferFromTransmitPowerReporting(gapTransmitPowerReporting_t *pTransmitPowerReporting, uint8_t **ppBuffer)
+{
+    /* Write gapTransmitPowerReporting_t fields into buffer */
+    fsciBleGetBufferFromEnumValue(pTransmitPowerReporting->reason, *ppBuffer, bleTxPowerReportingReason_t);
+    fsciBleGetBufferFromEnumValue(pTransmitPowerReporting->phy, *ppBuffer, blePowerControlPhyType_t);
+    fsciBleGetBufferFromUint8ValueSigned(pTransmitPowerReporting->txPowerLevel, *ppBuffer);
+    fsciBleGetBufferFromEnumValue(pTransmitPowerReporting->flags, *ppBuffer, bleTxPowerLevelFlags_t);
+    fsciBleGetBufferFromUint8ValueSigned(pTransmitPowerReporting->delta, *ppBuffer);
+}
+
+void fsciBleGapGetBufferFromTransmitPowerInfo(gapTransmitPowerInfo_t *pTransmitPowerInfo, uint8_t **ppBuffer)
+{
+    /* Write gapTransmitPowerInfo_t fields into buffer */
+    fsciBleGetBufferFromEnumValue(pTransmitPowerInfo->phy, *ppBuffer, blePowerControlPhyType_t);
+    fsciBleGetBufferFromUint8ValueSigned(pTransmitPowerInfo->currTxPowerLevel, *ppBuffer);
+    fsciBleGetBufferFromUint8ValueSigned(pTransmitPowerInfo->maxTxPowerLevel, *ppBuffer);
+}
+
+#if defined(gEATT_d) && (gEATT_d == TRUE)
+void fsciBleGapGetBufferFromEattConnectionRequest(gapEattConnectionRequest_t *pEattConnectionRequest, uint8_t **ppBuffer)
+{
+    /* Write gapEattConnectionRequest_t fields into buffer */
+    fsciBleGetBufferFromUint16Value(pEattConnectionRequest->mtu, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pEattConnectionRequest->cBearers, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pEattConnectionRequest->initialCredits, *ppBuffer);
+}
+
+void fsciBleGapGetBufferFromEattConnectionComplete(gapEattConnectionComplete_t *pEattConnectionComplete, uint8_t **ppBuffer)
+{
+    /* Write gapEattConnectionComplete_t fields into buffer */
+    fsciBleGetBufferFromUint8Value((uint8_t)pEattConnectionComplete->status, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pEattConnectionComplete->mtu, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pEattConnectionComplete->cBearers, *ppBuffer);
+
+    for (uint32_t i = 0U; i < pEattConnectionComplete->cBearers; i++)
+    {
+        fsciBleGetBufferFromUint8Value(pEattConnectionComplete->aBearerIds[i], *ppBuffer);
+    }
+}
+
+void fsciBleGapGetBufferFromEattReconfigureResponse(gapEattReconfigureResponse_t *pEattReconfigureResponse, uint8_t **ppBuffer)
+{
+    /* Write gapEattReconfigureResponse_t fields into buffer */
+    fsciBleGetBufferFromUint8Value((uint8_t)pEattReconfigureResponse->status, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pEattReconfigureResponse->localMtu, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pEattReconfigureResponse->cBearers, *ppBuffer);
+
+    for (uint32_t i = 0U; i < pEattReconfigureResponse->cBearers; i++)
+    {
+        fsciBleGetBufferFromUint8Value(pEattReconfigureResponse->aBearerIds[i], *ppBuffer);
+    }
+}
+
+void fsciBleGapGetBufferFromEattBearerStatusNotification(gapEattBearerStatusNotification_t *pEattBearerStatusNotification, uint8_t **ppBuffer)
+{
+    /* Write gapEattBearerStatusNotification_t fields into buffer */
+    fsciBleGetBufferFromUint8Value(pEattBearerStatusNotification->bearerId, *ppBuffer);
+    fsciBleGetBufferFromUint8Value((uint8_t)pEattBearerStatusNotification->status, *ppBuffer);
+}
+#endif
+#endif
 
 void fsciBleGapGetConnectedEventFromBuffer(gapConnectedEvent_t* pConnectedEvent, uint8_t** ppBuffer)
 {
@@ -1067,10 +1347,10 @@ void fsciBleGapGetBufferFromKeyExchangeRequestEvent(gapKeyExchangeRequestEvent_t
 }
 
 
-uint16_t fsciBleGapGetPairingCompleteEventBufferSize(gapPairingCompleteEvent_t* pPairingCompleteEvent)
+uint32_t fsciBleGapGetPairingCompleteEventBufferSize(gapPairingCompleteEvent_t* pPairingCompleteEvent)
 {
     /* Return the size needed for the buffer */
-    return (sizeof(bool_t) + ((TRUE == pPairingCompleteEvent->pairingSuccessful) ? (uint16_t)sizeof(bool_t) : (uint16_t)sizeof(bleResult_t)));
+    return (sizeof(bool_t) + ((TRUE == pPairingCompleteEvent->pairingSuccessful) ? sizeof(bool_t) : sizeof(bleResult_t)));
 }
 
 
@@ -1147,7 +1427,7 @@ void fsciBleGapGetConnParamUpdateReqFromBuffer(gapConnParamsUpdateReq_t* pConnPa
     /* Read gapConnParamsUpdateReq_t structure fields from buffer */
     fsciBleGetUint16ValueFromBuffer(pConnParameterUpdateRequest->intervalMin, *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pConnParameterUpdateRequest->intervalMax, *ppBuffer);
-    fsciBleGetUint16ValueFromBuffer(pConnParameterUpdateRequest->slaveLatency, *ppBuffer);
+    fsciBleGetUint16ValueFromBuffer(pConnParameterUpdateRequest->peripheralLatency, *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pConnParameterUpdateRequest->timeoutMultiplier, *ppBuffer);
 }
 
@@ -1157,7 +1437,7 @@ void fsciBleGapGetBufferFromConnParameterUpdateRequest(gapConnParamsUpdateReq_t*
     /* Write gapConnParamsUpdateReq_t structure fields in buffer */
     fsciBleGetBufferFromUint16Value(pConnParameterUpdateRequest->intervalMin, *ppBuffer);
     fsciBleGetBufferFromUint16Value(pConnParameterUpdateRequest->intervalMax, *ppBuffer);
-    fsciBleGetBufferFromUint16Value(pConnParameterUpdateRequest->slaveLatency, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pConnParameterUpdateRequest->peripheralLatency, *ppBuffer);
     fsciBleGetBufferFromUint16Value(pConnParameterUpdateRequest->timeoutMultiplier, *ppBuffer);
 }
 
@@ -1181,7 +1461,6 @@ void fsciBleGapGetBuffFromConnParameterUpdateComplete(gapConnParamsUpdateComplet
     fsciBleGetBufferFromUint16Value(pConnParameterUpdateComplete->supervisionTimeout, *ppBuffer);
 }
 
-
 void fsciBleGapGetConnLeDataLengthChangedFromBuffer(gapConnLeDataLengthChanged_t* pConnLeDataLengthChanged, uint8_t** ppBuffer)
 {
     /* Read gapConnParamsUpdateReq_t structure fields from buffer */
@@ -1191,6 +1470,11 @@ void fsciBleGapGetConnLeDataLengthChangedFromBuffer(gapConnLeDataLengthChanged_t
     fsciBleGetUint16ValueFromBuffer(pConnLeDataLengthChanged->maxRxTime, *ppBuffer);
 }
 
+void fsciBleGapGetBufferFromConnLeSetDataLengthChangedFailure(bleResult_t reason, uint8_t** ppBuffer)
+{
+    /* Write bleResult_t structure fields in buffer */
+    fsciBleGetBufferFromUint16Value((uint16_t)reason, *ppBuffer);
+}
 
 void fsciBleGapGetBufferFromConnLeDataLengthChanged(gapConnLeDataLengthChanged_t* pConnLeDataLengthChanged, uint8_t** ppBuffer)
 {
@@ -1221,123 +1505,46 @@ void fsciBleGapGetBufferFromIdentityInformation(const gapIdentityInformation_t* 
     fsciBleGetBufferFromEnumValue(pIdentityInformation->privacyMode, *ppBuffer, blePrivacyMode_t);
 }
 
-uint16_t fsciBleGapGetGenericEventBufferSize(gapGenericEvent_t* pGenericEvent)
+void fsciBleGapGetBufferFromHostVersion(gapHostVersion_t *pHostVersion, uint8_t** ppBuffer)
+{
+    /* Write gapHostVersion_t structure fields in buffer */
+    fsciBleGetBufferFromUint8Value(pHostVersion->bleHostVerMajor, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pHostVersion->bleHostVerMinor, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pHostVersion->bleHostVerPatch, *ppBuffer);
+}
+
+void fsciBleGapGetBufferFromGetConnParamsCompleteEvent(getConnParams_t* pGetConnParams, uint8_t** ppBuffer)
+{
+    fsciBleGetBufferFromUint16Value(pGetConnParams->connectionHandle, *ppBuffer);
+    fsciBleGetBufferFromUint32Value(pGetConnParams->ulTxAccCode, *ppBuffer);
+    fsciBleGetBufferFromArray(pGetConnParams->aCrcInitVal, *ppBuffer, (uint32_t)(3U * sizeof(uint8_t)));
+    fsciBleGetBufferFromUint16Value(pGetConnParams->uiConnInterval, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pGetConnParams->uiSuperTO, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pGetConnParams->uiConnLatency, *ppBuffer);
+    fsciBleGetBufferFromArray(pGetConnParams->aChMapBm, *ppBuffer, (uint32_t)(5U * sizeof(uint8_t)));
+    fsciBleGetBufferFromUint8Value(pGetConnParams->ucChannelSelection, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pGetConnParams->ucHop, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pGetConnParams->ucUnMapChIdx, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pGetConnParams->ucCentralSCA, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pGetConnParams->ucRole, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pGetConnParams->aucRemoteMasRxPHY, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pGetConnParams->seqNum, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pGetConnParams->uiConnEvent, *ppBuffer);
+    fsciBleGetBufferFromUint32Value(pGetConnParams->ulAnchorClk, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pGetConnParams->uiAnchorDelay, *ppBuffer);
+    fsciBleGetBufferFromUint32Value(pGetConnParams->ulRxInstant, *ppBuffer);
+}
+
+uint32_t fsciBleGapGetGenericEventBufferSize(gapGenericEvent_t* pGenericEvent)
 {
     /* Get the constant size for the needed buffer */
-    uint16_t bufferSize = 0;
+    uint32_t bufferSize = 0;
 
-    /* Get the variable size for the needed buffer */
-    switch(pGenericEvent->eventType)
+    /* Call the appropriate handler to get the variable size for the needed buffer */
+    if (((uint32_t)pGenericEvent->eventType < mGapGetGenericEventBufferSizeHandlersArraySize) &&
+        (maGapGetGenericEventBufferSizeHandlers[pGenericEvent->eventType] != NULL))
     {
-        case gInternalError_c:
-            {
-                bufferSize += fsciBleGapGetInternalErrorBufferSize(&pGenericEvent->internalError);
-            }
-            break;
-
-        case gWhiteListSizeRead_c:
-            {
-                bufferSize += sizeof(uint8_t);
-            }
-            break;
-
-        case gRandomAddressReady_c:
-            {
-                bufferSize += gcBleDeviceAddressSize_c;
-                bufferSize += sizeof(uint8_t);  /* advHandle */
-            }
-            break;
-
-        case gPublicAddressRead_c:
-            {
-                bufferSize += gcBleDeviceAddressSize_c;
-            }
-            break;
-
-        case gRandomAddressSet_c:
-            {
-                bufferSize += sizeof(uint8_t);  /* advHandle */
-            }
-            break;
-
-        case gAdvertisingSetupFailed_c:
-            {
-                bufferSize += sizeof(bleResult_t);
-            }
-            break;
-
-#if defined(gBLE50_d) && (gBLE50_d == 1U)
-        case gExtAdvertisingParametersSetupComplete_c:  /* Fall-through */
-#endif
-        case gAdvTxPowerLevelRead_c:
-            {
-                bufferSize += sizeof(int8_t);   /* advTxPowerLevel_dBm */
-            }
-            break;
-
-        case gPrivateResolvableAddressVerified_c:
-            {
-                bufferSize += sizeof(bool_t);
-            }
-            break;
-
-        case gLeScLocalOobData_c:
-            {
-                bufferSize += gSmpLeScRandomValueSize_c + gSmpLeScRandomConfirmValueSize_c;
-            }
-            break;
-
-        case gHostPrivacyStateChanged_c:
-            {
-                bufferSize += sizeof(bool_t);
-            }
-            break;
-
-        case gControllerPrivacyStateChanged_c:
-            {
-                bufferSize += sizeof(bool_t);
-            }
-            break;
-
-        case gTxPowerLevelSetComplete_c:
-            {
-                bufferSize += sizeof(bleResult_t);
-            }
-            break;
-
-        case gLePhyEvent_c:
-            {
-                bufferSize += sizeof(gapPhyEventType_t) + 3U * sizeof(uint8_t);
-            }
-            break;
-
-        case gInitializationComplete_c:
-            {
-                bufferSize += sizeof(uint32_t) + sizeof(uint16_t) + 2U * sizeof(uint8_t);
-            }
-            break;
-
-        case gControllerNotificationEvent_c:
-            {
-                bufferSize += sizeof(uint16_t) + sizeof(deviceId_t) + sizeof(int8_t) + sizeof(uint8_t) + sizeof(uint16_t) + sizeof(bleResult_t) + sizeof(uint16_t) + sizeof(uint8_t);
-            }
-            break;
-
-        case gBondCreatedEvent_c:
-            {
-                bufferSize += sizeof(uint8_t) + sizeof(bleAddressType_t) + gcBleDeviceAddressSize_c;
-            }
-            break;
-
-        case gTxEntryAvailable_c:
-            {
-                bufferSize += sizeof(uint8_t);
-            }
-            break;
-
-        default:
-            ; /* For MISRA compliance */
-            break;
+        bufferSize += maGapGetGenericEventBufferSizeHandlers[pGenericEvent->eventType](pGenericEvent);
     }
 
     /* Return the size needed for the buffer */
@@ -1347,282 +1554,32 @@ uint16_t fsciBleGapGetGenericEventBufferSize(gapGenericEvent_t* pGenericEvent)
 
 void fsciBleGapGetGenericEventFromBuffer(gapGenericEvent_t* pGenericEvent, uint8_t** ppBuffer)
 {
-    /* Read gapGenericEvent_t fields from buffer (without eventType) */
-    switch(pGenericEvent->eventType)
+    /* Call the appropriate handler to read gapGenericEvent_t fields
+     * from buffer (without eventType) */
+    if (((uint32_t)pGenericEvent->eventType < mGapGetGenericEventFromBufferHandlersArraySize) &&
+        (maGapGetGenericEventFromBufferHandlers[pGenericEvent->eventType] != NULL))
     {
-        case gInternalError_c:
-            {
-                fsciBleGapGetInternalErrorFromBuffer(&pGenericEvent->eventData.internalError, ppBuffer);
-            }
-            break;
-
-        case gWhiteListSizeRead_c:
-            {
-                fsciBleGetUint8ValueFromBuffer(pGenericEvent->eventData.whiteListSize, *ppBuffer);
-            }
-            break;
-
-        case gRandomAddressReady_c:
-            {
-                fsciBleGetAddressFromBuffer(pGenericEvent->eventData.addrReady.aAddress, *ppBuffer);
-                fsciBleGetUint8ValueFromBuffer(pGenericEvent->eventData.addrReady.advHandle, *ppBuffer);
-            }
-            break;
-
-        case gPublicAddressRead_c:
-            {
-                fsciBleGetAddressFromBuffer(pGenericEvent->eventData.aAddress, *ppBuffer);
-            }
-            break;
-
-        case gRandomAddressSet_c:
-            {
-                fsciBleGetUint8ValueFromBuffer(pGenericEvent->eventData.advHandle, *ppBuffer);
-            }
-            break;
-
-        case gAdvertisingSetupFailed_c:
-            {
-                fsciBleGetEnumValueFromBuffer(pGenericEvent->eventData.setupFailError, *ppBuffer, bleResult_t);
-            }
-            break;
-
-#if defined(gBLE50_d) && (gBLE50_d == 1U)
-        case gExtAdvertisingParametersSetupComplete_c:  /* Fall-through */
-#endif
-        case gAdvTxPowerLevelRead_c:
-            {
-                fsciBleGetUint8ValueFromBufferSigned(pGenericEvent->eventData.advTxPowerLevel_dBm, *ppBuffer);
-            }
-            break;
-
-        case gPrivateResolvableAddressVerified_c:
-            {
-                fsciBleGetBoolValueFromBuffer(pGenericEvent->eventData.verified, *ppBuffer);
-            }
-            break;
-
-        case gLeScLocalOobData_c:
-            {
-                fsciBleGetArrayFromBuffer(pGenericEvent->eventData.localOobData.randomValue, *ppBuffer, gSmpLeScRandomValueSize_c);
-                fsciBleGetArrayFromBuffer(pGenericEvent->eventData.localOobData.confirmValue, *ppBuffer, gSmpLeScRandomConfirmValueSize_c);
-            }
-            break;
-
-        case gHostPrivacyStateChanged_c:
-            {
-                fsciBleGetBoolValueFromBuffer(pGenericEvent->eventData.newHostPrivacyState, *ppBuffer);
-            }
-            break;
-
-        case gControllerPrivacyStateChanged_c:
-            {
-                fsciBleGetBoolValueFromBuffer(pGenericEvent->eventData.newControllerPrivacyState, *ppBuffer);
-            }
-            break;
-
-        case gTxPowerLevelSetComplete_c:
-            {
-                fsciBleGetEnumValueFromBuffer(pGenericEvent->eventData.txPowerLevelSetStatus, *ppBuffer, bleResult_t);
-            }
-            break;
-
-        case gLePhyEvent_c:
-            {
-                fsciBleGetEnumValueFromBuffer(pGenericEvent->eventData.phyEvent.phyEventType, *ppBuffer, gapPhyEventType_t);
-                if( gPhySetDefaultComplete_c != pGenericEvent->eventData.phyEvent.phyEventType )
-                {
-                    fsciBleGetDeviceIdFromBuffer(&pGenericEvent->eventData.phyEvent.deviceId, ppBuffer);
-                    fsciBleGetUint8ValueFromBuffer(pGenericEvent->eventData.phyEvent.txPhy, *ppBuffer);
-                    fsciBleGetUint8ValueFromBuffer(pGenericEvent->eventData.phyEvent.rxPhy, *ppBuffer);
-                }
-            }
-            break;
-
-        case gInitializationComplete_c:
-            {
-                fsciBleGetUint32ValueFromBuffer(pGenericEvent->eventData.initCompleteData.supportedFeatures, *ppBuffer);
-                fsciBleGetUint16ValueFromBuffer(pGenericEvent->eventData.initCompleteData.maxAdvDataSize, *ppBuffer);
-                fsciBleGetUint8ValueFromBuffer(pGenericEvent->eventData.initCompleteData.numOfSupportedAdvSets, *ppBuffer);
-                fsciBleGetUint8ValueFromBuffer(pGenericEvent->eventData.initCompleteData.periodicAdvListSize, *ppBuffer);
-            }
-            break;
-
-        case gControllerNotificationEvent_c:
-            {
-                fsciBleGetEnumValueFromBuffer(pGenericEvent->eventData.notifEvent.eventType, *ppBuffer, bleNotificationEventType_t);
-                fsciBleGetDeviceIdFromBuffer(&pGenericEvent->eventData.notifEvent.deviceId, ppBuffer);
-                fsciBleGetUint8ValueFromBufferSigned(pGenericEvent->eventData.notifEvent.rssi, *ppBuffer);
-                fsciBleGetUint8ValueFromBuffer(pGenericEvent->eventData.notifEvent.channel, *ppBuffer);
-                fsciBleGetUint16ValueFromBuffer(pGenericEvent->eventData.notifEvent.ce_counter, *ppBuffer);
-                fsciBleGetEnumValueFromBuffer(pGenericEvent->eventData.notifEvent.status, *ppBuffer, bleResult_t);
-                fsciBleGetUint16ValueFromBuffer(pGenericEvent->eventData.notifEvent.timestamp, *ppBuffer);
-                fsciBleGetUint8ValueFromBuffer(pGenericEvent->eventData.notifEvent.adv_handle, *ppBuffer);
-            }
-            break;
-
-        case gBondCreatedEvent_c:
-            {
-                fsciBleGetUint8ValueFromBuffer(pGenericEvent->eventData.bondCreatedEvent.nvmIndex, *ppBuffer);
-                fsciBleGetEnumValueFromBuffer(pGenericEvent->eventData.bondCreatedEvent.addressType, *ppBuffer, bleAddressType_t);
-                fsciBleGetAddressFromBuffer(pGenericEvent->eventData.bondCreatedEvent.address, *ppBuffer);
-            }
-            break;
-
-        case gTxEntryAvailable_c:
-            {
-                fsciBleGetUint8ValueFromBuffer(pGenericEvent->eventData.deviceId, *ppBuffer);
-            }
-            break;
-
-        default:
-            ; /* For MISRA compliance */
-            break;
+        maGapGetGenericEventFromBufferHandlers[pGenericEvent->eventType](pGenericEvent, ppBuffer);
     }
 }
 
 
 void fsciBleGapGetBufferFromGenericEvent(gapGenericEvent_t* pGenericEvent, uint8_t** ppBuffer)
 {
-    /* Write gapGenericEvent_t fields in buffer (without eventType) */
-    switch(pGenericEvent->eventType)
+    /* Call the appropriate handler to write gapGenericEvent_t fields
+     * in buffer (without eventType) */
+    if (((uint32_t)pGenericEvent->eventType < mGapGetBufferFromGenericEventHandlersArraySize) &&
+        (maGapGetBufferFromGenericEventHandlers[pGenericEvent->eventType] != NULL))
     {
-        case gInternalError_c:
-            {
-                fsciBleGapGetBufferFromInternalError(&pGenericEvent->eventData.internalError, ppBuffer);
-            }
-            break;
-
-        case gWhiteListSizeRead_c:
-            {
-                fsciBleGetBufferFromUint8Value(pGenericEvent->eventData.whiteListSize, *ppBuffer);
-            }
-            break;
-
-        case gRandomAddressReady_c:
-            {
-                fsciBleGetBufferFromAddress(pGenericEvent->eventData.addrReady.aAddress, *ppBuffer);
-                fsciBleGetBufferFromUint8Value(pGenericEvent->eventData.addrReady.advHandle, *ppBuffer);
-            }
-            break;
-
-        case gPublicAddressRead_c:
-            {
-                fsciBleGetBufferFromAddress(pGenericEvent->eventData.aAddress, *ppBuffer);
-            }
-            break;
-
-        case gRandomAddressSet_c:
-            {
-                fsciBleGetBufferFromUint8Value(pGenericEvent->eventData.advHandle, *ppBuffer);
-            }
-            break;
-
-        case gAdvertisingSetupFailed_c:
-            {
-                fsciBleGetBufferFromEnumValue(pGenericEvent->eventData.setupFailError, *ppBuffer, bleResult_t);
-            }
-            break;
-
-#if defined(gBLE50_d) && (gBLE50_d == 1U)
-        case gExtAdvertisingParametersSetupComplete_c:  /* Fall-through */
-#endif
-        case gAdvTxPowerLevelRead_c:
-            {
-                fsciBleGetBufferFromUint8Value((uint8_t)pGenericEvent->eventData.advTxPowerLevel_dBm, *ppBuffer);
-            }
-            break;
-
-        case gPrivateResolvableAddressVerified_c:
-            {
-                fsciBleGetBufferFromBoolValue(pGenericEvent->eventData.verified, *ppBuffer);
-            }
-            break;
-
-        case gLeScLocalOobData_c:
-            {
-                fsciBleGetBufferFromArray(pGenericEvent->eventData.localOobData.randomValue, *ppBuffer, gSmpLeScRandomValueSize_c);
-                fsciBleGetBufferFromArray(pGenericEvent->eventData.localOobData.confirmValue, *ppBuffer, gSmpLeScRandomConfirmValueSize_c);
-            }
-            break;
-
-        case gHostPrivacyStateChanged_c:
-            {
-                fsciBleGetBufferFromBoolValue(pGenericEvent->eventData.newHostPrivacyState, *ppBuffer);
-            }
-            break;
-
-        case gControllerPrivacyStateChanged_c:
-            {
-                fsciBleGetBufferFromBoolValue(pGenericEvent->eventData.newControllerPrivacyState, *ppBuffer);
-            }
-            break;
-
-        case gTxPowerLevelSetComplete_c:
-            {
-                fsciBleGetBufferFromEnumValue(pGenericEvent->eventData.txPowerLevelSetStatus, *ppBuffer, bleResult_t);
-            }
-            break;
-
-        case gLePhyEvent_c:
-            {
-                fsciBleGetBufferFromEnumValue(pGenericEvent->eventData.phyEvent.phyEventType, *ppBuffer, gapPhyEventType_t);
-                if( gPhySetDefaultComplete_c != pGenericEvent->eventData.phyEvent.phyEventType )
-                {
-                    fsciBleGetBufferFromDeviceId(&pGenericEvent->eventData.phyEvent.deviceId, ppBuffer);
-                    fsciBleGetBufferFromUint8Value(pGenericEvent->eventData.phyEvent.txPhy, *ppBuffer);
-                    fsciBleGetBufferFromUint8Value(pGenericEvent->eventData.phyEvent.rxPhy, *ppBuffer);
-                }
-            }
-            break;
-
-        case gInitializationComplete_c:
-            {
-                fsciBleGetBufferFromUint32Value(pGenericEvent->eventData.initCompleteData.supportedFeatures, *ppBuffer);
-                fsciBleGetBufferFromUint16Value(pGenericEvent->eventData.initCompleteData.maxAdvDataSize, *ppBuffer);
-                fsciBleGetBufferFromUint8Value(pGenericEvent->eventData.initCompleteData.numOfSupportedAdvSets, *ppBuffer);
-                fsciBleGetBufferFromUint8Value(pGenericEvent->eventData.initCompleteData.periodicAdvListSize, *ppBuffer);
-            }
-            break;
-
-        case gControllerNotificationEvent_c:
-            {
-                fsciBleGetBufferFromEnumValue(pGenericEvent->eventData.notifEvent.eventType, *ppBuffer, bleNotificationEventType_t);
-                fsciBleGetBufferFromDeviceId(&pGenericEvent->eventData.notifEvent.deviceId, ppBuffer);
-                fsciBleGetBufferFromUint8ValueSigned(pGenericEvent->eventData.notifEvent.rssi, *ppBuffer);
-                fsciBleGetBufferFromUint8Value(pGenericEvent->eventData.notifEvent.channel, *ppBuffer);
-                fsciBleGetBufferFromUint16Value(pGenericEvent->eventData.notifEvent.ce_counter, *ppBuffer);
-                fsciBleGetBufferFromEnumValue(pGenericEvent->eventData.notifEvent.status, *ppBuffer, bleResult_t);
-                fsciBleGetBufferFromUint16Value(pGenericEvent->eventData.notifEvent.timestamp, *ppBuffer);
-                fsciBleGetBufferFromUint8Value(pGenericEvent->eventData.notifEvent.adv_handle, *ppBuffer);
-            }
-            break;
-
-        case gBondCreatedEvent_c:
-            {
-                fsciBleGetBufferFromUint8Value(pGenericEvent->eventData.bondCreatedEvent.nvmIndex, *ppBuffer);
-                fsciBleGetBufferFromEnumValue(pGenericEvent->eventData.bondCreatedEvent.addressType, *ppBuffer, bleAddressType_t);
-                fsciBleGetBufferFromAddress(pGenericEvent->eventData.bondCreatedEvent.address, *ppBuffer);
-            }
-            break;
-
-        case gTxEntryAvailable_c:
-            {
-                fsciBleGetBufferFromUint8Value(pGenericEvent->eventData.deviceId, *ppBuffer);
-            }
-            break;
-
-        default:
-            ; /* For MISRA compliance */
-            break;
+        maGapGetBufferFromGenericEventHandlers[pGenericEvent->eventType](pGenericEvent, ppBuffer);
     }
 }
 
 
-uint16_t fsciBleGapGetAdvertisingEventBufferSize(gapAdvertisingEvent_t* pAdvertisingEvent)
+uint32_t fsciBleGapGetAdvertisingEventBufferSize(gapAdvertisingEvent_t* pAdvertisingEvent)
 {
     /* Get the constant size for the needed buffer */
-    uint16_t bufferSize = 0;
+    uint32_t bufferSize = 0;
 
     /* Get the variable size for the needed buffer */
     switch(pAdvertisingEvent->eventType)
@@ -1730,8 +1687,8 @@ void fsciBleGapGetBuffFromAdvEvent(gapAdvertisingEvent_t* pAdvertisingEvent, uin
 
 gapScanningEvent_t* fsciBleGapAllocScanningEventForBuffer(gapScanningEventType_t eventType, uint8_t* pBuffer)
 {
-    uint16_t            variableLength = 0;
-    gapScanningEvent_t* pScanningEvent;
+    uint16_t            variableLength = 0U;
+    gapScanningEvent_t* pScanningEvent = NULL;
 
     if(gDeviceScanned_c == eventType)
     {
@@ -1765,16 +1722,19 @@ gapScanningEvent_t* fsciBleGapAllocScanningEventForBuffer(gapScanningEventType_t
     else if (gPeriodicDeviceScanned_c == eventType)
     {
         /* Go to dataLength field in gapPeriodicScannedDevice_t structure */
-        pBuffer += sizeof(uint8_t) +
-                   sizeof(bleAddressType_t) +
-                   sizeof(bleDeviceAddress_t) +
+        pBuffer += sizeof(uint16_t) +
                    sizeof(int8_t) +
-                   sizeof(int8_t);
+                   sizeof(int8_t) +
+                   sizeof(bleCteType_t);
 
         /* Get dataLength field from buffer */
         fsciBleGetUint16ValueFromBuffer(variableLength, pBuffer);
     }
 #endif
+    else
+    {
+         ; /* For MISRA compliance */
+    }
 
     /* Allocate memory for the scanning event */
     pScanningEvent = (gapScanningEvent_t*)MEM_BufferAlloc(sizeof(gapScanningEvent_t) + (uint32_t)variableLength);
@@ -1801,6 +1761,10 @@ gapScanningEvent_t* fsciBleGapAllocScanningEventForBuffer(gapScanningEventType_t
             pScanningEvent->eventData.periodicScannedDevice.pData = (uint8_t*)pScanningEvent + sizeof(gapScanningEvent_t);
         }
 #endif
+        else
+        {
+             ; /* For MISRA compliance */
+        }
     }
 
     /* Return memory allocated for the scanning event */
@@ -1808,10 +1772,10 @@ gapScanningEvent_t* fsciBleGapAllocScanningEventForBuffer(gapScanningEventType_t
 }
 
 
-uint16_t fsciBleGapGetScanningEventBufferSize(gapScanningEvent_t* pScanningEvent)
+uint32_t fsciBleGapGetScanningEventBufferSize(gapScanningEvent_t* pScanningEvent)
 {
     /* Get the constant size for the needed buffer */
-    uint16_t bufferSize = 0;
+    uint32_t bufferSize = 0U;
 
     /* Get the variable size for the needed buffer */
     switch(pScanningEvent->eventType)
@@ -1824,7 +1788,7 @@ uint16_t fsciBleGapGetScanningEventBufferSize(gapScanningEvent_t* pScanningEvent
 
         case gDeviceScanned_c:
             {
-                bufferSize += (uint16_t)fsciBleGapGetScannedDeviceBufferSize(&pScanningEvent->eventData.scannedDevice);
+                bufferSize += fsciBleGapGetScannedDeviceBufferSize(&pScanningEvent->eventData.scannedDevice);
                 if( FALSE == pScanningEvent->eventData.scannedDevice.directRpaUsed )
                 {
                     bufferSize -= gcBleDeviceAddressSize_c;
@@ -1858,7 +1822,13 @@ uint16_t fsciBleGapGetScanningEventBufferSize(gapScanningEvent_t* pScanningEvent
             break;
 
 #endif
-
+#if defined(gBLE51_d) && (gBLE51_d == 1U)
+        case gConnectionlessIqReportReceived_c:
+            {
+                bufferSize += fsciBleGapGetConnectionlessIqReportReceivedBufferSize(&pScanningEvent->eventData.iqReport);
+            }
+            break;
+#endif
         default:
             ; /* For MISRA compliance */
             break;
@@ -1900,11 +1870,17 @@ void fsciBleGapGetScanningEventFromBuffer(gapScanningEvent_t* pScanningEvent, ui
 
         case gPeriodicAdvSyncLost_c:
             {
-                fsciBleGapGetSyncLostFromBuffer(&pScanningEvent->eventData.syncLost, ppBuffer);
+                fsciBleGetUint16ValueFromBuffer(pScanningEvent->eventData.syncLost.syncHandle, *ppBuffer);
             }
             break;
 #endif
-
+#if defined(gBLE51_d) && (gBLE51_d == 1U)
+        case gConnectionlessIqReportReceived_c:
+            {
+                fsciBleGapGetConnectionlessIqReportReceivedFromBuffer(&pScanningEvent->eventData.iqReport, ppBuffer);
+            }
+            break;
+#endif
         default:
             ; /* For MISRA compliance */
             break;
@@ -1955,7 +1931,13 @@ void fsciBleGapGetBufferFromScanningEvent(gapScanningEvent_t* pScanningEvent, ui
             }
             break;
 #endif
-
+#if defined(gBLE51_d) && (gBLE51_d == 1U)
+        case gConnectionlessIqReportReceived_c:
+            {
+                fsciBleGapGetBufferFromConnectionlessIqReportReceived(&pScanningEvent->eventData.iqReport, ppBuffer);
+            }
+            break;
+#endif
         default:
             ; /* For MISRA compliance */
             break;
@@ -1996,147 +1978,16 @@ gapConnectionEvent_t* fsciBleGapAllocConnectionEventForBuffer(gapConnectionEvent
 }
 
 
-uint16_t fsciBleGapGetConnectionEventBufferSize(gapConnectionEvent_t* pConnectionEvent)
+uint32_t fsciBleGapGetConnectionEventBufferSize(gapConnectionEvent_t* pConnectionEvent)
 {
     /* Get the constant size for the needed buffer */
-    uint16_t bufferSize = 0;
+    uint32_t bufferSize = 0;
 
-    /* Get the variable size for the needed buffer */
-    switch(pConnectionEvent->eventType)
+    /* Call the appropriate handler to get the variable size for the needed buffer */
+    if (((uint32_t)pConnectionEvent->eventType < mGapGetConnEventBufferSizeHandlersArraySize) &&
+        (maGapGetConnEventBufferSizeHandlers[pConnectionEvent->eventType] != NULL))
     {
-        case gConnEvtConnected_c:
-            {
-                bufferSize += fsciBleGapGetConnectedEventBufferSize(&pConnectionEvent->eventData.connectedEvent);
-                if( FALSE == pConnectionEvent->eventData.connectedEvent.peerRpaResolved )
-                {
-                    bufferSize -= gcBleDeviceAddressSize_c;
-                }
-                if( FALSE == pConnectionEvent->eventData.connectedEvent.localRpaUsed )
-                {
-                    bufferSize -= gcBleDeviceAddressSize_c;
-                }
-            }
-            break;
-
-        case gConnEvtPairingRequest_c:
-        case gConnEvtPairingResponse_c:
-            {
-                bufferSize += fsciBleGapGetPairingParametersBufferSize(&pConnectionEvent->eventData.pairingEvent);
-            }
-            break;
-
-        case gConnEvtAuthenticationRejected_c:
-            {
-                bufferSize += fsciBleGapGetAuthenticationRejectedEventBufferSize(&pConnectionEvent->eventData.authenticationRejectedEvent);
-            }
-            break;
-
-        case gConnEvtSlaveSecurityRequest_c:
-            {
-                bufferSize += fsciBleGapGetSlaveSecurityRequestParametersBufferSize(&pConnectionEvent->eventData.slaveSecurityRequestEvent);
-            }
-            break;
-
-        case gConnEvtKeyExchangeRequest_c:
-            {
-                bufferSize += fsciBleGapGetKeyExchangeRequestEventBufferSize(&pConnectionEvent->eventData.keyExchangeRequestEvent);
-            }
-            break;
-
-        case gConnEvtKeysReceived_c:
-            {
-                bufferSize += fsciBleGapGetKeysReceivedEventBufferSize(&pConnectionEvent->eventData.keysReceivedEvent);
-            }
-            break;
-
-        case gConnEvtPairingComplete_c:
-            {
-                bufferSize += fsciBleGapGetPairingCompleteEventBufferSize(&pConnectionEvent->eventData.pairingCompleteEvent);
-            }
-            break;
-
-        case gConnEvtLongTermKeyRequest_c:
-            {
-                bufferSize += (uint16_t)fsciBleGapGetLongTermKeyRequestEventBufferSize(&pConnectionEvent->eventData.longTermKeyRequestEvent);
-            }
-            break;
-
-        case gConnEvtEncryptionChanged_c:
-            {
-                bufferSize += fsciBleGapGetEncryptionChangedEventBufferSize(&pConnectionEvent->eventData.encryptionChangedEvent);
-            }
-            break;
-
-        case gConnEvtDisconnected_c:
-            {
-                bufferSize += fsciBleGapGetDisconnectedEventBufferSize(&pConnectionEvent->eventData.disconnectedEvent);
-            }
-            break;
-
-        case gConnEvtRssiRead_c:
-        case gConnEvtTxPowerLevelRead_c:
-            {
-                bufferSize += sizeof(int8_t);
-            }
-            break;
-
-        case gConnEvtPowerReadFailure_c:
-            {
-                bufferSize += sizeof(bleResult_t);
-            }
-            break;
-
-        case gConnEvtPasskeyDisplay_c:
-            {
-                bufferSize += sizeof(uint32_t);
-            }
-            break;
-
-        case gConnEvtParameterUpdateRequest_c:
-            {
-                bufferSize += fsciBleGapGetConnParameterUpdateRequestBufferSize(&pConnectionEvent->eventData.connectionUpdateRequest);
-            }
-            break;
-
-        case gConnEvtParameterUpdateComplete_c:
-            {
-                bufferSize += fsciBleGapGetConnParameterUpdateCompleteBufferSize(&pConnectionEvent->eventData.connectionUpdateComplete);
-            }
-            break;
-
-        case gConnEvtLeDataLengthChanged_c:
-            {
-                bufferSize += fsciBleGapGetConnLeDataLengthChangedBufferSize(&pConnectionEvent->eventData.leDataLengthChanged);
-            }
-            break;
-
-        case gConnEvtLeScDisplayNumericValue_c:
-            {
-                bufferSize += fsciBleGapGetConnLeScDisplayNumericValueBufferSize(&pConnectionEvent->eventData.numericValueForDisplay);
-            }
-            break;
-
-        case gConnEvtLeScKeypressNotification_c:
-            {
-                bufferSize += fsciBleGapGetConnLeScKeypressNotificationBufferSize(&pConnectionEvent->eventData.incomingKeypressNotification);
-            }
-            break;
-
-        case gConnEvtChannelMapRead_c:
-            {
-                bufferSize += gcBleChannelMapSize_c;
-            }
-            break;
-
-        case gConnEvtChannelMapReadFailure_c:
-            {
-                bufferSize += sizeof(bleResult_t);
-            }
-            break;
-
-        default:
-            ; /* For MISRA compliance */
-            break;
+        bufferSize += maGapGetConnEventBufferSizeHandlers[pConnectionEvent->eventType](pConnectionEvent);
     }
 
     /* Return the size needed for the buffer */
@@ -2146,278 +1997,24 @@ uint16_t fsciBleGapGetConnectionEventBufferSize(gapConnectionEvent_t* pConnectio
 
 void fsciBleGapGetConnectionEventFromBuffer(gapConnectionEvent_t* pConnectionEvent, uint8_t** ppBuffer)
 {
-    /* Read gapConnectionEvent_t fields from buffer (without eventType) */
-    switch(pConnectionEvent->eventType)
+    /* Call the appropriate handler to read gapConnectionEvent_t
+     * fields from buffer (without eventType) */
+    if (((uint32_t)pConnectionEvent->eventType < mGapGetConnEventFromBufferHandlersArraySize) &&
+        (maGapGetConnEventFromBufferHandlers[pConnectionEvent->eventType] != NULL))
     {
-        case gConnEvtConnected_c:
-            {
-                fsciBleGapGetConnectedEventFromBuffer(&pConnectionEvent->eventData.connectedEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtPairingRequest_c:
-        case gConnEvtPairingResponse_c:
-            {
-                fsciBleGapGetPairingParametersFromBuffer(&pConnectionEvent->eventData.pairingEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtAuthenticationRejected_c:
-            {
-               fsciBleGapGetAuthenticationRejectedEventFromBuffer(&pConnectionEvent->eventData.authenticationRejectedEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtSlaveSecurityRequest_c:
-            {
-                fsciBleGapGetSlaveSecurityRequestParametersFromBuffer(&pConnectionEvent->eventData.slaveSecurityRequestEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtKeyExchangeRequest_c:
-            {
-                fsciBleGapGetKeyExchangeRequestEventFromBuffer(&pConnectionEvent->eventData.keyExchangeRequestEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtKeysReceived_c:
-            {
-                fsciBleGapGetKeysReceivedEventFromBuffer(&pConnectionEvent->eventData.keysReceivedEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtPairingComplete_c:
-            {
-                fsciBleGapGetPairComplEventFromBuffer(&pConnectionEvent->eventData.pairingCompleteEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtLongTermKeyRequest_c:
-            {
-                fsciBleGapGetLongTermKeyRequestEventFromBuffer(&pConnectionEvent->eventData.longTermKeyRequestEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtEncryptionChanged_c:
-            {
-                fsciBleGapGetEncryptionChangedEventFromBuffer(&pConnectionEvent->eventData.encryptionChangedEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtDisconnected_c:
-            {
-                fsciBleGapGetDisconnectedEventFromBuffer(&pConnectionEvent->eventData.disconnectedEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtRssiRead_c:
-            {
-                fsciBleGetUint8ValueFromBufferSigned(pConnectionEvent->eventData.rssi_dBm, *ppBuffer);
-            }
-            break;
-
-        case gConnEvtTxPowerLevelRead_c:
-            {
-                fsciBleGetUint8ValueFromBufferSigned(pConnectionEvent->eventData.txPowerLevel_dBm, *ppBuffer);
-            }
-            break;
-
-        case gConnEvtPowerReadFailure_c:
-            {
-                fsciBleGetEnumValueFromBuffer(pConnectionEvent->eventData.failReason, *ppBuffer, bleResult_t);
-            }
-            break;
-
-        case gConnEvtPasskeyDisplay_c:
-            {
-                fsciBleGetUint32ValueFromBuffer(pConnectionEvent->eventData.passkeyForDisplay, *ppBuffer);
-            }
-            break;
-
-        case gConnEvtParameterUpdateRequest_c:
-            {
-                fsciBleGapGetConnParamUpdateReqFromBuffer(&pConnectionEvent->eventData.connectionUpdateRequest, ppBuffer);
-            }
-            break;
-
-        case gConnEvtParameterUpdateComplete_c:
-            {
-                fsciBleGapGetConnParameterUpdateCompleteFromBuffer(&pConnectionEvent->eventData.connectionUpdateComplete, ppBuffer);
-            }
-            break;
-
-        case gConnEvtLeDataLengthChanged_c:
-            {
-                fsciBleGapGetConnLeDataLengthChangedFromBuffer(&pConnectionEvent->eventData.leDataLengthChanged, ppBuffer);
-            }
-            break;
-
-        case gConnEvtLeScDisplayNumericValue_c:
-            {
-                fsciBleGetUint32ValueFromBuffer(pConnectionEvent->eventData.numericValueForDisplay, *ppBuffer);
-            }
-            break;
-
-        case gConnEvtLeScKeypressNotification_c:
-            {
-                fsciBleGetEnumValueFromBuffer(pConnectionEvent->eventData.incomingKeypressNotification, *ppBuffer, gapKeypressNotification_t);
-            }
-            break;
-
-        case gConnEvtChannelMapRead_c:
-            {
-                fsciBleGetArrayFromBuffer(pConnectionEvent->eventData.channelMap, *ppBuffer, gcBleChannelMapSize_c);
-            }
-            break;
-
-        case gConnEvtChannelMapReadFailure_c:
-            {
-                fsciBleGetEnumValueFromBuffer(pConnectionEvent->eventData.failReason, *ppBuffer, bleResult_t);
-            }
-            break;
-
-        default:
-                 ; /* For MISRA compliance */
-            break;
+        maGapGetConnEventFromBufferHandlers[pConnectionEvent->eventType](pConnectionEvent, ppBuffer);
     }
 }
 
 
 void fsciBleGapGetBufferFromConnectionEvent(gapConnectionEvent_t* pConnectionEvent, uint8_t** ppBuffer)
 {
-    /* Write gapConnectionEvent_t fields in buffer (without eventType) */
-    switch(pConnectionEvent->eventType)
+    /* Call the appropriate handler to write gapConnectionEvent_t fields
+     * in buffer (without eventType) */
+    if(((uint32_t)pConnectionEvent->eventType < mGapGetBufferFromConnEventHandlersArraySize) &&
+        (maGapGetBufferFromConnEventHandlers[pConnectionEvent->eventType] != NULL))
     {
-        case gConnEvtConnected_c:
-            {
-                fsciBleGapGetBufferFromConnectedEvent(&pConnectionEvent->eventData.connectedEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtPairingRequest_c:
-        case gConnEvtPairingResponse_c:
-            {
-                fsciBleGapGetBufferFromPairingParameters(&pConnectionEvent->eventData.pairingEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtAuthenticationRejected_c:
-            {
-               fsciBleGapGetBufferFromAuthenticationRejectedEvent(&pConnectionEvent->eventData.authenticationRejectedEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtSlaveSecurityRequest_c:
-            {
-                fsciBleGapGetBufferFromSlaveSecurityRequestParameters(&pConnectionEvent->eventData.slaveSecurityRequestEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtKeyExchangeRequest_c:
-            {
-                fsciBleGapGetBufferFromKeyExchangeRequestEvent(&pConnectionEvent->eventData.keyExchangeRequestEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtKeysReceived_c:
-            {
-                fsciBleGapGetBufferFromKeysReceivedEvent(&pConnectionEvent->eventData.keysReceivedEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtPairingComplete_c:
-            {
-                fsciBleGapGetBufferFromPairingCompleteEvent(&pConnectionEvent->eventData.pairingCompleteEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtLongTermKeyRequest_c:
-            {
-                fsciBleGapGetBufferFromLongTermKeyRequestEvent(&pConnectionEvent->eventData.longTermKeyRequestEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtEncryptionChanged_c:
-            {
-                fsciBleGapGetBufferFromEncryptionChangedEvent(&pConnectionEvent->eventData.encryptionChangedEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtDisconnected_c:
-            {
-                fsciBleGapGetBufferFromDisconnectedEvent(&pConnectionEvent->eventData.disconnectedEvent, ppBuffer);
-            }
-            break;
-
-        case gConnEvtRssiRead_c:
-            {
-                fsciBleGetBufferFromUint8Value((uint8_t)pConnectionEvent->eventData.rssi_dBm, *ppBuffer);
-            }
-            break;
-
-        case gConnEvtTxPowerLevelRead_c:
-            {
-                fsciBleGetBufferFromUint8Value((uint8_t)pConnectionEvent->eventData.txPowerLevel_dBm, *ppBuffer);
-            }
-            break;
-
-        case gConnEvtPowerReadFailure_c:
-            {
-                fsciBleGetBufferFromEnumValue(pConnectionEvent->eventData.failReason, *ppBuffer, bleResult_t);
-            }
-            break;
-
-        case gConnEvtPasskeyDisplay_c:
-            {
-                fsciBleGetBufferFromUint32Value(pConnectionEvent->eventData.passkeyForDisplay, *ppBuffer);
-            }
-            break;
-
-        case gConnEvtParameterUpdateRequest_c:
-            {
-                fsciBleGapGetBufferFromConnParameterUpdateRequest(&pConnectionEvent->eventData.connectionUpdateRequest, ppBuffer);
-            }
-            break;
-
-        case gConnEvtParameterUpdateComplete_c:
-            {
-                fsciBleGapGetBuffFromConnParameterUpdateComplete(&pConnectionEvent->eventData.connectionUpdateComplete, ppBuffer);
-            }
-            break;
-
-        case gConnEvtLeDataLengthChanged_c:
-            {
-                fsciBleGapGetBufferFromConnLeDataLengthChanged(&pConnectionEvent->eventData.leDataLengthChanged, ppBuffer);
-            }
-            break;
-
-        case gConnEvtLeScDisplayNumericValue_c:
-            {
-                fsciBleGetBufferFromUint32Value(pConnectionEvent->eventData.numericValueForDisplay, *ppBuffer);
-            }
-            break;
-
-        case gConnEvtLeScKeypressNotification_c:
-            {
-                fsciBleGetBufferFromEnumValue(pConnectionEvent->eventData.incomingKeypressNotification, *ppBuffer, gapKeypressNotification_t);
-            }
-            break;
-
-        case gConnEvtChannelMapRead_c:
-            {
-                fsciBleGetBufferFromArray(pConnectionEvent->eventData.channelMap, *ppBuffer, gcBleChannelMapSize_c);
-            }
-            break;
-
-        case gConnEvtChannelMapReadFailure_c:
-            {
-                fsciBleGetBufferFromEnumValue(pConnectionEvent->eventData.failReason, *ppBuffer, bleResult_t);
-            }
-            break;
-
-        default:
-            ; /* For MISRA compliance */
-            break;
+        maGapGetBufferFromConnEventHandlers[pConnectionEvent->eventType](pConnectionEvent, ppBuffer);
     }
 }
 
@@ -2441,7 +2038,7 @@ gapAutoConnectParams_t* fsciBleGapAllocAutoConnectParamsForBuffer(uint8_t* pBuff
     {
         uint8_t*                                pConnectionRequestParamsTemp;
         gapConnectionRequestParameters_t*       aAutoConnectDataTemp;
-    }connectionVars;
+    }connectionVars = {0};
 
     uint8_t                 cNumAddresses;
     gapAutoConnectParams_t*	pAutoConnectParams;
@@ -2470,7 +2067,7 @@ void fsciBleGapGetAutoConnectParamsFromBuffer(gapAutoConnectParams_t* pAutoConne
 
     /* Read gapAutoConnectParams_t fields from buffer */
     fsciBleGetUint8ValueFromBuffer(pAutoConnectParams->cNumAddresses, *ppBuffer);
-    fsciBleGetBoolValueFromBuffer(pAutoConnectParams->writeInWhiteList, *ppBuffer);
+    fsciBleGetBoolValueFromBuffer(pAutoConnectParams->writeInFilterAcceptList, *ppBuffer);
 
     for(iCount = 0; iCount < pAutoConnectParams->cNumAddresses; iCount ++)
     {
@@ -2485,7 +2082,7 @@ void fsciBleGapGetBufferFromAutoConnectParams(gapAutoConnectParams_t* pAutoConne
 
     /* Write gapAutoConnectParams_t fields in buffer */
     fsciBleGetBufferFromUint8Value(pAutoConnectParams->cNumAddresses, *ppBuffer);
-    fsciBleGetBufferFromBoolValue(pAutoConnectParams->writeInWhiteList, *ppBuffer);
+    fsciBleGetBufferFromBoolValue(pAutoConnectParams->writeInFilterAcceptList, *ppBuffer);
 
     for(iCount = 0; iCount < pAutoConnectParams->cNumAddresses; iCount ++)
     {

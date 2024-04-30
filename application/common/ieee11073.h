@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************* */
 /*! *********************************************************************************
-* Copyright (c) 2014 - 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2019 NXP
-* All rights reserved.
+* Copyright 2014 - 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2021, 2023 NXP
+*
 *
 * \file
 *
@@ -34,22 +34,22 @@
 #define gIeee11073_32Bit_Nres_c     0x08000000U
 
 /*! IEEE 11073-20601 - Plus Infinity 16 bit float*/
-#define gIeee11073_16Bit_PlusInf   0x07FEU
+#define gIeee11073_16Bit_PlusInf    0x07FEU
 
 /*! IEEE 11073-20601 - Plus Infinity 32 bit float*/
-#define gIeee11073_32Bit_PlusInf   0x07FFFFFEU
+#define gIeee11073_32Bit_PlusInf    0x07FFFFFEU
 
 /*! IEEE 11073-20601 - Minus Infinity 16 bit float*/
-#define gIeee11073_16Bit_MinusInf  0x0802U
+#define gIeee11073_16Bit_MinusInf   0x0802U
 
 /*! IEEE 11073-20601 - Minus Infinity 32 bit float*/
-#define gIeee11073_32Bit_MinusInf  0x08000002U
+#define gIeee11073_32Bit_MinusInf   0x08000002U
 
 /*! IEEE 11073-20601 - Reserved for future use 16 bit float*/
-#define gIeee11073_16Bit_Reserved  0x0801U
+#define gIeee11073_16Bit_Reserved   0x0801U
 
 /*! IEEE 11073-20601 - Reserved for future use 32 bit float*/
-#define gIeee11073_32Bit_Reserved  0x08000001U
+#define gIeee11073_32Bit_Reserved   0x08000001U
 
 /************************************************************************************
 *************************************************************************************

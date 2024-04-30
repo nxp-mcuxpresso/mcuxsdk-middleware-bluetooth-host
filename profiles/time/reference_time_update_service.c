@@ -3,8 +3,8 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2016-2019 NXP
-* All rights reserved.
+* Copyright 2016-2019, 2022-2023 NXP
+*
 *
 * \file
 *
@@ -67,7 +67,7 @@ bleResult_t Rtus_Unsubscribe(void)
 
 bleResult_t Rtus_RecordTimeUpdateState (rtusConfig_t *pServiceConfig)
 {
-    uint16_t  handle;
+    uint16_t  handle = gGattDbInvalidHandle_d;
     bleResult_t result;
     bleUuid_t uuid = Uuid16(gBleSig_TimeUpdateState_d);
 
@@ -78,7 +78,7 @@ bleResult_t Rtus_RecordTimeUpdateState (rtusConfig_t *pServiceConfig)
     if (result == gBleSuccess_c)
     {
         /* Update characteristic value */
-        result = GattDb_WriteAttribute(handle, sizeof(timeUpdateState_t), (uint8_t*)&pServiceConfig->timeUpdateState);
+        result = GattDb_WriteAttribute(handle, (uint16_t)sizeof(timeUpdateState_t), (uint8_t*)&pServiceConfig->timeUpdateState);
     }
 
     return result;

@@ -3,9 +3,9 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright (c) 2015, Freescale Semiconductor, Inc.
-* Copyright 2016-2020 NXP
-* All rights reserved.
+* Copyright 2015 Freescale Semiconductor, Inc.
+* Copyright 2016-2021, 2023 NXP
+*
 *
 * \file
 *
@@ -45,10 +45,12 @@ typedef union
     attPrepareWriteRequestResponseParams_t*       pPrepareWriteRequestResponseParams;
     attExecuteWriteRequestParams_t*               pExecuteWriteRequestParams;
     attHandleValueNotificationIndicationParams_t* pHandleValueNotificationIndicationParams;
+    attMultipleHandleValueNotificationParams_t*   pMultipleValueNotificationParams;
+    attReadMultipleVariableResponseParams_t*      pMultipleVariableLenResponseParams;
     attInvalidPduIndicationParams_t*              pInvalidPduIndicationParams;
 }attCbParams_t;
 
-typedef void (*pfAttToUpperLayerCallback_t)(deviceId_t deviceId, attOpcode_t opcode, void* pParam);
+typedef void (*pfAttToUpperLayerCallback_t)(deviceId_t deviceId, bearerId_t bearerId, attOpcode_t opcode, void* pParam);
 
 /************************************************************************************
  *************************************************************************************
@@ -66,6 +68,18 @@ bleResult_t Att_RegisterCallback
 (
     pfAttToUpperLayerCallback_t        callback
 );
+
+/*!*************************************************************************************************
+*\brief        This function is a wrapper for the mpfAttUpperLayerCallback call.
+
+*\param [in]   deviceId       Identifier of the connected peer
+*\param [in]   bearerId       Identifier of the bearer
+*\param [in]   opcode         Operation opcode
+*\param [in]   pParam         Pointer to the operation parameters
+*
+*\return       void
+***************************************************************************************************/
+void attToUpperLayerCallback(deviceId_t deviceId, bearerId_t bearerId, attOpcode_t opcode, void* pParam);
 
 #endif /* ATT_CALLBACKS_H */
 
