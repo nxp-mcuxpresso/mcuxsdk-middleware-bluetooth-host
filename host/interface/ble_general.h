@@ -867,137 +867,137 @@ typedef enum {
 
 /*! Internal Error Source - the command that triggered the error */
 typedef enum {
-    gHciCommandStatus_c,
-    gCheckPrivateResolvableAddress_c,
-    gVerifySignature_c,
-    gAddNewConnection_c,
-    gResetController_c,
-    gSetEventMask_c,
-    gReadLeBufferSize_c,
-    gSetLeEventMask_c,
-    gReadDeviceAddress_c,
-    gReadLocalSupportedFeatures_c,
-    gReadFilterAcceptListSize_c,
-    gClearFilterAcceptList_c,
-    gAddDeviceToFilterAcceptList_c,
-    gRemoveDeviceFromFilterAcceptList_c,
-    gCancelCreateConnection_c,
-    gReadRadioPower_c,
-    gSetRandomAddress_c,
-    gCreateRandomAddress_c,
-    gEncryptLink_c,
-    gProvideLongTermKey_c,
-    gDenyLongTermKey_c,
-    gConnect_c,
-    gDisconnect_c,
-    gTerminatePairing_c,
-    gSendPeripheralSecurityRequest_c,
-    gEnterPasskey_c,
-    gProvideOob_c,
-    gSendSmpKeys_c,
-    gWriteSuggestedDefaultDataLength_c,
-    gReadSuggestedDefaultDataLength_c,
-    gUpdateLeDataLength_c,
-    gEnableHostPrivacy_c,
-    gEnableControllerPrivacy_c,
-    gLeScSendKeypressNotification_c,
-    gLeScSetPeerOobData_c,
-    gLeScGetLocalOobData_c,
-    gLeScValidateNumericValue_c,
-    gLeScRegeneratePublicKey_c,
-    gLeSetResolvablePrivateAddressTimeout_c,
-    gDefaultPairingProcedure_c,
-    gLeControllerTest_c,
-    gLeReadPhy_c,
-    gLeSetPhy_c,
-    gSaveKeys_c,
-    gSetChannelMap_c,
-    gReadLocalSupportedCommands_c,
-    gEnableLdmTimer_c,
-    gRemoveAdvertisingSet_c,
-    gLePeriodicAdvSyncEstb_c,
-    gLePeriodicAdvSyncLost_c,
-    gLeRemoveDeviceFromPeriodicAdvList_c,
-    gLeClearPeriodicAdvList_c,
-    gLeAddDeviceToPeriodicAdvList_c,
-    gLeReadNumOfSupportedAdvSets_c,
-    gLeReadPeriodicAdvListSize_c,
-    gLeReadMaxAdvDataLen_c,
-    gPeriodicAdvCreateSync,
-    gPeriodicAdvCancelSync,
-    gPeriodicAdvTerminateSync,
-    gL2capRxPacket_c,
-    gExtAdvReportProcess_c,
-    gReadControllerLocalRPA_c,
-    gHciEventReceiveHandler_c,
-    gSetConnectionlessCteTransmitParams_c,
-    gSetConnectionlessCteTransmitEnable_c,
-    gSetConnectionlessIqSamplingEnable_c,
-    gReadAntennaInformation_c,
-    gSetConnectionCteReceiveParams_c,
-    gSetConnectionCteTransmitParams_c,
-    gConnectionCteReqEnable_c,
-    gConnectionCteRspEnable_c,
-    gGenerateDHKeyV2_c,
-    gModifySleepClockAccuracy_c,
-    gPeriodicAdvRcvEnable_c,
-    gPeriodicAdvSyncTransfer_c,
-    gPeriodicAdvSetInfoTransfer_c,
-    gSetPeriodicAdvSyncTransferParams_c,
-    gSetDefaultPeriodicAdvSyncTransferParams_c,
-    gEnhancedReadTransmitPowerLevel_c,
-    gReadRemoteTransmitPowerLevel_c,
-    gSetPathLossReportingParams_c,
-    gSetPathLossReportingEnable_c,
-    gSetTransmitPowerReportingEnable_c,
-    gEattConnectionRequest_c,
-    gEattConnectionAccept_c,
-    gEattReconfigureRequest_c,
-    gEattSendCreditsRequest_c,
-    gEattDisconnectRequest_c,
-    gEattL2caCancelConnection_c,
-    gEattL2caSendLeFlowControlCredit_c,
-    gEattL2caDisconnectLePsm_c,
-    gEattL2caHandleSendLeCbData_c,
-    gEattL2caHandleRecvLeCbData_c,
-    gEattL2caEnhancedReconfigureReq_c,
-    gEattL2caEnhancedCancelConnection_c,
-    gHciRecvFragmentOfPacket_c,
-    gHciDataDiscardedAlloc_c,               /*!< A memory allocation failure occurred in the HCI layer. Data was discarded. */
-    gHciDataDiscardedInvalidStateParam_c,   /*!< A packet with an invalid parameter or length was received by the HCI layer. Data was discarded. */
-    gGetConnParams_c,                       /*!< An error occurred during the Get Connection Params procedure */
-    gHandover_c,                            /*!< An error occurred during the connection handover process */
-    gHandoverGetLlContext_c,                /*!< An error occurred during the Handover Get LL Context procedure */
-    gHandoverConnect_c,                     /*!< An error occurred during the Handover Connect procedure */
-    gHandoverDisconnect_c,                  /*!< An error occurred during the Handover Disconnect procedure */
-    gHandoverSetSkd_c,                      /*!< An error occurred during the Handover Set SKD procedure */
-    gHandoverSuspendTransmitLlProcInProgress_c, /*!< Could not suspend transmit at LL level due to an LL procedure being in progress */
-    gHandoverSuspendTransmitHostTxInProgress_c, /*!< Could not suspend transmit at Host level due to ongoing data transfers */
-    gHandoverGetCsLlContext_c,              /*!< An error occurred during the Handover Get CS LL Context procedure */
-    gHandoverSetCsLlContext_c,              /*!< An error occurred during the Handover Set CS LL Context procedure */
-    gHandoverUpdateConnParams_c,            /*!< An error occurred during the Handover Update Connection Parameters procedure */
-    gReadRemoteVersionInfo_c,
-    gLeSetSchedulerPriority_c,
-    gLeSetHostFeature_c,
-    gSetExtAdvDecisionData_c,
-    gSetDecisionInstructions_c,
-    gSetExpmSupportedFeatures_c,
-    gHandoverSuspendTransmitHciTx_c,        /*!< Could not suspend transmit due to HCI tx error */
-    gHandoverResumeTransmitHciTx_c,         /*!< Could not resume transmit due to HCI tx error */
-    gHandoverAnchorNotifHciTx_c,            /*!< Could not enable/disable Anchor Notification due to HCI tx error */
-    gHandoverAnchorSearchStartHciTx_c,      /*!< Could not start Anchor Search due to HCI tx error */
-    gHandoverAnchorSearchStopHciTx_c,       /*!< Could not stop Anchor Search due to HCI tx error */
-    gHandoverTimeSyncTxHciTx_c,             /*!< Could not start/stop Anchor Time Sync transmit due to HCI tx error */
-    gHandoverTimeSyncRxHciTx_c,             /*!< Could not start/stop Anchor Time Receive transmit due to HCI tx error */
-    gHandoverSuspendTransmitLl_c,           /*!< Handover Suspend Transmit Link Layer error */
-    gHandoverGetTimeLl_c,                   /*!< Handover Get Time Link Layer error */
-    gHandoverResumeTransmitLl_c,            /*!< Handover Resume Transmit Link Layer error */
-    gHandoverAnchorNotifLl_c,               /*!< Handover Anchor Notification Link Layer error */
-    gHandoverAnchorSearchStartLl_c,         /*!< Handover Anchor Search Start Link Layer error */
-    gHandoverAnchorSearchStopLl_c,          /*!< Handover Anchor Search Stop Link Layer error */
-    gHandoverTimeSyncTxLl_c,                /*!< Handover Time Sync Transmit Link Layer error */
-    gHandoverTimeSyncRxLl_c,                /*!< Handover Time Sync Receive Link Layer error */
-    gHandoverSetLlPendingData_c,            /*!< Handover Set LL Pending Data error */
+    gHciCommandStatus_c = 0x00U,
+    gCheckPrivateResolvableAddress_c = 0x01U,
+    gVerifySignature_c = 0x02U,
+    gAddNewConnection_c = 0x03U,
+    gResetController_c = 0x04U,
+    gSetEventMask_c = 0x05U,
+    gReadLeBufferSize_c = 0x06U,
+    gSetLeEventMask_c = 0x07U,
+    gReadDeviceAddress_c = 0x08U,
+    gReadLocalSupportedFeatures_c = 0x09U,
+    gReadFilterAcceptListSize_c = 0x0AU,
+    gClearFilterAcceptList_c = 0x0BU,
+    gAddDeviceToFilterAcceptList_c = 0x0CU,
+    gRemoveDeviceFromFilterAcceptList_c = 0x0DU,
+    gCancelCreateConnection_c = 0x0EU,
+    gReadRadioPower_c = 0x0FU,
+    gSetRandomAddress_c = 0x10U,
+    gCreateRandomAddress_c = 0x11U,
+    gEncryptLink_c = 0x12U,
+    gProvideLongTermKey_c = 0x13U,
+    gDenyLongTermKey_c = 0x14U,
+    gConnect_c = 0x15U,
+    gDisconnect_c = 0x16U,
+    gTerminatePairing_c = 0x17U,
+    gSendPeripheralSecurityRequest_c = 0x18U,
+    gEnterPasskey_c = 0x19U,
+    gProvideOob_c = 0x1AU,
+    gSendSmpKeys_c = 0x1BU,
+    gWriteSuggestedDefaultDataLength_c = 0x1CU,
+    gReadSuggestedDefaultDataLength_c = 0x1DU,
+    gUpdateLeDataLength_c = 0x1EU,
+    gEnableHostPrivacy_c = 0x1FU,
+    gEnableControllerPrivacy_c = 0x20U,
+    gLeScSendKeypressNotification_c = 0x21U,
+    gLeScSetPeerOobData_c = 0x22U,
+    gLeScGetLocalOobData_c = 0x23U,
+    gLeScValidateNumericValue_c = 0x24U,
+    gLeScRegeneratePublicKey_c = 0x25U,
+    gLeSetResolvablePrivateAddressTimeout_c = 0x26U,
+    gDefaultPairingProcedure_c = 0x27U,
+    gLeControllerTest_c = 0x28U,
+    gLeReadPhy_c = 0x29U,
+    gLeSetPhy_c = 0x2AU,
+    gSaveKeys_c = 0x2BU,
+    gSetChannelMap_c = 0x2CU,
+    gReadLocalSupportedCommands_c = 0x2DU,
+    gEnableLdmTimer_c = 0x2EU,
+    gRemoveAdvertisingSet_c = 0x2FU,
+    gLePeriodicAdvSyncEstb_c = 0x30U,
+    gLePeriodicAdvSyncLost_c = 0x31U,
+    gLeRemoveDeviceFromPeriodicAdvList_c = 0x32U,
+    gLeClearPeriodicAdvList_c = 0x33U,
+    gLeAddDeviceToPeriodicAdvList_c = 0x34U,
+    gLeReadNumOfSupportedAdvSets_c = 0x35U,
+    gLeReadPeriodicAdvListSize_c = 0x36U,
+    gLeReadMaxAdvDataLen_c = 0x37U,
+    gPeriodicAdvCreateSync = 0x38U,
+    gPeriodicAdvCancelSync = 0x39U,
+    gPeriodicAdvTerminateSync = 0x3AU,
+    gL2capRxPacket_c = 0x3BU,
+    gExtAdvReportProcess_c = 0x3CU,
+    gReadControllerLocalRPA_c = 0x3DU,
+    gHciEventReceiveHandler_c = 0x3EU,
+    gSetConnectionlessCteTransmitParams_c = 0x3FU,
+    gSetConnectionlessCteTransmitEnable_c = 0x40U,
+    gSetConnectionlessIqSamplingEnable_c = 0x41U,
+    gReadAntennaInformation_c = 0x42U,
+    gSetConnectionCteReceiveParams_c = 0x43U,
+    gSetConnectionCteTransmitParams_c = 0x44U,
+    gConnectionCteReqEnable_c = 0x45U,
+    gConnectionCteRspEnable_c = 0x46U,
+    gGenerateDHKeyV2_c = 0x47U,
+    gModifySleepClockAccuracy_c = 0x48U,
+    gPeriodicAdvRcvEnable_c = 0x49U,
+    gPeriodicAdvSyncTransfer_c = 0x4AU,
+    gPeriodicAdvSetInfoTransfer_c = 0x4BU,
+    gSetPeriodicAdvSyncTransferParams_c = 0x4CU,
+    gSetDefaultPeriodicAdvSyncTransferParams_c = 0x4DU,
+    gEnhancedReadTransmitPowerLevel_c = 0x4EU,
+    gReadRemoteTransmitPowerLevel_c = 0x4FU,
+    gSetPathLossReportingParams_c = 0x50U,
+    gSetPathLossReportingEnable_c = 0x51U,
+    gSetTransmitPowerReportingEnable_c = 0x52U,
+    gEattConnectionRequest_c = 0x53U,
+    gEattConnectionAccept_c = 0x54U,
+    gEattReconfigureRequest_c = 0x55U,
+    gEattSendCreditsRequest_c = 0x56U,
+    gEattDisconnectRequest_c = 0x57U,
+    gEattL2caCancelConnection_c = 0x58U,
+    gEattL2caSendLeFlowControlCredit_c = 0x59U,
+    gEattL2caDisconnectLePsm_c = 0x5AU,
+    gEattL2caHandleSendLeCbData_c = 0x5BU,
+    gEattL2caHandleRecvLeCbData_c = 0x5CU,
+    gEattL2caEnhancedReconfigureReq_c = 0x5DU,
+    gEattL2caEnhancedCancelConnection_c = 0x5EU,
+    gHciRecvFragmentOfPacket_c = 0x5FU,
+    gHciDataDiscardedAlloc_c = 0x60U,               /*!< A memory allocation failure occurred in the HCI layer. Data was discarded. */
+    gHciDataDiscardedInvalidStateParam_c = 0x61U,   /*!< A packet with an invalid parameter or length was received by the HCI layer. Data was discarded. */
+    gGetConnParams_c = 0x62U,                       /*!< An error occurred during the Get Connection Params procedure */
+    gHandover_c = 0x63U,                            /*!< An error occurred during the connection handover process */
+    gHandoverGetLlContext_c = 0x64U,                /*!< An error occurred during the Handover Get LL Context procedure */
+    gHandoverConnect_c = 0x65U,                     /*!< An error occurred during the Handover Connect procedure */
+    gHandoverDisconnect_c = 0x66U,                  /*!< An error occurred during the Handover Disconnect procedure */
+    gHandoverSetSkd_c = 0x67U,                      /*!< An error occurred during the Handover Set SKD procedure */
+    gHandoverSuspendTransmitLlProcInProgress_c = 0x68U, /*!< Could not suspend transmit at LL level due to an LL procedure being in progress */
+    gHandoverSuspendTransmitHostTxInProgress_c = 0x69U, /*!< Could not suspend transmit at Host level due to ongoing data transfers */
+    gHandoverGetCsLlContext_c = 0x6AU,              /*!< An error occurred during the Handover Get CS LL Context procedure */
+    gHandoverSetCsLlContext_c = 0x6BU,              /*!< An error occurred during the Handover Set CS LL Context procedure */
+    gHandoverUpdateConnParams_c = 0x6CU,            /*!< An error occurred during the Handover Update Connection Parameters procedure */
+    gReadRemoteVersionInfo_c = 0x6DU,
+    gLeSetSchedulerPriority_c = 0x6EU,
+    gLeSetHostFeature_c = 0x6FU,
+    gSetExtAdvDecisionData_c = 0x70U,
+    gSetDecisionInstructions_c = 0x71U,
+    gSetExpmSupportedFeatures_c = 0x72U,
+    gHandoverSuspendTransmitHciTx_c = 0x73U,        /*!< Could not suspend transmit due to HCI tx error */
+    gHandoverResumeTransmitHciTx_c = 0x74U,         /*!< Could not resume transmit due to HCI tx error */
+    gHandoverAnchorNotifHciTx_c = 0x75U,            /*!< Could not enable/disable Anchor Notification due to HCI tx error */
+    gHandoverAnchorSearchStartHciTx_c = 0x76U,      /*!< Could not start Anchor Search due to HCI tx error */
+    gHandoverAnchorSearchStopHciTx_c = 0x77U,       /*!< Could not stop Anchor Search due to HCI tx error */
+    gHandoverTimeSyncTxHciTx_c = 0x78U,             /*!< Could not start/stop Anchor Time Sync transmit due to HCI tx error */
+    gHandoverTimeSyncRxHciTx_c = 0x79U,             /*!< Could not start/stop Anchor Time Receive transmit due to HCI tx error */
+    gHandoverSuspendTransmitLl_c = 0x7AU,           /*!< Handover Suspend Transmit Link Layer error */
+    gHandoverGetTimeLl_c = 0x7BU,                   /*!< Handover Get Time Link Layer error */
+    gHandoverResumeTransmitLl_c = 0x7CU,            /*!< Handover Resume Transmit Link Layer error */
+    gHandoverAnchorNotifLl_c = 0x7DU,               /*!< Handover Anchor Notification Link Layer error */
+    gHandoverAnchorSearchStartLl_c = 0x7EU,         /*!< Handover Anchor Search Start Link Layer error */
+    gHandoverAnchorSearchStopLl_c = 0x7FU,          /*!< Handover Anchor Search Stop Link Layer error */
+    gHandoverTimeSyncTxLl_c = 0x80U,                /*!< Handover Time Sync Transmit Link Layer error */
+    gHandoverTimeSyncRxLl_c = 0x81U,                /*!< Handover Time Sync Receive Link Layer error */
+    gHandoverSetLlPendingData_c = 0x82U,            /*!< Handover Set LL Pending Data error */
 } gapInternalErrorSource_t;
 
 /*! Internal Error Event Data */

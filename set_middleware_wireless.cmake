@@ -22,8 +22,8 @@ if (CONFIG_USE_wireless_wireless_clock_pin_mux_file)
 message("wireless_wireless_clock_pin_mux_file component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
 target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
-  ${CMAKE_CURRENT_LIST_DIR}/../framework/boards/kw45_k32w1/K32W1480/clock_config.c
-  ${CMAKE_CURRENT_LIST_DIR}/../framework/boards/kw45_k32w1/K32W1480/pin_mux.c
+  ${CMAKE_CURRENT_LIST_DIR}/../framework/boards/kw45_k32w1/KW45B41Z83_LOC/clock_config.c
+  ${CMAKE_CURRENT_LIST_DIR}/../framework/boards/kw45_k32w1/KW45B41Z83_LOC/pin_mux.c
 )
 
 
@@ -816,7 +816,7 @@ if (CONFIG_USE_middleware_wireless_ble_host_matter_component_lib_iar)
 
 message("middleware_wireless_ble_host_matter_component_lib_iar component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
-if((CONFIG_BOARD STREQUAL k32w148evk OR CONFIG_BOARD STREQUAL frdmmcxw7x))
+if((CONFIG_BOARD STREQUAL k32w148evk OR CONFIG_BOARD STREQUAL frdmmcxw71))
 
 else()
 
@@ -832,7 +832,7 @@ if (CONFIG_USE_middleware_wireless_ble_host_matter_component_lib_mcux)
 
 message("middleware_wireless_ble_host_matter_component_lib_mcux component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
-if((CONFIG_BOARD STREQUAL k32w148evk OR CONFIG_BOARD STREQUAL frdmmcxw7x))
+if((CONFIG_BOARD STREQUAL k32w148evk OR CONFIG_BOARD STREQUAL frdmmcxw71))
 
 if(CONFIG_TOOLCHAIN STREQUAL mcux)
   target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE
@@ -856,7 +856,7 @@ if (CONFIG_USE_middleware_wireless_ble_init_matter)
 
 message("middleware_wireless_ble_init_matter component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
-if((CONFIG_BOARD STREQUAL frdmmcxw7x OR CONFIG_BOARD STREQUAL k32w148evk))
+if((CONFIG_BOARD STREQUAL frdmmcxw71 OR CONFIG_BOARD STREQUAL k32w148evk))
 
 target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/application/common/matter/ble_init.c
@@ -880,7 +880,7 @@ if (CONFIG_USE_middleware_wireless_ble_profiles_device_info_service)
 
 message("middleware_wireless_ble_profiles_device_info_service component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
-if((CONFIG_BOARD STREQUAL kw45b41zevk OR CONFIG_BOARD STREQUAL k32w148evk OR CONFIG_BOARD STREQUAL frdmmcxw7x))
+if((CONFIG_BOARD STREQUAL kw45b41zevk OR CONFIG_BOARD STREQUAL k32w148evk OR CONFIG_BOARD STREQUAL frdmmcxw71))
 
 target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/profiles/device_info/device_info_service.c
@@ -904,7 +904,7 @@ if (CONFIG_USE_middleware_wireless_ble_profiles_ancs)
 
 message("middleware_wireless_ble_profiles_ancs component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
-if((CONFIG_BOARD STREQUAL kw45b41zevk OR CONFIG_BOARD STREQUAL k32w148evk OR CONFIG_BOARD STREQUAL frdmmcxw7x))
+if((CONFIG_BOARD STREQUAL kw45b41zevk OR CONFIG_BOARD STREQUAL k32w148evk OR CONFIG_BOARD STREQUAL frdmmcxw71))
 
 target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/profiles/ancs
@@ -924,7 +924,7 @@ if (CONFIG_USE_middleware_wireless_ble_profiles_time)
 
 message("middleware_wireless_ble_profiles_time component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
-if((CONFIG_BOARD STREQUAL kw45b41zevk OR CONFIG_BOARD STREQUAL k32w148evk OR CONFIG_BOARD STREQUAL frdmmcxw7x))
+if((CONFIG_BOARD STREQUAL kw45b41zevk OR CONFIG_BOARD STREQUAL k32w148evk OR CONFIG_BOARD STREQUAL frdmmcxw71))
 
 target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/profiles/time/current_time_service.c
@@ -950,7 +950,7 @@ if (CONFIG_USE_middleware_wireless_ble_profiles_hid)
 
 message("middleware_wireless_ble_profiles_hid component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
-if((CONFIG_BOARD STREQUAL kw45b41zevk OR CONFIG_BOARD STREQUAL k32w148evk OR CONFIG_BOARD STREQUAL frdmmcxw7x))
+if((CONFIG_BOARD STREQUAL kw45b41zevk OR CONFIG_BOARD STREQUAL k32w148evk OR CONFIG_BOARD STREQUAL frdmmcxw71))
 
 target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/profiles/hid/hid_service.c
@@ -974,7 +974,7 @@ if (CONFIG_USE_middleware_wireless_ble_profiles_temperature)
 
 message("middleware_wireless_ble_profiles_temperature component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
-if((CONFIG_BOARD STREQUAL kw45b41zevk OR CONFIG_BOARD STREQUAL k32w148evk OR CONFIG_BOARD STREQUAL frdmmcxw7x))
+if((CONFIG_BOARD STREQUAL kw45b41zevk OR CONFIG_BOARD STREQUAL k32w148evk OR CONFIG_BOARD STREQUAL frdmmcxw71))
 
 target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/profiles/temperature/temperature_service.c
@@ -998,7 +998,7 @@ if (CONFIG_USE_middleware_wireless_ble_profiles_otap)
 
 message("middleware_wireless_ble_profiles_otap component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
-if((CONFIG_BOARD STREQUAL kw45b41zevk OR CONFIG_BOARD STREQUAL k32w148evk OR CONFIG_BOARD STREQUAL frdmmcxw7x))
+if((CONFIG_BOARD STREQUAL kw45b41zevk OR CONFIG_BOARD STREQUAL k32w148evk OR CONFIG_BOARD STREQUAL frdmmcxw71))
 
 target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/profiles/otap/otap_service.c

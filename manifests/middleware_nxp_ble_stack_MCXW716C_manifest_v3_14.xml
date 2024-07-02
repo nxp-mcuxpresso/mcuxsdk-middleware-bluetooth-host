@@ -5,7 +5,7 @@
     <definition extID="MCXW716CxxxA"/>
     <definition extID="armgcc"/>
     <definition extID="mcuxpresso"/>
-    <definition extID="frdmmcxw7x"/>
+    <definition extID="frdmmcxw71"/>
   </externalDefinitions>
   <ksdk id="MCUXpressoSDK216000_middleware_nxp_ble_stack_MCXW716C_manifest_v3_14" name="MCUXpressoSDK216000_middleware_nxp_ble_stack_MCXW716C_manifest_v3_14" version="2.16.000" revision="2.16.000"/>
   <components>
@@ -1158,7 +1158,7 @@
     <component id="middleware.wireless.ble_host_matter_lib_iar.MCXW716C" name="Wireless BLE Host Matter component lib" brief="Middleware wireless ble_host_matter_component_lib_iar" version="1.0.0" full_name="Wireless BLE Host Matter component lib" category="wireless/ble_host_matter_component_lib_ia" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
       <dependencies>
         <all>
-          <board_dependency value="frdmmcxw7x"/>
+          <board_dependency value="frdmmcxw71"/>
           <device_dependency value="MCXW716CxxxA"/>
         </all>
       </dependencies>
@@ -1169,7 +1169,7 @@
     <component id="middleware.wireless.ble_host_matter_lib_mcux.MCXW716C" name="Wireless BLE Host Matter component lib" brief="Middleware wireless ble_host_matter_component_lib_mcux" version="1.0.0" full_name="Wireless BLE Host Matter component lib" category="wireless/ble_host_matter_component_lib_mc" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
       <dependencies>
         <all>
-          <board_dependency value="frdmmcxw7x"/>
+          <board_dependency value="frdmmcxw71"/>
           <device_dependency value="MCXW716CxxxA"/>
         </all>
       </dependencies>
@@ -1183,7 +1183,7 @@
     <component id="middleware.wireless.ble_init_matter.MCXW716C" name="Wireless BLE Ble Init for Matter" brief="Middleware wireless ble_init_matter" version="1.0.0" full_name="Wireless BLE Ble Init for Matter" category="wireless/ble_init_matter" user_visible="false" type="middleware" package_base_path="../../" project_base_path="source">
       <dependencies>
         <all>
-          <board_dependency value="frdmmcxw7x"/>
+          <board_dependency value="frdmmcxw71"/>
           <device_dependency value="MCXW716CxxxA"/>
         </all>
       </dependencies>
@@ -1203,7 +1203,7 @@
     <component id="middleware.wireless.ble_profiles.device_info_service.MCXW716C" name="Wireless BLE Profiles DeviceInfo Service" brief="Middleware wireless ble_profiles_device_info_service" version="1.0.0" full_name="Wireless BLE Profiles DeviceInfo Service" category="wireless/ble_profiles_device_info_service" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
       <dependencies>
         <all>
-          <board_dependency value="frdmmcxw7x"/>
+          <board_dependency value="frdmmcxw71"/>
           <device_dependency value="MCXW716CxxxA"/>
         </all>
       </dependencies>
@@ -1223,7 +1223,7 @@
     <component id="middleware.wireless.ble_profiles.ancs.MCXW716C" name="Wireless BLE Profiles Alert Notification client" brief="Middleware wireless ble_profiles_ancs" version="1.0.0" full_name="Wireless BLE Profiles Alert Notification client" category="wireless/ble_profiles_ancs" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
       <dependencies>
         <all>
-          <board_dependency value="frdmmcxw7x"/>
+          <board_dependency value="frdmmcxw71"/>
           <device_dependency value="MCXW716CxxxA"/>
         </all>
       </dependencies>
@@ -1240,7 +1240,7 @@
     <component id="middleware.wireless.ble_profiles.time.MCXW716C" name="Wireless BLE Profiles Time" brief="Middleware wireless ble_profiles_time" version="1.0.0" full_name="Wireless BLE Profiles Time" category="wireless/ble_profiles_time" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
       <dependencies>
         <all>
-          <board_dependency value="frdmmcxw7x"/>
+          <board_dependency value="frdmmcxw71"/>
           <device_dependency value="MCXW716CxxxA"/>
         </all>
       </dependencies>
@@ -1264,7 +1264,7 @@
     <component id="middleware.wireless.ble_profiles.hid.MCXW716C" name="Wireless BLE Profiles Hid" brief="Middleware wireless ble_profiles_hid" version="1.0.0" full_name="Wireless BLE Profiles Hid" category="wireless/ble_profiles_hid" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
       <dependencies>
         <all>
-          <board_dependency value="frdmmcxw7x"/>
+          <board_dependency value="frdmmcxw71"/>
           <device_dependency value="MCXW716CxxxA"/>
         </all>
       </dependencies>
@@ -1284,7 +1284,7 @@
     <component id="middleware.wireless.ble_profiles.temperature.MCXW716C" name="Wireless BLE Profiles Temperature" brief="Middleware wireless ble_profiles_temperature" version="1.0.0" full_name="Wireless BLE Profiles Temperature" category="wireless/ble_profiles_temperature" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
       <dependencies>
         <all>
-          <board_dependency value="frdmmcxw7x"/>
+          <board_dependency value="frdmmcxw71"/>
           <device_dependency value="MCXW716CxxxA"/>
         </all>
       </dependencies>
@@ -1304,7 +1304,7 @@
     <component id="middleware.wireless.ble_profiles.otap.MCXW716C" name="Wireless BLE Profiles Otap" brief="Middleware wireless ble_profiles_otap" version="1.0.0" full_name="Wireless BLE Profiles Otap" category="wireless/ble_profiles_otap" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
       <dependencies>
         <all>
-          <board_dependency value="frdmmcxw7x"/>
+          <board_dependency value="frdmmcxw71"/>
           <device_dependency value="MCXW716CxxxA"/>
         </all>
       </dependencies>
