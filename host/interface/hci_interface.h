@@ -708,6 +708,7 @@ typedef struct hciVendorEnhancedNotificationEvent_tag
     uint16_t                    ev_counter;
     uint32_t                    timestamp;
     uint8_t                     adv_handle;
+    bleDeviceAddress_t          scanned_addr;
 } hciVendorEnhancedNotificationEvent_t;
 
 /*! HCI_Vendor_Get_Connection_Parameters - Return Parameters */
@@ -1742,6 +1743,15 @@ typedef struct hciLeCsEventResultDebugEvent_tag
 } hciLeCsEventResultDebugEvent_t;
 #endif /* gBLE_ChannelSounding_d */
 
+/*! OCF 0x00B1 */
+/*! HCI_LE_Channel_Override */
+typedef struct
+{
+    uint8_t mode;
+    uint8_t channelListLength;
+    uint8_t aChannelList[6];
+} hciVendorLeChannelOverrideCommand_t;
+
 /*! OCF 0x00B2 */
 /*! HCI_LE_Set_Scheduler_Priority */
 typedef struct
@@ -2520,6 +2530,12 @@ typedef struct hciVendorSetEncSessionKeyCommandComplete_tag
     hciErrorCode_t  status;
 } hciVendorSetEncSessionKeyCommandComplete_t;
 
+/*! HCI_LE_Channel_Override */
+typedef struct hciVendorLeChannelOverrideCommandComplete_tag
+{
+    hciErrorCode_t      status;
+} hciVendorLeChannelOverrideCommandComplete_t;
+
 /*! HCI_LE_Set_Scheduler_Priority */
 typedef struct hciVendorLeSetSchedulerPriorityCommandComplete_tag
 {
@@ -2737,7 +2753,6 @@ typedef struct
         hciVendorHandoverGetCsLlContextCommandComplete_t         hciVendorHandoverGetCsLlContextComplete;
         hciVendorHandoverTimeSyncTransmitCommandComplete_t       hciVendorHandoverTimeSyncTransmitCommComplete;
         hciVendorHandoverTimeSyncReceiveCommandComplete_t        hciVendorHandoverTimeSyncReceiveCommComplete;
-        hciVendorLeSetSchedulerPriorityCommandComplete_t         hciVendorLeSetSchedulerPriorityCommComplete;
         hciVendorHandoverUpdateConnParamsCommandComplete_t       hciVendorUpdateConnParamsCommComplete;
 #endif /* (gHandoverSupport_d == TRUE) */
 #if defined(gHostSecureMode_d) && (gHostSecureMode_d == TRUE)
@@ -2761,6 +2776,8 @@ typedef struct
 #if (gBLE54_d && gLeBroadcasterSupported_d && gBLE54_AdvertisingCodingSelectionSupport_d)
         hciLeSetExtAdvertingParamsV2CommandComplete_t           hciLeSetExtAdvertingParamsV2CommComplete;
 #endif /* (gBLE54_d && gLeBroadcasterSupported_d && gBLE54_AdvertisingCodingSelectionSupport_d) */
+        hciVendorLeSetSchedulerPriorityCommandComplete_t         hciVendorLeSetSchedulerPriorityCommComplete;
+        hciVendorLeChannelOverrideCommandComplete_t              hciVendorLeChannelOverrideCommComplete;
     }commCompleteReturnParams;
 } hciCommandCompleteEvent_t;
 
@@ -3996,6 +4013,20 @@ bleResult_t Hci_LeSetResolvablePrivateAddressTimeout(
 *
 ********************************************************************************** */
 bleResult_t Hci_LeSetPrivacyMode(const hciLeSetPrivacyModeCommand_t *pParam);                         /* 8.77 */
+
+/*! ********************************************************************************
+* \brief        The function sends the vendor HCI LE Channel Override(OGF : 0x3F; OCF : 0x00B1) command to the Controller.
+*               This command is used to allow the Host to set the channels used for advertising, scanning and initiation.
+*
+* \param[in]    pParam  pointer to a structure containing the command parameters.
+* \param[out]   None
+*
+* \return       Status
+*
+* \remarks
+*
+********************************************************************************** */
+bleResult_t Hci_LeChannelOverride(const hciVendorLeChannelOverrideCommand_t *pParam);
 
 /*! ********************************************************************************
 * \brief        The function sends the HCI LE Set Scheduler Priority(OGF : 0x3F; OCF : 0x00B2) command to the Controller.

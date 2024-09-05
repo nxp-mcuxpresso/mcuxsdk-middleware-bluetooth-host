@@ -389,16 +389,20 @@ static const int16_t maGenericEventToOpcode[]=
   -1,                                                                                      /* reserved: 0x47U */
   -1,                                                                                      /* reserved: 0x48U */
   -1,                                                                                      /* reserved: 0x49U */
+  -1,                                                                                      /* reserved: 0x4AU */
+  -1,                                                                                      /* reserved: 0x4BU */
 };
 
 static const int16_t maGenericEvent2ToOpcode[]= {
 #if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)
-    (int16_t)gBleGapEvtGenericEventSetExtAdvertisingDecisionDataSetupComplete_c,             /* = 0x42U, gExtAdvertisingDecisionDataSetupComplete_c */
-    (int16_t)gBleGapEvtGenericEventSetDecisionInstructionsSetupComplete_c,                   /* = 0x43U, gDecisionInstructionsSetupComplete_c */
+    (int16_t)gBleGapEvtGenericEventSetExtAdvertisingDecisionDataSetupComplete_c,             /* = 0x48U, gExtAdvertisingDecisionDataSetupComplete_c */
+    (int16_t)gBleGapEvtGenericEventSetDecisionInstructionsSetupComplete_c,                   /* = 0x49U, gDecisionInstructionsSetupComplete_c */
 #else /* gBLE60_DecisionBasedAdvertisingFilteringSupport_d */
     -1,
     -1,
 #endif /* gBLE60_DecisionBasedAdvertisingFilteringSupport_d */
+    -1,                                                                                      /* reserved: 0x4AU */
+    gBleGapChannelOverrideComplete_c,                                                        /* = 0x4B, gLeChannelOverrideComplete_c */
 };
 
 

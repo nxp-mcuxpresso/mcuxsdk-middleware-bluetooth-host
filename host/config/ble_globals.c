@@ -333,7 +333,7 @@ const bool_t gUseHciCommandFlowControl = 0U;
  */
 #if defined(gBLE50_d) && (gBLE50_d == 1U)
 extern bool_t gDisablePrivacyPerAdvSet[gMaxAdvSets_c];
-bool_t gDisablePrivacyPerAdvSet[gMaxAdvSets_c] = {FALSE, FALSE};
+bool_t gDisablePrivacyPerAdvSet[gMaxAdvSets_c] = {FALSE};
 #endif
 /************************************************************************************
 *************************************************************************************

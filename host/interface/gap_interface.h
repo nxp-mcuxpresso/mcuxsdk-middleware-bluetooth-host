@@ -2712,7 +2712,50 @@ bleResult_t Gap_GetConnParamsMonitoring
 );
 
 /*!*************************************************************************************************
-*\fn    void InternalGap_LeSetSchedulerPriority(uint16_t  priorityHandle)
+*\fn    bleResult_t Gap_LeChannelOverride(uint8_t mode, uint8_t channelListLength, uint8_t *pChannelList)
+*
+*\brief This function sets the channels to be used for advertising, scanning or initiation.
+*
+*\param [in]    mode               Override the advertising, scanning or initiation channels.
+*\param [in]    channelListLength  Length of channel list, must be between 1 and 6.
+*\param [in]    pChannelList       List of channels (see remarks for more details).
+*
+*\retval  gBleSuccess_c
+*\retval  gBleInvalidParameter_c       One or more parameters are invalid.
+*\retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+
+*\remarks
+*
+* In the channel list, the MSB of each byte indicates if the channel is BLE channel index or generic channel
+* index:
+* - BLE channel index: 0 to 39
+* - Generic channel index: 0x80+0 to 0x80+127
+* If the mode is 0x00 (advertising), the specified channels are used by the following
+* advertising commands. The channels used by the ongoing advertising will not change until
+* the advertising is disabled, even if a new channel override command with mode 0x00 is
+* received. This allows different advertising channels for different advertising sets.
+* The mode 0x00 (advertising) can be issued when an advertising is ongoing.
+* The setting will be used by the next advertising enable command.
+
+* If the mode is 0x01 or 0x02 (scan or initiation), the specified channels are used by the
+* following scan and initiation. The command with mode 0x01 or 0x02 should be issued when
+* the scan or initiation is not ongoing.
+
+* When a generic channel is used, the whitening is initialized by the lower 6 bits
+* of the generic channel index. When a BLE channel is used, the whitening is initialized
+* by the BLE channel index. So the BLE channel 37/38/39 are not strictly the same as the
+* generic channels 42/66/120: they operate on the same frequency but their channel whitening
+* is different.
+***************************************************************************************************/
+bleResult_t Gap_LeChannelOverride
+(
+    bleChannelOverrideMode_t mode,
+    uint8_t channelListLength,
+    uint8_t *pChannelList
+);
+
+/*!*************************************************************************************************
+*\fn    void Gap_LeSetSchedulerPriority(uint16_t  priorityHandle)
 *
 *\brief This function sets the priority for one connection in case of several connections by calling
 *       the corresponding HCI command.

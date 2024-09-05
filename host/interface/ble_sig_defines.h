@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2023 NXP
+* Copyright 2016-2024 NXP
 *
 *
 * \file
@@ -23,20 +23,20 @@
 /*! Placeholders for RAS related UUIDs until official numbers are allocated
     by the Bluetooth SIG */
 
-/*! Ranging Service UUID */
-#define gBleSig_RangingService_d                0x0000U
+/*! Ranging Service UUID - Temporary Values */
+#define gBleSig_RangingService_d                0x7F7DU
 /*! RAS Control Point Characteristic UUID */
-#define gBleSig_RasControlPoint_d               0x0001U
+#define gBleSig_RasControlPoint_d               0x7F79U
 /*! RAS Real-time Procedure Data Characteristic UUID */
-#define gBleSig_RasRealTimeProcData_d           0x0002U
+#define gBleSig_RasRealTimeProcData_d           0x7F7BU
 /*! RAS On-demand Procedure Data Characteristic UUID */
-#define gBleSig_RasOnDemandProcData_d           0x0003U
+#define gBleSig_RasOnDemandProcData_d           0x7F7AU
 /*! RAS Procedure Data Ready Characteristic UUID */
-#define gBleSig_RasProcDataReady_d              0x0004U
+#define gBleSig_RasProcDataReady_d              0x7F78U
 /*! RAS Procedure Data Overwritten Characteristic UUID */
-#define gBleSig_RasprocDataOverwritten_d        0x0005U
+#define gBleSig_RasprocDataOverwritten_d        0x7F77U
 /*! RAS Feature Characteristic UUID */
-#define gBleSig_RasFeature_d                    0x0006U
+#define gBleSig_RasFeature_d                    0x7F7CU
 
 /*! Bluetooth SIG UUID constants for GATT declarations */
 

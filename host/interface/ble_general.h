@@ -677,6 +677,13 @@ typedef enum
 
 typedef enum
 {
+    gOverrideAdvChannels_c         = 0x00U, /*!< Set the advertising channels */
+    gOverrideScanChannels_c        = 0x01U, /*!< Set the scanning channels */
+    gOverrideInitChannels_c        = 0x02U  /*!< Set the connection initiation channels */
+} bleChannelOverrideMode_t;
+
+typedef enum
+{
     gBleFreq2402MHz_c       = 0x00U,
     gBleFreq2404MHz_c       = 0x01U,
     gBleFreq2406MHz_c       = 0x02U,
@@ -782,87 +789,82 @@ typedef enum
 
 /*! Generic Event Type */
 typedef enum {
-    gInitializationComplete_c,                  /*!< Initial setup started by Ble_HostInitialize is complete. */
-    gInternalError_c,                           /*!< An internal error occurred. */
-    gAdvertisingSetupFailed_c,                  /*!< Error during advertising setup. */
-    gAdvertisingParametersSetupComplete_c,      /*!< Advertising parameters have been successfully set. Response to Gap_SetAdvertisingParameters. */
-    gAdvertisingDataSetupComplete_c,            /*!< Advertising and/or scan response data has been successfully set. Response to Gap_SetAdvertisingData. */
-    gFilterAcceptListSizeRead_c,                       /*!< Contains the Filter Accept List size. Response to Gap_ReadFilterAcceptListSize. */
-    gDeviceAddedToFilterAcceptList_c,                  /*!< Device has been added to Filter Accept List. Response to Gap_AddDeviceToFilterAcceptList. */
-    gDeviceRemovedFromFilterAcceptList_c,              /*!< Device has been removed from the Filter Accept List. Response to Gap_RemoveDeviceFromFilterAcceptList. */
-    gFilterAcceptListCleared_c,                        /*!< Filter Accept List has been cleared. Response to Gap_ClearFilterAcceptList. */
-    gRandomAddressReady_c,                      /*!< A random device address has been created. Response to Gap_CreateRandomDeviceAddress. */
-    gCreateConnectionCanceled_c,                /*!< Connection initiation was successfully cancelled. Response to Gap_CancelInitiatingConnection. */
-    gPublicAddressRead_c,                       /*!< Contains the public device address. Response to Gap_ReadPublicDeviceAddress. */
-    gAdvTxPowerLevelRead_c,                     /*!< Contains the TX power on the advertising channel. Response to Gap_ReadAdvertisingTxPowerLevel. */
-    gPrivateResolvableAddressVerified_c,        /*!< Contains the result of PRA verification. Response to Gap_VerifyPrivateResolvableAddress. */
-    gRandomAddressSet_c,                        /*!< Random address has been set into the Controller. Response to Gap_SetRandomAddress. */
-    gLeScPublicKeyRegenerated_c,                /*!< The private/public key pair used for LE Secure Connections pairing has been regenerated. */
-    gLeScLocalOobData_c,                        /*!< Local OOB data used for LE Secure Connections pairing. */
-    gHostPrivacyStateChanged_c,                 /*!< Host Privacy was enabled or disabled. */
-    gControllerPrivacyStateChanged_c,           /*!< Controller Privacy was enabled or disabled. */
-    gControllerTestEvent_c,                     /*!< Controller Test was started or stopped. */
-    gTxPowerLevelSetComplete_c,                 /*!< Controller Tx Power Level set complete or invalid. */
-    gLePhyEvent_c,                              /*!< Phy Mode of a connection has been updated by the Controller. */
-    gControllerNotificationEvent_c,             /*!< Controller Enhanced Notification received. */
-    gGetConnParamsComplete_c,                   /*!< Get Connection Parameters command complete */
-    gBondCreatedEvent_c,                        /*!< Bond Created Event signalling the stack created a bond after pairing or at app request. */
-    gChannelMapSet_c,                           /*!< Channel map set complete in the Controller. */
-
-    gExtAdvertisingParametersSetupComplete_c,   /*!< Extended advertising parameters have been successfully set. */
-    gExtAdvertisingDataSetupComplete_c,         /*!< Extended advertising data has been successfully set. */
-    gExtAdvertisingSetRemoveComplete_c,         /*!< An advertising set has been removed from the Controller. */
-    gPeriodicAdvParamSetupComplete_c,           /*!< Periodic advertising parameters have been successfully set. */
-    gPeriodicAdvDataSetupComplete_c,            /*!< Periodic advertising data have been successfully set. */
-    gPeriodicAdvertisingStateChanged_c,         /*!< Event received when periodic advertising has been successfully enabled or disabled. */
-    gPeriodicAdvListUpdateComplete_c,           /*!< Periodic advertiser list has been successfully updated. */
-    gPeriodicAdvCreateSyncCancelled_c,          /*!< Periodic advertising create sync command was successfully cancelled */
-    gTxEntryAvailable_c,                        /*!< This event is generated when a TX entry becomes available after they were all in use. */
-    gControllerLocalRPARead_c,                  /*!< Contains the resolvable private device address. Response to Gap_ReadControllerLocalRPA. */
-
-    gConnectionlessCteTransmitParamsSetupComplete_c,    /*!< Connectionless CTE transmit parameters have been successfully set. */
-    gConnectionlessCteTransmitStateChanged_c,           /*!< Connectionless CTE for an advertising set was enabled or disabled. */
-    gConnectionlessIqSamplingStateChanged_c,            /*!< Connectionless CTE IQ sampling for an advertising train was enabled or disabled. */
-    gAntennaInformationRead_c,                          /*!< Antenna information was read from the controller. */
-
-    gModifiedSleepClockAccuracy_c,                      /*!< The Sleep Clock accuracy was changed */
-
-    gPeriodicAdvRecvEnableComplete_c,                   /*!< Enable or disable reports for the periodic advertising train command is complete */
-    gPeriodicAdvSyncTransferComplete_c,                 /*!< The command used to instruct the Controller to send synchronization information about the periodic advertising train identified by the Sync_Handle parameter to a connected device is complete */
-    gPeriodicAdvSetInfoTransferComplete_c,              /*!< The command used to instruct the Controller to send synchronization information about the periodic advertising in an advertising set to a connected device is complete */
-    gSetPeriodicAdvSyncTransferParamsComplete_c,        /*!< The command specifying how the Controller will process periodic advertising synchronization information is complete */
-    gSetDefaultPeriodicAdvSyncTransferParamsComplete_c, /*!< The command which set the default parameters for  periodic advertising synchronization information is complete */
-    gPeriodicAdvSyncTransferSucceeded_c,                /*!< Event received when Controller has succeeded the Synchronization to the periodic advertising train */
-    gPeriodicAdvSyncTransferFailed_c,                   /*!< Event received when Controller has failed the Synchronization to the periodic advertising train */
-    gConnEvtLeGenerateDhKeyComplete_c,                  /*!< DHKey generation is complete. Key can be found in gapConnectionEvent_t.eventData.leGenerateDhKeyCompleteEvent */
-
-    gHandoverGetComplete_c,                             /*!< Handover data get complete. */
-    gHandoverSetComplete_c,                             /*!< Handover data set complete. */
-    gHandoverGetCsLlContextComplete_c,                  /*!< Handover CS LL context data get complete. */
-    gHandoverSetCsLlContextComplete_c,                  /*!< Handover CS LL context data set complete. */
-    gHandoverGetTime_c,                                 /*!< Handover Get Time command complete */
-    gHandoverSuspendTransmitComplete_c,                 /*!< Handover Suspend Transmit command complete */
-    gHandoverResumeTransmitComplete_c,                  /*!< Handover Resume Transmit command complete */
-    gHandoverAnchorNotificationStateChanged_c,          /*!< Handover Anchor Notification command complete */
-    gHandoverAnchorSearchStarted_c,                     /*!< Handover Anchor Search Start command complete */
-    gHandoverAnchorSearchStopped_c,                     /*!< Handover Anchor Search Stop command complete */
-    gHandoverTimeSyncTransmitStateChanged_c,            /*!< Handover Time Sync Transmit command complete */
-    gHandoverTimeSyncReceiveComplete_c,                 /*!< Handover Time Sync Receive command complete */
-    gHandoverAnchorMonitorEvent_c,                      /*!< Event received from Controller - Handover Anchor Monitor */
-    gHandoverTimeSyncEvent_c,                           /*!< Event received from Controller - Handover Time Sync */
-    gHandoverConnParamUpdateEvent_c,                    /*!< Event received from Controller - Handover Conn Params Update */
-
-    gRemoteVersionInformationRead_c,                    /*!< Version Information of a peer was read */
-    gLlSkdReportEvent_c,                                /*!< Session Key Diversifier report */
-    gLeSetSchedulerPriorityComplete_c,                          /*!< LE Set Scheduler Priority command complete */
-    gDeInitializationComplete_c,                        /*!< Event received when Ble_HostDeInitialize is complete. */
-    gHandoverAnchorMonitorPacketEvent_c,                /*!< Event received from Controller - Handover Anchor Monitor Packet. pPdu must be freed by the application */
-    gHandoverAnchorMonitorPacketContinueEvent_c,        /*!< Event received from Controller - Handover Anchor Monitor Packet Continue. pPdu must be freed by the application */
-    gHandoverFreeComplete_c,                            /*!< Handover data free complete. */
-    gHandoverUpdateConnParamsComplete_c,                /*!< Handover Update Connection Parameters command complete */
-    gExtAdvertisingDecisionDataSetupComplete_c,         /*!< Extended advertising decision data has been successfully set. */
-    gDecisionInstructionsSetupComplete_c,               /*!< decision instructions used when listening for decision advertisements PDUs has been successfully set. */
-    gHandoverLlPendingData_c,                           /*!< ACL Data pending to be transmited by the LL */
+    gInitializationComplete_c                           = 0x00U, /*!< Initial setup started by Ble_HostInitialize is complete. */
+    gInternalError_c                                    = 0x01U, /*!< An internal error occurred. */
+    gAdvertisingSetupFailed_c                           = 0x02U, /*!< Error during advertising setup. */
+    gAdvertisingParametersSetupComplete_c               = 0x03U, /*!< Advertising parameters have been successfully set. Response to Gap_SetAdvertisingParameters. */
+    gAdvertisingDataSetupComplete_c                     = 0x04U, /*!< Advertising and/or scan response data has been successfully set. Response to Gap_SetAdvertisingData. */
+    gFilterAcceptListSizeRead_c                         = 0x05U, /*!< Contains the Filter Accept List size. Response to Gap_ReadFilterAcceptListSize. */
+    gDeviceAddedToFilterAcceptList_c                    = 0x06U, /*!< Device has been added to Filter Accept List. Response to Gap_AddDeviceToFilterAcceptList. */
+    gDeviceRemovedFromFilterAcceptList_c                = 0x07U, /*!< Device has been removed from the Filter Accept List. Response to Gap_RemoveDeviceFromFilterAcceptList. */
+    gFilterAcceptListCleared_c                          = 0x08U, /*!< Filter Accept List has been cleared. Response to Gap_ClearFilterAcceptList. */
+    gRandomAddressReady_c                               = 0x09U, /*!< A random device address has been created. Response to Gap_CreateRandomDeviceAddress. */
+    gCreateConnectionCanceled_c                         = 0x0AU, /*!< Connection initiation was successfully cancelled. Response to Gap_CancelInitiatingConnection. */
+    gPublicAddressRead_c                                = 0x0BU, /*!< Contains the public device address. Response to Gap_ReadPublicDeviceAddress. */
+    gAdvTxPowerLevelRead_c                              = 0x0CU, /*!< Contains the TX power on the advertising channel. Response to Gap_ReadAdvertisingTxPowerLevel. */
+    gPrivateResolvableAddressVerified_c                 = 0x0DU, /*!< Contains the result of PRA verification. Response to Gap_VerifyPrivateResolvableAddress. */
+    gRandomAddressSet_c                                 = 0x0EU, /*!< Random address has been set into the Controller. Response to Gap_SetRandomAddress. */
+    gLeScPublicKeyRegenerated_c                         = 0x0FU, /*!< The private/public key pair used for LE Secure Connections pairing has been regenerated. */
+    gLeScLocalOobData_c                                 = 0x10U, /*!< Local OOB data used for LE Secure Connections pairing. */
+    gHostPrivacyStateChanged_c                          = 0x11U, /*!< Host Privacy was enabled or disabled. */
+    gControllerPrivacyStateChanged_c                    = 0x12U, /*!< Controller Privacy was enabled or disabled. */
+    gControllerTestEvent_c                              = 0x13U, /*!< Controller Test was started or stopped. */
+    gTxPowerLevelSetComplete_c                          = 0x14U, /*!< Controller Tx Power Level set complete or invalid. */
+    gLePhyEvent_c                                       = 0x15U, /*!< Phy Mode of a connection has been updated by the Controller. */
+    gControllerNotificationEvent_c                      = 0x16U, /*!< Controller Enhanced Notification received. */
+    gGetConnParamsComplete_c                            = 0x17U, /*!< Get Connection Parameters command complete */
+    gBondCreatedEvent_c                                 = 0x18U, /*!< Bond Created Event signalling the stack created a bond after pairing or at app request. */
+    gChannelMapSet_c                                    = 0x19U, /*!< Channel map set complete in the Controller. */
+    gExtAdvertisingParametersSetupComplete_c            = 0x1AU, /*!< Extended advertising parameters have been successfully set. */
+    gExtAdvertisingDataSetupComplete_c                  = 0x1BU, /*!< Extended advertising data has been successfully set. */
+    gExtAdvertisingSetRemoveComplete_c                  = 0x1CU, /*!< An advertising set has been removed from the Controller. */
+    gPeriodicAdvParamSetupComplete_c                    = 0x1DU, /*!< Periodic advertising parameters have been successfully set. */
+    gPeriodicAdvDataSetupComplete_c                     = 0x1EU, /*!< Periodic advertising data have been successfully set. */
+    gPeriodicAdvertisingStateChanged_c                  = 0x1FU, /*!< Event received when periodic advertising has been successfully enabled or disabled. */
+    gPeriodicAdvListUpdateComplete_c                    = 0x20U, /*!< Periodic advertiser list has been successfully updated. */
+    gPeriodicAdvCreateSyncCancelled_c                   = 0x21U, /*!< Periodic advertising create sync command was successfully cancelled */
+    gTxEntryAvailable_c                                 = 0x22U, /*!< This event is generated when a TX entry becomes available after they were all in use. */
+    gControllerLocalRPARead_c                           = 0x23U, /*!< Contains the resolvable private device address. Response to Gap_ReadControllerLocalRPA. */
+    gConnectionlessCteTransmitParamsSetupComplete_c     = 0x24U, /*!< Connectionless CTE transmit parameters have been successfully set. */
+    gConnectionlessCteTransmitStateChanged_c            = 0x25U, /*!< Connectionless CTE for an advertising set was enabled or disabled. */
+    gConnectionlessIqSamplingStateChanged_c             = 0x26U, /*!< Connectionless CTE IQ sampling for an advertising train was enabled or disabled. */
+    gAntennaInformationRead_c                           = 0x27U, /*!< Antenna information was read from the controller. */
+    gModifiedSleepClockAccuracy_c                       = 0x28U, /*!< The Sleep Clock accuracy was changed */
+    gPeriodicAdvRecvEnableComplete_c                    = 0x29U, /*!< Enable or disable reports for the periodic advertising train command is complete */
+    gPeriodicAdvSyncTransferComplete_c                  = 0x2AU, /*!< The command used to instruct the Controller to send synchronization information about the periodic advertising train identified by the Sync_Handle parameter to a connected device is complete */
+    gPeriodicAdvSetInfoTransferComplete_c               = 0x2BU, /*!< The command used to instruct the Controller to send synchronization information about the periodic advertising in an advertising set to a connected device is complete */
+    gSetPeriodicAdvSyncTransferParamsComplete_c         = 0x2CU, /*!< The command specifying how the Controller will process periodic advertising synchronization information is complete */
+    gSetDefaultPeriodicAdvSyncTransferParamsComplete_c  = 0x2DU, /*!< The command which set the default parameters for  periodic advertising synchronization information is complete */
+    gPeriodicAdvSyncTransferSucceeded_c                 = 0x2EU, /*!< Event received when Controller has succeeded the Synchronization to the periodic advertising train */
+    gPeriodicAdvSyncTransferFailed_c                    = 0x2FU, /*!< Event received when Controller has failed the Synchronization to the periodic advertising train */
+    gConnEvtLeGenerateDhKeyComplete_c                   = 0x30U, /*!< DHKey generation is complete. Key can be found in gapConnectionEvent_t.eventData.leGenerateDhKeyCompleteEvent */
+    gHandoverGetComplete_c                              = 0x31U, /*!< Handover data get complete. */
+    gHandoverSetComplete_c                              = 0x32U, /*!< Handover data set complete. */
+    gHandoverGetCsLlContextComplete_c                   = 0x33U, /*!< Handover CS LL context data get complete. */
+    gHandoverSetCsLlContextComplete_c                   = 0x34U, /*!< Handover CS LL context data set complete. */
+    gHandoverGetTime_c                                  = 0x35U, /*!< Handover Get Time command complete */
+    gHandoverSuspendTransmitComplete_c                  = 0x36U, /*!< Handover Suspend Transmit command complete */
+    gHandoverResumeTransmitComplete_c                   = 0x37U, /*!< Handover Resume Transmit command complete */
+    gHandoverAnchorNotificationStateChanged_c           = 0x38U, /*!< Handover Anchor Notification command complete */
+    gHandoverAnchorSearchStarted_c                      = 0x39U, /*!< Handover Anchor Search Start command complete */
+    gHandoverAnchorSearchStopped_c                      = 0x3AU, /*!< Handover Anchor Search Stop command complete */
+    gHandoverTimeSyncTransmitStateChanged_c             = 0x3BU, /*!< Handover Time Sync Transmit command complete */
+    gHandoverTimeSyncReceiveComplete_c                  = 0x3CU, /*!< Handover Time Sync Receive command complete */
+    gHandoverAnchorMonitorEvent_c                       = 0x3DU, /*!< Event received from Controller - Handover Anchor Monitor */
+    gHandoverTimeSyncEvent_c                            = 0x3EU, /*!< Event received from Controller - Handover Time Sync */
+    gHandoverConnParamUpdateEvent_c                     = 0x3FU, /*!< Event received from Controller - Handover Conn Params Update */
+    gRemoteVersionInformationRead_c                     = 0x40U, /*!< Version Information of a peer was read */
+    gLlSkdReportEvent_c                                 = 0x41U, /*!< Session Key Diversifier report */
+    gLeSetSchedulerPriorityComplete_c                   = 0x42U, /*!< LE Set Scheduler Priority command complete */
+    gDeInitializationComplete_c                         = 0x43U, /*!< Event received when Ble_HostDeInitialize is complete. */
+    gHandoverAnchorMonitorPacketEvent_c                 = 0x44U, /*!< Event received from Controller - Handover Anchor Monitor Packet. pPdu must be freed by the application */
+    gHandoverAnchorMonitorPacketContinueEvent_c         = 0x45U, /*!< Event received from Controller - Handover Anchor Monitor Packet Continue. pPdu must be freed by the application */
+    gHandoverFreeComplete_c                             = 0x46U, /*!< Handover data free complete. */
+    gHandoverUpdateConnParamsComplete_c                 = 0x47U, /*!< Handover Update Connection Parameters command complete */
+    gExtAdvertisingDecisionDataSetupComplete_c          = 0x48U, /*!< Extended advertising decision data has been successfully set. */
+    gDecisionInstructionsSetupComplete_c                = 0x49U, /*!< decision instructions used when listening for decision advertisements PDUs has been successfully set. */
+    gHandoverLlPendingData_c                            = 0x4AU, /*!< ACL Data pending to be transmited by the LL */
+    gLeChannelOverrideComplete_c                        = 0x4BU, /*!< LE Channel Override command complete */
 } gapGenericEventType_t;
 
 /*! Internal Error Source - the command that triggered the error */
@@ -998,6 +1000,7 @@ typedef enum {
     gHandoverTimeSyncTxLl_c = 0x80U,                /*!< Handover Time Sync Transmit Link Layer error */
     gHandoverTimeSyncRxLl_c = 0x81U,                /*!< Handover Time Sync Receive Link Layer error */
     gHandoverSetLlPendingData_c = 0x82U,            /*!< Handover Set LL Pending Data error */
+    gLeChannelOverride_c = 0x83U,                   /*!< LE Channel Override command unsuccessful */
 } gapInternalErrorSource_t;
 
 /*! Internal Error Event Data */
@@ -1096,6 +1099,7 @@ typedef struct {
     bleResult_t                status;          /*!< Status of the request to select which events to be enabled/disabled */
     uint32_t                   timestamp;       /*!< Timestamp in microseconds, valid for Conn Rx event and Conn Created event */
     uint8_t                    adv_handle;      /*!< Advertising Handle, valid for advertising events, if multiple ADV sets supported */
+    bleDeviceAddress_t         scanned_addr;    /*!< Scanned address, valid for gNotifScanAdvPktRx_c event, all-zeroes otherwise */
 } bleNotificationEvent_t;
 
 /*! gInitializationComplete_c event data */

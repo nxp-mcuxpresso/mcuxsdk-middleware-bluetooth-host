@@ -2326,7 +2326,10 @@ const pfGapGetBufferFromGenericEventHandler_t maGapGetBufferFromGenericEventHand
     NULL,                                                                       /* reserved: 0x3AU */
     NULL,                                                                       /* reserved: 0x3BU */
     NULL,                                                                       /* reserved: 0x3CU */
-    GetBufferFromRemoteVersionInformationReadEvent                              /* 0x3DU, gRemoteVersionInformationRead_c */
+    NULL,                                                                       /* reserved: 0x3DU */
+    NULL,                                                                       /* reserved: 0x3EU */
+    NULL,                                                                       /* reserved: 0x3FU */
+    GetBufferFromRemoteVersionInformationReadEvent,                             /* 0x40U, gRemoteVersionInformationRead_c */
 };
 
 /*! Array of handler functions used by fsciBleGapGetGenericEventBufferSize */
@@ -2411,8 +2414,10 @@ const pfGapGetGenericEventBufferSizeHandler_t maGapGetGenericEventBufferSizeHand
     NULL,                                                                       /* reserved: 0x3AU */
     NULL,                                                                       /* reserved: 0x3BU */
     NULL,                                                                       /* reserved: 0x3CU */
-    GetRemoteVersionInformationReadEventBufferSize,                             /* 0x3DU, gRemoteVersionInformationRead_c */
-    NULL                                                                        /* reserved: 0x3EU */
+    NULL,                                                                       /* reserved: 0x3DU */
+    NULL,                                                                       /* reserved: 0x3EU */
+    NULL,                                                                       /* reserved: 0x3FU */
+    GetRemoteVersionInformationReadEventBufferSize,                             /* 0x40U, gRemoteVersionInformationRead_c */
 };
 
 #if gFsciBleBBox_d || gFsciBleTest_d
@@ -5127,6 +5132,7 @@ static void GetControllerNotificationEventFromBuffer
     fsciBleGetEnumValueFromBuffer(pGenericEvent->eventData.notifEvent.status, *ppBuffer, bleResult_t);
     fsciBleGetUint32ValueFromBuffer(pGenericEvent->eventData.notifEvent.timestamp, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pGenericEvent->eventData.notifEvent.adv_handle, *ppBuffer);
+    fsciBleGetAddressFromBuffer(pGenericEvent->eventData.notifEvent.scanned_addr, *ppBuffer);
 }
 
 /*! *********************************************************************************
@@ -5594,6 +5600,7 @@ static void GetBufferFromControllerNotificationEvent
     fsciBleGetBufferFromEnumValue(pGenericEvent->eventData.notifEvent.status, *ppBuffer, bleResult_t);
     fsciBleGetBufferFromUint32Value(pGenericEvent->eventData.notifEvent.timestamp, *ppBuffer);
     fsciBleGetBufferFromUint8Value(pGenericEvent->eventData.notifEvent.adv_handle, *ppBuffer);
+    fsciBleGetBufferFromAddress(pGenericEvent->eventData.notifEvent.scanned_addr, *ppBuffer);
 }
 
 /*! *********************************************************************************
@@ -6242,7 +6249,7 @@ static uint32_t GetControllerNotificationEventBufferSize
 {
     return sizeof(uint16_t) + sizeof(deviceId_t) + sizeof(int8_t) +
            sizeof(uint8_t) + sizeof(uint16_t) + sizeof(bleResult_t) +
-           sizeof(uint32_t) + sizeof(uint8_t);
+           sizeof(uint32_t) + sizeof(uint8_t) + gcBleDeviceAddressSize_c;
 }
 
 /*! *********************************************************************************
@@ -10594,6 +10601,7 @@ void HandleGapEvtScanningEventPeriodicDeviceScannedOpCode(uint8_t *pBuffer, uint
 *                                                       uint32_t fsciInterfaceId)
 *\brief        Handler for GAP scanning events.
 *
+*\param  [in]  eventType            Scanning event type received.
 *\param  [in]  pBuffer              Pointer to the command parameters.
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
@@ -10601,7 +10609,6 @@ void HandleGapEvtScanningEventPeriodicDeviceScannedOpCode(uint8_t *pBuffer, uint
 ********************************************************************************** */   
 void HandleGapScanningEvent(gapScanningEventType_t eventType, uint8_t *pBuffer, uint32_t fsciInterfaceId){
     gapScanningEvent_t*     pScanningEvent = NULL;
-    gapScanningEventType_t  eventType = gScanStateChanged_c;
     pScanningEvent = fsciBleGapAllocScanningEventForBuffer(eventType, pBuffer);
 
     if(NULL == pScanningEvent)

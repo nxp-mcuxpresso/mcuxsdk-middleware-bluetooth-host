@@ -295,6 +295,9 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 
 #define gHciVendorSetEncSessionKeyCommand_c                      0x00B0U
 
+/* Vendor specific command LE_Channel_Override */
+#define gHciVendorLeChannelOverride_c                            0x00B1U
+
 /* Vendor specific command LE_Set_Scheduler_Priority */
 #define gHciVendorLeSetSchedulerPriority_c                       0x00B2U
 

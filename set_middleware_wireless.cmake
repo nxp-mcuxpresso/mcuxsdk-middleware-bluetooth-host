@@ -1,14 +1,14 @@
 include_guard(GLOBAL)
 
 
-if (CONFIG_USE_device_MCXW716C_startup_wireless)
-# Add set(CONFIG_USE_device_MCXW716C_startup_wireless true) in config.cmake to use this component
+if (CONFIG_USE_device_KW45B41Z83_startup_wireless)
+# Add set(CONFIG_USE_device_KW45B41Z83_startup_wireless true) in config.cmake to use this component
 
-message("device_MCXW716C_startup_wireless component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+message("device_KW45B41Z83_startup_wireless component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
 if((CONFIG_TOOLCHAIN STREQUAL armgcc OR CONFIG_TOOLCHAIN STREQUAL mcux))
   target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
-      ${CMAKE_CURRENT_LIST_DIR}/../../../devices/MCXW716C/gcc/startup_MCXW716C.S
+      ${CMAKE_CURRENT_LIST_DIR}/../../../devices/KW45B41Z83/gcc/startup_KW45B41Z83.S
   )
 endif()
 
@@ -130,12 +130,46 @@ endif()
 endif()
 
 
+if (CONFIG_USE_middleware_wireless_ble_host_AE_component_lib_armgcc)
+# Add set(CONFIG_USE_middleware_wireless_ble_host_AE_component_lib_armgcc true) in config.cmake to use this component
+
+message("middleware_wireless_ble_host_AE_component_lib_armgcc component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+if(CONFIG_TOOLCHAIN STREQUAL armgcc)
+  target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE
+    -Wl,--start-group
+      ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/host/lib/lib_ble_OPT_host_cm33_gcc.a
+      -Wl,--end-group
+  )
+endif()
+
+
+endif()
+
+
 if (CONFIG_USE_middleware_wireless_ble_host_AE_central_component_lib_mcux)
 # Add set(CONFIG_USE_middleware_wireless_ble_host_AE_central_component_lib_mcux true) in config.cmake to use this component
 
 message("middleware_wireless_ble_host_AE_central_component_lib_mcux component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
 if(CONFIG_TOOLCHAIN STREQUAL mcux)
+  target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE
+    -Wl,--start-group
+      ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/host/lib/lib_ble_OPT_host_central_cm33_gcc.a
+      -Wl,--end-group
+  )
+endif()
+
+
+endif()
+
+
+if (CONFIG_USE_middleware_wireless_ble_host_AE_central_component_lib_armgcc)
+# Add set(CONFIG_USE_middleware_wireless_ble_host_AE_central_component_lib_armgcc true) in config.cmake to use this component
+
+message("middleware_wireless_ble_host_AE_central_component_lib_armgcc component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+if(CONFIG_TOOLCHAIN STREQUAL armgcc)
   target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE
     -Wl,--start-group
       ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/host/lib/lib_ble_OPT_host_central_cm33_gcc.a
@@ -164,12 +198,46 @@ endif()
 endif()
 
 
+if (CONFIG_USE_middleware_wireless_ble_host_AE_peripheral_component_lib_armgcc)
+# Add set(CONFIG_USE_middleware_wireless_ble_host_AE_peripheral_component_lib_armgcc true) in config.cmake to use this component
+
+message("middleware_wireless_ble_host_AE_peripheral_component_lib_armgcc component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+if(CONFIG_TOOLCHAIN STREQUAL armgcc)
+  target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE
+    -Wl,--start-group
+      ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/host/lib/lib_ble_OPT_host_peripheral_cm33_gcc.a
+      -Wl,--end-group
+  )
+endif()
+
+
+endif()
+
+
 if (CONFIG_USE_middleware_wireless_ble_host_component_lib_mcux)
 # Add set(CONFIG_USE_middleware_wireless_ble_host_component_lib_mcux true) in config.cmake to use this component
 
 message("middleware_wireless_ble_host_component_lib_mcux component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
 if(CONFIG_TOOLCHAIN STREQUAL mcux)
+  target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE
+    -Wl,--start-group
+      ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/host/lib/lib_ble_host_cm33_gcc.a
+      -Wl,--end-group
+  )
+endif()
+
+
+endif()
+
+
+if (CONFIG_USE_middleware_wireless_ble_host_component_lib_armgcc)
+# Add set(CONFIG_USE_middleware_wireless_ble_host_component_lib_armgcc true) in config.cmake to use this component
+
+message("middleware_wireless_ble_host_component_lib_armgcc component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+if(CONFIG_TOOLCHAIN STREQUAL armgcc)
   target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE
     -Wl,--start-group
       ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/host/lib/lib_ble_host_cm33_gcc.a
@@ -198,12 +266,46 @@ endif()
 endif()
 
 
+if (CONFIG_USE_middleware_wireless_ble_host_central_component_lib_armgcc)
+# Add set(CONFIG_USE_middleware_wireless_ble_host_central_component_lib_armgcc true) in config.cmake to use this component
+
+message("middleware_wireless_ble_host_central_component_lib_armgcc component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+if(CONFIG_TOOLCHAIN STREQUAL armgcc)
+  target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE
+    -Wl,--start-group
+      ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/host/lib/lib_ble_host_central_cm33_gcc.a
+      -Wl,--end-group
+  )
+endif()
+
+
+endif()
+
+
 if (CONFIG_USE_middleware_wireless_ble_host_peripheral_component_lib_mcux)
 # Add set(CONFIG_USE_middleware_wireless_ble_host_peripheral_component_lib_mcux true) in config.cmake to use this component
 
 message("middleware_wireless_ble_host_peripheral_component_lib_mcux component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
 if(CONFIG_TOOLCHAIN STREQUAL mcux)
+  target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE
+    -Wl,--start-group
+      ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/host/lib/lib_ble_host_peripheral_cm33_gcc.a
+      -Wl,--end-group
+  )
+endif()
+
+
+endif()
+
+
+if (CONFIG_USE_middleware_wireless_ble_host_peripheral_component_lib_armgcc)
+# Add set(CONFIG_USE_middleware_wireless_ble_host_peripheral_component_lib_armgcc true) in config.cmake to use this component
+
+message("middleware_wireless_ble_host_peripheral_component_lib_armgcc component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+if(CONFIG_TOOLCHAIN STREQUAL armgcc)
   target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE
     -Wl,--start-group
       ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/host/lib/lib_ble_host_peripheral_cm33_gcc.a
@@ -357,6 +459,23 @@ target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
 endif()
 
 
+if (CONFIG_USE_middleware_wireless_ble_fsci_source_channel_sounding)
+# Add set(CONFIG_USE_middleware_wireless_ble_fsci_source_channel_sounding true) in config.cmake to use this component
+
+message("middleware_wireless_ble_fsci_source_channel_sounding component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/fsci/source/fsci_channel_sounding.c
+)
+
+target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/fsci/source
+)
+
+
+endif()
+
+
 if (CONFIG_USE_middleware_wireless_ble_fsci_host)
 # Add set(CONFIG_USE_middleware_wireless_ble_fsci_host true) in config.cmake to use this component
 
@@ -397,6 +516,23 @@ if (CONFIG_USE_middleware_wireless_ble_host_handover_component_lib_mcux)
 message("middleware_wireless_ble_host_handover_component_lib_mcux component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
 if(CONFIG_TOOLCHAIN STREQUAL mcux)
+  target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE
+    -Wl,--start-group
+      ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/host/lib/lib_ble_handover_cm33_gcc.a
+      -Wl,--end-group
+  )
+endif()
+
+
+endif()
+
+
+if (CONFIG_USE_middleware_wireless_ble_host_handover_component_lib_armgcc)
+# Add set(CONFIG_USE_middleware_wireless_ble_host_handover_component_lib_armgcc true) in config.cmake to use this component
+
+message("middleware_wireless_ble_host_handover_component_lib_armgcc component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+if(CONFIG_TOOLCHAIN STREQUAL armgcc)
   target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE
     -Wl,--start-group
       ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/host/lib/lib_ble_handover_cm33_gcc.a
@@ -765,6 +901,66 @@ target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
 endif()
 
 
+if (CONFIG_USE_middleware_wireless_XCVR_GEN45_driver_workaround)
+# Add set(CONFIG_USE_middleware_wireless_XCVR_GEN45_driver_workaround true) in config.cmake to use this component
+
+message("middleware_wireless_XCVR_GEN45_driver_workaround component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/mathfp.c
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/dma_capture.c
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/rfmc_ctrl.c
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/dbg_ram_capture.c
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/nxp_xcvr_ext_ctrl.c
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/nb2p4ghz/nxp2p4_xcvr.c
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/nb2p4ghz/nxp_xcvr_trim.c
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_coding_config.c
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_lcl_config.c
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_gfsk_bt_0p5_h_0p5_config.c
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_gfsk_bt_0p5_h_0p7_config.c
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_gfsk_bt_0p5_h_0p32_config.c
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_gfsk_bt_0p5_h_1p0_config.c
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_oqpsk_802p15p4_config.c
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_mode_config.c
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_msk_config.c
+)
+
+target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/nb2p4ghz
+  ${CMAKE_CURRENT_LIST_DIR}/../XCVR/drv/nb2p4ghz/configs/gen45
+)
+
+if(CONFIG_USE_COMPONENT_CONFIGURATION)
+  message("===>Import configuration from ${CMAKE_CURRENT_LIST_FILE}")
+
+  target_compile_definitions(${MCUX_SDK_PROJECT_NAME} PUBLIC
+    -DRF_OSC_26MHZ=0
+    -DTEST_BUILD_COEX=0
+    -DARM_MATH_CM3=1
+  )
+
+endif()
+
+
+endif()
+
+
+if (CONFIG_USE_device_MCXW716C_startup_wireless)
+# Add set(CONFIG_USE_device_MCXW716C_startup_wireless true) in config.cmake to use this component
+
+message("device_MCXW716C_startup_wireless component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+if((CONFIG_TOOLCHAIN STREQUAL armgcc OR CONFIG_TOOLCHAIN STREQUAL mcux))
+  target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
+      ${CMAKE_CURRENT_LIST_DIR}/../../../devices/MCXW716C/gcc/startup_MCXW716C.S
+  )
+endif()
+
+
+endif()
+
+
 if (CONFIG_USE_device_K32W1480_startup_wireless)
 # Add set(CONFIG_USE_device_K32W1480_startup_wireless true) in config.cmake to use this component
 
@@ -773,21 +969,6 @@ message("device_K32W1480_startup_wireless component is included from ${CMAKE_CUR
 if((CONFIG_TOOLCHAIN STREQUAL armgcc OR CONFIG_TOOLCHAIN STREQUAL mcux))
   target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
       ${CMAKE_CURRENT_LIST_DIR}/../../../devices/K32W1480/gcc/startup_K32W1480.S
-  )
-endif()
-
-
-endif()
-
-
-if (CONFIG_USE_device_KW45B41Z83_startup_wireless)
-# Add set(CONFIG_USE_device_KW45B41Z83_startup_wireless true) in config.cmake to use this component
-
-message("device_KW45B41Z83_startup_wireless component is included from ${CMAKE_CURRENT_LIST_FILE}.")
-
-if((CONFIG_TOOLCHAIN STREQUAL armgcc OR CONFIG_TOOLCHAIN STREQUAL mcux))
-  target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
-      ${CMAKE_CURRENT_LIST_DIR}/../../../devices/KW45B41Z83/gcc/startup_KW45B41Z83.S
   )
 endif()
 
@@ -845,6 +1026,30 @@ endif()
 else()
 
 message(SEND_ERROR "middleware_wireless_ble_host_matter_component_lib_mcux dependency does not meet, please check ${CMAKE_CURRENT_LIST_FILE}.")
+
+endif()
+
+endif()
+
+
+if (CONFIG_USE_middleware_wireless_ble_host_matter_component_lib_armgcc)
+# Add set(CONFIG_USE_middleware_wireless_ble_host_matter_component_lib_armgcc true) in config.cmake to use this component
+
+message("middleware_wireless_ble_host_matter_component_lib_armgcc component is included from ${CMAKE_CURRENT_LIST_FILE}.")
+
+if((CONFIG_BOARD STREQUAL k32w148evk OR CONFIG_BOARD STREQUAL frdmmcxw71))
+
+if(CONFIG_TOOLCHAIN STREQUAL armgcc)
+  target_link_libraries(${MCUX_SDK_PROJECT_NAME} PRIVATE
+    -Wl,--start-group
+      ${CMAKE_CURRENT_LIST_DIR}/../bluetooth/host/lib/lib_ble_host_matter_cm33_gcc.a
+      -Wl,--end-group
+  )
+endif()
+
+else()
+
+message(SEND_ERROR "middleware_wireless_ble_host_matter_component_lib_armgcc dependency does not meet, please check ${CMAKE_CURRENT_LIST_FILE}.")
 
 endif()
 
@@ -1041,37 +1246,12 @@ endif()
 endif()
 
 
-if (CONFIG_USE_middleware_wireless_ble_controller)
-# Add set(CONFIG_USE_middleware_wireless_ble_controller true) in config.cmake to use this component
-
-message("middleware_wireless_ble_controller component is included from ${CMAKE_CURRENT_LIST_FILE}.")
-
-if((NOT (CONFIG_NOT STREQUAL kw45b41zevk OR CONFIG_NOT STREQUAL k32w148evk OR CONFIG_NOT STREQUAL kw45b41zloc)))
-
-target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
-  ${CMAKE_CURRENT_LIST_DIR}/../ble_controller/src/ble_controller_task.c
-)
-
-target_include_directories(${MCUX_SDK_PROJECT_NAME} PUBLIC
-  ${CMAKE_CURRENT_LIST_DIR}/../ble_controller/interface
-  ${CMAKE_CURRENT_LIST_DIR}/../ble_controller/config
-)
-
-else()
-
-message(SEND_ERROR "middleware_wireless_ble_controller dependency does not meet, please check ${CMAKE_CURRENT_LIST_FILE}.")
-
-endif()
-
-endif()
-
-
 if (CONFIG_USE_middleware_wireless_ble_controller_config)
 # Add set(CONFIG_USE_middleware_wireless_ble_controller_config true) in config.cmake to use this component
 
 message("middleware_wireless_ble_controller_config component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
-if((NOT (CONFIG_NOT STREQUAL kw45b41zevk OR CONFIG_NOT STREQUAL k32w148evk OR CONFIG_NOT STREQUAL kw45b41zloc)))
+if((NOT (CONFIG_NOT STREQUAL kw45b41zevk OR CONFIG_NOT STREQUAL k32w148evk OR CONFIG_NOT STREQUAL kw45b41zloc OR CONFIG_NOT STREQUAL frdmmcxw71)))
 
 if((CONFIG_TOOLCHAIN STREQUAL armgcc OR CONFIG_TOOLCHAIN STREQUAL mcux))
   target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
@@ -1105,7 +1285,7 @@ if (CONFIG_USE_middleware_wireless_ble_controller_component)
 
 message("middleware_wireless_ble_controller_component component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
-if((NOT (CONFIG_NOT STREQUAL kw45b41zevk OR CONFIG_NOT STREQUAL k32w148evk OR CONFIG_NOT STREQUAL kw45b41zloc)))
+if((NOT (CONFIG_NOT STREQUAL kw45b41zevk OR CONFIG_NOT STREQUAL k32w148evk OR CONFIG_NOT STREQUAL kw45b41zloc OR CONFIG_NOT STREQUAL frdmmcxw71)))
 
 target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/../ble_controller/src/ble_controller_task.c
@@ -1131,7 +1311,7 @@ if (CONFIG_USE_middleware_wireless_ble_controller_MWS)
 
 message("middleware_wireless_ble_controller_MWS component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
-if((NOT (CONFIG_NOT STREQUAL kw45b41zevk OR CONFIG_NOT STREQUAL k32w148evk OR CONFIG_NOT STREQUAL kw45b41zloc)))
+if((NOT (CONFIG_NOT STREQUAL kw45b41zevk OR CONFIG_NOT STREQUAL k32w148evk OR CONFIG_NOT STREQUAL kw45b41zloc OR CONFIG_NOT STREQUAL frdmmcxw71)))
 
 target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}/../ble_controller/src/mws/ble_mws.c

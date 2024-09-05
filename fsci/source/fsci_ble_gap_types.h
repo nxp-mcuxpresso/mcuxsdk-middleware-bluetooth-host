@@ -263,89 +263,11 @@
 #define fsciBleGapGetEattBearerStatusNotificationBufferSize(pEattBearerStatusNotification)    \
             (sizeof(gapEattBearerStatusNotification_t))
 
-#define MAX_ERR_IN_LIST         4U
-
-#define MAX_CUST_ERR_IN_LIST    2U
-
-#define NB_BUF_ENTRIES          24U
-
-#define NO_STATES               4U
-
 /************************************************************************************
 *************************************************************************************
 * Public type definitions
 *************************************************************************************
 ************************************************************************************/
-typedef PACKED_STRUCT nbuErrDebugInfo_tag
-{
-    uint32_t PCaddr;
-    uint32_t LRaddr;
-    uint32_t moreInfo;
-} nbuErrDebugInfo_t;
-
-typedef PACKED_STRUCT lmResState_tag
-{
-  uint8_t ucCurState;
-  uint8_t StatesCnt[NO_STATES];
-} lmResState_t;
-
-typedef PACKED_STRUCT nbuDbgStructCust_tag
-{
-    uint32_t             errorBitmask;
-    uint32_t             taskSOFmask;
-    uint32_t             idleTaskFreeRunningCounter;
-    lmResState_t         lmStateStatus;
-    uint8_t              advSchedFreeRunCnt;
-    uint8_t              scanSchedFreeRunCnt;
-    uint8_t              scanInitSchedFreeRunCnt;
-    uint8_t              scanCorrHitFreeRunningCounter;
-    uint8_t              scanCorrToFreeRunningCounter;
-    uint8_t              txLockFailRunningCounter;
-    uint8_t              rxLockFailRunningCounter;
-    uint32_t             rtErrorStatus;
-    uint32_t             reserved4;
-    uint8_t              reserved5;
-    uint8_t              scanGenReportFreeRunningCounter;
-    uint8_t              scanGenCloseFreeRunningCounter;
-    uint8_t              res2ScanHwErrorFreeRunningCounter;
-    uint8_t              advTxDoneFreeRunningCounter;
-    uint8_t              res3ScanRtErrorFreeRunningCounter;
-    uint8_t              res4AdvHwErrorFreeRunningCounter;
-    uint8_t              res5AdvRtErrorFreeRunningCounter;
-    uint32_t             hwAbortStatus;
-    uint8_t              errorList[MAX_CUST_ERR_IN_LIST];
-    uint8_t              reserved1[MAX_ERR_IN_LIST-MAX_CUST_ERR_IN_LIST];
-    nbuErrDebugInfo_t    errorInfo[MAX_CUST_ERR_IN_LIST];
-    uint8_t              warningList[MAX_CUST_ERR_IN_LIST];
-    uint8_t              reserved2[MAX_ERR_IN_LIST-MAX_CUST_ERR_IN_LIST];
-    nbuErrDebugInfo_t    warningInfo[MAX_CUST_ERR_IN_LIST];
-} nbuDbgStructCust_t;
-
-typedef PACKED_STRUCT nbuDebugInfo_tag
-{
-    uint8_t              debugMode;
-    uint8_t              errorCount;
-    uint8_t              warCount;
-    uint8_t              issueTriggered;
-    uint32_t             length;
-    uint32_t             sha1Nbu;
-    nbuDbgStructCust_t   cust;
-    uint32_t             reserved3;
-} nbuDebugInfo_t;
-
-typedef PACKED_STRUCT nbuDebugInfo2_tag
-{
-    uint8_t              debugMode;
-    uint8_t              errorCount;
-    uint8_t              warCount;
-    uint8_t              issueTriggered;
-    uint32_t             length;
-    uint32_t             sha1Nbu;
-    uint32_t             errorBitmask;
-    uint32_t             taskSOFmask;
-    uint32_t             idleTaskFreeRunningCounter;
-    uint32_t             bufferInfo[NB_BUF_ENTRIES];
-} nbuDebugInfo2_t;
 
 /************************************************************************************
 *************************************************************************************

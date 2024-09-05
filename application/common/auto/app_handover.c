@@ -807,7 +807,22 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
     {
         case gHandoverTimeSyncReceiveComplete_c:
         {
-            mAppHandoverState = gTimeSyncRx_c;
+            /* Regular flow */
+            if (mAppHandoverState == gIdle_c)
+            {
+                mAppHandoverState = gTimeSyncRx_c;
+            }
+            /* Handover was aborted while time sync was in progress */
+            else if (mAppHandoverState == gTimeSyncRx_c)
+            {
+                mAppHandoverState = gIdle_c;
+            }
+            else
+            {
+                /* Should not get here */
+                result = gBleUnexpectedError_c;
+                error = mAppHandover_UnexpectedError_c;
+            }
         }
         break;
         
@@ -1466,7 +1481,12 @@ void AppHandover_Abort(bool_t notifyPeerAnch, appHandoverError_t error)
         mHandoverDataSize = 0;
     }
     mHandoverCentralDeviceId = gInvalidDeviceId_c;
-    mAppHandoverState = gIdle_c;
+
+    /* If time sync rx is in progress we will reset the state to Idle when it finishes */
+    if (mAppHandoverState != gTimeSyncRx_c)
+    {
+        mAppHandoverState = gIdle_c;
+    }
     
     while(MSG_QueueGetHead(&mSrcLlPendingDataQueue) != NULL)
     {

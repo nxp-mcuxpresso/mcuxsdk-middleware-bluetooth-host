@@ -80,11 +80,12 @@ static void HandleCtrlCmdGetDebugInfoCmd
     uint32_t fsciInterfaceId
 );
 
-static void HandleCtrlCmdGetDebugInfo2Cmd
+static void HandleGapCmdLeChannelOverride
 (
     uint8_t *pBuffer,
     uint32_t fsciInterfaceId
 );
+
 #if defined(gA2BSupportEnabled_d) && (gA2BSupportEnabled_d == TRUE)
 static void HandleGapCmdEcdhP256ComputeA2BKey
 (
@@ -192,7 +193,7 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
 #else
     NULL,
 #endif /* defined(gBLE54_d) && (gBLE54_d == 1U) */
-    HandleCtrlCmdGetDebugInfo2Cmd,                                              /* = 0x05 gBleCtrlCmdGetDebugInfo2CmdOpCode_c */
+    NULL,                                                                       /* = 0x05 Not Used / Free to use */
 #if defined(gA2BSupportEnabled_d) && (gA2BSupportEnabled_d == TRUE)
     HandleGapCmdEcdhP256ComputeA2BKey,                                          /* = 0x06 gBleGapCmdEcdhP256ComputeA2BKeyOpCode_c */
     HandleGapCmdEcdhP256FreeE2EKeyData,                                         /* = 0x07 gBleGapCmdEcdhP256FreeE2EKeyDataOpCode_c */
@@ -206,6 +207,7 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
     NULL,
     NULL,
 #endif /* gA2BSupportEnabled_d */
+    HandleGapCmdLeChannelOverride,                                              /* = 0x0B gBleGapCmdLeChannelOverrideOpCode_c */
 };
 
 #if gFsciBleTest_d
@@ -409,72 +411,74 @@ static void HandleCtrlCmdGetDebugInfoCmd
 )
 {
     bleResult_t status = gBleSuccess_c;
-    uint8_t pAddr[4U];
-    uint32_t debugInfoAddress;
-    nbuDebugInfo_t debugInfo;
+    uint32_t debugInfoAddress = 0U;
+    uint32_t debugInfoSize = 0U;
+    uint8_t *pDebugInfo = NULL;
 
-    /* Get SMU debug informarion address */
-    FLib_MemCpy(pAddr, pBuffer, 4U);
-    debugInfoAddress = Utils_ExtractFourByteValue(pAddr);
+    /* Get SMU debug information size */
+    fsciBleGetUint32ValueFromBuffer(debugInfoSize, pBuffer);
+    /* Get SMU debug information address */
+    fsciBleGetUint32ValueFromBuffer(debugInfoAddress, pBuffer);
 
-    /* Request Radio domain to be active for safe access to shared memory */
-    PLATFORM_RemoteActiveReq();
+    pDebugInfo = MEM_BufferAlloc(debugInfoSize);
 
-    /* Copy NBU debug data */
-    FLib_MemCpy(&debugInfo, (void*)debugInfoAddress, sizeof(nbuDebugInfo_t));
-    /* Release Radio Domain */
-    PLATFORM_RemoteActiveRel();
+    if (NULL != pDebugInfo)
+    {
+        /* Request Radio domain to be active for safe access to shared memory */
+        PLATFORM_RemoteActiveReq();
 
-    /* Command contains no parameters - Read the debug data and trigger an event with the response */
-    fsciBleGap2StatusMonitor(status);
+        /* Copy NBU debug data */
+        FLib_MemCpy((void*)pDebugInfo, (void*)debugInfoAddress, debugInfoSize);
+        /* Release Radio Domain */
+        PLATFORM_RemoteActiveRel();
+
+        /* Command contains no parameters - Read the debug data and trigger an event with the response */
+        fsciBleGap2StatusMonitor(status);
+    }
+    else
+    {
+        status = gBleOutOfMemory_c;
+    }
 
     if (status == gBleSuccess_c)
     {
-        fsciBleCtrlDebugInfoCmdMonitor(&debugInfo);
+        fsciBleCtrlDebugInfoCmdMonitor(debugInfoSize, pDebugInfo);
+
+        (void)MEM_BufferFree(pDebugInfo);
+    }
+    else
+    {
+        fsciBleError(gFsciOutOfMessages_c, fsciInterfaceId);
     }
 }
 
 /*! *********************************************************************************
 *\private
-*\fn           void HandleCtrlCmdGetDebugInfo2Cmd(uint8_t *pBuffer,
+*\fn           void HandleGapCmdLeChannelOverride(uint8_t *pBuffer,
 *                                                 uint32_t fsciInterfaceId)
-*\brief        Handler for the HandleCtrlCmdGetDebugInfo2Cmd opCode.
+*\brief        Handler for gBleGapCmdLeChannelOverrideOpCode_c.
 *
 *\param  [in]  pBuffer              Pointer to the command parameters.
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
 ********************************************************************************** */
-static void HandleCtrlCmdGetDebugInfo2Cmd
+static void HandleGapCmdLeChannelOverride
 (
     uint8_t *pBuffer,
     uint32_t fsciInterfaceId
 )
 {
-    bleResult_t status = gBleSuccess_c;
-    uint8_t pAddr[4U];
-    uint32_t debugInfoAddress;
-    nbuDebugInfo2_t debugInfo;
+    bleChannelOverrideMode_t mode;
+    uint8_t channelListLength;
+    uint8_t aChannelList[6U];
 
-    /* Get SMU debug informarion address */
-    FLib_MemCpy(pAddr, pBuffer, 4U);
-    debugInfoAddress = Utils_ExtractFourByteValue(pAddr);
+    /* Get command parameters from buffer */
+    fsciBleGetEnumValueFromBuffer(mode, pBuffer, bleChannelOverrideMode_t);
+    fsciBleGetUint8ValueFromBuffer(channelListLength, pBuffer);
+    fsciBleGetArrayFromBuffer(aChannelList, pBuffer, channelListLength);
 
-    /* Request Radio domain to be active for safe access to shared memory */
-    PLATFORM_RemoteActiveReq();
-
-    /* Copy NBU debug data */
-    FLib_MemCpy(&debugInfo, (void*)debugInfoAddress, sizeof(nbuDebugInfo2_t));
-    /* Release Radio Domain */
-    PLATFORM_RemoteActiveRel();
-
-    /* Command contains no parameters - Read the debug data and trigger an event with the response */
-    fsciBleGap2StatusMonitor(status);
-
-    if (status == gBleSuccess_c)
-    {
-        fsciBleCtrlDebugInfo2CmdMonitor(&debugInfo);
-    }
+    fsciBleGap2CallApiFunction(Gap_LeChannelOverride(mode, channelListLength, aChannelList));
 }
 
 #if defined(gA2BSupportEnabled_d) && (gA2BSupportEnabled_d == TRUE)
@@ -869,7 +873,8 @@ void fsciBleGap2StatusMonitor(bleResult_t result)
 
 void fsciBleCtrlDebugInfoCmdMonitor
 (
-    nbuDebugInfo_t* pDebugInfo
+    uint32_t    debugInfoSize,
+    uint8_t     *pDebugInfo
 )
 {
     clientPacketStructured_t*   pClientPacket;
@@ -884,7 +889,8 @@ void fsciBleCtrlDebugInfoCmdMonitor
 #endif /* gFsciBleTest_d */
 
     /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlDebugInfoOpCode_c, (sizeof(nbuDebugInfo_t) + 2U));
+    pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlDebugInfoOpCode_c, sizeof(debugInfoSize) + debugInfoSize); /* sizeof debugInfoSize + 
+                                                                                                                            * actual debugInfo */
 
     if(NULL == pClientPacket)
     {
@@ -894,44 +900,8 @@ void fsciBleCtrlDebugInfoCmdMonitor
     pBuffer = &pClientPacket->payload[0];
 
     /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint8Value(pDebugInfo->debugMode, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->errorCount, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->warCount, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->issueTriggered, pBuffer);
-    fsciBleGetBufferFromUint32Value(pDebugInfo->length, pBuffer);
-    fsciBleGetBufferFromUint32Value(pDebugInfo->sha1Nbu, pBuffer);
-    fsciBleGetBufferFromUint32Value(pDebugInfo->cust.errorBitmask, pBuffer);
-    fsciBleGetBufferFromUint32Value(pDebugInfo->cust.taskSOFmask, pBuffer);
-    fsciBleGetBufferFromUint32Value(pDebugInfo->cust.idleTaskFreeRunningCounter, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->cust.lmStateStatus.ucCurState, pBuffer);
-    fsciBleGetBufferFromArray(pDebugInfo->cust.lmStateStatus.StatesCnt, pBuffer, NO_STATES);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->cust.advSchedFreeRunCnt, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->cust.scanSchedFreeRunCnt, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->cust.scanInitSchedFreeRunCnt, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->cust.scanCorrHitFreeRunningCounter, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->cust.scanCorrToFreeRunningCounter, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->cust.txLockFailRunningCounter, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->cust.rxLockFailRunningCounter, pBuffer);
-    fsciBleGetBufferFromUint32Value(pDebugInfo->cust.rtErrorStatus, pBuffer);
-    fsciBleGetBufferFromUint32Value(pDebugInfo->cust.reserved4, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->cust.reserved5, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->cust.scanGenReportFreeRunningCounter, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->cust.scanGenCloseFreeRunningCounter, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->cust.res2ScanHwErrorFreeRunningCounter, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->cust.advTxDoneFreeRunningCounter, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->cust.res3ScanRtErrorFreeRunningCounter, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->cust.res4AdvHwErrorFreeRunningCounter, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->cust.res5AdvRtErrorFreeRunningCounter, pBuffer);
-    fsciBleGetBufferFromUint32Value(pDebugInfo->cust.hwAbortStatus, pBuffer);
-    fsciBleGetBufferFromUint8Value(MAX_CUST_ERR_IN_LIST, pBuffer);
-    fsciBleGetBufferFromUint8Value(MAX_ERR_IN_LIST - MAX_CUST_ERR_IN_LIST, pBuffer);
-    fsciBleGetBufferFromArray(pDebugInfo->cust.errorList, pBuffer, MAX_CUST_ERR_IN_LIST);
-    fsciBleGetBufferFromArray(pDebugInfo->cust.reserved1, pBuffer, MAX_ERR_IN_LIST-MAX_CUST_ERR_IN_LIST);
-    fsciBleGetBufferFromArray(pDebugInfo->cust.errorInfo, pBuffer, MAX_CUST_ERR_IN_LIST * sizeof(nbuErrDebugInfo_t));
-    fsciBleGetBufferFromArray(pDebugInfo->cust.warningList, pBuffer, MAX_CUST_ERR_IN_LIST);
-    fsciBleGetBufferFromArray(pDebugInfo->cust.reserved2, pBuffer, MAX_ERR_IN_LIST-MAX_CUST_ERR_IN_LIST);
-    fsciBleGetBufferFromArray(pDebugInfo->cust.warningInfo, pBuffer, MAX_CUST_ERR_IN_LIST * sizeof(nbuErrDebugInfo_t));
-    fsciBleGetBufferFromUint32Value(pDebugInfo->reserved3, pBuffer);
+    fsciBleGetBufferFromUint32Value(debugInfoSize, pBuffer);
+    fsciBleGetBufferFromArray(pDebugInfo, pBuffer, debugInfoSize);
 
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
@@ -1149,48 +1119,6 @@ void HandleGapCmdSetExtAdvertisingParametersV2OpCode(uint8_t *pBuffer, uint32_t 
     fsciBleGap2CallApiFunction(Gap_SetExtAdvertisingParametersV2(&advertisingParameters));
 }
 #endif
-
-void fsciBleCtrlDebugInfo2CmdMonitor
-(
-    nbuDebugInfo2_t* pDebugInfo
-)
-{
-    clientPacketStructured_t*   pClientPacket;
-    uint8_t*                    pBuffer;
-
-#if gFsciBleTest_d
-    /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
-    if(FALSE == bFsciBleGap2Enabled)
-    {
-        return;
-    }
-#endif /* gFsciBleTest_d */
-
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlDebugInfo2OpCode_c, (sizeof(nbuDebugInfo2_t)));
-
-    if(NULL == pClientPacket)
-    {
-        return;
-    }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint8Value(pDebugInfo->debugMode, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->errorCount, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->warCount, pBuffer);
-    fsciBleGetBufferFromUint8Value(pDebugInfo->issueTriggered, pBuffer);
-    fsciBleGetBufferFromUint32Value(pDebugInfo->length, pBuffer);
-    fsciBleGetBufferFromUint32Value(pDebugInfo->sha1Nbu, pBuffer);
-    fsciBleGetBufferFromUint32Value(pDebugInfo->errorBitmask, pBuffer);
-    fsciBleGetBufferFromUint32Value(pDebugInfo->taskSOFmask, pBuffer);
-    fsciBleGetBufferFromUint32Value(pDebugInfo->idleTaskFreeRunningCounter, pBuffer);
-    fsciBleGetBufferFromArray(pDebugInfo->bufferInfo, pBuffer, sizeof(pDebugInfo->bufferInfo));
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
-}
 
 #endif /* gFsciBleGap2LayerEnabled_d */
 /*! *********************************************************************************

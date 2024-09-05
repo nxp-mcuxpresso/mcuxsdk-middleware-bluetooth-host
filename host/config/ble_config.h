@@ -244,7 +244,7 @@
 #elif (defined(KW47B42ZB7_cm33_core0_SERIES) || defined(CPU_KW47B42ZB7AFTA_cm33_core0) || defined(KW47B42ZB6_cm33_core0_SERIES) || defined(CPU_KW47B42ZB6AFTA_cm33_core0) || \
        defined(KW47B42ZB3_cm33_core0_SERIES) || defined(CPU_KW47B42ZB3AFTA_cm33_core0) || defined(KW47B42ZB2_cm33_core0_SERIES) || defined(CPU_KW47B42ZB2AFTA_cm33_core0) || \
        defined(KW47B42Z97_cm33_core0_SERIES) || defined(CPU_KW47B42Z97AFTA_cm33_core0) || defined(KW47B42Z96_cm33_core0_SERIES) || defined(CPU_KW47B42Z96AFTA_cm33_core0) || \
-       defined(KW47B42Z83_cm33_core0_SERIES) || defined(CPU_KW47B42Z83AFTA_cm33_core0))
+       defined(KW47B42Z83_cm33_core0_SERIES) || defined(CPU_KW47B42Z83AFTA_cm33_core0) || defined(MCXW727C_cm33_core0_SERIES) || defined(CPU_MCXW727CMFTA_cm33_core0))
     #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     24
 #elif (defined(CPU_MCXW716CMFTA) || (CPU_MCXW716CMFPA) || (CPU_MCXW716AMFTA) || (CPU_MCXW716AMFPA))
     #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     24

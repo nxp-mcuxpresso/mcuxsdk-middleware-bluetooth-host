@@ -8,14 +8,14 @@
     <definition extID="kw45b41zevk"/>
     <definition extID="kw45b41zloc"/>
   </externalDefinitions>
-  <ksdk id="MCUXpressoSDK216000_middleware_nxp_ble_stack_KW45B41Z83_manifest_v3_14" name="MCUXpressoSDK216000_middleware_nxp_ble_stack_KW45B41Z83_manifest_v3_14" version="2.16.000" revision="2.16.000"/>
+  <ksdk id="MCUXpressoSDK216100_middleware_nxp_ble_stack_KW45B41Z83_manifest_v3_14" name="MCUXpressoSDK216100_middleware_nxp_ble_stack_KW45B41Z83_manifest_v3_14" version="2.16.100" revision="2.16.100"/>
   <components>
     <component id="middleware.wireless.ble_xml_fsci.KW45B41Z83" name="wireless ble_xml_fsci" brief="Middleware wireless ble_xml_fsci" version="1.6.1" full_name="middleware.wireless.ble_xml_fsci" category="wireless/ble_xml_fsci" user_visible="true" type="middleware" package_base_path="../../../../tools/wireless" project_base_path="xml_fsci">
       <dependencies>
         <device_dependency value="KW45B41Z83xxxA"/>
       </dependencies>
       <source relative_path="../../../../../xml_fsci" project_relative_path="xml_fsci" type="xml">
-        <files mask="BLE_1.8.16.xml"/>
+        <files mask="BLE_1.10.1.xml"/>
       </source>
       <source toolchain="armgcc" relative_path="./" type="workspace">
         <files mask="middleware_wireless_ble_xml_fsci.cmake" hidden="true"/>
@@ -338,6 +338,17 @@
         <files mask="middleware_wireless_ble_host_AE_component_lib_mcux.cmake" hidden="true"/>
       </source>
     </component>
+    <component id="middleware.wireless.ble_host_AE_component_lib_armgcc.KW45B41Z83" name="Wireless BLE Host stack for AE component lib" brief="Middleware wireless ble_host_ae_component_armgcc lib" version="1.0.0" full_name="Wireless BLE Host stack AE component lib" category="wireless/ble_host_AE_component_lib_armgcc" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="KW45B41Z83xxxA"/>
+      </dependencies>
+      <source toolchain="armgcc" relative_path="../bluetooth/host/lib" project_relative_path="./" type="lib">
+        <files mask="lib_ble_OPT_host_cm33_gcc.a"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_AE_component_lib_armgcc.cmake" hidden="true"/>
+      </source>
+    </component>
     <component id="middleware.wireless.ble_host_AE_central_component_lib_iar.KW45B41Z83" name="Wireless BLE Host stack for AE central component lib" brief="Middleware wireless ble_host_ae_central_component_iar lib" version="1.0.0" full_name="Wireless BLE Host stack AE central component lib" category="wireless/ble_host_AE_central_component_li" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
       <dependencies>
         <device_dependency value="KW45B41Z83xxxA"/>
@@ -352,6 +363,17 @@
       </source>
       <source toolchain="armgcc" relative_path="./" type="workspace">
         <files mask="middleware_wireless_ble_host_AE_central_component_lib_mcux.cmake" hidden="true"/>
+      </source>
+    </component>
+    <component id="middleware.wireless.ble_host_AE_central_component_lib_armgcc.KW45B41Z83" name="Wireless BLE Host stack for AE central component lib" brief="Middleware wireless ble_host_ae_central_component_armgcc lib" version="1.0.0" full_name="Wireless BLE Host stack AE central component lib" category="wireless/ble_host_AE_central_component_li" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="KW45B41Z83xxxA"/>
+      </dependencies>
+      <source toolchain="armgcc" relative_path="../bluetooth/host/lib" project_relative_path="./" type="lib">
+        <files mask="lib_ble_OPT_host_central_cm33_gcc.a"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_AE_central_component_lib_armgcc.cmake" hidden="true"/>
       </source>
     </component>
     <component id="middleware.wireless.ble_host_AE_peripheral_component_lib_iar.KW45B41Z83" name="Wireless BLE Host stack for AE peripheral component lib" brief="Middleware wireless ble_host_ae_peripheral_component_iar lib" version="1.0.0" full_name="Wireless BLE Host stack AE peripheral component lib" category="wireless/ble_host_AE_peripheral_component" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
@@ -370,6 +392,17 @@
         <files mask="middleware_wireless_ble_host_AE_peripheral_component_lib_mcux.cmake" hidden="true"/>
       </source>
     </component>
+    <component id="middleware.wireless.ble_host_AE_peripheral_component_lib_armgcc.KW45B41Z83" name="Wireless BLE Host stack for AE peripheral component lib" brief="Middleware wireless ble_host_ae_peripheral_component_armgcc lib" version="1.0.0" full_name="Wireless BLE Host stack AE peripheral component lib" category="wireless/ble_host_AE_peripheral_component" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="KW45B41Z83xxxA"/>
+      </dependencies>
+      <source toolchain="armgcc" relative_path="../bluetooth/host/lib" project_relative_path="./" type="lib">
+        <files mask="lib_ble_OPT_host_peripheral_cm33_gcc.a"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_AE_peripheral_component_lib_armgcc.cmake" hidden="true"/>
+      </source>
+    </component>
     <component id="middleware.wireless.ble_host_component_lib_iar.KW45B41Z83" name="Wireless BLE Host stack component lib" brief="Middleware wireless ble_host_component_lib_iar" version="1.0.0" full_name="Wireless BLE Host stack integration lib" category="wireless/ble_host_component_lib_iar" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
       <dependencies>
         <device_dependency value="KW45B41Z83xxxA"/>
@@ -386,6 +419,17 @@
         <files mask="middleware_wireless_ble_host_component_lib_mcux.cmake" hidden="true"/>
       </source>
     </component>
+    <component id="middleware.wireless.ble_host_component_lib_armgcc.KW45B41Z83" name="Wireless BLE Host stack component lib" brief="Middleware wireless ble_host_component_lib_armgcc" version="1.0.0" full_name="Wireless BLE Host stack integration lib" category="wireless/ble_host_component_lib_armgcc" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="KW45B41Z83xxxA"/>
+      </dependencies>
+      <source toolchain="armgcc" relative_path="../bluetooth/host/lib" project_relative_path="./" type="lib">
+        <files mask="lib_ble_host_cm33_gcc.a"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_component_lib_armgcc.cmake" hidden="true"/>
+      </source>
+    </component>
     <component id="middleware.wireless.ble_host_central_component_lib_iar.KW45B41Z83" name="Wireless BLE Host stack central for lib" brief="Middleware wireless ble_host_central_component_iar_iar lib" version="1.0.0" full_name="Wireless BLE Host stack central component lib" category="wireless/ble_host_central_component_lib_i" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
       <dependencies>
         <device_dependency value="KW45B41Z83xxxA"/>
@@ -400,6 +444,17 @@
       </source>
       <source toolchain="armgcc" relative_path="./" type="workspace">
         <files mask="middleware_wireless_ble_host_central_component_lib_mcux.cmake" hidden="true"/>
+      </source>
+    </component>
+    <component id="middleware.wireless.ble_host_central_component_lib_armgcc.KW45B41Z83" name="Wireless BLE Host stack central for lib" brief="Middleware wireless ble_host_central_component_armgcc lib" version="1.0.0" full_name="Wireless BLE Host stack central component lib" category="wireless/ble_host_central_component_lib_a" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="KW45B41Z83xxxA"/>
+      </dependencies>
+      <source toolchain="armgcc" relative_path="../bluetooth/host/lib" project_relative_path="./" type="lib">
+        <files mask="lib_ble_host_central_cm33_gcc.a"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_central_component_lib_armgcc.cmake" hidden="true"/>
       </source>
     </component>
     <component id="middleware.wireless.ble_host_peripheral_component_lib_iar.KW45B41Z83" name="Wireless BLE Host stack peripheral for lib" brief="Middleware wireless ble_host_peripheral_component_iar lib" version="1.0.0" full_name="Wireless BLE Host stack peripheral component lib" category="wireless/ble_host_peripheral_component_li" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
@@ -421,6 +476,17 @@
       </source>
       <source toolchain="armgcc" relative_path="./" type="workspace">
         <files mask="middleware_wireless_ble_host_peripheral_component_lib_mcux.cmake" hidden="true"/>
+      </source>
+    </component>
+    <component id="middleware.wireless.ble_host_peripheral_component_lib_armgcc.KW45B41Z83" name="Wireless BLE Host stack peripheral for lib" brief="Middleware wireless ble_host_peripheral_component_armgcc lib" version="1.0.0" full_name="Wireless BLE Host stack peripheral component lib" category="wireless/ble_host_peripheral_component_li" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="KW45B41Z83xxxA"/>
+      </dependencies>
+      <source toolchain="armgcc" relative_path="../bluetooth/host/lib" project_relative_path="./" type="lib">
+        <files mask="lib_ble_host_peripheral_cm33_gcc.a"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_peripheral_component_lib_armgcc.cmake" hidden="true"/>
       </source>
     </component>
     <component id="middleware.wireless.ble_host_interface.KW45B41Z83" name="Wireless BLE Host Interface" brief="Middleware wireless ble_host_interface" version="1.0.0" full_name="Wireless BLE Host Interface" category="wireless/ble_host_interface" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
@@ -682,6 +748,23 @@
         <include_path relative_path="../bluetooth/fsci/source" project_relative_path="fsci/source" type="c_include"/>
       </include_paths>
     </component>
+    <component id="middleware.wireless.ble_fsci_source_channel_sounding.KW45B41Z83" name="Wireless BLE Host Fsci Source Channel Sounding" brief="Middleware wireless ble_fsci_source_channel_sounding" version="1.0.0" full_name="Wireless BLE Host Fsci Source Channel Sounding" category="wireless/ble_fsci_source_channel_sounding" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
+      <dependencies>
+        <device_dependency value="KW45B41Z83xxxA"/>
+      </dependencies>
+      <source relative_path="../bluetooth/fsci/source" project_relative_path="fsci/source" type="src">
+        <files mask="fsci_channel_sounding.c"/>
+      </source>
+      <source relative_path="../bluetooth/fsci/source" project_relative_path="fsci/source" type="c_include">
+        <files mask="fsci_channel_sounding.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_fsci_source_channel_sounding.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../bluetooth/fsci/source" project_relative_path="fsci/source" type="c_include"/>
+      </include_paths>
+    </component>
     <component id="middleware.wireless.ble_fsci_host.KW45B41Z83" name="Wireless BLE Host Fsci Host" brief="Middleware wireless ble_fsci_host" version="1.0.0" full_name="Wireless BLE Host Fsci Host" category="wireless/ble_fsci_host" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
       <dependencies>
         <device_dependency value="KW45B41Z83xxxA"/>
@@ -734,6 +817,17 @@
       </source>
       <source toolchain="armgcc" relative_path="./" type="workspace">
         <files mask="middleware_wireless_ble_host_handover_component_lib_mcux.cmake" hidden="true"/>
+      </source>
+    </component>
+    <component id="middleware.wireless.ble_host_handover_component_lib_armgcc.KW45B41Z83" name="Wireless BLE Host stack for AE component lib" brief="Middleware wireless lib_ble_handover_armgcc lib" version="1.0.0" full_name="Wireless BLE Host stack Handover component lib" category="wireless/ble_host_handover_component_lib_" user_visible="false" type="middleware" package_base_path="../../" project_base_path="libs">
+      <dependencies>
+        <device_dependency value="KW45B41Z83xxxA"/>
+      </dependencies>
+      <source toolchain="armgcc" relative_path="../bluetooth/host/lib" project_relative_path="./" type="lib">
+        <files mask="lib_ble_handover_cm33_gcc.a"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_ble_host_handover_component_lib_armgcc.cmake" hidden="true"/>
       </source>
     </component>
     <component id="middleware.wireless.auto.KW45B41Z83" name="Wireless BLE Auto" brief="Middleware wireless auto" version="1.0.0" full_name="Wireless BLE Auto" category="wireless/auto" user_visible="false" type="middleware" package_base_path="../../" project_base_path="source">
@@ -1154,6 +1248,70 @@
         <include_path relative_path="../XCVR/drv" project_relative_path="GEN40" type="c_include"/>
         <include_path relative_path="../XCVR/drv/nb2p4ghz" project_relative_path="GEN40/nb2p4ghz" type="c_include"/>
         <include_path relative_path="../XCVR/drv/nb2p4ghz/configs/gen40" project_relative_path="GEN40/nb2p4ghz/configs" type="c_include"/>
+      </include_paths>
+    </component>
+    <component id="middleware.wireless.xcvr_gen45_workaround.KW45B41Z83" name="Wireless XCVR  GEN4.5 driver" brief="Middleware wireless xcvr_gen45_driver" version="1.0.0" full_name="Wireless XCVR GEN4.5 driver" category="wireless/XCVR_GEN45_driver_workaround" user_visible="false" type="middleware" package_base_path="../../" project_base_path="XCVR">
+      <defines>
+        <define name="RF_OSC_26MHZ" value="0"/>
+        <define name="TEST_BUILD_COEX" value="0"/>
+        <define name="ARM_MATH_CM3" value="1"/>
+      </defines>
+      <dependencies>
+        <device_dependency value="KW45B41Z83xxxA"/>
+      </dependencies>
+      <source relative_path="../XCVR/drv" project_relative_path="./" type="c_include">
+        <files mask="nxp_xcvr_ext_ctrl.h"/>
+        <files mask="mathfp.h"/>
+        <files mask="dma_capture.h"/>
+        <files mask="rfmc_ctrl.h"/>
+        <files mask="nxp_xcvr_lcl_ctrl.h"/>
+        <files mask="dbg_ram_capture.h"/>
+      </source>
+      <source relative_path="../XCVR/drv" project_relative_path="./" type="src">
+        <files mask="mathfp.c"/>
+        <files mask="dma_capture.c"/>
+        <files mask="rfmc_ctrl.c"/>
+        <files mask="dbg_ram_capture.c"/>
+        <files mask="nxp_xcvr_ext_ctrl.c"/>
+      </source>
+      <source relative_path="../XCVR/drv/nb2p4ghz" project_relative_path="nb2p4ghz" type="src">
+        <files mask="nxp2p4_xcvr.c"/>
+        <files mask="nxp_xcvr_trim.c"/>
+      </source>
+      <source relative_path="../XCVR/drv/nb2p4ghz" project_relative_path="nb2p4ghz" type="c_include">
+        <files mask="nxp2p4_xcvr.h"/>
+        <files mask="nxp_xcvr_trim.h"/>
+      </source>
+      <source relative_path="../XCVR/drv/nb2p4ghz/configs/gen45" project_relative_path="nb2p4ghz/configs" type="src">
+        <files mask="nxp_xcvr_coding_config.c"/>
+        <files mask="nxp_xcvr_lcl_config.c"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p5_config.c"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p7_config.c"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p32_config.c"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_1p0_config.c"/>
+        <files mask="nxp_xcvr_oqpsk_802p15p4_config.c"/>
+        <files mask="nxp_xcvr_mode_config.c"/>
+        <files mask="nxp_xcvr_msk_config.c"/>
+      </source>
+      <source relative_path="../XCVR/drv/nb2p4ghz/configs/gen45" project_relative_path="nb2p4ghz/configs" type="c_include">
+        <files mask="nxp_xcvr_coding_config.h"/>
+        <files mask="nxp_xcvr_common_config.h"/>
+        <files mask="nxp_xcvr_lcl_config.h"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p5_config.h"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p7_config.h"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_0p32_config.h"/>
+        <files mask="nxp_xcvr_gfsk_bt_0p5_h_1p0_config.h"/>
+        <files mask="nxp_xcvr_oqpsk_802p15p4_config.h"/>
+        <files mask="nxp_xcvr_mode_config.h"/>
+        <files mask="nxp_xcvr_msk_config.h"/>
+      </source>
+      <source toolchain="armgcc" relative_path="./" type="workspace">
+        <files mask="middleware_wireless_XCVR_GEN45_driver_workaround.cmake" hidden="true"/>
+      </source>
+      <include_paths>
+        <include_path relative_path="../XCVR/drv" project_relative_path="./" type="c_include"/>
+        <include_path relative_path="../XCVR/drv/nb2p4ghz" project_relative_path="nb2p4ghz" type="c_include"/>
+        <include_path relative_path="../XCVR/drv/nb2p4ghz/configs/gen45" project_relative_path="nb2p4ghz/configs" type="c_include"/>
       </include_paths>
     </component>
     <component id="middleware.wireless.ble_profiles.device_info_service.KW45B41Z83" name="Wireless BLE Profiles DeviceInfo Service" brief="Middleware wireless ble_profiles_device_info_service" version="1.0.0" full_name="Wireless BLE Profiles DeviceInfo Service" category="wireless/ble_profiles_device_info_service" user_visible="false" type="middleware" package_base_path="../../" project_base_path="bluetooth">
