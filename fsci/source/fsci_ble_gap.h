@@ -700,6 +700,7 @@ typedef enum
     gBleGapEvtGenericEventGetConnParamsComplete_c                                  = 0xF7,                       /*! gapGenericCallback (type = gGetConnParamsComplete_c) event operation code */
     
     gBleGapEvtPlatformError_c                                                      = 0xF8,                       /*! platform error callback event operation code */
+    gBleGapEvtConnectionEventSmError_c                                             = 0xF9,                       /*! gapConnectionCallback (type = gConnEvtSmError_c) event operation code */
 }fsciBleGapOpCode_t;
 
 /************************************************************************************

@@ -216,6 +216,9 @@
 #define fsciBleGapGetConnLeSetDataLengthFailureBufferSize(pConnLeDataLengthChanged)  \
         (sizeof(uint16_t))
 
+#define fsciBleGapGetConnSmErrorBufferSize(pSmError)  \
+        (sizeof(uint16_t))
+
 #define fsciBleGapGetConnLeDataLengthChangedBufferSize(pConnLeDataLengthChanged)  \
         (4U * sizeof(uint16_t))
 
@@ -819,6 +822,12 @@ void fsciBleGapGetConnLeDataLengthChangedFromBuffer
 void fsciBleGapGetBufferFromConnLeSetDataLengthChangedFailure
 (
     bleResult_t reason,
+    uint8_t** ppBuffer
+);
+
+void fsciBleGapGetBufferFromConnSmError
+(
+    bleResult_t smError,
     uint8_t** ppBuffer
 );
 

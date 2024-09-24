@@ -49,12 +49,6 @@
 * Private functions prototypes
 *************************************************************************************
 ************************************************************************************/
-static bleResult_t csHciHostToControllerInterface
-(
-    hciPacketType_t packetType,
-    void* pPacket,
-    uint16_t packetSize
-);
 
 /* LE Meta events monitor functions */
 static void fsciCSLeMetaErrorStatusMonitor(csErrorEvent_t* errorEvent);
@@ -204,7 +198,7 @@ void fsciCSHandler(void* pData, void* param, uint32_t fsciBleInterfaceId)
 #if gFsciBleBBox_d || gFsciBleTest_d
                 case gCSCmdInitOpCode_c:
                     {
-                        fsciCSCallApiFunctionVoid(CS_Init(csHciHostToControllerInterface));
+                        fsciCSCallApiFunctionVoid(CS_Init());
                     }
                     break;
 
@@ -331,7 +325,7 @@ void fsciCSHandler(void* pData, void* param, uint32_t fsciBleInterfaceId)
                       fsciBleGetBoolValueFromBuffer(enable, pBuffer);
                       fsciBleGetUint8ValueFromBuffer(configId, pBuffer);
 
-                      fsciCSCallApiFunction(CS_ProcedureEnable(deviceId, enable, configId));
+                      fsciCSCallApiFunction(CS_ProcedureEnable(deviceId, configId, enable));
                   }
                   break;
 
@@ -345,11 +339,11 @@ void fsciCSHandler(void* pData, void* param, uint32_t fsciBleInterfaceId)
                       fsciCSCallApiFunction(CS_Test(&testCmdParams));
                   }
                   break;
-                  
+
               case gCSWriteCachedRemoteCapabilitiesOpCode_c:
                   {
                       csReadRemoteSupportedCapabilitiesCompleteEvent_t params;
-                      
+
                       /* Get command parameters from buffer */
                       fsciCSWriteCachedRemoteSupportedCapabilitiesFromBuffer(&params, &pBuffer);
 
@@ -618,7 +612,7 @@ bleResult_t fsciCSLeMetaEventHandler(csMetaEvent_t* pPacket)
             fsciCSLeMetaErrorStatusMonitor(&pPacket->eventData.csError);
         }
         break;
-        
+
         case csTestEnd_c:
         {
             fsciCSNoParamsEventMonitor(gCSTestEndEvtOpCode_c);
@@ -644,43 +638,43 @@ bleResult_t fsciCSCmdCompleteEventHandler(csCommandCompleteEvent_t* pPacket)
             fsciCSReadLocalSupportedCapabilitiesEvtMonitor(&pPacket->eventData.csReadLocalSupportedCapabilities);
         }
         break;
-      
+
         case setDefaultSettings_c:
         {
             fsciCSCmdCompleteDeviceIdMonitor(pPacket->deviceId, gCSEventSetDefaultSettingsOpCode_c);
         }
         break;
-        
+
         case writeRemoteFAETable_c:
         {
             fsciCSCmdCompleteDeviceIdMonitor(pPacket->deviceId, gCSEventWriteRemotelFAETableOpCode_c);
         }
         break;
-    
+
         case setChannelClassification_c:
         {
             fsciCSNoParamCmdMonitor(gCSEventSetChannelClassificationOpCode_c);
         }
         break;
-        
+
         case setProcedureParameters_c:
         {
             fsciCSCmdCompleteDeviceIdMonitor(pPacket->deviceId, gCSEvenSetProcedureParamsCmdOpCode_c);
         }
         break;
-        
+
         case writeCachedRemoteCapabilities_c:
         {
             fsciCSCmdCompleteDeviceIdMonitor(pPacket->deviceId, gCsEventWriteCachedRemoteCapabilitiesOpCode_c);
         }
         break;
-    
+
         case testCmd_c:
         {
             fsciCSNoParamCmdMonitor(gCSEventTestCmdOpCode_c);
         }
         break;
-        
+
         case commandError_c:
         {
             fsciCSErrorStatusMonitor(&pPacket->eventData.csCommandError);
@@ -697,7 +691,7 @@ bleResult_t fsciCSCmdCompleteEventHandler(csCommandCompleteEvent_t* pPacket)
 bleResult_t fsciCSCmdStatusEventHandler(csCommandStatusEvent_t* pPacket)
 {
     fsciCSCmdStatusMonitor(pPacket);
-        
+
     return gBleSuccess_c;
 }
 
@@ -706,16 +700,6 @@ bleResult_t fsciCSCmdStatusEventHandler(csCommandStatusEvent_t* pPacket)
 * Private functions
 *************************************************************************************
 ************************************************************************************/
-static bleResult_t csHciHostToControllerInterface
-(
-    hciPacketType_t packetType,
-    void* pPacket,
-    uint16_t packetSize
-)
-{
-    return gBleSuccess_c;
-}
-
 /*! *********************************************************************************
 * \brief  Creates the FSCI packet which contains the status of the last executed CS
 *         command and sends it over UART.

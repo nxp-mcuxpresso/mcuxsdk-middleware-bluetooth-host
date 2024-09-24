@@ -331,6 +331,12 @@ static void GetBufferFromConnEvtLeSetDataLengthFailure
     uint8_t              **ppBuffer
 );
 
+static void GetBufferFromConnEvtSmError
+(
+    gapConnectionEvent_t *pConnectionEvent,
+    uint8_t              **ppBuffer
+);
+
 static void GetBufferFromConnEvtLeDataLengthChanged
 (
     gapConnectionEvent_t *pConnectionEvent,
@@ -503,6 +509,11 @@ static uint32_t GetConnEvtParameterUpdateCompleteBufferSize
 );
 
 static uint32_t GetConnEvtLeSetDataLengthFailureBufferSize
+(
+    gapConnectionEvent_t *pConnectionEvent
+);
+
+static uint32_t GetConnEvtSmErrorBufferSize
 (
     gapConnectionEvent_t *pConnectionEvent
 );
@@ -2111,6 +2122,7 @@ const pfGapGetBufferFromConnEventHandler_t maGapGetBufferFromConnEventHandlers[]
     NULL,                                               /* 0x2CU gConnEvtHandoverConnected_c */
     NULL,                                               /* 0x2DU gHandoverDisconnected_c */
     GetBufferFromConnEvtLeSetDataLengthFailure,         /* 0x2EU, gConnEvtLeSetDataLengthFailure_c */
+    GetBufferFromConnEvtSmError,                        /* 0x2FU, gConnEvtSmError_c */
 };
 
 /*! Array of handler functions used by fsciBleGapGetConnectionEventBufferSize */
@@ -2188,6 +2200,7 @@ const pfGapGetConnEventBufferSizeHandler_t maGapGetConnEventBufferSizeHandlers[]
     NULL,                                               /* 0x2CU gConnEvtHandoverConnected_c */
     NULL,                                               /* 0x2DU gHandoverDisconnected_c */
     GetConnEvtLeSetDataLengthFailureBufferSize,         /* 0x2EU, gConnEvtLeSetDataLengthFailure_c */
+    GetConnEvtSmErrorBufferSize,                        /* 0x2FU, gConnEvtSmError_c */
 };
 
 /*! Array of handler functions used by fsciBleGapGetGenericEventFromBuffer */
@@ -3736,6 +3749,26 @@ static uint32_t GetConnEvtLeSetDataLengthFailureBufferSize
 
 /*! *********************************************************************************
 *\private
+*\fn           uint32_t GetConnEvtSmErrorBufferSize(
+*                                       gapConnectionEvent_t *pConnectionEvent)
+*
+*\brief        Returns the required FSCI buffer size for the
+*              gConnEvtSmError_c event.
+*
+*\param  [in]  pConnectionEvent    Pointer to the connection event.
+*
+*\return       uint32_t            Buffer size.
+********************************************************************************** */
+static uint32_t GetConnEvtSmErrorBufferSize
+(
+    gapConnectionEvent_t *pConnectionEvent
+)
+{
+    return fsciBleGapGetConnSmErrorBufferSize(&pConnectionEvent->eventData.smError);
+}
+
+/*! *********************************************************************************
+*\private
 *\fn           uint32_t GetConnEvtLeDataLengthChangedBufferSize(
 *                                       gapConnectionEvent_t *pConnectionEvent)
 *
@@ -4418,6 +4451,29 @@ static void GetBufferFromConnEvtLeSetDataLengthFailure
 )
 {
     fsciBleGapGetBufferFromConnLeSetDataLengthChangedFailure(pConnectionEvent->eventData.failReason, ppBuffer);
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void GetBufferFromConnEvtSmError(
+*                                           gapConnectionEvent_t *pConnectionEvent,
+*                                           uint8_t              **ppBuffer)
+*
+*\brief        Writes the SM error data field in the provided buffer.
+*
+*\param  [in]  pConnectionEvent    Pointer to the connection event.
+*\param  [in]  ppBuffer            Pointer to the buffer where the data field
+*                                  should be written.
+*
+*\retval       void.
+********************************************************************************** */
+static void GetBufferFromConnEvtSmError
+(
+    gapConnectionEvent_t *pConnectionEvent,
+    uint8_t              **ppBuffer
+)
+{
+    fsciBleGapGetBufferFromConnSmError(pConnectionEvent->eventData.smError, ppBuffer);
 }
 
 /*! *********************************************************************************

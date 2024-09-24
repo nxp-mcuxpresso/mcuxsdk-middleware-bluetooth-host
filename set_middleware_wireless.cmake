@@ -22,8 +22,8 @@ if (CONFIG_USE_wireless_wireless_clock_pin_mux_file)
 message("wireless_wireless_clock_pin_mux_file component is included from ${CMAKE_CURRENT_LIST_FILE}.")
 
 target_sources(${MCUX_SDK_PROJECT_NAME} PRIVATE
-  ${CMAKE_CURRENT_LIST_DIR}/../framework/boards/kw45_k32w1/KW45B41Z83/clock_config.c
-  ${CMAKE_CURRENT_LIST_DIR}/../framework/boards/kw45_k32w1/KW45B41Z83/pin_mux.c
+  ${CMAKE_CURRENT_LIST_DIR}/../framework/boards/kw45_k32w1/K32W1480/clock_config.c
+  ${CMAKE_CURRENT_LIST_DIR}/../framework/boards/kw45_k32w1/K32W1480/pin_mux.c
 )
 
 

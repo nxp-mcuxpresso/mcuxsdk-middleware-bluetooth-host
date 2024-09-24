@@ -1112,6 +1112,12 @@ typedef struct
 {
     bleResult_t                    status;              /*!< Status of the Sync Established Event */
     uint16_t                       syncHandle;          /*!< Sync Handle */
+    uint8_t                        SID;                 /*!< Value of the Advertising SID subfield in the ADI field of the PDU */
+    bleAddressType_t               peerAddressType;     /*!< Advertiser Address Type */
+    bleDeviceAddress_t             peerAddress;         /*!< Advertiser Address */
+    gapLePhyMode_t                 PHY;                 /*!< Advertiser PHY */
+    uint16_t                       periodicAdvInterval; /*!< Periodic advertising interval */
+    bleAdvertiserClockAccuracy_t   advertiserClockAccuracy; /*!< Advertiser Clock Accuracy */
 } gapSyncEstbEventData_t;
 
 typedef struct
@@ -1206,7 +1212,8 @@ typedef enum {
     gConnEvtHandoverConnected_c                     = 0x2CU, /*!< A connection has been established through the Handover feature. Data in gapConnectionEvent_t.eventData.handoverConnectedEvent. */
     gHandoverDisconnected_c                         = 0x2DU, /*!< A connection has been terminated as a result of connection handover. */
 
-    gConnEvtLeSetDataLengthFailure_c        = 0x2EU, /*!< The Set Data Length command has failed. */
+    gConnEvtLeSetDataLengthFailure_c                = 0x2EU, /*!< The Set Data Length command has failed. */
+    gConnEvtSmError_c                               = 0x2FU, /*!< Security Manager error occured. */
 } gapConnectionEventType_t;
 
 /*! Event data structure for the gConnEvtConnected_c event. */
@@ -1425,6 +1432,7 @@ typedef struct {
         gapEattBearerStatusNotification_t   eattBearerStatusNotification;    /*!< Data for gConnEvtEattBearerStatusNotification_c: bearer status update. */
         gapHandoverConnectedEvent_t         handoverConnectedEvent;          /*!< Data for gConnEvtHandoverConnected_c: information about the connection parameters. */
         gapHandoverDisconnectedEvent_t      handoverDisconnectedEvent;       /*!< Data for gHandoverDisconnected_c: status of the Gap_HandoverDisconnect. */
+        bleResult_t                         smError;                         /*!< Data for gConnEvtSmError_c: SM error status. */
     } eventData;                        /*!< Event data, to be interpreted according to gapConnectionEvent_t.eventType. */
 } gapConnectionEvent_t;
 

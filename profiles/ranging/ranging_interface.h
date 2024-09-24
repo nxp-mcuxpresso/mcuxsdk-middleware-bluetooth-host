@@ -33,7 +33,7 @@
 #define gAntennaPathFilterAllowAll_c    15U
 
 /* Default filter value - no filter applied */
-#define gNoFilter_c                     0xFFFFU
+#define gNoFilter_c                     0xFFFFFFFFU
 
 /* Antenna Configuratin Index 2:2 */
 #define gAntennaCfgIdx7_c               7U
@@ -97,8 +97,11 @@
 * Public memory declarations
 *************************************************************************************
 ************************************************************************************/
-/* Lookup table for RAS-CP command size*/
+/* Lookup table for RAS-CP command size */
 extern uint8_t maRasCPCommandSizes[5U];
+
+/* Lookup table for RAS-CP response size */
+extern uint8_t maRasCPResponseSizes[3U];
 
 /* Antenna permutation order */
 extern const uint8_t maAntPermNAp[24][4];
@@ -171,8 +174,8 @@ typedef struct segmentData_tag
     uint16_t    dataSize;
 } segmentData_t;
 
-/*! Ranging Service - Configuration */
-typedef PACKED_STRUCT rasConfig_tag
+/*! Ranging Service - Static Configuration */
+typedef PACKED_STRUCT rasStaticConfig_tag
 {
     uint16_t              serviceHandle;
     uint16_t              controlPointHandle;
@@ -181,9 +184,14 @@ typedef PACKED_STRUCT rasConfig_tag
     uint16_t              dataReadyHandle;
     uint16_t              dataOverwrittenHandle;
     uint16_t              featuresHandle;
-    rasMeasurementData_t* pData;
+} rasStaticConfig_t;
+
+/*! Ranging Service - Dynamic Configuration */
+typedef PACKED_STRUCT rasDynamicConfig_tag
+{
+    rasMeasurementData_t* pCfg;
     uint8_t*              pRangingDataBody;
-} rasConfig_t;
+} rasDynamicConfig_t;
 
 /*! Ranging Service - RAS Data Ready Indication */
 typedef struct rasDataReadyIndication_tag
@@ -334,7 +342,7 @@ extern "C" {
 ************************************************************************************/
 bleResult_t Ras_Start
 (
-    rasConfig_t *pServiceConfig
+    rasStaticConfig_t *pServiceConfig
 );
 
 /*!**********************************************************************************
@@ -346,7 +354,7 @@ bleResult_t Ras_Start
 ************************************************************************************/
 bleResult_t Ras_Stop
 (
-    rasConfig_t *pServiceConfig
+    rasStaticConfig_t *pServiceConfig
 );
 
 /*!**********************************************************************************
@@ -435,11 +443,16 @@ void Ras_SetMtuValue
 /*!**********************************************************************************
 * \brief        Set the RAS data pointer to the local measurement data
 *
-* \param[in]    pData    Pointer to the local measurement data
+* \param[in]    deviceId    Identifier of the peer
+* \param[in]    pData       Pointer to the local measurement data
 *
 * \return       none
 ************************************************************************************/
-void Ras_SetDataPointer(rasMeasurementData_t* pData);
+void Ras_SetDataPointer
+(
+    deviceId_t deviceId,
+    rasMeasurementData_t* pData
+);
 
 /*!**********************************************************************************
 * \brief        Check if data transfer is currently in progress for a given peer
@@ -456,10 +469,9 @@ bool_t Ras_CheckTransferInProgress(deviceId_t deviceId);
 *
 * \param[in]    deviceId     Peer identifier
 * \param[in]    notifInds    On-Demand Data: BIT0 = 0 notifications BIT0 = 1 indications
-*                            Control Point: BIT1 = 0 notifications BIT1 = 1 indications
-*                            Data Ready: BIT2 = 0 notifications BIT2 = 1 indications
-*                            Data Overwritten: BIT3 = 0 notifications BIT3 = 1 indications
-*                            Real-Time Data: BIT4 = 0 notifications BIT4 = 1 indications
+*                            Data Ready: BIT1 = 0 notifications BIT2 = 1 indications
+*                            Data Overwritten: BIT2 = 0 notifications BIT3 = 1 indications
+*                            Real-Time Data: BIT3 = 0 notifications BIT4 = 1 indications
 *
 * \return       gBleSuccess_c or error
 ************************************************************************************/

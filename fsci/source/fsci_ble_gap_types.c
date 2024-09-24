@@ -1476,6 +1476,12 @@ void fsciBleGapGetBufferFromConnLeSetDataLengthChangedFailure(bleResult_t reason
     fsciBleGetBufferFromUint16Value((uint16_t)reason, *ppBuffer);
 }
 
+void fsciBleGapGetBufferFromConnSmError(bleResult_t smError, uint8_t** ppBuffer)
+{
+    /* Write bleResult_t structure fields in buffer */
+    fsciBleGetBufferFromUint16Value((uint16_t)smError, *ppBuffer);
+}
+
 void fsciBleGapGetBufferFromConnLeDataLengthChanged(gapConnLeDataLengthChanged_t* pConnLeDataLengthChanged, uint8_t** ppBuffer)
 {
     /* Write gapConnLeDataLengthChanged_t structure fields in buffer */
@@ -1810,8 +1816,14 @@ uint32_t fsciBleGapGetScanningEventBufferSize(gapScanningEvent_t* pScanningEvent
 
         case gPeriodicAdvSyncEstablished_c:
             {
-                bufferSize += sizeof(bleResult_t);  /* Status */
-                bufferSize += sizeof(uint16_t);     /* Sync Handle */
+                bufferSize += sizeof(bleResult_t);                      /* Status */
+                bufferSize += sizeof(uint16_t);                         /* Sync Handle */
+                bufferSize += sizeof(uint8_t);                          /* Advertising SID */
+                bufferSize += sizeof(bleAddressType_t);                 /* Advertiser Address Type */
+                bufferSize += sizeof(bleDeviceAddress_t);               /* Advertiser Address */
+                bufferSize += sizeof(gapLePhyMode_t);                   /* Advertiser PHY */
+                bufferSize += sizeof(uint16_t);                         /* Periodic Advertising Interval */
+                bufferSize += sizeof(bleAdvertiserClockAccuracy_t);     /* Advertiser Clock Accuracy */
             }
             break;
 
@@ -1922,6 +1934,12 @@ void fsciBleGapGetBufferFromScanningEvent(gapScanningEvent_t* pScanningEvent, ui
             {
                 fsciBleGetBufferFromEnumValue(pScanningEvent->eventData.syncEstb.status, *ppBuffer, bleResult_t);
                 fsciBleGetBufferFromUint16Value(pScanningEvent->eventData.syncEstb.syncHandle, *ppBuffer);
+                fsciBleGetBufferFromUint8Value(pScanningEvent->eventData.syncEstb.SID, *ppBuffer);
+                fsciBleGetBufferFromEnumValue(pScanningEvent->eventData.syncEstb.peerAddressType, *ppBuffer, bleAddressType_t);
+                fsciBleGetBufferFromAddress(pScanningEvent->eventData.syncEstb.peerAddress, *ppBuffer);
+                fsciBleGetBufferFromEnumValue(pScanningEvent->eventData.syncEstb.PHY, *ppBuffer, gapLePhyMode_t);
+                fsciBleGetBufferFromUint16Value(pScanningEvent->eventData.syncEstb.periodicAdvInterval, *ppBuffer);
+                fsciBleGetBufferFromEnumValue(pScanningEvent->eventData.syncEstb.advertiserClockAccuracy, *ppBuffer, bleAdvertiserClockAccuracy_t);
             }
             break;
 

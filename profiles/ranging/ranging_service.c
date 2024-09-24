@@ -64,6 +64,9 @@
 /* Lookup table for RAS-CP command size*/
 uint8_t maRasCPCommandSizes[5U] = {3U, 3U, 5U, 1U, 3U};
 
+/* Lookup table for RAS-CP response size*/
+uint8_t maRasCPResponseSizes[3U] = {3U, 5U, 2U};
+
 /************************************************************************************
 *************************************************************************************
 * Private memory declarations
@@ -76,7 +79,10 @@ static deviceId_t mRas_ClientDeviceId[gAppMaxConnections_c];
 static uint32_t gRasSubeventStepIndex = 0U;
 
 /*! Service configuration received from application */
-static rasConfig_t *mpRasServiceConfig = NULL;
+static rasStaticConfig_t *mpRasServiceConfig = NULL;
+
+/*! Dynamic information for each peer (CS config info and ranging data body) */
+static rasDynamicConfig_t maRasDynamicCfg[gAppMaxConnections_c];
 
 /*! ATT MTU value to be used for Ranging Data notifications */
 static uint16_t  gAttMtu[gAppMaxConnections_c];
@@ -168,6 +174,7 @@ static bleResult_t handleGetRangingDataSegmNotif
 
 static void packSubeventHeader
 (
+    deviceId_t deviceId,
     uint8_t* pRangingDataBody
 );
 
@@ -239,7 +246,7 @@ static void RrspTimerCallback
 ************************************************************************************/
 bleResult_t Ras_Start
 (
-    rasConfig_t *pServiceConfig
+    rasStaticConfig_t *pServiceConfig
 )
 {
     mpRasServiceConfig = pServiceConfig;
@@ -261,7 +268,7 @@ bleResult_t Ras_Start
 ************************************************************************************/
 bleResult_t Ras_Stop
 (
-    rasConfig_t *pServiceConfig
+    rasStaticConfig_t *pServiceConfig
 )
 {
     mpRasServiceConfig = NULL;
@@ -340,10 +347,10 @@ bleResult_t Ras_Unsubscribe
         }
     }
 
-    if (mpRasServiceConfig->pRangingDataBody != NULL)
+    if (maRasDynamicCfg[clientDeviceId].pRangingDataBody != NULL)
     {
-        (void)MEM_BufferFree(mpRasServiceConfig->pRangingDataBody);
-        mpRasServiceConfig->pRangingDataBody = NULL;
+        (void)MEM_BufferFree(maRasDynamicCfg[clientDeviceId].pRangingDataBody);
+        maRasDynamicCfg[clientDeviceId].pRangingDataBody = NULL;
     }
 
     return gBleSuccess_c;
@@ -386,11 +393,11 @@ bleResult_t Ras_SendDataReady
 
     if (indicationData != NULL)
     {
-        indicationData->procedureIndex = mpRasServiceConfig->pData->procedureCounter;
+        indicationData->procedureIndex = maRasDynamicCfg[clientDeviceId].pCfg->procedureCounter;
 
         if ((clientDeviceId != gInvalidDeviceId_c) && (mbServRealTimeTransfer[clientDeviceId] == FALSE))
         {
-            if ((mNotifIndEnabled[clientDeviceId] & BIT2) != 0U)
+            if ((mNotifIndEnabled[clientDeviceId] & BIT1) != 0U)
             {
                 result = GattServer_SendInstantValueIndication(clientDeviceId,
                                                                mpRasServiceConfig->dataReadyHandle,
@@ -435,30 +442,40 @@ bleResult_t Ras_SendDataOverwritten
 )
 {
     bleResult_t result = gBleInvalidParameter_c;
-    uint8_t payload[2];
+    uint16_t valueLength = (uint16_t)sizeof(rasDataReadyIndication_t);
+    rasDataReadyIndication_t* indicationData = MEM_BufferAlloc(valueLength);
 
-    if ((clientDeviceId != gInvalidDeviceId_c) && (mbServRealTimeTransfer[clientDeviceId] == FALSE))
+    if (indicationData != NULL)
     {
-        Utils_PackTwoByteValue(mpRasServiceConfig->pData->procedureCounter, payload);
+        indicationData->procedureIndex = maRasDynamicCfg[clientDeviceId].pCfg->procedureCounter;
 
-        if ((mNotifIndEnabled[clientDeviceId] & BIT3) != 0U)
+        if ((clientDeviceId != gInvalidDeviceId_c) && (mbServRealTimeTransfer[clientDeviceId] == FALSE))
         {
-            result = GattServer_SendInstantValueIndication(clientDeviceId,
-                                                           mpRasServiceConfig->dataOverwrittenHandle,
-                                                           (uint16_t)sizeof(uint16_t),
-                                                           payload);
+            if ((mNotifIndEnabled[clientDeviceId] & BIT3) != 0U)
+            {
+                result = GattServer_SendInstantValueIndication(clientDeviceId,
+                                                               mpRasServiceConfig->dataOverwrittenHandle,
+                                                               valueLength,
+                                                               (uint8_t*)indicationData);
+            }
+            else
+            {
+                result = GattServer_SendInstantValueNotification(clientDeviceId,
+                                                                 mpRasServiceConfig->dataOverwrittenHandle,
+                                                                 valueLength,
+                                                                 (uint8_t*)indicationData);
+            }
         }
         else
         {
-            result = GattServer_SendInstantValueNotification(clientDeviceId,
-                                                             mpRasServiceConfig->dataOverwrittenHandle,
-                                                             (uint16_t)sizeof(uint16_t),
-                                                             payload);
+            result = gBleInvalidParameter_c;
         }
+
+        (void)MEM_BufferFree(indicationData);
     }
     else
     {
-        result = gBleInvalidParameter_c;
+        result = gBleOutOfMemory_c;
     }
 
     if (result == gBleSuccess_c)
@@ -539,18 +556,20 @@ bleResult_t Ras_ControlPointHandler
 /*!**********************************************************************************
 * \brief        Set the RAS data pointer to the local measurement data
 *
-* \param[in]    pData    Pointer to the local measurement data
+* \param[in]    deviceId    Identifier of the peer
+* \param[in]    pData       Pointer to the local measurement data
 *
 * \return       none
 ************************************************************************************/
 void Ras_SetDataPointer
 (
+    deviceId_t deviceId,
     rasMeasurementData_t* pData
 )
 {
     if (mpRasServiceConfig != NULL)
     {
-        mpRasServiceConfig->pData = pData;
+        maRasDynamicCfg[deviceId].pCfg = pData;
     }
 }
 
@@ -575,10 +594,9 @@ bool_t Ras_CheckTransferInProgress
 *
 * \param[in]    deviceId        Peer identifier
 * \param[in]    notifInds       On-Demand Data behavior: BIT0 = 0 notifications BIT0 = 1 indications
-*                               Control Point behavior: BIT1 = 0 notifications BIT1 = 1 indications
-*                               Data Ready behavior: BIT2 = 0 notifications BIT2 = 1 indications
-*                               Data Overwritten behavior: BIT3 = 0 notifications BIT3 = 1 indications
-*                               Real-Time Data behavior: BIT4 = 0 notifications BIT4 = 1 indications
+*                               Data Ready behavior: BIT1 = 0 notifications BIT2 = 1 indications
+*                               Data Overwritten behavior: BIT2 = 0 notifications BIT3 = 1 indications
+*                               Real-Time Data behavior: BIT3 = 0 notifications BIT4 = 1 indications
 *
 * \return       gBleSuccess_c or error.
 ************************************************************************************/
@@ -590,13 +608,30 @@ bleResult_t Ras_SetDataSendPreference
 {
     bleResult_t result = gBleSuccess_c;
 
-    if (((notifInds & BIT5) != 0U)
+    if (((notifInds & BIT5) != 0U) || ((notifInds & BIT4) != 0U)
         || ((notifInds & BIT6) != 0U) || ((notifInds & BIT7) != 0U))
     {
         result = gBleInvalidParameter_c;
     }
     else
     {
+        if (((mNotifIndEnabled[deviceId] & BIT0) != 0U) && ((notifInds & BIT0) == 0U))
+        {
+            mNotifIndEnabled[deviceId] &= ~BIT0;
+        }
+        if (((mNotifIndEnabled[deviceId] & BIT1) != 0U) && ((notifInds & BIT1) == 0U))
+        {
+            mNotifIndEnabled[deviceId] &= ~BIT1;
+        }
+        if (((mNotifIndEnabled[deviceId] & BIT2) != 0U) && ((notifInds & BIT2) == 0U))
+        {
+            mNotifIndEnabled[deviceId] &= ~BIT2;
+        }
+        if (((mNotifIndEnabled[deviceId] & BIT3) != 0U) && ((notifInds & BIT3) == 0U))
+        {
+            mNotifIndEnabled[deviceId] &= ~BIT3;
+        }
+
         mNotifIndEnabled[deviceId] |= notifInds;
     }
 
@@ -663,7 +698,9 @@ bleResult_t Ras_HandleGetRangingDataSegmInd
     dataLen.dataLen16 = gAttMaxNotifIndDataSize_d(gAttMtu[deviceId]);
     uint8_t *pNotificationData = MEM_BufferAlloc(dataLen.dataLen32);
 
-    if (Ras_CheckIfSubscribed(deviceId) == FALSE)
+    if ((maRasDynamicCfg[deviceId].pCfg == NULL) ||
+        (maRasDynamicCfg[deviceId].pCfg->pData == NULL) ||
+        (Ras_CheckIfSubscribed(deviceId) == FALSE))
     {
         /* Client has unsubscribed */
         result = gBleInvalidState_c;
@@ -678,7 +715,7 @@ bleResult_t Ras_HandleGetRangingDataSegmInd
 
         /* Fill start segment and end segment value with the indices of the segments sent */
         rasCPResponse.rspOpCode = ((uint8_t)completeLostDataSegmentResponseOpCode_c);
-        rasCPResponse.cmdParameters.complLostRsp.procCounter = mpRasServiceConfig->pData->procedureCounter;
+        rasCPResponse.cmdParameters.complLostRsp.procCounter = maRasDynamicCfg[deviceId].pCfg->procedureCounter;
 
         if (maLostSegmRecvIdx[deviceId*3U + 1U] != 0xFFU)
         {
@@ -697,7 +734,7 @@ bleResult_t Ras_HandleGetRangingDataSegmInd
                 }
             }
         }
-        result = sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, sizeof(rasCPResponse));
+        result = sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, maRasCPResponseSizes[rasCPResponse.rspOpCode]);
 
         /* Transfer completed. Send response to Get Report Records procedure */
         mDataTransferState[deviceId] = (uint8_t)waitAckRangingDataRetransm_c;
@@ -723,7 +760,7 @@ bleResult_t Ras_HandleGetRangingDataSegmInd
 
         /* Pack notification data */
         FLib_MemCpy((pNotificationData + sizeof(uint8_t)),
-                    mpRasServiceConfig->pRangingDataBody + pData->dataIdxStart,
+                    maRasDynamicCfg[deviceId].pRangingDataBody + pData->dataIdxStart,
                     (uint32_t)pData->dataSize);
 
         /* Send instant indication instead of writing the data in the database */
@@ -741,7 +778,7 @@ bleResult_t Ras_HandleGetRangingDataSegmInd
         /* Send error response */
         rasCPResponse.rspOpCode = ((uint8_t)responseOpCode_c);
         rasCPResponse.cmdParameters.rspPayload.rspValue = ((uint8_t)gRasProcedureNotCompletedError_c);
-        (void)sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, sizeof(rasCPResponse));
+        (void)sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, maRasCPResponseSizes[rasCPResponse.rspOpCode]);
     }
 
     if (pNotificationData != NULL)
@@ -767,7 +804,7 @@ void Ras_ClearDataForTransfer
     gRasSubeventStepIndex = 0U;
     mDataTransferState[deviceId] = (uint8_t)sendingRangingData_c;
     FLib_MemSet(maSegmentData, 0U, gRASMaxNoOfSegments_c * sizeof(segmentData_t));
-    mpRasServiceConfig->pData->totalSentRcvDataIndex = 0U;
+    maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex = 0U;
 }
 
 /*!**********************************************************************************
@@ -788,15 +825,9 @@ bleResult_t Ras_SendRangingDataIndication
     uint16_t             notifDataLen = 0U;
     bleResult_t          result = gBleSuccess_c;
     uint8_t              segmentationHeader = 0U;
-    uint16_t             skippedDataSize = 0U;
-    uint16_t             procCounter = mpRasServiceConfig->pData->procedureCounter;
+    uint16_t             procCounter = maRasDynamicCfg[deviceId].pCfg->procedureCounter;
     uint8_t*             pNotificationData = MEM_BufferAlloc((uint32_t)availableLen);
     rasControlPointRsp_t rasCPResponse;
-    union
-    {
-        uint8_t  dataLen8;
-        uint16_t dataLen16;
-    } dataLen = {0U};
 
     static uint8_t       segmDataIdx = 0U;
     static uint8_t       segmentCounter = gRasSegmentCounterMinValue_c;
@@ -806,7 +837,7 @@ bleResult_t Ras_SendRangingDataIndication
         /* Client has unsubscribed */
         result = gBleInvalidState_c;
     }
-    else if (mpRasServiceConfig->pData->totalSentRcvDataIndex >= mpRasServiceConfig->pData->dataParsedLen)
+    else if (maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex >= maRasDynamicCfg[deviceId].pCfg->dataParsedLen)
     {
         /* Transfer completed. Send response to Get Report Records procedure */
         result = gBleSuccess_c;
@@ -818,7 +849,7 @@ bleResult_t Ras_SendRangingDataIndication
             mDataTransferState[deviceId] = (uint8_t)waitingAckRangingData_c;
             rasCPResponse.rspOpCode = ((uint8_t)completeProcDataRspOpCode_c);
             rasCPResponse.cmdParameters.procCounter = procCounter;
-            result = sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, sizeof(rasCPResponse));
+            result = sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, maRasCPResponseSizes[rasCPResponse.rspOpCode]);
             mDeviceId = deviceId;
             (void)TM_InstallCallback((timer_handle_t)mRrspTimerId, RrspTimerCallback, &mDeviceId);
             (void)TM_Start((timer_handle_t)mRrspTimerId,
@@ -834,24 +865,24 @@ bleResult_t Ras_SendRangingDataIndication
         availableLen -= ((uint16_t)sizeof(uint8_t));
         segmentationHeader = (uint8_t)(segmentCounter << 2U);
 
-        if (mpRasServiceConfig->pData->totalSentRcvDataIndex == 0U)
+        if (maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex == 0U)
         {
             /* First indication */
             gRasSubeventStepIndex = 0U;
-            mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].currentDataSize = 0U;
+            maRasDynamicCfg[deviceId].pCfg->aSubEventData[gRasSubeventStepIndex].currentDataSize = 0U;
             segmentationHeader |= (uint8_t)gRasNotifFirstSegment_c;
         }
 
         if (mbServRealTimeTransfer[deviceId] == FALSE)
         {
-            maSegmentData[segmDataIdx].dataIdxStart = mpRasServiceConfig->pData->totalSentRcvDataIndex;
+            maSegmentData[segmDataIdx].dataIdxStart = maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex;
         }
 
         /* Set segment header */
         *pNotificationData = segmentationHeader;
 
         /* Compute how much data there is left in this subevent */
-        uint16_t dataLeft = mpRasServiceConfig->pData->dataParsedLen - mpRasServiceConfig->pData->totalSentRcvDataIndex;
+        uint16_t dataLeft = maRasDynamicCfg[deviceId].pCfg->dataParsedLen - maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex;
 
         if (dataLeft < availableLen)
         {
@@ -860,28 +891,14 @@ bleResult_t Ras_SendRangingDataIndication
 
         /* Pack indication data */
         FLib_MemCpy((pNotificationData + notifDataLen),
-                    (mpRasServiceConfig->pRangingDataBody + mpRasServiceConfig->pData->totalSentRcvDataIndex),
+                    (maRasDynamicCfg[deviceId].pRangingDataBody + maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex),
                     availableLen);
 
-        mpRasServiceConfig->pData->totalSentRcvDataIndex += availableLen;
+        maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex += availableLen;
         notifDataLen += availableLen;
 
-        /* We do not include step channel and step length in the ranging data body */
-        dataLen.dataLen8 = mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].subevtHeader.numStepsReported;
-        skippedDataSize = 2U*dataLen.dataLen16;
-
-        if ((mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].dataSize - skippedDataSize +
-             (uint16_t)mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].dataIdx) <= mpRasServiceConfig->pData->totalSentRcvDataIndex)
-        {
-            /* If there are multiple subevents, move on to the next one */
-            if (mpRasServiceConfig->pData->subeventIndex > 0U)
-            {
-                gRasSubeventStepIndex++;
-            }
-        }
-
-        if ((mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].subevtHeader.procedureDoneStatus == 0U) &&
-             (mpRasServiceConfig->pData->totalSentRcvDataIndex == mpRasServiceConfig->pData->dataParsedLen))
+        if ((maRasDynamicCfg[deviceId].pCfg->aSubEventData[maRasDynamicCfg[deviceId].pCfg->subeventIndex].subevtHeader.procedureDoneStatus == 0U) &&
+             (maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex == maRasDynamicCfg[deviceId].pCfg->dataParsedLen))
         {
             /* Last notification */
             segmentationHeader |= (uint8_t)gRasNotifLastSegment_c;
@@ -922,7 +939,7 @@ bleResult_t Ras_SendRangingDataIndication
         {
             rasCPResponse.rspOpCode = ((uint8_t)responseOpCode_c);
             rasCPResponse.cmdParameters.rspPayload.rspValue = ((uint8_t)gRasProcedureNotCompletedError_c);
-            (void)sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, sizeof(rasCPResponse));
+            (void)sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, maRasCPResponseSizes[rasCPResponse.rspOpCode]);
         }
     }
 
@@ -957,12 +974,6 @@ bleResult_t Ras_SendRangingDataNotifs
     uint16_t    res = gAttMaxNotifIndDataSize_d(gAttMtu[deviceId]);
     uint8_t*    pNotificationData = MEM_BufferAlloc((uint32_t)res);
     uint8_t     segmDataIdx = 0U;
-    uint16_t    skippedDataSize = 0U;
-    union
-    {
-        uint8_t  dataLen8;
-        uint16_t dataLen16;
-    } dataLen = {0U};
 
     if (Ras_CheckIfSubscribed(deviceId) == FALSE)
     {
@@ -971,7 +982,7 @@ bleResult_t Ras_SendRangingDataNotifs
     }
     else if (pNotificationData != NULL)
     {
-        while (mpRasServiceConfig->pData->totalSentRcvDataIndex < mpRasServiceConfig->pData->dataParsedLen)
+        while (maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex < maRasDynamicCfg[deviceId].pCfg->dataParsedLen)
         {
             FLib_MemSet(pNotificationData, 0U, ((uint32_t)res));
 
@@ -979,11 +990,9 @@ bleResult_t Ras_SendRangingDataNotifs
             availableLen = gAttMaxNotifIndDataSize_d(gAttMtu[deviceId]) - notifDataLen;
             segmentationHeader = (uint8_t)(segmentCounter << 2U);
 
-            if (mpRasServiceConfig->pData->totalSentRcvDataIndex == 0U)
+            if (maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex == 0U)
             {
                 /* First notification */
-                gRasSubeventStepIndex = 0U;
-                mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].currentDataSize = 0U;
                 segmentCounter = gRasSegmentCounterMinValue_c;
                 segmentationHeader = (uint8_t)(segmentCounter << 2U);
                 segmentationHeader |= (uint8_t)gRasNotifFirstSegment_c;
@@ -994,11 +1003,11 @@ bleResult_t Ras_SendRangingDataNotifs
 
             if (mbServRealTimeTransfer[deviceId] == FALSE)
             {
-                maSegmentData[segmDataIdx].dataIdxStart = mpRasServiceConfig->pData->totalSentRcvDataIndex;
+                maSegmentData[segmDataIdx].dataIdxStart = maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex;
             }
 
             /* Compute how much data there is left in this subevent */
-            uint16_t dataLeft = mpRasServiceConfig->pData->dataParsedLen - mpRasServiceConfig->pData->totalSentRcvDataIndex;
+            uint16_t dataLeft = maRasDynamicCfg[deviceId].pCfg->dataParsedLen - maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex;
 
             if (dataLeft < availableLen)
             {
@@ -1007,28 +1016,14 @@ bleResult_t Ras_SendRangingDataNotifs
 
             /* Pack notification data */
             FLib_MemCpy((pNotificationData + notifDataLen),
-                        (mpRasServiceConfig->pRangingDataBody + mpRasServiceConfig->pData->totalSentRcvDataIndex),
+                        (maRasDynamicCfg[deviceId].pRangingDataBody + maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex),
                         availableLen);
-            mpRasServiceConfig->pData->totalSentRcvDataIndex += availableLen;
+            maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex += availableLen;
             notifDataLen += availableLen;
 
-            /* We do not include step channel and step length in the ranging data body */
-            dataLen.dataLen8 = mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].subevtHeader.numStepsReported;
-            skippedDataSize = 2U*dataLen.dataLen16;
-
-            if ((mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].dataSize - skippedDataSize +
-                 (uint16_t)mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].dataIdx) <= mpRasServiceConfig->pData->totalSentRcvDataIndex)
-            {
-                /* If there are multiple subevents, move on to the next one */
-                if (mpRasServiceConfig->pData->subeventIndex > 0U)
-                {
-                    gRasSubeventStepIndex++;
-                }
-            }
-
             /* Check if we reached the last notification */
-            if ((mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].subevtHeader.procedureDoneStatus == 0U) &&
-                (mpRasServiceConfig->pData->totalSentRcvDataIndex == mpRasServiceConfig->pData->dataParsedLen))
+            if ((maRasDynamicCfg[deviceId].pCfg->aSubEventData[maRasDynamicCfg[deviceId].pCfg->subeventIndex].subevtHeader.procedureDoneStatus == 0U) &&
+                (maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex == maRasDynamicCfg[deviceId].pCfg->dataParsedLen))
             {
                 /* Last notification */
                 segmentationHeader |= (uint8_t)gRasNotifLastSegment_c;
@@ -1110,7 +1105,7 @@ bleResult_t Ras_BuildRangingDataBody
         uint16_t dataLen16;
     } dataLen = {0U};
 
-    if (mpRasServiceConfig->pData == NULL)
+    if (maRasDynamicCfg[deviceId].pCfg == NULL)
     {
         result = gBleInvalidParameter_c;
     }
@@ -1121,22 +1116,22 @@ bleResult_t Ras_BuildRangingDataBody
 
         if (mbServRealTimeTransfer[deviceId] == FALSE)
         {
-            if (mpRasServiceConfig->pRangingDataBody != NULL)
+            if (maRasDynamicCfg[deviceId].pRangingDataBody != NULL)
             {
-                (void)MEM_BufferFree(mpRasServiceConfig->pRangingDataBody);
-                mpRasServiceConfig->pRangingDataBody = NULL;
+                (void)MEM_BufferFree(maRasDynamicCfg[deviceId].pRangingDataBody);
+                maRasDynamicCfg[deviceId].pRangingDataBody = NULL;
             }
             /* Compute total maximum length for the Ranging Data Body */
-            dataLen.dataLen8 = mpRasServiceConfig->pData->subeventIndex + 1U;
+            dataLen.dataLen8 = maRasDynamicCfg[deviceId].pCfg->subeventIndex + 1U;
             dataLen.dataLen32 *= sizeof(rasSubeventDataHeader_t);
-            dataLen.dataLen32 += mpRasServiceConfig->pData->dataIndex + sizeof(rasRangingDataHeader_t);
+            dataLen.dataLen32 += maRasDynamicCfg[deviceId].pCfg->dataIndex + sizeof(rasRangingDataHeader_t);
             rangingDataLen = dataLen.dataLen16;
         }
 
-        if (mpRasServiceConfig->pRangingDataBody == NULL)
+        if (maRasDynamicCfg[deviceId].pRangingDataBody == NULL)
         {
-            mpRasServiceConfig->pRangingDataBody = MEM_BufferAlloc(rangingDataLen);
-            if (mpRasServiceConfig->pRangingDataBody == NULL)
+            maRasDynamicCfg[deviceId].pRangingDataBody = MEM_BufferAlloc(rangingDataLen);
+            if (maRasDynamicCfg[deviceId].pRangingDataBody == NULL)
             {
                 result = gBleOutOfMemory_c;
             }
@@ -1148,65 +1143,45 @@ bleResult_t Ras_BuildRangingDataBody
         /* pack procedure header */
         rasRangingDataHeader_t procHeader;
         availableLen = rangingDataLen;
-        uint16_t dataIdxInit = mpRasServiceConfig->pData->totalSentRcvDataIndex;
+        uint16_t dataIdxInit = maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex;
 
         if (firstSubevt == TRUE)
         {
             currentDataIdx = 0U;
             gRasSubeventStepIndex = 0U;
             dataLen.dataLen32 = 0U;
-            uint8_t devIdIdx = (deviceId * gAppMaxConnections_c) + gMode2Idx_c;
 
             /* Set first 16 bits = Procedure Counter (the lower 12 bits) + Configuration ID */
-            procHeader.procCounterConfigId = ((mpRasServiceConfig->pData->procedureCounter << 4U) & 0xF0U);
-            dataLen.dataLen8 = mpRasServiceConfig->pData->configId & 0x0FU;
+            procHeader.procCounterConfigId = ((maRasDynamicCfg[deviceId].pCfg->procedureCounter << 4U) & 0xFFF0U);
+            dataLen.dataLen8 = maRasDynamicCfg[deviceId].pCfg->configId & 0x0FU;
             procHeader.procCounterConfigId |= dataLen.dataLen16;
             /* Set selected Tx power */
-            procHeader.selectedTxPower = ((uint8_t)mpRasServiceConfig->pData->selectedTxPower);
+            procHeader.selectedTxPower = ((uint8_t)maRasDynamicCfg[deviceId].pCfg->selectedTxPower);
+           /* Set Antenna Paths Mask (6 bits) and PCT format (2 bits) */
+           procHeader.antennaPathsMask = ((uint8_t)maRasDynamicCfg[deviceId].pCfg->numAntennaPaths);
 
-            /* Set Antenna Paths Mask */
-            procHeader.antennaPathsMask = 0U;
-
-            if ((maModeFilters[devIdIdx] & BIT3) != 0U)
-            {
-                /* Antenna path 1 enabled */
-                procHeader.antennaPathsMask |= BIT0;
-            }
-            if ((maModeFilters[devIdIdx] & BIT4) != 0U)
-            {
-                /* Antenna path 1 enabled */
-                procHeader.antennaPathsMask |= BIT1;
-            }
-            if ((maModeFilters[devIdIdx] & BIT5) != 0U)
-            {
-                /* Antenna path 1 enabled */
-                procHeader.antennaPathsMask |= BIT2;
-            }
-            if ((maModeFilters[devIdIdx] & BIT6) != 0U)
-            {
-                /* Antenna path 1 enabled */
-                procHeader.antennaPathsMask |= BIT3;
-            }
-
-            FLib_MemCpy(mpRasServiceConfig->pRangingDataBody + currentDataIdx, &procHeader, sizeof(rasRangingDataHeader_t));
+            FLib_MemCpy(maRasDynamicCfg[deviceId].pRangingDataBody + currentDataIdx, &procHeader, sizeof(rasRangingDataHeader_t));
             currentDataIdx += ((uint16_t)sizeof(rasRangingDataHeader_t));
             availableLen -= ((uint16_t)sizeof(rasRangingDataHeader_t));
+            
+            /* Moved on to a new procedure - stop timer */
+            (void)TM_Stop((timer_handle_t)mRrspTimerId);
         }
 
         /* Pack subevent header */
-        uint16_t crtSubevtDataIdx = (uint16_t)mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].dataIdx;
-        packSubeventHeader(mpRasServiceConfig->pRangingDataBody + currentDataIdx);
+        uint16_t crtSubevtDataIdx = (uint16_t)maRasDynamicCfg[deviceId].pCfg->aSubEventData[gRasSubeventStepIndex].dataIdx;
+        packSubeventHeader(deviceId, maRasDynamicCfg[deviceId].pRangingDataBody + currentDataIdx);
         currentDataIdx += ((uint16_t)sizeof(rasSubeventDataHeader_t));
         availableLen -= ((uint16_t)sizeof(rasSubeventDataHeader_t));
 
         /* Pack rangin data body */
-        mpRasServiceConfig->pData->totalSentRcvDataIndex = crtSubevtDataIdx;
-        antennaPathFilterStepData(deviceId, mpRasServiceConfig->pData->pData + crtSubevtDataIdx,
-                                  mpRasServiceConfig->pRangingDataBody, availableLen, &currentDataIdx);
+        maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex = crtSubevtDataIdx;
+        antennaPathFilterStepData(deviceId, maRasDynamicCfg[deviceId].pCfg->pData + crtSubevtDataIdx,
+                                  maRasDynamicCfg[deviceId].pRangingDataBody, availableLen, &currentDataIdx);
 
         /* Reset data legth counters */
-        mpRasServiceConfig->pData->totalSentRcvDataIndex = dataIdxInit;
-        mpRasServiceConfig->pData->dataParsedLen = currentDataIdx;
+        maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex = dataIdxInit;
+        maRasDynamicCfg[deviceId].pCfg->dataParsedLen = currentDataIdx;
     }
 
     return result;
@@ -1253,11 +1228,12 @@ bool_t Ras_CheckIfSubscribed
 ************************************************************************************/
 static void packSubeventHeader
 (
+    deviceId_t deviceId,
     uint8_t* pRangingDataBody
 )
 {
     rasSubeventDataHeader_t subeventHeader;
-    csRasSubeventHeader_t *pSubevtHeader = &mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].subevtHeader;
+    csRasSubeventHeader_t *pSubevtHeader = &maRasDynamicCfg[deviceId].pCfg->aSubEventData[gRasSubeventStepIndex].subevtHeader;
 
     subeventHeader.startACLConnEvent = pSubevtHeader->startACLConnEvent;
     subeventHeader.frequencyCompensation = pSubevtHeader->frequencyCompensation;
@@ -1296,7 +1272,7 @@ static void antennaPathFilterStepData
     uint8_t stepDataLength = 0U;
     uint8_t antPermIndex = 0U;
     uint8_t antIdx = 0U;
-    uint8_t devIdIdx = deviceId * gAppMaxConnections_c;
+    uint8_t devIdIdx = deviceId * 4U;
     const uint8_t *antIndex_p = NULL;
     union
     {
@@ -1306,7 +1282,7 @@ static void antennaPathFilterStepData
 
     while (*pOutLen < maxLength)
     {
-        if (mpRasServiceConfig->pData->totalSentRcvDataIndex >= mpRasServiceConfig->pData->dataIndex)
+        if (maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex >= maRasDynamicCfg[deviceId].pCfg->dataIndex)
         {
             /* we reached the end of the data */
             break;
@@ -1321,8 +1297,8 @@ static void antennaPathFilterStepData
 
         assert(mode < 4U);
 
-        if ((mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].subevtHeader.subeventDoneStatus != 0U) &&
-            (mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].subevtHeader.subeventDoneStatus != 1U))
+        if ((maRasDynamicCfg[deviceId].pCfg->aSubEventData[gRasSubeventStepIndex].subevtHeader.subeventDoneStatus != 0U) &&
+            (maRasDynamicCfg[deviceId].pCfg->aSubEventData[gRasSubeventStepIndex].subevtHeader.subeventDoneStatus != 1U))
         {
             /* Set BIT7 to 1 to mark step as aborted */
             mode |= BIT7;
@@ -1331,7 +1307,7 @@ static void antennaPathFilterStepData
         *(pNotifData + (*pOutLen)) = mode;
         (*pOutLen)++;
 
-        devIdIdx = deviceId * gAppMaxConnections_c;
+        devIdIdx = deviceId * 4U;
 
         switch (mode)
         {
@@ -1340,7 +1316,7 @@ static void antennaPathFilterStepData
             {
                 devIdIdx += gMode0Idx_c;
 
-                if ((maModeFilters[devIdIdx] & BIT0) != 0U)
+                if ((maModeFilters[devIdIdx] & BIT2) != 0U)
                 {
                     /* Copy packet quality information */
                     *(pNotifData + (*pOutLen)) = *pStepDataAux;
@@ -1348,7 +1324,7 @@ static void antennaPathFilterStepData
                 }
                 pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
 
-                if ((maModeFilters[devIdIdx] & BIT1) != 0U)
+                if ((maModeFilters[devIdIdx] & BIT3) != 0U)
                 {
                     /* Copy packet RSSI information */
                     *(pNotifData + (*pOutLen)) = *pStepDataAux;
@@ -1356,7 +1332,7 @@ static void antennaPathFilterStepData
                 }
                 pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
 
-                if ((maModeFilters[devIdIdx] & BIT2) != 0U)
+                if ((maModeFilters[devIdIdx] & BIT4) != 0U)
                 {
                     /* Copy packet antenna information */
                     *(pNotifData + (*pOutLen)) = *pStepDataAux;
@@ -1366,7 +1342,7 @@ static void antennaPathFilterStepData
 
                 if (stepDataLength > 3U)
                 {
-                    if ((maModeFilters[devIdIdx] & BIT3) != 0U)
+                    if ((maModeFilters[devIdIdx] & BIT5) != 0U)
                     {
                         /* Copy measured frequency offset information */
                         FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, sizeof(uint16_t));
@@ -1383,7 +1359,7 @@ static void antennaPathFilterStepData
             {
                 devIdIdx += gMode1Idx_c;
 
-                if ((maModeFilters[devIdIdx] & BIT0) != 0U)
+                if ((maModeFilters[devIdIdx] & BIT2) != 0U)
                 {
                     /* Copy packet quality information */
                     *(pNotifData + (*pOutLen)) = *pStepDataAux;
@@ -1392,7 +1368,7 @@ static void antennaPathFilterStepData
                 }
                 pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
 
-                if ((maModeFilters[devIdIdx] & BIT1) != 0U)
+                if ((maModeFilters[devIdIdx] & BIT3) != 0U)
                 {
                     /* Copy packet NADM information */
                     *(pNotifData + (*pOutLen)) = *pStepDataAux;
@@ -1400,7 +1376,7 @@ static void antennaPathFilterStepData
                 }
                 pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
 
-                if ((maModeFilters[devIdIdx] & BIT2) != 0U)
+                if ((maModeFilters[devIdIdx] & BIT4) != 0U)
                 {
                     /* Copy packet RSSI information */
                     *(pNotifData + (*pOutLen)) = *pStepDataAux;
@@ -1408,7 +1384,7 @@ static void antennaPathFilterStepData
                 }
                 pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
 
-                if ((maModeFilters[devIdIdx] & BIT3) != 0U)
+                if ((maModeFilters[devIdIdx] & BIT5) != 0U)
                 {
                     /* Copy packet ToA ToD information */
                     FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, sizeof(uint16_t));
@@ -1416,7 +1392,7 @@ static void antennaPathFilterStepData
                 }
                 pStepDataAux = &pStepDataAux[sizeof(uint16_t)];
 
-                if ((maModeFilters[devIdIdx] & BIT4) != 0U)
+                if ((maModeFilters[devIdIdx] & BIT6) != 0U)
                 {
                     /* Copy packet antenna information */
                     *(pNotifData + (*pOutLen)) = *pStepDataAux;
@@ -1426,7 +1402,7 @@ static void antennaPathFilterStepData
 
                 if (stepDataLength > 6U)
                 {
-                    if ((maModeFilters[devIdIdx] & BIT5) != 0U)
+                    if ((maModeFilters[devIdIdx] & BIT7) != 0U)
                     {
                         /* Copy packet PCT1 information */
                         FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, gPacket_PCTSize_c);
@@ -1434,7 +1410,7 @@ static void antennaPathFilterStepData
                     }
                     pStepDataAux = &pStepDataAux[gPacket_PCTSize_c];
 
-                    if ((maModeFilters[devIdIdx] & BIT6) != 0U)
+                    if ((maModeFilters[devIdIdx] & BIT8) != 0U)
                     {
                         /* Copy packet PCT2 information */
                         FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, gPacket_PCTSize_c);
@@ -1454,32 +1430,32 @@ static void antennaPathFilterStepData
                 assert(antPermIndex < 25);
                 antIndex_p = &maAntPermNAp[antPermIndex][0];
 
-                if ((maModeFilters[devIdIdx] & BIT0) != 0U)
+                if ((maModeFilters[devIdIdx] & BIT2) != 0U)
                 {
                     /* Copy Antenna Permutation Index information */
                     *(pNotifData + (*pOutLen)) = antPermIndex;
                     (*pOutLen) += (uint16_t)sizeof(uint8_t);
                 }
 
-                for (uint8_t idx = 0U; idx <= mpRasServiceConfig->pData->numAntennaPaths; idx++)
+                for (uint8_t idx = 0U; idx <= maRasDynamicCfg[deviceId].pCfg->numAntennaPaths; idx++)
                 {
-                    if (idx < mpRasServiceConfig->pData->numAntennaPaths)
+                    if (idx < maRasDynamicCfg[deviceId].pCfg->numAntennaPaths)
                     {
                         antIdx = antIndex_p[idx];
                     }
                     else
                     {
                         /* extension slot - repeat last antenna path in the switching sequence */
-                        antIdx = antIndex_p[mpRasServiceConfig->pData->numAntennaPaths - 1U];
+                        antIdx = antIndex_p[maRasDynamicCfg[deviceId].pCfg->numAntennaPaths - 1U];
                     }
 
                     /* Check if the corresponding Antenna Path is enabled */
-                    if (((antIdx == 0U) && ((maModeFilters[devIdIdx] & BIT3) != 0U)) ||
-                        ((antIdx == 1U) && ((maModeFilters[devIdIdx] & BIT4) != 0U)) ||
-                        ((antIdx == 2U) && ((maModeFilters[devIdIdx] & BIT5) != 0U)) ||
-                        ((antIdx == 3U) && ((maModeFilters[devIdIdx] & BIT6) != 0U)))
+                    if (((antIdx == 0U) && ((maModeFilters[devIdIdx] & BIT5) != 0U)) ||
+                        ((antIdx == 1U) && ((maModeFilters[devIdIdx] & BIT6) != 0U)) ||
+                        ((antIdx == 2U) && ((maModeFilters[devIdIdx] & BIT7) != 0U)) ||
+                        ((antIdx == 3U) && ((maModeFilters[devIdIdx] & BIT8) != 0U)))
                     {
-                        if ((maModeFilters[devIdIdx] & BIT1) != 0U)
+                        if ((maModeFilters[devIdIdx] & BIT3) != 0U)
                         {
                             /* Copy Tone_PCT information in IQ format */
                             FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, gTone_PCTSize_c);
@@ -1488,7 +1464,7 @@ static void antennaPathFilterStepData
                         }
                         pStepDataAux = &pStepDataAux[gTone_PCTSize_c];
 
-                        if ((maModeFilters[devIdIdx] & BIT2) != 0U)
+                        if ((maModeFilters[devIdIdx] & BIT4) != 0U)
                         {
                             /* Copy Tone_PCT information */
                             *(pNotifData + (*pOutLen)) = *pStepDataAux;
@@ -1512,7 +1488,7 @@ static void antennaPathFilterStepData
             {
                 devIdIdx += gMode3Idx_c;
 
-                if ((maModeFilters[devIdIdx] & BIT0) != 0U)
+                if ((maModeFilters[devIdIdx] & BIT2) != 0U)
                 {
                     /* Copy AA Quality information */
                     *(pNotifData + (*pOutLen)) = *pStepDataAux;
@@ -1520,7 +1496,7 @@ static void antennaPathFilterStepData
                 }
                 pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
 
-                if ((maModeFilters[devIdIdx] & BIT1) != 0U)
+                if ((maModeFilters[devIdIdx] & BIT3) != 0U)
                 {
                     /* Copy NADM information */
                     *(pNotifData + (*pOutLen)) = *pStepDataAux;
@@ -1528,7 +1504,7 @@ static void antennaPathFilterStepData
                 }
                 pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
 
-                if ((maModeFilters[devIdIdx] & BIT2) != 0U)
+                if ((maModeFilters[devIdIdx] & BIT4) != 0U)
                 {
                     /* Copy RSSI information */
                     *(pNotifData + (*pOutLen)) = *pStepDataAux;
@@ -1536,7 +1512,7 @@ static void antennaPathFilterStepData
                 }
                 pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
 
-                if ((maModeFilters[devIdIdx] & BIT3) != 0U)
+                if ((maModeFilters[devIdIdx] & BIT5) != 0U)
                 {
                     /* Copy packet ToA ToD information */
                      FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, sizeof(uint16_t));
@@ -1544,7 +1520,7 @@ static void antennaPathFilterStepData
                 }
                 pStepDataAux = &pStepDataAux[sizeof(uint16_t)];
 
-                if ((maModeFilters[devIdIdx] & BIT4) != 0U)
+                if ((maModeFilters[devIdIdx] & BIT6) != 0U)
                 {
                     /* Copy Antenna information */
                     *(pNotifData + (*pOutLen)) = *pStepDataAux;
@@ -1552,9 +1528,9 @@ static void antennaPathFilterStepData
                 }
                 pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
 
-                if (stepDataLength > (7U + ((1U + mpRasServiceConfig->pData->numAntennaPaths) * 4U)))
+                if (stepDataLength > (7U + ((1U + maRasDynamicCfg[deviceId].pCfg->numAntennaPaths) * 4U)))
                 {
-                    if ((maModeFilters[devIdIdx] & BIT5) != 0U)
+                    if ((maModeFilters[devIdIdx] & BIT7) != 0U)
                     {
                         /* Copy packet PCT1 information */
                         FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, gPacket_PCTSize_c);
@@ -1562,7 +1538,7 @@ static void antennaPathFilterStepData
                     }
                     pStepDataAux = &pStepDataAux[gPacket_PCTSize_c];
 
-                    if ((maModeFilters[devIdIdx] & BIT6) != 0U)
+                    if ((maModeFilters[devIdIdx] & BIT8) != 0U)
                     {
                         /* Copy packet PCT2 information */
                         FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, gPacket_PCTSize_c);
@@ -1574,7 +1550,7 @@ static void antennaPathFilterStepData
                 antPermIndex = *pStepDataAux;
                 antIndex_p = &maAntPermNAp[antPermIndex][0];
 
-                if ((maModeFilters[devIdIdx] & BIT7) != 0U)
+                if ((maModeFilters[devIdIdx] & BIT9) != 0U)
                 {
                     /* Copy Antenna Permutation Index information */
                     *(pNotifData + (*pOutLen)) = *pStepDataAux;
@@ -1582,17 +1558,17 @@ static void antennaPathFilterStepData
                 }
                 pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
 
-                for (uint8_t idx = 0U; idx <= mpRasServiceConfig->pData->numAntennaPaths; idx++)
+                for (uint8_t idx = 0U; idx <= maRasDynamicCfg[deviceId].pCfg->numAntennaPaths; idx++)
                 {
                     antIdx = antIndex_p[idx];
 
                     /* Check if the corresponding Antenna Path is enabled */
-                    if (((antIdx == 0U) && ((maModeFilters[devIdIdx] & BIT10) != 0U)) ||
-                        ((antIdx == 1U) && ((maModeFilters[devIdIdx] & BIT11) != 0U)) ||
-                        ((antIdx == 2U) && ((maModeFilters[devIdIdx] & BIT12) != 0U)) ||
-                        ((antIdx == 3U) && ((maModeFilters[devIdIdx] & BIT13) != 0U)))
+                    if (((antIdx == 0U) && ((maModeFilters[devIdIdx] & BIT12) != 0U)) ||
+                        ((antIdx == 1U) && ((maModeFilters[devIdIdx] & BIT13) != 0U)) ||
+                        ((antIdx == 2U) && ((maModeFilters[devIdIdx] & BIT14) != 0U)) ||
+                        ((antIdx == 3U) && ((maModeFilters[devIdIdx] & BIT15) != 0U)))
                     {
-                        if ((maModeFilters[devIdIdx] & BIT8) != 0U)
+                        if ((maModeFilters[devIdIdx] & BIT10) != 0U)
                         {
                             /* Copy Tone_PCT information in IQ format */
                             FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, gTone_PCTSize_c);
@@ -1601,13 +1577,17 @@ static void antennaPathFilterStepData
                         }
                         pStepDataAux = &pStepDataAux[gTone_PCTSize_c];
 
-                        if ((maModeFilters[devIdIdx] & BIT9) != 0U)
+                        if ((maModeFilters[devIdIdx] & BIT11) != 0U)
                         {
                             /* Copy Tone_PCT information */
                             *(pNotifData + (*pOutLen)) = *pStepDataAux;
                             (*pOutLen) += (uint16_t)sizeof(uint8_t);
                         }
                         pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
+                    }
+                    else
+                    {
+                        pStepDataAux = &pStepDataAux[sizeof(uint8_t) + gTone_PCTSize_c];
                     }
                 }
             }
@@ -1622,20 +1602,19 @@ static void antennaPathFilterStepData
 
         /* Account for the data we parsed so far: step mode, channel, length and data */
         stepLen.stepLen8 = stepDataLength;
-        mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].currentDataSize += stepLen.stepLen16 + 3U;
-        mpRasServiceConfig->pData->totalSentRcvDataIndex += stepLen.stepLen16 + 3U;
+        maRasDynamicCfg[deviceId].pCfg->aSubEventData[gRasSubeventStepIndex].currentDataSize += stepLen.stepLen16 + 3U;
+        maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex += stepLen.stepLen16 + 3U;
 
         /* Chek if we reached the end of the subevent */
-        if (mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].currentDataSize ==
-            mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].dataSize)
+        if (maRasDynamicCfg[deviceId].pCfg->aSubEventData[gRasSubeventStepIndex].currentDataSize ==
+            maRasDynamicCfg[deviceId].pCfg->aSubEventData[gRasSubeventStepIndex].dataSize)
         {
             gRasSubeventStepIndex++;
 
             /* Copy the next subevent header */
-            if (((uint8_t)gRasSubeventStepIndex < mpRasServiceConfig->pData->subeventIndex+1U) &&
-                (mpRasServiceConfig->pData->aSubEventData[gRasSubeventStepIndex].subevtHeader.procedureDoneStatus == 0U) )
+            if ((uint8_t)gRasSubeventStepIndex < maRasDynamicCfg[deviceId].pCfg->subeventIndex+1U)
             {
-                packSubeventHeader(pNotifData + (*pOutLen));
+                packSubeventHeader(deviceId, pNotifData + (*pOutLen));
                 (*pOutLen) += ((uint16_t)sizeof(rasSubeventDataHeader_t));
             }
         }
@@ -1659,20 +1638,10 @@ static bleResult_t sendCommandResponse
 )
 {
     /* Send notification with command result to the peer */
-    if ((mNotifIndEnabled[deviceId] & BIT1) != 0U)
-    {
-        return GattServer_SendInstantValueIndication(deviceId,
-                                                     mpRasServiceConfig->controlPointHandle,
-                                                     ((uint16_t)valueLength),
-                                                     pNotifPayload);
-    }
-    else
-    {
-        return GattServer_SendInstantValueNotification(deviceId,
-                                                       mpRasServiceConfig->controlPointHandle,
-                                                       ((uint16_t)valueLength),
-                                                       pNotifPayload);
-    }
+    return GattServer_SendInstantValueIndication(deviceId,
+                                                 mpRasServiceConfig->controlPointHandle,
+                                                 ((uint16_t)valueLength),
+                                                 pNotifPayload);
 }
 
 /*!**********************************************************************************
@@ -1741,7 +1710,7 @@ static bleResult_t handleGetRangingDataSegmNotif
 
             /* Pack notification data */
             FLib_MemCpy((pNotificationData + sizeof(uint8_t)),
-                        mpRasServiceConfig->pRangingDataBody + pData->dataIdxStart,
+                        maRasDynamicCfg[deviceId].pRangingDataBody + pData->dataIdxStart,
                         pData->dataSize);
 
             dataLen.dataLen32 = pData->dataSize + sizeof(uint8_t);
@@ -1780,11 +1749,20 @@ static void RrspTimerCallback
     mDataTransferState[deviceId] = (uint8_t)noTransferInProgress_c;
     gRasSubeventStepIndex = 0U;
 
-    FLib_MemSet(mpRasServiceConfig->pData, 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-    FLib_MemSet(mpRasServiceConfig->pData->pData, 0U, gRasCsSubeventDataSize_c);
-    (void)MEM_BufferFree(mpRasServiceConfig->pRangingDataBody);
-    mpRasServiceConfig->pRangingDataBody = NULL;
-
+    if (maRasDynamicCfg[deviceId].pCfg == NULL)
+    {
+        FLib_MemSet(maRasDynamicCfg[deviceId].pCfg, 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
+        if (maRasDynamicCfg[deviceId].pCfg->pData != NULL)
+        {
+            FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gRasCsSubeventDataSize_c);
+        }
+    }
+    
+    if (maRasDynamicCfg[deviceId].pRangingDataBody != NULL)
+    {
+        (void)MEM_BufferFree(maRasDynamicCfg[deviceId].pRangingDataBody);
+        maRasDynamicCfg[deviceId].pRangingDataBody = NULL;
+    }
 }
 
 /*!**********************************************************************************
@@ -1846,16 +1824,16 @@ static void checkRasStatus
     if (rasStatus != gRasSuccess_c)
     {
         /* An error occured in the handling of a command - reset the ranging data body */
-        if (mpRasServiceConfig->pRangingDataBody != NULL)
+        if (maRasDynamicCfg[deviceId].pRangingDataBody != NULL)
         {
-            (void)MEM_BufferFree(mpRasServiceConfig->pRangingDataBody);
-            mpRasServiceConfig->pRangingDataBody = NULL;
+            (void)MEM_BufferFree(maRasDynamicCfg[deviceId].pRangingDataBody);
+            maRasDynamicCfg[deviceId].pRangingDataBody = NULL;
         }
 
         /* Send response with the received error code */
         rasCPResponse.cmdParameters.rspPayload.rspValue = ((uint8_t)rasStatus);
         rasCPResponse.rspOpCode = ((uint8_t)responseOpCode_c);
-        (void)sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, sizeof(rasCPResponse));
+        (void)sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, maRasCPResponseSizes[rasCPResponse.rspOpCode]);
     }
 }
 
@@ -1879,8 +1857,8 @@ static bleResult_t handleGetRangingDataCmd
     rasControlPointRspCodeValues_tag rasStatus = gRasSuccess_c;
     bleResult_t result = gBleSuccess_c;
 
-    if ((mpRasServiceConfig->pData == NULL) || (mpRasServiceConfig->pData->pData == NULL) ||
-        (pRasCtrlPointCmd->cmdParameters.procCounter != mpRasServiceConfig->pData->procedureCounter))
+    if ((maRasDynamicCfg[deviceId].pCfg == NULL) || (maRasDynamicCfg[deviceId].pCfg->pData == NULL) ||
+        (pRasCtrlPointCmd->cmdParameters.procCounter != maRasDynamicCfg[deviceId].pCfg->procedureCounter))
     {
         /* Check that the received procedure counter matches the local one */
         rasStatus = gRasNoRecordsFoundError_c;
@@ -1908,14 +1886,14 @@ static bleResult_t handleGetRangingDataCmd
                 /* Send error response */
                 rasCPResponse.rspOpCode = ((uint8_t)responseOpCode_c);
                 rasCPResponse.cmdParameters.rspPayload.rspValue = ((uint8_t)gRasProcedureNotCompletedError_c);
-                result = sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, sizeof(rasCPResponse));
+                result = sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, maRasCPResponseSizes[rasCPResponse.rspOpCode]);
             }
             else
             {
                 /* Send response to Get Report Records procedure */
                 rasCPResponse.rspOpCode = ((uint8_t)completeProcDataRspOpCode_c);
                 rasCPResponse.cmdParameters.procCounter = ((uint8_t)pRasCtrlPointCmd->cmdParameters.procCounter);
-                result = sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, sizeof(rasCPResponse));
+                result = sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, maRasCPResponseSizes[rasCPResponse.rspOpCode]);
                 mDeviceId = deviceId;
                 (void)TM_InstallCallback((timer_handle_t)mRrspTimerId, RrspTimerCallback, &mDeviceId);
                 (void)TM_Start((timer_handle_t)mRrspTimerId,
@@ -1926,7 +1904,7 @@ static bleResult_t handleGetRangingDataCmd
         else
         {
             /* Send Ranging data through indications */
-            mpRasServiceConfig->pData->totalSentRcvDataIndex = 0U;
+            maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex = 0U;
             result = Ras_SendRangingDataIndication(deviceId,
                                                    mpRasServiceConfig->onDemandDataHandle);
         }
@@ -1957,7 +1935,7 @@ static bleResult_t handleAckRangingDataCmd
     rasControlPointRspCodeValues_tag rasStatus = gRasSuccess_c;
     bleResult_t result = gBleSuccess_c;
 
-    if ((mpRasServiceConfig->pData == NULL) || (mpRasServiceConfig->pData->pData == NULL))
+    if ((maRasDynamicCfg[deviceId].pCfg == NULL) || (maRasDynamicCfg[deviceId].pCfg->pData == NULL))
     {
         rasStatus = gRasNoRecordsFoundError_c;
         result = gBleInvalidParameter_c;
@@ -1966,6 +1944,14 @@ static bleResult_t handleAckRangingDataCmd
     {
         /* Check command length */
         rasStatus = gRasInvalidParameterError_c;
+        result = gBleInvalidParameter_c;
+    }
+    else if ((mDataTransferState[deviceId] != (uint8_t)waitingAckRangingData_c) &&
+             (mDataTransferState[deviceId] != (uint8_t)waitAckRangingDataRetransm_c))
+    {
+        /* Check state - this command is only valid if we sent all segments and are waiting
+           for the Ack Ranging Data command */
+        rasStatus = gRasServerBusyError_c;
         result = gBleInvalidParameter_c;
     }
     else
@@ -1978,17 +1964,17 @@ static bleResult_t handleAckRangingDataCmd
         mDataTransferState[deviceId] = (uint8_t)noTransferInProgress_c;
         gRasSubeventStepIndex = 0U;
         /* Check that the received procedure counter matches the local one */
-        if (pRasCtrlPointCmd->cmdParameters.procCounter == mpRasServiceConfig->pData->procedureCounter)
+        if (pRasCtrlPointCmd->cmdParameters.procCounter == maRasDynamicCfg[deviceId].pCfg->procedureCounter)
         {
-            FLib_MemSet(mpRasServiceConfig->pData, 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-            FLib_MemSet(mpRasServiceConfig->pData->pData, 0U, gRasCsSubeventDataSize_c);
-            (void)MEM_BufferFree(mpRasServiceConfig->pRangingDataBody);
-            mpRasServiceConfig->pRangingDataBody = NULL;
+            FLib_MemSet(maRasDynamicCfg[deviceId].pCfg, 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
+            FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gRasCsSubeventDataSize_c);
+            (void)MEM_BufferFree(maRasDynamicCfg[deviceId].pRangingDataBody);
+            maRasDynamicCfg[deviceId].pRangingDataBody = NULL;
 
             /* Send response to the ACK Stored Records Command */
             rasCPResponse.rspOpCode = ((uint8_t)responseOpCode_c);
             rasCPResponse.cmdParameters.rspPayload.rspValue = ((uint8_t)gRasSuccess_c);
-            result = sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, sizeof(rasCPResponse));
+            result = sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, maRasCPResponseSizes[rasCPResponse.rspOpCode]);
         }
         else
         {
@@ -2034,12 +2020,19 @@ static bleResult_t handleAbortCmd
 
         /* Reset the result events buffer */
         FLib_MemSet(maSegmentData, 0U, gRASMaxNoOfSegments_c * sizeof(segmentData_t));
-        FLib_MemSet(mpRasServiceConfig->pData, 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-        FLib_MemSet(mpRasServiceConfig->pData->pData, 0U, gRasCsSubeventDataSize_c);
-        if (mpRasServiceConfig->pRangingDataBody != NULL)
+        if (maRasDynamicCfg[deviceId].pCfg != NULL)
         {
-            (void)MEM_BufferFree(mpRasServiceConfig->pRangingDataBody);
-            mpRasServiceConfig->pRangingDataBody = NULL;
+            FLib_MemSet(maRasDynamicCfg[deviceId].pCfg, 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
+            if (maRasDynamicCfg[deviceId].pCfg->pData != NULL)
+            {
+                FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gRasCsSubeventDataSize_c);
+            }
+        }
+
+        if (maRasDynamicCfg[deviceId].pRangingDataBody != NULL)
+        {
+            (void)MEM_BufferFree(maRasDynamicCfg[deviceId].pRangingDataBody);
+            maRasDynamicCfg[deviceId].pRangingDataBody = NULL;
         }
 
         mDataTransferState[deviceId] = (uint8_t)noTransferInProgress_c;
@@ -2048,7 +2041,7 @@ static bleResult_t handleAbortCmd
         /* Send response to Data Abort Command */
         rasCPResponse.rspOpCode = ((uint8_t)responseOpCode_c);
         rasCPResponse.cmdParameters.rspPayload.rspValue = ((uint8_t)gRasSuccess_c);
-        result = sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, sizeof(rasCPResponse));
+        result = sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, maRasCPResponseSizes[rasCPResponse.rspOpCode]);
     }
 
     checkRasStatus(deviceId, rasStatus);
@@ -2076,8 +2069,8 @@ static bleResult_t handleRetrLostSegmentsCmd
     rasControlPointRspCodeValues_tag rasStatus = gRasSuccess_c;
     bleResult_t result = gBleSuccess_c;
 
-    if ((mpRasServiceConfig->pData == NULL) ||
-        (pRasCtrlPointCmd->cmdParameters.retrLostDataParams.procCounter!= mpRasServiceConfig->pData->procedureCounter))
+    if ((maRasDynamicCfg[deviceId].pCfg == NULL) ||
+        (pRasCtrlPointCmd->cmdParameters.retrLostDataParams.procCounter!= maRasDynamicCfg[deviceId].pCfg->procedureCounter))
     {
         /* Check that the received procedure counter matches the local one */
         rasStatus = gRasNoRecordsFoundError_c;
@@ -2139,7 +2132,7 @@ static bleResult_t handleRetrLostSegmentsCmd
                         rasCPResponse.cmdParameters.complLostRsp.endAbsSegment = pRasCtrlPointCmd->cmdParameters.retrLostDataParams.endAbsSegment;
                     }
 
-                    result = sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, sizeof(rasCPResponse));
+                    result = sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, maRasCPResponseSizes[rasCPResponse.rspOpCode]);
 
                     /* Restart Timer to wait for response */
                     (void)TM_InstallCallback((timer_handle_t)mRrspTimerId, RrspTimerCallback, &mDeviceId);
@@ -2200,29 +2193,29 @@ static bleResult_t handleSetFilterCmd
         /* Check the Mode bits and save the filter value */
         uint16_t filterVal = pRasCtrlPointCmd->cmdParameters.filterValue;
 
-        if (((filterVal & BIT14) == 0U)
-            && ((filterVal & BIT15) == 0U))
+        if (((filterVal & BIT0) == 0U)
+            && ((filterVal & BIT1) == 0U))
         {
             /* Mode 0 filter */
-            maModeFilters[deviceId * gAppMaxConnections_c + gMode0Idx_c] = filterVal;
+            maModeFilters[deviceId * 4U + gMode0Idx_c] = filterVal;
         }
-        else if (((filterVal & BIT14) != 0U)
-            && ((filterVal & BIT15) == 0U))
+        else if (((filterVal & BIT0) != 0U)
+            && ((filterVal & BIT1) == 0U))
         {
             /* Mode 1 filter */
-            maModeFilters[deviceId * gAppMaxConnections_c + gMode1Idx_c] = filterVal;
+            maModeFilters[deviceId * 4U + gMode1Idx_c] = filterVal;
         }
-        else if (((filterVal & BIT14) == 0U)
-                 && ((filterVal & BIT15) != 0U))
+        else if (((filterVal & BIT0) == 0U)
+                 && ((filterVal & BIT1) != 0U))
         {
             /* Mode 2 filter */
-            maModeFilters[deviceId * gAppMaxConnections_c + gMode2Idx_c] = filterVal;
+            maModeFilters[deviceId * 4U + gMode2Idx_c] = filterVal;
         }
-        else if (((filterVal & BIT14) != 0U)
-                 && ((filterVal & BIT15) != 0U))
+        else if (((filterVal & BIT0) != 0U)
+                 && ((filterVal & BIT1) != 0U))
         {
             /* Mode 3 filter */
-            maModeFilters[deviceId * gAppMaxConnections_c + gMode3Idx_c] = filterVal;
+            maModeFilters[deviceId * 4U + gMode3Idx_c] = filterVal;
         }
         else
         {
@@ -2242,7 +2235,7 @@ static bleResult_t handleSetFilterCmd
         /* Send response to the Filter Command */
         rasCPResponse.rspOpCode = (uint8_t)responseOpCode_c;
         rasCPResponse.cmdParameters.rspPayload.rspValue = (uint8_t)gRasSuccess_c;
-        result = sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, sizeof(rasCPResponse));
+        result = sendCommandResponse(deviceId, (uint8_t*)&rasCPResponse, maRasCPResponseSizes[rasCPResponse.rspOpCode]);
     }
 
     checkRasStatus(deviceId, rasStatus);

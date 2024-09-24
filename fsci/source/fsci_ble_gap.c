@@ -282,6 +282,7 @@ static const int16_t maConnectionEventToOpcode[]=
     -1,                                                                          /* = 0x2CU, gConnEvtHandoverConnected_c */
     -1,                                                                          /* = 0x2DU, gHandoverDisconnected_c */
     (int16_t)gBleGapEvtConnectionEventLeSetDataLengthFailedOpCode_c,             /* = 0x2EU, gConnEvtLeDataLengthChanged_c */
+    gBleGapEvtConnectionEventSmError_c,                                          /* = 0x2FU, gConnEvtSmError_c */
 };
 
 

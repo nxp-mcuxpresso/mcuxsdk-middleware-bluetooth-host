@@ -424,6 +424,10 @@ typedef enum bleResult_tag
     gSmPairingErrorAuthenticationRequirements_c                 = gSmStatusBase_c | 0x37U,  /*!< Authentication requirements were not met. */
     gSmPairingAlreadyStarted_c                                  = gSmStatusBase_c | 0x38U,  /*!< The pairing process has already started. */
     gSmPairingErrorKeyRejected_c                                = gSmStatusBase_c | 0x39U,  /*!< The key was rejected. */
+    gSmPairingErrorPairingNotSupported_c                        = gSmStatusBase_c | 0x3AU,  /*!< Pairing is not supported by the device. */
+    gSmPairingErrorEncryptionKeySize_c                          = gSmStatusBase_c | 0x3BU,  /*!< The resultant encryption key size is not long enough for the security requirements of this device. */
+    gSmPairingErrorDhKeyCheckFailed_c                           = gSmStatusBase_c | 0x3CU,  /*!< DHKey Check value received doesn't match the one calculated by the local device. */
+    gSmPairingErrorNumericComparisonFailed_c                    = gSmStatusBase_c | 0x3DU,  /*!< Indicates that the confirm values in the numeric comparison protocol do not match. */
 
     /* SM Tool Box statuses. */
     gSmTbResolvableAddressDoesNotMatchIrk_c                     = gSmStatusBase_c | 0x60U,  /*!< The provided Resolvable Private Address and IRK do not match. */
@@ -629,6 +633,19 @@ typedef enum
     gBleCentralClkAcc30ppm_c         = 0x06U,
     gBleCentralClkAcc20ppm_c         = 0x07U,
 } bleCentralClockAccuracy_tag;
+
+typedef uint8_t bleAdvertiserClockAccuracy_t;
+typedef enum
+{
+    gBleAdvertiserClkAcc500ppm_c     = 0x00U,
+    gBleAdvertiserClkAcc250ppm_c     = 0x01U,
+    gBleAdvertiserClkAcc150ppm_c     = 0x02U,
+    gBleAdvertiserClkAcc100ppm_c     = 0x03U,
+    gBleAdvertiserClkAcc75ppm_c      = 0x04U,
+    gBleAdvertiserClkAcc50ppm_c      = 0x05U,
+    gBleAdvertiserClkAcc30ppm_c      = 0x06U,
+    gBleAdvertiserClkAcc20ppm_c      = 0x07U,
+} bleAdvertiserClockAccuracy_tag;
 
 typedef enum
 {
