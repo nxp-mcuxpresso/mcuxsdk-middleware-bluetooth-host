@@ -1,0 +1,22 @@
+
+BLE                        Name: Bluetooth Low Energy Application Source     
+                           Version: 1.10.x                                   
+                           Outgoing License: BSD-3-Clause                    
+                           License File: ./COPYING-BSD-3                     
+                           Format: Source code & header files                
+                           Description: Bluetooth Low Energy Software        
+                           Location: middleware/wireless/bluetooth           
+                           Origin: NXP (BSD-3-Clause)                        
+
+BLE_HostLib                Name: Bluetooth Low Energy Host Firmware          
+                           Version: 1.10.x                                   
+                           Outgoing License: LA_OPT_NXP_Software_License v49 
+                           September 2023 - Additional distribution license  
+                           granted, license in Section 2.3 applies           
+                           License File: ./LA_OPT_NXP_Software_License.txt   
+                           Format: Binary libraries                          
+                           Description: Bluetooth Low Energy Stack (HCI,     
+                           L2CAP, ATT, GATT, GAP and SM)                     
+                           Location: middleware/wireless/bluetooth/host/lib  
+                           Origin: NXP                                       
+

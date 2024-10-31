@@ -1,0 +1,47 @@
+NXP Software Content Register
+
+Release Name:           Bluetooth Low Energy Delivery
+Version:                1.10.3
+Date Created:           November-2024
+Release Location:       https://github.com/nxp-mcuxpresso/mcux-sdk-middleware-bluetooth-host
+Description:            Bluetooth Low Energy Software
+Outgoing License:       LA_OPT_Online_Code_Hosting
+License File:           LICENSE
+
+Package: Bluetooth Low Energy Host Firmware 
+Version: 1.10.3
+Outgoing License: LA_OPT_Online_Code_Hosting
+License File: host/LA_OPT_Online_Code_Hosting.txt
+Files:
+    host/lib/lib_ble_handover_cm33_gcc.a
+    host/lib/lib_ble_handover_cm33_iar.a
+    host/lib/lib_ble_host_central_cm33_gcc.a
+    host/lib/lib_ble_host_cm33_gcc.a
+    host/lib/lib_ble_host_matter_cm33_gcc.a
+    host/lib/lib_ble_host_matter_cm33_iar.a
+    host/lib/lib_ble_host_peripheral_cm33_gcc.a
+    host/lib/lib_ble_OPT_host_central_cm33_gcc.a
+    host/lib/lib_ble_OPT_host_cm33_gcc.a
+    host/lib/lib_ble_OPT_host_peripheral_cm33_gcc.a
+    host/lib_exp/lib_ble_OPT_host_central_cm33_gcc.a
+    host/lib_exp/lib_ble_OPT_host_central_cm33_iar.a
+    host/lib_exp/lib_ble_OPT_host_cm33_gcc.a
+    host/lib_exp/lib_ble_OPT_host_cm33_iar.a
+    host/lib_exp/lib_ble_OPT_host_peripheral_cm33_gcc.a
+    host/lib_exp/lib_ble_OPT_host_peripheral_cm33_iar.a
+Type of Content: Binary libraries
+Description and comments: Bluetooth Low Energy Libraries
+Release Location: https://github.com/nxp-mcuxpresso/mcux-sdk-middleware-bluetooth-host
+URL: None
+Origin:NXP
+
+Package: Bluetooth Low Energy Application Source 
+Version: 1.10.3
+Outgoing License: BSD-3-Clause
+License File: ./LICENSE_BSD-3-Clause
+Type of Content: source code & header files
+Description and comments: Bluetooth Low Energy Software  
+Release Location: https://github.com/nxp-mcuxpresso/mcux-sdk-middleware-bluetooth-host
+URL: None
+Origin:NXP (BSD-3-Clause)                                      
+
