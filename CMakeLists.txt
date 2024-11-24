@@ -132,44 +132,6 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_OPT_peripheral_component_l
     )
 endif()
 
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_OPT_fsci_test_component_lib)
-    mcux_add_library(
-        LIBS host/lib/lib_ble_OPT_host_fsci_test_cm33_iar.a
-        DSP DSP
-        FPU SP_FPU
-        TOOLCHAINS iar
-    )
-    mcux_add_library(
-        LIBS host/lib/lib_ble_OPT_host_fsci_test_cm33_nofp_nodsp_iar.a
-        DSP NO_DSP
-        FPU NO_FPU
-        TOOLCHAINS iar
-    )
-    mcux_add_library(
-        LIBS host/lib/lib_ble_OPT_host_fsci_test_cm33_gcc.a
-        TOOLCHAINS mcux armgcc
-    )
-endif()
-
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_OPT_fsci_sm_test_component_lib)
-    mcux_add_library(
-        LIBS host/lib/lib_ble_OPT_host_fsci_sm_test_cm33_iar.a
-        DSP DSP
-        FPU SP_FPU
-        TOOLCHAINS iar
-    )
-    mcux_add_library(
-        LIBS host/lib/lib_ble_OPT_host_fsci_sm_test_cm33_nofp_nodsp_iar.a
-        DSP NO_DSP
-        FPU NO_FPU
-        TOOLCHAINS iar
-    )
-    mcux_add_library(
-        LIBS host/lib/lib_ble_OPT_host_fsci_sm_test_cm33_gcc.a
-        TOOLCHAINS mcux armgcc
-    )
-endif()
-
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_component_lib)
     mcux_add_library(
         LIBS host/lib/lib_ble_host_cm33_iar.a
@@ -227,25 +189,6 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_peripheral_component_lib)
     )
 endif()
 
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_fsci_test_component_lib)
-    mcux_add_library(
-        LIBS host/lib/lib_ble_host_fsci_test_cm33_iar.a
-        DSP DSP
-        FPU SP_FPU
-        TOOLCHAINS iar
-    )
-    mcux_add_library(
-        LIBS host/lib/lib_ble_host_fsci_test_cm33_nofp_nodsp_iar.a
-        DSP NO_DSP
-        FPU NO_FPU
-        TOOLCHAINS iar
-    )
-    mcux_add_library(
-        LIBS host/lib/lib_ble_host_fsci_test_cm33_gcc.a
-        TOOLCHAINS mcux armgcc
-    )
-endif()
-
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_matter_component_lib)
     mcux_add_library(
         LIBS host/lib/lib_ble_host_matter_cm33_iar.a
@@ -294,17 +237,6 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_peripheral_compone
     )
     mcux_add_library(
         LIBS host/lib_exp/lib_ble_OPT_host_peripheral_cm33_gcc.a
-        TOOLCHAINS mcux armgcc
-    )
-endif()
-
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_fsci_test_component_lib)
-    mcux_add_library(
-        LIBS host/lib_exp/lib_ble_OPT_host_fsci_test_cm33_iar.a
-        TOOLCHAINS iar
-    )
-    mcux_add_library(
-        LIBS host/lib_exp/lib_ble_OPT_host_fsci_test_cm33_gcc.a
         TOOLCHAINS mcux armgcc
     )
 endif()
@@ -662,16 +594,6 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_ncp_fsci_source)
     )
 endif()
 
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_fsci_source_channel_sounding)
-    mcux_add_source(
-        SOURCES fsci/source/fsci_channel_sounding.c
-                fsci/source/fsci_channel_sounding.h
-    )
-    mcux_add_include(
-        INCLUDES fsci/source
-    )
-endif()
-
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_fsci_source_handover)
     mcux_add_source(
         SOURCES fsci/source/fsci_ble_gap_handover.c
@@ -732,26 +654,6 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.auto)
     )
     mcux_add_include(
         INCLUDES application/common/auto
-    )
-endif()
-
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.lcl)
-    mcux_add_source(
-        SOURCES application/common/lcl/app_localization.c
-                application/common/lcl/app_localization.h
-    )
-    mcux_add_include(
-        INCLUDES application/common/lcl
-    )
-endif()
-
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.lcl_algo)
-    mcux_add_source(
-        SOURCES application/common/lcl/app_localization_algo.c
-                application/common/lcl/app_localization_algo.h
-    )
-    mcux_add_include(
-        INCLUDES application/common/lcl
     )
 endif()
 
@@ -937,274 +839,5 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_profiles_digital_key)
     )
     mcux_add_include(
         INCLUDES profiles/digital_key
-    )
-endif()
-
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_profiles_ranging)
-    mcux_add_source(
-        SOURCES profiles/ranging/ranging_service.c
-                profiles/ranging/ranging_interface.h
-    )
-    mcux_add_include(
-        INCLUDES profiles/ranging
-    )
-endif()
-
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_CS)
-    mcux_add_source(
-        SOURCES host/interface/att_callbacks.h
-                host/interface/att_errors.h
-                host/interface/att_params.h
-                host/interface/att_types.h
-                host/interface/ble_constants.h
-                host/interface/ble_general.h
-                host/interface/ble_host_tasks.h
-                host/interface/ble_sig_defines.h
-                host/interface/ble_utils.h
-                host/interface/channel_sounding.h
-                host/interface/gap_interface.h
-                host/interface/gap_types.h
-                host/interface/gatt_client_interface.h
-                host/interface/gatt_database.h
-                host/interface/gatt_db_app_interface.h
-                host/interface/gatt_db_att_interface.h
-                host/interface/gatt_db_dynamic.h
-                host/interface/gatt_interface.h
-                host/interface/gatt_server_interface.h
-                host/interface/gatt_types.h
-                host/interface/hci_interface.h
-                host/interface/hci_types.h
-                host/interface/l2ca_cb_interface.h
-                host/interface/l2ca_interface.h
-                host/interface/l2ca_types.h
-                host/interface/vendor_debug_commands.h
-                port/fwk_generic_list.h
-                port/fwk_generic_list.c
-                port/fwk_mem_manager.h
-                port/fwk_messaging.h
-                port/fwk_messaging.c
-                port/fwk_os_abs.h
-                port/fwk_os_abs.c
-                port/fwk_panic.h
-                port/fwk_timer_manager.h
-                port/fwk_timer_manager.c
-                port/fwk_seclib.h
-                host/config/ble_config.h
-                host/config/ble_globals.c
-    )
-    mcux_add_include(
-        INCLUDES host/interface
-                 host/config
-                 port
-    )
-endif()
-
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_CS_component_lib)
-    mcux_add_library(
-        LIBS host/lib/lib_channel_sounding_iar.a
-        TOOLCHAINS iar
-    )
-    mcux_add_library(
-        LIBS host/lib/lib_channel_sounding_gcc.a
-        TOOLCHAINS mcux armgcc
-    )
-endif()
-
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lib)
-    mcux_add_iar_configuration(
-        CX  "--use_cmsis_dsp"
-    )
-    mcux_add_library(
-        LIBS localization/lib/lib_lcl_algo_cm33_iar.a
-        TOOLCHAINS iar
-    )
-    mcux_add_library(
-        LIBS localization/lib/lib_lcl_algo_cm33_gcc.a
-        TOOLCHAINS mcux armgcc
-    )
-    mcux_add_include(
-        INCLUDES localization/lcl/pde/algo/interface
-    )
-    mcux_add_source(
-        SOURCES localization/lcl/pde/algo/interface/dm_phasebased.h
-        localization/lcl/pde/algo/interface/pde_postprocessing.h
-        localization/lcl/pde/algo/interface/pde_rade.h
-    )
-endif()
-
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_kw47_lib)
-    mcux_add_iar_configuration(
-        CX  "--use_cmsis_dsp"
-    )
-    mcux_add_library(
-        LIBS localization/lib/lib_lcl_algo_cm33_kw47_iar.a
-        TOOLCHAINS iar
-    )
-    mcux_add_library(
-        LIBS localization/lib/lib_lcl_algo_cm33_kw47_gcc.a
-        TOOLCHAINS mcux armgcc
-    )
-    mcux_add_include(
-        INCLUDES localization/lcl/pde/algo/interface
-    )
-    mcux_add_source(
-        SOURCES localization/lcl/pde/algo/interface/dm_phasebased.h
-        localization/lcl/pde/algo/interface/pde_postprocessing.h
-        localization/lcl/pde/algo/interface/pde_rade.h
-    )
-endif()
-
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_lcl_isp_controller_wr)
-    mcux_add_source(
-        SOURCES localization/lcl/isp/interface/isp_debug_helpers.h
-                localization/lcl/isp/interface/isp_configuration.h
-                localization/lcl/isp/interface/isp_interface.h
-                localization/lcl/isp/interface/isp_measurement.h
-                localization/lcl/isp/interface/isp_ranging_engine.h
-                localization/lcl/isp/source/isp_debug_helpers.c
-                localization/lcl/isp/source/isp_ranging_engine.c
-    )
-    mcux_add_include(
-        INCLUDES localization/lcl/isp/interface
-                 localization/lcl/isp/source
-    )
-endif()
-
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.wr_wireless_ranging_host)
-endif()
-
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.wr_wireless_ranging_tools)
-    mcux_add_source(
-        SOURCES tools/lcl_host/python/demo/common/GUI_colormap.py
-            tools/lcl_host/python/demo/common/locationArray.py
-            tools/lcl_host/python/demo/common/valueArray.py
-            tools/lcl_host/python/demo/ranging_daemon/html/css/dygraph.css
-            tools/lcl_host/python/demo/ranging_daemon/html/css/pure-min.css
-            tools/lcl_host/python/demo/ranging_daemon/html/css/style.css
-            tools/lcl_host/python/demo/ranging_daemon/html/download.php
-            tools/lcl_host/python/demo/ranging_daemon/html/header.inc.php
-            tools/lcl_host/python/demo/ranging_daemon/html/img/cog.png
-            tools/lcl_host/python/demo/ranging_daemon/html/img/log.png
-            tools/lcl_host/python/demo/ranging_daemon/html/img/nxp_logo.png
-            tools/lcl_host/python/demo/ranging_daemon/html/img/wireless-off.png
-            tools/lcl_host/python/demo/ranging_daemon/html/img/wireless-signal.png
-            tools/lcl_host/python/demo/ranging_daemon/html/index.php
-            tools/lcl_host/python/demo/ranging_daemon/html/js/dygraph.js
-            tools/lcl_host/python/demo/ranging_daemon/html/js/dygraph.min.js
-            tools/lcl_host/python/demo/ranging_daemon/html/js/smooth-plotter.js
-            tools/lcl_host/python/demo/ranging_daemon/html/log.php
-            tools/lcl_host/python/demo/ranging_daemon/html/login.inc.php
-            tools/lcl_host/python/demo/ranging_daemon/html/offline.html
-            tools/lcl_host/python/demo/ranging_daemon/html/settings.php
-            tools/lcl_host/python/demo/ranging_daemon/html/sqldb.inc.php
-            tools/lcl_host/python/demo/ranging_daemon/ranging_daemon.py
-            tools/lcl_host/python/demo/ranging_daemon/scripts/chromium_preferences
-            tools/lcl_host/python/demo/ranging_daemon/scripts/encmount.sh
-            tools/lcl_host/python/demo/ranging_daemon/scripts/new-service.sh
-            tools/lcl_host/python/demo/ranging_daemon/scripts/rpi-imec.sh
-            tools/lcl_host/python/demo/ranging_daemon/scripts/run_ranging_daemon.sh
-            tools/lcl_host/python/demo/ranging_daemon/scripts/service.sh
-            tools/lcl_host/python/demo/ranging_daemon/sql_db.py
-            tools/lcl_host/python/Generic/dataframeutils.py
-            tools/lcl_host/python/Generic/dictutils.py
-            tools/lcl_host/python/Generic/digitalfilter.py
-            tools/lcl_host/python/Generic/dirutils.py
-            tools/lcl_host/python/Generic/fileutils.py
-            tools/lcl_host/python/Generic/mathutils.py
-            tools/lcl_host/python/Generic/nesteddict.py
-            tools/lcl_host/python/Generic/popupdialog.py
-            tools/lcl_host/python/Generic/printutils.py
-            tools/lcl_host/python/Generic/reprmixin.py
-            tools/lcl_host/python/Generic/stringutils.py
-            tools/lcl_host/python/Generic/validator.py
-            tools/lcl_host/python/Generic/xtimer.py
-            tools/lcl_host/python/Instruments/ComPort.py
-            tools/lcl_host/python/Instruments/MatlabEngine.py
-            tools/lcl_host/python/Instruments/ranging_platform_pkg/boardinfo.kw45.csv
-            tools/lcl_host/python/Instruments/ranging_platform_pkg/parser.py
-            tools/lcl_host/python/Instruments/ranging_platform_pkg/RangingPlatform.py
-            tools/lcl_host/python/Instruments/ranging_platform_pkg/RangingPlatform_kw45.py
-            tools/lcl_host/python/Instruments/ranging_platform_pkg/resultfile.py
-            tools/lcl_host/python/Instruments/ranging_platform_pkg/resultschema.2.yaml
-            tools/lcl_host/python/Instruments/ranging_platform_pkg/swinfo.default.yaml
-            tools/lcl_host/python/Instruments/ranging_platform_pkg/swinfo.kw45.yaml
-            tools/lcl_host/python/Instruments/ranging_platform_pkg/types.py
-            tools/lcl_host/python/Instruments/ranging_platform_pkg/utils.py
-            tools/lcl_host/python/Instruments/ranging_platform_pkg/validator.py
-            tools/lcl_host/python/Instruments/ranging_platform_pkg/__init__.py
-            tools/lcl_host/python/logging.ini
-            tools/lcl_host/python/middleware_wireless_wr_wireless_ranging_host.cmake
-            tools/lcl_host/python/Pipfile
-            tools/lcl_host/python/Scripts/convert_range_measurement_data.py
-            tools/lcl_host/python/Scripts/convert_to_excel.py
-            tools/lcl_host/python/Scripts/record_range_measurement.py
-    )
-endif()
-
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.XCVR_GEN45_driver_workaround)
-    mcux_add_source(
-        SOURCES ../XCVR/drv/nxp_xcvr_ext_ctrl.h
-                ../XCVR/drv/mathfp.c
-                ../XCVR/drv/mathfp.h
-                ../XCVR/drv/dma_capture.c
-                ../XCVR/drv/dma_capture.h
-                ../XCVR/drv/rfmc_ctrl.c
-                ../XCVR/drv/rfmc_ctrl.h
-                ../XCVR/drv/dbg_ram_capture.c
-                ../XCVR/drv/nxp_xcvr_lcl_ctrl.h
-                ../XCVR/drv/nxp_xcvr_ext_ctrl.c
-                ../XCVR/drv/nxp_xcvr_ext_ctrl.h
-                ../XCVR/drv/dbg_ram_capture.h
-                ../XCVR/drv/nxp_xcvr_lcl_step_mgr.c
-                ../XCVR/drv/nxp_xcvr_lcl_step_mgr.h
-                ../XCVR/drv/nxp_xcvr_lcl_step_structs.h
-                ../XCVR/drv/nb2p4ghz/nxp2p4_xcvr.c
-                ../XCVR/drv/nb2p4ghz/nxp2p4_xcvr.h
-                ../XCVR/drv/nb2p4ghz/nxp_xcvr_trim.c
-                ../XCVR/drv/nb2p4ghz/nxp_xcvr_trim.h
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_coding_config.c
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_coding_config.h
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_common_config.h
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_lcl_config.c
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_lcl_config.h
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_gfsk_bt_0p5_h_0p5_config.c
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_gfsk_bt_0p5_h_0p5_config.h
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_gfsk_bt_0p5_h_0p7_config.c
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_gfsk_bt_0p5_h_0p7_config.h
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_gfsk_bt_0p5_h_0p32_config.c
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_gfsk_bt_0p5_h_0p32_config.h
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_gfsk_bt_0p5_h_1p0_config.c
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_gfsk_bt_0p5_h_1p0_config.h
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_oqpsk_802p15p4_config.c
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_oqpsk_802p15p4_config.h
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_mode_config.c
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_mode_config.h
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_msk_config.c
-                ../XCVR/drv/nb2p4ghz/configs/gen45/nxp_xcvr_msk_config.h
-    )
-    mcux_add_include(
-        INCLUDES ../XCVR/drv
-                 ../XCVR/drv/nb2p4ghz
-                 ../XCVR/drv/nb2p4ghz/configs/gen45
-    )
-endif()
-
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.ncp)
-    mcux_add_source(
-        SOURCES application/common/ncp/host_cmd_ble.c
-                application/common/ncp/host_cmd_ble.h
-                application/common/ncp/host_evt_ble.c
-                application/common/ncp/host_hsdk_interface.h
-                application/common/ncp/host_hsdk_main.c
-                application/common/ncp/host_ble_conn_manager.c
-                application/common/ncp/host_ble_conn_manager.h
-                application/common/ncp/host_ble_init.c
-                application/common/ncp/host_ble_init.h
-                application/common/ncp/host_ble_service_discovery.c
-                application/common/ncp/host_ble_service_discovery.h
-                application/common/ncp/host_unload_ble.c
-                )
-    mcux_add_include(
-        INCLUDES application/common/ncp
     )
 endif()

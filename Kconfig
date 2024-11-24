@@ -12,18 +12,12 @@ menu "bluetooth"
         bool "Component middleware.wireless.ble_host_OPT_central_component_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_OPT_peripheral_component_lib
         bool "Component middleware.wireless.ble_host_OPT_peripheral_component_lib"
-    config MCUX_COMPONENT_middleware.wireless.ble_host_OPT_fsci_test_component_lib
-        bool "Component middleware.wireless.ble_host_OPT_fsci_test_component_lib"
-    config MCUX_COMPONENT_middleware.wireless.ble_host_OPT_fsci_sm_test_component_lib
-        bool "Component middleware.wireless.ble_host_OPT_fsci_sm_test_component_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_component_lib
         bool "Component middleware.wireless.ble_host_component_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_central_component_lib
         bool "Component middleware.wireless.ble_host_central_component_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_peripheral_component_lib
         bool "Component middleware.wireless.ble_host_peripheral_component_lib"
-    config MCUX_COMPONENT_middleware.wireless.ble_host_fsci_test_component_lib
-        bool "Component middleware.wireless.ble_host_fsci_test_component_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_matter_component_lib
         bool "Component middleware.wireless.ble_host_matter_component_lib"
         depends on MCUX_HW_BOARD_k32w148evk || MCUX_HW_BOARD_frdmmcxw71
@@ -33,8 +27,6 @@ menu "bluetooth"
         bool "Component middleware.wireless.ble_host_exp_OPT_central_component_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_peripheral_component_lib
         bool "Component middleware.wireless.ble_host_exp_OPT_peripheral_component_lib"
-    config MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_fsci_test_component_lib
-        bool "Component middleware.wireless.ble_host_exp_OPT_fsci_test_component_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_interface
         bool "Component middleware.wireless.ble_host_interface"
     config MCUX_COMPONENT_middleware.wireless.ble_host_xml
@@ -57,8 +49,6 @@ menu "bluetooth"
         bool "Component middleware.wireless.ble_ncp_fsci_source"
     config MCUX_COMPONENT_middleware.wireless.ble_fsci_source_handover
         bool "Component middleware.wireless.ble_fsci_source_handover"
-    config MCUX_COMPONENT_middleware.wireless.ble_fsci_source_channel_sounding
-        bool "Component middleware.wireless.ble_fsci_source_channel_sounding"
     config MCUX_COMPONENT_middleware.wireless.ble_fsci_host
         bool "Component middleware.wireless.ble_fsci_host"
     config MCUX_COMPONENT_middleware.wireless.ble_host_interface_handover
@@ -127,31 +117,4 @@ menu "bluetooth"
         depends on (MCUX_HW_BOARD_kw45b41zevk || MCUX_HW_BOARD_kw45b41zloc || MCUX_HW_BOARD_kw47evk || MCUX_HW_BOARD_kw47loc)
     config MCUX_COMPONENT_middleware.wireless.ncp
         bool "Component middleware.wireless.ncp"
-endmenu
-
-menu "localization"
-    config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lib
-        bool "Component middleware.wireless.genfsk_wr_lcl_algo_cm33_lib"
-        select MCUX_COMPONENT_CMSIS_DSP_Source
-    config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_kw47_lib
-        bool "Component middleware.wireless.genfsk_wr_lcl_algo_cm33_kw47_lib"
-        select MCUX_COMPONENT_CMSIS_DSP_Source
-    config MCUX_COMPONENT_middleware.wireless.genfsk_lcl_isp_controller_wr
-        bool "Component middleware.wireless.genfsk_lcl_isp_controller_wr"
-    config MCUX_COMPONENT_middleware.wireless.wr_wireless_ranging_host
-        bool "Component middleware.wireless.wr_wireless_ranging_host"
-    config MCUX_COMPONENT_middleware.wireless.wr_wireless_ranging_tools
-        bool "Component middleware.wireless.wr_wireless_ranging_tools"
-    config MCUX_COMPONENT_middleware.wireless.XCVR_GEN45_driver_workaround
-        bool "Component middleware.wireless.XCVR_GEN45_driver_workaround"
-    config MCUX_COMPONENT_middleware.wireless.lcl
-        bool "Component middleware.wireless.lcl"
-    config MCUX_COMPONENT_middleware.wireless.lcl_algo
-        bool "Component middleware.wireless.lcl_algo"
-    config MCUX_COMPONENT_middleware.wireless.ble_profiles_ranging
-        bool "Component middleware.wireless.ble_profiles_ranging"
-    config MCUX_COMPONENT_middleware.wireless.ble_host_CS
-        bool "Component middleware.wireless.ble_host_CS"
-    config MCUX_COMPONENT_middleware.wireless.ble_host_CS_component_lib
-        bool "Component middleware.wireless.ble_host_CS_component_lib"
 endmenu
