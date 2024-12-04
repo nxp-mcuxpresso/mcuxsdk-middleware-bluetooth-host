@@ -286,6 +286,9 @@
 /*! LE GATT Security Levels characteristic UUID */
 #define gBleSig_GattSecurityLevels_d            0x2BF5U
 
+/*! Encrypted Data Key Material characteristic UUID */
+#define gBleSig_EncryptedDataKeyMaterial_d      0x2B88U
+
 /*! Central Address Resolution Characteristic Values */
 #define gBleSig_CAR_NotSupported_d              0x00U
 #define gBleSig_CAR_Supported_d                 0x01U
