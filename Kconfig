@@ -4,8 +4,6 @@ menu "bluetooth"
         bool "Component middleware.wireless.ble_host"
     config MCUX_COMPONENT_middleware.wireless.ble_host_common
         bool "Component middleware.wireless.ble_host_common"
-    config MCUX_COMPONENT_middleware.wireless.ble_ncp_common
-        bool "Component middleware.wireless.ble_ncp_common"
     config MCUX_COMPONENT_middleware.wireless.ble_host_OPT_component_lib
         bool "Component middleware.wireless.ble_host_OPT_component_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_OPT_central_component_lib
@@ -45,8 +43,6 @@ menu "bluetooth"
         bool "Component middleware.wireless.ble_fsci_private_interface"
     config MCUX_COMPONENT_middleware.wireless.ble_fsci_source
         bool "Component middleware.wireless.ble_fsci_source"
-    config MCUX_COMPONENT_middleware.wireless.ble_ncp_fsci_source
-        bool "Component middleware.wireless.ble_ncp_fsci_source"
     config MCUX_COMPONENT_middleware.wireless.ble_fsci_source_handover
         bool "Component middleware.wireless.ble_fsci_source_handover"
     config MCUX_COMPONENT_middleware.wireless.ble_fsci_host
@@ -115,6 +111,4 @@ menu "bluetooth"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_digital_key
         bool "Component middleware.wireless.ble_profiles_digital_key"
         depends on (MCUX_HW_BOARD_kw45b41zevk || MCUX_HW_BOARD_kw45b41zloc || MCUX_HW_BOARD_kw47evk || MCUX_HW_BOARD_kw47loc)
-    config MCUX_COMPONENT_middleware.wireless.ncp
-        bool "Component middleware.wireless.ncp"
 endmenu
