@@ -32,6 +32,9 @@
 #include "gatt_types.h"
 #include "fwk_seclib.h"
 #include "gatt_client_interface.h"
+#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d==TRUE)
+#include "channel_sounding.h"
+#endif /* defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d==TRUE) */
 
 /************************************************************************************
 *************************************************************************************
@@ -335,6 +338,13 @@ const bool_t gUseHciCommandFlowControl = 0U;
 extern bool_t gDisablePrivacyPerAdvSet[gMaxAdvSets_c];
 bool_t gDisablePrivacyPerAdvSet[gMaxAdvSets_c] = {FALSE};
 #endif
+
+/* Allow HCI data logging from CS library */
+#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d==TRUE)
+extern const bool_t gAppHciDataLogEnabled;
+const bool_t gAppHciDataLogEnabled = gAppHciDataLogExport_d;
+#endif /* defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d==TRUE) */
+
 /************************************************************************************
 *************************************************************************************
 * Public functions
