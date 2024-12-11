@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2023 NXP
+* Copyright 2016-2024 NXP
 *
 *
 * \file
@@ -154,8 +154,14 @@ void fsciBleGattClientEnhancedMultipleValueNotificationCallback(deviceId_t  devi
 #endif
 
 #if gFsciBleBBox_d || gFsciBleTest_d
-static void HandleGattCmdInitOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
+
 static void HandleGattCmdGetMtuOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
+static void HandleGattCmdServerRegisterCallbackOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
+static void HandleGattCmdServerRegisterHandlesForWriteNotificationsOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
+static void HandleGattCmdServerSendAttributeReadStatusOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
+static void HandleGattCmdServerSendInstantValueIndicationOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
+#if (!defined(gMatterConfig_d) || (gMatterConfig_d == 0))
+static void HandleGattCmdInitOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
 static void HandleGattCmdClientInitOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
 static void HandleGattCmdClientResetProceduresOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
 static void HandleGattCmdClientRegisterProcedureCallbackOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
@@ -179,17 +185,13 @@ static void HandleGattCmdClientWriteCharacteristicDescriptorsOpCode(uint8_t *pBu
 static void HandleGattCmdClientGetDatabaseHashOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
 #endif /* gBLE51_d && gGattCaching_d */
 static void HandleGattCmdServerInitOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
-static void HandleGattCmdServerRegisterCallbackOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
-static void HandleGattCmdServerRegisterHandlesForWriteNotificationsOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
 static void HandleGattCmdServerRegisterHandlesForReadNotificationsOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
 static void HandleGattCmdServerUnregisterHandlesForWriteNotificationsOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
 static void HandleGattCmdServerUnregisterHandlesForReadNotificationsOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
 static void HandleGattCmdServerSendAttributeWrittenStatusOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
-static void HandleGattCmdServerSendAttributeReadStatusOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
 static void HandleGattCmdServerSendNotificationOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
 static void HandleGattCmdServerSendIndicationOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
 static void HandleGattCmdServerSendInstantValueNotificationOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
-static void HandleGattCmdServerSendInstantValueIndicationOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
 static void HandleGattCmdServerRegisterUniqueHandlesForNotificationsOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
 #if defined(gBLE52_d) && (gBLE52_d == TRUE)
 static void HandleGattCmdClientRegisterMultipleValueNotificationCallbackOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
@@ -223,6 +225,7 @@ static void HandleGattCmdServerEnhancedSendMultipleHandleValueNotificationOpCode
 static void HandleGattCmdClientEnhancedReadMultipleVariableCharacteristicValuesOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
 #endif /* gEATT_d */
 #endif /* gBLE52_d */
+#endif /* gMatterConfig_d */
 #endif /* gFsciBleBBox_d || gFsciBleTest_d */
 
 #if gFsciBleHost_d
@@ -253,6 +256,7 @@ static void HandleGattEvtServerLongCharacteristicWrittenOpCode(uint8_t *pBuffer,
 static void HandleGattEvtServerAttributeReadOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId);
 #endif /* gFsciBleHost_d */
 
+#if (!defined(gMatterConfig_d) || (gMatterConfig_d == 0))
 static void HandleGattProcExchangeMtu
 (
     deviceId_t                  deviceId,
@@ -366,6 +370,7 @@ static void HandleGattProcReadMultipleVarLengthCharValues
     bleResult_t                 error
 );
 #endif /* gBLE52_d */
+#endif /* gMatterConfig_d */
 
 /************************************************************************************
 *************************************************************************************
@@ -394,7 +399,9 @@ static fsciBleGattCallbacks_t fsciBleGattCallbacks =
 
 /* Keeps the number of characteristics to be read by GattClient_ReadMultipleCharacteristicValues
 function */
+#if (!defined(gMatterConfig_d) || (gMatterConfig_d == 0))
 static uint8_t fsciBleGattClientNbOfCharacteristics = 0;
+#endif
 
 #if gFsciBleTest_d
     /* Indicates if FSCI for GATT is enabled or not */
@@ -419,6 +426,74 @@ static uint8_t fsciBleGattClientNbOfCharacteristics = 0;
 #endif /* gFsciBleBBox_d || gFsciBleTest_d */
   
 #if gFsciBleBBox_d || gFsciBleTest_d
+#if (defined(gMatterConfig_d) && (gMatterConfig_d > 0))
+static const pfGattOpCodeHandler_t maGattCmdOpCodeHandlers[]=
+{
+    NULL,
+    NULL,                                                            /* = 0x01, gBleGattCmdInitOpCode_c*/
+    HandleGattCmdGetMtuOpCode,                                                          /* = 0x02, gBleGattCmdGetMtuOpCode_c */
+    NULL,                                                      /* = 0x03, gBleGattCmdClientInitOpCode_c */
+    NULL,                                           /* = 0x04, gBleGattCmdClientResetProceduresOpCode_c */
+    NULL,                                 /* = 0x05, gBleGattCmdClientRegisterProcedureCallbackOpCode_c */
+    NULL,                              /* = 0x06, gBleGattCmdClientRegisterNotificationCallbackOpCode_c */
+    NULL,                                /* = 0x07, gBleGattCmdClientRegisterIndicationCallbackOpCode_c */
+    NULL,                                               /* = 0x08, gBleGattCmdClientExchangeMtuOpCode_c */
+    NULL,                                /* = 0x09, gBleGattCmdClientDiscoverAllPrimaryServicesOpCode_c */
+    NULL,                             /* = 0x0A, gBleGattCmdClientDiscoverPrimaryServicesByUuidOpCode_c */
+    NULL,                                      /* = 0x0B, gBleGattCmdClientFindIncludedServicesOpCode_c */
+    NULL,                       /* = 0x0C, gBleGattCmdClientDiscoverAllCharacteristicsOfServiceOpCode_c */
+    NULL,                     /* = 0x0D, gBleGattCmdClientDiscoverCharacteristicOfServiceByUuidOpCode_c */
+    NULL,                      /* = 0x0E, gBleGattCmdClientDiscoverAllCharacteristicDescriptorsOpCode_c */
+    NULL,                                   /* = 0x0F, gBleGattCmdClientReadCharacteristicValueOpCode_c */
+    NULL,                               /* = 0x10, gBleGattCmdClientReadUsingCharacteristicUuidOpCode_c */
+    NULL,                          /* = 0x11, gBleGattCmdClientReadMultipleCharacteristicValuesOpCode_c */
+    NULL,                                  /* = 0x12, gBleGattCmdClientWriteCharacteristicValueOpCode_c */
+    NULL,                             /* = 0x13, gBleGattCmdClientReadCharacteristicDescriptorsOpCode_c */
+    NULL,                            /* = 0x14, gBleGattCmdClientWriteCharacteristicDescriptorsOpCode_c */
+    NULL,                                                      /* = 0x15, gBleGattCmdServerInitOpCode_c */
+    HandleGattCmdServerRegisterCallbackOpCode,                                          /* = 0x16, gBleGattCmdServerRegisterCallbackOpCode_c */
+    HandleGattCmdServerRegisterHandlesForWriteNotificationsOpCode,                      /* = 0x17, gBleGattCmdServerRegisterHandlesForWriteNotificationsOpCode_c */
+    NULL,                                /* = 0x18, gBleGattCmdServerSendAttributeWrittenStatusOpCode_c */
+    NULL,                                          /* = 0x19, gBleGattCmdServerSendNotificationOpCode_c */
+    NULL,                                            /* = 0x1A, gBleGattCmdServerSendIndicationOpCode_c */
+    NULL,                              /* = 0x1B, gBleGattCmdServerSendInstantValueNotificationOpCode_c */
+    HandleGattCmdServerSendInstantValueIndicationOpCode,                                /* = 0x1C, gBleGattCmdServerSendInstantValueIndicationOpCode_c */
+    NULL,                       /* = 0x1D, gBleGattCmdServerRegisterHandlesForReadNotificationsOpCode_c */
+    HandleGattCmdServerSendAttributeReadStatusOpCode,                                   /* = 0x1E, gBleGattCmdServerSendAttributeReadStatusOpCode_c */
+    NULL,                     /* = 0x1F, gBleGattCmdServerRegisterUniqueHandlesForNotificationsOpCode_c */
+    NULL,                    /* = 0x20, gBleGattCmdServerUnregisterHandlesForWriteNotificationsOpCode_c */
+    NULL,                     /* = 0x21, gBleGattCmdServerUnregisterHandlesForReadNotificationsOpCode_c */
+    NULL,                                                                               /* reserved: 0x22 */
+    NULL,                                                                               /* reserved: 0x23 */
+    NULL,                                                                               /* reserved: 0x24 */
+    NULL,                                                                               /* reserved: 0x25 */
+    NULL,                                                                               /* reserved: 0x26 */
+    NULL,                                                                               /* reserved: 0x27 */
+    NULL,                                                                               /* reserved: 0x28 */
+    NULL,                                                                               /* reserved: 0x29 */
+    NULL,                                                                               /* reserved: 0x2A */
+    NULL,                                                                               /* reserved: 0x2B */
+    NULL,                                                                               /* reserved: 0x2C */
+    NULL,                                                                               /* reserved: 0x2D */
+    NULL,                                                                               /* reserved: 0x2E */
+    NULL,                                                                               /* reserved: 0x2F */
+    NULL,                                                                               /* reserved: 0x30 */
+    NULL,                                                                               /* reserved: 0x31 */
+    NULL,                                                                               /* reserved: 0x32 */
+    NULL,                                                                               /* reserved: 0x33 */
+    NULL,                                                                               /* reserved: 0x34 */
+    NULL,                                                                               /* reserved: 0x35 */
+    NULL,                                                                               /* reserved: 0x36 */
+    NULL,                                                                               /* reserved: 0x37 */
+    NULL,                                                                               /* reserved: 0x38 */
+    NULL,                                                                               /* reserved: 0x39 */
+    NULL,                                                                               /* reserved: 0x3A */
+    NULL,                                                                               /* reserved: 0x3B */
+    NULL,                                                                               /* reserved: 0x3C */
+    NULL,                                                                               /* reserved: 0x3D */
+    NULL                                                                                /* reserved: 0x3E */
+};
+#else /* Full configuration */
 static const pfGattOpCodeHandler_t maGattCmdOpCodeHandlers[]=
 {
     NULL,
@@ -549,6 +624,7 @@ static const pfGattOpCodeHandler_t maGattCmdOpCodeHandlers[]=
     NULL                                                                                /* reserved: 0x3E */
 #endif /* gBLE51_d && gGattCaching_d */
 };
+#endif /* gMatterConfig_d */
 #endif /* gFsciBleBBox_d || gFsciBleTest_d */
 
 #if gFsciBleHost_d
@@ -582,6 +658,7 @@ static const pfGattOpCodeHandler_t maGattEvtOpCodeHandlers[]=
 };
 #endif /* gFsciBleHost_d */
 
+#if (!defined(gMatterConfig_d) || (gMatterConfig_d == 0))
 static const pfGattClientProcEvtHandler_t maGattClientProcEvtHandlers[]=
 {
     HandleGattProcExchangeMtu,                                                          /* = 0x00, gGattProcExchangeMtu_c */
@@ -603,6 +680,7 @@ static const pfGattClientProcEvtHandler_t maGattClientProcEvtHandlers[]=
     HandleGattProcReadMultipleVarLengthCharValues                                       /* = 0x0F, gGattProcReadMultipleVarLengthCharValues_c */
 #endif /* gBLE52_d */
 };
+#endif
 
 /************************************************************************************
 *************************************************************************************
@@ -1706,6 +1784,9 @@ void fsciBleGattClientProcedureEvtMonitor(deviceId_t deviceId, bearerId_t bearer
     if(FALSE != bFsciBleGattEnabled)
     {
 #endif /* gFsciBleTest_d */
+#if (defined(gMatterConfig_d) && (gMatterConfig_d > 0))
+    /* Not needed by Matter */
+#else
         if ((uint8_t)procedureType < SizeOfArray(maGattClientProcEvtHandlers))
         {
             if (maGattClientProcEvtHandlers[procedureType] != NULL)
@@ -1721,7 +1802,7 @@ void fsciBleGattClientProcedureEvtMonitor(deviceId_t deviceId, bearerId_t bearer
             fsciBleError(gFsciError_c, fsciBleInterfaceId);
             fsciBleGattClientEraseInfo(bFsciBleGattClientAllocatedInfo, deviceId, bearerId);
         }
-
+#endif /* gMatterConfig_d */
 #if gFsciBleTest_d
     }
 #endif /* gFsciBleTest_d */
@@ -2059,21 +2140,6 @@ void fsciBleGattClientEnhancedMultipleValueNotificationCallback(deviceId_t  devi
 #endif /* gBLE52_d */
 
 #if gFsciBleBBox_d || gFsciBleTest_d
-/*! *********************************************************************************
-*\private
-*\fn           void HandleGattCmdInitOpCode(uint8_t *pBuffer,
-*                                           uint32_t fsciInterfaceId)
-*\brief        Handler for the gBleGattCmdInitOpCode_c opCode.
-*
-*\param  [in]  pBuffer              Pointer to the command parameters.
-*\param  [in]  fsciInterfaceId      FSCI interface identifier.
-*
-*\retval       void.
-********************************************************************************** */
-static void HandleGattCmdInitOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
-{
-    fsciBleGattCallApiFunction(Gatt_Init());
-}
 
 /*! *********************************************************************************
 *\private
@@ -2096,6 +2162,155 @@ static void HandleGattCmdGetMtuOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId
 
     fsciBleGattCallApiFunction(Gatt_GetMtu(deviceId, &mtu));
     fsciBleGattMonitorOutParams(GetMtu, &mtu);
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGattCmdServerRegisterCallbackOpCode(uint8_t *pBuffer,
+*                                                             uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleGattCmdServerRegisterCallbackOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+static void HandleGattCmdServerRegisterCallbackOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
+{
+    fsciBleGattCallApiFunction(GattServer_RegisterCallback(fsciBleGattCallbacks.serverCallback));
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGattCmdServerRegisterHandlesForWriteNotificationsOpCode(
+*                                                           uint8_t *pBuffer,
+*                                                           uint32_t fsciInterfaceId)
+*\brief        Handler for the
+*              gBleGattCmdServerRegisterHandlesForWriteNotificationsOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+static void HandleGattCmdServerRegisterHandlesForWriteNotificationsOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
+{
+    uint8_t     handleCount = 0U;
+    uint16_t*   pAttributeHandles = NULL;
+
+    /* Read handleCount parameter from buffer */
+    fsciBleGetUint8ValueFromBuffer(handleCount, pBuffer);
+
+    /* Allocate buffer for pAttributeHandles */
+    pAttributeHandles = (uint16_t*)MEM_BufferAlloc((uint32_t)handleCount * sizeof(uint16_t));
+
+    if(NULL == pAttributeHandles)
+    {
+        fsciBleError(gFsciOutOfMessages_c, fsciInterfaceId);
+    }
+    else
+    {
+        /* Get pAttributeHandles parameter from the packet */
+        fsciBleGetArrayFromBuffer(pAttributeHandles, pBuffer, (uint32_t)handleCount * sizeof(uint16_t));
+
+        fsciBleGattCallApiFunction(GattServer_RegisterHandlesForWriteNotifications(handleCount, pAttributeHandles));
+
+        /* Free the buffer used for pAttributeHandles */
+        (void)MEM_BufferFree(pAttributeHandles);
+    }
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGattCmdServerSendAttributeReadStatusOpCode(
+*                                                           uint8_t *pBuffer,
+*                                                           uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleGattCmdServerSendAttributeReadStatusOpCode_c
+*              opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+static void HandleGattCmdServerSendAttributeReadStatusOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
+{
+    uint16_t    attributeHandle = gGattDbInvalidHandle_d;
+    uint8_t     status = (uint8_t)gBleSuccess_c;
+    deviceId_t  deviceId = gInvalidDeviceId_c;
+
+    /* Get function parameters from the received packet */
+    fsciBleGetDeviceIdFromBuffer(&deviceId, &pBuffer);
+    fsciBleGetUint16ValueFromBuffer(attributeHandle, pBuffer);
+    fsciBleGetUint8ValueFromBuffer(status, pBuffer);
+
+    fsciBleGattCallApiFunction(GattServer_SendAttributeReadStatus(deviceId, attributeHandle, status));
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGattCmdServerSendInstantValueIndicationOpCode(
+*                                                           uint8_t *pBuffer,
+*                                                           uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleGattCmdServerSendInstantValueIndicationOpCode_c
+*              opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+static void HandleGattCmdServerSendInstantValueIndicationOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
+{
+    uint16_t    handle = 0U;
+    uint16_t    valueLength = 0U;
+    uint8_t*    pValue = NULL;
+    deviceId_t  deviceId = gInvalidDeviceId_c;
+
+    /* Get deviceId, handle and valueLength parameters from the received packet */
+    fsciBleGetDeviceIdFromBuffer(&deviceId, &pBuffer);
+    fsciBleGetUint16ValueFromBuffer(handle, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(valueLength, pBuffer);
+
+    if (valueLength <= gAttMaxValueLength_c)
+    {
+      /* Allocate buffer for pValue */
+      pValue = MEM_BufferAlloc(valueLength);
+    }
+
+    if((0U < valueLength) &&
+       (NULL == pValue))
+    {
+        fsciBleError(gFsciOutOfMessages_c, fsciInterfaceId);
+    }
+    else
+    {
+        /* Get pValue parameter from the packet */
+        fsciBleGetArrayFromBuffer(pValue, pBuffer, valueLength);
+
+        fsciBleGattCallApiFunction(GattServer_SendInstantValueIndication(deviceId, handle, valueLength, pValue));
+
+        /* Free the buffer used for pValue */
+        (void)MEM_BufferFree(pValue);
+    }
+}
+
+#if (!defined(gMatterConfig_d) || (gMatterConfig_d == 0))
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGattCmdInitOpCode(uint8_t *pBuffer,
+*                                           uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleGattCmdInitOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+static void HandleGattCmdInitOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
+{
+    fsciBleGattCallApiFunction(Gatt_Init());
 }
 
 /*! *********************************************************************************
@@ -2919,62 +3134,6 @@ static void HandleGattCmdServerInitOpCode(uint8_t *pBuffer, uint32_t fsciInterfa
 
 /*! *********************************************************************************
 *\private
-*\fn           void HandleGattCmdServerRegisterCallbackOpCode(uint8_t *pBuffer,
-*                                                             uint32_t fsciInterfaceId)
-*\brief        Handler for the gBleGattCmdServerRegisterCallbackOpCode_c opCode.
-*
-*\param  [in]  pBuffer              Pointer to the command parameters.
-*\param  [in]  fsciInterfaceId      FSCI interface identifier.
-*
-*\retval       void.
-********************************************************************************** */
-static void HandleGattCmdServerRegisterCallbackOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
-{
-    fsciBleGattCallApiFunction(GattServer_RegisterCallback(fsciBleGattCallbacks.serverCallback));
-}
-
-/*! *********************************************************************************
-*\private
-*\fn           void HandleGattCmdServerRegisterHandlesForWriteNotificationsOpCode(
-*                                                           uint8_t *pBuffer,
-*                                                           uint32_t fsciInterfaceId)
-*\brief        Handler for the
-*              gBleGattCmdServerRegisterHandlesForWriteNotificationsOpCode_c opCode.
-*
-*\param  [in]  pBuffer              Pointer to the command parameters.
-*\param  [in]  fsciInterfaceId      FSCI interface identifier.
-*
-*\retval       void.
-********************************************************************************** */
-static void HandleGattCmdServerRegisterHandlesForWriteNotificationsOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
-{
-    uint8_t     handleCount = 0U;
-    uint16_t*   pAttributeHandles = NULL;
-
-    /* Read handleCount parameter from buffer */
-    fsciBleGetUint8ValueFromBuffer(handleCount, pBuffer);
-
-    /* Allocate buffer for pAttributeHandles */
-    pAttributeHandles = (uint16_t*)MEM_BufferAlloc((uint32_t)handleCount * sizeof(uint16_t));
-
-    if(NULL == pAttributeHandles)
-    {
-        fsciBleError(gFsciOutOfMessages_c, fsciInterfaceId);
-    }
-    else
-    {
-        /* Get pAttributeHandles parameter from the packet */
-        fsciBleGetArrayFromBuffer(pAttributeHandles, pBuffer, (uint32_t)handleCount * sizeof(uint16_t));
-
-        fsciBleGattCallApiFunction(GattServer_RegisterHandlesForWriteNotifications(handleCount, pAttributeHandles));
-
-        /* Free the buffer used for pAttributeHandles */
-        (void)MEM_BufferFree(pAttributeHandles);
-    }
-}
-
-/*! *********************************************************************************
-*\private
 *\fn           void HandleGattCmdServerRegisterHandlesForReadNotificationsOpCode(
 *                                                           uint8_t *pBuffer,
 *                                                           uint32_t fsciInterfaceId)
@@ -3122,33 +3281,6 @@ static void HandleGattCmdServerSendAttributeWrittenStatusOpCode(uint8_t *pBuffer
 
 /*! *********************************************************************************
 *\private
-*\fn           void HandleGattCmdServerSendAttributeReadStatusOpCode(
-*                                                           uint8_t *pBuffer,
-*                                                           uint32_t fsciInterfaceId)
-*\brief        Handler for the gBleGattCmdServerSendAttributeReadStatusOpCode_c
-*              opCode.
-*
-*\param  [in]  pBuffer              Pointer to the command parameters.
-*\param  [in]  fsciInterfaceId      FSCI interface identifier.
-*
-*\retval       void.
-********************************************************************************** */
-static void HandleGattCmdServerSendAttributeReadStatusOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
-{
-    uint16_t    attributeHandle = gGattDbInvalidHandle_d;
-    uint8_t     status = (uint8_t)gBleSuccess_c;
-    deviceId_t  deviceId = gInvalidDeviceId_c;
-
-    /* Get function parameters from the received packet */
-    fsciBleGetDeviceIdFromBuffer(&deviceId, &pBuffer);
-    fsciBleGetUint16ValueFromBuffer(attributeHandle, pBuffer);
-    fsciBleGetUint8ValueFromBuffer(status, pBuffer);
-
-    fsciBleGattCallApiFunction(GattServer_SendAttributeReadStatus(deviceId, attributeHandle, status));
-}
-
-/*! *********************************************************************************
-*\private
 *\fn           void HandleGattCmdServerSendNotificationOpCode(
 *                                                           uint8_t *pBuffer,
 *                                                           uint32_t fsciInterfaceId)
@@ -3236,54 +3368,6 @@ static void HandleGattCmdServerSendInstantValueNotificationOpCode(uint8_t *pBuff
         fsciBleGetArrayFromBuffer(pValue, pBuffer, valueLength);
 
         fsciBleGattCallApiFunction(GattServer_SendInstantValueNotification(deviceId, handle, valueLength, pValue));
-
-        /* Free the buffer used for pValue */
-        (void)MEM_BufferFree(pValue);
-    }
-}
-
-/*! *********************************************************************************
-*\private
-*\fn           void HandleGattCmdServerSendInstantValueIndicationOpCode(
-*                                                           uint8_t *pBuffer,
-*                                                           uint32_t fsciInterfaceId)
-*\brief        Handler for the gBleGattCmdServerSendInstantValueIndicationOpCode_c
-*              opCode.
-*
-*\param  [in]  pBuffer              Pointer to the command parameters.
-*\param  [in]  fsciInterfaceId      FSCI interface identifier.
-*
-*\retval       void.
-********************************************************************************** */
-static void HandleGattCmdServerSendInstantValueIndicationOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
-{
-    uint16_t    handle = 0U;
-    uint16_t    valueLength = 0U;
-    uint8_t*    pValue = NULL;
-    deviceId_t  deviceId = gInvalidDeviceId_c;
-
-    /* Get deviceId, handle and valueLength parameters from the received packet */
-    fsciBleGetDeviceIdFromBuffer(&deviceId, &pBuffer);
-    fsciBleGetUint16ValueFromBuffer(handle, pBuffer);
-    fsciBleGetUint16ValueFromBuffer(valueLength, pBuffer);
-
-    if (valueLength <= gAttMaxValueLength_c)
-    {
-      /* Allocate buffer for pValue */
-      pValue = MEM_BufferAlloc(valueLength);
-    }
-
-    if((0U < valueLength) &&
-       (NULL == pValue))
-    {
-        fsciBleError(gFsciOutOfMessages_c, fsciInterfaceId);
-    }
-    else
-    {
-        /* Get pValue parameter from the packet */
-        fsciBleGetArrayFromBuffer(pValue, pBuffer, valueLength);
-
-        fsciBleGattCallApiFunction(GattServer_SendInstantValueIndication(deviceId, handle, valueLength, pValue));
 
         /* Free the buffer used for pValue */
         (void)MEM_BufferFree(pValue);
@@ -4598,6 +4682,7 @@ static void HandleGattCmdClientEnhancedReadMultipleVariableCharacteristicValuesO
 }
 #endif /* gEATT_d */
 #endif /* gBLE52_d */
+#endif /* gMatterConfig_d */
 #endif /* gFsciBleBBox_d || gFsciBleTest_d */
 
 #if gFsciBleHost_d
@@ -5761,6 +5846,7 @@ static void HandleGattEvtServerAttributeReadOpCode(uint8_t *pBuffer, uint32_t fs
 }
 #endif /* gFsciBleHost_d */
 
+#if (!defined(gMatterConfig_d) || (gMatterConfig_d == 0))
 /*! *********************************************************************************
 *\private
 *\fn           void HandleGattProcExchangeMtu(deviceId_t            deviceId,
@@ -6967,7 +7053,7 @@ static void HandleGattProcReadMultipleVarLengthCharValues
 }
 
 #endif /* gBLE52_d*/
-
+#endif /* gMatterConfig_d */
 #endif /* gFsciIncluded_c && gFsciBleGattLayerEnabled_d */
 
 /*! *********************************************************************************
