@@ -75,29 +75,32 @@ menu "bluetooth"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_device_info_service
         bool "Component middleware.wireless.ble_profiles_device_info_service"
         depends on (MCUX_HW_BOARD_kw45b41zevk || MCUX_HW_BOARD_k32w148evk || MCUX_HW_BOARD_frdmmcxw71)\
-            || (MCUX_HW_BOARD_kw45b41zloc) || (MCUX_HW_BOARD_frdmmcxw72)\
+            || (MCUX_HW_BOARD_kw45b41zloc) || (MCUX_HW_BOARD_frdmmcxw72) || (MCUX_HW_BOARD_mcxw71evk)\
             || (MCUX_HW_BOARD_kw47loc && MCUX_HW_CORE_ID_CM33_CORE0)\
             || (MCUX_HW_BOARD_kw47evk && MCUX_HW_CORE_ID_CM33_CORE0)\
             || (MCUX_HW_BOARD_mcxw72evk && MCUX_HW_CORE_ID_CM33_CORE0)
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_ancs
         bool "Component middleware.wireless.ble_profiles_ancs"
         depends on (MCUX_HW_BOARD_kw45b41zevk || MCUX_HW_BOARD_k32w148evk || MCUX_HW_BOARD_frdmmcxw71)\
+            || (MCUX_HW_BOARD_mcxw71evk)\
             || (MCUX_HW_BOARD_kw47evk && MCUX_HW_CORE_ID_CM33_CORE0)\
             || (MCUX_HW_BOARD_mcxw72evk && MCUX_HW_CORE_ID_CM33_CORE0)
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_time
         bool "Component middleware.wireless.ble_profiles_time"
         depends on (MCUX_HW_BOARD_kw45b41zevk || MCUX_HW_BOARD_k32w148evk || MCUX_HW_BOARD_frdmmcxw71)\
+            || (MCUX_HW_BOARD_mcxw71evk)\
             || (MCUX_HW_BOARD_kw47evk && MCUX_HW_CORE_ID_CM33_CORE0)\
             || (MCUX_HW_BOARD_mcxw72evk && MCUX_HW_CORE_ID_CM33_CORE0)
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_hid
         bool "Component middleware.wireless.ble_profiles_hid"
         depends on (MCUX_HW_BOARD_kw45b41zevk || MCUX_HW_BOARD_k32w148evk || MCUX_HW_BOARD_frdmmcxw71)\
+            || (MCUX_HW_BOARD_mcxw71evk)\
             || (MCUX_HW_BOARD_kw47evk && MCUX_HW_CORE_ID_CM33_CORE0)\
             || (MCUX_HW_BOARD_mcxw72evk && MCUX_HW_CORE_ID_CM33_CORE0)
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_temperature
         bool "Component middleware.wireless.ble_profiles_temperature"
         depends on (MCUX_HW_BOARD_kw45b41zevk || MCUX_HW_BOARD_k32w148evk || MCUX_HW_BOARD_frdmmcxw71)\
-            || (MCUX_HW_BOARD_kw45b41zloc) || (MCUX_HW_BOARD_frdmmcxw72)\
+            || (MCUX_HW_BOARD_kw45b41zloc) || (MCUX_HW_BOARD_frdmmcxw72) || (MCUX_HW_BOARD_mcxw71evk)\
             || (MCUX_HW_BOARD_kw47loc && MCUX_HW_CORE_ID_CM33_CORE0)\
             || (MCUX_HW_BOARD_kw47evk && MCUX_HW_CORE_ID_CM33_CORE0)\
             || (MCUX_HW_BOARD_mcxw72evk && MCUX_HW_CORE_ID_CM33_CORE0)
@@ -106,6 +109,7 @@ menu "bluetooth"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_otap
         bool "Component middleware.wireless.ble_profiles_otap"
         depends on (MCUX_HW_BOARD_kw45b41zevk || MCUX_HW_BOARD_k32w148evk || MCUX_HW_BOARD_frdmmcxw71)\
+            || (MCUX_HW_BOARD_mcxw71evk)\
             || (MCUX_HW_BOARD_kw47evk && MCUX_HW_CORE_ID_CM33_CORE0)\
             || (MCUX_HW_BOARD_mcxw72evk && MCUX_HW_CORE_ID_CM33_CORE0)
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_digital_key
