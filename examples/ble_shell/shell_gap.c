@@ -56,6 +56,9 @@
 *************************************************************************************
 ************************************************************************************/
 #if defined(BLE_SHELL_AE_SUPPORT) && (BLE_SHELL_AE_SUPPORT) && \
+    (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+#define mShellGapCmdsCount_c                37U
+#elif defined(BLE_SHELL_AE_SUPPORT) && (BLE_SHELL_AE_SUPPORT) && \
     defined(BLE_SHELL_DBAF_SUPPORT) && (BLE_SHELL_DBAF_SUPPORT)
 #define mShellGapCmdsCount_c                37U
 #elif defined(BLE_SHELL_AE_SUPPORT) && (BLE_SHELL_AE_SUPPORT)
@@ -78,6 +81,11 @@
 #if defined(BLE_SHELL_AE_SUPPORT) && (BLE_SHELL_AE_SUPPORT)
 #define mShellGapDefaultAdvHandle_c         (1U)
 #endif
+
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+/* Value used to set every response slot start for the advertiser */
+#define mShellGapPerResponseSlotStart_c     (0U)
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 
 /************************************************************************************
 *************************************************************************************
@@ -112,12 +120,6 @@ void ShellGap_AdvertisingCallback
 void ShellGap_ScanningCallback
 (
     gapScanningEvent_t* pScanningEvent
-);
-
-void ShellGap_ConnectionCallback
-(
-    deviceId_t peerDeviceId,
-    gapConnectionEvent_t* pConnectionEvent
 );
 
 /* Shell API Functions */
@@ -162,6 +164,12 @@ static shell_status_t ShellGap_PeriodicSyncCreate(uint8_t argc, char * argv[]);
 static shell_status_t ShellGap_PeriodicSyncStop(uint8_t argc, char * argv[]);
 static shell_status_t ShellGap_ChangePeriodicAdvData(uint8_t argc, char * argv[]);
 static shell_status_t ShellGap_SetPeriodicAdvParameters(uint8_t argc, char * argv[]);
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+static shell_status_t ShellGap_SetPeriodicAdvSubeventData(uint8_t argc, char * argv[]);
+static shell_status_t ShellGap_SetPeriodicAdvResponseData(uint8_t argc, char * argv[]);
+static shell_status_t ShellGap_SetPeriodicSyncSubevent(uint8_t argc, char * argv[]);
+static shell_status_t ShellGap_ConnectFromPawr(uint8_t argc, char * argv[]);
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 static shell_status_t ShellGap_StopPeriodicAdv(uint8_t argc, char * argv[]);
 static shell_status_t ShellGap_StartPeriodicAdv(uint8_t argc, char * argv[]);
 static void ShellGap_SetDefaultExtData(gapAdvertisingData_t* pExtAdvData);
@@ -187,6 +195,10 @@ static void ShellGap_HandleTxPowerLevelSetCompleteEvt(gapGenericEvent_t* pGeneri
 static void ShellGap_PrintExtAdvParametersCfg(void);
 static void ShellGap_ConfigureExtAdvInterval(uint8_t argc, char * argv[], uint32_t argIdx);
 static void ShellGap_ConfigureExtAdvPhy(uint8_t argc, char * argv[], uint32_t argIdx);
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+static bool_t ShellGap_ErasePeriodicSubeventData(void);
+static bool_t ShellGap_ErasePeriodicResponseData(uint8_t idx);
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 #endif /* BLE_SHELL_AE_SUPPORT */
 
 /************************************************************************************
@@ -234,6 +246,12 @@ static const gapCmds_t mGapShellCmds[mShellGapCmdsCount_c] =
     {"periodicstop",  ShellGap_StopPeriodicAdv},
     {"periodiccfg",   ShellGap_SetPeriodicAdvParameters},
     {"periodicdata",  ShellGap_ChangePeriodicAdvData},
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+    {"periodicsubeventdata",   ShellGap_SetPeriodicAdvSubeventData},
+    {"periodicresponsedata",   ShellGap_SetPeriodicAdvResponseData},
+    {"periodicsyncsubevent",   ShellGap_SetPeriodicSyncSubevent},
+    {"connectpawr", ShellGap_ConnectFromPawr},
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
     {"periodicsync",  ShellGap_PeriodicSyncCreate},
     {"periodicsyncstop",  ShellGap_PeriodicSyncStop},
 #endif /* BLE_SHELL_AE_SUPPORT */
@@ -312,6 +330,11 @@ static gapPeriodicAdvSyncReq_t mPeriodicSyncPeer = {.options.filterPolicy = (gap
                                                     .skipCount = 0,
                                                     .timeout = gGapScanIntervalMax_d};
 
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+/* Periodic Sync Subevent Request Parameters */
+static gapPeriodicSyncSubeventParameters_t *mpPeriodicSubeventSync = NULL;
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
+
 static const char* mShellEADataPattern = SHELL_EXT_ADV_DATA_PATTERN;
 
 static appExtAdvertisingParams_t mAppExtAdvParams = {
@@ -345,6 +368,21 @@ static const char* mShellPhy[] =
     "2M ",
     "Coded",
 };
+
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+/* String dictionary corresponding to gapLePhyMode_t */
+static const char* mShellAdvPhyOpt[] =
+{
+    "Le Coding No Preference",
+    "Le Coding S2",
+    "Le Coding S8",
+    "Le Coding S2 Required",
+    "Le Coding S8 Required",
+};
+
+/* Handle value used when periodic sync is established */
+static uint16_t mPeriodicSyncHandle = 0U;
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 
 /* Timer used by rssimonitor */
 static TIMER_MANAGER_HANDLE_DEFINE(mBleShellGapTimerId);
@@ -1208,6 +1246,107 @@ static shell_status_t ShellGap_Connect(uint8_t argc, char * argv[])
     return result;
 }
 
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+/*! *********************************************************************************
+ * \brief        Handles "gap connectpawr" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellGap_ConnectFromPawr(uint8_t argc, char * argv[])
+{
+    shell_status_t result = kStatus_SHELL_Error;
+    gapConnectionFromPawrParameters_t pawrConnReqParams = {0};
+    bleAddressType_t addrType = 0xFF;
+    bleDeviceAddress_t addr = {0};
+    uint8_t advHandle = mAppExtAdvParams.handle;
+    uint8_t subevent = 0xFF;
+    /* Use this bitmask to indicate if required parameters are not introduced */
+    uint8_t paramsValidBitmask = 0U;
+
+    /* For no argument, print current configuration */
+    if (argc >= 6U)
+    {
+        /* Search for keywords */
+        for (uint32_t i = 0U; i < argc; i += 2U)
+        {
+            if (0 == strcmp((char*)argv[i], "-advhandle") && ((i + 1U) < argc))
+            {
+                /* Optional argument, set implicitly from default */
+                advHandle = (bleAddressType_t)BleApp_atoi(argv[i + 1U]);
+            }
+
+            if (0 == strcmp((char*)argv[i], "-subevent") && ((i + 1U) < argc))
+            {
+                subevent = (bleAddressType_t)BleApp_atoi(argv[i + 1U]);
+                /* Mandatory argument */
+                paramsValidBitmask |= 1U << 0U;
+            }
+
+            if (0 == strcmp((char*)argv[i], "-peer") && ((i + 1U) < argc))
+            {
+                /* Check that address's length is valid */
+                if (gcBleDeviceAddressSize_c == BleApp_ParseHexValue(argv[i + 1U]))
+                {
+                    FLib_MemCpyReverseOrder(&addr, argv[i + 1U], sizeof(bleDeviceAddress_t));
+                }
+                /* Mandatory argument */
+                paramsValidBitmask |= 1U << 1U;
+            }
+
+            if (0 == strcmp((char*)argv[i], "-peeraddrtype") && ((i + 1U) < argc))
+            {
+                addrType = (bleAddressType_t)BleApp_atoi(argv[i + 1U]);
+                /* Mandatory argument */
+                paramsValidBitmask |= 1U << 2U;
+            }
+        }
+
+        /* Only allow the command to the Host if all required parameters are given */
+        if (paramsValidBitmask == 0x07U)
+        {
+            gConnReqParams.scanInterval = gAppScanParams.interval;
+            gConnReqParams.scanWindow = gAppScanParams.window;
+            gConnReqParams.peerAddressType = addrType;
+            FLib_MemCpy(gConnReqParams.peerAddress,
+                        addr,
+                        sizeof(bleDeviceAddress_t));
+
+            FLib_MemCpy(&pawrConnReqParams,
+                        &gConnReqParams,
+                        sizeof(gConnReqParams));
+
+            pawrConnReqParams.advHandle = advHandle;
+            pawrConnReqParams.subevent = subevent;
+
+            /* Initiates connection to the scanned device */
+            if (gBleSuccess_c != BluetoothLEHost_ConnectFromPawr(&pawrConnReqParams, ShellGap_ConnectionCallback))
+            {
+                shell_write(mShellErrorStatus);
+                result = kStatus_SHELL_Success;
+            }
+        }
+        else
+        {
+            result = kStatus_SHELL_Error;
+        }
+    }
+    else
+    {
+        result = kStatus_SHELL_Error;
+    }
+
+    if (result == kStatus_SHELL_Error)
+    {
+        shell_write("\r\nIncorrect command parameter(s).  Enter \"help\" to view a list of available commands.\r\n\r\n");
+    }
+
+    return result;
+}
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
+
 /*! *********************************************************************************
  * \brief        Handles "gap connectcfg" shell command.
  *
@@ -2059,6 +2198,18 @@ static shell_status_t ShellGap_SetExtAdvertisingParameters(uint8_t argc, char * 
             {
                 gExtAdvParams.peerAddressType = (bleAddressType_t)BleApp_atoi(argv[i+1U]);
             }
+
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+            if (0 == strcmp((char*)argv[i], "-pphyopt") && ((i + 1U) < argc))
+            {
+                gExtAdvParams.primaryAdvPhyOptions = (gapLePhyOptionsFlags_t)BleApp_atoi(argv[i + 1U]);
+            }
+
+            if (0 == strcmp((char*)argv[i], "-sphyopt") && ((i + 1U) < argc))
+            {
+                gExtAdvParams.secondaryAdvPhyOptions = (gapLePhyOptionsFlags_t)BleApp_atoi(argv[i + 1U]);
+            }
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
         }
 
         gUseShellThrGenericCb = FALSE;
@@ -2117,7 +2268,7 @@ static shell_status_t ShellGap_ChangePeriodicAdvData(uint8_t argc, char * argv[]
 }
 
 /*! *********************************************************************************
- * \brief        Handles "gap periodicsynccreate" shell command.
+ * \brief        Handles "gap periodicsync" shell command.
  *
  * \param[in]    argc           Number of arguments
  * \param[in]    argv           Array of argument's values
@@ -2164,6 +2315,98 @@ static shell_status_t ShellGap_PeriodicSyncCreate(uint8_t argc, char * argv[])
     return result;
 }
 
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+/*! *********************************************************************************
+ * \brief        Handles "gap periodicsyncsubevent" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellGap_SetPeriodicSyncSubevent(uint8_t argc, char * argv[])
+{
+    static uint16_t     perAdvProperties = 0U;
+    static uint8_t      numSubevents = 1U;
+    static uint8_t      aSubevents[SHELL_PER_ADV_MAX_NUM_SUBEVENTS] = {0};
+    shell_status_t      result = kStatus_SHELL_Success;
+
+    /* first gather shell data, struct is allocated dynamically as it depends on numSubevents*/
+    for (uint32_t i = 0U; i < argc; i += 2U)
+    {
+        if ((0 == strcmp((char*)argv[i], "-peradvproperties")) && ((i + 1U) < argc) &&
+           (result == kStatus_SHELL_Success))
+        {
+            perAdvProperties = (uint16_t)BleApp_atoi(argv[i + 1U]);
+        }
+
+        if ((0 == strcmp((char*)argv[i], "-numsubevents")) && ((i + 1U) < argc) &&
+           (result == kStatus_SHELL_Success))
+        {
+            if (SHELL_PER_ADV_MAX_NUM_SUBEVENTS >= (uint8_t)BleApp_atoi(argv[i + 1U]))
+            {
+                numSubevents = (uint8_t)BleApp_atoi(argv[i + 1U]);
+            }
+            else
+            {
+                result = kStatus_SHELL_Error;
+            }
+        }
+
+        if ((0 == strcmp((char*)argv[i], "-subevents")) && ((i + 1U) < argc) &&
+           (result == kStatus_SHELL_Success))
+        {
+            for (uint32_t j = 0U; j < numSubevents; j++)
+            {
+                /* argv[i + 1U] == 0x00,0x01,0x02;
+                 * argv[i + 1U] + j * 5 == 0x01 (j == 1U) */
+                aSubevents[j] = (uint8_t)BleApp_AsciiToHex(argv[i + 1U] + j * 5U, 4U);
+            }
+        }
+    }
+
+    /* allocate periodic subevent sync structure */
+    if (NULL == mpPeriodicSubeventSync)
+    {
+        mpPeriodicSubeventSync = MEM_BufferAlloc((sizeof(mpPeriodicSubeventSync) * 1U) + (sizeof(uint8_t) * numSubevents));
+
+        if (NULL == mpPeriodicSubeventSync)
+        {
+            result = kStatus_SHELL_Error;
+        }
+    }
+    else if (mpPeriodicSubeventSync->numSubevents != numSubevents)
+    {
+        (void)MEM_BufferFree(mpPeriodicSubeventSync);
+
+        mpPeriodicSubeventSync = MEM_BufferAlloc((sizeof(mpPeriodicSubeventSync) * 1U) + (sizeof(uint8_t) * numSubevents));
+
+        if (NULL == mpPeriodicSubeventSync)
+        {
+            result = kStatus_SHELL_Error;
+        }
+    }
+    else
+    {
+        /* Comply with MISRA_C_2012_Rule_15.7 */
+    }
+
+    if ((mpPeriodicSubeventSync != NULL) && (result == kStatus_SHELL_Success))
+    {
+        mpPeriodicSubeventSync->perAdvProperties = perAdvProperties;
+        mpPeriodicSubeventSync->numSubevents = numSubevents;
+        FLib_MemCpy(mpPeriodicSubeventSync->aSubevents, aSubevents, sizeof(uint8_t) * numSubevents);
+
+        if (gBleSuccess_c != Gap_SetPeriodicSyncSubevent(mPeriodicSyncHandle, mpPeriodicSubeventSync))
+        {
+            shell_write(mShellErrorStatus);
+        }
+    }
+
+    return result;
+}
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
+
 /*! *********************************************************************************
  * \brief        Handles "gap periodicsyncstop" shell command.
  *
@@ -2206,7 +2449,40 @@ static shell_status_t ShellGap_SetPeriodicAdvParameters(uint8_t argc, char * arg
         shell_write("\r\n    -->  Periodic Advertising Interval: ");
         shell_writeDec((uint32_t)gPeriodicAdvParams.maxInterval * 625U / 1000U);
         shell_write(" ms");
+
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+        /* Number of subevents. */
+        shell_write("\r\n    -->  Number of subevents: ");
+        shell_writeDec(gPeriodicAdvParams.numSubevents);
+
+        /* Interval between subevents. */
+        shell_write("\r\n    -->  Interval between subevents: ");
+        shell_writeDec((uint32_t)gPeriodicAdvParams.subeventInterval * 125U / 100U);
+        shell_write(".");
+        shell_writeDec((uint32_t)gPeriodicAdvParams.subeventInterval * 125U % 100U);
+        shell_write(" ms");
+
+        /* Time between the advertising packet in a subevent and the first response slot. */
+        shell_write("\r\n    -->  Time between the advertising packet in a subevent and the first response slot: ");
+        shell_writeDec((uint32_t)gPeriodicAdvParams.responseSlotDelay * 125U / 100U);
+        shell_write(".");
+        shell_writeDec((uint32_t)gPeriodicAdvParams.responseSlotDelay * 125U % 100U);
+        shell_write(" ms");
+
+        /* Time between response slots. */
+        shell_write("\r\n    -->  Time between response slots: ");
+        shell_writeDec((uint32_t)gPeriodicAdvParams.responseSlotSpacing * 125U / 1000U);
+        shell_write(".");
+        shell_writeDec((uint32_t)gPeriodicAdvParams.responseSlotSpacing * 125U % 1000U);
+        shell_write(" ms");
+
+        /* Number of response slots. */
+        shell_write("\r\n    -->  Number of response slots: ");
+        shell_writeDec(gPeriodicAdvParams.numResponseSlots);
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
+
         SHELL_NEWLINE();
+
         result = kStatus_SHELL_Success;
     }
 
@@ -2236,11 +2512,52 @@ static shell_status_t ShellGap_SetPeriodicAdvParameters(uint8_t argc, char * arg
             gPeriodicAdvParams.addTxPowerInAdv = (bool_t)txPower;
             result = kStatus_SHELL_Success;
         }
+
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+        /* Periodic Advertising Number of subevents. */
+        if (0 == strcmp((char*)argv[i], "-numsubevents") && ((i + 1U) < argc))
+        {
+            gPeriodicAdvParams.numSubevents = (uint8_t)BleApp_atoi(argv[i + 1U]);
+            result = kStatus_SHELL_Success;
+        }
+
+        /* Periodic Advertising Interval between subevents. */
+        if (0 == strcmp((char*)argv[i], "-subint") && ((i + 1U) < argc))
+        {
+            gPeriodicAdvParams.subeventInterval = (uint8_t)BleApp_atoi(argv[i + 1U]);
+            result = kStatus_SHELL_Success;
+        }
+
+        /* Periodic Advertising Time between the advertising packet in a subevent and the first response slot. */
+        if (0 == strcmp((char*)argv[i], "-rspslotdelay") && ((i + 1U) < argc))
+        {
+            gPeriodicAdvParams.responseSlotDelay = (uint8_t)BleApp_atoi(argv[i + 1U]);
+            result = kStatus_SHELL_Success;
+        }
+
+        /* Periodic Advertising Time between response slots. */
+        if (0 == strcmp((char*)argv[i], "-rspslotspace") && ((i + 1U) < argc))
+        {
+            gPeriodicAdvParams.responseSlotSpacing = (uint8_t)BleApp_atoi(argv[i + 1U]);
+            result = kStatus_SHELL_Success;
+        }
+
+        /* Periodic Advertising Number of subevent response slots. */
+        if (0 == strcmp((char*)argv[i], "-numrspslot") && ((i + 1U) < argc))
+        {
+            gPeriodicAdvParams.numResponseSlots = (uint8_t)BleApp_atoi(argv[i + 1U]);
+            result = kStatus_SHELL_Success;
+        }
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
     }
 
     if (result == kStatus_SHELL_Success)
     {
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+        if (gBleSuccess_c != Gap_SetPeriodicAdvParametersV2(&gPeriodicAdvParams))
+#else /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
         if (gBleSuccess_c != Gap_SetPeriodicAdvParameters(&gPeriodicAdvParams))
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
         {
             /* If an error occurred, print error message */
             shell_write(mShellErrorStatus);
@@ -2253,6 +2570,271 @@ static shell_status_t ShellGap_SetPeriodicAdvParameters(uint8_t argc, char * arg
 
     return result;
 }
+
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+/*! *********************************************************************************
+ * \brief        Clears periodic subevent from the application buffers.
+ *
+ * \return       bool_t         TRUE - if data was successfully erased, FALSE - otherwise
+ ********************************************************************************** */
+static bool_t ShellGap_ErasePeriodicSubeventData(void)
+{
+    uint8_t *pAdvArrayData;
+    uint32_t i;
+
+    for (i = 0U; i < gAppPerAdvSubeventData.cNumSubevents; i += 1U)
+    {
+        if (gAppPerAdvSubeventData.aSubeventDataStructures[i].pAdvertisingData->aAdStructures != NULL)
+        {
+            /* aData is an array allocated once with the size cNumAdStructures * length of each gapAdStructure_t,
+             * aData is only the starting pointer in the array coresponding to aAdStructures[idx] */
+            pAdvArrayData = (uint8_t *)gAppPerAdvSubeventData.aSubeventDataStructures[i].pAdvertisingData->aAdStructures[0].aData;
+            if (NULL != pAdvArrayData)
+            {
+                (void)MEM_BufferFree(pAdvArrayData);
+                pAdvArrayData = NULL;
+            }
+            else
+            {
+                return FALSE;
+            }
+
+            if (NULL != gaAdvSubeventDataStruct[i].aAdStructures)
+            {
+                (void)MEM_BufferFree(gaAdvSubeventDataStruct[i].aAdStructures);
+                gaAdvSubeventDataStruct[i].aAdStructures = NULL;
+            }
+            else
+            {
+                return FALSE;
+            }
+        }
+    }
+
+    gAppPerAdvSubeventData.cNumSubevents = 0U;
+
+    /* Clean periodic advertising data */
+    shell_write("\r\n\r\n-->  Periodic Advertising Subevent Data Erased.\r\n");
+
+    return TRUE;
+}
+
+/*! *********************************************************************************
+ * \brief        Handles "gap periodicsubeventdata" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellGap_SetPeriodicAdvSubeventData(uint8_t argc, char * argv[])
+{
+    shell_status_t result = kStatus_SHELL_Error;
+
+    if (argc > 0U)
+    {
+        if (0 == strcmp((char*)argv[0], "-erase"))
+        {
+            if (TRUE == ShellGap_ErasePeriodicSubeventData())
+            {
+                result = kStatus_SHELL_Success;
+            }
+        }
+        else if ((argc % 2U == 0U) && (argc / 2U <= SHELL_EXT_ADV_DATA_MAX_AD_STRUCTURES))
+        {
+            uint8_t subEvtIdx = gAppPerAdvSubeventData.cNumSubevents;
+
+            if ((subEvtIdx >= SHELL_PER_ADV_MAX_NUM_SUBEVENTS) ||
+                (subEvtIdx >= gPeriodicAdvParams.numSubevents))
+            {
+                /* When the user exceeds the SHELL_PER_ADV_MAX_NUM_SUBEVENTS or
+                 * gPeriodicAdvParams.numSubevents, the data is reset to add new data */
+                (void)ShellGap_ErasePeriodicSubeventData();
+                subEvtIdx = 0U;
+            }
+
+            gAppPerAdvSubeventData.cNumSubevents++;
+
+            for (uint32_t i = 0U; i < argc; i += 2U)
+            {
+                /* Get advertising type */
+                gapAdType_t advType = (gapAdType_t)BleApp_atoi(argv[i]);
+
+                /* Append data to the periodic advertising structure */
+                 (void)ShellGap_AppendAdvData(&gAppPeriodicAdvData, (gapAdType_t)advType, argv[i + 1U], FALSE, FALSE, TRUE);
+            }
+
+            gaAdvSubeventDataStruct[subEvtIdx].cNumAdStructures = gAppPeriodicAdvData.cNumAdStructures;
+            gaAdvSubeventDataStruct[subEvtIdx].aAdStructures = (gapAdStructure_t*)MEM_BufferAlloc(gAppPeriodicAdvData.cNumAdStructures *
+                                                                                                    sizeof(gapAdStructure_t));
+            FLib_MemCpy(gaAdvSubeventDataStruct[subEvtIdx].aAdStructures,
+                        gAppPeriodicAdvData.aAdStructures,
+                        sizeof(gapAdStructure_t) * gAppPeriodicAdvData.cNumAdStructures);
+
+            /* Set the mpPeriodicData to null so the next command can alloc new memory for different subevent */
+            /* mpPeriodicData is the first aAdStructures[0].aData casted to (uint8_t*) */
+            gAppPeriodicAdvData.cNumAdStructures = 0U;
+            mpPeriodicData = NULL;
+
+            gaSubeventDataStruct[subEvtIdx].subevent = subEvtIdx;
+            gaSubeventDataStruct[subEvtIdx].responseSlotStart = mShellGapPerResponseSlotStart_c;
+            gaSubeventDataStruct[subEvtIdx].responseSlotCount = gPeriodicAdvParams.numResponseSlots;
+            gaSubeventDataStruct[subEvtIdx].pAdvertisingData = &gaAdvSubeventDataStruct[subEvtIdx];
+
+            gAppPerAdvSubeventData.aSubeventDataStructures[subEvtIdx] = gaSubeventDataStruct[subEvtIdx];
+
+            result = kStatus_SHELL_Success;
+        }
+        else
+        {
+            shell_write("\r\nIncorrect command parameter(s).  Enter \"help\" to view a list of available commands.\r\n\r\n");
+            result = kStatus_SHELL_Error;
+        }
+    }
+
+    return result;
+}
+
+/*! *********************************************************************************
+ * \brief        Clears periodic response data from the application buffer at idx.
+ *
+ * \return       bool_t         TRUE - if data was successfully erased, FALSE - otherwise
+ ********************************************************************************** */
+static bool_t ShellGap_ErasePeriodicResponseData(uint8_t idx)
+{
+    bool_t status = TRUE;
+
+    if (gaAppPerAdvResponseData[idx].pResponseData != NULL)
+    {
+        if (gaAppPerAdvResponseData[idx].pResponseData->aAdStructures != NULL)
+        {
+            if (gaAppPerAdvResponseData[idx].pResponseData->aAdStructures[0].aData != NULL)
+            {
+                (void)MEM_BufferFree(gaAppPerAdvResponseData[idx].pResponseData->aAdStructures[0].aData);
+                gaAppPerAdvResponseData[idx].pResponseData->aAdStructures[0].aData = NULL;
+            }
+            else
+            {
+                status = FALSE;
+            }
+
+            (void)MEM_BufferFree(gaAppPerAdvResponseData[idx].pResponseData->aAdStructures);
+            gaAppPerAdvResponseData[idx].pResponseData->aAdStructures = NULL;
+        }
+        else
+        {
+            status = FALSE;
+        }
+
+        gaAppPerAdvResponseData[idx].pResponseData->cNumAdStructures = 0U;
+    }
+    else
+    {
+        status = FALSE;
+    }
+
+    return status;
+}
+
+/*! *********************************************************************************
+ * \brief        Handles "gap periodicresponsedata" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellGap_SetPeriodicAdvResponseData(uint8_t argc, char * argv[])
+{
+    shell_status_t result = kStatus_SHELL_Error;
+    uint8_t subEvtIdx = 0xFF;
+
+    /* For no argument, return usage */
+    if (argc > 0U)
+    {
+        /* Search for keywords */
+        for (uint32_t i = 0U; i < argc; i += 2U)
+        {
+            /* Used to identify the subevent of the PAwR train */
+            if (0 == strcmp((char*)argv[i], "-responsesubevent") && ((i + 1U) < argc))
+            {
+                subEvtIdx = (uint8_t)BleApp_atoi(argv[i + 1U]);
+                gaAppPerAdvResponseData[subEvtIdx].responseSubevent = subEvtIdx;
+                result = kStatus_SHELL_Success;
+            }
+            /* Used to identify the response slot of the PAwR train */
+            else if (0 == strcmp((char*)argv[i], "-responseslot") && ((i + 1U) < argc) && subEvtIdx < SHELL_PER_ADV_MAX_NUM_SUBEVENTS)
+            {
+                gaAppPerAdvResponseData[subEvtIdx].responseSlot = (uint8_t)BleApp_atoi(argv[i + 1U]);
+                result = kStatus_SHELL_Success;
+            }
+            /* Response data */
+            else if (0 == strcmp((char*)argv[i], "-data") && ((i + 2U) < argc) && subEvtIdx < SHELL_PER_ADV_MAX_NUM_SUBEVENTS)
+            {
+                uint32_t j = 0U;
+
+                for (j = i + 1U; j < argc; j += 2U)
+                {
+                    /* Get advertising type */
+                    gapAdType_t advType = (gapAdType_t)BleApp_atoi(argv[j]);
+
+                    /* Append data to the periodic advertising structure */
+                     (void)ShellGap_AppendAdvData(&gAppPeriodicAdvData, (gapAdType_t)advType, argv[j + 1U], FALSE, FALSE, TRUE);
+                }
+
+                /* If data is present here from other command, free and alloc new size required */
+                (void)ShellGap_ErasePeriodicResponseData(subEvtIdx);
+
+                /* alloc once for the lifetime of the app */
+                if (gaAppPerAdvResponseData[subEvtIdx].pResponseData == NULL)
+                {
+                    gaAppPerAdvResponseData[subEvtIdx].pResponseData = (gapAdvertisingData_t*)MEM_BufferAlloc(sizeof(gapAdvertisingData_t));
+                }
+
+                if (gaAppPerAdvResponseData[subEvtIdx].pResponseData != NULL)
+                {
+                    gaAppPerAdvResponseData[subEvtIdx].pResponseData->cNumAdStructures = gAppPeriodicAdvData.cNumAdStructures;
+                    gaAppPerAdvResponseData[subEvtIdx].pResponseData->aAdStructures = (gapAdStructure_t*)MEM_BufferAlloc(gAppPeriodicAdvData.cNumAdStructures *
+                                                                                                                         sizeof(gapAdStructure_t));
+                    if (gaAppPerAdvResponseData[subEvtIdx].pResponseData->aAdStructures != NULL)
+                    {
+                        FLib_MemCpy(gaAppPerAdvResponseData[subEvtIdx].pResponseData->aAdStructures,
+                                    gAppPeriodicAdvData.aAdStructures,
+                                    sizeof(gapAdStructure_t) * gAppPeriodicAdvData.cNumAdStructures);
+                    }
+
+                    /* Set the mpPeriodicData to null so the next command can alloc new memory for different subevent */
+                    /* mpPeriodicData is the first aAdStructures[0].aData casted to (uint8_t*) */
+                    gAppPeriodicAdvData.cNumAdStructures = 0U;
+                    mpPeriodicData = NULL;
+                }
+
+                /* The `-data` parameter must be the last. It contains a volatile number of advertising data structures. */
+                break;
+            }
+            else if (0 == strcmp((char*)argv[0], "-erase"))
+            {
+                uint8_t j = 0U;
+
+                for (j = 0U; j < SHELL_PER_ADV_MAX_NUM_SUBEVENTS; j++)
+                {
+                    (void)ShellGap_ErasePeriodicResponseData(j);
+                }
+
+                /* Clean periodic advertising data */
+                shell_write("\r\n\r\n-->  Periodic Advertising Data Erased.\r\n\r\n");
+                result = kStatus_SHELL_Success;
+            }
+            else
+            {
+                result = kStatus_SHELL_Error;
+            }
+        }
+    }
+
+    return result;
+}
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 
 /*! *********************************************************************************
  * \brief        Handles "gap periodicstop" shell command.
@@ -3071,6 +3653,29 @@ void ShellGap_GenericCallback (gapGenericEvent_t* pGenericEvent)
             break;
         }
 
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+        case gPeriodicAdvSetSubeventDataComplete_c:
+        {
+            /* Operation succeeded */
+            shell_write("Periodic advertising subevent data has been successfully set.\r\n");
+        }
+        break;
+
+        case gPeriodicAdvSetResponseDataComplete_c:
+        {
+            /* Operation succeeded */
+            shell_write("Periodic advertising response data has been successfully set.\r\n");
+        }
+        break;
+
+        case gPeriodicSyncSubeventComplete_c:
+        {
+            /* Operation succeeded */
+            shell_write("Set Sync Subevent command successfully completed.\r\n");
+        }
+        break;
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
+
         case gInternalError_c:
         {
             /* Command is not supported */
@@ -3130,6 +3735,71 @@ void ShellGap_AdvertisingCallback
             shell_write("stopped!\r\n");
             break;
         }
+
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+        case gPerAdvSubeventDataRequest_c:
+        {
+            if (gAppPerAdvSubeventData.cNumSubevents != 0U)
+            {
+                if (gBleSuccess_c != Gap_SetPeriodicAdvSubeventData(gExtAdvParams.handle, &gAppPerAdvSubeventData))
+                {
+                    shell_write(mShellErrorStatus);
+                }
+                else
+                {
+                    shell_write("Request for periodic subevent data - Data Set\r\n");
+                }
+            }
+            else
+            {
+                shell_write("Request for periodic subevent data - No Data Set\r\n");
+            }
+            break;
+        }
+
+        case gPerAdvResponse_c:
+        {
+            uint16_t dataLength = pAdvertisingEvent->eventData.perAdvResponse.dataLength;
+            uint8_t *pData = (uint8_t*)pAdvertisingEvent->eventData.perAdvResponse.aData;
+            uint16_t index = 0U;
+
+            shell_write("periodic advertising response received:\r\n");
+
+            shell_write("\r\n\tAdvertising Handle: ");
+            shell_writeDec((uint32_t)pAdvertisingEvent->eventData.perAdvResponse.advHandle);
+            shell_write("\r\n\tSubevent: ");
+            shell_writeDec((uint32_t)pAdvertisingEvent->eventData.perAdvResponse.subevent);
+            shell_write("\r\n\tResponse Slot: ");
+            shell_writeDec((uint32_t)pAdvertisingEvent->eventData.perAdvResponse.responseSlot);
+
+            shell_write("\r\n\tAdvertising Data: ");
+            /* Print advertising data */
+            while (index < dataLength)
+            {
+                gapAdStructure_t adElement;
+
+                adElement.length = pData[index];
+                adElement.adType = (gapAdType_t)pData[index + 1U];
+                adElement.aData = &pData[index + 2U];
+
+                if (adElement.adType == gAdManufacturerSpecificData_c)
+                {
+                    shell_writeN((char const *)adElement.aData, (uint32_t)adElement.length - 1U);
+                }
+                else
+                {
+                    for (uint8_t j = 0U; j < adElement.length - 1U; j++)
+                    {
+                        shell_writeHex(adElement.aData[j]);
+                    }
+                }
+
+                /* Move on to the next AD element type */
+                index += (uint32_t)adElement.length + sizeof(uint8_t);
+            }
+            break;
+        }
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 
     default:
             ; /* Other Advertising Event */
@@ -3355,6 +4025,9 @@ void ShellGap_ScanningCallback (gapScanningEvent_t* pScanningEvent)
 
         case gPeriodicAdvSyncEstablished_c:
             shell_write("\r\n-->  GAP Event: Periodic Advertising Sync Established");
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+            mPeriodicSyncHandle = pScanningEvent->eventData.syncEstb.syncHandle;
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
             break;
 
         case gPeriodicAdvSyncLost_c:
@@ -3378,6 +4051,94 @@ void ShellGap_ScanningCallback (gapScanningEvent_t* pScanningEvent)
                 shell_write(" dBm");
             }
             break;
+
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+        case gPeriodicDeviceScannedV2_c:
+        {
+            /* Periodic information variables */
+            uint16_t eventIdx = pScanningEvent->eventData.periodicScannedDeviceV2.periodicEventCounter;
+            uint8_t subeventIdx = pScanningEvent->eventData.periodicScannedDeviceV2.subevent;
+            bool_t bResponseSet = FALSE;
+            /* Advertising data variables */
+            uint16_t dataLength = pScanningEvent->eventData.periodicScannedDeviceV2.dataLength;
+            uint8_t *pData = (uint8_t*)pScanningEvent->eventData.periodicScannedDeviceV2.pData;
+            uint16_t index = 0U;
+
+            shell_write("\r\n-->  GAP Event: Periodic V2 Device Scanned");
+
+            /* The responder will always set the data for the ongoing event */
+            shell_write("\r\n\tEvent Counter: ");
+            shell_writeDec((uint32_t)eventIdx);
+            gaAppPerAdvResponseData[subeventIdx].requestEvent = eventIdx;
+
+            /* The responder will always set the data for the ongoing subevent */
+            shell_write("\r\n\tSubevent Synced: ");
+            shell_writeDec((uint32_t)subeventIdx);
+            gaAppPerAdvResponseData[subeventIdx].requestSubevent = subeventIdx;
+
+            shell_write("\r\n\tRSSI: ");
+
+            if (((uint8_t)pScanningEvent->eventData.periodicScannedDevice.rssi >> 7) != 0U)
+            {
+                /* Negative Value */
+                shell_write("-");
+                aux = ~((uint8_t)pScanningEvent->eventData.periodicScannedDevice.rssi - 1U);
+                pScanningEvent->eventData.periodicScannedDevice.rssi = (int8_t)aux;
+            }
+            shell_writeDec((uint32_t)pScanningEvent->eventData.periodicScannedDevice.rssi);
+            shell_write(" dBm");
+
+            shell_write("\r\n\tAdvertising Data: ");
+
+            /* Print advertising data */
+            while (index < dataLength)
+            {
+                gapAdStructure_t adElement;
+
+                adElement.length = pData[index];
+                adElement.adType = (gapAdType_t)pData[index + 1U];
+                adElement.aData = &pData[index + 2U];
+
+                if (adElement.adType == gAdManufacturerSpecificData_c)
+                {
+                    shell_writeN((char const *)adElement.aData, (uint32_t)adElement.length - 1U);
+                }
+                else
+                {
+                    for (uint8_t j = 0U; j < adElement.length - 1U; j++)
+                    {
+                        shell_writeHex(adElement.aData[j]);
+                    }
+                }
+
+                /* Move on to the next AD element type */
+                index += (uint32_t)adElement.length + sizeof(uint8_t);
+            }
+
+            if (gaAppPerAdvResponseData[subeventIdx].pResponseData != NULL)
+            {
+                if (gaAppPerAdvResponseData[subeventIdx].pResponseData->cNumAdStructures != 0U)
+                {
+                    bResponseSet = TRUE;
+                }
+            }
+
+            if (TRUE == bResponseSet)
+            {
+                /* Every time scan data from periodic is received, give a response if data is set */
+                if (gBleSuccess_c != Gap_SetPeriodicAdvResponseData(mPeriodicSyncHandle, &gaAppPerAdvResponseData[subeventIdx]))
+                {
+                    shell_write(mShellErrorStatus);
+                }
+                else
+                {
+                    shell_write("\r\nResponse Data Set\r\n");
+                }
+            }
+
+            break;
+        }
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 
         case gScanCommandFailed_c:
         {
@@ -3784,6 +4545,20 @@ static void ShellGap_PrintExtAdvParametersCfg(void)
     /* Tx Power */
     shell_write("\r\n    -->  Tx Power: ");
     shell_writeDec((uint32_t)gExtAdvParams.txPower);
+
+    /* Scan Reqest Notification */
+    shell_write("\r\n    -->  Scan Request Notification: ");
+    shell_writeBool(gExtAdvParams.enableScanReqNotification);
+
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+    /* Primary Advertising Phy Options */
+    shell_write("\r\n    -->  Primary Advertising Phy Options: ");
+    shell_write(mShellAdvPhyOpt[gExtAdvParams.primaryAdvPhyOptions]);
+
+    /* Secondary Advertising Phy Options */
+    shell_write("\r\n    -->  Secondary Advertising Phy Options: ");
+    shell_write(mShellAdvPhyOpt[gExtAdvParams.secondaryAdvPhyOptions]);
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 
     SHELL_NEWLINE();
 }

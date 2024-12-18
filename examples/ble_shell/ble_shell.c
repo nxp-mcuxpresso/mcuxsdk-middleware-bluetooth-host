@@ -130,6 +130,9 @@ static shell_command_t mGapCmd =
                     "  gap connectcfg [-interval intervalInMs] [-latency latency] [-timeout timeout]\r\n"
 #endif /* BLE_SHELL_DBAF_SUPPORT */
                     "  gap connect scannedDeviceId\r\n"
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+                    "  gap connectpawr [-advhandle advHandle] [-subevent subevent] [-peer peerAddr] [-type peerAddrType]\r\n"
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
                     "  gap disconnect <peerID>\r\n"
                     "  gap connupdate <peerID> mininterval maxinterval latency timeout\r\n"
                     "  gap paircfg [-usebonding usebonding] [-seclevel seclevel] [-keyflags flags]\r\n"
@@ -143,12 +146,23 @@ static shell_command_t mGapCmd =
 #if defined(BLE_SHELL_AE_SUPPORT) && (BLE_SHELL_AE_SUPPORT)
                     "  gap extadvstart\r\n"
                     "  gap extadvstop\r\n"
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+                    "  gap extadvcfg [-min minIntervalInMs] [-max maxIntervalInMs] [-type advProperties] [-phy1 primaryPHY] [-phy2 secondaryPHY] [-tx advTxPower] [-sn enableScanNotification] [-pphyopt primaryAdvPhyOptions] [-sphyopt secondaryAdvPhyOptions]\r\n"
+#else /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
                     "  gap extadvcfg [-min minIntervalInMs] [-max maxIntervalInMs] [-type advProperties] [-phy1 primaryPHY] [-phy2 secondaryPHY] [-tx advTxPower] [-sn enableScanNotification]\r\n"
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
                     "  gap extadvdata [-erase] [type payload]\r\n"
                     "  gap extscandata [-erase] [type payload]\r\n"
                     "  gap periodicstart\r\n"
                     "  gap periodicstop\r\n"
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+                    "  gap periodiccfg [-mininterval minIntervalInMs] [-maxinterval maxIntervalInMs] [-txpower advTxPower] [-numsubevents numSubevents] [-subint subeventInterval] [-rspslotdelay responseSlotDelay] [-rspslotspace responseSlotSpacing] [-numrspslot numResponseSlots]\r\n"
+                    "  gap periodicsubeventdata [-erase] [type1 payload1] [type2 payload2] [type3 payload3]\r\n"
+                    "  gap periodicresponsedata [-erase] [-responsesubevent responseSubevent] [-responseslot responseSlot] [type1 payload1] [type2 payload2] [type3 payload3]\r\n"
+                    "  gap periodicsyncsubevent [-peradvproperties properties] [-numsubevents numSubevents] [-subevents subevents]\r\n"
+#else /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
                     "  gap periodiccfg [-mininterval minIntervalInMs] [-maxinterval maxIntervalInMs] [-txpower advTxPower]\r\n"
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
                     "  gap periodicdata [type] [payload]\r\n"
                     "  gap periodicsync [-peer peerAddr] [-type peerAddrType]\r\n"
                     "  gap periodicsyncstop\r\n"
@@ -339,6 +353,10 @@ void BleApp_Init(void)
         gThroughputConfig[iCount].buffCnt = mShellThrBufferCountDefault_c;
         gThroughputConfig[iCount].buffSz =  mShellThrBufferSizeDefault_c;
     }
+
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+    BluetoothLEHost_SetConnectionCallback(ShellGap_ConnectionCallback);
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 }
 
 /*! *********************************************************************************
@@ -531,7 +549,6 @@ static shell_status_t ShellReset_Command(shell_handle_t shellHandle, int32_t arg
 
 static void BluetoothLEHost_Initialized(void)
 {
-	
     /* Adding GAP and GATT services in the database */
     (void)ShellGattDb_Init();
 
@@ -543,7 +560,11 @@ static void BluetoothLEHost_Initialized(void)
 
     /* Configure GAP */
 #if defined(BLE_SHELL_AE_SUPPORT) && (BLE_SHELL_AE_SUPPORT)
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+    (void)Gap_SetExtAdvertisingParametersV2(&gExtAdvParams);
+#else /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
     (void)Gap_SetExtAdvertisingParameters(&gExtAdvParams);
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
     mSupressEvents += 1U;
 #endif /* BLE_SHELL_AE_SUPPORT */
     (void)Gap_ReadPublicDeviceAddress();

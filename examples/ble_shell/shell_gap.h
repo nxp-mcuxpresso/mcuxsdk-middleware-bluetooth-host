@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2020-2021, 2023 NXP
+* Copyright 2016-2019, 2020-2021, 2023-2024 NXP
 *
 *
 * \file
@@ -50,6 +50,18 @@ shell_status_t ShellGap_Command(shell_handle_t shellHandle, int32_t argc, char *
  * \param[in]    pGenericEvent    Pointer to gapGenericEvent_t.
  ********************************************************************************** */
 void ShellGap_GenericCallback (gapGenericEvent_t* pGenericEvent);
+
+/*! *********************************************************************************
+ * \brief        Handles BLE Connection callback from host stack.
+ *
+ * \param[in]    peerDeviceId        Peer device ID.
+ * \param[in]    pConnectionEvent    Pointer to gapConnectionEvent_t.
+ ********************************************************************************** */
+void ShellGap_ConnectionCallback
+(
+    deviceId_t peerDeviceId,
+    gapConnectionEvent_t* pConnectionEvent
+);
 
 #ifdef __cplusplus
 }

@@ -35,7 +35,7 @@
 #define mDefaultTxPower         gBleAdvTxPowerNoPreference_c
 
 #ifndef SHELL_EXT_ADV_DATA_MAX_AD_STRUCTURES
-#define SHELL_EXT_ADV_DATA_MAX_AD_STRUCTURES    5
+#define SHELL_EXT_ADV_DATA_MAX_AD_STRUCTURES    5U
 #endif
 /************************************************************************************
 *************************************************************************************
@@ -47,6 +47,13 @@
 static gapAdStructure_t    mAdStructures[SHELL_EXT_ADV_DATA_MAX_AD_STRUCTURES];
 static gapAdStructure_t    mExtAdStructures[SHELL_EXT_ADV_DATA_MAX_AD_STRUCTURES];
 static gapAdStructure_t    mScanAdStructures[SHELL_EXT_ADV_DATA_MAX_AD_STRUCTURES];
+
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+/* Memory used in gaSubeventDataStruct */
+gapAdvertisingData_t            gaAdvSubeventDataStruct[SHELL_PER_ADV_MAX_NUM_SUBEVENTS];
+/* Memory used in gAppPerAdvSubeventData */
+gapSubeventDataStructure_t      gaSubeventDataStruct[SHELL_PER_ADV_MAX_NUM_SUBEVENTS];
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 
 gapAdvertisingData_t gAppAdvertisingData =
 {
@@ -63,7 +70,7 @@ gapAdvertisingData_t gAppExtAdvertisingData =
 gapAdvertisingData_t gAppPeriodicAdvData =
 {
     0,
-    mExtAdStructures,
+    mExtAdStructures
 };
 
 gapScanResponseData_t gAppScanRspData =
@@ -77,6 +84,18 @@ gapScanResponseData_t gAppExtScanRspData =
     0,
     mScanAdStructures
 };
+
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+/* Periodic Advertising Subevent Data used on the Advertising device */
+gapPeriodicAdvertisingSubeventData_t gAppPerAdvSubeventData =
+{
+    .cNumSubevents = 0,
+    .aSubeventDataStructures = gaSubeventDataStruct
+};
+
+/* Periodic Advertising Response Data used on the Responder device */
+gapPeriodicAdvertisingResponseData_t gaAppPerAdvResponseData[SHELL_PER_ADV_MAX_NUM_SUBEVENTS] = {0};
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 
 #if defined(BLE_SHELL_DBAF_SUPPORT) && (BLE_SHELL_DBAF_SUPPORT)
 /* Decision Based Advertising Data */
@@ -120,7 +139,11 @@ gapAdvertisingParameters_t gAdvParams =
 };
 
 /*Default Extended Advertising Parameters */
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+gapExtAdvertisingParametersV2_t gExtAdvParams =
+#else /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 gapExtAdvertisingParameters_t gExtAdvParams =
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 {
     /* SID */                       1, \
     /* handle */                    1, \
@@ -137,17 +160,32 @@ gapExtAdvertisingParameters_t gExtAdvParams =
     /* primaryPHY */                (gapLePhyMode_t)gLePhy1M_c, \
     /* secondaryPHY */              (gapLePhyMode_t)gLePhy1M_c, \
     /* secondaryAdvMaxSkip */       0, \
-    /* enableScanReqNotification*/  FALSE \
+    /* enableScanReqNotification*/  FALSE,
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+    /* primaryAdvertisingPhyOptions */      gLeCodingNoPreference_c, \
+    /* secondaryAdvertisingPhyOptions */    gLeCodingNoPreference_c,
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 
 };
 
 /*Default Periodic Advertising Parameters */
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+gapPeriodicAdvParametersV2_t gPeriodicAdvParams =
+#else /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 gapPeriodicAdvParameters_t gPeriodicAdvParams =
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 {
     /* handle */                    1, \
     /* addTxPowerInAdv*/            TRUE, \
     /* minInterval */               1600 /* 1 s */, \
-    /* maxInterval */               3200 /* 2 s */, \
+    /* maxInterval */               3200 /* 2 s */,
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+    /* numSubevents */              2, \
+    /* subeventInterval */          125 /* 156.25 ms */, \
+    /* responseSlotDelay */         100 /* 125 ms */, \
+    /* responseSlotSpacing */       10 /* 2.5 ms */, \
+    /* numResponseSlots */          4,
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 
 };
 
