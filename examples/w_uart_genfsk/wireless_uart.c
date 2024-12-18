@@ -272,6 +272,13 @@ static appAdvertisingParams_t mAppAdvParams = {
     &gAppScanRspData
 };
 #endif
+
+#if defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1)
+/* Keep state of user intent to Transmit */
+static bool_t mbGfskTxStarted = FALSE;
+/* Keep state of user intent to Receive */
+static bool_t mbGfskRxStarted = FALSE;
+#endif /* defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1) */
 /************************************************************************************
 *************************************************************************************
 * Public functions
@@ -305,7 +312,7 @@ void BluetoothLEHost_AppInit(void)
     Serial_Print("\n\rHybrid Wireless Uart - GFSK App demo", gAllowToBlock_d);
     Serial_Print("\n\r=====================================\n\r", gAllowToBlock_d);
 
-    /* init GFSK demo app */
+    /* Initialise GFSK demo app */
     GfskApp_Init(GenfskApp_EventHandler);
 #endif /* defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1) */
 }
@@ -370,6 +377,18 @@ static button_status_t BleApp_HandleKeys0
 
 #if defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1)
         case kBUTTON_EventDoubleClick:
+        {
+            if(mbGfskTxStarted)
+            {
+                mbGfskTxStarted = FALSE;
+
+                Serial_Print("\n\rGFSK: Stop TX", gAllowToBlock_d);
+
+                GfskApp_StopTx();
+            }
+
+            mbGfskRxStarted = TRUE;
+
             /* start GFSK RX */
             Serial_Print("\n\rGFSK: Start RX...", gAllowToBlock_d);
 
@@ -378,6 +397,7 @@ static button_status_t BleApp_HandleKeys0
 
             GfskApp_StartRx();
             break;
+        }
 #endif /* defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1) */
 
         default:
@@ -406,10 +426,6 @@ static button_status_t BleApp_HandleKeys1
     void *pCallbackParam
 )
 {
-#if defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1)
-    static bool_t bGfskTxStarted = FALSE;
-#endif /* defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1) */
-
     switch (pMessage->event)
     {
         case kBUTTON_EventOneClick:
@@ -434,20 +450,31 @@ static button_status_t BleApp_HandleKeys1
 
 #if defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1)
         case kBUTTON_EventLongPress:
+        {
             /* Start/Stop GFSK TX */
-            if(!bGfskTxStarted)
+            if(!mbGfskTxStarted)
             {
-                bGfskTxStarted = TRUE;
+                if(mbGfskRxStarted)
+                {
+                    mbGfskRxStarted = FALSE;
+
+                    /* Stop GFSK TX */
+                    Serial_Print("\n\rGFSK: Stop RX", gAllowToBlock_d);
+
+                    GfskApp_StopRx();
+                }
+
+                mbGfskTxStarted = TRUE;
 
                 Serial_Print("\n\rGFSK: Start TX... ", gAllowToBlock_d);
                 /* After any Genfsk print, use newline for uart */
                 mAppUartNewLine = TRUE;
 
-                GfskApp_StartTx();
+                GfskApp_StartPeriodicTx();
             }
             else
             {
-                bGfskTxStarted = FALSE;
+                mbGfskTxStarted = FALSE;
 
                 Serial_Print("\n\rGFSK: Stop TX", gAllowToBlock_d);
 
@@ -457,8 +484,12 @@ static button_status_t BleApp_HandleKeys1
                 GfskApp_StopTx();
             }
             break;
+        }
 
         case kBUTTON_EventDoubleClick:
+        {
+            mbGfskRxStarted = FALSE;
+
             /* Stop GFSK TX */
             Serial_Print("\n\rGFSK: Stop RX", gAllowToBlock_d);
 
@@ -467,6 +498,7 @@ static button_status_t BleApp_HandleKeys1
 
             GfskApp_StopRx();
             break;
+        }
 #endif /* defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1) */
 
         default:
@@ -1945,30 +1977,79 @@ static void GenfskApp_EventHandler(const void *pGfskAppData)
 
             case gGfskEvt_MetaEventReceiveComplete_c:
             {
+                static uint8_t crcErrorCount = 0U;
+                static uint8_t lengthErrorCount = 0U;
+                static uint8_t genericErrorCount = 0U;
                 uint8_t addrOfInterest[6] = {gGenFSK_Identifier_c};
-                uint8_t idx = 0;
+                uint8_t idx = 0U;
 
-                if ((pAppData->eventData.transmitCompleteData.payloadLength >= (gGenFSK_RxHeaderSize_c + sizeof(addrOfInterest))) &&
-                   FLib_MemCmp(addrOfInterest, &pAppData->eventData.transmitCompleteData.payload[gGenFSK_RxHeaderSize_c], sizeof(addrOfInterest)))
+                if (0U != (gGenFskApp_InvalidCrcBit_c & pAppData->eventData.receiveCompleteData.status))
                 {
-                    Serial_Print("\n\rGFSK: Address: ", gAllowToBlock_d);
-
-                    for (idx = gGenFSK_RxHeaderSize_c; idx < (gGenFSK_RxHeaderSize_c + sizeof(addrOfInterest)); idx++)
+                    crcErrorCount++;
+                }
+                else if (0U != (gGenFskApp_InvalidLengthBit_c & pAppData->eventData.receiveCompleteData.status))
+                {
+                    lengthErrorCount++;
+                }
+                else if (0U != pAppData->eventData.receiveCompleteData.status)
+                {
+                    genericErrorCount++;
+                }
+                else
+                {
+                    /* Packet is valid */
+                    if ((pAppData->eventData.receiveCompleteData.payloadLength >= (gGenFSK_RxHeaderSize_c + sizeof(addrOfInterest))) &&
+                       FLib_MemCmp(addrOfInterest, &pAppData->eventData.receiveCompleteData.payload[gGenFSK_RxHeaderSize_c], sizeof(addrOfInterest)))
                     {
-                        Serial_PrintHex(pAppData->eventData.transmitCompleteData.payload[idx]);
-                        Serial_Print(" ", gAllowToBlock_d);
+                        if ((crcErrorCount != 0U)    ||
+                            (lengthErrorCount != 0U) ||
+                            (genericErrorCount != 0U))
+                        {
+                            Serial_Print("\n\rGFSK:", gAllowToBlock_d);
+
+                            if (crcErrorCount != 0U)
+                            {
+                                Serial_Print(" CRC Error ", gAllowToBlock_d);
+                                Serial_PrintDec(crcErrorCount);
+                            }
+
+                            if (lengthErrorCount != 0U)
+                            {
+                                Serial_Print(" Length Error ", gAllowToBlock_d);
+                                Serial_PrintDec(lengthErrorCount);
+                            }
+
+                            if (genericErrorCount != 0U)
+                            {
+                                Serial_Print(" Other Error ", gAllowToBlock_d);
+                                Serial_PrintDec(genericErrorCount);
+                            }
+
+                            /* Restart counters already reported */
+                            crcErrorCount = 0U;
+                            lengthErrorCount = 0U;
+                            genericErrorCount = 0U;
+                        }
+
+                        Serial_Print("\n\rGFSK: Address: ", gAllowToBlock_d);
+
+                        for (idx = gGenFSK_RxHeaderSize_c; idx < (gGenFSK_RxHeaderSize_c + sizeof(addrOfInterest)); idx++)
+                        {
+                            Serial_PrintHex(pAppData->eventData.receiveCompleteData.payload[idx]);
+                            Serial_Print(" ", gAllowToBlock_d);
+                        }
+
+                        Serial_Print("Payload: ", gAllowToBlock_d);
+
+                        for (idx = gGenFSK_RxHeaderSize_c + sizeof(addrOfInterest); idx < pAppData->eventData.receiveCompleteData.payloadLength; idx++)
+                        {
+                            Serial_PrintHex(pAppData->eventData.receiveCompleteData.payload[idx]);
+                            Serial_Print(" ", gAllowToBlock_d);
+                        }
+
+                        /* After any Genfsk print, use newline for uart */
+                        mAppUartNewLine = TRUE;
                     }
-
-                    Serial_Print("Payload: ", gAllowToBlock_d);
-
-                    for (idx = gGenFSK_RxHeaderSize_c + sizeof(addrOfInterest); idx < pAppData->eventData.transmitCompleteData.payloadLength; idx++)
-                    {
-                        Serial_PrintHex(pAppData->eventData.transmitCompleteData.payload[idx]);
-                        Serial_Print(" ", gAllowToBlock_d);
-                    }
-
-                    /* After any Genfsk print, use newline for uart */
-                    mAppUartNewLine = TRUE;
                 }
             }
             break;
@@ -2003,6 +2084,14 @@ static void GenfskApp_EventHandler(const void *pGfskAppData)
                     /* After any Genfsk print, use newline for uart */
                     mAppUartNewLine = TRUE;
                 }
+            }
+            break;
+
+            case gGfskEvt_AppEvtTransmitPending_c:
+            {
+                Serial_Print("\n\rGFSK: Transmit Command Canceled, previous packet pending", gAllowToBlock_d);
+                /* After any Genfsk print, use newline for uart */
+                mAppUartNewLine = TRUE;
             }
             break;
 
