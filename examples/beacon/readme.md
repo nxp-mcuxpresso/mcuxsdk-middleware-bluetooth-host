@@ -21,5 +21,6 @@ The Beacon application is supported on the following platform:
 - KW45B41Z-EVK
 - K32W148-EVK
 - FRDM-MCXW71
+- MCX-W71-EVK
 - KW47-EVK
 - MCX-W72-EVK

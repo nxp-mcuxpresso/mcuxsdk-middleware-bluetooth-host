@@ -17,6 +17,7 @@ profile data over EATT.
 ## Supported Boards
 - KW47-EVK
 - FRDM-MCXW71
+- MCX-W71-EVK
 - K32W148-EVK
 - MCX-W72-EVK
 - KW45B41Z-EVK

@@ -28,6 +28,7 @@ The following platforms support the Wireless UART application:
 - KW45B41Z-EVK
 - K32W148-EVK
 - FRDM-MCXW71
+- MCX-W71-EVK
 - KW45B41Z-LOC
 - KW47-EVK
 - FRDM-MCXW72
