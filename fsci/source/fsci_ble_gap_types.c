@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -689,7 +689,7 @@ void fsciBleGapGetPeriodicAdvSetInfoTransferFromBuffer(gapPeriodicAdvSetInfoTran
 void fsciBleGapSetPeriodicAdvSyncTransferParamsFromBuffer(gapSetPeriodicAdvSyncTransferParams_t* pParams, uint8_t** ppBuffer)
 {
     fsciBleGetDeviceIdFromBuffer(&pParams->deviceId, ppBuffer);
-    fsciBleGetBufferFromEnumValue(pParams->mode, *ppBuffer, gapPeriodicAdvSyncMode_t);
+    fsciBleGetEnumValueFromBuffer(pParams->mode, *ppBuffer, gapPeriodicAdvSyncMode_t);
     fsciBleGetUint16ValueFromBuffer(pParams->skip, *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pParams->syncTimeout, *ppBuffer);
     fsciBleGetEnumValueFromBuffer(pParams->CTEType, *ppBuffer, bleSyncCteType_t);
