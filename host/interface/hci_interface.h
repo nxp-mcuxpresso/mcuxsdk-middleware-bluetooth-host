@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -1815,7 +1815,7 @@ typedef struct hciLeCsReadRemoteSupportedCapabilitiesEvent_tag
     uint16_t        optionalTIP2timesSupported;
     uint16_t        optionalTFCStimesSupported;
     uint16_t        optionalTPMtimesSupported;
-    uint8_t         TSWtimesSupported;
+    uint8_t         TSWtimeSupported;
     uint8_t         optionalTxSNRCapability;
 } hciLeCsReadRemoteSupportedCapabilitiesEvent_t;
 
@@ -2561,7 +2561,7 @@ typedef struct hciLeCsReadLocalSupportedCapabilities_tag
     uint16_t        optionalTIP2timesSupported;
     uint16_t        optionalTFCStimesSupported;
     uint16_t        optionalTPMtimesSupported;
-    uint8_t         TSWtimesSupported;
+    uint8_t         TSWtimeSupported;
     uint8_t         optionalTxSNRCapability;
 } hciLeCsReadLocalSupportedCapabilities_t;
 
