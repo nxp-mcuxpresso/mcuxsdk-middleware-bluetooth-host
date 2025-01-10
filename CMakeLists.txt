@@ -568,11 +568,11 @@ endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_init_matter)
     mcux_add_source(
-        SOURCES application/common/ble_init.c
-                application/common/ble_init.h
+        SOURCES application/common/matter/ble_init.c
+                application/common/matter/ble_init.h
     )
     mcux_add_include(
-        INCLUDES application/common/
+        INCLUDES application/common/matter
     )
 endif()
 
