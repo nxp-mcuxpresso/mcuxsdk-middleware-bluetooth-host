@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2024 NXP
+* Copyright 2024-2025 NXP
 *
 *
 * \file
@@ -1977,11 +1977,12 @@ static void GenfskApp_EventHandler(const void *pGfskAppData)
 
             case gGfskEvt_MetaEventReceiveComplete_c:
             {
+                uint8_t addrOfInterest[6] = {gGenFSK_Identifier_c};
+                uint8_t idx = 0U;
+#if defined(gHybridGenfskErrorLog_d) && (gHybridGenfskErrorLog_d == 1)
                 static uint8_t crcErrorCount = 0U;
                 static uint8_t lengthErrorCount = 0U;
                 static uint8_t genericErrorCount = 0U;
-                uint8_t addrOfInterest[6] = {gGenFSK_Identifier_c};
-                uint8_t idx = 0U;
 
                 if (0U != (gGenFskApp_InvalidCrcBit_c & pAppData->eventData.receiveCompleteData.status))
                 {
@@ -1996,32 +1997,34 @@ static void GenfskApp_EventHandler(const void *pGfskAppData)
                     genericErrorCount++;
                 }
                 else
+#endif /* defined(gHybridGenfskErrorLog_d) && (gHybridGenfskErrorLog_d == 1) */
                 {
-                    /* Packet is valid */
+                    /* Filter the packet by the address of interest */
                     if ((pAppData->eventData.receiveCompleteData.payloadLength >= (gGenFSK_RxHeaderSize_c + sizeof(addrOfInterest))) &&
                        FLib_MemCmp(addrOfInterest, &pAppData->eventData.receiveCompleteData.payload[gGenFSK_RxHeaderSize_c], sizeof(addrOfInterest)))
                     {
+#if defined(gHybridGenfskErrorLog_d) && (gHybridGenfskErrorLog_d == 1)
                         if ((crcErrorCount != 0U)    ||
                             (lengthErrorCount != 0U) ||
                             (genericErrorCount != 0U))
                         {
-                            Serial_Print("\n\rGFSK:", gAllowToBlock_d);
+                            Serial_Print("\n\r[Log]:", gAllowToBlock_d);
 
                             if (crcErrorCount != 0U)
                             {
-                                Serial_Print(" CRC Error ", gAllowToBlock_d);
+                                Serial_Print(" Number of packets with CRC Error: ", gAllowToBlock_d);
                                 Serial_PrintDec(crcErrorCount);
                             }
 
                             if (lengthErrorCount != 0U)
                             {
-                                Serial_Print(" Length Error ", gAllowToBlock_d);
+                                Serial_Print(" Number of packets with length Error: ", gAllowToBlock_d);
                                 Serial_PrintDec(lengthErrorCount);
                             }
 
                             if (genericErrorCount != 0U)
                             {
-                                Serial_Print(" Other Error ", gAllowToBlock_d);
+                                Serial_Print(" Number of packets with other Errors: ", gAllowToBlock_d);
                                 Serial_PrintDec(genericErrorCount);
                             }
 
@@ -2030,6 +2033,7 @@ static void GenfskApp_EventHandler(const void *pGfskAppData)
                             lengthErrorCount = 0U;
                             genericErrorCount = 0U;
                         }
+#endif /* defined(gHybridGenfskErrorLog_d) && (gHybridGenfskErrorLog_d == 1) */
 
                         Serial_Print("\n\rGFSK: Address: ", gAllowToBlock_d);
 
