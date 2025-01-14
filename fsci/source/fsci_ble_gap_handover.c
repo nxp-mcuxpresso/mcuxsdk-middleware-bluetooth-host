@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2022-2024 NXP
+* Copyright 2022-2025 NXP
 *
 *
 * \file
@@ -343,6 +343,24 @@ void fsciBleGapHandoverHandler(void* pData, void* param, uint32_t fsciInterfaceI
                         fsciBleGapHandoverCallApiFunction(Gap_HandoverSetLlPendingData(connectionHandle, pBuffer));
                     }
                     break;
+                    
+                case gBleGapHandoverApplyConnectionUpdateProcedureOpCode_c:
+                    {
+                        gapHandoverApplyConnectionUpdateProcedure_t connParams = {0U};
+                        
+                        /* Extract fields from buffer */
+                        fsciBleGetUint16ValueFromBuffer(connParams.connHandle, pBuffer);
+                        fsciBleGetUint8ValueFromBuffer(connParams.winSize, pBuffer);
+                        fsciBleGetUint16ValueFromBuffer(connParams.winOffset, pBuffer);
+                        fsciBleGetUint16ValueFromBuffer(connParams.interval, pBuffer);
+                        fsciBleGetUint16ValueFromBuffer(connParams.latency, pBuffer);
+                        fsciBleGetUint16ValueFromBuffer(connParams.timeout, pBuffer);
+                        fsciBleGetUint16ValueFromBuffer(connParams.instant, pBuffer);
+                        fsciBleGetUint16ValueFromBuffer(connParams.currentEventCounter, pBuffer);
+                        
+                        fsciBleGapHandoverCallApiFunction(Gap_HandoverApplyConnectionUpdateProcedure(&connParams));
+                    }
+                    break;
 #endif /* gFsciBleBBox_d || gFsciBleTest_d */
 
                 default:
@@ -562,6 +580,18 @@ void fsciBleGapHandoverGenericEvtMonitor(gapGenericEvent_t* pGenericEvent)
         case gHandoverLlPendingData_c:
             {
                 opCode = gBleGapHandoverEvtLlPendingDataOpCode_c;
+            }
+            break;
+            
+        case gHandoverConnectionUpdateProcedureEvent_c:
+            {
+                opCode = gBleGapHandoverEvtConnectionUpdateProcedureOpCode_c;
+            }
+            break;
+            
+        case gHandoverApplyConnectionUpdateProcedureComplete_c:
+            {
+                opCode = gBleGapHandoverEvtApplyConnectionUpdateProcedureCompleteOpCode_c;
             }
             break;
 

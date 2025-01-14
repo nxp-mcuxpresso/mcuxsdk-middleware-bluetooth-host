@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -402,6 +402,8 @@ static const int16_t maGenericEvent2ToOpcode[]= {
     -1,
     -1,
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
+    -1,                                                                                      /* reserved: 0x4FU */
+    -1,                                                                                      /* reserved: 0x50U */
 };
 
 

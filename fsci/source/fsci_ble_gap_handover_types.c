@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2022-2024 NXP
+* Copyright 2022-2025 NXP
 *
 *
 * \file
@@ -124,6 +124,19 @@ static void fsciBleGapHandoverGetBufferFromConnParamUpdateEventParams
 static void fsciBleGapHandoverGetBufferFromLlPendingDataEventParams
 (
     handoverLlPendingDataIndication_t   *pHandoverLlPendingDataEventParams,
+    uint8_t                             **ppBuffer
+);
+
+/*! *********************************************************************************
+* \brief  Places Connection Update Procedure parameters update event parameters into a buffer.
+*
+* \param[in]       pHandoverConnectionUpdateProcedureEventParams  Pointer to the params structure.
+* \param[in,out]   ppBuffer                                       Double pointer to the buffer.
+*
+********************************************************************************** */
+static void fsciBleGapHandoverGetBufferFromConnectionUpdateProcedureEventParams
+(
+    handoverConnectionUpdateProcedureEvent_t   *pHandoverConnectionUpdateProcedureEventParams,
     uint8_t                             **ppBuffer
 );
 /************************************************************************************
@@ -331,6 +344,19 @@ uint32_t fsciBleGapHandoverGetGenericEventBufferSize(gapGenericEvent_t* pGeneric
                               pGenericEvent->eventData.handoverLlPendingDataIndication.dataSize;
             }
             break;
+            
+        case gHandoverConnectionUpdateProcedureEvent_c:
+            {
+                bufferSize += sizeof(uint16_t) + sizeof(uint8_t) +
+                              6 * sizeof(uint16_t);
+            }
+            break;
+            
+        case gHandoverApplyConnectionUpdateProcedureComplete_c:
+            {
+                bufferSize += sizeof(uint16_t);
+            }
+            break;
 
         default:
             ; /* For MISRA compliance */
@@ -460,6 +486,18 @@ void fsciBleGapHandoverGetBufferFromGenericEvent(gapGenericEvent_t* pGenericEven
         case gHandoverLlPendingData_c:
             {
                 fsciBleGapHandoverGetBufferFromLlPendingDataEventParams(&pGenericEvent->eventData.handoverLlPendingDataIndication, ppBuffer);
+            }
+            break;
+            
+        case gHandoverConnectionUpdateProcedureEvent_c:
+            {
+                fsciBleGapHandoverGetBufferFromConnectionUpdateProcedureEventParams(&pGenericEvent->eventData.handoverConnectionUpdateProcedure, ppBuffer);
+            }
+            break;
+            
+        case gHandoverApplyConnectionUpdateProcedureComplete_c:
+            {
+                fsciBleGetBufferFromUint16Value(pGenericEvent->eventData.handoverApplyConnectionUpdateProcedure.connectionHandle, *ppBuffer);
             }
             break;
 
@@ -683,6 +721,22 @@ static void fsciBleGapHandoverGetBufferFromLlPendingDataEventParams
 {
     fsciBleGetBufferFromUint16Value(pHandoverLlPendingDataEventParams->dataSize, *ppBuffer);
     FLib_MemCpy(*ppBuffer, pHandoverLlPendingDataEventParams->pData, pHandoverLlPendingDataEventParams->dataSize);
+}
+
+static void fsciBleGapHandoverGetBufferFromConnectionUpdateProcedureEventParams
+(
+    handoverConnectionUpdateProcedureEvent_t   *pHandoverConnectionUpdateProcedureEventParams,
+    uint8_t                             **ppBuffer
+)
+{
+    fsciBleGetBufferFromUint16Value(pHandoverConnectionUpdateProcedureEventParams->connectionHandle, *ppBuffer);
+    fsciBleGetBufferFromUint8Value(pHandoverConnectionUpdateProcedureEventParams->winSize, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pHandoverConnectionUpdateProcedureEventParams->winOffset, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pHandoverConnectionUpdateProcedureEventParams->interval, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pHandoverConnectionUpdateProcedureEventParams->latency, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pHandoverConnectionUpdateProcedureEventParams->timeout, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pHandoverConnectionUpdateProcedureEventParams->instant, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pHandoverConnectionUpdateProcedureEventParams->currentEventCounter, *ppBuffer);
 }
 
 #endif /* gFsciIncluded_c && gFsciBleGapLayerEnabled_d */

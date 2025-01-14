@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2022-2024 NXP
+* Copyright 2022-2025 NXP
 *
 *
 * \file gap_handover_types.h
@@ -91,6 +91,17 @@ typedef struct {
     uint8_t                 aChannelMap[gcBleChannelMapSize_c];     /*!< Channel map (FF FF FF FF 1F if all channels are used) */
     uint16_t                eventCounter;                           /*!< Current connection event counter */
 } gapHandoverUpdateConnParams_t;
+
+typedef struct {
+    uint16_t        connHandle;             /*!< Handover Connection Handle */
+    uint8_t         winSize;                /*!< Used to indicate the transmitWindowSize value as: transmitWindowSize = winSize * 1.25 ms */
+    uint16_t        winOffset;              /*!< Used to indicate the transmitWindowOffset value as: transmitWindowOffset = winOffset * 1.25 ms */
+    uint16_t        interval;               /*!< Used to indicate the connInterval value, as: connInterval = interval * 1.25 ms */
+    uint16_t        latency;                /*!< Used to indicate the connPeripheralLatency value as: connPeripheralLatency = latency */
+    uint16_t        timeout;                /*!< Used to indicate the connSupervisionTimeout value as: connSupervisionTimeout = timeout * 10 ms */
+    uint16_t        instant;                /*!< Connection event counter value indicating when the new connection parameters are applied */
+    uint16_t        currentEventCounter;    /*!< Current connection event counter */
+} gapHandoverApplyConnectionUpdateProcedure_t;
 #endif /* GAP_HANDOVER_TYPES_H */
 
 /*!*************************************************************************************************

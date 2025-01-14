@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2022-2024 NXP
+* Copyright 2022-2025 NXP
 *
 *
 * \file gap_handover_interface.h
@@ -346,6 +346,20 @@ bleResult_t Gap_HandoverUpdateConnParams
     gapHandoverUpdateConnParams_t *pConnParams
 );
 
+/*!*************************************************************************************************
+* \fn           bleResult_t Gap_HandoverApplyConnectionUpdateProcedure(gapHandoverApplyConnectionUpdateProcedure_t *pConnParams)
+*
+* \brief        This command is used to apply the new connection parameters in case of Connection
+*               Update Procedure on the active controller.
+*
+* \param [in]   pConnParams         Pointer to connection parameters to be applied
+*
+* \return       gBleSuccess_c or error
+***************************************************************************************************/
+bleResult_t Gap_HandoverApplyConnectionUpdateProcedure
+(
+    gapHandoverApplyConnectionUpdateProcedure_t *pConnParams
+);
 #ifdef __cplusplus
 }
 #endif

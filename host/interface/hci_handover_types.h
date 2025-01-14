@@ -3,7 +3,7 @@
 * @{
 ***************************************************************************************************/
 /*! *********************************************************************************
-* Copyright 2022-2024 NXP
+* Copyright 2022-2025 NXP
 *
 *
 * \file hci_handover_types.h
@@ -33,6 +33,7 @@
 #define gHciVendorHandoverTimeSyncReceiveCommand_c               0x00ABU
 #define gHciVendorHandoverGetCsLlContext_c                       0x00ACU
 #define gHciVendorHandoverUpdateConnParams_c                     0x00ADU
+#define gHciVendorHandoverApplyConnectionUpdateProcedure_c       0x00B8U
 /************************************************************************************
 *************************************************************************************
 * Public type definitions
@@ -45,6 +46,7 @@ typedef enum
     gHciVendorHandoverConnParamsUpdateEvent_c               = 0xA3,
     gHciVendorHandoverAnchorMonitorPacketEvent_c            = 0xA4,
     gHciVendorHandoverAnchorMonitorPacketContinueEvent_c    = 0xA5,
+    gHciVendorHandoverConnectionUpdateProcedureEvent_c      = 0xA7,
 } hciVendorHandoverEventCode_tag;
 
 #endif /* HCI_HANDOVER_TYPES_H */

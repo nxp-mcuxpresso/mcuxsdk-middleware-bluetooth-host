@@ -891,6 +891,8 @@ typedef enum {
     gPeriodicAdvSetSubeventDataComplete_c               = 0x4CU, /*!< Periodic advertising subevent data has been successfully set. */
     gPeriodicAdvSetResponseDataComplete_c               = 0x4DU, /*!< Periodic advertising response data has been successfully set. */
     gPeriodicSyncSubeventComplete_c                     = 0x4EU, /*!< Set Sync Subevent command successfully completed. */
+    gHandoverConnectionUpdateProcedureEvent_c           = 0x4FU, /*!< This event is used to report the new connection parameters indicated during the Connection Update procedure */
+    gHandoverApplyConnectionUpdateProcedureComplete_c   = 0x50U, /*!< This event is used to report the new connection parameters indicated during the Connection Update procedure */
 } gapGenericEventType_t;
 
 /*! Internal Error Source - the command that triggered the error */
@@ -1032,6 +1034,7 @@ typedef enum {
     gLeSetPeriodicAdvResponseData_c = 0x86U,
     gLeSetPeriodicSyncSubevent_c = 0x87U,
     gLePeriodicAdvResponseReport_c = 0x88U,
+	gHandoverApplyConnectionUpdateProcedure_c = 0x89U,  /*!< An error occurred during the Handover Apply Connection Update procedure */
 } gapInternalErrorSource_t;
 
 /*! Internal Error Event Data */
@@ -1314,6 +1317,18 @@ typedef struct handoverAnchorMonitorPacketContinueEvent_tag
     uint8_t  *pPdu;             /*!< Full or first part of the data PDU including: PDU header, payload if present, MIC if present, CRC */
 } handoverAnchorMonitorPacketContinueEvent_t;
 
+typedef struct handoverConnectionUpdateProcedureEvent_tag
+{
+    uint16_t        connectionHandle;       /*!< Connection identifier */
+    uint8_t         winSize;                /*!< Used to indicate the transmitWindowSize value as: transmitWindowSize = winSize * 1.25 ms */
+    uint16_t        winOffset;              /*!< Used to indicate the transmitWindowOffset value as: transmitWindowOffset = winOffset * 1.25 ms */
+    uint16_t        interval;               /*!< Used to indicate the connInterval value, as: connInterval = interval * 1.25 ms */
+    uint16_t        latency;                /*!< Used to indicate the connPeripheralLatency value as: connPeripheralLatency = latency */
+    uint16_t        timeout;                /*!< Used to indicate the connSupervisionTimeout value as: connSupervisionTimeout = timeout * 10 ms */
+    uint16_t        instant;                /*!< Connection event counter value indicating when the new connection parameters are applied */
+    uint16_t        currentEventCounter;    /*!< Current connection event counter */
+} handoverConnectionUpdateProcedureEvent_t;
+
 typedef struct handoverTimeSyncEvent_tag
 {
     uint32_t txClkSlot;     /*!< Transmitter packet start time in slot (625 us) */
@@ -1325,7 +1340,7 @@ typedef struct handoverTimeSyncEvent_tag
 
 typedef struct handoverConnParamUpdateEvent_tag
 {
-    uint8_t         status;             /*!< Status indicating the event trigger source: bit 0: remote SN^NESN toggled; bit 1: local SN^NESN toggled; bit 2: connection update procedure; bit 3: phy update procedure; bit 4: channel map update procedure */
+    uint8_t         status;             /*!< Status indicating the event trigger source: bit 0: remote SN^NESN toggled; bit 1: local SN^NESN toggled; bit 2: RFU; bit 3: phy update procedure; bit 4: channel map update procedure */
     uint16_t        connectionHandle;   /*!< Connection identifier */
     uint32_t        ulTxAccCode;        /*!< Access address */
     uint8_t         aCrcInitVal[3U];    /*!< CRC init */
@@ -1367,6 +1382,11 @@ typedef struct handoverUpdateConnParams_tag
     bleResult_t status;             /*!< Command status */
     uint16_t    connectionHandle;   /*!< Connection identifier */
 } handoverUpdateConnParams_t;
+
+typedef struct handoverApplyConnectionUpdateProcedure_tag
+{
+    uint16_t    connectionHandle;   /*!< Connection identifier */
+} handoverApplyConnectionUpdateProcedure_t;
 
 typedef struct handoverAnchorNotificationStateChanged_tag
 {
@@ -1458,6 +1478,8 @@ typedef struct {
         handoverAnchorMonitorPacketContinueEvent_t  handoverAnchorMonitorPacketContinue;    /*!< Data for the gHandoverAnchorMonitorPacketContinueEvent_c event. pPdu must be freed by the application */
         handoverUpdateConnParams_t                  handoverUpdateConnParams;               /*!< Data for the gHandoverUpdateConnParamsComplete_c event */
         handoverLlPendingDataIndication_t           handoverLlPendingDataIndication;        /*!< Data for the gHandoverLlPendingData_c event */
+        handoverConnectionUpdateProcedureEvent_t    handoverConnectionUpdateProcedure;      /*!< Data for the gHandoverConnectionUpdateProcedureEvent_c event */
+        handoverApplyConnectionUpdateProcedure_t    handoverApplyConnectionUpdateProcedure; /*!< Data for the gHandoverApplyConnectionUpdateProcedureComplete_c event */
     } eventData;                            /*!< Event data, selected according to event type. */
 } gapGenericEvent_t;
 

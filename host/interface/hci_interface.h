@@ -199,6 +199,19 @@ typedef struct
 /*! Vendor Handover Meta Event : 0xFF */
 typedef struct
 {
+    uint16_t        connectionHandle;
+    uint8_t         winSize;
+    uint16_t        winOffset;
+    uint16_t        interval;
+    uint16_t        latency;
+    uint16_t        timeout;
+    uint16_t        instant;
+    uint16_t        currentEventCounter;
+} hciVendorHandoverConnectionUpdateProcedureEvent_t;
+
+/*! Vendor Handover Meta Event : 0xFF */
+typedef struct
+{
     uint8_t eventType;
     union
     {
@@ -207,6 +220,7 @@ typedef struct
         hciVendorHandoverConnParamUpdateEvent_t                 connParamUpdateEvent;
         hciVendorHandoverAnchorMonitorPacketEvent_t             anchorMonitorPacketEvent;
         hciVendorHandoverAnchorMonitorPacketContinueEvent_t     anchorMonitorPacketContinueEvent;
+        hciVendorHandoverConnectionUpdateProcedureEvent_t       connectionUpdateProcedureEvent;
     } handoverEventData;
 } hciVendorHandoverMetaEvent_t;
 
@@ -2730,6 +2744,13 @@ typedef struct hciVendorHandoverUpdateConnParamsCommandComplete_tag
     uint16_t        connectionHandle;
 } hciVendorHandoverUpdateConnParamsCommandComplete_t;
 
+/*! HCI_Vendor_Handover_Apply_Connection_Update_Procedure - Return Parameters */
+typedef struct hciVendorHandoverApplyConnectionUpdateProcedureCommandComplete_tag
+{
+    hciErrorCode_t  status;
+    uint16_t        connectionHandle;
+} hciVendorHandoverApplyConnectionUpdateProcedureCommandComplete_t;
+
 /*! HCI_Vendor_Set Encryption Session Key - Return Parameters */
 typedef struct hciVendorSetEncSessionKeyCommandComplete_tag
 {
@@ -2975,6 +2996,7 @@ typedef struct
         hciVendorHandoverTimeSyncTransmitCommandComplete_t       hciVendorHandoverTimeSyncTransmitCommComplete;
         hciVendorHandoverTimeSyncReceiveCommandComplete_t        hciVendorHandoverTimeSyncReceiveCommComplete;
         hciVendorHandoverUpdateConnParamsCommandComplete_t       hciVendorUpdateConnParamsCommComplete;
+        hciVendorHandoverApplyConnectionUpdateProcedureCommandComplete_t    hciVendorHandoverApplyConnectionUpdateProcedureCommComplete;
 #endif /* (gHandoverSupport_d == TRUE) */
 #if defined(gHostSecureMode_d) && (gHostSecureMode_d == TRUE)
         hciVendorSetEncSessionKeyCommandComplete_t               hciVendorSetEncSessionKeyCommandComplete;

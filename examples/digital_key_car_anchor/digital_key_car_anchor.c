@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file digital_key_car_anchor.c
 *
-* Copyright 2020-2024 NXP
+* Copyright 2020-2025 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -317,6 +317,8 @@ void BleApp_GenericCallback (gapGenericEvent_t* pGenericEvent)
         case gHandoverAnchorMonitorPacketContinueEvent_c:
         case gHandoverFreeComplete_c:
         case gHandoverLlPendingData_c:
+        case gHandoverConnectionUpdateProcedureEvent_c:
+        case gHandoverApplyConnectionUpdateProcedureComplete_c:
         {
             AppHandover_GenericCallback(pGenericEvent);
         }

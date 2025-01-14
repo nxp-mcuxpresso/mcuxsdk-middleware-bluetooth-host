@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2022-2024 NXP
+* Copyright 2022-2025 NXP
 *
 *
 * \file hci_handover_interface.h
@@ -139,6 +139,19 @@ typedef struct hciVendorHandoverUpdateConnParamsCommand_tag
     uint8_t                 aChannelMap[gcBleChannelMapSize_c];     /*!< Channel map (FF FF FF FF 1F if all channels are used) */
     uint16_t                eventCounter;                           /*!< Current connection event counter */
 } hciVendorHandoverUpdateConnParamsCommand_t;
+
+/*! OCF 0xFCB8 */
+typedef struct hciVendorHandoverApplyConnectionUpdateProcedure_tag
+{
+    uint16_t        connHandle;             /*!< Handover Connection Handle */
+    uint8_t         winSize;                /*!< Used to indicate the transmitWindowSize value as: transmitWindowSize = winSize * 1.25 ms */
+    uint16_t        winOffset;              /*!< Used to indicate the transmitWindowOffset value as: transmitWindowOffset = winOffset * 1.25 ms */
+    uint16_t        interval;               /*!< Used to indicate the connInterval value, as: connInterval = interval * 1.25 ms */
+    uint16_t        latency;                /*!< Used to indicate the connPeripheralLatency value as: connPeripheralLatency = latency */
+    uint16_t        timeout;                /*!< Used to indicate the connSupervisionTimeout value as: connSupervisionTimeout = timeout * 10 ms */
+    uint16_t        instant;                /*!< Connection event counter value indicating when the new connection parameters are applied */
+    uint16_t        currentEventCounter;    /*!< Current connection event counter */
+} hciVendorHandoverApplyConnectionUpdateProcedure_t;
 /************************************************************************************
 *************************************************************************************
 * Public prototypes
@@ -362,6 +375,22 @@ bleResult_t Hci_VendorHandoverTimeSyncReceive(hciVendorHandoverTimeSyncReceiveCo
 *
 ********************************************************************************** */
 bleResult_t Hci_VendorHandoverUpdateConnParams(hciVendorHandoverUpdateConnParamsCommand_t *pParam);
+
+/*! *********************************************************************************
+* \fn           bleResult_t Hci_VendorHandoverApplyConnectionUpdateProcedure(hciVendorHandoverApplyConnectionUpdateProcedure_t *pParam)
+*
+* \brief        The function sends the HCI LE Handover Apply Connection Update Procedure
+*               (OGF : 0x3f; OCF : 0x00B8) command to the Controller.
+*
+* \param[in]    pParam  pointer to a structure containing the connection parameters to be applied
+* \param[out]   None
+*
+* \return       Status
+*
+* \remarks      HCI Vendor Specific Command
+*
+********************************************************************************** */
+bleResult_t Hci_VendorHandoverApplyConnectionUpdateProcedure(hciVendorHandoverApplyConnectionUpdateProcedure_t *pParam);
 
 #ifdef __cplusplus
 }

@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2022-2024 NXP
+* Copyright 2022-2025 NXP
 *
 *
 * \file
@@ -125,6 +125,7 @@ typedef enum
     gBleGapHandoverCmdSetCsLlContextOpCode_c                    = 0x10,                               /*! Gap_HandoverSetCsLlContext command operation code */
     gBleGapHandoverUpdateConnParamsOpCode_c                     = 0x11,                               /*! Gap_HandoverUpdateConnParams command operation code */
     gBleGapHandoverSetLlPendingDataOpCode_c                     = 0x12,                               /*! Gap_HandoverSetLlPendingData command operation code */
+    gBleGapHandoverApplyConnectionUpdateProcedureOpCode_c       = 0x13,                               /*! Gap_HandoverApplyConnectionUpdateProcedure command operation code */
     
     gBleGapHandoverStatusOpCode_c                               = 0x80,                               /*! GAP status operation code */
 
@@ -151,6 +152,8 @@ typedef enum
     gBleGapHandoverEvtAnchorMonitorPacketContinueOpCode_c       = 0x95,                               /*! gapGenericCallback (type = gHandoverAnchorMonitorPacketContinueEvent_c) event operation code */
     gBleGapHandoverEvtUpdateConnParamsCompleteOpCode_c          = 0x96,                               /*! gapGenericCallback (type = gHandoverUpdateConnParamsComplete_c) event operation code */
     gBleGapHandoverEvtLlPendingDataOpCode_c                     = 0x97,                               /*! gapGenericCallback (type = gHandoverLlPendingData_c) event operation code */
+    gBleGapHandoverEvtConnectionUpdateProcedureOpCode_c         = 0x98,                               /*! gapGenericCallback (type = gHandoverConnectionUpdateProcedureEvent_c) event operation code */
+    gBleGapHandoverEvtApplyConnectionUpdateProcedureCompleteOpCode_c    = 0x99,                               /*! gapGenericCallback (type = gHandoverApplyConnectionUpdateProcedureComplete_c) event operation code */
 
 }fsciBleGapHandoverOpCode_t;
 

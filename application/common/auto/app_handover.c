@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************************************************* */
 /*! ********************************************************************************************************************
-* Copyright 2022-2024 NXP
+* Copyright 2022-2025 NXP
 *
 *
 * \file app_handover.c
@@ -513,7 +513,7 @@ void AppHandover_ProcessA2ACommand
             {
                 if (maAppMonitorData[i].monitorConnHandle == gMonitorConnectionHandlePending)
                 {
-                    maAppMonitorData[i].monitorConnHandle = Utils_BeExtractTwoByteValue(pCmdData);
+                    maAppMonitorData[i].monitorConnHandle = Utils_ExtractTwoByteValue(pCmdData);
                 }
             }
         }
@@ -523,9 +523,9 @@ void AppHandover_ProcessA2ACommand
         {
             appHandoverAnchorMonitorEvent_t appAnchMntEvt = {0U};
             
-            appAnchMntEvt.anchorMntEvt.connectionHandle = Utils_BeExtractTwoByteValue(pCmdData);
+            appAnchMntEvt.anchorMntEvt.connectionHandle = Utils_ExtractTwoByteValue(pCmdData);
             pCmdData = &pCmdData[2];
-            appAnchMntEvt.anchorMntEvt.connEvent = Utils_BeExtractTwoByteValue(pCmdData);
+            appAnchMntEvt.anchorMntEvt.connEvent = Utils_ExtractTwoByteValue(pCmdData);
             pCmdData = &pCmdData[2];
             appAnchMntEvt.anchorMntEvt.rssiRemote = *pCmdData++;
             appAnchMntEvt.anchorMntEvt.lqiRemote = *pCmdData++;
@@ -535,7 +535,7 @@ void AppHandover_ProcessA2ACommand
             appAnchMntEvt.anchorMntEvt.statusActive = *pCmdData++;
             appAnchMntEvt.anchorMntEvt.anchorClock625Us = Utils_BeExtractFourByteValue(pCmdData);
             pCmdData = &pCmdData[4];
-            appAnchMntEvt.anchorMntEvt.anchorDelay = Utils_BeExtractTwoByteValue(pCmdData);
+            appAnchMntEvt.anchorMntEvt.anchorDelay = Utils_ExtractTwoByteValue(pCmdData);
             pCmdData = &pCmdData[2];
             appAnchMntEvt.anchorMntEvt.chIdx = *pCmdData++;
             appAnchMntEvt.anchorMntEvt.ucNbReports = *pCmdData++;
@@ -559,7 +559,7 @@ void AppHandover_ProcessA2ACommand
             
             appPktMntEvt.pktMntEvt.packetCounter = *pCmdData;
             pCmdData = &pCmdData[1];
-            appPktMntEvt.pktMntEvt.connectionHandle = Utils_BeExtractTwoByteValue(pCmdData);
+            appPktMntEvt.pktMntEvt.connectionHandle = Utils_ExtractTwoByteValue(pCmdData);
             pCmdData = &pCmdData[2];
             appPktMntEvt.pktMntEvt.statusPacket = *pCmdData;
             pCmdData = &pCmdData[1];
@@ -571,11 +571,11 @@ void AppHandover_ProcessA2ACommand
             pCmdData = &pCmdData[1];
             appPktMntEvt.pktMntEvt.lqiPacket = *pCmdData;
             pCmdData = &pCmdData[1];
-            appPktMntEvt.pktMntEvt.connEvent = Utils_BeExtractTwoByteValue(pCmdData);
+            appPktMntEvt.pktMntEvt.connEvent = Utils_ExtractTwoByteValue(pCmdData);
             pCmdData = &pCmdData[2];
             appPktMntEvt.pktMntEvt.anchorClock625Us = Utils_BeExtractFourByteValue(pCmdData);
             pCmdData = &pCmdData[4];
-            appPktMntEvt.pktMntEvt.anchorDelay = Utils_BeExtractTwoByteValue(pCmdData);
+            appPktMntEvt.pktMntEvt.anchorDelay = Utils_ExtractTwoByteValue(pCmdData);
             pCmdData = &pCmdData[2];
             appPktMntEvt.pktMntEvt.ucNbConnIntervals = *pCmdData;
             pCmdData = &pCmdData[1];
@@ -611,7 +611,7 @@ void AppHandover_ProcessA2ACommand
             
             appPacketContinueMntEvt.pktMntCntEvt.packetCounter = *pCmdData;
             pCmdData = &pCmdData[1];
-            appPacketContinueMntEvt.pktMntCntEvt.connectionHandle = Utils_BeExtractTwoByteValue(pCmdData);
+            appPacketContinueMntEvt.pktMntCntEvt.connectionHandle = Utils_ExtractTwoByteValue(pCmdData);
             pCmdData = &pCmdData[2];
             appPacketContinueMntEvt.pktMntCntEvt.pduSize = *pCmdData;
             pCmdData = &pCmdData[1];
@@ -636,7 +636,7 @@ void AppHandover_ProcessA2ACommand
         
         case gHandoverStopAnchorMonitorCommandOpCode_c:
         {
-            uint16_t connectionHandle = Utils_BeExtractTwoByteValue(pCmdData);
+            uint16_t connectionHandle = Utils_ExtractTwoByteValue(pCmdData);
             (void)anchorMonitorStop(connectionHandle);
         }
         break;
@@ -644,7 +644,7 @@ void AppHandover_ProcessA2ACommand
         case gHandoverAnchMonStoppedCommandOpCode_c:
         {
             bool_t anchMonInProgress = FALSE;
-            uint16_t connectionHandle = Utils_BeExtractTwoByteValue(pCmdData);
+            uint16_t connectionHandle = Utils_ExtractTwoByteValue(pCmdData);
             
             for (uint8_t i = 0U; i < gAppMaxConnections_c; i++)
             {
@@ -714,6 +714,39 @@ void AppHandover_ProcessA2ACommand
             uint8_t nvmIndex = *pCmdData;
             pCmdData++;
             (void)AppHandover_SetPeerSkd(nvmIndex, pCmdData);
+        }
+        break;
+        
+        case gHandoverLConnectionUpdateParamsCommandOpCode_c:
+        {
+            gapHandoverApplyConnectionUpdateProcedure_t connParams = {0U};
+            
+            connParams.connHandle = Utils_ExtractTwoByteValue(pCmdData);
+            pCmdData = &pCmdData[2];
+            connParams.winSize = *pCmdData;
+            pCmdData = &pCmdData[1];
+            connParams.winOffset = Utils_ExtractTwoByteValue(pCmdData);
+            pCmdData = &pCmdData[2];
+            connParams.interval = Utils_ExtractTwoByteValue(pCmdData);
+            pCmdData = &pCmdData[2];
+            connParams.latency = Utils_ExtractTwoByteValue(pCmdData);
+            pCmdData = &pCmdData[2];
+            connParams.timeout = Utils_ExtractTwoByteValue(pCmdData);
+            pCmdData = &pCmdData[2];
+            connParams.instant = Utils_ExtractTwoByteValue(pCmdData);
+            pCmdData = &pCmdData[2];
+            connParams.currentEventCounter = Utils_ExtractTwoByteValue(pCmdData);
+            /* Save connection handle for error handling */
+            mHandoverConnHandle = connParams.connHandle;
+            
+            result = Gap_HandoverApplyConnectionUpdateProcedure(&connParams);
+            
+            if (result != gBleSuccess_c)
+            {
+                /* Abort anchor monitoring */
+                mAppHandoverState = gAnchorMonitorLocal_c;
+                error = mAppHandover_ConnParamsUpdateFail_c;
+            }
         }
         break;
 
@@ -1265,6 +1298,44 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
         }
         break;
 
+        case gHandoverConnectionUpdateProcedureEvent_c:
+        {
+            handoverConnectionUpdateProcedureEvent_t *pConnParams = &pGenericEvent->eventData.handoverConnectionUpdateProcedure;
+            uint16_t monitoredConnHandle = gInvalidConnectionHandle_c;
+            deviceId_t deviceId = gInvalidDeviceId_c;
+            bleResult_t status = gBleSuccess_c;
+            /* Notify peer anchor only if anchor monitoring is in progress for this connection */
+            status = Gap_GetDeviceIdFromConnHandle(pConnParams->connectionHandle, &deviceId);
+            
+            if ((status == gBleSuccess_c) && (deviceId != gInvalidDeviceId_c))
+            {
+                monitoredConnHandle = getMonitoredConnHandle(deviceId);
+                
+                if (monitoredConnHandle != gInvalidConnectionHandle_c)
+                {
+                    /* Anchor Monitoring is started for this connection */
+                    uint8_t buf[gHandoverConnectionUpdateProcedureCommandLen_c] = {0U};
+                    Utils_PackTwoByteValue(monitoredConnHandle, &buf[0]);
+                    buf[2] = pConnParams->winSize;
+                    Utils_PackTwoByteValue(pConnParams->winOffset, &buf[3]);
+                    Utils_PackTwoByteValue(pConnParams->interval, &buf[5]);
+                    Utils_PackTwoByteValue(pConnParams->latency, &buf[7]);
+                    Utils_PackTwoByteValue(pConnParams->timeout, &buf[9]);
+                    Utils_PackTwoByteValue(pConnParams->instant, &buf[11]);
+                    Utils_PackTwoByteValue(pConnParams->currentEventCounter, &buf[13]);
+                    
+                    notifyRemoteDevice(gHandoverLConnectionUpdateParamsCommandOpCode_c, gHandoverConnectionUpdateProcedureCommandLen_c, buf);
+                }
+            }
+        }
+        break;
+
+        case gHandoverApplyConnectionUpdateProcedureComplete_c:
+        {
+            mHandoverConnHandle = gInvalidConnectionHandle_c;
+        }
+        break;
+
         case gInternalError_c:
         {
             switch (pGenericEvent->eventData.internalError.errorSource)
@@ -1294,6 +1365,14 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
                 case gHandoverTimeSyncRxLl_c:
                 {
                     result = gBleUnexpectedError_c;
+                }
+                break;
+                case gHandoverApplyConnectionUpdateProcedure_c:
+                {
+                    /* Abort anchor monitoring */
+                    result = pGenericEvent->eventData.internalError.errorCode;
+                    mAppHandoverState = gAnchorMonitorLocal_c;
+                    error = mAppHandover_ConnParamsUpdateFail_c;
                 }
                 break;
 #if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1)
@@ -1529,7 +1608,7 @@ bleResult_t AppHandover_AnchorMonitorStart(deviceId_t deviceId)
     else
     {
         mAppHandoverState = gAnchorMonitorRemoteStarting_c;
-        status = Gap_GetConnParamsMonitoring(deviceId, 1U);
+        status = Gap_GetConnParamsMonitoring(deviceId, 3U);
     }
     
     return status;

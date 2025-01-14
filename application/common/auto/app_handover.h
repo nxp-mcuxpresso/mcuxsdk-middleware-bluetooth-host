@@ -3,7 +3,7 @@
  * @{
 ********************************************************************************************************************* */
 /*! ********************************************************************************************************************
-* Copyright 2022-2024 NXP
+* Copyright 2022-2025 NXP
 *
 *
 * \file app_handover.h
@@ -61,17 +61,19 @@ out of gHandoverMonitorPacketNumberFilter_c events */
 #define gHandoverAnchMonStartedCommandOpCode_c          0x0D    /* S2 -> S1 - Inform S1 that Anchor/Packet monitoring has started for the included connection handle */
 #define gHandoverAnchMonStoppedCommandOpCode_c          0x0E    /* S2 -> S1 - Inform S1 that Anchor/Packet monitoring has been stopped for the included connection handle */
 #define gHandoverLlPendingDataCommandOpCode_c           0x0F    /* S1 -> S2 - Inform S2 of the pending LL data */
+#define gHandoverLConnectionUpdateParamsCommandOpCode_c 0x10    /* S1 -> S2 - Inform S2 of new connection parameters */
 
 /* Handover commands length */
-#define gHandoverAnchorStartSearchCommandLen_c      49U
-#define gHandoverSetSkdCommandLen_c                 17U
-#define gHandoverCsLlContextCommandLen_c            260U /* temporary value */
-#define gHandoverAnchorMonitorLen_c                 18U
-#define gHandoverPacketMonitorMaxLen_c              274U
-#define gHandoverPacketContinueMonitorMaxLen_c      259U
-#define gHandoverAnchMonStartedCommandLen_c         2U
-#define gHandoverAnchMonStopCommandLen_c            2U
-#define gHandoverAnchMonStoppedCommandLen_c         2U
+#define gHandoverAnchorStartSearchCommandLen_c          49U
+#define gHandoverSetSkdCommandLen_c                     17U
+#define gHandoverCsLlContextCommandLen_c                260U /* temporary value */
+#define gHandoverAnchorMonitorLen_c                     18U
+#define gHandoverPacketMonitorMaxLen_c                  274U
+#define gHandoverPacketContinueMonitorMaxLen_c          259U
+#define gHandoverAnchMonStartedCommandLen_c             2U
+#define gHandoverAnchMonStopCommandLen_c                2U
+#define gHandoverAnchMonStoppedCommandLen_c             2U
+#define gHandoverConnectionUpdateProcedureCommandLen_c  15U
 
 #define gInvalidConnectionHandle_c (0xFFFFU)
 /***********************************************************************************************************************
@@ -117,6 +119,7 @@ typedef enum appHandoverError_tag {
     mAppHandover_UnexpectedError_c,
     mAppHandover_AnchorSearchFailedToSync_c,
     mAppHandover_OutOfMemory_c,
+    mAppHandover_ConnParamsUpdateFail_c,
 } appHandoverError_t;
 
 typedef void (*appHandoverEventCb_t)(appHandoverEvent_t eventType, void *pData);
