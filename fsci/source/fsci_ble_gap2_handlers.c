@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2023-2024 NXP
+* Copyright 2023-2025 NXP
 *
 *
 * \file
@@ -25,6 +25,7 @@
 #include "fsci_ble_gap2_handlers.h"
 #include "hci_types.h"
 #include "fwk_seclib.h"
+#include "controller_api.h"
 
 #if gFsciIncluded_c && gFsciBleGap2LayerEnabled_d
 
@@ -237,6 +238,23 @@ void HandleGapCmdSetPeriodicAdvParametersV2OpCode
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif /* defined(gBLE54_d) && (gBLE54_d == 1U) */
 
+/*! *********************************************************************************
+*\private
+*\fn           void HandleCtrlCmdGetTimestampExOpCode(uint8_t *pBuffer,
+*                                                     uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleCtrlCmdGetTimestampExOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */   
+static void HandleCtrlCmdGetTimestampExOpCode
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -290,6 +308,7 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
     NULL,
     NULL,
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
+    HandleCtrlCmdGetTimestampExOpCode,                                          /* = 0x13, gBleCtrlCmdGetTimestampExOpCode_c */
 };
 
 #if gFsciBleTest_d
@@ -1367,6 +1386,59 @@ void fsciBleCtrlDebugInfoCmdMonitor
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
+/*! *********************************************************************************
+*\fn           void fsciBleCtrlGetTimestampExCmdMonitor(
+*                                           uint32_t    ll_timing_slot,
+*                                           uint16_t    ll_timing_us,
+*                                           uint64_t    tstmr)
+*
+*\brief        Constructs the FSCI packet by serializing the input parameters
+*              executes FSCI transmit.
+*
+*\param[in]    ll_timing_slot   Link layer timing slot
+*\param[in]    ll_timing_us     Link layer timing micro second offset inside the slot
+*\param[in]    tstmr            TSTMR value in us when capturing the link layer timing
+*
+*\retval       void.
+********************************************************************************** */
+void fsciBleCtrlGetTimestampExCmdMonitor
+(
+    uint32_t    ll_timing_slot,
+    uint16_t    ll_timing_us,
+    uint64_t    tstmr
+)
+{
+    clientPacketStructured_t   *pClientPacket;
+    uint8_t                    *pBuffer;
+
+#if gFsciBleTest_d
+    /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
+    if(FALSE == bFsciBleGap2Enabled)
+    {
+        return;
+    }
+#endif /* gFsciBleTest_d */
+
+    /* Allocate the packet to be sent over UART */
+    pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlEvtGetTimestampExOpCode_c,
+                                               sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint64_t));
+
+    if (NULL == pClientPacket)
+    {
+        return;
+    }
+
+    pBuffer = &pClientPacket->payload[0];
+
+    /* Set command parameters in the buffer */
+    fsciBleGetBufferFromUint32Value(ll_timing_slot, pBuffer);
+    fsciBleGetBufferFromUint16Value(ll_timing_us, pBuffer);
+    fsciBleGetBufferFromUint64Value(tstmr, pBuffer);
+
+    /* Transmit the packet over UART */
+    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+}
+
 #if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)
 /*! *********************************************************************************
 *\private
@@ -1834,6 +1906,33 @@ void HandleGapCmdSetPeriodicAdvParametersV2OpCode(uint8_t *pBuffer, uint32_t fsc
 }
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif /* defined(gBLE54_d) && (gBLE54_d == 1U) */
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleCtrlCmdGetTimestampExOpCode(uint8_t *pBuffer,
+*                                                     uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleCtrlCmdGetTimestampExOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */   
+void HandleCtrlCmdGetTimestampExOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
+{
+    uint32_t ll_timing_slot = 0U;
+    uint16_t ll_timing_us = 0U;
+    uint64_t tstmr = 0U;
+
+    bleResult_t result = (bleResult_t)Controller_GetTimestampEx(&ll_timing_slot, &ll_timing_us, &tstmr);
+
+    fsciBleGap2StatusMonitor(result);
+
+    if (result == gBleSuccess_c)
+    {
+        fsciBleCtrlGetTimestampExCmdMonitor(ll_timing_slot, ll_timing_us, tstmr);
+    }
+}
 
 #endif /* gFsciBleGap2LayerEnabled_d */
 /*! *********************************************************************************

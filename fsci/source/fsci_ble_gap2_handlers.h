@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2023-2024 NXP
+* Copyright 2023-2025 NXP
 *
 *
 * \file
@@ -71,6 +71,7 @@ typedef enum
     gBleGapCmdSetPeriodicSyncSubeventOpCode_c                                   = 0x10,                     /*! Gap_SetPeriodicSyncSubevent command operation code */
     gBleGapCmdConnectV2OpCode_c                                                 = 0x11,                     /*! Gap_ConnectFromPawr command operation code */
     gBleGapCmdSetPeriodicAdvParametersV2OpCode_c                                = 0x12,
+    gBleCtrlCmdGetTimestampExOpCode_c                                           = 0x13,                     /*! Controller_GetTimestampEx command operation code */
 
     gBleGap2StatusOpCode_c                                                      = 0x80,                     /*! GAP2 status operation code */
     gBleCtrlDebugInfoOpCode_c                                                   = 0x81,                     /*! Debug data from gBleCtrlCmdGetDebugInfoCmdOpCode_c */
@@ -90,6 +91,7 @@ typedef enum
     gBleGapEvtScanningEventPeriodicDeviceScannedV2OpCode_c                      = 0x90,                     /*! gapScanningCallback (type = gPeriodicDeviceScannedV2_c) event operation code */
     gBleGapEvtAdvertisingEventPerAdvSubeventDataRequestOpCode_c                 = 0x91,                     /*! gapAdvertisingCallback (type = gPerAdvSubeventDataRequest_c) event operation code */
     gBleGapEvtAdvertisingEventPerAdvResponseOpCode_c                            = 0x92,
+    gBleCtrlEvtGetTimestampExOpCode_c                                           = 0x93,                     /*! Output data from gBleCtrlCmdGetTimestampExOpCode_c */
 } fsciBleGap2OpCode_t;
 
 /************************************************************************************
@@ -194,6 +196,29 @@ void fsciBleCtrlDebugInfoCmdMonitor
 (
     uint32_t    debugInfoSize,
     uint8_t     *pDebugInfo
+);
+
+
+/*! *********************************************************************************
+*\fn           void fsciBleCtrlGetTimestampExCmdMonitor(
+*                                           uint32_t    ll_timing_slot,
+*                                           uint16_t    ll_timing_us,
+*                                           uint64_t    tstmr)
+*
+*\brief        Constructs the FSCI packet by serializing the input parameters
+*              executes FSCI transmit.
+*
+*\param[in]    ll_timing_slot   Link layer timing slot
+*\param[in]    ll_timing_us     Link layer timing micro second offset inside the slot
+*\param[in]    tstmr            TSTMR value in us when capturing the link layer timing
+*
+*\retval       void.
+********************************************************************************** */
+void fsciBleCtrlGetTimestampExCmdMonitor
+(
+    uint32_t    ll_timing_slot,
+    uint16_t    ll_timing_us,
+    uint64_t    tstmr
 );
 
 #ifdef __cplusplus
