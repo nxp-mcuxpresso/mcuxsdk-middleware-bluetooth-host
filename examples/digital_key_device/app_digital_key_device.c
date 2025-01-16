@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file app_digital_key_device.c
 *
-* Copyright 2021-2024 NXP
+* Copyright 2021-2025 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -66,6 +66,7 @@
 appPeerInfo_t maPeerInformation[gAppMaxConnections_c];
 gattCharacteristic_t maCharacteristics[mcNumCharacteristics_c]; /* Index 0 - Vehicle PSM; Index 1 - Vehicle Antenna ID; Index 2 - Tx Power  */
 uint8_t mValVehiclePsm[2];
+uint8_t mValVehiclePsmDkVersion[mcCharVehiclePsmDkVersionLength_c];
 uint16_t mValVehicleAntennaId;
 int8_t mValTxPower;
 uint8_t mCurrentCharReadingIndex;
@@ -115,8 +116,8 @@ static bool_t gAppOutLeSc;
 static bool_t gAppOutAuth;
 #endif
 
-static uint8_t maOutCharReadBuffer[mCharReadBufferLength_c];
-static uint16_t mOutCharReadByteCount;
+uint8_t maOutCharReadBuffer[mCharReadBufferLength_c];
+uint16_t mOutCharReadByteCount;
 
 /* Own address used during discovery. Included in First Approach Response. */
 static uint8_t gaAppOwnDiscAddress[gcBleDeviceAddressSize_c];
@@ -149,6 +150,9 @@ static void BleApp_ListBondingData(void);
 static bleResult_t SetBondingData(uint8_t nvmIndex, bleAddressType_t addressType,
                                   uint8_t* ltk, uint8_t* irk, uint8_t* address);
 #endif
+
+/* CCC Write Characteristic on Car Anchor */
+static void CCC_WriteDeviceSelectedVersion(deviceId_t deviceId);
 
 /* CCC Time Sync */
 static bleResult_t CCC_SendTimeSync(deviceId_t deviceId,
@@ -734,7 +738,7 @@ static void App_HandleGattClientCallback(appEventData_t *pEventData)
             handleRange.startHandle = 0x0001U;
             handleRange.endHandle = 0xFFFFU;
 
-            if (mCurrentCharReadingIndex == mcCharVehiclePsmIndex_c)
+            if ((mCurrentCharReadingIndex == mcCharVehiclePsmIndex_c) || (mCurrentCharReadingIndex == mcCharVehiclePsmDkVersionIndex_c))
             {
                 maCharacteristics[mcCharVehiclePsmIndex_c].value.paValue = mValVehiclePsm;
                 /* length 1 octet, handle 2 octets, value(psm) 2 octets */
@@ -760,22 +764,23 @@ static void App_HandleGattClientCallback(appEventData_t *pEventData)
                                                                  mCharReadBufferLength_c,
                                                                  &mOutCharReadByteCount);
                 }
+                /* Read next char if present */
+                else if (maPeerInformation[pEventData->eventData.peerDeviceId].customInfo.hTxPowerChar != 0x0U)
+                {
+                    mCurrentCharReadingIndex = mcCharTxPowerLevelIndex_c;
+                    charUuid.uuid16 = (uint16_t)gBleSig_TxPower_d;
+
+                    (void)GattClient_ReadUsingCharacteristicUuid(pEventData->eventData.peerDeviceId,
+                                                                 gBleUuidType16_c,
+                                                                 &charUuid,
+                                                                 &handleRange,
+                                                                 maOutCharReadBuffer,
+                                                                 mCharReadBufferLength_c,
+                                                                 &mOutCharReadByteCount);
+                }
                 else
                 {
-                    /* Read next char if present */
-                    if (maPeerInformation[pEventData->eventData.peerDeviceId].customInfo.hTxPowerChar != 0x0U)
-                    {
-                        mCurrentCharReadingIndex = mcCharTxPowerLevelIndex_c;
-                        charUuid.uuid16 = (uint16_t)gBleSig_TxPower_d;
-
-                        (void)GattClient_ReadUsingCharacteristicUuid(pEventData->eventData.peerDeviceId,
-                                                                     gBleUuidType16_c,
-                                                                     &charUuid,
-                                                                     &handleRange,
-                                                                     maOutCharReadBuffer,
-                                                                     mCharReadBufferLength_c,
-                                                                     &mOutCharReadByteCount);
-                    }
+                    CCC_WriteDeviceSelectedVersion(pEventData->eventData.peerDeviceId);
                 }
             }
             else if (mCurrentCharReadingIndex == mcCharVehicleAntennaIdIndex_c)
@@ -800,6 +805,10 @@ static void App_HandleGattClientCallback(appEventData_t *pEventData)
                                                                  mCharReadBufferLength_c,
                                                                  &mOutCharReadByteCount);
                 }
+                else
+                {
+                    CCC_WriteDeviceSelectedVersion(pEventData->eventData.peerDeviceId);
+                }
             }
             else
             {
@@ -810,6 +819,7 @@ static void App_HandleGattClientCallback(appEventData_t *pEventData)
 
                 /* All chars read - reset index */
                 mCurrentCharReadingIndex = mcCharVehiclePsmIndex_c;
+                CCC_WriteDeviceSelectedVersion(pEventData->eventData.peerDeviceId);
             }
             break;
         }
@@ -1438,6 +1448,23 @@ static bleResult_t CCC_SendSubEvent(deviceId_t deviceId,
                             payload);
 
     return result;
+}
+
+/*! *********************************************************************************
+ * \brief        Device writes its selected DK version to Car Anchor.
+ *
+ ********************************************************************************** */
+static void CCC_WriteDeviceSelectedVersion(deviceId_t deviceId)
+{
+    if (maPeerInformation[deviceId].isBonded)
+    {
+        uint8_t aVersion[2] = {0x03, 0x00};
+        (void)GattClient_WriteCharacteristicValue(deviceId,
+                                                  &maCharacteristics[mcCharDeviceSelectedDkVersionIndex_c],
+                                                  2U,
+                                                  aVersion,
+                                                  FALSE, FALSE, FALSE, NULL);
+    }
 }
 
 /*! *********************************************************************************

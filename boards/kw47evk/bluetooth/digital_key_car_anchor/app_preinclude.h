@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*!
- * Copyright 2020-2024 NXP
+ * Copyright 2020-2025 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -68,6 +68,8 @@
   #define gAppLedCnt_c                    0
   #define gAppLpuart0WakeUpSourceEnable_d 1
 #endif
+
+#define gBleLeScOobHasMitmProtection_c    (TRUE)
 /*! *********************************************************************************
  *     CCC Configuration
  ********************************************************************************** */

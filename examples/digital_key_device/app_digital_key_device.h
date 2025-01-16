@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file app_digital_key_device.h
 *
-* Copyright 2021 - 2022, 2024 NXP
+* Copyright 2021 - 2022, 2024-2025 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -26,15 +26,19 @@
 * Public macros
 *************************************************************************************
 ************************************************************************************/
-#define mcNumCharacteristics_c               (3U)
+#define mcNumCharacteristics_c               (5U)
 #define mcCharVehiclePsmIndex_c              (0U)
 #define mcCharVehicleAntennaIdIndex_c        (1U)
 #define mcCharTxPowerLevelIndex_c            (2U)
+#define mcCharVehiclePsmDkVersionIndex_c     (3U)
+#define mcCharDeviceSelectedDkVersionIndex_c (4U)
 
-#define mcCharVehiclePsmLength_c             (2U)
-#define mcCharTxPowerLevelLength_c           (1U)
-#define mcCharVehicleAntennaIdLength_c       (2U)
-#define mCharReadBufferLength_c              (13U)           /* length of the buffer */
+#define mcCharVehiclePsmLength_c              (2U)
+#define mcCharVehiclePsmDkVersionLength_c     (13U) /* accommodate a maximum of four supported versions */
+#define mcCharDeviceSelectedDkVersionLength_c (4U)
+#define mcCharTxPowerLevelLength_c            (1U)
+#define mcCharVehicleAntennaIdLength_c        (2U)
+#define mCharReadBufferLength_c               (13U) /* length of the buffer */
 /************************************************************************************
 *************************************************************************************
 * Public type definitions
@@ -56,6 +60,8 @@ typedef struct appCustomInfo_tag
 {
     uint16_t     hDkService;
     uint16_t     hPsmChannelChar;
+    uint16_t     hPsmVersionChar;
+    uint16_t     hDeviceSelectedVersionChar;
     uint16_t     hAntennaIdChar;
     uint16_t     hTxPowerChar;
     uint16_t     lePsmValue;
@@ -81,8 +87,11 @@ typedef struct appPeerInfo_tag
 extern appPeerInfo_t maPeerInformation[gAppMaxConnections_c];
 extern gattCharacteristic_t maCharacteristics[mcNumCharacteristics_c]; /* Index 0 - Vehicle PSM */
 extern uint8_t mValVehiclePsm[2];
+extern uint8_t mValVehiclePsmDkVersion[mcCharVehiclePsmDkVersionLength_c];
 extern uint16_t mValVehicleAntennaId;
 extern int8_t mValTxPower;
+extern uint8_t maOutCharReadBuffer[mCharReadBufferLength_c];
+extern uint16_t mOutCharReadByteCount;
 extern uint8_t mCurrentCharReadingIndex;
 extern deviceId_t mCurrentPeerId;
 /************************************************************************************

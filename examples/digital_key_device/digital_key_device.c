@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file digital_key_device.c
 *
-* Copyright 2020-2024 NXP
+* Copyright 2020-2025 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -858,6 +858,22 @@ static void BleApp_StoreServiceHandles
                     maCharacteristics[mcCharVehiclePsmIndex_c].value.maxValueLength = mcCharVehiclePsmLength_c;
                     maCharacteristics[mcCharVehiclePsmIndex_c].value.paValue = mValVehiclePsm;
                 }
+                else if (FLib_MemCmp(pService->aCharacteristics[i].value.uuid.uuid128, uuid_char_vehicle_psm_dk_version, 16))
+                {
+                    /* Found Vehicle PSM DK Version Char */
+                    maPeerInformation[peerDeviceId].customInfo.hPsmVersionChar = pService->aCharacteristics[i].value.handle;
+
+                    maCharacteristics[mcCharVehiclePsmDkVersionIndex_c].value.handle = maPeerInformation[peerDeviceId].customInfo.hPsmVersionChar;
+                    maCharacteristics[mcCharVehiclePsmDkVersionIndex_c].value.maxValueLength = mcCharVehiclePsmDkVersionLength_c;
+                    maCharacteristics[mcCharVehiclePsmDkVersionIndex_c].value.paValue = mValVehiclePsmDkVersion;
+                }
+                else if (FLib_MemCmp(pService->aCharacteristics[i].value.uuid.uuid128, uuid_char_device_selected_dk_version, 16))
+                {
+                    /* Found Device Selected DK Version Char */
+                    maPeerInformation[peerDeviceId].customInfo.hDeviceSelectedVersionChar = pService->aCharacteristics[i].value.handle;
+
+                    maCharacteristics[mcCharDeviceSelectedDkVersionIndex_c].value.handle = maPeerInformation[peerDeviceId].customInfo.hDeviceSelectedVersionChar;
+                }
                 else if (FLib_MemCmp(pService->aCharacteristics[i].value.uuid.uuid128, uuid_char_antenna_id, 16))
                 {
                     /* Found Vehicle Antenna Identifier Char */
@@ -890,8 +906,30 @@ static void BleApp_StoreServiceHandles
             }
         }
 
-        mCurrentCharReadingIndex = mcCharVehiclePsmIndex_c;
-        (void)GattClient_ReadCharacteristicValue(peerDeviceId, &maCharacteristics[mcCharVehiclePsmIndex_c], mcCharVehiclePsmLength_c);
+        /* For passive entry read the PSM Version char */
+        if (maPeerInformation[peerDeviceId].isBonded)
+        {
+            gattHandleRange_t handleRange;
+            bleUuid_t charUuid;
+            handleRange.startHandle = 0x0001U;
+            handleRange.endHandle = 0xFFFFU;
+
+            mCurrentCharReadingIndex = mcCharVehiclePsmDkVersionIndex_c;
+            FLib_MemCpy(charUuid.uuid128, uuid_char_vehicle_psm_dk_version, gcBleLongUuidSize_c);
+            (void)GattClient_ReadUsingCharacteristicUuid(peerDeviceId,
+                                                         gBleUuidType128_c,
+                                                         &charUuid,
+                                                         &handleRange,
+                                                         maOutCharReadBuffer,
+                                                         mCharReadBufferLength_c,
+                                                         &mOutCharReadByteCount);
+        }
+        /* Before Owner Pairing, read the PSM char (no encryption or authentication required) */
+        else
+        {
+            mCurrentCharReadingIndex = mcCharVehiclePsmIndex_c;
+            (void)GattClient_ReadCharacteristicValue(peerDeviceId, &maCharacteristics[mcCharVehiclePsmIndex_c], mcCharVehiclePsmLength_c);
+        }
     }
 }
 
