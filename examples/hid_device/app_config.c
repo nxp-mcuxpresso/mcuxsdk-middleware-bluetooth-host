@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2021-2023 NXP
+* Copyright 2016-2019, 2021-2023, 2025 NXP
 *
 *
 * \file
@@ -55,9 +55,9 @@ gapAdvertisingParameters_t gAdvParams = {
 /* Scanning and Advertising Data */
 static uint8_t adData0[1] =  { (gapAdTypeFlags_t)(gLeGeneralDiscoverableMode_c | gBrEdrNotSupported_c) };
 static uint8_t adData1[2] = { UuidArray(gBleSig_HidService_d) };
+static uint8_t adData2[2] = { UuidArray(gMouse_c) };
 
 #if (defined(gSwiftPairMode_d) && (gSwiftPairMode_d == 1))
-static uint8_t adData2[2] = { UuidArray(gMouse_c) };
 static uint8_t adData3[] = { 0x06, 0x00, 0x03, 0x00, 0x80 };
 
 static gapAdStructure_t advSwiftPairScanStruct[] = {
@@ -95,7 +95,7 @@ gapAdvertisingData_t gAppSwiftPairAdvertisingData =
 };
 #endif /* gSwiftPairMode_d */
 
-static gapAdStructure_t advScanStruct[3] = {
+static gapAdStructure_t advScanStruct[4] = {
   {
     .length = NumberOfElements(adData0) + 1,
     .adType = gAdFlags_c,
@@ -110,6 +110,11 @@ static gapAdStructure_t advScanStruct[3] = {
     .adType = gAdShortenedLocalName_c,
     .length = 8,
     .aData = (uint8_t*)"NXP_HID"
+  },
+  {
+    .adType = gAdAppearance_c,
+    .length = NumberOfElements(adData2) + 1,
+    .aData = (uint8_t *)adData2
   }
 };
 
