@@ -18,7 +18,6 @@ menu "bluetooth"
         bool "Component middleware.wireless.ble_host_peripheral_component_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_matter_component_lib
         bool "Component middleware.wireless.ble_host_matter_component_lib"
-        depends on MCUX_HW_BOARD_k32w148evk || MCUX_HW_BOARD_frdmmcxw71
     config MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_component_lib
         bool "Component middleware.wireless.ble_host_exp_OPT_component_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_central_component_lib
@@ -55,7 +54,6 @@ menu "bluetooth"
         bool "Component middleware.wireless.auto"
     config MCUX_COMPONENT_middleware.wireless.ble_init_matter
         bool "Component middleware.wireless.ble_init_matter"
-        depends on MCUX_HW_BOARD_k32w148evk || MCUX_HW_BOARD_frdmmcxw71
     config MCUX_COMPONENT_middleware.wireless.ble_hci_transport_serial
         bool "Component middleware.wireless.ble_hci_transport_serial"
     config MCUX_COMPONENT_middleware.wireless.ble_hci_transport_rpmsg
@@ -74,45 +72,18 @@ menu "bluetooth"
         bool "Component middleware.wireless.ble_profiles_battery_service"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_device_info_service
         bool "Component middleware.wireless.ble_profiles_device_info_service"
-        depends on (MCUX_HW_BOARD_kw45b41zevk || MCUX_HW_BOARD_k32w148evk || MCUX_HW_BOARD_frdmmcxw71)\
-            || (MCUX_HW_BOARD_kw45b41zloc) || (MCUX_HW_BOARD_frdmmcxw72) || (MCUX_HW_BOARD_mcxw71evk)\
-            || (MCUX_HW_BOARD_kw47loc && MCUX_HW_CORE_ID_CM33_CORE0)\
-            || (MCUX_HW_BOARD_kw47evk && MCUX_HW_CORE_ID_CM33_CORE0)\
-            || (MCUX_HW_BOARD_mcxw72evk && MCUX_HW_CORE_ID_CM33_CORE0)
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_ancs
         bool "Component middleware.wireless.ble_profiles_ancs"
-        depends on (MCUX_HW_BOARD_kw45b41zevk || MCUX_HW_BOARD_k32w148evk || MCUX_HW_BOARD_frdmmcxw71)\
-            || (MCUX_HW_BOARD_mcxw71evk)\
-            || (MCUX_HW_BOARD_kw47evk && MCUX_HW_CORE_ID_CM33_CORE0)\
-            || (MCUX_HW_BOARD_mcxw72evk && MCUX_HW_CORE_ID_CM33_CORE0)
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_time
         bool "Component middleware.wireless.ble_profiles_time"
-        depends on (MCUX_HW_BOARD_kw45b41zevk || MCUX_HW_BOARD_k32w148evk || MCUX_HW_BOARD_frdmmcxw71)\
-            || (MCUX_HW_BOARD_mcxw71evk)\
-            || (MCUX_HW_BOARD_kw47evk && MCUX_HW_CORE_ID_CM33_CORE0)\
-            || (MCUX_HW_BOARD_mcxw72evk && MCUX_HW_CORE_ID_CM33_CORE0)
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_hid
         bool "Component middleware.wireless.ble_profiles_hid"
-        depends on (MCUX_HW_BOARD_kw45b41zevk || MCUX_HW_BOARD_k32w148evk || MCUX_HW_BOARD_frdmmcxw71)\
-            || (MCUX_HW_BOARD_mcxw71evk)\
-            || (MCUX_HW_BOARD_kw47evk && MCUX_HW_CORE_ID_CM33_CORE0)\
-            || (MCUX_HW_BOARD_mcxw72evk && MCUX_HW_CORE_ID_CM33_CORE0)
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_temperature
         bool "Component middleware.wireless.ble_profiles_temperature"
-        depends on (MCUX_HW_BOARD_kw45b41zevk || MCUX_HW_BOARD_k32w148evk || MCUX_HW_BOARD_frdmmcxw71)\
-            || (MCUX_HW_BOARD_kw45b41zloc) || (MCUX_HW_BOARD_frdmmcxw72) || (MCUX_HW_BOARD_mcxw71evk)\
-            || (MCUX_HW_BOARD_kw47loc && MCUX_HW_CORE_ID_CM33_CORE0)\
-            || (MCUX_HW_BOARD_kw47evk && MCUX_HW_CORE_ID_CM33_CORE0)\
-            || (MCUX_HW_BOARD_mcxw72evk && MCUX_HW_CORE_ID_CM33_CORE0)
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_wireless_uart
         bool "Component middleware.wireless.ble_profiles_wireless_uart"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_otap
         bool "Component middleware.wireless.ble_profiles_otap"
-        depends on (MCUX_HW_BOARD_kw45b41zevk || MCUX_HW_BOARD_k32w148evk || MCUX_HW_BOARD_frdmmcxw71)\
-            || (MCUX_HW_BOARD_mcxw71evk)\
-            || (MCUX_HW_BOARD_kw47evk && MCUX_HW_CORE_ID_CM33_CORE0)\
-            || (MCUX_HW_BOARD_mcxw72evk && MCUX_HW_CORE_ID_CM33_CORE0)
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_digital_key
         bool "Component middleware.wireless.ble_profiles_digital_key"
-        depends on (MCUX_HW_BOARD_kw45b41zevk || MCUX_HW_BOARD_kw45b41zloc || MCUX_HW_BOARD_kw47evk || MCUX_HW_BOARD_kw47loc)
 endmenu
