@@ -1326,7 +1326,7 @@ static bleResult_t SetBondingData(uint8_t nvmIndex, bleAddressType_t addressType
     FLib_MemCpy(gAppOutKeys.aLtk, ltk, gcSmpMaxLtkSize_c);
     FLib_MemCpy(gAppOutKeys.aIrk, irk, gcSmpIrkSize_c);
 
-    status = Gap_SaveKeys(nvmIndex, &gAppOutKeys, TRUE, FALSE);
+    status = Gap_SaveKeys(nvmIndex, &gAppOutKeys, TRUE, TRUE);
     
     return status;
 }

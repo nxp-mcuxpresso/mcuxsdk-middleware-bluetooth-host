@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file app_digital_key_car_anchor.c
 *
-* Copyright 2021-2024 NXP
+* Copyright 2021-2025 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -1384,7 +1384,7 @@ static bleResult_t SetBondingData(uint8_t nvmIndex, bleAddressType_t addressType
     FLib_MemCpy(gAppOutKeys.aLtk, ltk, gcSmpMaxLtkSize_c);
     FLib_MemCpy(gAppOutKeys.aIrk, irk, gcSmpIrkSize_c);
 
-    status = Gap_SaveKeys(nvmIndex, &gAppOutKeys, TRUE, FALSE);
+    status = Gap_SaveKeys(nvmIndex, &gAppOutKeys, TRUE, TRUE);
     
     return status;
 }
@@ -1489,7 +1489,7 @@ static void A2A_ProcessCommand(void *pMsg)
                         pIndex = &pIndex[gcSmpMaxIrkBlobSize_c];
                         mBondAddedFromShell = TRUE;
                         
-                        status = Gap_SaveKeys(nvmIndex, &gAppOutKeys, TRUE, FALSE);
+                        status = Gap_SaveKeys(nvmIndex, &gAppOutKeys, TRUE, TRUE);
                     }
 #if defined(gHandoverDemo_d) && (gHandoverDemo_d > 0U)
                     (void)AppHandover_SetPeerSkd(nvmIndex, pIndex);
@@ -1522,7 +1522,7 @@ static void A2A_ProcessCommand(void *pMsg)
                     FLib_MemCpy(gAppOutKeys.aIrk, pIndex, gcSmpIrkSize_c);
                     /* Save to first index in handover demo */
                     mBondAddedFromShell = TRUE;
-                    (void)Gap_SaveKeys(nvmIndex, &gAppOutKeys, TRUE, FALSE);
+                    (void)Gap_SaveKeys(nvmIndex, &gAppOutKeys, TRUE, TRUE);
 #endif /* defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U) */
                 }
                 break;
