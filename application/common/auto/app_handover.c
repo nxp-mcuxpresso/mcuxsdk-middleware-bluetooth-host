@@ -509,7 +509,7 @@ void AppHandover_ProcessA2ACommand
         
         case gHandoverAnchMonStartedCommandOpCode_c:
         {
-            for (uint8_t i = 0U; i < gAppMaxConnections_c; i++)
+            for (uint8_t i = 0U; i < (uint8_t)gAppMaxConnections_c; i++)
             {
                 if (maAppMonitorData[i].monitorConnHandle == gMonitorConnectionHandlePending)
                 {
@@ -646,7 +646,7 @@ void AppHandover_ProcessA2ACommand
             bool_t anchMonInProgress = FALSE;
             uint16_t connectionHandle = Utils_ExtractTwoByteValue(pCmdData);
             
-            for (uint8_t i = 0U; i < gAppMaxConnections_c; i++)
+            for (uint8_t i = 0U; i < (uint8_t)gAppMaxConnections_c; i++)
             {
                 if (maAppMonitorData[i].monitorConnHandle == connectionHandle)
                 {
@@ -1652,7 +1652,7 @@ bleResult_t AppHandover_SetMonitorMode(deviceId_t deviceId, bleHandoverAnchorSea
 {
     bleResult_t result = gBleSuccess_c;
     
-    if ((deviceId < gAppMaxConnections_c) && 
+    if ((deviceId < (uint8_t)gAppMaxConnections_c) &&
         ((mode == gRssiSniffingMode_c) || (mode == gPacketMode_c)))
     {
         if (maAppMonitorData[deviceId].monitorMode == gSuspendTxMode_c)
@@ -1779,7 +1779,7 @@ static deviceId_t getMonitoredDeviceId(uint16_t monitorConnectionHandle)
 {
     deviceId_t deviceId = gInvalidDeviceId_c;
     
-    for (uint8_t i = 0U; i < gAppMaxConnections_c; i++)
+    for (uint8_t i = 0U; i < (uint8_t)gAppMaxConnections_c; i++)
     {
         if (maAppMonitorData[i].monitorConnHandle == monitorConnectionHandle)
         {
@@ -1803,7 +1803,7 @@ static uint16_t getMonitoredConnHandle(deviceId_t deviceId)
 {
     uint16_t connectionHandle = gInvalidConnectionHandle_c;
     
-    if (deviceId < gAppMaxConnections_c)
+    if (deviceId < (uint8_t)gAppMaxConnections_c)
     {
         connectionHandle = maAppMonitorData[deviceId].monitorConnHandle;
     }
@@ -1823,7 +1823,7 @@ static bool_t checkMonitorFilterCounter(uint16_t connHandle)
 {
     bool_t result = FALSE;
     
-    for (uint8_t i = 0U; i < gAppMaxConnections_c; i++)
+    for (uint8_t i = 0U; i < (uint8_t)gAppMaxConnections_c; i++)
     {
         if (maAppMonitorFilter[i].connHandle == connHandle)
         {
@@ -1852,7 +1852,7 @@ static void addMonitorFilter(uint16_t connHandle)
 {
     uint32_t firstFreeIdx = gAppMaxConnections_c;
     
-    for (uint8_t i = 0U; i < gAppMaxConnections_c; i++)
+    for (uint8_t i = 0U; i < (uint8_t)gAppMaxConnections_c; i++)
     {
         if (maAppMonitorFilter[i].connHandle == connHandle)
         {
@@ -1860,7 +1860,7 @@ static void addMonitorFilter(uint16_t connHandle)
             break;
         }
         else if ((maAppMonitorFilter[i].connHandle == gInvalidConnectionHandle_c) &&
-                 (firstFreeIdx == gAppMaxConnections_c))
+                 (firstFreeIdx == (uint8_t)gAppMaxConnections_c))
         {
             firstFreeIdx = i;
         }
@@ -1870,7 +1870,7 @@ static void addMonitorFilter(uint16_t connHandle)
         }
     }
     
-    if (firstFreeIdx < gAppMaxConnections_c)
+    if (firstFreeIdx < (uint8_t)gAppMaxConnections_c)
     {
         maAppMonitorFilter[firstFreeIdx].connHandle = connHandle;
         maAppMonitorFilter[firstFreeIdx].eventCount = 0U;
@@ -1889,7 +1889,7 @@ static void addMonitorFilter(uint16_t connHandle)
 ********************************************************************************************************************* */
 static void removeMonitorFilter(uint16_t connHandle)
 {
-    for (uint8_t i = 0U; i < gAppMaxConnections_c; i++)
+    for (uint8_t i = 0U; i < (uint8_t)gAppMaxConnections_c; i++)
     {
         if (maAppMonitorFilter[i].connHandle == connHandle)
         {

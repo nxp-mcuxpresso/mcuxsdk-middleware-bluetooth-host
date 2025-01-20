@@ -1001,9 +1001,9 @@ static void App_HandleBondShellCmds(void *pData)
             bleResult_t result = Gap_GetBondedDevicesIdentityInformation(aIdentity, gMaxBondedDevices_c, &nrBondedDevices);
             if (gBleSuccess_c == result && nrBondedDevices > 0U)
             {
-                for (int8_t i = 0; i < gMaxBondedDevices_c; i++)
+                for (uint8_t i = 0; i < gMaxBondedDevices_c; i++)
                 {
-                    result = Gap_LoadKeys((uint8_t)i, &gAppOutKeys, &gAppOutKeyFlags, &gAppOutLeSc, &gAppOutAuth);
+                    result = Gap_LoadKeys(i, &gAppOutKeys, &gAppOutKeyFlags, &gAppOutLeSc, &gAppOutAuth);
                     if (gBleSuccess_c == result && nrBondedDevices > 0U)
                     {
                         /* address type, address, ltk, irk */

@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2021-2024 NXP
+* Copyright 2021-2025 NXP
 *
 *
 * \file
@@ -530,7 +530,7 @@ static void BatteryMeasurementTimerCallback(void * pParam)
 ********************************************************************************** */
 static void ServiceAMeasurementTimerCallback(void * pParam)
 {
-    uint16_t  handle;
+    uint16_t  handle = 0U;
     bleResult_t result;
     bleUuid_t uuid = Uuid16(gBleSig_Report_d);
     static uint16_t char_value = 0U;
@@ -562,7 +562,7 @@ static void ServiceAMeasurementTimerCallback(void * pParam)
 ********************************************************************************** */
 static void ServiceBMeasurementTimerCallback(void * pParam)
 {
-    uint16_t  handle;
+    uint16_t  handle = 0U;
     bleResult_t result;
     bleUuid_t uuid = Uuid16(gBleSig_Report_d);
     static uint16_t char_value = 0U;
@@ -637,7 +637,7 @@ static void Service_SendNotifications
 )
 {
     uint16_t  handleCccd = 0U;
-    bool_t    isNotifActive;
+    bool_t    isNotifActive = FALSE;
 
     /* Bearer Id 0 is unenhanced */
     if (bearerId != gUnenhancedBearerId_c)

@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2021-2024 NXP
+* Copyright 2021-2025 NXP
 *
 *
 * \file
@@ -516,7 +516,7 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
             else
             {
                 (void)shell_write("\r\n Pairing Failed! Reason: ");
-                (void)shell_writeDec(pConnectionEvent->eventData.pairingCompleteEvent.pairingCompleteData.failReason);
+                (void)shell_writeDec((uint8_t)pConnectionEvent->eventData.pairingCompleteEvent.pairingCompleteData.failReason);
                 (void)SHELL_NEWLINE();
             }
         }

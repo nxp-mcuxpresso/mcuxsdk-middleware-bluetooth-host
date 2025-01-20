@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*!
  * Copyright 2015 Freescale Semiconductor, Inc.
- * Copyright 2016-2023 NXP
+ * Copyright 2016-2023, 2025 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -62,7 +62,7 @@
 #ifndef gMaxBondedDevices_c
     /* Make sure that (gMaxBondedDevices_c * gBleBondDataSize_c) fits into the Flash area
      * reserved by the application for bond information. */
-    #define gMaxBondedDevices_c         gAppMaxConnections_c
+    #define gMaxBondedDevices_c         (gAppMaxConnections_c)
 #endif /* gMaxBondedDevices_c */
 
 #if defined(gAppUsePrivacy_d) && (gAppUsePrivacy_d == 0)

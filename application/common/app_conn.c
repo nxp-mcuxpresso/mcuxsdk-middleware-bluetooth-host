@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2020-2024 NXP
+* Copyright 2020-2025 NXP
 *
 *
 *
@@ -1262,7 +1262,7 @@ void BluetoothLEHost_ProcessIdleTask(void)
         {
             if (RNG_IsReseedNeeded())
             {
-                RNG_SetSeed();
+                (void)RNG_SetSeed();
             }
         }
     }

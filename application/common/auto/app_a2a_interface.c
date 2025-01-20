@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2023-2024 NXP
+* Copyright 2023-2025 NXP
 *
 *
 * \file app_a2a_interface.c
@@ -373,14 +373,14 @@ static void A2A_RxCallback
                     {
                         if (gBleSuccess_c != App_PostCallbackMessage(mfpAppDataIndCb, gpRxPacket))
                         {
-                            MEM_BufferFree(gpRxPacket);
+                            (void)MEM_BufferFree(gpRxPacket);
                         }
                         mReceivedBytes = 0;
                         break;
                     }
                     if(pktStatus == FRAMING_ERROR)
                     {
-                        MEM_BufferFree(gpRxPacket);
+                        (void)MEM_BufferFree(gpRxPacket);
                         mReceivedBytes = 0;
                         break;
                     }

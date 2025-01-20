@@ -1558,7 +1558,7 @@ static bleResult_t CCC_FirstApproachReq(deviceId_t deviceId, uint8_t* pBdAddr, g
  ********************************************************************************** */
 static uint64_t GetUwbClock(void)
 {
-    uint32_t randomNo;
+    uint32_t randomNo = 0U;
     (void)RNG_GetTrueRandomNumber(&randomNo);
     /* Get a simulated UWB clock */
     return TM_GetTimestamp() + (uint8_t)randomNo;

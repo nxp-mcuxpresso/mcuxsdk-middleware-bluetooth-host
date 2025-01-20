@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -887,39 +887,33 @@ static void BleApp_GattClientCallback
     {
         case gGattProcError_c:
         {
-            switch (error)
+            if (error == gGattConnectionSecurityRequirementsNotMet_c)
             {
 #if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
-                case gGattConnectionSecurityRequirementsNotMet_c:
+                if (mGapRole == gGapCentral_c)
                 {
-                    if (mGapRole == gGapCentral_c)
-                    {
-                        /* Start Pairing Procedure in central role
-                         * local bond could be lost */
-                        (void)Gap_Pair(serverDeviceId, &gPairingParameters);
-                    }
-                    else if (mGapRole == gGapPeripheral_c)
-                    {
-                        /* Send Security Request in peripheral role
-                         * peer bond could be lost */
-                        (void)Gap_SendPeripheralSecurityRequest(serverDeviceId, &gPairingParameters);
-                    }
-                    else
-                    {
-                        /* No action required */
-                    }
+                    /* Start Pairing Procedure in central role
+                     * local bond could be lost */
+                    (void)Gap_Pair(serverDeviceId, &gPairingParameters);
                 }
-                break;
+                else if (mGapRole == gGapPeripheral_c)
+                {
+                    /* Send Security Request in peripheral role
+                     * peer bond could be lost */
+                    (void)Gap_SendPeripheralSecurityRequest(serverDeviceId, &gPairingParameters);
+                }
+                else
+                {
+                    /* No action required */
+                }
 #endif /* gAppUsePairing_d */
-
-                default:
-                {
-                    BleApp_StateMachineHandler(serverDeviceId, mAppEvt_GattProcError_c);
-                }
-                break;
             }
-            break;
+            else
+            {
+                BleApp_StateMachineHandler(serverDeviceId, mAppEvt_GattProcError_c);
+            }
         }
+        break;
 
         case gGattProcSuccess_c:
             BleApp_StateMachineHandler(serverDeviceId, mAppEvt_GattProcComplete_c);
