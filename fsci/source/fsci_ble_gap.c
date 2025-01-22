@@ -381,6 +381,8 @@ static const int16_t maGenericEventToOpcode[]=
   -1,                                                                                      /* reserved: 0x4CU */
   -1,                                                                                      /* reserved: 0x4DU */
   -1,                                                                                      /* reserved: 0x4EU */
+  -1,                                                                                      /* reserved: 0x4FU */
+  -1,                                                                                      /* reserved: 0x50U */
 };
 
 static const int16_t maGenericEvent2ToOpcode[]= {
