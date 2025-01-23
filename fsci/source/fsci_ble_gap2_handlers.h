@@ -92,6 +92,7 @@ typedef enum
     gBleGapEvtAdvertisingEventPerAdvSubeventDataRequestOpCode_c                 = 0x91,                     /*! gapAdvertisingCallback (type = gPerAdvSubeventDataRequest_c) event operation code */
     gBleGapEvtAdvertisingEventPerAdvResponseOpCode_c                            = 0x92,
     gBleCtrlEvtGetTimestampExOpCode_c                                           = 0x93,                     /*! Output data from gBleCtrlCmdGetTimestampExOpCode_c */
+    gBleGapEvtGenericEventVendorUnitaryTestCompleteOpCode_c                     = 0x94,                     /*! gapGenericCallback (type = gVendorUnitaryTestComplete_c) event operation code */
 } fsciBleGap2OpCode_t;
 
 /************************************************************************************
@@ -183,6 +184,42 @@ void GetBufferFromPeriodicAdvSetResponseDataCompleteEvent(gapGenericEvent_t*pGen
 ********************************************************************************** */
 void GetBufferFromPeriodicAdvSetSubeventDataCompleteEvent(gapGenericEvent_t *pGenericEvent, uint8_t **ppBuffer);
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
+
+/*! *********************************************************************************
+*\fn           uint32_t GetVendorUnitaryTestCompleteBufferSize(
+*                                           gapGenericEvent_t    *pGenericEvent)
+*
+*\brief        Returns the required FSCI buffer size for the
+*              vendorUnitaryTestEvent_t event.
+*
+*\param  [in]  pGenericEvent       Pointer to the generic event.
+*
+*\return       uint32_t            Buffer size.
+********************************************************************************** */
+uint32_t GetVendorUnitaryTestCompleteBufferSize
+(
+    gapGenericEvent_t   *pGenericEvent
+);
+
+/*! *********************************************************************************
+*\fn           void GetBufferFromVendorUnitaryTestCompleteEvent(
+*                                           gapGenericEvent_t    *pGenericEvent,
+*                                           uint8_t              **ppBuffer)
+*
+*\brief        Writes the vendorUnitaryTestEvent_t data fields in the provided
+*              buffer.
+*
+*\param  [in]  pGenericEvent       Pointer to the generic event.
+*\param  [in]  ppBuffer            Pointer to the buffer where the data fields
+*                                  should be written.
+*
+*\retval       void.
+********************************************************************************** */
+void GetBufferFromVendorUnitaryTestCompleteEvent
+(
+    gapGenericEvent_t   *pGenericEvent,
+    uint8_t             **ppBuffer
+);
 #endif /* gFsciIncluded_c && gFsciBleGapLayerEnabled_d */
 
 /* GAP2 command handlers */

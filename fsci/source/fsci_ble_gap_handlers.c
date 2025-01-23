@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2022 - 2024 NXP
+* Copyright 2022 - 2025 NXP
 *
 *
 * \file
@@ -2357,12 +2357,16 @@ const pfGapGetBufferFromGenericEventHandler_t maGapGetBufferFromGenericEventHand
 #if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
     GetBufferFromPeriodicAdvSetSubeventDataCompleteEvent,                       /* 0x4BU, gPeriodicAdvSetSubeventDataComplete_c */
     GetBufferFromPeriodicAdvSetResponseDataCompleteEvent,                       /* 0x4CU, gPeriodicAdvSetResponseDataComplete_c */
-    GetBufferFromPeriodicAdvSetResponseDataCompleteEvent                        /* 0x4DU, gPeriodicSyncSubeventComplete_c */
+    GetBufferFromPeriodicAdvSetResponseDataCompleteEvent,                       /* 0x4DU, gPeriodicSyncSubeventComplete_c */
 #else /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
     NULL,                                                                       /* reserved: 0x4BU */
     NULL,                                                                       /* reserved: 0x4CU */
-    NULL                                                                        /* reserved: 0x4DU */
+    NULL,                                                                       /* reserved: 0x4DU */
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
+    NULL,                                                                       /* reserved: 0x4EU */
+    NULL,                                                                       /* reserved: 0x4FU */
+    NULL,                                                                       /* reserved: 0x50U */
+    GetBufferFromVendorUnitaryTestCompleteEvent,                                /* 0x51U, gVendorUnitaryTestComplete_c */
 };
 
 /*! Array of handler functions used by fsciBleGapGetGenericEventBufferSize */
@@ -2464,12 +2468,16 @@ const pfGapGetGenericEventBufferSizeHandler_t maGapGetGenericEventBufferSizeHand
 #if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
     GetPeriodicAdvSetSubeventDataCompleteBufferSize,                            /* 0x4BU, gPeriodicAdvSetSubeventDataComplete_c */
     GetPeriodicAdvSetResponseDataCompleteBufferSize,                            /* 0x4CU, gPeriodicAdvSetResponseDataComplete_c */
-    GetPeriodicAdvSetResponseDataCompleteBufferSize                             /* 0x4DU, gPeriodicSyncSubeventComplete_c */
+    GetPeriodicAdvSetResponseDataCompleteBufferSize,                            /* 0x4DU, gPeriodicSyncSubeventComplete_c */
 #else /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
     NULL,                                                                       /* reserved: 0x4BU */
     NULL,                                                                       /* resreved: 0x4CU */
-    NULL                                                                        /* reserved: 0x4DU */
+    NULL,                                                                       /* reserved: 0x4DU */
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
+    NULL,                                                                       /* resreved: 0x4EU */
+    NULL,                                                                       /* resreved: 0x4FU */
+    NULL,                                                                       /* resreved: 0x50U */
+    GetVendorUnitaryTestCompleteBufferSize,                                     /* 0x51U, gVendorUnitaryTestComplete_c */
 };
 
 #if gFsciBleBBox_d || gFsciBleTest_d

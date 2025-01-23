@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*!
- * Copyright 2019-2024 NXP
+ * Copyright 2019-2025 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -135,7 +135,7 @@
 
 /* Indicates the Host layers which are enabled
  * for FSCI communication*/
-#define gFsciBleEnabledLayersMask_d         0x0164
+#define gFsciBleEnabledLayersMask_d         0x0964
 
 /* Enable 5.3 optional features */
 #define gBLE53_d                            1

@@ -538,6 +538,54 @@ void GetBufferFromPeriodicAdvSetSubeventDataCompleteEvent
     fsciBleGetBufferFromUint8Value((uint8_t)pGenericEvent->eventData.pawrAdvHandle, *ppBuffer);
 }
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
+
+/*! *********************************************************************************
+*\fn           uint32_t GetVendorUnitaryTestCompleteBufferSize(
+*                                           gapGenericEvent_t    *pGenericEvent)
+*
+*\brief        Returns the required FSCI buffer size for the
+*              vendorUnitaryTestEvent_t event.
+*
+*\param  [in]  pGenericEvent       Pointer to the generic event.
+*
+*\return       uint32_t            Buffer size.
+********************************************************************************** */
+uint32_t GetVendorUnitaryTestCompleteBufferSize
+(
+    gapGenericEvent_t   *pGenericEvent
+)
+{
+    return sizeof(bleResult_t) +
+           (uint32_t)pGenericEvent->eventData.unitaryTestData.paramLength +
+           sizeof(pGenericEvent->eventData.unitaryTestData.paramLength);
+}
+
+/*! *********************************************************************************
+*\fn           void GetBufferFromVendorUnitaryTestCompleteEvent(
+*                                           gapGenericEvent_t    *pGenericEvent,
+*                                           uint8_t              **ppBuffer)
+*
+*\brief        Writes the vendorUnitaryTestEvent_t data fields in the provided
+*              buffer.
+*
+*\param  [in]  pGenericEvent       Pointer to the generic event.
+*\param  [in]  ppBuffer            Pointer to the buffer where the data fields
+*                                  should be written.
+*
+*\retval       void.
+********************************************************************************** */
+void GetBufferFromVendorUnitaryTestCompleteEvent
+(
+    gapGenericEvent_t   *pGenericEvent,
+    uint8_t             **ppBuffer
+)
+{
+    fsciBleGetBufferFromEnumValue(pGenericEvent->eventData.unitaryTestData.status, *ppBuffer, bleResult_t);
+    fsciBleGetBufferFromUint8Value((uint8_t)pGenericEvent->eventData.unitaryTestData.paramLength, *ppBuffer);
+    fsciBleGetBufferFromArray(pGenericEvent->eventData.unitaryTestData.aParam,
+                              *ppBuffer,
+                              (uint8_t)pGenericEvent->eventData.unitaryTestData.paramLength);
+}
 #endif /* gFsciIncluded_c && gFsciBleGapLayerEnabled_d */
 
 #if gFsciBleBBox_d || gFsciBleTest_d

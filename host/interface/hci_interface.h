@@ -2769,6 +2769,14 @@ typedef struct hciVendorLeSetSchedulerPriorityCommandComplete_tag
     hciErrorCode_t      status;
 } hciVendorLeSetSchedulerPriorityCommandComplete_t;
 
+/*! HCI_VENDOR_UNITARY_TEST */
+typedef struct hciVendorUnitaryTestCommandComplete_tag
+{
+    hciErrorCode_t      status;
+    uint8_t             paramLength;
+    uint8_t             aParam[gVendorUnitaryTestSize_c];
+} hciVendorUnitaryTestCommandComplete_t;
+
 /*! LE Meta Event : 0x3E */
 typedef struct
 {
@@ -3021,6 +3029,7 @@ typedef struct
 #endif /* (gBLE54_d && gLeBroadcasterSupported_d && gBLE54_AdvertisingCodingSelectionSupport_d) */
         hciVendorLeSetSchedulerPriorityCommandComplete_t         hciVendorLeSetSchedulerPriorityCommComplete;
         hciVendorLeChannelOverrideCommandComplete_t              hciVendorLeChannelOverrideCommComplete;
+        hciVendorUnitaryTestCommandComplete_t                    hciVendorUnitaryTestCommComplete;
     }commCompleteReturnParams;
 } hciCommandCompleteEvent_t;
 
@@ -3977,7 +3986,6 @@ bleResult_t Hci_LeTransmitterTest(const hciLeTransmitterTestCommand_t *pParam); 
 bleResult_t Hci_LeTestEnd(void);                                                                /* 8.30 */
 
 /* HCI Vendor Specific Commands */
-#if defined(gHciCompleteHciCmdSupport_d) && (gHciCompleteHciCmdSupport_d == TRUE)
 
 /*! *********************************************************************************
 * \brief        The function sends a vendor specific debug (OGF : 0x3f; OCF : 0x00xx) command to the Controller.
@@ -3991,7 +3999,6 @@ bleResult_t Hci_LeTestEnd(void);                                                
 *
 ********************************************************************************** */
 bleResult_t Hci_VendorSpecificDebug(const hciVendorSpecificDebugCommand_t *pParam);
-#endif
 
 /*! *********************************************************************************
 * \brief        The function sends the vendor specific debug Set Tx Power Level(OGF : 0x3f; OCF : 0x012D) command to the Controller.

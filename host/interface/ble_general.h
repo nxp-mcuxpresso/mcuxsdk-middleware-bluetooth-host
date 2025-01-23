@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -189,6 +189,8 @@
 #define LL_PHY_S2                       (3U)
 
 #define gVendorHandoverMaxCsLlContextSize_c  (224U)   /*!< Maximum size of the LL Context for Handover (CS context is largest) */
+
+#define gVendorUnitaryTestSize_c             (255U)   /*!< Maximum size of the VENDOR_UNITARY_TEST response */
 /************************************************************************************
 *************************************************************************************
 * Public type definitions
@@ -893,6 +895,7 @@ typedef enum {
     gPeriodicSyncSubeventComplete_c                     = 0x4EU, /*!< Set Sync Subevent command successfully completed. */
     gHandoverConnectionUpdateProcedureEvent_c           = 0x4FU, /*!< This event is used to report the new connection parameters indicated during the Connection Update procedure */
     gHandoverApplyConnectionUpdateProcedureComplete_c   = 0x50U, /*!< This event is used to report the new connection parameters indicated during the Connection Update procedure */
+    gVendorUnitaryTestComplete_c                        = 0x51U, /*!< Vendor Unitary Test command complete */
 } gapGenericEventType_t;
 
 /*! Internal Error Source - the command that triggered the error */
@@ -1035,6 +1038,7 @@ typedef enum {
     gLeSetPeriodicSyncSubevent_c = 0x87U,
     gLePeriodicAdvResponseReport_c = 0x88U,
 	gHandoverApplyConnectionUpdateProcedure_c = 0x89U,  /*!< An error occurred during the Handover Apply Connection Update procedure */
+    gVendorUnitaryTest_c = 0x8AU,                   /*!< An error occurred during the Vendor Unitary Test procedure */
 } gapInternalErrorSource_t;
 
 /*! Internal Error Event Data */
@@ -1418,6 +1422,13 @@ typedef struct gapLlSkdReport_tag
     uint8_t aSKD[gSkdSize_c];   /*!< LL SKD */
 } gapLlSkdReport_t;
 
+typedef struct vendorUnitaryTestEvent_tag
+{
+    bleResult_t status;
+    uint8_t     paramLength;
+    uint8_t     aParam[gVendorUnitaryTestSize_c];
+} vendorUnitaryTestEvent_t;
+
 /*! Generic Event Structure = type + data */
 typedef struct {
     gapGenericEventType_t  eventType;       /*!< Event type. */
@@ -1480,6 +1491,7 @@ typedef struct {
         handoverLlPendingDataIndication_t           handoverLlPendingDataIndication;        /*!< Data for the gHandoverLlPendingData_c event */
         handoverConnectionUpdateProcedureEvent_t    handoverConnectionUpdateProcedure;      /*!< Data for the gHandoverConnectionUpdateProcedureEvent_c event */
         handoverApplyConnectionUpdateProcedure_t    handoverApplyConnectionUpdateProcedure; /*!< Data for the gHandoverApplyConnectionUpdateProcedureComplete_c event */
+        vendorUnitaryTestEvent_t                  unitaryTestData;                          /*!< Data for the gVendorUnitaryTestComplete_c event */
     } eventData;                            /*!< Event data, selected according to event type. */
 } gapGenericEvent_t;
 
