@@ -1,89 +1,89 @@
 
 menu "bluetooth"
     config MCUX_COMPONENT_middleware.wireless.ble_host
-        bool "Component middleware.wireless.ble_host"
+        bool "host"
     config MCUX_COMPONENT_middleware.wireless.ble_host_common
-        bool "Component middleware.wireless.ble_host_common"
+        bool "host_common"
     config MCUX_COMPONENT_middleware.wireless.ble_host_OPT_component_lib
-        bool "Component middleware.wireless.ble_host_OPT_component_lib"
+        bool "host_opt_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_OPT_central_component_lib
-        bool "Component middleware.wireless.ble_host_OPT_central_component_lib"
+        bool "host_opt_central_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_OPT_peripheral_component_lib
-        bool "Component middleware.wireless.ble_host_OPT_peripheral_component_lib"
+        bool "host_opt_peripheral_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_component_lib
-        bool "Component middleware.wireless.ble_host_component_lib"
+        bool "host_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_central_component_lib
-        bool "Component middleware.wireless.ble_host_central_component_lib"
+        bool "host_central_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_peripheral_component_lib
-        bool "Component middleware.wireless.ble_host_peripheral_component_lib"
+        bool "host_peripheral_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_matter_component_lib
-        bool "Component middleware.wireless.ble_host_matter_component_lib"
+        bool "host_matter_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_component_lib
-        bool "Component middleware.wireless.ble_host_exp_OPT_component_lib"
+        bool "host_exp_opt_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_central_component_lib
-        bool "Component middleware.wireless.ble_host_exp_OPT_central_component_lib"
+        bool "host_exp_opt_central_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_peripheral_component_lib
-        bool "Component middleware.wireless.ble_host_exp_OPT_peripheral_component_lib"
+        bool "host_exp_opt_peripheral_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_interface
-        bool "Component middleware.wireless.ble_host_interface"
+        bool "host_interface"
     config MCUX_COMPONENT_middleware.wireless.ble_host_xml
-        bool "Component middleware.wireless.ble_host_xml"
+        bool "host_xml"
     config MCUX_COMPONENT_middleware.wireless.ble_host_sdk
-        bool "Component middleware.wireless.ble_host_sdk"
+        bool "host_sdk"
     config MCUX_COMPONENT_middleware.wireless.ble_host_interface_black_box
-        bool "Component middleware.wireless.ble_host_interface_black_box"
+        bool "host_interface_black_box"
     config MCUX_COMPONENT_middleware.wireless.ble_host_interface_host
-        bool "Component middleware.wireless.ble_host_interface_host"
+        bool "host_interface_host"
     config MCUX_COMPONENT_middleware.wireless.ble_host_interface_genfsk
-        bool "Component middleware.wireless.ble_host_interface_genfsk"
+        bool "host_interface_genfsk"
     config MCUX_COMPONENT_middleware.wireless.ble_fsci_interface
-        bool "Component middleware.wireless.ble_fsci_interface"
+        bool "fsci_interface"
     config MCUX_COMPONENT_middleware.wireless.ble_fsci_private_interface
-        bool "Component middleware.wireless.ble_fsci_private_interface"
+        bool "fsci_private_interface"
     config MCUX_COMPONENT_middleware.wireless.ble_fsci_source
-        bool "Component middleware.wireless.ble_fsci_source"
+        bool "fsci_source"
     config MCUX_COMPONENT_middleware.wireless.ble_fsci_source_handover
-        bool "Component middleware.wireless.ble_fsci_source_handover"
+        bool "fsci_source_handover"
     config MCUX_COMPONENT_middleware.wireless.ble_fsci_host
-        bool "Component middleware.wireless.ble_fsci_host"
+        bool "fsci_host"
     config MCUX_COMPONENT_middleware.wireless.ble_host_interface_handover
-        bool "Component middleware.wireless.ble_host_interface_handover"
+        bool "host_interface_handover"
     config MCUX_COMPONENT_middleware.wireless.ble_host_handover_component_lib
-        bool "Component middleware.wireless.ble_host_handover_component_lib"
+        bool "host_handover_lib"
     config MCUX_COMPONENT_middleware.wireless.auto
-        bool "Component middleware.wireless.auto"
+        bool "auto"
     config MCUX_COMPONENT_middleware.wireless.ble_init_matter
-        bool "Component middleware.wireless.ble_init_matter"
+        bool "init_matter"
     config MCUX_COMPONENT_middleware.wireless.ble_hci_transport_serial
-        bool "Component middleware.wireless.ble_hci_transport_serial"
+        bool "hci_transport_serial"
     config MCUX_COMPONENT_middleware.wireless.ble_hci_transport_rpmsg
-        bool "Component middleware.wireless.ble_hci_transport_rpmsg"
+        bool "hci_transport_rpmsg"
     config MCUX_COMPONENT_middleware.wireless.ble_hci_transport_adapter
-        bool "Component middleware.wireless.ble_hci_transport_adapter"
+        bool "hci_transport_adapter"
     config MCUX_COMPONENT_middleware.wireless.ble_hci_transport_interface
-        bool "Component middleware.wireless.ble_hci_transport_interface"
+        bool "hci_transport_interface"
     config MCUX_COMPONENT_middleware.wireless.ble_gatt_db_dynamic
-        bool "Component middleware.wireless.ble_gatt_db_dynamic"
+        bool "gatt_db_dynamic"
     config MCUX_COMPONENT_middleware.wireless.ble_gatt_service_discovery
-        bool "Component middleware.wireless.ble_gatt_service_discovery"
+        bool "gatt_service_discovery"
     config MCUX_COMPONENT_middleware.wireless.ble_gatt_db
-        bool "Component middleware.wireless.ble_gatt_db"
+        bool "gatt_db"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_battery_service
-        bool "Component middleware.wireless.ble_profiles_battery_service"
+        bool "profiles_battery_service"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_device_info_service
-        bool "Component middleware.wireless.ble_profiles_device_info_service"
+        bool "profiles_device_info_service"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_ancs
-        bool "Component middleware.wireless.ble_profiles_ancs"
+        bool "profiles_ancs"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_time
-        bool "Component middleware.wireless.ble_profiles_time"
+        bool "profiles_time"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_hid
-        bool "Component middleware.wireless.ble_profiles_hid"
+        bool "profiles_hid"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_temperature
-        bool "Component middleware.wireless.ble_profiles_temperature"
+        bool "profiles_temperature"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_wireless_uart
-        bool "Component middleware.wireless.ble_profiles_wireless_uart"
+        bool "profiles_wireless_uart"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_otap
-        bool "Component middleware.wireless.ble_profiles_otap"
+        bool "profiles_otap"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_digital_key
-        bool "Component middleware.wireless.ble_profiles_digital_key"
+        bool "profiles_digital_key"
 endmenu
