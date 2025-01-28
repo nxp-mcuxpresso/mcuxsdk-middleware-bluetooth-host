@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -2493,9 +2493,11 @@ static void HandleGattCmdClientDiscoverPrimaryServicesByUuidOpCode(uint8_t *pBuf
     fsciBleGetUuidFromBuffer(&uuid, &pBuffer, uuidType);
     fsciBleGetUint8ValueFromBuffer(maxServiceCount, pBuffer);
 
-    /* Allocate buffer for the services array - consider that maxServiceCount
-    is bigger than 0 */
-    pOutServices        = fsciBleGattClientAllocOutOrIoServices(maxServiceCount, deviceId, gUnenhancedBearerId_c);
+    if((maxServiceCount > 0U) && (maxServiceCount <= gMaxServicesCount_d))
+    {
+        /* Allocate buffer for the services array */
+        pOutServices    = fsciBleGattClientAllocOutOrIoServices(maxServiceCount, deviceId, gUnenhancedBearerId_c);
+    }
     /* Allocate buffer for the services array count */
     pOutServiceCount    = (uint8_t*)fsciBleGattClientAllocOutOrIoArraySize(deviceId, gUnenhancedBearerId_c);
 
@@ -2545,9 +2547,11 @@ static void HandleGattCmdClientFindIncludedServicesOpCode(uint8_t *pBuffer, uint
         fsciBleGattClientGetServiceFromBuffer(pIoService, &pBuffer);
         fsciBleGetUint8ValueFromBuffer(maxIncludedServiceCount, pBuffer);
 
-        /* Allocate buffer for the included services - consider that maxIncludedServiceCount
-        is bigger than 0 */
-        pOutIncludedServices = fsciBleGattClientAllocOutOrIoIncludedServices(maxIncludedServiceCount, deviceId, gUnenhancedBearerId_c);
+        if((maxIncludedServiceCount > 0U) && (maxIncludedServiceCount <= gMaxServicesCount_d))
+        {
+            /* Allocate buffer for the included services */
+            pOutIncludedServices = fsciBleGattClientAllocOutOrIoIncludedServices(maxIncludedServiceCount, deviceId, gUnenhancedBearerId_c);
+        }
 
         if(NULL != pOutIncludedServices)
         {
@@ -2596,9 +2600,11 @@ static void HandleGattCmdClientDiscoverAllCharacteristicsOfServiceOpCode(uint8_t
         fsciBleGattClientGetServiceFromBuffer(pIoService, &pBuffer);
         fsciBleGetUint8ValueFromBuffer(maxCharacteristicCount, pBuffer);
 
-        /* Allocate buffer for the characteristics - consider that maxCharacteristicCount
-        is bigger than 0 */
-        pOutCharacteristics = fsciBleGattClientAllocOutOrIoCharacteristics(maxCharacteristicCount, deviceId, gUnenhancedBearerId_c);
+        if((maxCharacteristicCount > 0U) && (maxCharacteristicCount < gMaxServiceCharCount_d))
+        {
+            /* Allocate buffer for the characteristics */
+            pOutCharacteristics = fsciBleGattClientAllocOutOrIoCharacteristics(maxCharacteristicCount, deviceId, gUnenhancedBearerId_c);
+        }
 
         if(NULL != pOutCharacteristics)
         {
@@ -2700,9 +2706,11 @@ static void HandleGattCmdClientDiscoverAllCharacteristicDescriptorsOpCode(uint8_
         fsciBleGetUint16ValueFromBuffer(endingHandle, pBuffer);
         fsciBleGetUint8ValueFromBuffer(maxDescriptorCount, pBuffer);
 
-        /* Allocate buffer for the descriptors - consider that maxDescriptorCount
-        is bigger than 0 */
-        pOutDescriptors = fsciBleGattClientAllocOutOrIoAttributes(maxDescriptorCount, deviceId, gUnenhancedBearerId_c);
+        if((maxDescriptorCount > 0U) && (maxDescriptorCount <= gMaxCharDescriptorsCount_d))
+        {
+            /* Allocate buffer for the descriptors */
+            pOutDescriptors = fsciBleGattClientAllocOutOrIoAttributes(maxDescriptorCount, deviceId, gUnenhancedBearerId_c);
+        }
 
         if(NULL != pOutDescriptors)
         {
@@ -3712,9 +3720,11 @@ static void HandleGattCmdClientEnhancedDiscoverPrimaryServicesByUuidOpCode(uint8
     fsciBleGetUuidFromBuffer(&uuid, &pBuffer, uuidType);
     fsciBleGetUint8ValueFromBuffer(maxServiceCount, pBuffer);
 
-    /* Allocate buffer for the services array - consider that maxServiceCount
-    is bigger than 0 */
-    pOutServices        = fsciBleGattClientAllocOutOrIoServices(maxServiceCount, deviceId, bearerId);
+    if((maxServiceCount > 0U) && (maxServiceCount <= gMaxServicesCount_d))
+    {
+        /* Allocate buffer for the services array */
+        pOutServices    = fsciBleGattClientAllocOutOrIoServices(maxServiceCount, deviceId, bearerId);
+    }
     /* Allocate buffer for the services array count */
     pOutServiceCount    = (uint8_t*)fsciBleGattClientAllocOutOrIoArraySize(deviceId, bearerId);
 
@@ -3767,9 +3777,11 @@ static void HandleGattCmdClientEnhancedFindIncludedServicesOpCode(uint8_t *pBuff
         fsciBleGattClientGetServiceFromBuffer(pIoService, &pBuffer);
         fsciBleGetUint8ValueFromBuffer(maxIncludedServiceCount, pBuffer);
 
-        /* Allocate buffer for the included services - consider that maxIncludedServiceCount
-        is bigger than 0 */
-        pOutIncludedServices = fsciBleGattClientAllocOutOrIoIncludedServices(maxIncludedServiceCount, deviceId, bearerId);
+        if((maxIncludedServiceCount > 0U) && (maxIncludedServiceCount <= gMaxServicesCount_d))
+        {
+            /* Allocate buffer for the included services */
+            pOutIncludedServices = fsciBleGattClientAllocOutOrIoIncludedServices(maxIncludedServiceCount, deviceId, bearerId);
+        }
 
         if(NULL != pOutIncludedServices)
         {
@@ -3821,9 +3833,11 @@ static void HandleGattCmdClientEnhancedDiscoverAllCharacteristicsOfServiceOpCode
         fsciBleGattClientGetServiceFromBuffer(pIoService, &pBuffer);
         fsciBleGetUint8ValueFromBuffer(maxCharacteristicCount, pBuffer);
 
-        /* Allocate buffer for the characteristics - consider that maxCharacteristicCount
-        is bigger than 0 */
-        pOutCharacteristics = fsciBleGattClientAllocOutOrIoCharacteristics(maxCharacteristicCount, deviceId, bearerId);
+        if((maxCharacteristicCount > 0U) && (maxCharacteristicCount <= gMaxServiceCharCount_d))
+        {
+            /* Allocate buffer for the characteristics */
+            pOutCharacteristics = fsciBleGattClientAllocOutOrIoCharacteristics(maxCharacteristicCount, deviceId, bearerId);
+        }
 
         if(NULL != pOutCharacteristics)
         {
@@ -3931,9 +3945,11 @@ static void HandleGattCmdClientEnhancedDiscoverAllCharacteristicDescriptorsOpCod
         fsciBleGetUint16ValueFromBuffer(endingHandle, pBuffer);
         fsciBleGetUint8ValueFromBuffer(maxDescriptorCount, pBuffer);
 
-        /* Allocate buffer for the descriptors - consider that maxDescriptorCount
-        is bigger than 0 */
-        pOutDescriptors = fsciBleGattClientAllocOutOrIoAttributes(maxDescriptorCount, deviceId, bearerId);
+        if((maxDescriptorCount > 0U) && (maxDescriptorCount <= gMaxCharDescriptorsCount_d))
+        {
+            /* Allocate buffer for the descriptors */
+            pOutDescriptors = fsciBleGattClientAllocOutOrIoAttributes(maxDescriptorCount, deviceId, bearerId);
+        }
 
         if(NULL != pOutDescriptors)
         {

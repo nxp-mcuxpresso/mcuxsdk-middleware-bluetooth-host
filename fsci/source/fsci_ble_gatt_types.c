@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2023 NXP
+* Copyright 2016-2023, 2025 NXP
 *
 *
 * \file
@@ -301,7 +301,7 @@ void fsciBleGattClientGetCharFromBuffer(gattCharacteristic_t* pCharacteristic, u
     fsciBleGetUint8ValueFromBuffer(pCharacteristic->cNumDescriptors, *ppBuffer);
 
     /* If cNumDescriptors is bigger than 0, also the descriptors array field must be read from buffer */
-    if(0U != pCharacteristic->cNumDescriptors)
+    if((0U != pCharacteristic->cNumDescriptors) && (pCharacteristic->cNumDescriptors <= gMaxCharDescriptorsCount_d))
     {
         uint32_t iCount;
 
@@ -470,7 +470,7 @@ static void fsciBleGattClientGetServiceFromBufferIterative(gattService_t* pServi
     fsciBleGetUint8ValueFromBuffer(pService->cNumCharacteristics, *ppBuffer);
 
     /* If cNumCharacteristics is bigger than 0, also the characteristics array field must be read from buffer */
-    if(0U != pService->cNumCharacteristics)
+    if((0U != pService->cNumCharacteristics) && (pService->cNumCharacteristics <= gMaxServiceCharCount_d))
     {
         /* Verify if aCharacteristics is NULL (this situation is not allowed) */
         if(NULL == pService->aCharacteristics)

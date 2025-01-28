@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2021-2023 NXP
+* Copyright 2016-2019, 2021-2023, 2025 NXP
 *
 *
 * \file
@@ -318,11 +318,15 @@ void fsciBleL2capCbHandler(void* pData, void* param, uint32_t fsciInterface)
 
                         /* Get number and list of channels for which to cancel the pending connection */
                         fsciBleGetUint8ValueFromBuffer(noOfChannels, pBuffer);
-                        for (iCount = 0; iCount < noOfChannels; iCount++)
+
+                        if((noOfChannels > 0U) && (noOfChannels <= gL2capEnhancedMaxChannels_c))
                         {
-                            fsciBleGetUint16ValueFromBuffer(aCids[iCount], pBuffer);
+                            for (iCount = 0; iCount < noOfChannels; iCount++)
+                            {
+                                fsciBleGetUint16ValueFromBuffer(aCids[iCount], pBuffer);
+                            }
+                            fsciBleL2capCbCallApiFunction(L2ca_EnhancedCancelConnection(lePsm, deviceId, refuseReason, noOfChannels, aCids));
                         }
-                        fsciBleL2capCbCallApiFunction(L2ca_EnhancedCancelConnection(lePsm, deviceId, refuseReason, noOfChannels, aCids));
                     }
                     break;
 

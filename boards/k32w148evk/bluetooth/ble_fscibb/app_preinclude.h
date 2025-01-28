@@ -148,6 +148,15 @@
 
 #define gGapSimultaneousEAChainedReports_c  2
 
+/* Max Services - update according to the usecase */
+#define gMaxServicesCount_d             6U
+
+/* Max Characteristics - update according to the usecase */
+#define gMaxServiceCharCount_d          10U
+
+/* Max Descriptors - update according to the usecase */
+#define gMaxCharDescriptorsCount_d      4U
+
 /*! *********************************************************************************
  *     BLE LL Configuration
  ***********************************************************************************/
