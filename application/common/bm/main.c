@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2021-2024 NXP
+* Copyright 2021-2025 NXP
 *
 *
 * \file
@@ -21,9 +21,6 @@
 #include "app.h"
 #include "app_conn.h"
 #include "fsl_os_abstraction.h"
-#ifdef LCE_KW47_MCXW72
-#include "app_lce_init.h"
-#endif
 
 #if defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d > 0)
 #include "PWR_Interface.h"
@@ -54,11 +51,6 @@ int main(void)
 
     /* Start Host stack */
     BluetoothLEHost_AppInit();
-    
-    /* Start LCE */
-#ifdef LCE_KW47_MCXW72
-    (void)APP_InitLce();
-#endif
 
     while(TRUE)
     {
