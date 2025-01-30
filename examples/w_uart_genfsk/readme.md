@@ -60,3 +60,5 @@ The demo is based on the basic Wireless UART with the addition of some Generic F
 The Hybrid (Dual-Mode) Bluetooth Low Energy and Generic FSK application is supported on the following platform:
 - KW45B41Z-EVK
 - KW45B41Z-LOC
+- KW47-EVK
+- KW47-LOC
