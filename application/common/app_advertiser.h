@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2024 NXP
+* Copyright 2024-2025 NXP
 *
 *
 *
@@ -46,6 +46,13 @@ typedef struct appExtAdvertisingParams_tag
 extern gapAdvertisingCallback_t pfAdvCallback;
 extern appAdvertiserHandler_t pfAdvertiserHandler;
 
+/*
+	Default value for this define - application may override it in app_preinclude.h
+	Enables APIs to set EAD key material and reencrypt the advertising data for a given set
+*/
+#ifndef gReencryptAdvDataOnRpaChange_d
+#define gReencryptAdvDataOnRpaChange_d 0U
+#endif
 /*! *********************************************************************************
 *************************************************************************************
 * Public prototypes
@@ -101,4 +108,38 @@ bleResult_t BluetoothLEHost_StartExtAdvertising
     gapConnectionCallback_t   pfConnectionCallback
 );
 
+/*! *************************************************************************************
+*\fn           bleResult_t BluetoothLEHost_SetEadKeyMaterial(uint8_t *pKey, uint8_t *pIv)
+*\brief        Set the key and initialization vector used to encrypt advertising data.
+*
+*\param  [in]  pKey     Pointer to 16-byte key.
+*\param  [in]  pIV      Pointer to 8-byte initialization vector.
+*
+*\return       None
+************************************************************************************** */
+void BluetoothLEHost_SetEadKeyMaterial
+(
+    uint8_t *pKey,
+    uint8_t *pIv
+);
+
+/*! *************************************************************************************
+*\fn           bleResult_t BluetoothLEHost_ReencryptAdvertisingData(uint8_t advHandle,
+*              const gapAdvertisingData_t *pAdvData)
+*
+*\brief        Re-encrypt the advertising data for the set identified by advHandle using
+*              the previously set key and IV and a new randomizer. Should be called by the
+*              application when the RPA for the set changes (on gRandomAddressSet_c
+*              generic event).
+*
+*\param  [in]  advHandle    Handle identifying the advertising set
+*\param  [in]  pAdvData    Pointer to advertising data to be encrypted
+*
+*\return       bleResult_t
+************************************************************************************** */
+bleResult_t BluetoothLEHost_ReencryptAdvertisingData
+(
+    uint8_t advHandle,
+    const gapAdvertisingData_t *pAdvData
+);
 #endif /* APP_ADVERTISER_H */

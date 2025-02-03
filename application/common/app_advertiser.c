@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2021, 2024 NXP
+* Copyright 2021, 2024-2025 NXP
 *
 * \file
 *
@@ -17,6 +17,7 @@
 #include "app_advertiser.h"
 #include "fsl_component_panic.h"
 #include "fwk_messaging.h"
+#include "fwk_mem_manager.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -26,6 +27,9 @@
 static void App_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent);
 static void App_AdvertiserHandler(gapGenericEventType_t  eventType);
 
+#if defined(gReencryptAdvDataOnRpaChange_d) && (gReencryptAdvDataOnRpaChange_d == 1U)
+static uint16_t getAdvDataLen(const gapAdvertisingData_t * pAdvData);
+#endif
 /************************************************************************************
 *************************************************************************************
 * Private memory declarations
@@ -34,6 +38,17 @@ static void App_AdvertiserHandler(gapGenericEventType_t  eventType);
 static appAdvertisingParams_t *mpAdvParams = NULL;
 static appExtAdvertisingParams_t *mpExtAdvParams = NULL;
 
+#if defined(gReencryptAdvDataOnRpaChange_d) && (gReencryptAdvDataOnRpaChange_d == 1U)
+static uint8_t mKey[gcEadKeySize_c] = {0x0U};
+static uint8_t mIv[gcEadIvSize_c] = {0x0U};
+static gapAdStructure_t mEncryptedAdvScanStruct;
+
+static gapAdvertisingData_t mEncryptedAdvertisingData =
+{
+     1U,
+    (void *)&mEncryptedAdvScanStruct
+};
+#endif
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -116,6 +131,85 @@ bleResult_t BluetoothLEHost_StartExtAdvertising(
     return Gap_SetExtAdvertisingParameters(pExtAdvParams->pGapExtAdvParams);
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 }
+
+#if defined(gReencryptAdvDataOnRpaChange_d) && (gReencryptAdvDataOnRpaChange_d == 1U)
+/*! *************************************************************************************
+*\fn           bleResult_t BluetoothLEHost_SetEadKeyMaterial(uint8_t *pKey, uint8_t *pIv)
+*\brief        Set the key and initialization vector used to encrypt advertising data.
+*
+*\param  [in]  pKey     Pointer to 16-byte key.
+*\param  [in]  pIV      Pointer to 8-byte initialization vector.
+*
+*\return       None
+************************************************************************************** */
+void BluetoothLEHost_SetEadKeyMaterial
+(
+    uint8_t *pKey,
+    uint8_t *pIv
+)
+{
+    if (pKey != NULL)
+    {
+        FLib_MemCpy(mKey, pKey, gcEadKeySize_c);
+    }
+    if (pIv != NULL)
+    {
+        FLib_MemCpy(mIv, pIv, gcEadIvSize_c);
+    }
+}
+
+/*! *************************************************************************************
+*\fn           bleResult_t BluetoothLEHost_ReencryptAdvertisingData(uint8_t advHandle,
+*              const gapAdvertisingData_t *pAdvData)
+*
+*\brief        Re-encrypt the advertising data for the set identified by advHandle using
+*              the previously set key and IV and a new randomizer. Should be called by the
+*              application when the RPA for the set changes (on gRandomAddressSet_c
+*              generic event).
+*
+*\param  [in]  advHandle    Handle identifying the advertising set
+*\param  [in]  pAdvData    Pointer to advertising data to be encrypted
+*
+*\return       bleResult_t
+************************************************************************************** */
+bleResult_t BluetoothLEHost_ReencryptAdvertisingData
+(
+    uint8_t advHandle,
+    const gapAdvertisingData_t *pAdvData
+)
+{
+    bleResult_t result = gBleSuccess_c;
+
+    if ((advHandle >= gMaxAdvSets_c) || (pAdvData == NULL))
+    {
+        result = gBleInvalidParameter_c;
+    }
+    else
+    {
+        uint16_t advLength = getAdvDataLen(pAdvData) + gcEadRandomizerSize_c +  gcEadMicSize_c;
+        uint8_t *pOutput = MEM_BufferAlloc(advLength);
+
+        if (pOutput != NULL)
+        {
+            result = Gap_EncryptAdvertisingData(pAdvData, mKey, mIv, pOutput);
+            if (result == gBleSuccess_c)
+            {
+                mEncryptedAdvScanStruct.length = advLength;
+                mEncryptedAdvScanStruct.adType = gAdEncryptedAdvertisingData_c;
+                mEncryptedAdvScanStruct.aData = pOutput;
+                result = Gap_SetExtAdvertisingData(advHandle, &mEncryptedAdvertisingData, NULL);
+            }
+            (void)MEM_BufferFree(pOutput);
+        }
+        else
+        {
+            result = gBleOutOfMemory_c;
+        }
+    }
+
+    return result;
+}
+#endif /* gReencryptAdvDataOnRpaChange_d */
 
 /************************************************************************************
 *************************************************************************************
@@ -240,3 +334,30 @@ static void App_AdvertiserHandler(gapGenericEventType_t  eventType)
         break;
     }
 }
+
+#if defined(gReencryptAdvDataOnRpaChange_d) && (gReencryptAdvDataOnRpaChange_d == 1U)
+/*! *********************************************************************************
+*\private
+*\fn          uint16_t getAdvDataLen(gapAdvertisingData_t * pAdvData)
+*\brief       Helper function that calculates the length of given gapAdvertisingData_t.
+*
+*\param  [in] pAdvData   Pointer to structure containing advertising data.
+*
+*\retval      void.
+********************************************************************************** */
+static uint16_t getAdvDataLen(const gapAdvertisingData_t * pAdvData)
+{
+    uint16_t len = 0U;
+    uint32_t i;
+
+    if (pAdvData != NULL)
+    {
+        for (i = 0U; i < pAdvData->cNumAdStructures; i++)
+        {
+            len += 1U + (uint16_t)pAdvData->aAdStructures[i].length;
+        }
+    }
+
+    return len;
+}
+#endif /* gReencryptAdvDataOnRpaChange_d */
