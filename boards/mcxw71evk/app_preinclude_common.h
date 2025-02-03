@@ -197,7 +197,7 @@
 /* Specify if the Bluetooth address is set using vendor specific command or using Controller API */
 #define gBleSetMacAddrFromVendorCommand_d   (1)
 
-#if defined(MBEDTLS_USED)
+#if defined(CONNFWK_SECLIB_MBEDTLS)
 /* The stack size of the Host task needs to be rise when using mbedTLS as mbedTLS structures are bigger */
 #ifndef gHost_TaskStackSize_c
 #define gHost_TaskStackSize_c       1650
