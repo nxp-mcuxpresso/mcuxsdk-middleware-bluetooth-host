@@ -108,6 +108,7 @@ bleResult_t BluetoothLEHost_StartExtAdvertising
     gapConnectionCallback_t   pfConnectionCallback
 );
 
+#if defined(gReencryptAdvDataOnRpaChange_d) && (gReencryptAdvDataOnRpaChange_d == 1U)
 /*! *************************************************************************************
 *\fn           bleResult_t BluetoothLEHost_SetEadKeyMaterial(uint8_t *pKey, uint8_t *pIv)
 *\brief        Set the key and initialization vector used to encrypt advertising data.
@@ -142,4 +143,6 @@ bleResult_t BluetoothLEHost_ReencryptAdvertisingData
     uint8_t advHandle,
     const gapAdvertisingData_t *pAdvData
 );
+#endif /* gReencryptAdvDataOnRpaChange_d */
+
 #endif /* APP_ADVERTISER_H */
