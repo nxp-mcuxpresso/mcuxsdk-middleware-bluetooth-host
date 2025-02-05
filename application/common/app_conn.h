@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2020-2024 NXP
+* Copyright 2020-2025 NXP
 *
 *
 *
@@ -319,6 +319,28 @@ bleResult_t BluetoothLEHost_ConnectFromPawr
 void BluetoothLEHost_SetConnectionCallback
 (
     gapConnectionCallback_t             connCallback
+);
+
+/*! *********************************************************************************
+*\fn           void BluetoothLEHost_SetScanningCallback(
+*                  gapScanningCallback_t             scanCallback
+*              )
+*\brief        Sets the Host scanning callback.
+*
+*\param  [in]  scanCallback    Callback used to receive scan events.
+*
+*\return      None
+*
+*\remarks      Normally the scanning callback is set as part of the Start Scanning API.
+*              This function is required in the context of using Periodic Advertising
+*              Sync Transfer, where a device might receive Periodic Advertising Reports
+*              having not previously called the Start Scanning API (but via PAST instead).
+*              Call this function at application initialization if anticipating use of
+*              the PAST feature as Receiver.
+********************************************************************************** */
+void BluetoothLEHost_SetScanningCallback
+(
+    gapScanningCallback_t             scanCallback
 );
 
 /*! *********************************************************************************

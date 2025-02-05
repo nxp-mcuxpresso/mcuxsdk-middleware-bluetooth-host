@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -2961,6 +2961,20 @@ void Gap_SetConnectionCallback
     gapConnectionCallback_t pfConnectionCallback
 );
 
+/*!*************************************************************************************************
+*\fn           bleResult_t Gap_SetScanningCallback(gapScanningCallback_t pfScanningCallback)
+*
+*\brief        Set the GAP scanning callback.
+*
+*\param [in]   pfScanningCallback     The function called when one of the events defined in
+*                                     gapScanningEventType_t occurs.
+*
+* \return  none
+***************************************************************************************************/
+void Gap_SetScanningCallback
+(
+    gapScanningCallback_t pfScanningCallback
+);
 #ifdef __cplusplus
 }
 #endif
