@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 NXP
+ * Copyright 2020-2023, 2025 NXP
  *
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -25,11 +25,13 @@
 ************************************************************************************/
 #define HCI_BUFFER_SIZE  270U   /*260 bytes is not enough. Need at least one more byte + some margin.*/
 
+#ifndef gHcitUseMutex_c
 #if USE_RTOS
 #define gHcitUseMutex_c 1
 #else
 #define gHcitUseMutex_c 0
-#endif /*USE_RTOS*/
+#endif /* USE_RTOS */
+#endif /* gHcitUseMutex_c */
 
 #if gHcitUseMutex_c
 #define HCI_MUTEX_LOCK()   (void)OSA_MutexLock((osa_mutex_handle_t)mHCIMutexId, osaWaitForever_c)
