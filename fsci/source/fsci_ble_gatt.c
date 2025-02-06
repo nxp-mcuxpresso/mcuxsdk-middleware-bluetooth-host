@@ -1799,19 +1799,13 @@ void fsciBleGattClientProcedureEvtMonitor(deviceId_t deviceId, bearerId_t bearer
         if (earlyReturn == TRUE)
         {
             /* Procedure not recognized */
-            fsciBleError(gFsciError_c, fsciBleInterfaceId);
             fsciBleGattClientEraseInfo(bFsciBleGattClientAllocatedInfo, deviceId, bearerId);
+            fsciBleError(gFsciError_c, fsciBleInterfaceId);
         }
 #endif /* gMatterConfig_d */
 #if gFsciBleTest_d
     }
 #endif /* gFsciBleTest_d */
-
-    if(!earlyReturn)
-    {
-        /* Erase the information kept (allocated or just saved) */
-        fsciBleGattClientEraseInfo(bFsciBleGattClientAllocatedInfo, deviceId, bearerId);
-    }
 }
 
 
@@ -5911,6 +5905,9 @@ static void HandleGattProcExchangeMtu
     fsciBleGetBufferFromEnumValue(procedureResult, pBuffer, gattProcedureResult_t);
     fsciBleGetBufferFromEnumValue(error, pBuffer, bleResult_t);
 
+    /* Erase the information kept (allocated or just saved) */
+    fsciBleGattClientEraseInfo(bFsciBleGattClientAllocatedInfo, deviceId, bearerId);
+
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
@@ -6007,6 +6004,9 @@ static void HandleGattProcDiscoverAllPrimaryServices
             fsciBleGattClientGetBufferFromService(&pServices[iCount], &pBuffer);
         }
     }
+
+    /* Erase the information kept (allocated or just saved) */
+    fsciBleGattClientEraseInfo(bFsciBleGattClientAllocatedInfo, deviceId, bearerId);
 
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
@@ -6105,6 +6105,9 @@ static void HandleGattProcDiscoverPrimaryServicesByUuid
         }
     }
 
+    /* Erase the information kept (allocated or just saved) */
+    fsciBleGattClientEraseInfo(bFsciBleGattClientAllocatedInfo, deviceId, bearerId);
+
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
@@ -6192,6 +6195,9 @@ static void HandleGattProcFindIncludedServices
         fsciBleGattClientGetBufferFromService(pServices, &pBuffer);
     }
 
+    /* Erase the information kept (allocated or just saved) */
+    fsciBleGattClientEraseInfo(bFsciBleGattClientAllocatedInfo, deviceId, bearerId);
+
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
@@ -6278,6 +6284,9 @@ static void HandleGattProcDiscoverAllCharacteristics
         /* Set service parameter in the buffer */
         fsciBleGattClientGetBufferFromService(pServices, &pBuffer);
     }
+
+    /* Erase the information kept (allocated or just saved) */
+    fsciBleGattClientEraseInfo(bFsciBleGattClientAllocatedInfo, deviceId, bearerId);
 
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
@@ -6376,6 +6385,9 @@ static void HandleGattProcDiscoverCharacteristicByUuid
         }
     }
 
+    /* Erase the information kept (allocated or just saved) */
+    fsciBleGattClientEraseInfo(bFsciBleGattClientAllocatedInfo, deviceId, bearerId);
+
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
@@ -6463,6 +6475,9 @@ static void HandleGattProcDiscoverAllCharacteristicDescriptors
         fsciBleGattClientGetBufferFromCharacteristic(pCharacteristics, &pBuffer);
     }
 
+    /* Erase the information kept (allocated or just saved) */
+    fsciBleGattClientEraseInfo(bFsciBleGattClientAllocatedInfo, deviceId, bearerId);
+
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
@@ -6549,6 +6564,9 @@ static void HandleGattProcReadCharacteristicValue
         /* Set characteristic parameter in the buffer */
         fsciBleGattClientGetBufferFromCharacteristic(pCharacteristics, &pBuffer);
     }
+
+    /* Erase the information kept (allocated or just saved) */
+    fsciBleGattClientEraseInfo(bFsciBleGattClientAllocatedInfo, deviceId, bearerId);
 
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
@@ -6639,6 +6657,9 @@ static void HandleGattProcReadUsingCharacteristicUuid
         /* Set value parameter in the buffer */
         fsciBleGetBufferFromArray(pValue, pBuffer, *pArraySize);
     }
+
+    /* Erase the information kept (allocated or just saved) */
+    fsciBleGattClientEraseInfo(bFsciBleGattClientAllocatedInfo, deviceId, bearerId);
 
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
@@ -6736,6 +6757,9 @@ static void HandleGattProcReadMultipleCharacteristicValues
         }
     }
 
+    /* Erase the information kept (allocated or just saved) */
+    fsciBleGattClientEraseInfo(bFsciBleGattClientAllocatedInfo, deviceId, bearerId);
+
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
@@ -6807,6 +6831,9 @@ static void HandleGattProcWriteCharacteristicValue
 
     fsciBleGetBufferFromEnumValue(procedureResult, pBuffer, gattProcedureResult_t);
     fsciBleGetBufferFromEnumValue(error, pBuffer, bleResult_t);
+
+    /* Erase the information kept (allocated or just saved) */
+    fsciBleGattClientEraseInfo(bFsciBleGattClientAllocatedInfo, deviceId, bearerId);
 
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
@@ -6895,6 +6922,9 @@ static void HandleGattProcReadCharacteristicDescriptor
         fsciBleGattClientGetBufferFromAttribute(pDescriptors, &pBuffer);
     }
 
+    /* Erase the information kept (allocated or just saved) */
+    fsciBleGattClientEraseInfo(bFsciBleGattClientAllocatedInfo, deviceId, bearerId);
+
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
@@ -6966,6 +6996,9 @@ static void HandleGattProcWriteCharacteristicDescriptor
 
     fsciBleGetBufferFromEnumValue(procedureResult, pBuffer, gattProcedureResult_t);
     fsciBleGetBufferFromEnumValue(error, pBuffer, bleResult_t);
+
+    /* Erase the information kept (allocated or just saved) */
+    fsciBleGattClientEraseInfo(bFsciBleGattClientAllocatedInfo, deviceId, bearerId);
 
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
@@ -7063,6 +7096,9 @@ static void HandleGattProcReadMultipleVarLengthCharValues
             fsciBleGattClientGetBufferFromCharacteristic(&pCharacteristics[iCount], &pBuffer);
         }
     }
+
+    /* Erase the information kept (allocated or just saved) */
+    fsciBleGattClientEraseInfo(bFsciBleGattClientAllocatedInfo, deviceId, bearerId);
 
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
