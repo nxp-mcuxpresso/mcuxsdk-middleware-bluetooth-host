@@ -1,0 +1,117 @@
+# Reading and writing characteristic descriptors
+
+Two APIs are provided for these procedures which are very similar to Characteristic Read and Write.
+
+The only difference is that the handle of the attribute to be read/written is provided through a pointer to an *gattAttribute\_t* structure \(same type as the *gattCharacteristic\_t.value* field\).
+
+All of the following APIs have an enhanced counterpart of the form *GattClient\_Enhanced\[procedure\]*. A *bearerId*parameter was added to specify on which bearer the transaction should take place. A value of *0* for the bearer Id identifies the Unenhanced ATT bearer. Values higher than *0* are used to identify the Enhanced ATT bearer used for the ATT procedure.
+
+```
+bleResult_t **GattClient\_ReadCharacteristicDescriptor**
+(
+    deviceId_t             deviceId,
+    gattAttribute_t *      pIoDescriptor,
+    uint16_t               maxReadBytes
+);
+```
+
+The *pIoDescriptor-\>handle* is required \(it may have been discovered previously by *GattClient\_DiscoverAllCharacteristicDescriptors*\). The GATT module fills the value that was read in the fields *pIoDescriptor-\>aValue* \(must be linked to an allocated array\) and *pIoDescriptor-\>valueLength* \(size of the array\).
+
+Writing a descriptor is also performed similarly with this function:
+
+```
+bleResult_t **GattClient\_WriteCharacteristicDescriptor**
+(
+    deviceId_t             deviceId,
+    gattAttribute_t *      pDescriptor,
+    uint16_t               valueLength,
+    uint8_t *              aValue
+);
+```
+
+Only the *pDescriptor-\>handle* must be filled before calling the function.
+
+One of the most frequently written descriptors is the Client Characteristic Configuration Descriptor \(CCCD\). It has a well-defined UUID \(*gBleSig\_CCCD\_d*\) and a 2-byte long value that can be written to enable/disable notifications and/or indications.
+
+In the following example, a Characteristic’s descriptors are discovered and its CCCD written to activate notifications.
+
+```
+**static** gattCharacteristic_t myChar;
+myChar. value . handle = 0x00A0; /* Or maybe it was previously discovered? */
+**\#define** mcMaxDescriptors_c 5
+**static** gattAttribute_t aDescriptors[mcMaxDescriptors_c];
+myChar. aDescriptors = aDescriptors;
+/* ... */
+{
+    bleResult_t result = **GattClient\_DiscoverAllCharacteristicDescriptors**
+    (
+        deviceId,
+        &myChar,
+        0xFFFF,
+        mcMaxDescriptors_c
+    );
+    **if** (*gBleSuccess\_c* != result)
+    {
+        /* Handle error */
+    }
+}
+/* ... */
+**void gattClientProcedureCallback**
+(
+    deviceId_t                 deviceId,
+    gattProcedureType_t        procedureType,
+    gattProcedureResult_t      procedureResult,
+    bleResult_t                error
+)
+{
+    **switch** (procedureType)
+    {
+      /* ... */
+      **case ***gGattProcDiscoverAllCharacteristicDescriptors\_c*:
+         **if** (*gGattProcSuccess\_c* == procedureResult)
+          {
+           /* Find CCCD */
+            **for** ( uint8_t j = 0; j < myChar. cNumDescriptors ; j++)
+               {
+                **if** (aDescriptors[j].uuidType && gBleSig_CCCD_d ==myChar.aDescriptors[j].uuid.uuid16) )
+                 {
+                    uint8_t cccdValue[2];
+                    packTwoByteValue(*gCccdNotification\_c*, cccdValue);
+                    bleResult_t result = GattClient_WriteCharacteristicDescriptor
+                     (
+                       deviceId,
+                       &myChar. aDescriptors [j],
+                       2,
+                       cccdValue
+                     );
+                    **if** (*gBleSuccess\_c* != result)
+                       {
+                        /* Handle error */
+                       }
+                       **break**;
+                     }
+                }
+            }
+            **else**
+            {
+                /* Handle error */
+                PRINT(error);
+            }
+            **break**;
+        **case ***gGattProcWriteCharacteristicDescriptor\_c*:
+            **if** (*gGattProcSuccess\_c* == procedureResult)
+            {
+                /* Notification successfully activated */
+            }
+            **else**
+            {
+                /* Handle error */
+                PRINT(error);
+            }
+        /* ... */
+    }
+}
+```
+
+**Parent topic:**[Client APIs](../topics/client_apis.md)
+
