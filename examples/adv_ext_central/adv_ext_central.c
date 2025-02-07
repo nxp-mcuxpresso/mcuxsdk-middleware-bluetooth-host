@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2020 - 2024 NXP
+* Copyright 2020 - 2025 NXP
 *
 *
 * \file
@@ -158,6 +158,9 @@ static SERIAL_MANAGER_READ_HANDLE_DEFINE(s_readHandle);
 
 /* Timers */
 static TIMER_MANAGER_HANDLE_DEFINE(mAppTimerId);
+#if (gAppPAWRSupport_d == TRUE)
+static TIMER_MANAGER_HANDLE_DEFINE(mScanTimerId);
+#endif /* (gAppPAWRSupport_d == TRUE) */
 static char* maAdvEvtConnStrings[] = { "\n\rNon Connectable", "\n\rConnectable" };
 static char* maAdvEvtScannStrings[] = { "\n\rNon Scannable", "\n\rScannable" };
 static char* maAdvEvtDirStrings[] = { "\n\rUndirected", "\n\rDirected" };
@@ -484,6 +487,9 @@ static void BluetoothLEHost_Initialized(void)
 
     /* Allocate scan timeout timer */
     (void)TM_Open((timer_handle_t)mAppTimerId);
+#if (gAppPAWRSupport_d == TRUE)
+    (void)TM_Open((timer_handle_t)mScanTimerId);
+#endif /* (gAppPAWRSupport_d == TRUE) */
 
     /* Update UI */
     AppPrintString("\n\rExtended Advertising Application - Central");
@@ -1588,15 +1594,25 @@ static void BleApp_HandleScanStateChanged(void)
         AppPrintString(maScanStrings[gScanParams.type]);
         AppPrintString(" Scanning Started\r\n");
         /* Start scanning timer */
+#if (gAppPAWRSupport_d == TRUE)
+        (void)TM_InstallCallback((timer_handle_t)mScanTimerId, ScanningTimeoutTimerCallback, NULL);
+        (void)TM_Start((timer_handle_t)mScanTimerId, (uint8_t)kTimerModeLowPowerTimer | (uint8_t)kTimerModeSetSecondTimer | (uint8_t)kTimerModeSingleShot, gScanningTime_c);
+#else /* (gAppPAWRSupport_d == TRUE) */
         (void)TM_InstallCallback((timer_handle_t)mAppTimerId, ScanningTimeoutTimerCallback, NULL);
         (void)TM_Start((timer_handle_t)mAppTimerId, (uint8_t)kTimerModeLowPowerTimer | (uint8_t)kTimerModeSetSecondTimer | (uint8_t)kTimerModeSingleShot, gScanningTime_c);
+#endif /* (gAppPAWRSupport_d == TRUE) */
 
          Led1Flashing();
     }
     /* Node is not scanning */
     else
     {
+#if (gAppPAWRSupport_d == TRUE)
+        (void)TM_Stop((timer_handle_t)mScanTimerId);
+#else /* (gAppPAWRSupport_d == TRUE) */        
         (void)TM_Stop((timer_handle_t)mAppTimerId);
+#endif /* (gAppPAWRSupport_d == TRUE) */
+
         Led1Off();
         Led1On();
         /* Connect with the previously scanned peer device */

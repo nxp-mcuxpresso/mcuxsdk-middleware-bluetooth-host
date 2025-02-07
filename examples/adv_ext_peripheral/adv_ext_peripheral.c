@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2020 - 2024 NXP
+* Copyright 2020 - 2025 NXP
 *
 *
 * \file
@@ -1629,7 +1629,7 @@ static void BleApp_CheckPAWRConnect(uint8_t *pResponseData, uint8_t advHandle, u
                         {
                             gConnFromPAWRReqParams.advHandle = advHandle;
                             gConnFromPAWRReqParams.subevent = subevent;
-                            gConnFromPAWRReqParams.initiatingPHYs = gExtAdvParamsNonConnNonScann.secondaryPHY;
+                            gConnFromPAWRReqParams.initiatingPHYs = (1U)<<(gExtAdvParamsNonConnNonScann.secondaryPHY - 1U);
                             gConnFromPAWRReqParams.peerAddressType = pOutIdentityAddresses[iCount].identityAddress.idAddressType;
                             FLib_MemCpy(gConnFromPAWRReqParams.peerAddress, pOutIdentityAddresses[iCount].identityAddress.idAddress, sizeof(bleDeviceAddress_t));
                             gConnFromPAWRReqParams.usePeerIdentityAddress = TRUE;
@@ -1669,6 +1669,7 @@ static void BleApp_HandlePeriodicAdvertisingResponse(gapPerAdvResponse_t *pAdvRe
     {
          uint8_t  dataLength = 0U;
          uint8_t* pData = pAdvResponse->aData;
+         uint8_t connSubevent = gAppPAWRSubeventsData.aSubeventDataStructures[0U].subevent;
          while ( dataLength < pAdvResponse->dataLength )
          {
              dataLength += (pData[0] + 1U);
@@ -1677,7 +1678,10 @@ static void BleApp_HandlePeriodicAdvertisingResponse(gapPerAdvResponse_t *pAdvRe
              {
                  AppPrintHexLe((uint8_t *)&pData[2], gcBleDeviceAddressSize_c);
                  /* Check whether the response received is from a device eligible to connect and proceed to connect in case it is. */
-                 BleApp_CheckPAWRConnect(&pData[2], pAdvResponse->advHandle, pAdvResponse->subevent);
+                 if ( pAdvResponse->subevent == connSubevent )
+                 {
+                     BleApp_CheckPAWRConnect(&pData[2], pAdvResponse->advHandle, pAdvResponse->subevent);
+                 }
              }
              else
              {
