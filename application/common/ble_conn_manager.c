@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -378,6 +378,21 @@ void BleConnManager_GenericEvent(gapGenericEvent_t* pGenericEvent)
                        * For awareness only.
                        * No action required
                        */
+                }
+                break;
+
+                case gHciInvalidHciCommandParameters_c:
+                {
+                    if (pGenericEvent->eventData.internalError.errorSource == gSetChannelMap_c)
+                    {
+                        ; /*
+                           * Gap_SetChannelMap command
+                           * called with invalid parameters; check if the
+                           * Channel Map complies with the BLE specification
+                           * (it should include at least one valid channel
+                           * and not use any advertising channels)
+                           */
+                    }
                 }
                 break;
 
