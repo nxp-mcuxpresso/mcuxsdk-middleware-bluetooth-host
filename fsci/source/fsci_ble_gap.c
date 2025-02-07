@@ -79,7 +79,7 @@
 #define SizeOfArray(a) (sizeof(a)/sizeof(a[0]))
 
 /* Last Generic Event before GAP2 */
-#define gLastGapGenericEventOpCode_c 0x47
+#define gLastGapGenericEventOpCode_c 0x47U
 /************************************************************************************
 *************************************************************************************
 * Private type definitions
@@ -268,7 +268,7 @@ static const int16_t maConnectionEventToOpcode[]=
     -1,                                                                          /* = 0x2CU, gConnEvtHandoverConnected_c */
     -1,                                                                          /* = 0x2DU, gHandoverDisconnected_c */
     (int16_t)gBleGapEvtConnectionEventLeSetDataLengthFailedOpCode_c,             /* = 0x2EU, gConnEvtLeDataLengthChanged_c */
-    gBleGapEvtConnectionEventSmError_c,                                          /* = 0x2FU, gConnEvtSmError_c */
+    (int16_t)gBleGapEvtConnectionEventSmError_c,                                 /* = 0x2FU, gConnEvtSmError_c */
 };
 
 
@@ -3427,11 +3427,11 @@ void fsciBleGapGenericEvtMonitor(gapGenericEvent_t* pGenericEvent)
     /* Get FSCI opCode */
     tempOpCode = maGenericEventToOpcode[pGenericEvent->eventType];
     
-    if ((tempOpCode == -1) && (pGenericEvent->eventType > gLastGapGenericEventOpCode_c))
+    if ((tempOpCode == -1) && ((uint16_t)pGenericEvent->eventType > gLastGapGenericEventOpCode_c))
     {
         /* Use GAP2 opgroup */
         opGroup = gFsciBleGap2OpcodeGroup_c;
-        tempOpCode = maGenericEvent2ToOpcode[pGenericEvent->eventType - (gLastGapGenericEventOpCode_c + 1U)];
+        tempOpCode = maGenericEvent2ToOpcode[(uint16_t)pGenericEvent->eventType - ((uint16_t)gLastGapGenericEventOpCode_c + 1U)];
     }
     
     if(tempOpCode == -1)

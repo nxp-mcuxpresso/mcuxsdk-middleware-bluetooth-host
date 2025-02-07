@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -41,7 +41,7 @@
 #endif /* gFsciBleGap2LayerEnabled_d */
 
 /*! FSCI operation group for GAP */
-#define gFsciBleGapOpcodeGroup_c                0x48
+#define gFsciBleGapOpcodeGroup_c                0x48U
 
 /*! FSCI operation group for GAP2 */
 #define gFsciBleGap2OpcodeGroup_c               0x4C
