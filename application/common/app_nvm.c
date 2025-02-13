@@ -166,7 +166,7 @@ NVM_RegisterDataSet(aBleLocalKeys,
 #else /* gAppUseNvm_d */
 static bleBondDataBlob_t          maBondDataBlobs[gMaxBondedDevices_c] = {{{{0}}}};
 #if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))
-static bleLocalKeysBlob_t         aBleLocalKeys[gcSecureModeSavedLocalKeysNo_c]; 
+static bleLocalKeysBlob_t         aBleLocalKeys[gcSecureModeSavedLocalKeysNo_c];
 #endif
 #endif /* gAppUseNvm_d */
 
@@ -194,7 +194,7 @@ bleResult_t App_NvmErase
     NVM_Status_t nvmStatus = gNVM_OK_c;
     uint32_t mDescIdx = 0U;
 #endif
-    
+
     if(mEntryIdx >= (uint8_t)gMaxBondedDevices_c)
     {
           status = gBleInvalidParameter_c;
@@ -204,32 +204,32 @@ bleResult_t App_NvmErase
 #if gAppUseNvm_d
 #if gUnmirroredFeatureSet_d == TRUE
         nvmStatus = NvErase((void**)&aBondingHeader[mEntryIdx]);
-        
+
         if (nvmStatus == gNVM_OK_c)
         {
             nvmStatus = NvErase((void**)&aBondingDataDynamic[mEntryIdx]);
         }
-        
+
         if (nvmStatus == gNVM_OK_c)
         {
             nvmStatus = NvErase((void**)&aBondingDataStatic[mEntryIdx]);
         }
-        
+
         if (nvmStatus == gNVM_OK_c)
         {
             nvmStatus = NvErase((void**)&aBondingDataLegacy[mEntryIdx]);
         }
-        
+
         if (nvmStatus == gNVM_OK_c)
         {
             nvmStatus = NvErase((void**)&aBondingDataDeviceInfo[mEntryIdx]);
         }
-        
+
         for(mDescIdx = ((uint32_t)mEntryIdx * gcGapMaximumSavedCccds_c);
             mDescIdx < ((uint32_t)mEntryIdx + 1U) * gcGapMaximumSavedCccds_c; mDescIdx++)
         {
             nvmStatus = NvErase((void**)&aBondingDataDescriptor[mDescIdx]);
-            
+
             if (nvmStatus != gNVM_OK_c)
             {
                 break;
@@ -238,37 +238,37 @@ bleResult_t App_NvmErase
 #else // mirrored
         FLib_MemSet(&aBondingHeader[mEntryIdx], 0, gBleBondIdentityHeaderSize_c);
         nvmStatus = NvSaveOnIdle((void*)&aBondingHeader[mEntryIdx], FALSE);
-        
+
         if (nvmStatus == gNVM_OK_c)
         {
             FLib_MemSet(&aBondingDataDynamic[mEntryIdx], 0, gBleBondDataDynamicSize_c);
             nvmStatus = NvSaveOnIdle((void*)&aBondingDataDynamic[mEntryIdx], FALSE);
         }
-        
+
         if (nvmStatus == gNVM_OK_c)
         {
             FLib_MemSet(&aBondingDataStatic[mEntryIdx], 0, gBleBondDataStaticSize_c);
             nvmStatus = NvSaveOnIdle((void*)&aBondingDataStatic[mEntryIdx], FALSE);
         }
-        
+
         if (nvmStatus == gNVM_OK_c)
         {
             FLib_MemSet(&aBondingDataLegacy[mEntryIdx], 0, gBleBondDataLegacySize_c);
             nvmStatus = NvSaveOnIdle((void*)&aBondingDataLegacy[mEntryIdx], FALSE);
         }
-        
+
         if (nvmStatus == gNVM_OK_c)
         {
             FLib_MemSet(&aBondingDataDeviceInfo[mEntryIdx], 0, gBleBondDataDeviceInfoSize_c);
             nvmStatus = NvSaveOnIdle((void*)&aBondingDataDeviceInfo[mEntryIdx], FALSE);
         }
-        
+
         for(mDescIdx = ((uint32_t)mEntryIdx * gcGapMaximumSavedCccds_c);
             mDescIdx < ((uint32_t)mEntryIdx + 1U) * gcGapMaximumSavedCccds_c; mDescIdx++)
         {
             FLib_MemSet(&aBondingDataDescriptor[mDescIdx], 0, gBleBondDataDescriptorSize_c);
             nvmStatus = NvSaveOnIdle((void*)&aBondingDataDescriptor[mDescIdx], FALSE);
-            
+
             if (nvmStatus == gNVM_OK_c)
             {
                 break;
@@ -283,7 +283,7 @@ bleResult_t App_NvmErase
         FLib_MemSet(&maBondDataBlobs[mEntryIdx], 0, sizeof(bleBondDataBlob_t));
 #endif
     }
-    
+
     return status;
 }
 
@@ -338,22 +338,16 @@ bleResult_t App_NvmWrite
     else
     {
 #if gAppUseNvm_d
-        uint8_t  idx   = 0;
-        
 #if gUnmirroredFeatureSet_d == TRUE
-        uint32_t mSize = 0;
+        uint32_t mSize = 0UL;
         void**   ppNvmData = NULL;
         void*    pRamData = NULL;
-#endif
-        
-#if gUnmirroredFeatureSet_d == TRUE
-        
-        for(idx = 0U; idx < 6U; idx++)
+        for(uint8_t idx = 0U; idx < 6U; idx++)
         {
             ppNvmData = NULL;
-            switch(*(uint8_t*)&idx)
+            switch(idx)
             {
-                case 0:
+                case 0U:
                 {
                     if(pBondHeader != NULL)
                     {
@@ -363,7 +357,7 @@ bleResult_t App_NvmWrite
                     }
                 }
                 break;
-                case 1:
+                case 1U:
                 {
                     if(pBondDataDynamic != NULL)
                     {
@@ -373,7 +367,7 @@ bleResult_t App_NvmWrite
                     }
                 }
                 break;
-                case 2:
+                case 2U:
                 {
                     if(pBondDataStatic != NULL)
                     {
@@ -383,7 +377,7 @@ bleResult_t App_NvmWrite
                     }
                 }
                 break;
-                case 3:
+                case 3U:
                 {
                     if(pBondDataLegacy != NULL)
                     {
@@ -393,7 +387,7 @@ bleResult_t App_NvmWrite
                     }
                 }
                 break;
-                case 4:
+                case 4U:
                 {
                     if(pBondDataDeviceInfo != NULL)
                     {
@@ -403,7 +397,7 @@ bleResult_t App_NvmWrite
                     }
                 }
                 break;
-                case 5:
+                case 5U:
                 {
                     if(pBondDataDescriptor != NULL)
                     {
@@ -422,35 +416,35 @@ bleResult_t App_NvmWrite
                 ; /* No action required */
                 break;
             }
-            
+
             if(ppNvmData != NULL)
             {
-                if(gNVM_OK_c == NvMoveToRam(ppNvmData))
+                nvmStatus = NvMoveToRam(ppNvmData);
+                if (gNVM_OK_c == nvmStatus)
                 {
                     FLib_MemCpy(*ppNvmData, pRamData, mSize);
+#if (!defined (gAppNvSyncSave_d) || (gAppNvSyncSave_d == 0))
                     nvmStatus = NvSaveOnIdle(ppNvmData, FALSE);
+#else
+                    /* Opt for immediate write to NVM */
+                    nvmStatus = NvSyncSave(ppNvmData, FALSE);
+#endif
                 }
                 else
                 {
-                    *ppNvmData = pRamData;
-                    nvmStatus = NvSyncSave(ppNvmData, FALSE);
+                    /* An error occurred, gNVM_NoMemory_c, gNVM_InvalidTableEntry_c or gNVM_IsMirroredDataSet_c return error status. */
+                     /* all data entry type are Not Mirrored so gNVM_IsMirroredDataSet_c error code is unexpected since gNVM_IsMirroredDataSet_c */
+                    status = gBleNVMError_c;
                 }
-            }
-            
-            if (nvmStatus != gNVM_OK_c)
-            {
-                /* An error occured, return error status. */
-                status = gBleNVMError_c;
-                break;
             }
         }
 #else // gMirroredFeatureSet_d
-        
-        for(idx = 0U; idx < 6U; idx++)
+
+        for(uint8_t idx = 0U; idx < 6U; idx++)
         {
             switch(idx)
             {
-                case 0:
+                case 0U:
                 {
                     if(pBondHeader != NULL)
                     {
@@ -459,7 +453,7 @@ bleResult_t App_NvmWrite
                     }
                 }
                 break;
-                case 1:
+                case 1U:
                 {
                     if(pBondDataDynamic != NULL)
                     {
@@ -469,7 +463,7 @@ bleResult_t App_NvmWrite
                     }
                 }
                 break;
-                case 2:
+                case 2U:
                 {
                     if(pBondDataStatic != NULL)
                     {
@@ -478,7 +472,7 @@ bleResult_t App_NvmWrite
                     }
                 }
                 break;
-                case 3:
+                case 3U:
                 {
                     if(pBondDataLegacy != NULL)
                     {
@@ -487,7 +481,7 @@ bleResult_t App_NvmWrite
                     }
                 }
                 break;
-                case 4:
+                case 4U:
                 {
                     if(pBondDataDeviceInfo != NULL)
                     {
@@ -496,13 +490,13 @@ bleResult_t App_NvmWrite
                     }
                 }
                 break;
-                case 5:
+                case 5U:
                 {
                     if(pBondDataDescriptor != NULL)
                     {
                         if(mDescriptorIndex < gcGapMaximumSavedCccds_c)
                         {
-                            FLib_MemCpy((void*)&aBondingDataDescriptor[mEntryIdx * gcGapMaximumSavedCccds_c + 
+                            FLib_MemCpy((void*)&aBondingDataDescriptor[mEntryIdx * gcGapMaximumSavedCccds_c +
                                         mDescriptorIndex], pBondDataDescriptor, gBleBondDataDescriptorSize_c);
                             nvmStatus = NvSaveOnIdle((void*)&aBondingDataDescriptor[mEntryIdx *
                                                      gcGapMaximumSavedCccds_c + mDescriptorIndex], FALSE);
@@ -516,7 +510,7 @@ bleResult_t App_NvmWrite
                 }
                 break;
             }
-            
+
             if (nvmStatus != gNVM_OK_c)
             {
                 /* An error occured, return error status.*/
@@ -524,59 +518,54 @@ bleResult_t App_NvmWrite
                 break;
             }
         }
-        
+
 #endif //gUnmirroredFeatureSet_d
-        
+
 #else
-        
+
         if(pBondHeader != NULL)
         {
             FLib_MemCpy(&maBondDataBlobs[mEntryIdx].bondHeader, pBondHeader, gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
         }
-        
+
         if(pBondDataDynamic != NULL)
         {
             FLib_MemCpy((uint8_t*)&maBondDataBlobs[mEntryIdx].bondDataBlobDynamic,
                         pBondDataDynamic,
-                        gBleBondDataDynamicSize_c
-                            );
+                        gBleBondDataDynamicSize_c);
         }
-        
+
         if(pBondDataStatic != NULL)
         {
             FLib_MemCpy((uint8_t*)&maBondDataBlobs[mEntryIdx].bondDataBlobStatic,
                         pBondDataStatic,
-                        gBleBondDataStaticSize_c
-                            );
+                        gBleBondDataStaticSize_c);
         }
-        
+
         if(pBondDataLegacy != NULL)
         {
             FLib_MemCpy((uint8_t*)&maBondDataBlobs[mEntryIdx].bondDataBlobLegacy,
                         pBondDataLegacy,
-                        gBleBondDataLegacySize_c
-                            );
+                        gBleBondDataLegacySize_c);
         }
-        
+
         if(pBondDataDeviceInfo != NULL)
         {
             FLib_MemCpy((uint8_t*)&maBondDataBlobs[mEntryIdx].bondDataBlobDeviceInfo,
                         pBondDataDeviceInfo,
-                        gBleBondDataDeviceInfoSize_c
-                            );
+                        gBleBondDataDeviceInfoSize_c);
         }
-        
+
         if(pBondDataDescriptor != NULL && mDescriptorIndex != gcGapMaximumSavedCccds_c)
         {
             FLib_MemCpy((uint8_t*)&(maBondDataBlobs[mEntryIdx].bondDataDescriptors[mDescriptorIndex]),
                         pBondDataDescriptor,
-                        gBleBondDataDescriptorSize_c
-                            );
+                        gBleBondDataDescriptorSize_c);
         }
-        
+
 #endif
     }
-    
+
     return status;
 }
 
@@ -629,20 +618,16 @@ bleResult_t App_NvmRead
     else
     {
 #if gAppUseNvm_d
-        uint8_t  idx = 0;
 #if gUnmirroredFeatureSet_d == TRUE
-        uint32_t mSize = 0;
+        uint32_t mSize = 0UL;
         void**   ppNvmData = NULL;
         void*    pRamData = NULL;
-#endif
-        
-#if gUnmirroredFeatureSet_d == TRUE
-        for(idx = 0U; idx < 6U; idx++)
+        for(uint8_t idx = 0U; idx < 6U; idx++)
         {
             ppNvmData = NULL;
-            switch(*(uint8_t*)&idx)
+            switch(idx)
             {
-                case 0:
+                case 0U:
                 {
                     if(pBondHeader != NULL)
                     {
@@ -652,7 +637,7 @@ bleResult_t App_NvmRead
                     }
                 }
                 break;
-                case 1:
+                case 1U:
                 {
                     if(pBondDataDynamic != NULL)
                     {
@@ -662,7 +647,7 @@ bleResult_t App_NvmRead
                     }
                 }
                 break;
-                case 2:
+                case 2U:
                 {
                     if(pBondDataStatic != NULL)
                     {
@@ -672,7 +657,7 @@ bleResult_t App_NvmRead
                     }
                 }
                 break;
-                case 3:
+                case 3U:
                 {
                     if(pBondDataLegacy != NULL)
                     {
@@ -682,7 +667,7 @@ bleResult_t App_NvmRead
                     }
                 }
                 break;
-                case 4:
+                case 4U:
                 {
                     if(pBondDataDeviceInfo != NULL)
                     {
@@ -692,7 +677,7 @@ bleResult_t App_NvmRead
                     }
                 }
                 break;
-                case 5:
+                case 5U:
                 {
                     if(pBondDataDescriptor != NULL)
                     {
@@ -713,7 +698,7 @@ bleResult_t App_NvmRead
                 }
                 break;
             }
-            
+
             /* if ppNvmData is not NULL the same holds for pRamData */
             if((NULL != ppNvmData) && (NULL != *ppNvmData))
             {
@@ -726,17 +711,19 @@ bleResult_t App_NvmRead
             }
         }
 #else // gMirroredFeatureSet_d
-        for(idx = 0U; idx < 6U; idx++)
+        for(uint8_t idx = 0U; idx < 6U; idx++)
         {
             switch(idx)
             {
-                case 0:
+                case 0U:
                 {
                     if(pBondHeader != NULL)
                     {
                         if(gNVM_OK_c == NvRestoreDataSet((void*)&aBondingHeader[mEntryIdx], FALSE))
                         {
-                            FLib_MemCpy(pBondHeader, (void*)&aBondingHeader[mEntryIdx], gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
+                            FLib_MemCpy(pBondHeader,
+                                        (void*)&aBondingHeader[mEntryIdx],
+                                        gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
                         }
                         else
                         {
@@ -745,7 +732,7 @@ bleResult_t App_NvmRead
                     }
                 }
                 break;
-                case 1:
+                case 1U:
                 {
                     if(pBondDataDynamic != NULL)
                     {
@@ -761,7 +748,7 @@ bleResult_t App_NvmRead
                     }
                 }
                 break;
-                case 2:
+                case 2U:
                 {
                     if(pBondDataStatic != NULL)
                     {
@@ -777,7 +764,7 @@ bleResult_t App_NvmRead
                     }
                 }
                 break;
-                case 3:
+                case 3U:
                 {
                     if(pBondDataLegacy != NULL)
                     {
@@ -793,7 +780,7 @@ bleResult_t App_NvmRead
                     }
                 }
                 break;
-                case 4:
+                case 4U:
                 {
                     if(pBondDataDeviceInfo != NULL)
                     {
@@ -809,7 +796,7 @@ bleResult_t App_NvmRead
                     }
                 }
                 break;
-                case 5:
+                case 5U:
                 {
                     if(pBondDataDescriptor != NULL)
                     {
@@ -835,7 +822,7 @@ bleResult_t App_NvmRead
                 }
                 break;
             }
-            
+
             if (status != gBleSuccess_c)
             {
                 /* An error occured, return error status.*/
@@ -843,57 +830,53 @@ bleResult_t App_NvmRead
             }
         }
 #endif
-        
+
 #else
-        
         if(pBondHeader != NULL)
         {
-            FLib_MemCpy(pBondHeader, &maBondDataBlobs[mEntryIdx].bondHeader, gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
+            FLib_MemCpy(pBondHeader,
+                        &maBondDataBlobs[mEntryIdx].bondHeader,
+                        gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
         }
-        
+
         if(pBondDataDynamic != NULL)
         {
             FLib_MemCpy(pBondDataDynamic,
                         (uint8_t*)&maBondDataBlobs[mEntryIdx].bondDataBlobDynamic,
-                        gBleBondDataDynamicSize_c
-                            );
+                        gBleBondDataDynamicSize_c);
         }
-        
+
         if(pBondDataStatic != NULL)
         {
             FLib_MemCpy(pBondDataStatic,
                         (uint8_t*)&maBondDataBlobs[mEntryIdx].bondDataBlobStatic,
-                        gBleBondDataStaticSize_c
-                            );
+                        gBleBondDataStaticSize_c);
         }
-        
+
         if(pBondDataLegacy != NULL)
         {
             FLib_MemCpy(pBondDataLegacy,
                         (uint8_t*)&maBondDataBlobs[mEntryIdx].bondDataBlobLegacy,
-                        gBleBondDataLegacySize_c
-                            );
+                        gBleBondDataLegacySize_c);
         }
-        
+
         if(pBondDataDeviceInfo != NULL)
         {
             FLib_MemCpy(pBondDataDeviceInfo,
                         (uint8_t*)&maBondDataBlobs[mEntryIdx].bondDataBlobDeviceInfo,
-                        gBleBondDataDeviceInfoSize_c
-                            );
+                        gBleBondDataDeviceInfoSize_c);
         }
-        
+
         if(pBondDataDescriptor != NULL && mDescriptorIndex < gcGapMaximumSavedCccds_c)
         {
             FLib_MemCpy(pBondDataDescriptor,
                         (uint8_t*)&(maBondDataBlobs[mEntryIdx].bondDataDescriptors[mDescriptorIndex]),
-                        gBleBondDataDescriptorSize_c
-                            );
+                        gBleBondDataDescriptorSize_c);
         }
-        
+
 #endif
     }
-    
+
     return status;
 }
 #if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))
@@ -924,40 +907,38 @@ void*    pLocalKey
     else
     {
 #if gAppUseNvm_d
-        
+
 #if gUnmirroredFeatureSet_d == TRUE
-        uint32_t mSize = 0;
         void**   ppNvmData = (void**)&aBleLocalKeys[mEntryIdx];
-        mSize =  sizeof(bleLocalKeysBlob_t);
-        
-        if(gNVM_OK_c == NvMoveToRam(ppNvmData))
+        nvmStatus = NvMoveToRam(ppNvmData);
+        if (gNVM_OK_c == nvmStatus)
         {
-            FLib_MemCpy(*ppNvmData, pLocalKey, mSize);
+            FLib_MemCpy(*ppNvmData, pLocalKey, sizeof(bleLocalKeysBlob_t));
+#if (!defined (gAppNvSyncSave_d) || (gAppNvSyncSave_d == 0))
             nvmStatus = NvSaveOnIdle(ppNvmData, FALSE);
+#else
+            /* Opt for immediate write to NVM */
+            nvmStatus = NvSyncSave(ppNvmData, FALSE);
+#endif
         }
         else
         {
-            *ppNvmData = pLocalKey;
-            nvmStatus = NvSyncSave(ppNvmData, FALSE);
-        }
-        
-        if (nvmStatus != gNVM_OK_c)
-        {
-            /* An error occured, return error status. */
+            /* An error occurred, gNVM_NoMemory_c, gNVM_InvalidTableEntry_c return error status. */
+            /* all data entry type are Not Mirrored so gNVM_IsMirroredDataSet_c error code is unexpected since gNVM_IsMirroredDataSet_c */
             status = gBleNVMError_c;
         }
-        
+
 #else /* gUnmirroredFeatureSet_d */
         FLib_MemCpy((void*)&aBleLocalKeys[mEntryIdx], pLocalKey, sizeof(bleLocalKeysBlob_t));
         nvmStatus = NvSaveOnIdle((void*)&aBleLocalKeys[mEntryIdx], FALSE);
-        
+
         if (nvmStatus != gNVM_OK_c)
         {
             /* An error occured, return error status.*/
             status = gBleNVMError_c;
         }
 #endif /* gUnmirroredFeatureSet_d */
-        
+
 #else /* gAppUseNvm_d */
         FLib_MemCpy(&aBleLocalKeys[mEntryIdx], pLocalKey, sizeof(bleLocalKeysBlob_t));
 #endif /* gAppUseNvm_d */
@@ -983,7 +964,7 @@ void*    pLocalKey
 )
 {
     bleResult_t status = gBleSuccess_c;
-    
+
     if(mEntryIdx >= (uint8_t)gcSecureModeSavedLocalKeysNo_c)
     {
         status = gBleInvalidParameter_c;
@@ -991,20 +972,18 @@ void*    pLocalKey
     else
     {
 #if gAppUseNvm_d
-        
+
 #if gUnmirroredFeatureSet_d == TRUE
-        uint32_t mSize = 0;
         void**   ppNvmData = (void**)&aBleLocalKeys[mEntryIdx];
-        mSize     = sizeof(bleLocalKeysBlob_t);
         if(NULL != *ppNvmData)
         {
-            FLib_MemCpy(pLocalKey, *ppNvmData, mSize);
+            FLib_MemCpy(pLocalKey, *ppNvmData, sizeof(bleLocalKeysBlob_t));
         }
         else
         {
             status = gBleUnavailable_c;
         }
-        
+
 #else /* gUnmirroredFeatureSet_d */
         if(gNVM_OK_c == NvRestoreDataSet((void*)&aBleLocalKeys[mEntryIdx], FALSE))
         {
@@ -1013,14 +992,14 @@ void*    pLocalKey
         else
         {
             status = gBleNVMError_c;
-        }                  
+        }
 #endif /* gUnmirroredFeatureSet_d */
-        
+
 #else /* gAppUseNvm_d */
         FLib_MemCpy(pLocalKey, &aBleLocalKeys[mEntryIdx], sizeof(bleLocalKeysBlob_t));
 #endif /* gAppUseNvm_d */
     }
-    
+
     return status;
 }
 #endif /* (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U)) */
