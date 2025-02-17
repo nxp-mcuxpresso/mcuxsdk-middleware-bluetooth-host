@@ -1,3 +1,4 @@
+.. _examples__wireless_examples__bluetooth_docs:
 Wireless Bluetooth
 ===============
 
