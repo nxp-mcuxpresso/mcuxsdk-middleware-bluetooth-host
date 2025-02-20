@@ -80,6 +80,8 @@ menu "bluetooth"
         bool "profiles_hid"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_temperature
         bool "profiles_temperature"
+    config MCUX_COMPONENT_middleware.wireless.ble_profiles_health_thermometer
+        bool "profiles_health_thermometer"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_wireless_uart
         bool "profiles_wireless_uart"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_otap

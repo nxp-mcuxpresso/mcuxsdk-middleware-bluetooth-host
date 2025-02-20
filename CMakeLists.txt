@@ -721,6 +721,16 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_profiles_temperature)
     )
 endif()
 
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_profiles_health_thermometer)
+    mcux_add_source(
+        SOURCES profiles/health_thermometer/health_thermometer_service.c
+                profiles/health_thermometer/health_thermometer_interface.h
+    )
+    mcux_add_include(
+        INCLUDES profiles/health_thermometer/
+    )
+endif()
+
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_profiles_wireless_uart)
     mcux_add_source(
         SOURCES profiles/wireless_uart/wireless_uart_service.c
