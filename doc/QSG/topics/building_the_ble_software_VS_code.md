@@ -2,7 +2,7 @@
 
 To build and flash the BLE software demo applications using Visual Studio Code, follow the steps listed below:
 
-1.  Open Visual Studio Code and open the MCUXpresso for Visual Studio Code extension.
+1.  Open Visual Studio Code and open the MCUXpresso for Visual Studio Code extension as shown in the figure below.
 
     ![](../images/image39.png "MCUXpresso for Visual Studio Code extension")
 

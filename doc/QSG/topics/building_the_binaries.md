@@ -2,7 +2,7 @@
 
 This section describes the necessary steps for obtaining the binary files for usage with the boards.
 
-## Prerequisites {#section_tfx_vfc_pcc .section}
+## Prerequisites 
 
 To build any of the demo applications, you need the following toolchain:
 
@@ -13,7 +13,7 @@ To build any of the demo applications, you need the following toolchain:
 
 The Connectivity Software Package does not include support for any other toolchains. The packages must be built with the debug configuration to enable debugging information. This package includes various sample applications that can be used as a starting point.
 
-## Conventions for building the *wireless\_UART* application. {#002 .section}
+## Conventions for building the *wireless\_UART* application. 
 
 The following sections present the steps required for building the *wireless\_UART* application. All applications can be found using the following placeholders for text:
 
