@@ -19,7 +19,6 @@ All notable changes to NXP Bluetooth Le Host will be documented in this file.
 
 ### Fixed
 - Corrected parsing of the **PAST command** in FSCI GAP.
-- Adjusted the **ATT response Length** field when attribute value exceeds packet size.
 - Fixed **scan event reporting** in PAST scenario.
 - Added an error case for `Gap_SetChannelMap` in the generic event handler.
 
