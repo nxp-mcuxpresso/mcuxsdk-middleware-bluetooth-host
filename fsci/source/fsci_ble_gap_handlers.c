@@ -5991,7 +5991,7 @@ static void GetBufferFromPerAdvSyncTransferReceived
     uint8_t             **ppBuffer
 )
 {
-    fsciBleGetBufferFromUint8Value((uint8_t)pGenericEvent->eventData.perAdvSyncTransferReceived.status, *ppBuffer);
+    fsciBleGetBufferFromEnumValue(pGenericEvent->eventData.perAdvSyncTransferReceived.status, *ppBuffer, bleResult_t);
     fsciBleGetBufferFromUint8Value(pGenericEvent->eventData.perAdvSyncTransferReceived.deviceId, *ppBuffer);
     fsciBleGetBufferFromUint16Value(pGenericEvent->eventData.perAdvSyncTransferReceived.serviceData, *ppBuffer);
     fsciBleGetBufferFromUint16Value(pGenericEvent->eventData.perAdvSyncTransferReceived.syncHandle, *ppBuffer);
@@ -6599,7 +6599,7 @@ static uint32_t GetPerAdvSyncTransferReceivedBufferSize
     gapGenericEvent_t   *pGenericEvent
 )
 {
-    return sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint16_t) +
+    return sizeof(bleResult_t) + sizeof(uint8_t) + sizeof(uint16_t) +
            sizeof(uint16_t) + sizeof(uint8_t) + sizeof(uint8_t) +
            gcBleDeviceAddressSize_c + sizeof(uint8_t) +
            sizeof(uint16_t) + sizeof(uint8_t) + sizeof(uint8_t) +
