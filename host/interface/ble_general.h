@@ -415,6 +415,7 @@ typedef enum bleResult_tag
                                                                                             *   encryption key size for the local device. */
     gSmUnattainablePeripheralSecReqRequirements_c               = gSmStatusBase_c | 0x1FU,  /*!< The provided pairing parameters cannot lead to a Pairing Procedure which satisfies the minimum
                                                                                             *   security properties requested by the local device via an SMP Peripheral Security Request. */
+    gSmInvalidPeerPublicKey_c                                   = gSmStatusBase_c | 0x20U, /*!< This status covers the case where the peer provides a public key with an identical X coordinate to our own. */
 
     /* Added for the GAP layer to signal the application about pairing failed reasons. */
     gSmPairingErrorPasskeyEntryFailed_c                         = gSmStatusBase_c | 0x31U,  /*!< The passkey entry failed. */
