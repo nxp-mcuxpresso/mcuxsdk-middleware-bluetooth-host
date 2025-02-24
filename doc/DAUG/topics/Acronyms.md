@@ -11,6 +11,7 @@ The following acronyms are used in this document.
 |CCCD|Client Characteristic Configuration Descriptor|
 |DBAF|Decision-Based Advertising Filtering|
 |EATT|Enhanced Attribute protocol|
+|EVK|Evaluation Kit|
 |FSCI|Framework Serial Connectivity Interface|
 |GAP|Generic Access Profile|
 |GATT|Generic Attribute Profile|

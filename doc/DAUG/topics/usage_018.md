@@ -7,7 +7,7 @@ The setup requires two supported platforms, one for the temperature sensor and o
 3.  To start scanning on the collector, press the WAKESW button and CONNLED lights up. The device wakes up, enters into the Deep-sleep mode, scans, and connects to a compatible sensor device. If no connection is established within 30 seconds, the collector stops scanning and enters Deep-sleep mode again. CONNLED turns off.
 4.  If the collector connects to a sensor node, it bonds \(if no bond was previously made\), does service discovery \(only the first time it connects with the sensor\), and configures notification and waits for notifications from the sensor for 5 seconds. If no data is sent, the node disconnects and re-enters Deep-sleep mode. The sensor exits low power and sends a notification with the value of the temperature read through an ADC from the thermistor, if present, or random generated if not.
 
-    Once the connection is established, the PHY is automatically updated to 2M, if both the sensor and the collector support this feature as shown in [Figure 1](#fig19234). The PHY update is configurable from the application.
+    Once the connection is established, the PHY is automatically updated to 2M, if both the sensor and the collector support this feature as shown in the figure below. The PHY update is configurable from the application.
 
     |![](../images/temp_collector_output.png "Output Console on Temperature Collector")
 
