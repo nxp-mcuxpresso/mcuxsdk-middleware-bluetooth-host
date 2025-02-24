@@ -1,4 +1,4 @@
-# BLEDAUG
+# Bluetooth Low Energy Demo Applications User Guide
 
 
 ```{tocTree}
@@ -13,6 +13,4 @@ topics/bluetooth_le_stack_and_demo_applications.md
 topics/reference_documentation.md
 topics/Acronyms.md
 topics/note_source_code.md
-topics/revision_history.md
-topics/legal_information.md
 ```

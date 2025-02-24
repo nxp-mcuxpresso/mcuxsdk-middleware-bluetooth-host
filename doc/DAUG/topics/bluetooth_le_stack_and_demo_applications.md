@@ -53,7 +53,7 @@
 :heading-offset: 1
 ```
 
-```{include} ../topics/FSK/hybrid_dual-mode_bluetooth_low_energy_and_generic_.md
+```{include} ../topics/hybrid_dual-mode_bluetooth_low_energy_and_generic_.md
 :heading-offset: 1
 ```
 

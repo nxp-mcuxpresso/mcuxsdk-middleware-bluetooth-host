@@ -20,37 +20,30 @@ Not all smartphones support extended advertising, hence a different method to vi
 1.  Flash a board with the beacon application, as described above.
 2.  Flash a board with the ble\_shell application, as described in [Bluetooth LE Shell](bluetooth_le_shell.md) and connect to it using a serial port.
 3.  Press the **ADVSW** button two times on the beacon to start extended advertising on the coded PHY.
-4.  To view the advertising data, enter the following commands in the shell terminal to set the scanning PHY to coded and start scanning. See [Figure 1](#fig3234).
-
+4.  To view the advertising data, enter the following commands in the shell terminal to set the scanning PHY to coded and start scanning. See the figure below. <br>
     |![](../images/beacon_ext_adv_data.png "Shell commands to view extended advertising")
 
-|
 
 5.  To start the periodic advertising, press **ADVSW** button again on the beacon.
 
     **Note:** Periodic advertising support is currently disabled at Link Layer level.
 
-6.  To sync with the beacon, issue the following commands on the shell terminal as shown in [Figure 2](#fig3r22234).
+6.  To sync with the beacon, issue the following commands on the shell terminal as shown in the figure below.
 
-    |![](../images/beacon_periodic.png "Shell commands to view the periodic
-                                            advertising")
+    |![](../images/beacon_periodic.png "Shell commands to view the periodic advertising")
 
-|
+    The peer parameter of the `periodicsync` command is the public address of the beacon.
 
-
-The peer parameter of the `periodicsync` command is the public address of the beacon.
-
-## Extended Advertising with very large data {#GUID-9CD68BBF-E8CA-44B7-ACDC-F76AAF68FA05 .section}
+## Extended Advertising with very large data
 
 To use very large advertising data for extended advertising, set the `gBeaconLargeExtAdvData_c` `define` to 1. The same steps are used to view the data using `ble_shell` :
 
 1.  Flash a board with the beacon application.
 2.  Flash a board with the ble\_shell application, as described in [Bluetooth LE Shell](bluetooth_le_shell.md) and connect to it using a serial port.
 3.  Press the **ADVSW** button two times on the beacon to start extended advertising on the coded PHY.
-4.  To view the advertising data, enter the following commands in the shell terminal to set the scanning PHY to coded and start scanning. See [Figure 3](#firwq234g3r22234).
+4.  To view the advertising data, enter the following commands in the shell terminal to set the scanning PHY to coded and start scanning. See the figure below.
 
-    ![](../images/beacon_large_data.png "Shell command to view extended advertisements
-                                                    with large data (kw45)")
+    ![](../images/beacon_large_data.png "Shell command to view extended advertisements with large data (kw45)")
 
 
 **Parent topic:**[Beacon](../topics/beacon.md)

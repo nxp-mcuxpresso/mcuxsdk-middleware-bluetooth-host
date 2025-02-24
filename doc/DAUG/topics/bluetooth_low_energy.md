@@ -15,7 +15,7 @@ The Software Development Package provides a Bluetooth Low Energy v5.3-compliant 
 11. [OTAP Clients ATT and L2CAP and OTAP Server](over_the_air_programming_otap.md)
 12. [Wireless UART demo application](wireless_uart.md)
 13. [Bluetooth LE Shell application](bluetooth_le_shell_513.md)
-14. [Hybrid \(Dual-Mode\) Bluetooth Low Energy and Generic FSK](FSK/hybrid_dual-mode_bluetooth_low_energy_and_generic_.md)
+14. [Hybrid \(Dual-Mode\) Bluetooth Low Energy and Generic FSK](hybrid_dual-mode_bluetooth_low_energy_and_generic_.md)
 
 **Note:** Refer to the application notes that are located in the '`documentation`' folder.
 
