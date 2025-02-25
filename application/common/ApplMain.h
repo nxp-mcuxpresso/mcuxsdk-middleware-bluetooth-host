@@ -109,10 +109,12 @@ typedef void (*appCallbackHandler_t)(appCallbackParam_t param);
 /*
  * These values should be modified by the application as necessary.
  * They are used by the idle task initialization code from ApplMain.c.
+ * Note that 900 bytes is sufficient unless radio recalibration is enabled.
+ * Radio recalibration require and additional 100 bytes, so rounding up to 1024.
  */
 /*! Idle Task Stack Size */
 #ifndef gAppIdleTaskStackSize_c
-#define gAppIdleTaskStackSize_c (900)
+#define gAppIdleTaskStackSize_c (1024)
 #endif
 
 /*! Idle Task OS Abstraction Priority */
