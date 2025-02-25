@@ -68,6 +68,8 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_OPT_component_lib)
     )
     mcux_add_library(
         LIBS host/lib/lib_ble_OPT_host_cm33_gcc.a
+        DSP DSP
+        FPU SP_FPU
         TOOLCHAINS mcux armgcc
     )
 endif()
@@ -81,6 +83,8 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_OPT_central_component_lib)
     )
     mcux_add_library(
         LIBS host/lib/lib_ble_OPT_host_central_cm33_gcc.a
+        DSP DSP
+        FPU SP_FPU
         TOOLCHAINS mcux armgcc
     )
 endif()
@@ -94,6 +98,8 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_OPT_peripheral_component_l
     )
     mcux_add_library(
         LIBS host/lib/lib_ble_OPT_host_peripheral_cm33_gcc.a
+        DSP DSP
+        FPU SP_FPU
         TOOLCHAINS mcux armgcc
     )
 endif()
@@ -107,6 +113,8 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_component_lib)
     )
     mcux_add_library(
         LIBS host/lib/lib_ble_host_cm33_gcc.a
+        DSP DSP
+        FPU SP_FPU
         TOOLCHAINS mcux armgcc
     )
 endif()
@@ -120,6 +128,8 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_central_component_lib)
     )
     mcux_add_library(
         LIBS host/lib/lib_ble_host_central_cm33_gcc.a
+        DSP DSP
+        FPU SP_FPU
         TOOLCHAINS mcux armgcc
     )
 endif()
@@ -133,6 +143,8 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_peripheral_component_lib)
     )
     mcux_add_library(
         LIBS host/lib/lib_ble_host_peripheral_cm33_gcc.a
+        DSP DSP
+        FPU SP_FPU
         TOOLCHAINS mcux armgcc
     )
 endif()
@@ -146,6 +158,8 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_matter_component_lib)
     )
     mcux_add_library(
         LIBS host/lib/lib_ble_host_matter_cm33_gcc.a
+        DSP DSP
+        FPU SP_FPU
         TOOLCHAINS mcux armgcc
     )
 endif()
@@ -157,6 +171,8 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_component_lib)
     )
     mcux_add_library(
         LIBS host/lib_exp/lib_ble_OPT_host_cm33_gcc.a
+        DSP DSP
+        FPU SP_FPU
         TOOLCHAINS mcux armgcc
     )
 endif()
@@ -168,6 +184,8 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_central_component_
     )
     mcux_add_library(
         LIBS host/lib_exp/lib_ble_OPT_host_central_cm33_gcc.a
+        DSP DSP
+        FPU SP_FPU
         TOOLCHAINS mcux armgcc
     )
 endif()
@@ -179,6 +197,8 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_peripheral_compone
     )
     mcux_add_library(
         LIBS host/lib_exp/lib_ble_OPT_host_peripheral_cm33_gcc.a
+        DSP DSP
+        FPU SP_FPU
         TOOLCHAINS mcux armgcc
     )
 endif()
