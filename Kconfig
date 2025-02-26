@@ -88,4 +88,12 @@ menu "bluetooth"
         bool "profiles_otap"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_digital_key
         bool "profiles_digital_key"
+    config MCUX_COMPONENT_middleware.wireless.ble_ncp_common
+        bool "ble_ncp_common"
+    config MCUX_COMPONENT_middleware.wireless.ble_ncp_fsci_source
+        bool "ble_ncp_fsci_source"
+    config MCUX_COMPONENT_middleware.wireless.ncp
+        bool "ncp"
+    config MCUX_COMPONENT_middleware.wireless.bridge_nvm
+        bool "Component middleware.wireless.bridge_nvm"
 endmenu

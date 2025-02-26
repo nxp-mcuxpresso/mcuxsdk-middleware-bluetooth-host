@@ -72,6 +72,18 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_OPT_component_lib)
         FPU SP_FPU
         TOOLCHAINS mcux armgcc
     )
+    mcux_add_library(
+        LIBS host/lib/lib_ble_OPT_host_cm33_nofp_nodsp_iar.a
+        DSP NO_DSP
+        FPU NO_FPU
+        TOOLCHAINS iar
+    )
+    mcux_add_library(
+        LIBS host/lib/lib_ble_OPT_host_cm33_nofp_nodsp_gcc.a
+        DSP NO_DSP
+        FPU NO_FPU
+        TOOLCHAINS armgcc
+    )
 endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_OPT_central_component_lib)
@@ -86,6 +98,18 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_OPT_central_component_lib)
         DSP DSP
         FPU SP_FPU
         TOOLCHAINS mcux armgcc
+    )
+    mcux_add_library(
+        LIBS host/lib/lib_ble_OPT_host_central_cm33_nofp_nodsp_iar.a
+        DSP NO_DSP
+        FPU NO_FPU
+        TOOLCHAINS iar
+    )
+    mcux_add_library(
+        LIBS host/lib/lib_ble_OPT_host_central_cm33_nofp_nodsp_gcc.a
+        DSP NO_DSP
+        FPU NO_FPU
+        TOOLCHAINS armgcc
     )
 endif()
 
@@ -102,6 +126,18 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_OPT_peripheral_component_l
         FPU SP_FPU
         TOOLCHAINS mcux armgcc
     )
+    mcux_add_library(
+        LIBS host/lib/lib_ble_OPT_host_peripheral_cm33_nofp_nodsp_iar.a
+        DSP NO_DSP
+        FPU NO_FPU
+        TOOLCHAINS iar
+    )
+    mcux_add_library(
+        LIBS host/lib/lib_ble_OPT_host_peripheral_cm33_nofp_nodsp_gcc.a
+        DSP NO_DSP
+        FPU NO_FPU
+        TOOLCHAINS armgcc
+    )
 endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_component_lib)
@@ -116,6 +152,18 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_component_lib)
         DSP DSP
         FPU SP_FPU
         TOOLCHAINS mcux armgcc
+    )
+    mcux_add_library(
+        LIBS host/lib/lib_ble_host_cm33_nofp_nodsp_iar.a
+        DSP NO_DSP
+        FPU NO_FPU
+        TOOLCHAINS iar
+    )
+    mcux_add_library(
+        LIBS host/lib/lib_ble_host_cm33_nofp_nodsp_gcc.a
+        DSP NO_DSP
+        FPU NO_FPU
+        TOOLCHAINS armgcc
     )
 endif()
 
@@ -132,6 +180,18 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_central_component_lib)
         FPU SP_FPU
         TOOLCHAINS mcux armgcc
     )
+    mcux_add_library(
+        LIBS host/lib/lib_ble_host_central_cm33_nofp_nodsp_iar.a
+        DSP NO_DSP
+        FPU NO_FPU
+        TOOLCHAINS iar
+    )
+    mcux_add_library(
+        LIBS host/lib/lib_ble_host_central_cm33_nofp_nodsp_gcc.a
+        DSP NO_DSP
+        FPU NO_FPU
+        TOOLCHAINS armgcc
+    )
 endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_peripheral_component_lib)
@@ -146,6 +206,18 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_peripheral_component_lib)
         DSP DSP
         FPU SP_FPU
         TOOLCHAINS mcux armgcc
+    )
+    mcux_add_library(
+        LIBS host/lib/lib_ble_host_peripheral_cm33_nofp_nodsp_iar.a
+        DSP NO_DSP
+        FPU NO_FPU
+        TOOLCHAINS iar
+    )
+    mcux_add_library(
+        LIBS host/lib/lib_ble_host_peripheral_cm33_nofp_nodsp_gcc.a
+        DSP NO_DSP
+        FPU NO_FPU
+        TOOLCHAINS armgcc
     )
 endif()
 
@@ -778,5 +850,91 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_profiles_digital_key)
     )
     mcux_add_include(
         INCLUDES profiles/digital_key
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_ncp_fsci_source)
+    mcux_add_source(
+        SOURCES application/common/ncp/ncp_fsci_ble_gap_handlers.c
+                application/common/ncp/ncp_fsci_ble_gap2_handlers.c
+                application/common/ncp/ncp_fsci_ble_gap.c
+                fsci/source/fsci_ble.c
+                fsci/source/fsci_ble.h
+                fsci/source/fsci_ble_gap.h
+                fsci/source/fsci_ble_gap_types.c
+                fsci/source/fsci_ble_gap_types.h
+                fsci/source/fsci_ble_gap_handlers.h
+                fsci/source/fsci_ble_gap2_handlers.h
+                fsci/source/fsci_ble_gatt.c
+                fsci/source/fsci_ble_gatt.h
+                fsci/source/fsci_ble_gatt_db_app.c
+                fsci/source/fsci_ble_gatt_db_app.h
+                fsci/source/fsci_ble_gatt_db_app_types.c
+                fsci/source/fsci_ble_gatt_db_app_types.h
+                fsci/source/fsci_ble_gatt_types.c
+                fsci/source/fsci_ble_gatt_types.h
+                fsci/source/fsci_ble_l2cap_cb.c
+                fsci/source/fsci_ble_l2cap_cb.h
+                fsci/source/fsci_ble_l2cap_cb_types.c
+                fsci/source/fsci_ble_l2cap_cb_types.h
+                fsci/source/fsci_ble_types.c
+                fsci/source/fsci_ble_types.h
+    )
+    mcux_add_include(
+        INCLUDES application/common/ncp
+                 fsci/source
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_ncp_common)
+    mcux_add_source(
+        SOURCES application/common/ncp/ncp_app_conn.c
+                application/common/ncp/ncp_app_conn.h
+                application/common/ncp/ncp_app_nvm.c
+                application/common/ncp/ncp_ble_conn_manager.c
+                application/common/ncp/ncp_ble_init.c
+                application/common/ncp/ncp_ble_init.h
+                application/common/ble_host_tasks.c
+                application/common/ble_host_task_config.h
+    )
+    mcux_add_include(
+        INCLUDES application/common/ncp
+                 application/common
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ncp)
+    mcux_add_source(
+        SOURCES application/common/ncp/host_cmd_ble.c
+                application/common/ncp/host_cmd_ble.h
+                application/common/ncp/host_evt_ble.c
+                application/common/ncp/host_hsdk_interface.h
+                application/common/ncp/host_hsdk_main.c
+                application/common/ncp/host_ble_conn_manager.c
+                application/common/ncp/host_ble_conn_manager.h
+                application/common/ncp/host_ble_init.c
+                application/common/ncp/host_ble_init.h
+                application/common/ncp/host_ble_service_discovery.c
+                application/common/ncp/host_ble_service_discovery.h
+                application/common/ncp/host_unload_ble.c
+                application/common/ncp/host_app_nvm.c
+                application/common/ncp/host_app_nvm.h
+                )
+    mcux_add_include(
+        INCLUDES application/common/ncp
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.bridge_nvm)
+    mcux_add_source(
+        SOURCES application/common/ncp/host_app_nvm.c
+                application/common/ncp/host_app_nvm.h
+                application/common/ncp/host_ble_init.h
+                fsci/source/fsci_ble_types.c
+                fsci/source/fsci_ble_types.h
+                )
+    mcux_add_include(
+        INCLUDES application/common/ncp
+                 fsci/source
     )
 endif()

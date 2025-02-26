@@ -1,0 +1,7369 @@
+/* Source file generated from BLE.xml */
+/*
+ * Copyright 2024 NXP
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+/*==================================================================================================
+Include Files
+==================================================================================================*/
+#include "host_cmd_ble.h"
+
+/*==================================================================================================
+Private Prototypes
+==================================================================================================*/
+#if FSCI_ENABLE
+static mem_status_t UnLoad_FSCIMemAllocTestResponse(bleEvtContainer_t *container);
+static mem_status_t UnLoad_FSCIGetNumberOfFreeBuffersResponse(bleEvtContainer_t *container);
+static mem_status_t UnLoad_FSCIAckIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_FSCIErrorIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_FSCIAllowDeviceToSleepConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_FSCIWakeUpIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_FSCIGetWakeupReasonResponse(bleEvtContainer_t *container);
+static mem_status_t UnLoad_FSCIGetNbuVersionResponse(bleEvtContainer_t *container);
+#endif  /* FSCI_ENABLE */
+
+#if NVM_ENABLE
+static mem_status_t UnLoad_NVMSaveConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_NVMGetDataSetDescConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_NVMGetCountersConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_NVMGetVPSizeResponse(bleEvtContainer_t *container);
+static mem_status_t UnLoad_NVMSetMonitoringConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_NVMWriteMonitoringIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_NVMPageEraseMonitoringIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_NVMFormatReqConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_NVMRestoreReqConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_NVMRestoreMonitoringIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_NVMVirtualPageMonitoringIndication(bleEvtContainer_t *container);
+#endif  /* NVM_ENABLE */
+
+#if HCI_ENABLE
+static mem_status_t UnLoad_HCIConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_HCIEventIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_HCIDataIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_HCISynchronousDataIndication(bleEvtContainer_t *container);
+#endif  /* HCI_ENABLE */
+
+#if L2CAP_ENABLE
+static mem_status_t UnLoad_L2CAPConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_L2CAPAttDataIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_L2CAPSmpDataIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_L2CAPSignalingDataIndication(bleEvtContainer_t *container);
+#endif  /* L2CAP_ENABLE */
+
+#if L2CAPCB_ENABLE
+static mem_status_t UnLoad_L2CAPCBConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_L2CAPCBLePsmConnectionRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_L2CAPCBLePsmConnectionCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_L2CAPCBLePsmDisconnectNotificationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_L2CAPCBNoPeerCreditsIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_L2CAPCBLocalCreditsNotificationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_L2CAPCBLeCbDataIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_L2CAPCBErrorIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_L2CAPCBChannelStatusNotificationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_L2CAPCBLePsmEnhancedConnectRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_L2CAPCBLePsmEnhancedConnectionCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_L2CAPCBEnhancedReconfigureRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_L2CAPCBEnhancedReconfigureResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_L2CAPCBLowPeerCreditsIndication(bleEvtContainer_t *container);
+#endif  /* L2CAPCB_ENABLE */
+
+#if SM_ENABLE
+static mem_status_t UnLoad_SMDHKeyGenerateIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMStatusIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMRemoteSecurityRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMRemotePairingRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMRemotePairingResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMPasskeyDisplayRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMPasskeyRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMPairingKeysetRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMPairingKeysetReceivedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMPairingCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMPairingFailedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMReceivedPairingFailedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMLlLtkRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMLlEncryptionStatusIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMLlEncryptResIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMLlRandResIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMTbCreateRandomDeviceAddrResIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMTbCheckResolvalePrivateAddrResIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMTbSignDataResIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMTbVerifyDataSignatureResIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMRemoteKeypressNotificationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMNcDisplayRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMLeScOobDataRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMLocalLeScOobDataIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_SMGenerateNewEcdhPkSkPairResIndication(bleEvtContainer_t *container);
+#endif  /* SM_ENABLE */
+
+#if ATT_ENABLE
+static mem_status_t UnLoad_ATTConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTGetMtuIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTClientIncomingServerErrorResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTServerIncomingClientExchangeMtuRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTClientIncomingServerExchangeMtuResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTServerIncomingClientFindInformationRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTClientIncomingServerFindInformationResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTServerIncomingClientFindByTypeValueRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTClientIncomingServerFindByTypeValueResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTServerIncomingClientReadByTypeRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTClientIncomingServerReadByTypeResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTServerIncomingClientReadRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTClientIncomingServerReadResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTServerIncomingClientReadBlobRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTClientIncomingServerReadBlobResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTServerIncomingClientReadMultipleRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTClientIncomingServerReadMultipleResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTServerIncomingClientReadByGroupTypeRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTClientIncomingServerReadByGroupTypeResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTServerIncomingClientWriteRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTClientIncomingServerWriteResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTServerIncomingClientWriteCommandIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTServerIncomingClientSignedWriteCommandIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTServerIncomingClientPrepareWriteRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTClientIncomingServerPrepareWriteResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTServerIncomingClientExecuteWriteRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTClientIncomingServerExecuteWriteResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTClientIncomingServerHandleValueNotificationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTClientIncomingServerHandleValueIndicationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTServerIncomingClientHandleValueConfirmationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTUnsupportedOpcodeIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTTimeoutIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTInvalidPduReceivedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTClientIncomingServerReadMultipleVariableResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTServerIncomingClientReadMultipleVariableRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_ATTClientIncomingServerMultipleHandleValueNotificationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTClientIncomingServerErrorResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTServerIncomingClientFindInformationRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTClientIncomingServerFindInformationResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTServerIncomingClientFindByTypeValueRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTClientIncomingServerFindByTypeValueResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTServerIncomingClientReadByTypeRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTClientIncomingServerReadByTypeResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTServerIncomingClientReadRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTClientIncomingServerReadResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTServerIncomingClientReadBlobRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTClientIncomingServerReadBlobResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTServerIncomingClientReadMultipleRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTClientIncomingServerReadMultipleResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTServerIncomingClientReadByGroupTypeRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTClientIncomingServerReadByGroupTypeResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTServerIncomingClientWriteRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTClientIncomingServerWriteResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTServerIncomingClientWriteCommandIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTServerIncomingClientPrepareWriteRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTClientIncomingServerPrepareWriteResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTServerIncomingClientExecuteWriteRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTClientIncomingServerExecuteWriteResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTClientIncomingServerHandleValueNotificationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTClientIncomingServerHandleValueIndicationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTServerIncomingClientHandleValueConfirmationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTUnsupportedOpcodeIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTTimeoutIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTInvalidPduReceivedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTClientIncomingServerReadMultipleVariableResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTServerIncomingClientReadMultipleVariableRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_EATTClientIncomingServerMultipleHandleValueNotificationIndication(bleEvtContainer_t *container);
+#endif  /* ATT_ENABLE */
+
+#if GATT_ENABLE
+static mem_status_t UnLoad_GATTConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTGetMtuIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureExchangeMtuIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureDiscoverAllPrimaryServicesIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureDiscoverPrimaryServicesByUuidIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureFindIncludedServicesIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureDiscoverAllCharacteristicsIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureDiscoverCharacteristicByUuidIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureReadCharacteristicValueIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureReadUsingCharacteristicUuidIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureReadMultipleCharacteristicValuesIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureWriteCharacteristicValueIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureReadCharacteristicDescriptorIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureWriteCharacteristicDescriptorIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientNotificationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientMultipleHandleValueNotificationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureReadMultipleVariableLenCharValuesIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientIndicationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTServerMtuChangedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTServerHandleValueConfirmationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTServerAttributeWrittenIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTServerCharacteristicCccdWrittenIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTServerAttributeWrittenWithoutResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTServerErrorIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTServerLongCharacteristicWrittenIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTServerAttributeReadIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureEnhancedDiscoverAllPrimaryServicesIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureEnhancedDiscoverPrimaryServicesByUuidIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureEnhancedFindIncludedServicesIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureEnhancedDiscoverAllCharacteristicsIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureEnhancedDiscoverCharacteristicByUuidIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureEnhancedDiscoverAllCharacteristicDescriptorsIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureEnhancedReadCharacteristicValueIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureEnhancedReadUsingCharacteristicUuidIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureEnhancedReadMultipleCharacteristicValuesIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureEnhancedWriteCharacteristicValueIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureEnhancedReadCharacteristicDescriptorIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureEnhancedWriteCharacteristicDescriptorIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientProcedureEnhancedReadMultipleVariableLenCharValuesIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientEnhancedMultipleHandleValueNotificationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientEnhancedNotificationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTClientEnhancedIndicationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTServerEnhancedHandleValueConfirmationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTServerEnhancedAttributeWrittenIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTServerEnhancedCharacteristicCccdWrittenIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTServerEnhancedAttributeWrittenWithoutResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTServerEnhancedErrorIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTServerEnhancedLongCharacteristicWrittenIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTServerEnhancedAttributeReadIndication(bleEvtContainer_t *container);
+#endif  /* GATT_ENABLE */
+
+#if GATTDB_APP_ENABLE
+static mem_status_t UnLoad_GATTDBConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBReadAttributeIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBFindServiceHandleIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBFindCharValueHandleInServiceIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBFindCccdHandleForCharValueHandleIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBFindDescriptorHandleForCharValueHandleIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBDynamicAddPrimaryServiceDeclarationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBDynamicAddSecondaryServiceDeclarationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBDynamicAddIncludeDeclarationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBDynamicAddCharacteristicDeclarationAndValueIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBDynamicAddCharacteristicDescriptorIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBDynamicAddCccdIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBDynamicAddCharacteristicDeclarationWithUniqueValueIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBDynamicAddCharDescriptorWithUniqueValueIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBDynamicAddCharAggregateFormatIndication(bleEvtContainer_t *container);
+#endif  /* GATTDB_APP_ENABLE */
+
+#if GATTDB_ATT_ENABLE
+static mem_status_t UnLoad_GATTDBAttConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBAttFindInformationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBAttFindByTypeValueIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBAttReadByTypeIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBAttReadIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBAttReadBlobIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBAttReadMultipleIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBAttReadByGroupTypeIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBAttWriteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBAttPrepareWriteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBAttExecuteWriteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBAttExecuteWriteFromQueueIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GATTDBAttPrepareNotificationIndicationIndication(bleEvtContainer_t *container);
+#endif  /* GATTDB_ATT_ENABLE */
+
+#if GAP_ENABLE
+static mem_status_t UnLoad_GAPConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPCheckNotificationStatusIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPCheckIndicationStatusIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPLoadKeysIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPLoadEncryptionInformationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPLoadCustomPeerInformationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPCheckIfBondedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGetBondedDevicesCountIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGetBondedDeviceNameIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventInitializationCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventInternalErrorIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventAdvertisingSetupFailedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventAdvertisingParametersSetupCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventAdvertisingDataSetupCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventFilterAcceptListSizeReadIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventDeviceAddedToFilterAcceptListIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventDeviceRemovedFromFilterAcceptListIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventFilterAcceptListClearedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventRandomAddressReadyIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventCreateConnectionCanceledIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventPublicAddressReadIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventAdvTxPowerLevelReadIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventPrivateResolvableAddressVerifiedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventRandomAddressSetIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPAdvertisingEventStateChangedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPAdvertisingEventCommandFailedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPScanningEventStateChangedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPScanningEventCommandFailedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPScanningEventDeviceScannedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventConnectedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventPairingRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventPeripheralSecurityRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventPairingResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventAuthenticationRejectedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventPasskeyRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventOobRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventPasskeyDisplayIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventKeyExchangeRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventKeysReceivedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventLongTermKeyRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventEncryptionChangedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventPairingCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventDisconnectedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventRssiReadIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventTxPowerLevelReadIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventPowerReadFailureIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventParameterUpdateRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventParameterUpdateCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventLeDataLengthChangedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventLeSetDataLengthFailedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventLeScOobDataRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventLeScDisplayNumericValueIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventLeScKeypressNotificationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPLeScPublicKeyRegeneratedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventLeScLocalOobDataIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventHostPrivacyStateChangedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventControllerPrivacyStateChangedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventTxPowerLevelSetCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventLePhyEventIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGetBondedDevicesIdentityInformationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPControllerNotificationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPBondCreatedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventChannelMapSetIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventChannelMapReadIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventChannelMapReadFailureIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventExtAdvertisingParamSetupCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventExtAdvertisingDataSetupCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventPeriodicAdvParamSetupCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventPeriodicAdvDataSetupCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventPeriodicAdvListUpdateCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPAdvertisingEventExtAdvertisingStateChangedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPAdvertisingEventAdvertisingSetTerminatedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPAdvertisingEventExtAdvertisingSetRemoveCompletedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPAdvertisingEventExtScanReqReceivedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventPeriodicAdvertisingStateChangedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPScanningEventExtDeviceScannedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPScanningEventPeriodicAdvSyncEstablishedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPScanningEventPeriodicAdvSyncTerminatedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPScanningEventPeriodicAdvSyncLostIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPScanningEventPeriodicDeviceScannedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventPeriodicAdvCreateSyncCancelledIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventChannelSelectionAlgorithm2Indication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventTxEntryAvailableIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventControllerLocalRPAReadIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPCheckNvmIndexIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGetDeviceIdFromConnHandleIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGetConnectionHandleFromDeviceIdIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPPairingEventNoLTKIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPPairingAlreadyStartedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventConnectionlessCteTransmitParamsSetupCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventConnectionlessCteTransmitStateChangedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventConnectionlessIqSamplingStateChangedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventAntennaInformationReadIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPScanningEventConnectionlessIqReportReceivedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventIqReportReceivedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventCteRequestFailedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventCteReceiveParamsSetupCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventCteTransmitParamsSetupCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventCteReqStateChangedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventCteRspStateChangedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventPeriodicAdvRecvEnableCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventPeriodicAdvSyncTransferCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventPeriodicAdvSetInfoTransferCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventSetPeriodicAdvSyncTransferParamsCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventSetDefaultPeriodicAdvSyncTransferParamsCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPScanningEventPeriodicAdvSyncTransferReceivedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventPathLossThresholdIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventTransmitPowerReportingIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventEnhancedReadTransmitPowerLevelIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventPathLossReportingParamsSetupCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventPathLossReportingStateChangedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventTransmitPowerReportingStateChangedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventEattConnectionRequestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventEattConnectionCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventEattReconfigureResponseIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPConnectionEventEattBearerStatusNotificationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventLeGenerateDhKeyCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGetHostVersionIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGenericEventReadRemoteVersionInfoCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPGetConnParamsIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAPPlatformErrorIndication(bleEvtContainer_t *container);
+#endif  /* GAP_ENABLE */
+
+#if APP_ENABLE
+static mem_status_t UnLoad_APPThroughputTestIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_APPThroughputTestConfirm(bleEvtContainer_t *container);
+#endif  /* APP_ENABLE */
+
+#if CS_ENABLE
+static mem_status_t UnLoad_CSConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSReadRemoteSupportedCapabilitiesIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSReadRemoteFAETableIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSSecurityEnableIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSConfigCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSProcedureEnableCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSSubeventResultIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSSubeventResultContinueIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSTestEndEvtIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSEventResultDebugIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSLEMetaErrorIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSReadLocalSupportedCapabilitiesIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSSetDefaultSettingsIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSWriteRemoteFAETableIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSSetChannelClassificationIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSgCSEventTestCmdOpCodeIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSgCSEventSetProcedureParamsCmdOpCodeIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSErrorIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSgCsEventWriteCachedRemoteCapabilitiesOpCodeIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_CSCommandStatusIndication(bleEvtContainer_t *container);
+#endif  /* CS_ENABLE */
+
+#if GAPHANDOVER_ENABLE
+static mem_status_t UnLoad_GapHandoverConfirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverGetDataSizeIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverGetCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverSetCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverGetTimeIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverSuspendTransmitCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverResumeTransmitCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverAnchorNotificationStateChangedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverAnchorSearchStartedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverAnchorSearchStoppedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverAnchorMonitorIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverAnchorMonitorPacketIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverAnchorMonitorPacketContinueIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverConnectedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverDisconnectedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverTimeSyncTransmitStateChangedIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverTimeSyncReceiveCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverTimeSyncIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverConnParamUpdateIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverUpdateConnParamsCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GapHandoverLlPendingDataIndication(bleEvtContainer_t *container);
+#endif  /* GAPHANDOVER_ENABLE */
+
+#if GAP2_ENABLE
+static mem_status_t UnLoad_GAP2Confirm(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAP2CtrlDebugInfoIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAP2GenericEventSetExtAdvertisingDecisionDataSetupCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAP2GenericEventSetDecisionInstructionsSetupCompleteIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAP2CtrlDebugInfo2Indication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAP2EcdhP256ComputeA2BKeyIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAP2ExportA2BBlobIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAP2ImportA2BBlobIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAP2EcdhP256GenerateKeysIndication(bleEvtContainer_t *container);
+static mem_status_t UnLoad_GAP2ChannelOverrideCompleteIndication(bleEvtContainer_t *container);
+#endif  /* GAP2_ENABLE */
+
+/*==================================================================================================
+Private global variables declarations
+==================================================================================================*/
+static const bleUnEvtHandler_t unEvtHandlerTbl[] =
+{
+#if FSCI_ENABLE
+	{FSCIMemAllocTestResponse_FSCI_ID, UnLoad_FSCIMemAllocTestResponse},
+	{FSCIGetNumberOfFreeBuffersResponse_FSCI_ID, UnLoad_FSCIGetNumberOfFreeBuffersResponse},
+	{FSCIAckIndication_FSCI_ID, UnLoad_FSCIAckIndication},
+	{FSCIErrorIndication_FSCI_ID, UnLoad_FSCIErrorIndication},
+	{FSCIAllowDeviceToSleepConfirm_FSCI_ID, UnLoad_FSCIAllowDeviceToSleepConfirm},
+	{FSCIWakeUpIndication_FSCI_ID, UnLoad_FSCIWakeUpIndication},
+	{FSCIGetWakeupReasonResponse_FSCI_ID, UnLoad_FSCIGetWakeupReasonResponse},
+	{FSCIGetNbuVersionResponse_FSCI_ID, UnLoad_FSCIGetNbuVersionResponse},
+#endif  /* FSCI_ENABLE */
+
+#if NVM_ENABLE
+	{NVMSaveConfirm_FSCI_ID, UnLoad_NVMSaveConfirm},
+	{NVMGetDataSetDescConfirm_FSCI_ID, UnLoad_NVMGetDataSetDescConfirm},
+	{NVMGetCountersConfirm_FSCI_ID, UnLoad_NVMGetCountersConfirm},
+	{NVMGetVPSizeResponse_FSCI_ID, UnLoad_NVMGetVPSizeResponse},
+	{NVMSetMonitoringConfirm_FSCI_ID, UnLoad_NVMSetMonitoringConfirm},
+	{NVMWriteMonitoringIndication_FSCI_ID, UnLoad_NVMWriteMonitoringIndication},
+	{NVMPageEraseMonitoringIndication_FSCI_ID, UnLoad_NVMPageEraseMonitoringIndication},
+	{NVMFormatReqConfirm_FSCI_ID, UnLoad_NVMFormatReqConfirm},
+	{NVMRestoreReqConfirm_FSCI_ID, UnLoad_NVMRestoreReqConfirm},
+	{NVMRestoreMonitoringIndication_FSCI_ID, UnLoad_NVMRestoreMonitoringIndication},
+	{NVMVirtualPageMonitoringIndication_FSCI_ID, UnLoad_NVMVirtualPageMonitoringIndication},
+#endif  /* NVM_ENABLE */
+
+#if HCI_ENABLE
+	{HCIConfirm_FSCI_ID, UnLoad_HCIConfirm},
+	{HCIEventIndication_FSCI_ID, UnLoad_HCIEventIndication},
+	{HCIDataIndication_FSCI_ID, UnLoad_HCIDataIndication},
+	{HCISynchronousDataIndication_FSCI_ID, UnLoad_HCISynchronousDataIndication},
+#endif  /* HCI_ENABLE */
+
+#if L2CAP_ENABLE
+	{L2CAPConfirm_FSCI_ID, UnLoad_L2CAPConfirm},
+	{L2CAPAttDataIndication_FSCI_ID, UnLoad_L2CAPAttDataIndication},
+	{L2CAPSmpDataIndication_FSCI_ID, UnLoad_L2CAPSmpDataIndication},
+	{L2CAPSignalingDataIndication_FSCI_ID, UnLoad_L2CAPSignalingDataIndication},
+#endif  /* L2CAP_ENABLE */
+
+#if L2CAPCB_ENABLE
+	{L2CAPCBConfirm_FSCI_ID, UnLoad_L2CAPCBConfirm},
+	{L2CAPCBLePsmConnectionRequestIndication_FSCI_ID, UnLoad_L2CAPCBLePsmConnectionRequestIndication},
+	{L2CAPCBLePsmConnectionCompleteIndication_FSCI_ID, UnLoad_L2CAPCBLePsmConnectionCompleteIndication},
+	{L2CAPCBLePsmDisconnectNotificationIndication_FSCI_ID, UnLoad_L2CAPCBLePsmDisconnectNotificationIndication},
+	{L2CAPCBNoPeerCreditsIndication_FSCI_ID, UnLoad_L2CAPCBNoPeerCreditsIndication},
+	{L2CAPCBLocalCreditsNotificationIndication_FSCI_ID, UnLoad_L2CAPCBLocalCreditsNotificationIndication},
+	{L2CAPCBLeCbDataIndication_FSCI_ID, UnLoad_L2CAPCBLeCbDataIndication},
+	{L2CAPCBErrorIndication_FSCI_ID, UnLoad_L2CAPCBErrorIndication},
+	{L2CAPCBChannelStatusNotificationIndication_FSCI_ID, UnLoad_L2CAPCBChannelStatusNotificationIndication},
+	{L2CAPCBLePsmEnhancedConnectRequestIndication_FSCI_ID, UnLoad_L2CAPCBLePsmEnhancedConnectRequestIndication},
+	{L2CAPCBLePsmEnhancedConnectionCompleteIndication_FSCI_ID, UnLoad_L2CAPCBLePsmEnhancedConnectionCompleteIndication},
+	{L2CAPCBEnhancedReconfigureRequestIndication_FSCI_ID, UnLoad_L2CAPCBEnhancedReconfigureRequestIndication},
+	{L2CAPCBEnhancedReconfigureResponseIndication_FSCI_ID, UnLoad_L2CAPCBEnhancedReconfigureResponseIndication},
+	{L2CAPCBLowPeerCreditsIndication_FSCI_ID, UnLoad_L2CAPCBLowPeerCreditsIndication},
+#endif  /* L2CAPCB_ENABLE */
+
+#if SM_ENABLE
+	{SMDHKeyGenerateIndication_FSCI_ID, UnLoad_SMDHKeyGenerateIndication},
+	{SMConfirm_FSCI_ID, UnLoad_SMConfirm},
+	{SMStatusIndication_FSCI_ID, UnLoad_SMStatusIndication},
+	{SMRemoteSecurityRequestIndication_FSCI_ID, UnLoad_SMRemoteSecurityRequestIndication},
+	{SMRemotePairingRequestIndication_FSCI_ID, UnLoad_SMRemotePairingRequestIndication},
+	{SMRemotePairingResponseIndication_FSCI_ID, UnLoad_SMRemotePairingResponseIndication},
+	{SMPasskeyDisplayRequestIndication_FSCI_ID, UnLoad_SMPasskeyDisplayRequestIndication},
+	{SMPasskeyRequestIndication_FSCI_ID, UnLoad_SMPasskeyRequestIndication},
+	{SMPairingKeysetRequestIndication_FSCI_ID, UnLoad_SMPairingKeysetRequestIndication},
+	{SMPairingKeysetReceivedIndication_FSCI_ID, UnLoad_SMPairingKeysetReceivedIndication},
+	{SMPairingCompleteIndication_FSCI_ID, UnLoad_SMPairingCompleteIndication},
+	{SMPairingFailedIndication_FSCI_ID, UnLoad_SMPairingFailedIndication},
+	{SMReceivedPairingFailedIndication_FSCI_ID, UnLoad_SMReceivedPairingFailedIndication},
+	{SMLlLtkRequestIndication_FSCI_ID, UnLoad_SMLlLtkRequestIndication},
+	{SMLlEncryptionStatusIndication_FSCI_ID, UnLoad_SMLlEncryptionStatusIndication},
+	{SMLlEncryptResIndication_FSCI_ID, UnLoad_SMLlEncryptResIndication},
+	{SMLlRandResIndication_FSCI_ID, UnLoad_SMLlRandResIndication},
+	{SMTbCreateRandomDeviceAddrResIndication_FSCI_ID, UnLoad_SMTbCreateRandomDeviceAddrResIndication},
+	{SMTbCheckResolvalePrivateAddrResIndication_FSCI_ID, UnLoad_SMTbCheckResolvalePrivateAddrResIndication},
+	{SMTbSignDataResIndication_FSCI_ID, UnLoad_SMTbSignDataResIndication},
+	{SMTbVerifyDataSignatureResIndication_FSCI_ID, UnLoad_SMTbVerifyDataSignatureResIndication},
+	{SMRemoteKeypressNotificationIndication_FSCI_ID, UnLoad_SMRemoteKeypressNotificationIndication},
+	{SMNcDisplayRequestIndication_FSCI_ID, UnLoad_SMNcDisplayRequestIndication},
+	{SMLeScOobDataRequestIndication_FSCI_ID, UnLoad_SMLeScOobDataRequestIndication},
+	{SMLocalLeScOobDataIndication_FSCI_ID, UnLoad_SMLocalLeScOobDataIndication},
+	{SMGenerateNewEcdhPkSkPairResIndication_FSCI_ID, UnLoad_SMGenerateNewEcdhPkSkPairResIndication},
+#endif  /* SM_ENABLE */
+
+#if ATT_ENABLE
+	{ATTConfirm_FSCI_ID, UnLoad_ATTConfirm},
+	{ATTGetMtuIndication_FSCI_ID, UnLoad_ATTGetMtuIndication},
+	{ATTClientIncomingServerErrorResponseIndication_FSCI_ID, UnLoad_ATTClientIncomingServerErrorResponseIndication},
+	{ATTServerIncomingClientExchangeMtuRequestIndication_FSCI_ID, UnLoad_ATTServerIncomingClientExchangeMtuRequestIndication},
+	{ATTClientIncomingServerExchangeMtuResponseIndication_FSCI_ID, UnLoad_ATTClientIncomingServerExchangeMtuResponseIndication},
+	{ATTServerIncomingClientFindInformationRequestIndication_FSCI_ID, UnLoad_ATTServerIncomingClientFindInformationRequestIndication},
+	{ATTClientIncomingServerFindInformationResponseIndication_FSCI_ID, UnLoad_ATTClientIncomingServerFindInformationResponseIndication},
+	{ATTServerIncomingClientFindByTypeValueRequestIndication_FSCI_ID, UnLoad_ATTServerIncomingClientFindByTypeValueRequestIndication},
+	{ATTClientIncomingServerFindByTypeValueResponseIndication_FSCI_ID, UnLoad_ATTClientIncomingServerFindByTypeValueResponseIndication},
+	{ATTServerIncomingClientReadByTypeRequestIndication_FSCI_ID, UnLoad_ATTServerIncomingClientReadByTypeRequestIndication},
+	{ATTClientIncomingServerReadByTypeResponseIndication_FSCI_ID, UnLoad_ATTClientIncomingServerReadByTypeResponseIndication},
+	{ATTServerIncomingClientReadRequestIndication_FSCI_ID, UnLoad_ATTServerIncomingClientReadRequestIndication},
+	{ATTClientIncomingServerReadResponseIndication_FSCI_ID, UnLoad_ATTClientIncomingServerReadResponseIndication},
+	{ATTServerIncomingClientReadBlobRequestIndication_FSCI_ID, UnLoad_ATTServerIncomingClientReadBlobRequestIndication},
+	{ATTClientIncomingServerReadBlobResponseIndication_FSCI_ID, UnLoad_ATTClientIncomingServerReadBlobResponseIndication},
+	{ATTServerIncomingClientReadMultipleRequestIndication_FSCI_ID, UnLoad_ATTServerIncomingClientReadMultipleRequestIndication},
+	{ATTClientIncomingServerReadMultipleResponseIndication_FSCI_ID, UnLoad_ATTClientIncomingServerReadMultipleResponseIndication},
+	{ATTServerIncomingClientReadByGroupTypeRequestIndication_FSCI_ID, UnLoad_ATTServerIncomingClientReadByGroupTypeRequestIndication},
+	{ATTClientIncomingServerReadByGroupTypeResponseIndication_FSCI_ID, UnLoad_ATTClientIncomingServerReadByGroupTypeResponseIndication},
+	{ATTServerIncomingClientWriteRequestIndication_FSCI_ID, UnLoad_ATTServerIncomingClientWriteRequestIndication},
+	{ATTClientIncomingServerWriteResponseIndication_FSCI_ID, UnLoad_ATTClientIncomingServerWriteResponseIndication},
+	{ATTServerIncomingClientWriteCommandIndication_FSCI_ID, UnLoad_ATTServerIncomingClientWriteCommandIndication},
+	{ATTServerIncomingClientSignedWriteCommandIndication_FSCI_ID, UnLoad_ATTServerIncomingClientSignedWriteCommandIndication},
+	{ATTServerIncomingClientPrepareWriteRequestIndication_FSCI_ID, UnLoad_ATTServerIncomingClientPrepareWriteRequestIndication},
+	{ATTClientIncomingServerPrepareWriteResponseIndication_FSCI_ID, UnLoad_ATTClientIncomingServerPrepareWriteResponseIndication},
+	{ATTServerIncomingClientExecuteWriteRequestIndication_FSCI_ID, UnLoad_ATTServerIncomingClientExecuteWriteRequestIndication},
+	{ATTClientIncomingServerExecuteWriteResponseIndication_FSCI_ID, UnLoad_ATTClientIncomingServerExecuteWriteResponseIndication},
+	{ATTClientIncomingServerHandleValueNotificationIndication_FSCI_ID, UnLoad_ATTClientIncomingServerHandleValueNotificationIndication},
+	{ATTClientIncomingServerHandleValueIndicationIndication_FSCI_ID, UnLoad_ATTClientIncomingServerHandleValueIndicationIndication},
+	{ATTServerIncomingClientHandleValueConfirmationIndication_FSCI_ID, UnLoad_ATTServerIncomingClientHandleValueConfirmationIndication},
+	{ATTUnsupportedOpcodeIndication_FSCI_ID, UnLoad_ATTUnsupportedOpcodeIndication},
+	{ATTTimeoutIndication_FSCI_ID, UnLoad_ATTTimeoutIndication},
+	{ATTInvalidPduReceivedIndication_FSCI_ID, UnLoad_ATTInvalidPduReceivedIndication},
+	{ATTClientIncomingServerReadMultipleVariableResponseIndication_FSCI_ID, UnLoad_ATTClientIncomingServerReadMultipleVariableResponseIndication},
+	{ATTServerIncomingClientReadMultipleVariableRequestIndication_FSCI_ID, UnLoad_ATTServerIncomingClientReadMultipleVariableRequestIndication},
+	{ATTClientIncomingServerMultipleHandleValueNotificationIndication_FSCI_ID, UnLoad_ATTClientIncomingServerMultipleHandleValueNotificationIndication},
+	{EATTClientIncomingServerErrorResponseIndication_FSCI_ID, UnLoad_EATTClientIncomingServerErrorResponseIndication},
+	{EATTServerIncomingClientFindInformationRequestIndication_FSCI_ID, UnLoad_EATTServerIncomingClientFindInformationRequestIndication},
+	{EATTClientIncomingServerFindInformationResponseIndication_FSCI_ID, UnLoad_EATTClientIncomingServerFindInformationResponseIndication},
+	{EATTServerIncomingClientFindByTypeValueRequestIndication_FSCI_ID, UnLoad_EATTServerIncomingClientFindByTypeValueRequestIndication},
+	{EATTClientIncomingServerFindByTypeValueResponseIndication_FSCI_ID, UnLoad_EATTClientIncomingServerFindByTypeValueResponseIndication},
+	{EATTServerIncomingClientReadByTypeRequestIndication_FSCI_ID, UnLoad_EATTServerIncomingClientReadByTypeRequestIndication},
+	{EATTClientIncomingServerReadByTypeResponseIndication_FSCI_ID, UnLoad_EATTClientIncomingServerReadByTypeResponseIndication},
+	{EATTServerIncomingClientReadRequestIndication_FSCI_ID, UnLoad_EATTServerIncomingClientReadRequestIndication},
+	{EATTClientIncomingServerReadResponseIndication_FSCI_ID, UnLoad_EATTClientIncomingServerReadResponseIndication},
+	{EATTServerIncomingClientReadBlobRequestIndication_FSCI_ID, UnLoad_EATTServerIncomingClientReadBlobRequestIndication},
+	{EATTClientIncomingServerReadBlobResponseIndication_FSCI_ID, UnLoad_EATTClientIncomingServerReadBlobResponseIndication},
+	{EATTServerIncomingClientReadMultipleRequestIndication_FSCI_ID, UnLoad_EATTServerIncomingClientReadMultipleRequestIndication},
+	{EATTClientIncomingServerReadMultipleResponseIndication_FSCI_ID, UnLoad_EATTClientIncomingServerReadMultipleResponseIndication},
+	{EATTServerIncomingClientReadByGroupTypeRequestIndication_FSCI_ID, UnLoad_EATTServerIncomingClientReadByGroupTypeRequestIndication},
+	{EATTClientIncomingServerReadByGroupTypeResponseIndication_FSCI_ID, UnLoad_EATTClientIncomingServerReadByGroupTypeResponseIndication},
+	{EATTServerIncomingClientWriteRequestIndication_FSCI_ID, UnLoad_EATTServerIncomingClientWriteRequestIndication},
+	{EATTClientIncomingServerWriteResponseIndication_FSCI_ID, UnLoad_EATTClientIncomingServerWriteResponseIndication},
+	{EATTServerIncomingClientWriteCommandIndication_FSCI_ID, UnLoad_EATTServerIncomingClientWriteCommandIndication},
+	{EATTServerIncomingClientPrepareWriteRequestIndication_FSCI_ID, UnLoad_EATTServerIncomingClientPrepareWriteRequestIndication},
+	{EATTClientIncomingServerPrepareWriteResponseIndication_FSCI_ID, UnLoad_EATTClientIncomingServerPrepareWriteResponseIndication},
+	{EATTServerIncomingClientExecuteWriteRequestIndication_FSCI_ID, UnLoad_EATTServerIncomingClientExecuteWriteRequestIndication},
+	{EATTClientIncomingServerExecuteWriteResponseIndication_FSCI_ID, UnLoad_EATTClientIncomingServerExecuteWriteResponseIndication},
+	{EATTClientIncomingServerHandleValueNotificationIndication_FSCI_ID, UnLoad_EATTClientIncomingServerHandleValueNotificationIndication},
+	{EATTClientIncomingServerHandleValueIndicationIndication_FSCI_ID, UnLoad_EATTClientIncomingServerHandleValueIndicationIndication},
+	{EATTServerIncomingClientHandleValueConfirmationIndication_FSCI_ID, UnLoad_EATTServerIncomingClientHandleValueConfirmationIndication},
+	{EATTUnsupportedOpcodeIndication_FSCI_ID, UnLoad_EATTUnsupportedOpcodeIndication},
+	{EATTTimeoutIndication_FSCI_ID, UnLoad_EATTTimeoutIndication},
+	{EATTInvalidPduReceivedIndication_FSCI_ID, UnLoad_EATTInvalidPduReceivedIndication},
+	{EATTClientIncomingServerReadMultipleVariableResponseIndication_FSCI_ID, UnLoad_EATTClientIncomingServerReadMultipleVariableResponseIndication},
+	{EATTServerIncomingClientReadMultipleVariableRequestIndication_FSCI_ID, UnLoad_EATTServerIncomingClientReadMultipleVariableRequestIndication},
+	{EATTClientIncomingServerMultipleHandleValueNotificationIndication_FSCI_ID, UnLoad_EATTClientIncomingServerMultipleHandleValueNotificationIndication},
+#endif  /* ATT_ENABLE */
+
+#if GATT_ENABLE
+	{GATTConfirm_FSCI_ID, UnLoad_GATTConfirm},
+	{GATTGetMtuIndication_FSCI_ID, UnLoad_GATTGetMtuIndication},
+	{GATTClientProcedureExchangeMtuIndication_FSCI_ID, UnLoad_GATTClientProcedureExchangeMtuIndication},
+	{GATTClientProcedureDiscoverAllPrimaryServicesIndication_FSCI_ID, UnLoad_GATTClientProcedureDiscoverAllPrimaryServicesIndication},
+	{GATTClientProcedureDiscoverPrimaryServicesByUuidIndication_FSCI_ID, UnLoad_GATTClientProcedureDiscoverPrimaryServicesByUuidIndication},
+	{GATTClientProcedureFindIncludedServicesIndication_FSCI_ID, UnLoad_GATTClientProcedureFindIncludedServicesIndication},
+	{GATTClientProcedureDiscoverAllCharacteristicsIndication_FSCI_ID, UnLoad_GATTClientProcedureDiscoverAllCharacteristicsIndication},
+	{GATTClientProcedureDiscoverCharacteristicByUuidIndication_FSCI_ID, UnLoad_GATTClientProcedureDiscoverCharacteristicByUuidIndication},
+	{GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication_FSCI_ID, UnLoad_GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication},
+	{GATTClientProcedureReadCharacteristicValueIndication_FSCI_ID, UnLoad_GATTClientProcedureReadCharacteristicValueIndication},
+	{GATTClientProcedureReadUsingCharacteristicUuidIndication_FSCI_ID, UnLoad_GATTClientProcedureReadUsingCharacteristicUuidIndication},
+	{GATTClientProcedureReadMultipleCharacteristicValuesIndication_FSCI_ID, UnLoad_GATTClientProcedureReadMultipleCharacteristicValuesIndication},
+	{GATTClientProcedureWriteCharacteristicValueIndication_FSCI_ID, UnLoad_GATTClientProcedureWriteCharacteristicValueIndication},
+	{GATTClientProcedureReadCharacteristicDescriptorIndication_FSCI_ID, UnLoad_GATTClientProcedureReadCharacteristicDescriptorIndication},
+	{GATTClientProcedureWriteCharacteristicDescriptorIndication_FSCI_ID, UnLoad_GATTClientProcedureWriteCharacteristicDescriptorIndication},
+	{GATTClientNotificationIndication_FSCI_ID, UnLoad_GATTClientNotificationIndication},
+	{GATTClientMultipleHandleValueNotificationIndication_FSCI_ID, UnLoad_GATTClientMultipleHandleValueNotificationIndication},
+	{GATTClientProcedureReadMultipleVariableLenCharValuesIndication_FSCI_ID, UnLoad_GATTClientProcedureReadMultipleVariableLenCharValuesIndication},
+	{GATTClientIndicationIndication_FSCI_ID, UnLoad_GATTClientIndicationIndication},
+	{GATTServerMtuChangedIndication_FSCI_ID, UnLoad_GATTServerMtuChangedIndication},
+	{GATTServerHandleValueConfirmationIndication_FSCI_ID, UnLoad_GATTServerHandleValueConfirmationIndication},
+	{GATTServerAttributeWrittenIndication_FSCI_ID, UnLoad_GATTServerAttributeWrittenIndication},
+	{GATTServerCharacteristicCccdWrittenIndication_FSCI_ID, UnLoad_GATTServerCharacteristicCccdWrittenIndication},
+	{GATTServerAttributeWrittenWithoutResponseIndication_FSCI_ID, UnLoad_GATTServerAttributeWrittenWithoutResponseIndication},
+	{GATTServerErrorIndication_FSCI_ID, UnLoad_GATTServerErrorIndication},
+	{GATTServerLongCharacteristicWrittenIndication_FSCI_ID, UnLoad_GATTServerLongCharacteristicWrittenIndication},
+	{GATTServerAttributeReadIndication_FSCI_ID, UnLoad_GATTServerAttributeReadIndication},
+	{GATTClientProcedureEnhancedDiscoverAllPrimaryServicesIndication_FSCI_ID, UnLoad_GATTClientProcedureEnhancedDiscoverAllPrimaryServicesIndication},
+	{GATTClientProcedureEnhancedDiscoverPrimaryServicesByUuidIndication_FSCI_ID, UnLoad_GATTClientProcedureEnhancedDiscoverPrimaryServicesByUuidIndication},
+	{GATTClientProcedureEnhancedFindIncludedServicesIndication_FSCI_ID, UnLoad_GATTClientProcedureEnhancedFindIncludedServicesIndication},
+	{GATTClientProcedureEnhancedDiscoverAllCharacteristicsIndication_FSCI_ID, UnLoad_GATTClientProcedureEnhancedDiscoverAllCharacteristicsIndication},
+	{GATTClientProcedureEnhancedDiscoverCharacteristicByUuidIndication_FSCI_ID, UnLoad_GATTClientProcedureEnhancedDiscoverCharacteristicByUuidIndication},
+	{GATTClientProcedureEnhancedDiscoverAllCharacteristicDescriptorsIndication_FSCI_ID, UnLoad_GATTClientProcedureEnhancedDiscoverAllCharacteristicDescriptorsIndication},
+	{GATTClientProcedureEnhancedReadCharacteristicValueIndication_FSCI_ID, UnLoad_GATTClientProcedureEnhancedReadCharacteristicValueIndication},
+	{GATTClientProcedureEnhancedReadUsingCharacteristicUuidIndication_FSCI_ID, UnLoad_GATTClientProcedureEnhancedReadUsingCharacteristicUuidIndication},
+	{GATTClientProcedureEnhancedReadMultipleCharacteristicValuesIndication_FSCI_ID, UnLoad_GATTClientProcedureEnhancedReadMultipleCharacteristicValuesIndication},
+	{GATTClientProcedureEnhancedWriteCharacteristicValueIndication_FSCI_ID, UnLoad_GATTClientProcedureEnhancedWriteCharacteristicValueIndication},
+	{GATTClientProcedureEnhancedReadCharacteristicDescriptorIndication_FSCI_ID, UnLoad_GATTClientProcedureEnhancedReadCharacteristicDescriptorIndication},
+	{GATTClientProcedureEnhancedWriteCharacteristicDescriptorIndication_FSCI_ID, UnLoad_GATTClientProcedureEnhancedWriteCharacteristicDescriptorIndication},
+	{GATTClientProcedureEnhancedReadMultipleVariableLenCharValuesIndication_FSCI_ID, UnLoad_GATTClientProcedureEnhancedReadMultipleVariableLenCharValuesIndication},
+	{GATTClientEnhancedMultipleHandleValueNotificationIndication_FSCI_ID, UnLoad_GATTClientEnhancedMultipleHandleValueNotificationIndication},
+	{GATTClientEnhancedNotificationIndication_FSCI_ID, UnLoad_GATTClientEnhancedNotificationIndication},
+	{GATTClientEnhancedIndicationIndication_FSCI_ID, UnLoad_GATTClientEnhancedIndicationIndication},
+	{GATTServerEnhancedHandleValueConfirmationIndication_FSCI_ID, UnLoad_GATTServerEnhancedHandleValueConfirmationIndication},
+	{GATTServerEnhancedAttributeWrittenIndication_FSCI_ID, UnLoad_GATTServerEnhancedAttributeWrittenIndication},
+	{GATTServerEnhancedCharacteristicCccdWrittenIndication_FSCI_ID, UnLoad_GATTServerEnhancedCharacteristicCccdWrittenIndication},
+	{GATTServerEnhancedAttributeWrittenWithoutResponseIndication_FSCI_ID, UnLoad_GATTServerEnhancedAttributeWrittenWithoutResponseIndication},
+	{GATTServerEnhancedErrorIndication_FSCI_ID, UnLoad_GATTServerEnhancedErrorIndication},
+	{GATTServerEnhancedLongCharacteristicWrittenIndication_FSCI_ID, UnLoad_GATTServerEnhancedLongCharacteristicWrittenIndication},
+	{GATTServerEnhancedAttributeReadIndication_FSCI_ID, UnLoad_GATTServerEnhancedAttributeReadIndication},
+#endif  /* GATT_ENABLE */
+
+#if GATTDB_APP_ENABLE
+	{GATTDBConfirm_FSCI_ID, UnLoad_GATTDBConfirm},
+	{GATTDBReadAttributeIndication_FSCI_ID, UnLoad_GATTDBReadAttributeIndication},
+	{GATTDBFindServiceHandleIndication_FSCI_ID, UnLoad_GATTDBFindServiceHandleIndication},
+	{GATTDBFindCharValueHandleInServiceIndication_FSCI_ID, UnLoad_GATTDBFindCharValueHandleInServiceIndication},
+	{GATTDBFindCccdHandleForCharValueHandleIndication_FSCI_ID, UnLoad_GATTDBFindCccdHandleForCharValueHandleIndication},
+	{GATTDBFindDescriptorHandleForCharValueHandleIndication_FSCI_ID, UnLoad_GATTDBFindDescriptorHandleForCharValueHandleIndication},
+	{GATTDBDynamicAddPrimaryServiceDeclarationIndication_FSCI_ID, UnLoad_GATTDBDynamicAddPrimaryServiceDeclarationIndication},
+	{GATTDBDynamicAddSecondaryServiceDeclarationIndication_FSCI_ID, UnLoad_GATTDBDynamicAddSecondaryServiceDeclarationIndication},
+	{GATTDBDynamicAddIncludeDeclarationIndication_FSCI_ID, UnLoad_GATTDBDynamicAddIncludeDeclarationIndication},
+	{GATTDBDynamicAddCharacteristicDeclarationAndValueIndication_FSCI_ID, UnLoad_GATTDBDynamicAddCharacteristicDeclarationAndValueIndication},
+	{GATTDBDynamicAddCharacteristicDescriptorIndication_FSCI_ID, UnLoad_GATTDBDynamicAddCharacteristicDescriptorIndication},
+	{GATTDBDynamicAddCccdIndication_FSCI_ID, UnLoad_GATTDBDynamicAddCccdIndication},
+	{GATTDBDynamicAddCharacteristicDeclarationWithUniqueValueIndication_FSCI_ID, UnLoad_GATTDBDynamicAddCharacteristicDeclarationWithUniqueValueIndication},
+	{GATTDBDynamicAddCharDescriptorWithUniqueValueIndication_FSCI_ID, UnLoad_GATTDBDynamicAddCharDescriptorWithUniqueValueIndication},
+	{GATTDBDynamicAddCharAggregateFormatIndication_FSCI_ID, UnLoad_GATTDBDynamicAddCharAggregateFormatIndication},
+#endif  /* GATTDB_APP_ENABLE */
+
+#if GATTDB_ATT_ENABLE
+	{GATTDBAttConfirm_FSCI_ID, UnLoad_GATTDBAttConfirm},
+	{GATTDBAttFindInformationIndication_FSCI_ID, UnLoad_GATTDBAttFindInformationIndication},
+	{GATTDBAttFindByTypeValueIndication_FSCI_ID, UnLoad_GATTDBAttFindByTypeValueIndication},
+	{GATTDBAttReadByTypeIndication_FSCI_ID, UnLoad_GATTDBAttReadByTypeIndication},
+	{GATTDBAttReadIndication_FSCI_ID, UnLoad_GATTDBAttReadIndication},
+	{GATTDBAttReadBlobIndication_FSCI_ID, UnLoad_GATTDBAttReadBlobIndication},
+	{GATTDBAttReadMultipleIndication_FSCI_ID, UnLoad_GATTDBAttReadMultipleIndication},
+	{GATTDBAttReadByGroupTypeIndication_FSCI_ID, UnLoad_GATTDBAttReadByGroupTypeIndication},
+	{GATTDBAttWriteIndication_FSCI_ID, UnLoad_GATTDBAttWriteIndication},
+	{GATTDBAttPrepareWriteIndication_FSCI_ID, UnLoad_GATTDBAttPrepareWriteIndication},
+	{GATTDBAttExecuteWriteIndication_FSCI_ID, UnLoad_GATTDBAttExecuteWriteIndication},
+	{GATTDBAttExecuteWriteFromQueueIndication_FSCI_ID, UnLoad_GATTDBAttExecuteWriteFromQueueIndication},
+	{GATTDBAttPrepareNotificationIndicationIndication_FSCI_ID, UnLoad_GATTDBAttPrepareNotificationIndicationIndication},
+#endif  /* GATTDB_ATT_ENABLE */
+
+#if GAP_ENABLE
+	{GAPConfirm_FSCI_ID, UnLoad_GAPConfirm},
+	{GAPCheckNotificationStatusIndication_FSCI_ID, UnLoad_GAPCheckNotificationStatusIndication},
+	{GAPCheckIndicationStatusIndication_FSCI_ID, UnLoad_GAPCheckIndicationStatusIndication},
+	{GAPLoadKeysIndication_FSCI_ID, UnLoad_GAPLoadKeysIndication},
+	{GAPLoadEncryptionInformationIndication_FSCI_ID, UnLoad_GAPLoadEncryptionInformationIndication},
+	{GAPLoadCustomPeerInformationIndication_FSCI_ID, UnLoad_GAPLoadCustomPeerInformationIndication},
+	{GAPCheckIfBondedIndication_FSCI_ID, UnLoad_GAPCheckIfBondedIndication},
+	{GAPGetBondedDevicesCountIndication_FSCI_ID, UnLoad_GAPGetBondedDevicesCountIndication},
+	{GAPGetBondedDeviceNameIndication_FSCI_ID, UnLoad_GAPGetBondedDeviceNameIndication},
+	{GAPGenericEventInitializationCompleteIndication_FSCI_ID, UnLoad_GAPGenericEventInitializationCompleteIndication},
+	{GAPGenericEventInternalErrorIndication_FSCI_ID, UnLoad_GAPGenericEventInternalErrorIndication},
+	{GAPGenericEventAdvertisingSetupFailedIndication_FSCI_ID, UnLoad_GAPGenericEventAdvertisingSetupFailedIndication},
+	{GAPGenericEventAdvertisingParametersSetupCompleteIndication_FSCI_ID, UnLoad_GAPGenericEventAdvertisingParametersSetupCompleteIndication},
+	{GAPGenericEventAdvertisingDataSetupCompleteIndication_FSCI_ID, UnLoad_GAPGenericEventAdvertisingDataSetupCompleteIndication},
+	{GAPGenericEventFilterAcceptListSizeReadIndication_FSCI_ID, UnLoad_GAPGenericEventFilterAcceptListSizeReadIndication},
+	{GAPGenericEventDeviceAddedToFilterAcceptListIndication_FSCI_ID, UnLoad_GAPGenericEventDeviceAddedToFilterAcceptListIndication},
+	{GAPGenericEventDeviceRemovedFromFilterAcceptListIndication_FSCI_ID, UnLoad_GAPGenericEventDeviceRemovedFromFilterAcceptListIndication},
+	{GAPGenericEventFilterAcceptListClearedIndication_FSCI_ID, UnLoad_GAPGenericEventFilterAcceptListClearedIndication},
+	{GAPGenericEventRandomAddressReadyIndication_FSCI_ID, UnLoad_GAPGenericEventRandomAddressReadyIndication},
+	{GAPGenericEventCreateConnectionCanceledIndication_FSCI_ID, UnLoad_GAPGenericEventCreateConnectionCanceledIndication},
+	{GAPGenericEventPublicAddressReadIndication_FSCI_ID, UnLoad_GAPGenericEventPublicAddressReadIndication},
+	{GAPGenericEventAdvTxPowerLevelReadIndication_FSCI_ID, UnLoad_GAPGenericEventAdvTxPowerLevelReadIndication},
+	{GAPGenericEventPrivateResolvableAddressVerifiedIndication_FSCI_ID, UnLoad_GAPGenericEventPrivateResolvableAddressVerifiedIndication},
+	{GAPGenericEventRandomAddressSetIndication_FSCI_ID, UnLoad_GAPGenericEventRandomAddressSetIndication},
+	{GAPAdvertisingEventStateChangedIndication_FSCI_ID, UnLoad_GAPAdvertisingEventStateChangedIndication},
+	{GAPAdvertisingEventCommandFailedIndication_FSCI_ID, UnLoad_GAPAdvertisingEventCommandFailedIndication},
+	{GAPScanningEventStateChangedIndication_FSCI_ID, UnLoad_GAPScanningEventStateChangedIndication},
+	{GAPScanningEventCommandFailedIndication_FSCI_ID, UnLoad_GAPScanningEventCommandFailedIndication},
+	{GAPScanningEventDeviceScannedIndication_FSCI_ID, UnLoad_GAPScanningEventDeviceScannedIndication},
+	{GAPConnectionEventConnectedIndication_FSCI_ID, UnLoad_GAPConnectionEventConnectedIndication},
+	{GAPConnectionEventPairingRequestIndication_FSCI_ID, UnLoad_GAPConnectionEventPairingRequestIndication},
+	{GAPConnectionEventPeripheralSecurityRequestIndication_FSCI_ID, UnLoad_GAPConnectionEventPeripheralSecurityRequestIndication},
+	{GAPConnectionEventPairingResponseIndication_FSCI_ID, UnLoad_GAPConnectionEventPairingResponseIndication},
+	{GAPConnectionEventAuthenticationRejectedIndication_FSCI_ID, UnLoad_GAPConnectionEventAuthenticationRejectedIndication},
+	{GAPConnectionEventPasskeyRequestIndication_FSCI_ID, UnLoad_GAPConnectionEventPasskeyRequestIndication},
+	{GAPConnectionEventOobRequestIndication_FSCI_ID, UnLoad_GAPConnectionEventOobRequestIndication},
+	{GAPConnectionEventPasskeyDisplayIndication_FSCI_ID, UnLoad_GAPConnectionEventPasskeyDisplayIndication},
+	{GAPConnectionEventKeyExchangeRequestIndication_FSCI_ID, UnLoad_GAPConnectionEventKeyExchangeRequestIndication},
+	{GAPConnectionEventKeysReceivedIndication_FSCI_ID, UnLoad_GAPConnectionEventKeysReceivedIndication},
+	{GAPConnectionEventLongTermKeyRequestIndication_FSCI_ID, UnLoad_GAPConnectionEventLongTermKeyRequestIndication},
+	{GAPConnectionEventEncryptionChangedIndication_FSCI_ID, UnLoad_GAPConnectionEventEncryptionChangedIndication},
+	{GAPConnectionEventPairingCompleteIndication_FSCI_ID, UnLoad_GAPConnectionEventPairingCompleteIndication},
+	{GAPConnectionEventDisconnectedIndication_FSCI_ID, UnLoad_GAPConnectionEventDisconnectedIndication},
+	{GAPConnectionEventRssiReadIndication_FSCI_ID, UnLoad_GAPConnectionEventRssiReadIndication},
+	{GAPConnectionEventTxPowerLevelReadIndication_FSCI_ID, UnLoad_GAPConnectionEventTxPowerLevelReadIndication},
+	{GAPConnectionEventPowerReadFailureIndication_FSCI_ID, UnLoad_GAPConnectionEventPowerReadFailureIndication},
+	{GAPConnectionEventParameterUpdateRequestIndication_FSCI_ID, UnLoad_GAPConnectionEventParameterUpdateRequestIndication},
+	{GAPConnectionEventParameterUpdateCompleteIndication_FSCI_ID, UnLoad_GAPConnectionEventParameterUpdateCompleteIndication},
+	{GAPConnectionEventLeDataLengthChangedIndication_FSCI_ID, UnLoad_GAPConnectionEventLeDataLengthChangedIndication},
+	{GAPConnectionEventLeSetDataLengthFailedIndication_FSCI_ID, UnLoad_GAPConnectionEventLeSetDataLengthFailedIndication},
+	{GAPConnectionEventLeScOobDataRequestIndication_FSCI_ID, UnLoad_GAPConnectionEventLeScOobDataRequestIndication},
+	{GAPConnectionEventLeScDisplayNumericValueIndication_FSCI_ID, UnLoad_GAPConnectionEventLeScDisplayNumericValueIndication},
+	{GAPConnectionEventLeScKeypressNotificationIndication_FSCI_ID, UnLoad_GAPConnectionEventLeScKeypressNotificationIndication},
+	{GAPLeScPublicKeyRegeneratedIndication_FSCI_ID, UnLoad_GAPLeScPublicKeyRegeneratedIndication},
+	{GAPGenericEventLeScLocalOobDataIndication_FSCI_ID, UnLoad_GAPGenericEventLeScLocalOobDataIndication},
+	{GAPGenericEventHostPrivacyStateChangedIndication_FSCI_ID, UnLoad_GAPGenericEventHostPrivacyStateChangedIndication},
+	{GAPGenericEventControllerPrivacyStateChangedIndication_FSCI_ID, UnLoad_GAPGenericEventControllerPrivacyStateChangedIndication},
+	{GAPGenericEventTxPowerLevelSetCompleteIndication_FSCI_ID, UnLoad_GAPGenericEventTxPowerLevelSetCompleteIndication},
+	{GAPGenericEventLePhyEventIndication_FSCI_ID, UnLoad_GAPGenericEventLePhyEventIndication},
+	{GAPGetBondedDevicesIdentityInformationIndication_FSCI_ID, UnLoad_GAPGetBondedDevicesIdentityInformationIndication},
+	{GAPControllerNotificationIndication_FSCI_ID, UnLoad_GAPControllerNotificationIndication},
+	{GAPBondCreatedIndication_FSCI_ID, UnLoad_GAPBondCreatedIndication},
+	{GAPGenericEventChannelMapSetIndication_FSCI_ID, UnLoad_GAPGenericEventChannelMapSetIndication},
+	{GAPConnectionEventChannelMapReadIndication_FSCI_ID, UnLoad_GAPConnectionEventChannelMapReadIndication},
+	{GAPConnectionEventChannelMapReadFailureIndication_FSCI_ID, UnLoad_GAPConnectionEventChannelMapReadFailureIndication},
+	{GAPGenericEventExtAdvertisingParamSetupCompleteIndication_FSCI_ID, UnLoad_GAPGenericEventExtAdvertisingParamSetupCompleteIndication},
+	{GAPGenericEventExtAdvertisingDataSetupCompleteIndication_FSCI_ID, UnLoad_GAPGenericEventExtAdvertisingDataSetupCompleteIndication},
+	{GAPGenericEventPeriodicAdvParamSetupCompleteIndication_FSCI_ID, UnLoad_GAPGenericEventPeriodicAdvParamSetupCompleteIndication},
+	{GAPGenericEventPeriodicAdvDataSetupCompleteIndication_FSCI_ID, UnLoad_GAPGenericEventPeriodicAdvDataSetupCompleteIndication},
+	{GAPGenericEventPeriodicAdvListUpdateCompleteIndication_FSCI_ID, UnLoad_GAPGenericEventPeriodicAdvListUpdateCompleteIndication},
+	{GAPAdvertisingEventExtAdvertisingStateChangedIndication_FSCI_ID, UnLoad_GAPAdvertisingEventExtAdvertisingStateChangedIndication},
+	{GAPAdvertisingEventAdvertisingSetTerminatedIndication_FSCI_ID, UnLoad_GAPAdvertisingEventAdvertisingSetTerminatedIndication},
+	{GAPAdvertisingEventExtAdvertisingSetRemoveCompletedIndication_FSCI_ID, UnLoad_GAPAdvertisingEventExtAdvertisingSetRemoveCompletedIndication},
+	{GAPAdvertisingEventExtScanReqReceivedIndication_FSCI_ID, UnLoad_GAPAdvertisingEventExtScanReqReceivedIndication},
+	{GAPGenericEventPeriodicAdvertisingStateChangedIndication_FSCI_ID, UnLoad_GAPGenericEventPeriodicAdvertisingStateChangedIndication},
+	{GAPScanningEventExtDeviceScannedIndication_FSCI_ID, UnLoad_GAPScanningEventExtDeviceScannedIndication},
+	{GAPScanningEventPeriodicAdvSyncEstablishedIndication_FSCI_ID, UnLoad_GAPScanningEventPeriodicAdvSyncEstablishedIndication},
+	{GAPScanningEventPeriodicAdvSyncTerminatedIndication_FSCI_ID, UnLoad_GAPScanningEventPeriodicAdvSyncTerminatedIndication},
+	{GAPScanningEventPeriodicAdvSyncLostIndication_FSCI_ID, UnLoad_GAPScanningEventPeriodicAdvSyncLostIndication},
+	{GAPScanningEventPeriodicDeviceScannedIndication_FSCI_ID, UnLoad_GAPScanningEventPeriodicDeviceScannedIndication},
+	{GAPGenericEventPeriodicAdvCreateSyncCancelledIndication_FSCI_ID, UnLoad_GAPGenericEventPeriodicAdvCreateSyncCancelledIndication},
+	{GAPConnectionEventChannelSelectionAlgorithm2Indication_FSCI_ID, UnLoad_GAPConnectionEventChannelSelectionAlgorithm2Indication},
+	{GAPGenericEventTxEntryAvailableIndication_FSCI_ID, UnLoad_GAPGenericEventTxEntryAvailableIndication},
+	{GAPGenericEventControllerLocalRPAReadIndication_FSCI_ID, UnLoad_GAPGenericEventControllerLocalRPAReadIndication},
+	{GAPCheckNvmIndexIndication_FSCI_ID, UnLoad_GAPCheckNvmIndexIndication},
+	{GAPGetDeviceIdFromConnHandleIndication_FSCI_ID, UnLoad_GAPGetDeviceIdFromConnHandleIndication},
+	{GAPGetConnectionHandleFromDeviceIdIndication_FSCI_ID, UnLoad_GAPGetConnectionHandleFromDeviceIdIndication},
+	{GAPPairingEventNoLTKIndication_FSCI_ID, UnLoad_GAPPairingEventNoLTKIndication},
+	{GAPPairingAlreadyStartedIndication_FSCI_ID, UnLoad_GAPPairingAlreadyStartedIndication},
+	{GAPGenericEventConnectionlessCteTransmitParamsSetupCompleteIndication_FSCI_ID, UnLoad_GAPGenericEventConnectionlessCteTransmitParamsSetupCompleteIndication},
+	{GAPGenericEventConnectionlessCteTransmitStateChangedIndication_FSCI_ID, UnLoad_GAPGenericEventConnectionlessCteTransmitStateChangedIndication},
+	{GAPGenericEventConnectionlessIqSamplingStateChangedIndication_FSCI_ID, UnLoad_GAPGenericEventConnectionlessIqSamplingStateChangedIndication},
+	{GAPGenericEventAntennaInformationReadIndication_FSCI_ID, UnLoad_GAPGenericEventAntennaInformationReadIndication},
+	{GAPScanningEventConnectionlessIqReportReceivedIndication_FSCI_ID, UnLoad_GAPScanningEventConnectionlessIqReportReceivedIndication},
+	{GAPConnectionEventIqReportReceivedIndication_FSCI_ID, UnLoad_GAPConnectionEventIqReportReceivedIndication},
+	{GAPConnectionEventCteRequestFailedIndication_FSCI_ID, UnLoad_GAPConnectionEventCteRequestFailedIndication},
+	{GAPConnectionEventCteReceiveParamsSetupCompleteIndication_FSCI_ID, UnLoad_GAPConnectionEventCteReceiveParamsSetupCompleteIndication},
+	{GAPConnectionEventCteTransmitParamsSetupCompleteIndication_FSCI_ID, UnLoad_GAPConnectionEventCteTransmitParamsSetupCompleteIndication},
+	{GAPConnectionEventCteReqStateChangedIndication_FSCI_ID, UnLoad_GAPConnectionEventCteReqStateChangedIndication},
+	{GAPConnectionEventCteRspStateChangedIndication_FSCI_ID, UnLoad_GAPConnectionEventCteRspStateChangedIndication},
+	{GAPGenericEventPeriodicAdvRecvEnableCompleteIndication_FSCI_ID, UnLoad_GAPGenericEventPeriodicAdvRecvEnableCompleteIndication},
+	{GAPGenericEventPeriodicAdvSyncTransferCompleteIndication_FSCI_ID, UnLoad_GAPGenericEventPeriodicAdvSyncTransferCompleteIndication},
+	{GAPGenericEventPeriodicAdvSetInfoTransferCompleteIndication_FSCI_ID, UnLoad_GAPGenericEventPeriodicAdvSetInfoTransferCompleteIndication},
+	{GAPGenericEventSetPeriodicAdvSyncTransferParamsCompleteIndication_FSCI_ID, UnLoad_GAPGenericEventSetPeriodicAdvSyncTransferParamsCompleteIndication},
+	{GAPGenericEventSetDefaultPeriodicAdvSyncTransferParamsCompleteIndication_FSCI_ID, UnLoad_GAPGenericEventSetDefaultPeriodicAdvSyncTransferParamsCompleteIndication},
+	{GAPScanningEventPeriodicAdvSyncTransferReceivedIndication_FSCI_ID, UnLoad_GAPScanningEventPeriodicAdvSyncTransferReceivedIndication},
+	{GAPConnectionEventPathLossThresholdIndication_FSCI_ID, UnLoad_GAPConnectionEventPathLossThresholdIndication},
+	{GAPConnectionEventTransmitPowerReportingIndication_FSCI_ID, UnLoad_GAPConnectionEventTransmitPowerReportingIndication},
+	{GAPConnectionEventEnhancedReadTransmitPowerLevelIndication_FSCI_ID, UnLoad_GAPConnectionEventEnhancedReadTransmitPowerLevelIndication},
+	{GAPConnectionEventPathLossReportingParamsSetupCompleteIndication_FSCI_ID, UnLoad_GAPConnectionEventPathLossReportingParamsSetupCompleteIndication},
+	{GAPConnectionEventPathLossReportingStateChangedIndication_FSCI_ID, UnLoad_GAPConnectionEventPathLossReportingStateChangedIndication},
+	{GAPConnectionEventTransmitPowerReportingStateChangedIndication_FSCI_ID, UnLoad_GAPConnectionEventTransmitPowerReportingStateChangedIndication},
+	{GAPConnectionEventEattConnectionRequestIndication_FSCI_ID, UnLoad_GAPConnectionEventEattConnectionRequestIndication},
+	{GAPConnectionEventEattConnectionCompleteIndication_FSCI_ID, UnLoad_GAPConnectionEventEattConnectionCompleteIndication},
+	{GAPConnectionEventEattReconfigureResponseIndication_FSCI_ID, UnLoad_GAPConnectionEventEattReconfigureResponseIndication},
+	{GAPConnectionEventEattBearerStatusNotificationIndication_FSCI_ID, UnLoad_GAPConnectionEventEattBearerStatusNotificationIndication},
+	{GAPGenericEventLeGenerateDhKeyCompleteIndication_FSCI_ID, UnLoad_GAPGenericEventLeGenerateDhKeyCompleteIndication},
+	{GAPGetHostVersionIndication_FSCI_ID, UnLoad_GAPGetHostVersionIndication},
+	{GAPGenericEventReadRemoteVersionInfoCompleteIndication_FSCI_ID, UnLoad_GAPGenericEventReadRemoteVersionInfoCompleteIndication},
+	{GAPGetConnParamsIndication_FSCI_ID, UnLoad_GAPGetConnParamsIndication},
+	{GAPPlatformErrorIndication_FSCI_ID, UnLoad_GAPPlatformErrorIndication},
+#endif  /* GAP_ENABLE */
+
+#if APP_ENABLE
+	{APPThroughputTestIndication_FSCI_ID, UnLoad_APPThroughputTestIndication},
+	{APPThroughputTestConfirm_FSCI_ID, UnLoad_APPThroughputTestConfirm},
+#endif  /* APP_ENABLE */
+
+#if CS_ENABLE
+	{CSConfirm_FSCI_ID, UnLoad_CSConfirm},
+	{CSReadRemoteSupportedCapabilitiesIndication_FSCI_ID, UnLoad_CSReadRemoteSupportedCapabilitiesIndication},
+	{CSReadRemoteFAETableIndication_FSCI_ID, UnLoad_CSReadRemoteFAETableIndication},
+	{CSSecurityEnableIndication_FSCI_ID, UnLoad_CSSecurityEnableIndication},
+	{CSConfigCompleteIndication_FSCI_ID, UnLoad_CSConfigCompleteIndication},
+	{CSProcedureEnableCompleteIndication_FSCI_ID, UnLoad_CSProcedureEnableCompleteIndication},
+	{CSSubeventResultIndication_FSCI_ID, UnLoad_CSSubeventResultIndication},
+	{CSSubeventResultContinueIndication_FSCI_ID, UnLoad_CSSubeventResultContinueIndication},
+	{CSTestEndEvtIndication_FSCI_ID, UnLoad_CSTestEndEvtIndication},
+	{CSEventResultDebugIndication_FSCI_ID, UnLoad_CSEventResultDebugIndication},
+	{CSLEMetaErrorIndication_FSCI_ID, UnLoad_CSLEMetaErrorIndication},
+	{CSReadLocalSupportedCapabilitiesIndication_FSCI_ID, UnLoad_CSReadLocalSupportedCapabilitiesIndication},
+	{CSSetDefaultSettingsIndication_FSCI_ID, UnLoad_CSSetDefaultSettingsIndication},
+	{CSWriteRemoteFAETableIndication_FSCI_ID, UnLoad_CSWriteRemoteFAETableIndication},
+	{CSSetChannelClassificationIndication_FSCI_ID, UnLoad_CSSetChannelClassificationIndication},
+	{CSgCSEventTestCmdOpCodeIndication_FSCI_ID, UnLoad_CSgCSEventTestCmdOpCodeIndication},
+	{CSgCSEventSetProcedureParamsCmdOpCodeIndication_FSCI_ID, UnLoad_CSgCSEventSetProcedureParamsCmdOpCodeIndication},
+	{CSErrorIndication_FSCI_ID, UnLoad_CSErrorIndication},
+	{CSgCsEventWriteCachedRemoteCapabilitiesOpCodeIndication_FSCI_ID, UnLoad_CSgCsEventWriteCachedRemoteCapabilitiesOpCodeIndication},
+	{CSCommandStatusIndication_FSCI_ID, UnLoad_CSCommandStatusIndication},
+#endif  /* CS_ENABLE */
+
+#if GAPHANDOVER_ENABLE
+	{GapHandoverConfirm_FSCI_ID, UnLoad_GapHandoverConfirm},
+	{GapHandoverGetDataSizeIndication_FSCI_ID, UnLoad_GapHandoverGetDataSizeIndication},
+	{GapHandoverGetCompleteIndication_FSCI_ID, UnLoad_GapHandoverGetCompleteIndication},
+	{GapHandoverSetCompleteIndication_FSCI_ID, UnLoad_GapHandoverSetCompleteIndication},
+	{GapHandoverGetTimeIndication_FSCI_ID, UnLoad_GapHandoverGetTimeIndication},
+	{GapHandoverSuspendTransmitCompleteIndication_FSCI_ID, UnLoad_GapHandoverSuspendTransmitCompleteIndication},
+	{GapHandoverResumeTransmitCompleteIndication_FSCI_ID, UnLoad_GapHandoverResumeTransmitCompleteIndication},
+	{GapHandoverAnchorNotificationStateChangedIndication_FSCI_ID, UnLoad_GapHandoverAnchorNotificationStateChangedIndication},
+	{GapHandoverAnchorSearchStartedIndication_FSCI_ID, UnLoad_GapHandoverAnchorSearchStartedIndication},
+	{GapHandoverAnchorSearchStoppedIndication_FSCI_ID, UnLoad_GapHandoverAnchorSearchStoppedIndication},
+	{GapHandoverAnchorMonitorIndication_FSCI_ID, UnLoad_GapHandoverAnchorMonitorIndication},
+	{GapHandoverAnchorMonitorPacketIndication_FSCI_ID, UnLoad_GapHandoverAnchorMonitorPacketIndication},
+	{GapHandoverAnchorMonitorPacketContinueIndication_FSCI_ID, UnLoad_GapHandoverAnchorMonitorPacketContinueIndication},
+	{GapHandoverConnectedIndication_FSCI_ID, UnLoad_GapHandoverConnectedIndication},
+	{GapHandoverDisconnectedIndication_FSCI_ID, UnLoad_GapHandoverDisconnectedIndication},
+	{GapHandoverTimeSyncTransmitStateChangedIndication_FSCI_ID, UnLoad_GapHandoverTimeSyncTransmitStateChangedIndication},
+	{GapHandoverTimeSyncReceiveCompleteIndication_FSCI_ID, UnLoad_GapHandoverTimeSyncReceiveCompleteIndication},
+	{GapHandoverTimeSyncIndication_FSCI_ID, UnLoad_GapHandoverTimeSyncIndication},
+	{GapHandoverConnParamUpdateIndication_FSCI_ID, UnLoad_GapHandoverConnParamUpdateIndication},
+	{GapHandoverUpdateConnParamsCompleteIndication_FSCI_ID, UnLoad_GapHandoverUpdateConnParamsCompleteIndication},
+	{GapHandoverLlPendingDataIndication_FSCI_ID, UnLoad_GapHandoverLlPendingDataIndication},
+#endif  /* GAPHANDOVER_ENABLE */
+
+#if GAP2_ENABLE
+	{GAP2Confirm_FSCI_ID, UnLoad_GAP2Confirm},
+	{GAP2CtrlDebugInfoIndication_FSCI_ID, UnLoad_GAP2CtrlDebugInfoIndication},
+	{GAP2GenericEventSetExtAdvertisingDecisionDataSetupCompleteIndication_FSCI_ID, UnLoad_GAP2GenericEventSetExtAdvertisingDecisionDataSetupCompleteIndication},
+	{GAP2GenericEventSetDecisionInstructionsSetupCompleteIndication_FSCI_ID, UnLoad_GAP2GenericEventSetDecisionInstructionsSetupCompleteIndication},
+	{GAP2CtrlDebugInfo2Indication_FSCI_ID, UnLoad_GAP2CtrlDebugInfo2Indication},
+	{GAP2EcdhP256ComputeA2BKeyIndication_FSCI_ID, UnLoad_GAP2EcdhP256ComputeA2BKeyIndication},
+	{GAP2ExportA2BBlobIndication_FSCI_ID, UnLoad_GAP2ExportA2BBlobIndication},
+	{GAP2ImportA2BBlobIndication_FSCI_ID, UnLoad_GAP2ImportA2BBlobIndication},
+	{GAP2EcdhP256GenerateKeysIndication_FSCI_ID, UnLoad_GAP2EcdhP256GenerateKeysIndication},
+	{GAP2ChannelOverrideCompleteIndication_FSCI_ID, UnLoad_GAP2ChannelOverrideCompleteIndication},
+#endif  /* GAP2_ENABLE */
+};
+
+/*==================================================================================================
+Public Functions
+==================================================================================================*/
+#if FSCI_ENABLE
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_FSCIMemAllocTestResponse(bleEvtContainer_t *container)
+\brief	FSCI-MemAllocTest.Response description
+***************************************************************************************************/
+static mem_status_t UnLoad_FSCIMemAllocTestResponse(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	FSCIMemAllocTestResponse_t *evt = &(container->Data.FSCIMemAllocTestResponse);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_FSCIGetNumberOfFreeBuffersResponse(bleEvtContainer_t *container)
+\brief	FSCI-GetNumberOfFreeBuffers.Response description
+***************************************************************************************************/
+static mem_status_t UnLoad_FSCIGetNumberOfFreeBuffersResponse(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	FSCIGetNumberOfFreeBuffersResponse_t *evt = &(container->Data.FSCIGetNumberOfFreeBuffersResponse);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_FSCIAckIndication(bleEvtContainer_t *container)
+\brief	FSCI packet sent as acknowledgment to a received FSCI packet.
+***************************************************************************************************/
+static mem_status_t UnLoad_FSCIAckIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	FSCIAckIndication_t *evt = &(container->Data.FSCIAckIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_FSCIErrorIndication(bleEvtContainer_t *container)
+\brief	FSCI is reporting an error condition.
+***************************************************************************************************/
+static mem_status_t UnLoad_FSCIErrorIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	FSCIErrorIndication_t *evt = &(container->Data.FSCIErrorIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_FSCIAllowDeviceToSleepConfirm(bleEvtContainer_t *container)
+\brief	FSCI-AllowDeviceToSleep.Confirm description
+***************************************************************************************************/
+static mem_status_t UnLoad_FSCIAllowDeviceToSleepConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	FSCIAllowDeviceToSleepConfirm_t *evt = &(container->Data.FSCIAllowDeviceToSleepConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_FSCIWakeUpIndication(bleEvtContainer_t *container)
+\brief	FSCI-WakeUp.Indication description
+***************************************************************************************************/
+static mem_status_t UnLoad_FSCIWakeUpIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	FSCIWakeUpIndication_t *evt = &(container->Data.FSCIWakeUpIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_FSCIGetWakeupReasonResponse(bleEvtContainer_t *container)
+\brief	FSCI-GetWakeupReason.Response description
+***************************************************************************************************/
+static mem_status_t UnLoad_FSCIGetWakeupReasonResponse(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	FSCIGetWakeupReasonResponse_t *evt = &(container->Data.FSCIGetWakeupReasonResponse);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_FSCIGetNbuVersionResponse(bleEvtContainer_t *container)
+\brief	FSCI-GetNbuVersion.Response description
+***************************************************************************************************/
+static mem_status_t UnLoad_FSCIGetNbuVersionResponse(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	FSCIGetNbuVersionResponse_t *evt = &(container->Data.FSCIGetNbuVersionResponse);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+#endif  /* FSCI_ENABLE */
+
+#if NVM_ENABLE
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_NVMSaveConfirm(bleEvtContainer_t *container)
+\brief	Confirmation for Updating NVM
+***************************************************************************************************/
+static mem_status_t UnLoad_NVMSaveConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	NVMSaveConfirm_t *evt = &(container->Data.NVMSaveConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_NVMGetDataSetDescConfirm(bleEvtContainer_t *container)
+\brief	Get the ID and size of each defined NV data set.
+***************************************************************************************************/
+static mem_status_t UnLoad_NVMGetDataSetDescConfirm(bleEvtContainer_t *container)
+{
+	NVMGetDataSetDescConfirm_t *evt = &(container->Data.NVMGetDataSetDescConfirm);
+
+	if (evt->Count > 0)
+	{
+		MEM_BufferFree(evt->CountSizeandID);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_NVMGetCountersConfirm(bleEvtContainer_t *container)
+\brief	Get the counters of each NV page erased and dataset write
+***************************************************************************************************/
+static mem_status_t UnLoad_NVMGetCountersConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	NVMGetCountersConfirm_t *evt = &(container->Data.NVMGetCountersConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_NVMGetVPSizeResponse(bleEvtContainer_t *container)
+\brief	Get the NVM Virtual Page Size
+***************************************************************************************************/
+static mem_status_t UnLoad_NVMGetVPSizeResponse(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	NVMGetVPSizeResponse_t *evt = &(container->Data.NVMGetVPSizeResponse);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_NVMSetMonitoringConfirm(bleEvtContainer_t *container)
+\brief	Get the counters of each NV page erased and dataset write
+***************************************************************************************************/
+static mem_status_t UnLoad_NVMSetMonitoringConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	NVMSetMonitoringConfirm_t *evt = &(container->Data.NVMSetMonitoringConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_NVMWriteMonitoringIndication(bleEvtContainer_t *container)
+\brief	Receive curent Id of nvm dataset write
+***************************************************************************************************/
+static mem_status_t UnLoad_NVMWriteMonitoringIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	NVMWriteMonitoringIndication_t *evt = &(container->Data.NVMWriteMonitoringIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_NVMPageEraseMonitoringIndication(bleEvtContainer_t *container)
+\brief	Receive curent address of nvm erased page
+***************************************************************************************************/
+static mem_status_t UnLoad_NVMPageEraseMonitoringIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	NVMPageEraseMonitoringIndication_t *evt = &(container->Data.NVMPageEraseMonitoringIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_NVMFormatReqConfirm(bleEvtContainer_t *container)
+\brief	Confirm of the NV format request comand
+***************************************************************************************************/
+static mem_status_t UnLoad_NVMFormatReqConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	NVMFormatReqConfirm_t *evt = &(container->Data.NVMFormatReqConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_NVMRestoreReqConfirm(bleEvtContainer_t *container)
+\brief	Confirm of the NV format request comand
+***************************************************************************************************/
+static mem_status_t UnLoad_NVMRestoreReqConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	NVMRestoreReqConfirm_t *evt = &(container->Data.NVMRestoreReqConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_NVMRestoreMonitoringIndication(bleEvtContainer_t *container)
+\brief	Indication that a nvm dataset was restored
+***************************************************************************************************/
+static mem_status_t UnLoad_NVMRestoreMonitoringIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	NVMRestoreMonitoringIndication_t *evt = &(container->Data.NVMRestoreMonitoringIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_NVMVirtualPageMonitoringIndication(bleEvtContainer_t *container)
+\brief	Indication that the commute to the next virtual page
+***************************************************************************************************/
+static mem_status_t UnLoad_NVMVirtualPageMonitoringIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	NVMVirtualPageMonitoringIndication_t *evt = &(container->Data.NVMVirtualPageMonitoringIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+#endif  /* NVM_ENABLE */
+
+#if HCI_ENABLE
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_HCIConfirm(bleEvtContainer_t *container)
+\brief	Status of the HCI request
+***************************************************************************************************/
+static mem_status_t UnLoad_HCIConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	HCIConfirm_t *evt = &(container->Data.HCIConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_HCIEventIndication(bleEvtContainer_t *container)
+\brief	HCI received event
+***************************************************************************************************/
+static mem_status_t UnLoad_HCIEventIndication(bleEvtContainer_t *container)
+{
+	HCIEventIndication_t *evt = &(container->Data.HCIEventIndication);
+
+	if (evt->EventLength > 0)
+	{
+		MEM_BufferFree(evt->Event);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_HCIDataIndication(bleEvtContainer_t *container)
+\brief	HCI received data
+***************************************************************************************************/
+static mem_status_t UnLoad_HCIDataIndication(bleEvtContainer_t *container)
+{
+	HCIDataIndication_t *evt = &(container->Data.HCIDataIndication);
+
+	if (evt->DataLength > 0)
+	{
+		MEM_BufferFree(evt->Data);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_HCISynchronousDataIndication(bleEvtContainer_t *container)
+\brief	HCI received synchronous data
+***************************************************************************************************/
+static mem_status_t UnLoad_HCISynchronousDataIndication(bleEvtContainer_t *container)
+{
+	HCISynchronousDataIndication_t *evt = &(container->Data.HCISynchronousDataIndication);
+
+	if (evt->SynchronousDataLength > 0)
+	{
+		MEM_BufferFree(evt->SynchronousData);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+#endif  /* HCI_ENABLE */
+
+#if L2CAP_ENABLE
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPConfirm(bleEvtContainer_t *container)
+\brief	Status of the L2CAP request
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	L2CAPConfirm_t *evt = &(container->Data.L2CAPConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPAttDataIndication(bleEvtContainer_t *container)
+\brief	Data packet received through ATT Channel
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPAttDataIndication(bleEvtContainer_t *container)
+{
+	L2CAPAttDataIndication_t *evt = &(container->Data.L2CAPAttDataIndication);
+
+	if (evt->PacketLength > 0)
+	{
+		MEM_BufferFree(evt->Packet);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPSmpDataIndication(bleEvtContainer_t *container)
+\brief	Data packet received through SM Channel
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPSmpDataIndication(bleEvtContainer_t *container)
+{
+	L2CAPSmpDataIndication_t *evt = &(container->Data.L2CAPSmpDataIndication);
+
+	if (evt->PacketLength > 0)
+	{
+		MEM_BufferFree(evt->Packet);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPSignalingDataIndication(bleEvtContainer_t *container)
+\brief	Data packet received through Signaling Channel
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPSignalingDataIndication(bleEvtContainer_t *container)
+{
+	L2CAPSignalingDataIndication_t *evt = &(container->Data.L2CAPSignalingDataIndication);
+
+	if (evt->PacketLength > 0)
+	{
+		MEM_BufferFree(evt->Packet);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+#endif  /* L2CAP_ENABLE */
+
+#if L2CAPCB_ENABLE
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPCBConfirm(bleEvtContainer_t *container)
+\brief	Status of the L2CAP request
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPCBConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	L2CAPCBConfirm_t *evt = &(container->Data.L2CAPCBConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPCBLePsmConnectionRequestIndication(bleEvtContainer_t *container)
+\brief	Credit Based - Connection request event
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPCBLePsmConnectionRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	L2CAPCBLePsmConnectionRequestIndication_t *evt = &(container->Data.L2CAPCBLePsmConnectionRequestIndication);
+
+	if (evt->InformationIncluded)
+	{
+	}
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPCBLePsmConnectionCompleteIndication(bleEvtContainer_t *container)
+\brief	Credit Based - Connection complete event
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPCBLePsmConnectionCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	L2CAPCBLePsmConnectionCompleteIndication_t *evt = &(container->Data.L2CAPCBLePsmConnectionCompleteIndication);
+
+	if (evt->InformationIncluded)
+	{
+	}
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPCBLePsmDisconnectNotificationIndication(bleEvtContainer_t *container)
+\brief	Credit Based - Disconnection notification event
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPCBLePsmDisconnectNotificationIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	L2CAPCBLePsmDisconnectNotificationIndication_t *evt = &(container->Data.L2CAPCBLePsmDisconnectNotificationIndication);
+
+	if (evt->InformationIncluded)
+	{
+	}
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPCBNoPeerCreditsIndication(bleEvtContainer_t *container)
+\brief	Credit Based - No peer credits event
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPCBNoPeerCreditsIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	L2CAPCBNoPeerCreditsIndication_t *evt = &(container->Data.L2CAPCBNoPeerCreditsIndication);
+
+	if (evt->InformationIncluded)
+	{
+	}
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPCBLocalCreditsNotificationIndication(bleEvtContainer_t *container)
+\brief	Credit Based - Local credits notification event
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPCBLocalCreditsNotificationIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	L2CAPCBLocalCreditsNotificationIndication_t *evt = &(container->Data.L2CAPCBLocalCreditsNotificationIndication);
+
+	if (evt->InformationIncluded)
+	{
+	}
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPCBLeCbDataIndication(bleEvtContainer_t *container)
+\brief	Data packet received through Credit Based Channel
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPCBLeCbDataIndication(bleEvtContainer_t *container)
+{
+	L2CAPCBLeCbDataIndication_t *evt = &(container->Data.L2CAPCBLeCbDataIndication);
+
+	if (evt->PacketLength > 0)
+	{
+		MEM_BufferFree(evt->Packet);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPCBErrorIndication(bleEvtContainer_t *container)
+\brief	Credit Based - Internal error event
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPCBErrorIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	L2CAPCBErrorIndication_t *evt = &(container->Data.L2CAPCBErrorIndication);
+
+	if (evt->InformationIncluded)
+	{
+	}
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPCBChannelStatusNotificationIndication(bleEvtContainer_t *container)
+\brief	Credit Based - Channel status notification
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPCBChannelStatusNotificationIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	L2CAPCBChannelStatusNotificationIndication_t *evt = &(container->Data.L2CAPCBChannelStatusNotificationIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPCBLePsmEnhancedConnectRequestIndication(bleEvtContainer_t *container)
+\brief	Credit Based - Enhanced Connection Request event
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPCBLePsmEnhancedConnectRequestIndication(bleEvtContainer_t *container)
+{
+	L2CAPCBLePsmEnhancedConnectRequestIndication_t *evt = &(container->Data.L2CAPCBLePsmEnhancedConnectRequestIndication);
+
+	if (evt->InformationIncluded)
+	{
+
+		if (evt->EnhancedConnRequest.NoOfChannels > 0)
+		{
+			MEM_BufferFree(evt->EnhancedConnRequest.aCids);
+		}
+		
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPCBLePsmEnhancedConnectionCompleteIndication(bleEvtContainer_t *container)
+\brief	Credit Based - Enhanced Connection Complete event
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPCBLePsmEnhancedConnectionCompleteIndication(bleEvtContainer_t *container)
+{
+	L2CAPCBLePsmEnhancedConnectionCompleteIndication_t *evt = &(container->Data.L2CAPCBLePsmEnhancedConnectionCompleteIndication);
+
+	if (evt->InformationIncluded)
+	{
+
+		if (evt->EnhancedConnComplete.NoOfChannels > 0)
+		{
+			MEM_BufferFree(evt->EnhancedConnComplete.aCids);
+		}
+		
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPCBEnhancedReconfigureRequestIndication(bleEvtContainer_t *container)
+\brief	Credit Based - Enhanced Reconfigure Request event
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPCBEnhancedReconfigureRequestIndication(bleEvtContainer_t *container)
+{
+	L2CAPCBEnhancedReconfigureRequestIndication_t *evt = &(container->Data.L2CAPCBEnhancedReconfigureRequestIndication);
+
+	if (evt->InformationIncluded)
+	{
+
+		if (evt->EnhancedReconfigureRequest.NoOfChannels > 0)
+		{
+			MEM_BufferFree(evt->EnhancedReconfigureRequest.aCids);
+		}
+		
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPCBEnhancedReconfigureResponseIndication(bleEvtContainer_t *container)
+\brief	Credit Based - Enhanced Reconfigure Response event
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPCBEnhancedReconfigureResponseIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	L2CAPCBEnhancedReconfigureResponseIndication_t *evt = &(container->Data.L2CAPCBEnhancedReconfigureResponseIndication);
+
+	if (evt->InformationIncluded)
+	{
+	}
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_L2CAPCBLowPeerCreditsIndication(bleEvtContainer_t *container)
+\brief	Credit Based - Low peer credits event
+***************************************************************************************************/
+static mem_status_t UnLoad_L2CAPCBLowPeerCreditsIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	L2CAPCBLowPeerCreditsIndication_t *evt = &(container->Data.L2CAPCBLowPeerCreditsIndication);
+
+	if (evt->InformationIncluded)
+	{
+	}
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+#endif  /* L2CAPCB_ENABLE */
+
+#if SM_ENABLE
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMDHKeyGenerateIndication(bleEvtContainer_t *container)
+\brief	SM DHKey Generated
+***************************************************************************************************/
+static mem_status_t UnLoad_SMDHKeyGenerateIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMDHKeyGenerateIndication_t *evt = &(container->Data.SMDHKeyGenerateIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMConfirm(bleEvtContainer_t *container)
+\brief	Status of the SM request
+***************************************************************************************************/
+static mem_status_t UnLoad_SMConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMConfirm_t *evt = &(container->Data.SMConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMStatusIndication(bleEvtContainer_t *container)
+\brief	Received internal status of the SM (which was not generated by an upper layer action)
+***************************************************************************************************/
+static mem_status_t UnLoad_SMStatusIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMStatusIndication_t *evt = &(container->Data.SMStatusIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMRemoteSecurityRequestIndication(bleEvtContainer_t *container)
+\brief	SMP Security Request has been received from an Peripheral device
+***************************************************************************************************/
+static mem_status_t UnLoad_SMRemoteSecurityRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMRemoteSecurityRequestIndication_t *evt = &(container->Data.SMRemoteSecurityRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMRemotePairingRequestIndication(bleEvtContainer_t *container)
+\brief	Pairing Request has been received from a Central device
+***************************************************************************************************/
+static mem_status_t UnLoad_SMRemotePairingRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMRemotePairingRequestIndication_t *evt = &(container->Data.SMRemotePairingRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMRemotePairingResponseIndication(bleEvtContainer_t *container)
+\brief	Pairing Response has been received from a Peripheral device
+***************************************************************************************************/
+static mem_status_t UnLoad_SMRemotePairingResponseIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMRemotePairingResponseIndication_t *evt = &(container->Data.SMRemotePairingResponseIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMPasskeyDisplayRequestIndication(bleEvtContainer_t *container)
+\brief	Display a Passkey from 0 to 999.999 which must be entered on the peer device
+***************************************************************************************************/
+static mem_status_t UnLoad_SMPasskeyDisplayRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMPasskeyDisplayRequestIndication_t *evt = &(container->Data.SMPasskeyDisplayRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMPasskeyRequestIndication(bleEvtContainer_t *container)
+\brief	Request a Passkey (either decimal 0 to 999.999 or 16 bytes OOB)
+***************************************************************************************************/
+static mem_status_t UnLoad_SMPasskeyRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMPasskeyRequestIndication_t *evt = &(container->Data.SMPasskeyRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMPairingKeysetRequestIndication(bleEvtContainer_t *container)
+\brief	Sent to the host by the SM to request a pairing keyset
+***************************************************************************************************/
+static mem_status_t UnLoad_SMPairingKeysetRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMPairingKeysetRequestIndication_t *evt = &(container->Data.SMPairingKeysetRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMPairingKeysetReceivedIndication(bleEvtContainer_t *container)
+\brief	Sent to the host by the SM, containing a pairing keyset received from a peer device during the Key Distribution phase
+***************************************************************************************************/
+static mem_status_t UnLoad_SMPairingKeysetReceivedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMPairingKeysetReceivedIndication_t *evt = &(container->Data.SMPairingKeysetReceivedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMPairingCompleteIndication(bleEvtContainer_t *container)
+\brief	Signals the successful completion of a SMP Pairing procedure with a peer device
+***************************************************************************************************/
+static mem_status_t UnLoad_SMPairingCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMPairingCompleteIndication_t *evt = &(container->Data.SMPairingCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMPairingFailedIndication(bleEvtContainer_t *container)
+\brief	Signals a local pairing procedure failure and the reason
+***************************************************************************************************/
+static mem_status_t UnLoad_SMPairingFailedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMPairingFailedIndication_t *evt = &(container->Data.SMPairingFailedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMReceivedPairingFailedIndication(bleEvtContainer_t *container)
+\brief	Signals a remote pairing procedure failure  and the reason
+***************************************************************************************************/
+static mem_status_t UnLoad_SMReceivedPairingFailedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMReceivedPairingFailedIndication_t *evt = &(container->Data.SMReceivedPairingFailedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMLlLtkRequestIndication(bleEvtContainer_t *container)
+\brief	Link layer requires the LTK from the upper layer to encrypt a link
+***************************************************************************************************/
+static mem_status_t UnLoad_SMLlLtkRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMLlLtkRequestIndication_t *evt = &(container->Data.SMLlLtkRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMLlEncryptionStatusIndication(bleEvtContainer_t *container)
+\brief	Status of a Link Layer encryption procedure
+***************************************************************************************************/
+static mem_status_t UnLoad_SMLlEncryptionStatusIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMLlEncryptionStatusIndication_t *evt = &(container->Data.SMLlEncryptionStatusIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMLlEncryptResIndication(bleEvtContainer_t *container)
+\brief	128 bit data block was encrypted (ES-128) with the provided key
+***************************************************************************************************/
+static mem_status_t UnLoad_SMLlEncryptResIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMLlEncryptResIndication_t *evt = &(container->Data.SMLlEncryptResIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMLlRandResIndication(bleEvtContainer_t *container)
+\brief	64 bit random number
+***************************************************************************************************/
+static mem_status_t UnLoad_SMLlRandResIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMLlRandResIndication_t *evt = &(container->Data.SMLlRandResIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMTbCreateRandomDeviceAddrResIndication(bleEvtContainer_t *container)
+\brief	SM Tool Box: A Random Device Address of the requested type
+***************************************************************************************************/
+static mem_status_t UnLoad_SMTbCreateRandomDeviceAddrResIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMTbCreateRandomDeviceAddrResIndication_t *evt = &(container->Data.SMTbCreateRandomDeviceAddrResIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMTbCheckResolvalePrivateAddrResIndication(bleEvtContainer_t *container)
+\brief	SM Tool Box: Result of a verification of a private address against a given IRK
+***************************************************************************************************/
+static mem_status_t UnLoad_SMTbCheckResolvalePrivateAddrResIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMTbCheckResolvalePrivateAddrResIndication_t *evt = &(container->Data.SMTbCheckResolvalePrivateAddrResIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMTbSignDataResIndication(bleEvtContainer_t *container)
+\brief	SM Tool Box: Returns the signature for a data block
+***************************************************************************************************/
+static mem_status_t UnLoad_SMTbSignDataResIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMTbSignDataResIndication_t *evt = &(container->Data.SMTbSignDataResIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMTbVerifyDataSignatureResIndication(bleEvtContainer_t *container)
+\brief	SM Tool Box: Result of the verification of the signature of a data block
+***************************************************************************************************/
+static mem_status_t UnLoad_SMTbVerifyDataSignatureResIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMTbVerifyDataSignatureResIndication_t *evt = &(container->Data.SMTbVerifyDataSignatureResIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMRemoteKeypressNotificationIndication(bleEvtContainer_t *container)
+\brief	Remote SMP Keypress Notification recieved during Passkey Entry Pairing Method
+***************************************************************************************************/
+static mem_status_t UnLoad_SMRemoteKeypressNotificationIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMRemoteKeypressNotificationIndication_t *evt = &(container->Data.SMRemoteKeypressNotificationIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMNcDisplayRequestIndication(bleEvtContainer_t *container)
+\brief	Event sent to display and confirm a Numeric Comparison Value when using the LE SC Numeric Comparison pairing method
+***************************************************************************************************/
+static mem_status_t UnLoad_SMNcDisplayRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMNcDisplayRequestIndication_t *evt = &(container->Data.SMNcDisplayRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMLeScOobDataRequestIndication(bleEvtContainer_t *container)
+\brief	Event sent to the host by the SM to request LE SC OOB Data (r, Cr and Addr) received from a peer
+***************************************************************************************************/
+static mem_status_t UnLoad_SMLeScOobDataRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMLeScOobDataRequestIndication_t *evt = &(container->Data.SMLeScOobDataRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMLocalLeScOobDataIndication(bleEvtContainer_t *container)
+\brief	Event sent to the host by the SM to provide local LE SC OOB Data (r, Cr and Addr) to be sent to a peer
+***************************************************************************************************/
+static mem_status_t UnLoad_SMLocalLeScOobDataIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMLocalLeScOobDataIndication_t *evt = &(container->Data.SMLocalLeScOobDataIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_SMGenerateNewEcdhPkSkPairResIndication(bleEvtContainer_t *container)
+\brief	Result of the generation of a new ECDH Public Key - Secret Key pair
+***************************************************************************************************/
+static mem_status_t UnLoad_SMGenerateNewEcdhPkSkPairResIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	SMGenerateNewEcdhPkSkPairResIndication_t *evt = &(container->Data.SMGenerateNewEcdhPkSkPairResIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+#endif  /* SM_ENABLE */
+
+#if ATT_ENABLE
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTConfirm(bleEvtContainer_t *container)
+\brief	Status of the ATT request
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTConfirm_t *evt = &(container->Data.ATTConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTGetMtuIndication(bleEvtContainer_t *container)
+\brief	ATT Get MTU Indication
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTGetMtuIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTGetMtuIndication_t *evt = &(container->Data.ATTGetMtuIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTClientIncomingServerErrorResponseIndication(bleEvtContainer_t *container)
+\brief	ATT received error response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTClientIncomingServerErrorResponseIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTClientIncomingServerErrorResponseIndication_t *evt = &(container->Data.ATTClientIncomingServerErrorResponseIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTServerIncomingClientExchangeMtuRequestIndication(bleEvtContainer_t *container)
+\brief	ATT received exchange MTU request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTServerIncomingClientExchangeMtuRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTServerIncomingClientExchangeMtuRequestIndication_t *evt = &(container->Data.ATTServerIncomingClientExchangeMtuRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTClientIncomingServerExchangeMtuResponseIndication(bleEvtContainer_t *container)
+\brief	ATT received exchange MTU response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTClientIncomingServerExchangeMtuResponseIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTClientIncomingServerExchangeMtuResponseIndication_t *evt = &(container->Data.ATTClientIncomingServerExchangeMtuResponseIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTServerIncomingClientFindInformationRequestIndication(bleEvtContainer_t *container)
+\brief	ATT received find information request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTServerIncomingClientFindInformationRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTServerIncomingClientFindInformationRequestIndication_t *evt = &(container->Data.ATTServerIncomingClientFindInformationRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTClientIncomingServerFindInformationResponseIndication(bleEvtContainer_t *container)
+\brief	ATT received find information response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTClientIncomingServerFindInformationResponseIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTClientIncomingServerFindInformationResponseIndication_t *evt = &(container->Data.ATTClientIncomingServerFindInformationResponseIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTServerIncomingClientFindByTypeValueRequestIndication(bleEvtContainer_t *container)
+\brief	ATT received find by type value request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTServerIncomingClientFindByTypeValueRequestIndication(bleEvtContainer_t *container)
+{
+	ATTServerIncomingClientFindByTypeValueRequestIndication_t *evt = &(container->Data.ATTServerIncomingClientFindByTypeValueRequestIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTClientIncomingServerFindByTypeValueResponseIndication(bleEvtContainer_t *container)
+\brief	ATT received find by type value response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTClientIncomingServerFindByTypeValueResponseIndication(bleEvtContainer_t *container)
+{
+	ATTClientIncomingServerFindByTypeValueResponseIndication_t *evt = &(container->Data.ATTClientIncomingServerFindByTypeValueResponseIndication);
+
+	for (uint32_t i = 0; i < evt->Params.GroupCount; i++)
+	{
+	}
+
+	if (evt->Params.GroupCount > 0)
+	{
+		MEM_BufferFree(evt->Params.HandleGroup);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTServerIncomingClientReadByTypeRequestIndication(bleEvtContainer_t *container)
+\brief	ATT received read by type request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTServerIncomingClientReadByTypeRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTServerIncomingClientReadByTypeRequestIndication_t *evt = &(container->Data.ATTServerIncomingClientReadByTypeRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTClientIncomingServerReadByTypeResponseIndication(bleEvtContainer_t *container)
+\brief	ATT received read by type response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTClientIncomingServerReadByTypeResponseIndication(bleEvtContainer_t *container)
+{
+	ATTClientIncomingServerReadByTypeResponseIndication_t *evt = &(container->Data.ATTClientIncomingServerReadByTypeResponseIndication);
+
+	if (evt->Params.AttributeDataListLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeDataList);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTServerIncomingClientReadRequestIndication(bleEvtContainer_t *container)
+\brief	ATT received read request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTServerIncomingClientReadRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTServerIncomingClientReadRequestIndication_t *evt = &(container->Data.ATTServerIncomingClientReadRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTClientIncomingServerReadResponseIndication(bleEvtContainer_t *container)
+\brief	ATT received read response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTClientIncomingServerReadResponseIndication(bleEvtContainer_t *container)
+{
+	ATTClientIncomingServerReadResponseIndication_t *evt = &(container->Data.ATTClientIncomingServerReadResponseIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTServerIncomingClientReadBlobRequestIndication(bleEvtContainer_t *container)
+\brief	ATT received read blob request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTServerIncomingClientReadBlobRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTServerIncomingClientReadBlobRequestIndication_t *evt = &(container->Data.ATTServerIncomingClientReadBlobRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTClientIncomingServerReadBlobResponseIndication(bleEvtContainer_t *container)
+\brief	ATT received read blob response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTClientIncomingServerReadBlobResponseIndication(bleEvtContainer_t *container)
+{
+	ATTClientIncomingServerReadBlobResponseIndication_t *evt = &(container->Data.ATTClientIncomingServerReadBlobResponseIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTServerIncomingClientReadMultipleRequestIndication(bleEvtContainer_t *container)
+\brief	ATT received read multiple request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTServerIncomingClientReadMultipleRequestIndication(bleEvtContainer_t *container)
+{
+	ATTServerIncomingClientReadMultipleRequestIndication_t *evt = &(container->Data.ATTServerIncomingClientReadMultipleRequestIndication);
+
+	if (evt->Params.HandleCount > 0)
+	{
+		MEM_BufferFree(evt->Params.ListOfHandles);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTClientIncomingServerReadMultipleResponseIndication(bleEvtContainer_t *container)
+\brief	ATT received read multiple response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTClientIncomingServerReadMultipleResponseIndication(bleEvtContainer_t *container)
+{
+	ATTClientIncomingServerReadMultipleResponseIndication_t *evt = &(container->Data.ATTClientIncomingServerReadMultipleResponseIndication);
+
+	if (evt->Params.ListLength > 0)
+	{
+		MEM_BufferFree(evt->Params.ListOfValues);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTServerIncomingClientReadByGroupTypeRequestIndication(bleEvtContainer_t *container)
+\brief	ATT received read by group type request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTServerIncomingClientReadByGroupTypeRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTServerIncomingClientReadByGroupTypeRequestIndication_t *evt = &(container->Data.ATTServerIncomingClientReadByGroupTypeRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTClientIncomingServerReadByGroupTypeResponseIndication(bleEvtContainer_t *container)
+\brief	ATT received read by group type response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTClientIncomingServerReadByGroupTypeResponseIndication(bleEvtContainer_t *container)
+{
+	ATTClientIncomingServerReadByGroupTypeResponseIndication_t *evt = &(container->Data.ATTClientIncomingServerReadByGroupTypeResponseIndication);
+
+	if (evt->Params.AttributeDataListLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeDataList);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTServerIncomingClientWriteRequestIndication(bleEvtContainer_t *container)
+\brief	ATT received write request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTServerIncomingClientWriteRequestIndication(bleEvtContainer_t *container)
+{
+	ATTServerIncomingClientWriteRequestIndication_t *evt = &(container->Data.ATTServerIncomingClientWriteRequestIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTClientIncomingServerWriteResponseIndication(bleEvtContainer_t *container)
+\brief	ATT received write response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTClientIncomingServerWriteResponseIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTClientIncomingServerWriteResponseIndication_t *evt = &(container->Data.ATTClientIncomingServerWriteResponseIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTServerIncomingClientWriteCommandIndication(bleEvtContainer_t *container)
+\brief	ATT received write command (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTServerIncomingClientWriteCommandIndication(bleEvtContainer_t *container)
+{
+	ATTServerIncomingClientWriteCommandIndication_t *evt = &(container->Data.ATTServerIncomingClientWriteCommandIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTServerIncomingClientSignedWriteCommandIndication(bleEvtContainer_t *container)
+\brief	ATT received signed write command (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTServerIncomingClientSignedWriteCommandIndication(bleEvtContainer_t *container)
+{
+	ATTServerIncomingClientSignedWriteCommandIndication_t *evt = &(container->Data.ATTServerIncomingClientSignedWriteCommandIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTServerIncomingClientPrepareWriteRequestIndication(bleEvtContainer_t *container)
+\brief	ATT received prepare write request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTServerIncomingClientPrepareWriteRequestIndication(bleEvtContainer_t *container)
+{
+	ATTServerIncomingClientPrepareWriteRequestIndication_t *evt = &(container->Data.ATTServerIncomingClientPrepareWriteRequestIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTClientIncomingServerPrepareWriteResponseIndication(bleEvtContainer_t *container)
+\brief	ATT received prepare write response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTClientIncomingServerPrepareWriteResponseIndication(bleEvtContainer_t *container)
+{
+	ATTClientIncomingServerPrepareWriteResponseIndication_t *evt = &(container->Data.ATTClientIncomingServerPrepareWriteResponseIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTServerIncomingClientExecuteWriteRequestIndication(bleEvtContainer_t *container)
+\brief	ATT received execute write request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTServerIncomingClientExecuteWriteRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTServerIncomingClientExecuteWriteRequestIndication_t *evt = &(container->Data.ATTServerIncomingClientExecuteWriteRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTClientIncomingServerExecuteWriteResponseIndication(bleEvtContainer_t *container)
+\brief	ATT received execute write response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTClientIncomingServerExecuteWriteResponseIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTClientIncomingServerExecuteWriteResponseIndication_t *evt = &(container->Data.ATTClientIncomingServerExecuteWriteResponseIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTClientIncomingServerHandleValueNotificationIndication(bleEvtContainer_t *container)
+\brief	ATT received handle value notification (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTClientIncomingServerHandleValueNotificationIndication(bleEvtContainer_t *container)
+{
+	ATTClientIncomingServerHandleValueNotificationIndication_t *evt = &(container->Data.ATTClientIncomingServerHandleValueNotificationIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTClientIncomingServerHandleValueIndicationIndication(bleEvtContainer_t *container)
+\brief	ATT received handle value indication (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTClientIncomingServerHandleValueIndicationIndication(bleEvtContainer_t *container)
+{
+	ATTClientIncomingServerHandleValueIndicationIndication_t *evt = &(container->Data.ATTClientIncomingServerHandleValueIndicationIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTServerIncomingClientHandleValueConfirmationIndication(bleEvtContainer_t *container)
+\brief	ATT received handle value confirmation (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTServerIncomingClientHandleValueConfirmationIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTServerIncomingClientHandleValueConfirmationIndication_t *evt = &(container->Data.ATTServerIncomingClientHandleValueConfirmationIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTUnsupportedOpcodeIndication(bleEvtContainer_t *container)
+\brief	ATT unsupported opcode
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTUnsupportedOpcodeIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTUnsupportedOpcodeIndication_t *evt = &(container->Data.ATTUnsupportedOpcodeIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTTimeoutIndication(bleEvtContainer_t *container)
+\brief	ATT timeout event
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTTimeoutIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTTimeoutIndication_t *evt = &(container->Data.ATTTimeoutIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTInvalidPduReceivedIndication(bleEvtContainer_t *container)
+\brief	ATT invalid PDU received event
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTInvalidPduReceivedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	ATTInvalidPduReceivedIndication_t *evt = &(container->Data.ATTInvalidPduReceivedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTClientIncomingServerReadMultipleVariableResponseIndication(bleEvtContainer_t *container)
+\brief	ATT received read multiple variable response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTClientIncomingServerReadMultipleVariableResponseIndication(bleEvtContainer_t *container)
+{
+	ATTClientIncomingServerReadMultipleVariableResponseIndication_t *evt = &(container->Data.ATTClientIncomingServerReadMultipleVariableResponseIndication);
+
+	if (evt->Params.ListLength > 0)
+	{
+		MEM_BufferFree(evt->Params.lengthValueTupleList);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTServerIncomingClientReadMultipleVariableRequestIndication(bleEvtContainer_t *container)
+\brief	ATT received read multiple variable request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTServerIncomingClientReadMultipleVariableRequestIndication(bleEvtContainer_t *container)
+{
+	ATTServerIncomingClientReadMultipleVariableRequestIndication_t *evt = &(container->Data.ATTServerIncomingClientReadMultipleVariableRequestIndication);
+
+	if (evt->Params.HandleCount > 0)
+	{
+		MEM_BufferFree(evt->Params.ListOfHandles);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_ATTClientIncomingServerMultipleHandleValueNotificationIndication(bleEvtContainer_t *container)
+\brief	ATT multiple handle notification received (on Client)
+***************************************************************************************************/
+static mem_status_t UnLoad_ATTClientIncomingServerMultipleHandleValueNotificationIndication(bleEvtContainer_t *container)
+{
+	ATTClientIncomingServerMultipleHandleValueNotificationIndication_t *evt = &(container->Data.ATTClientIncomingServerMultipleHandleValueNotificationIndication);
+
+	if (evt->TotalLength > 0)
+	{
+		MEM_BufferFree(evt->HandleLengthValueList);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTClientIncomingServerErrorResponseIndication(bleEvtContainer_t *container)
+\brief	EATT received error response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTClientIncomingServerErrorResponseIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	EATTClientIncomingServerErrorResponseIndication_t *evt = &(container->Data.EATTClientIncomingServerErrorResponseIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTServerIncomingClientFindInformationRequestIndication(bleEvtContainer_t *container)
+\brief	EATT received find information request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTServerIncomingClientFindInformationRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	EATTServerIncomingClientFindInformationRequestIndication_t *evt = &(container->Data.EATTServerIncomingClientFindInformationRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTClientIncomingServerFindInformationResponseIndication(bleEvtContainer_t *container)
+\brief	EATT received find information response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTClientIncomingServerFindInformationResponseIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	EATTClientIncomingServerFindInformationResponseIndication_t *evt = &(container->Data.EATTClientIncomingServerFindInformationResponseIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTServerIncomingClientFindByTypeValueRequestIndication(bleEvtContainer_t *container)
+\brief	EATT received find by type value request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTServerIncomingClientFindByTypeValueRequestIndication(bleEvtContainer_t *container)
+{
+	EATTServerIncomingClientFindByTypeValueRequestIndication_t *evt = &(container->Data.EATTServerIncomingClientFindByTypeValueRequestIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTClientIncomingServerFindByTypeValueResponseIndication(bleEvtContainer_t *container)
+\brief	EATT received find by type value response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTClientIncomingServerFindByTypeValueResponseIndication(bleEvtContainer_t *container)
+{
+	EATTClientIncomingServerFindByTypeValueResponseIndication_t *evt = &(container->Data.EATTClientIncomingServerFindByTypeValueResponseIndication);
+
+	for (uint32_t i = 0; i < evt->Params.GroupCount; i++)
+	{
+	}
+
+	if (evt->Params.GroupCount > 0)
+	{
+		MEM_BufferFree(evt->Params.HandleGroup);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTServerIncomingClientReadByTypeRequestIndication(bleEvtContainer_t *container)
+\brief	EATT received read by type request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTServerIncomingClientReadByTypeRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	EATTServerIncomingClientReadByTypeRequestIndication_t *evt = &(container->Data.EATTServerIncomingClientReadByTypeRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTClientIncomingServerReadByTypeResponseIndication(bleEvtContainer_t *container)
+\brief	EATT received read by type response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTClientIncomingServerReadByTypeResponseIndication(bleEvtContainer_t *container)
+{
+	EATTClientIncomingServerReadByTypeResponseIndication_t *evt = &(container->Data.EATTClientIncomingServerReadByTypeResponseIndication);
+
+	if (evt->Params.AttributeDataListLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeDataList);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTServerIncomingClientReadRequestIndication(bleEvtContainer_t *container)
+\brief	EATT received read request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTServerIncomingClientReadRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	EATTServerIncomingClientReadRequestIndication_t *evt = &(container->Data.EATTServerIncomingClientReadRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTClientIncomingServerReadResponseIndication(bleEvtContainer_t *container)
+\brief	EATT received read response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTClientIncomingServerReadResponseIndication(bleEvtContainer_t *container)
+{
+	EATTClientIncomingServerReadResponseIndication_t *evt = &(container->Data.EATTClientIncomingServerReadResponseIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTServerIncomingClientReadBlobRequestIndication(bleEvtContainer_t *container)
+\brief	EATT received read blob request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTServerIncomingClientReadBlobRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	EATTServerIncomingClientReadBlobRequestIndication_t *evt = &(container->Data.EATTServerIncomingClientReadBlobRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTClientIncomingServerReadBlobResponseIndication(bleEvtContainer_t *container)
+\brief	EATT received read blob response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTClientIncomingServerReadBlobResponseIndication(bleEvtContainer_t *container)
+{
+	EATTClientIncomingServerReadBlobResponseIndication_t *evt = &(container->Data.EATTClientIncomingServerReadBlobResponseIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTServerIncomingClientReadMultipleRequestIndication(bleEvtContainer_t *container)
+\brief	EATT received read multiple request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTServerIncomingClientReadMultipleRequestIndication(bleEvtContainer_t *container)
+{
+	EATTServerIncomingClientReadMultipleRequestIndication_t *evt = &(container->Data.EATTServerIncomingClientReadMultipleRequestIndication);
+
+	if (evt->Params.HandleCount > 0)
+	{
+		MEM_BufferFree(evt->Params.ListOfHandles);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTClientIncomingServerReadMultipleResponseIndication(bleEvtContainer_t *container)
+\brief	EATT received read multiple response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTClientIncomingServerReadMultipleResponseIndication(bleEvtContainer_t *container)
+{
+	EATTClientIncomingServerReadMultipleResponseIndication_t *evt = &(container->Data.EATTClientIncomingServerReadMultipleResponseIndication);
+
+	if (evt->Params.ListLength > 0)
+	{
+		MEM_BufferFree(evt->Params.ListOfValues);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTServerIncomingClientReadByGroupTypeRequestIndication(bleEvtContainer_t *container)
+\brief	EATT received read by group type request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTServerIncomingClientReadByGroupTypeRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	EATTServerIncomingClientReadByGroupTypeRequestIndication_t *evt = &(container->Data.EATTServerIncomingClientReadByGroupTypeRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTClientIncomingServerReadByGroupTypeResponseIndication(bleEvtContainer_t *container)
+\brief	EATT received read by group type response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTClientIncomingServerReadByGroupTypeResponseIndication(bleEvtContainer_t *container)
+{
+	EATTClientIncomingServerReadByGroupTypeResponseIndication_t *evt = &(container->Data.EATTClientIncomingServerReadByGroupTypeResponseIndication);
+
+	if (evt->Params.AttributeDataListLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeDataList);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTServerIncomingClientWriteRequestIndication(bleEvtContainer_t *container)
+\brief	EATT received write request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTServerIncomingClientWriteRequestIndication(bleEvtContainer_t *container)
+{
+	EATTServerIncomingClientWriteRequestIndication_t *evt = &(container->Data.EATTServerIncomingClientWriteRequestIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTClientIncomingServerWriteResponseIndication(bleEvtContainer_t *container)
+\brief	EATT received write response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTClientIncomingServerWriteResponseIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	EATTClientIncomingServerWriteResponseIndication_t *evt = &(container->Data.EATTClientIncomingServerWriteResponseIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTServerIncomingClientWriteCommandIndication(bleEvtContainer_t *container)
+\brief	EATT received write command (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTServerIncomingClientWriteCommandIndication(bleEvtContainer_t *container)
+{
+	EATTServerIncomingClientWriteCommandIndication_t *evt = &(container->Data.EATTServerIncomingClientWriteCommandIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTServerIncomingClientPrepareWriteRequestIndication(bleEvtContainer_t *container)
+\brief	EATT received prepare write request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTServerIncomingClientPrepareWriteRequestIndication(bleEvtContainer_t *container)
+{
+	EATTServerIncomingClientPrepareWriteRequestIndication_t *evt = &(container->Data.EATTServerIncomingClientPrepareWriteRequestIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTClientIncomingServerPrepareWriteResponseIndication(bleEvtContainer_t *container)
+\brief	EATT received prepare write response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTClientIncomingServerPrepareWriteResponseIndication(bleEvtContainer_t *container)
+{
+	EATTClientIncomingServerPrepareWriteResponseIndication_t *evt = &(container->Data.EATTClientIncomingServerPrepareWriteResponseIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTServerIncomingClientExecuteWriteRequestIndication(bleEvtContainer_t *container)
+\brief	EATT received execute write request (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTServerIncomingClientExecuteWriteRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	EATTServerIncomingClientExecuteWriteRequestIndication_t *evt = &(container->Data.EATTServerIncomingClientExecuteWriteRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTClientIncomingServerExecuteWriteResponseIndication(bleEvtContainer_t *container)
+\brief	EATT received execute write response (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTClientIncomingServerExecuteWriteResponseIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	EATTClientIncomingServerExecuteWriteResponseIndication_t *evt = &(container->Data.EATTClientIncomingServerExecuteWriteResponseIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTClientIncomingServerHandleValueNotificationIndication(bleEvtContainer_t *container)
+\brief	EATT received handle value notification (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTClientIncomingServerHandleValueNotificationIndication(bleEvtContainer_t *container)
+{
+	EATTClientIncomingServerHandleValueNotificationIndication_t *evt = &(container->Data.EATTClientIncomingServerHandleValueNotificationIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTClientIncomingServerHandleValueIndicationIndication(bleEvtContainer_t *container)
+\brief	EATT received handle value indication (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTClientIncomingServerHandleValueIndicationIndication(bleEvtContainer_t *container)
+{
+	EATTClientIncomingServerHandleValueIndicationIndication_t *evt = &(container->Data.EATTClientIncomingServerHandleValueIndicationIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTServerIncomingClientHandleValueConfirmationIndication(bleEvtContainer_t *container)
+\brief	EATT received handle value confirmation (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTServerIncomingClientHandleValueConfirmationIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	EATTServerIncomingClientHandleValueConfirmationIndication_t *evt = &(container->Data.EATTServerIncomingClientHandleValueConfirmationIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTUnsupportedOpcodeIndication(bleEvtContainer_t *container)
+\brief	EATT unsupported opcode
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTUnsupportedOpcodeIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	EATTUnsupportedOpcodeIndication_t *evt = &(container->Data.EATTUnsupportedOpcodeIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTTimeoutIndication(bleEvtContainer_t *container)
+\brief	EATT timeout event
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTTimeoutIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	EATTTimeoutIndication_t *evt = &(container->Data.EATTTimeoutIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTInvalidPduReceivedIndication(bleEvtContainer_t *container)
+\brief	EATT invalid PDU received event
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTInvalidPduReceivedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	EATTInvalidPduReceivedIndication_t *evt = &(container->Data.EATTInvalidPduReceivedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTClientIncomingServerReadMultipleVariableResponseIndication(bleEvtContainer_t *container)
+\brief	EATT read multiple variable response received (on client)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTClientIncomingServerReadMultipleVariableResponseIndication(bleEvtContainer_t *container)
+{
+	EATTClientIncomingServerReadMultipleVariableResponseIndication_t *evt = &(container->Data.EATTClientIncomingServerReadMultipleVariableResponseIndication);
+
+	if (evt->Params.ListLength > 0)
+	{
+		MEM_BufferFree(evt->Params.lengthValueTupleList);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTServerIncomingClientReadMultipleVariableRequestIndication(bleEvtContainer_t *container)
+\brief	EATT read multiple variable request received (on server)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTServerIncomingClientReadMultipleVariableRequestIndication(bleEvtContainer_t *container)
+{
+	EATTServerIncomingClientReadMultipleVariableRequestIndication_t *evt = &(container->Data.EATTServerIncomingClientReadMultipleVariableRequestIndication);
+
+	if (evt->Params.HandleCount > 0)
+	{
+		MEM_BufferFree(evt->Params.ListOfHandles);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_EATTClientIncomingServerMultipleHandleValueNotificationIndication(bleEvtContainer_t *container)
+\brief	EATT multiple handle notification received (on Client)
+***************************************************************************************************/
+static mem_status_t UnLoad_EATTClientIncomingServerMultipleHandleValueNotificationIndication(bleEvtContainer_t *container)
+{
+	EATTClientIncomingServerMultipleHandleValueNotificationIndication_t *evt = &(container->Data.EATTClientIncomingServerMultipleHandleValueNotificationIndication);
+
+	if (evt->TotalLength > 0)
+	{
+		MEM_BufferFree(evt->HandleLengthValueList);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+#endif  /* ATT_ENABLE */
+
+#if GATT_ENABLE
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTConfirm(bleEvtContainer_t *container)
+\brief	Status of the GATT request
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTConfirm_t *evt = &(container->Data.GATTConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTGetMtuIndication(bleEvtContainer_t *container)
+\brief	Specifies the MTU used with a given connected device
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTGetMtuIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTGetMtuIndication_t *evt = &(container->Data.GATTGetMtuIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureExchangeMtuIndication(bleEvtContainer_t *container)
+\brief	Specifies that the MTU exchange procedure ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureExchangeMtuIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTClientProcedureExchangeMtuIndication_t *evt = &(container->Data.GATTClientProcedureExchangeMtuIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureDiscoverAllPrimaryServicesIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Primary Service Discovery procedure ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureDiscoverAllPrimaryServicesIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureDiscoverAllPrimaryServicesIndication_t *evt = &(container->Data.GATTClientProcedureDiscoverAllPrimaryServicesIndication);
+
+	for (uint32_t i = 0; i < evt->NbOfDiscoveredServices; i++)
+	{
+
+		for (uint32_t j = 0; j < evt->DiscoveredServices[i].NbOfCharacteristics; j++)
+		{
+
+			if (evt->DiscoveredServices[i].Characteristics[j].Value.ValueLength > 0)
+			{
+				MEM_BufferFree(evt->DiscoveredServices[i].Characteristics[j].Value.Value);
+			}
+			
+
+			for (uint32_t k = 0; k < evt->DiscoveredServices[i].Characteristics[j].NbOfDescriptors; k++)
+			{
+
+				if (evt->DiscoveredServices[i].Characteristics[j].Descriptors[k].ValueLength > 0)
+				{
+					MEM_BufferFree(evt->DiscoveredServices[i].Characteristics[j].Descriptors[k].Value);
+				}
+				
+			}
+
+			if (evt->DiscoveredServices[i].Characteristics[j].NbOfDescriptors > 0)
+			{
+				MEM_BufferFree(evt->DiscoveredServices[i].Characteristics[j].Descriptors);
+			}
+		}
+
+		if (evt->DiscoveredServices[i].NbOfCharacteristics > 0)
+		{
+			MEM_BufferFree(evt->DiscoveredServices[i].Characteristics);
+		}
+
+		for (uint32_t j = 0; j < evt->DiscoveredServices[i].NbOfIncludedServices; j++)
+		{
+		}
+
+		if (evt->DiscoveredServices[i].NbOfIncludedServices > 0)
+		{
+			MEM_BufferFree(evt->DiscoveredServices[i].IncludedServices);
+		}
+	}
+
+	if (evt->NbOfDiscoveredServices > 0)
+	{
+		MEM_BufferFree(evt->DiscoveredServices);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureDiscoverPrimaryServicesByUuidIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Primary Service Discovery By UUID procedure ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureDiscoverPrimaryServicesByUuidIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureDiscoverPrimaryServicesByUuidIndication_t *evt = &(container->Data.GATTClientProcedureDiscoverPrimaryServicesByUuidIndication);
+
+	for (uint32_t i = 0; i < evt->NbOfDiscoveredServices; i++)
+	{
+
+		for (uint32_t j = 0; j < evt->DiscoveredServices[i].NbOfCharacteristics; j++)
+		{
+
+			if (evt->DiscoveredServices[i].Characteristics[j].Value.ValueLength > 0)
+			{
+				MEM_BufferFree(evt->DiscoveredServices[i].Characteristics[j].Value.Value);
+			}
+			
+
+			for (uint32_t k = 0; k < evt->DiscoveredServices[i].Characteristics[j].NbOfDescriptors; k++)
+			{
+
+				if (evt->DiscoveredServices[i].Characteristics[j].Descriptors[k].ValueLength > 0)
+				{
+					MEM_BufferFree(evt->DiscoveredServices[i].Characteristics[j].Descriptors[k].Value);
+				}
+				
+			}
+
+			if (evt->DiscoveredServices[i].Characteristics[j].NbOfDescriptors > 0)
+			{
+				MEM_BufferFree(evt->DiscoveredServices[i].Characteristics[j].Descriptors);
+			}
+		}
+
+		if (evt->DiscoveredServices[i].NbOfCharacteristics > 0)
+		{
+			MEM_BufferFree(evt->DiscoveredServices[i].Characteristics);
+		}
+
+		for (uint32_t j = 0; j < evt->DiscoveredServices[i].NbOfIncludedServices; j++)
+		{
+		}
+
+		if (evt->DiscoveredServices[i].NbOfIncludedServices > 0)
+		{
+			MEM_BufferFree(evt->DiscoveredServices[i].IncludedServices);
+		}
+	}
+
+	if (evt->NbOfDiscoveredServices > 0)
+	{
+		MEM_BufferFree(evt->DiscoveredServices);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureFindIncludedServicesIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Find Included Services procedure ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureFindIncludedServicesIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureFindIncludedServicesIndication_t *evt = &(container->Data.GATTClientProcedureFindIncludedServicesIndication);
+
+	for (uint32_t i = 0; i < evt->Service.NbOfCharacteristics; i++)
+	{
+
+		if (evt->Service.Characteristics[i].Value.ValueLength > 0)
+		{
+			MEM_BufferFree(evt->Service.Characteristics[i].Value.Value);
+		}
+		
+
+		for (uint32_t j = 0; j < evt->Service.Characteristics[i].NbOfDescriptors; j++)
+		{
+
+			if (evt->Service.Characteristics[i].Descriptors[j].ValueLength > 0)
+			{
+				MEM_BufferFree(evt->Service.Characteristics[i].Descriptors[j].Value);
+			}
+			
+		}
+
+		if (evt->Service.Characteristics[i].NbOfDescriptors > 0)
+		{
+			MEM_BufferFree(evt->Service.Characteristics[i].Descriptors);
+		}
+	}
+
+	if (evt->Service.NbOfCharacteristics > 0)
+	{
+		MEM_BufferFree(evt->Service.Characteristics);
+	}
+
+	for (uint32_t i = 0; i < evt->Service.NbOfIncludedServices; i++)
+	{
+	}
+
+	if (evt->Service.NbOfIncludedServices > 0)
+	{
+		MEM_BufferFree(evt->Service.IncludedServices);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureDiscoverAllCharacteristicsIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Discovery procedure for a given service ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureDiscoverAllCharacteristicsIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureDiscoverAllCharacteristicsIndication_t *evt = &(container->Data.GATTClientProcedureDiscoverAllCharacteristicsIndication);
+
+	for (uint32_t i = 0; i < evt->Service.NbOfCharacteristics; i++)
+	{
+
+		if (evt->Service.Characteristics[i].Value.ValueLength > 0)
+		{
+			MEM_BufferFree(evt->Service.Characteristics[i].Value.Value);
+		}
+		
+
+		for (uint32_t j = 0; j < evt->Service.Characteristics[i].NbOfDescriptors; j++)
+		{
+
+			if (evt->Service.Characteristics[i].Descriptors[j].ValueLength > 0)
+			{
+				MEM_BufferFree(evt->Service.Characteristics[i].Descriptors[j].Value);
+			}
+			
+		}
+
+		if (evt->Service.Characteristics[i].NbOfDescriptors > 0)
+		{
+			MEM_BufferFree(evt->Service.Characteristics[i].Descriptors);
+		}
+	}
+
+	if (evt->Service.NbOfCharacteristics > 0)
+	{
+		MEM_BufferFree(evt->Service.Characteristics);
+	}
+
+	for (uint32_t i = 0; i < evt->Service.NbOfIncludedServices; i++)
+	{
+	}
+
+	if (evt->Service.NbOfIncludedServices > 0)
+	{
+		MEM_BufferFree(evt->Service.IncludedServices);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureDiscoverCharacteristicByUuidIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Discovery procedure for a given service (with a given UUID) ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureDiscoverCharacteristicByUuidIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureDiscoverCharacteristicByUuidIndication_t *evt = &(container->Data.GATTClientProcedureDiscoverCharacteristicByUuidIndication);
+
+	for (uint32_t i = 0; i < evt->NbOfCharacteristics; i++)
+	{
+
+		if (evt->Characteristics[i].Value.ValueLength > 0)
+		{
+			MEM_BufferFree(evt->Characteristics[i].Value.Value);
+		}
+		
+
+		for (uint32_t j = 0; j < evt->Characteristics[i].NbOfDescriptors; j++)
+		{
+
+			if (evt->Characteristics[i].Descriptors[j].ValueLength > 0)
+			{
+				MEM_BufferFree(evt->Characteristics[i].Descriptors[j].Value);
+			}
+			
+		}
+
+		if (evt->Characteristics[i].NbOfDescriptors > 0)
+		{
+			MEM_BufferFree(evt->Characteristics[i].Descriptors);
+		}
+	}
+
+	if (evt->NbOfCharacteristics > 0)
+	{
+		MEM_BufferFree(evt->Characteristics);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Descriptor Discovery procedure for a given characteristic ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication_t *evt = &(container->Data.GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication);
+
+	if (evt->Characteristic.Value.ValueLength > 0)
+	{
+		MEM_BufferFree(evt->Characteristic.Value.Value);
+	}
+	
+
+	for (uint32_t i = 0; i < evt->Characteristic.NbOfDescriptors; i++)
+	{
+
+		if (evt->Characteristic.Descriptors[i].ValueLength > 0)
+		{
+			MEM_BufferFree(evt->Characteristic.Descriptors[i].Value);
+		}
+		
+	}
+
+	if (evt->Characteristic.NbOfDescriptors > 0)
+	{
+		MEM_BufferFree(evt->Characteristic.Descriptors);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureReadCharacteristicValueIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Read procedure for a given characteristic ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureReadCharacteristicValueIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureReadCharacteristicValueIndication_t *evt = &(container->Data.GATTClientProcedureReadCharacteristicValueIndication);
+
+	if (evt->Characteristic.Value.ValueLength > 0)
+	{
+		MEM_BufferFree(evt->Characteristic.Value.Value);
+	}
+	
+
+	for (uint32_t i = 0; i < evt->Characteristic.NbOfDescriptors; i++)
+	{
+
+		if (evt->Characteristic.Descriptors[i].ValueLength > 0)
+		{
+			MEM_BufferFree(evt->Characteristic.Descriptors[i].Value);
+		}
+		
+	}
+
+	if (evt->Characteristic.NbOfDescriptors > 0)
+	{
+		MEM_BufferFree(evt->Characteristic.Descriptors);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureReadUsingCharacteristicUuidIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Read By UUID procedure ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureReadUsingCharacteristicUuidIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureReadUsingCharacteristicUuidIndication_t *evt = &(container->Data.GATTClientProcedureReadUsingCharacteristicUuidIndication);
+
+	if (evt->NbOfReadBytes > 0)
+	{
+		MEM_BufferFree(evt->ReadBytes);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureReadMultipleCharacteristicValuesIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Read Multiple procedure ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureReadMultipleCharacteristicValuesIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureReadMultipleCharacteristicValuesIndication_t *evt = &(container->Data.GATTClientProcedureReadMultipleCharacteristicValuesIndication);
+
+	for (uint32_t i = 0; i < evt->NbOfCharacteristics; i++)
+	{
+
+		if (evt->Characteristics[i].Value.ValueLength > 0)
+		{
+			MEM_BufferFree(evt->Characteristics[i].Value.Value);
+		}
+		
+
+		for (uint32_t j = 0; j < evt->Characteristics[i].NbOfDescriptors; j++)
+		{
+
+			if (evt->Characteristics[i].Descriptors[j].ValueLength > 0)
+			{
+				MEM_BufferFree(evt->Characteristics[i].Descriptors[j].Value);
+			}
+			
+		}
+
+		if (evt->Characteristics[i].NbOfDescriptors > 0)
+		{
+			MEM_BufferFree(evt->Characteristics[i].Descriptors);
+		}
+	}
+
+	if (evt->NbOfCharacteristics > 0)
+	{
+		MEM_BufferFree(evt->Characteristics);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureWriteCharacteristicValueIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Write procedure for a given characteristic ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureWriteCharacteristicValueIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTClientProcedureWriteCharacteristicValueIndication_t *evt = &(container->Data.GATTClientProcedureWriteCharacteristicValueIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureReadCharacteristicDescriptorIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Descriptor Read procedure for a given characteristic's descriptor ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureReadCharacteristicDescriptorIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureReadCharacteristicDescriptorIndication_t *evt = &(container->Data.GATTClientProcedureReadCharacteristicDescriptorIndication);
+
+	if (evt->Descriptor.ValueLength > 0)
+	{
+		MEM_BufferFree(evt->Descriptor.Value);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureWriteCharacteristicDescriptorIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Descriptor Write procedure for a given characteristic's descriptor ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureWriteCharacteristicDescriptorIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTClientProcedureWriteCharacteristicDescriptorIndication_t *evt = &(container->Data.GATTClientProcedureWriteCharacteristicDescriptorIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientNotificationIndication(bleEvtContainer_t *container)
+\brief	GATT Client notification
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientNotificationIndication(bleEvtContainer_t *container)
+{
+	GATTClientNotificationIndication_t *evt = &(container->Data.GATTClientNotificationIndication);
+
+	if (evt->ValueLength > 0)
+	{
+		MEM_BufferFree(evt->Value);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientMultipleHandleValueNotificationIndication(bleEvtContainer_t *container)
+\brief	GATT Client notification
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientMultipleHandleValueNotificationIndication(bleEvtContainer_t *container)
+{
+	GATTClientMultipleHandleValueNotificationIndication_t *evt = &(container->Data.GATTClientMultipleHandleValueNotificationIndication);
+
+	for (uint32_t i = 0; i < evt->HandleCount; i++)
+	{
+
+		if (evt->HandleLengthValueList[i].ValueLength > 0)
+		{
+			MEM_BufferFree(evt->HandleLengthValueList[i].Value);
+		}
+		
+	}
+
+	if (evt->HandleCount > 0)
+	{
+		MEM_BufferFree(evt->HandleLengthValueList);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureReadMultipleVariableLenCharValuesIndication(bleEvtContainer_t *container)
+\brief	GATT Client Read Multiple Variable Length Characteristic Values
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureReadMultipleVariableLenCharValuesIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureReadMultipleVariableLenCharValuesIndication_t *evt = &(container->Data.GATTClientProcedureReadMultipleVariableLenCharValuesIndication);
+
+	for (uint32_t i = 0; i < evt->NbOfCharacteristics; i++)
+	{
+
+		if (evt->Characteristics[i].Value.ValueLength > 0)
+		{
+			MEM_BufferFree(evt->Characteristics[i].Value.Value);
+		}
+		
+
+		for (uint32_t j = 0; j < evt->Characteristics[i].NbOfDescriptors; j++)
+		{
+
+			if (evt->Characteristics[i].Descriptors[j].ValueLength > 0)
+			{
+				MEM_BufferFree(evt->Characteristics[i].Descriptors[j].Value);
+			}
+			
+		}
+
+		if (evt->Characteristics[i].NbOfDescriptors > 0)
+		{
+			MEM_BufferFree(evt->Characteristics[i].Descriptors);
+		}
+	}
+
+	if (evt->NbOfCharacteristics > 0)
+	{
+		MEM_BufferFree(evt->Characteristics);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientIndicationIndication(bleEvtContainer_t *container)
+\brief	GATT Client indication
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientIndicationIndication(bleEvtContainer_t *container)
+{
+	GATTClientIndicationIndication_t *evt = &(container->Data.GATTClientIndicationIndication);
+
+	if (evt->ValueLength > 0)
+	{
+		MEM_BufferFree(evt->Value);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTServerMtuChangedIndication(bleEvtContainer_t *container)
+\brief	GATT Server MTU changed indication
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTServerMtuChangedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTServerMtuChangedIndication_t *evt = &(container->Data.GATTServerMtuChangedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTServerHandleValueConfirmationIndication(bleEvtContainer_t *container)
+\brief	GATT Server handle value confirmation
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTServerHandleValueConfirmationIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTServerHandleValueConfirmationIndication_t *evt = &(container->Data.GATTServerHandleValueConfirmationIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTServerAttributeWrittenIndication(bleEvtContainer_t *container)
+\brief	GATT Server attribute written
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTServerAttributeWrittenIndication(bleEvtContainer_t *container)
+{
+	GATTServerAttributeWrittenIndication_t *evt = &(container->Data.GATTServerAttributeWrittenIndication);
+
+	if (evt->AttributeWrittenEvent.ValueLength > 0)
+	{
+		MEM_BufferFree(evt->AttributeWrittenEvent.Value);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTServerCharacteristicCccdWrittenIndication(bleEvtContainer_t *container)
+\brief	GATT Server characteristic cccd written
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTServerCharacteristicCccdWrittenIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTServerCharacteristicCccdWrittenIndication_t *evt = &(container->Data.GATTServerCharacteristicCccdWrittenIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTServerAttributeWrittenWithoutResponseIndication(bleEvtContainer_t *container)
+\brief	GATT Server attribute written without response
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTServerAttributeWrittenWithoutResponseIndication(bleEvtContainer_t *container)
+{
+	GATTServerAttributeWrittenWithoutResponseIndication_t *evt = &(container->Data.GATTServerAttributeWrittenWithoutResponseIndication);
+
+	if (evt->AttributeWrittenEvent.ValueLength > 0)
+	{
+		MEM_BufferFree(evt->AttributeWrittenEvent.Value);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTServerErrorIndication(bleEvtContainer_t *container)
+\brief	GATT Server error
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTServerErrorIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTServerErrorIndication_t *evt = &(container->Data.GATTServerErrorIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTServerLongCharacteristicWrittenIndication(bleEvtContainer_t *container)
+\brief	GATT Server long characteristic written
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTServerLongCharacteristicWrittenIndication(bleEvtContainer_t *container)
+{
+	GATTServerLongCharacteristicWrittenIndication_t *evt = &(container->Data.GATTServerLongCharacteristicWrittenIndication);
+
+	if (evt->LongCharacteristicWrittenEvent.ValueLength > 0)
+	{
+		MEM_BufferFree(evt->LongCharacteristicWrittenEvent.Value);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTServerAttributeReadIndication(bleEvtContainer_t *container)
+\brief	GATT Server attribute read
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTServerAttributeReadIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTServerAttributeReadIndication_t *evt = &(container->Data.GATTServerAttributeReadIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureEnhancedDiscoverAllPrimaryServicesIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Primary Service Discovery procedure ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureEnhancedDiscoverAllPrimaryServicesIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureEnhancedDiscoverAllPrimaryServicesIndication_t *evt = &(container->Data.GATTClientProcedureEnhancedDiscoverAllPrimaryServicesIndication);
+
+	for (uint32_t i = 0; i < evt->NbOfDiscoveredServices; i++)
+	{
+
+		for (uint32_t j = 0; j < evt->DiscoveredServices[i].NbOfCharacteristics; j++)
+		{
+
+			if (evt->DiscoveredServices[i].Characteristics[j].Value.ValueLength > 0)
+			{
+				MEM_BufferFree(evt->DiscoveredServices[i].Characteristics[j].Value.Value);
+			}
+			
+
+			for (uint32_t k = 0; k < evt->DiscoveredServices[i].Characteristics[j].NbOfDescriptors; k++)
+			{
+
+				if (evt->DiscoveredServices[i].Characteristics[j].Descriptors[k].ValueLength > 0)
+				{
+					MEM_BufferFree(evt->DiscoveredServices[i].Characteristics[j].Descriptors[k].Value);
+				}
+				
+			}
+
+			if (evt->DiscoveredServices[i].Characteristics[j].NbOfDescriptors > 0)
+			{
+				MEM_BufferFree(evt->DiscoveredServices[i].Characteristics[j].Descriptors);
+			}
+		}
+
+		if (evt->DiscoveredServices[i].NbOfCharacteristics > 0)
+		{
+			MEM_BufferFree(evt->DiscoveredServices[i].Characteristics);
+		}
+
+		for (uint32_t j = 0; j < evt->DiscoveredServices[i].NbOfIncludedServices; j++)
+		{
+		}
+
+		if (evt->DiscoveredServices[i].NbOfIncludedServices > 0)
+		{
+			MEM_BufferFree(evt->DiscoveredServices[i].IncludedServices);
+		}
+	}
+
+	if (evt->NbOfDiscoveredServices > 0)
+	{
+		MEM_BufferFree(evt->DiscoveredServices);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureEnhancedDiscoverPrimaryServicesByUuidIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Primary Service Discovery By UUID procedure ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureEnhancedDiscoverPrimaryServicesByUuidIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureEnhancedDiscoverPrimaryServicesByUuidIndication_t *evt = &(container->Data.GATTClientProcedureEnhancedDiscoverPrimaryServicesByUuidIndication);
+
+	for (uint32_t i = 0; i < evt->NbOfDiscoveredServices; i++)
+	{
+
+		for (uint32_t j = 0; j < evt->DiscoveredServices[i].NbOfCharacteristics; j++)
+		{
+
+			if (evt->DiscoveredServices[i].Characteristics[j].Value.ValueLength > 0)
+			{
+				MEM_BufferFree(evt->DiscoveredServices[i].Characteristics[j].Value.Value);
+			}
+			
+
+			for (uint32_t k = 0; k < evt->DiscoveredServices[i].Characteristics[j].NbOfDescriptors; k++)
+			{
+
+				if (evt->DiscoveredServices[i].Characteristics[j].Descriptors[k].ValueLength > 0)
+				{
+					MEM_BufferFree(evt->DiscoveredServices[i].Characteristics[j].Descriptors[k].Value);
+				}
+				
+			}
+
+			if (evt->DiscoveredServices[i].Characteristics[j].NbOfDescriptors > 0)
+			{
+				MEM_BufferFree(evt->DiscoveredServices[i].Characteristics[j].Descriptors);
+			}
+		}
+
+		if (evt->DiscoveredServices[i].NbOfCharacteristics > 0)
+		{
+			MEM_BufferFree(evt->DiscoveredServices[i].Characteristics);
+		}
+
+		for (uint32_t j = 0; j < evt->DiscoveredServices[i].NbOfIncludedServices; j++)
+		{
+		}
+
+		if (evt->DiscoveredServices[i].NbOfIncludedServices > 0)
+		{
+			MEM_BufferFree(evt->DiscoveredServices[i].IncludedServices);
+		}
+	}
+
+	if (evt->NbOfDiscoveredServices > 0)
+	{
+		MEM_BufferFree(evt->DiscoveredServices);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureEnhancedFindIncludedServicesIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Find Included Services procedure ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureEnhancedFindIncludedServicesIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureEnhancedFindIncludedServicesIndication_t *evt = &(container->Data.GATTClientProcedureEnhancedFindIncludedServicesIndication);
+
+	for (uint32_t i = 0; i < evt->Service.NbOfCharacteristics; i++)
+	{
+
+		if (evt->Service.Characteristics[i].Value.ValueLength > 0)
+		{
+			MEM_BufferFree(evt->Service.Characteristics[i].Value.Value);
+		}
+		
+
+		for (uint32_t j = 0; j < evt->Service.Characteristics[i].NbOfDescriptors; j++)
+		{
+
+			if (evt->Service.Characteristics[i].Descriptors[j].ValueLength > 0)
+			{
+				MEM_BufferFree(evt->Service.Characteristics[i].Descriptors[j].Value);
+			}
+			
+		}
+
+		if (evt->Service.Characteristics[i].NbOfDescriptors > 0)
+		{
+			MEM_BufferFree(evt->Service.Characteristics[i].Descriptors);
+		}
+	}
+
+	if (evt->Service.NbOfCharacteristics > 0)
+	{
+		MEM_BufferFree(evt->Service.Characteristics);
+	}
+
+	for (uint32_t i = 0; i < evt->Service.NbOfIncludedServices; i++)
+	{
+	}
+
+	if (evt->Service.NbOfIncludedServices > 0)
+	{
+		MEM_BufferFree(evt->Service.IncludedServices);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureEnhancedDiscoverAllCharacteristicsIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Discovery procedure for a given service ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureEnhancedDiscoverAllCharacteristicsIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureEnhancedDiscoverAllCharacteristicsIndication_t *evt = &(container->Data.GATTClientProcedureEnhancedDiscoverAllCharacteristicsIndication);
+
+	for (uint32_t i = 0; i < evt->Service.NbOfCharacteristics; i++)
+	{
+
+		if (evt->Service.Characteristics[i].Value.ValueLength > 0)
+		{
+			MEM_BufferFree(evt->Service.Characteristics[i].Value.Value);
+		}
+		
+
+		for (uint32_t j = 0; j < evt->Service.Characteristics[i].NbOfDescriptors; j++)
+		{
+
+			if (evt->Service.Characteristics[i].Descriptors[j].ValueLength > 0)
+			{
+				MEM_BufferFree(evt->Service.Characteristics[i].Descriptors[j].Value);
+			}
+			
+		}
+
+		if (evt->Service.Characteristics[i].NbOfDescriptors > 0)
+		{
+			MEM_BufferFree(evt->Service.Characteristics[i].Descriptors);
+		}
+	}
+
+	if (evt->Service.NbOfCharacteristics > 0)
+	{
+		MEM_BufferFree(evt->Service.Characteristics);
+	}
+
+	for (uint32_t i = 0; i < evt->Service.NbOfIncludedServices; i++)
+	{
+	}
+
+	if (evt->Service.NbOfIncludedServices > 0)
+	{
+		MEM_BufferFree(evt->Service.IncludedServices);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureEnhancedDiscoverCharacteristicByUuidIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Discovery procedure for a given service (with a given UUID) ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureEnhancedDiscoverCharacteristicByUuidIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureEnhancedDiscoverCharacteristicByUuidIndication_t *evt = &(container->Data.GATTClientProcedureEnhancedDiscoverCharacteristicByUuidIndication);
+
+	for (uint32_t i = 0; i < evt->NbOfCharacteristics; i++)
+	{
+
+		if (evt->Characteristics[i].Value.ValueLength > 0)
+		{
+			MEM_BufferFree(evt->Characteristics[i].Value.Value);
+		}
+		
+
+		for (uint32_t j = 0; j < evt->Characteristics[i].NbOfDescriptors; j++)
+		{
+
+			if (evt->Characteristics[i].Descriptors[j].ValueLength > 0)
+			{
+				MEM_BufferFree(evt->Characteristics[i].Descriptors[j].Value);
+			}
+			
+		}
+
+		if (evt->Characteristics[i].NbOfDescriptors > 0)
+		{
+			MEM_BufferFree(evt->Characteristics[i].Descriptors);
+		}
+	}
+
+	if (evt->NbOfCharacteristics > 0)
+	{
+		MEM_BufferFree(evt->Characteristics);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureEnhancedDiscoverAllCharacteristicDescriptorsIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Descriptor Discovery procedure for a given characteristic ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureEnhancedDiscoverAllCharacteristicDescriptorsIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureEnhancedDiscoverAllCharacteristicDescriptorsIndication_t *evt = &(container->Data.GATTClientProcedureEnhancedDiscoverAllCharacteristicDescriptorsIndication);
+
+	if (evt->Characteristic.Value.ValueLength > 0)
+	{
+		MEM_BufferFree(evt->Characteristic.Value.Value);
+	}
+	
+
+	for (uint32_t i = 0; i < evt->Characteristic.NbOfDescriptors; i++)
+	{
+
+		if (evt->Characteristic.Descriptors[i].ValueLength > 0)
+		{
+			MEM_BufferFree(evt->Characteristic.Descriptors[i].Value);
+		}
+		
+	}
+
+	if (evt->Characteristic.NbOfDescriptors > 0)
+	{
+		MEM_BufferFree(evt->Characteristic.Descriptors);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureEnhancedReadCharacteristicValueIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Read procedure for a given characteristic ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureEnhancedReadCharacteristicValueIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureEnhancedReadCharacteristicValueIndication_t *evt = &(container->Data.GATTClientProcedureEnhancedReadCharacteristicValueIndication);
+
+	if (evt->Characteristic.Value.ValueLength > 0)
+	{
+		MEM_BufferFree(evt->Characteristic.Value.Value);
+	}
+	
+
+	for (uint32_t i = 0; i < evt->Characteristic.NbOfDescriptors; i++)
+	{
+
+		if (evt->Characteristic.Descriptors[i].ValueLength > 0)
+		{
+			MEM_BufferFree(evt->Characteristic.Descriptors[i].Value);
+		}
+		
+	}
+
+	if (evt->Characteristic.NbOfDescriptors > 0)
+	{
+		MEM_BufferFree(evt->Characteristic.Descriptors);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureEnhancedReadUsingCharacteristicUuidIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Read By UUID procedure ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureEnhancedReadUsingCharacteristicUuidIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureEnhancedReadUsingCharacteristicUuidIndication_t *evt = &(container->Data.GATTClientProcedureEnhancedReadUsingCharacteristicUuidIndication);
+
+	if (evt->NbOfReadBytes > 0)
+	{
+		MEM_BufferFree(evt->ReadBytes);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureEnhancedReadMultipleCharacteristicValuesIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Read Multiple procedure ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureEnhancedReadMultipleCharacteristicValuesIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureEnhancedReadMultipleCharacteristicValuesIndication_t *evt = &(container->Data.GATTClientProcedureEnhancedReadMultipleCharacteristicValuesIndication);
+
+	for (uint32_t i = 0; i < evt->NbOfCharacteristics; i++)
+	{
+
+		if (evt->Characteristics[i].Value.ValueLength > 0)
+		{
+			MEM_BufferFree(evt->Characteristics[i].Value.Value);
+		}
+		
+
+		for (uint32_t j = 0; j < evt->Characteristics[i].NbOfDescriptors; j++)
+		{
+
+			if (evt->Characteristics[i].Descriptors[j].ValueLength > 0)
+			{
+				MEM_BufferFree(evt->Characteristics[i].Descriptors[j].Value);
+			}
+			
+		}
+
+		if (evt->Characteristics[i].NbOfDescriptors > 0)
+		{
+			MEM_BufferFree(evt->Characteristics[i].Descriptors);
+		}
+	}
+
+	if (evt->NbOfCharacteristics > 0)
+	{
+		MEM_BufferFree(evt->Characteristics);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureEnhancedWriteCharacteristicValueIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Write procedure for a given characteristic ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureEnhancedWriteCharacteristicValueIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTClientProcedureEnhancedWriteCharacteristicValueIndication_t *evt = &(container->Data.GATTClientProcedureEnhancedWriteCharacteristicValueIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureEnhancedReadCharacteristicDescriptorIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Descriptor Read procedure for a given characteristic's descriptor ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureEnhancedReadCharacteristicDescriptorIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureEnhancedReadCharacteristicDescriptorIndication_t *evt = &(container->Data.GATTClientProcedureEnhancedReadCharacteristicDescriptorIndication);
+
+	if (evt->Descriptor.ValueLength > 0)
+	{
+		MEM_BufferFree(evt->Descriptor.Value);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureEnhancedWriteCharacteristicDescriptorIndication(bleEvtContainer_t *container)
+\brief	Specifies that the Characteristic Descriptor Write procedure for a given characteristic's descriptor ended
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureEnhancedWriteCharacteristicDescriptorIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTClientProcedureEnhancedWriteCharacteristicDescriptorIndication_t *evt = &(container->Data.GATTClientProcedureEnhancedWriteCharacteristicDescriptorIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientProcedureEnhancedReadMultipleVariableLenCharValuesIndication(bleEvtContainer_t *container)
+\brief	GATT Client Enhanced Read Multiple Variable Length Characteristic Values
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientProcedureEnhancedReadMultipleVariableLenCharValuesIndication(bleEvtContainer_t *container)
+{
+	GATTClientProcedureEnhancedReadMultipleVariableLenCharValuesIndication_t *evt = &(container->Data.GATTClientProcedureEnhancedReadMultipleVariableLenCharValuesIndication);
+
+	for (uint32_t i = 0; i < evt->NbOfCharacteristics; i++)
+	{
+
+		if (evt->Characteristics[i].Value.ValueLength > 0)
+		{
+			MEM_BufferFree(evt->Characteristics[i].Value.Value);
+		}
+		
+
+		for (uint32_t j = 0; j < evt->Characteristics[i].NbOfDescriptors; j++)
+		{
+
+			if (evt->Characteristics[i].Descriptors[j].ValueLength > 0)
+			{
+				MEM_BufferFree(evt->Characteristics[i].Descriptors[j].Value);
+			}
+			
+		}
+
+		if (evt->Characteristics[i].NbOfDescriptors > 0)
+		{
+			MEM_BufferFree(evt->Characteristics[i].Descriptors);
+		}
+	}
+
+	if (evt->NbOfCharacteristics > 0)
+	{
+		MEM_BufferFree(evt->Characteristics);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientEnhancedMultipleHandleValueNotificationIndication(bleEvtContainer_t *container)
+\brief	GATT Client Enhanced Read Multiple Variable Length Characteristic Values
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientEnhancedMultipleHandleValueNotificationIndication(bleEvtContainer_t *container)
+{
+	GATTClientEnhancedMultipleHandleValueNotificationIndication_t *evt = &(container->Data.GATTClientEnhancedMultipleHandleValueNotificationIndication);
+
+	for (uint32_t i = 0; i < evt->HandleCount; i++)
+	{
+
+		if (evt->HandleLengthValueList[i].ValueLength > 0)
+		{
+			MEM_BufferFree(evt->HandleLengthValueList[i].Value);
+		}
+		
+	}
+
+	if (evt->HandleCount > 0)
+	{
+		MEM_BufferFree(evt->HandleLengthValueList);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientEnhancedNotificationIndication(bleEvtContainer_t *container)
+\brief	GATT Client notification
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientEnhancedNotificationIndication(bleEvtContainer_t *container)
+{
+	GATTClientEnhancedNotificationIndication_t *evt = &(container->Data.GATTClientEnhancedNotificationIndication);
+
+	if (evt->ValueLength > 0)
+	{
+		MEM_BufferFree(evt->Value);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTClientEnhancedIndicationIndication(bleEvtContainer_t *container)
+\brief	GATT Client indication
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTClientEnhancedIndicationIndication(bleEvtContainer_t *container)
+{
+	GATTClientEnhancedIndicationIndication_t *evt = &(container->Data.GATTClientEnhancedIndicationIndication);
+
+	if (evt->ValueLength > 0)
+	{
+		MEM_BufferFree(evt->Value);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTServerEnhancedHandleValueConfirmationIndication(bleEvtContainer_t *container)
+\brief	GATT Server handle value confirmation
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTServerEnhancedHandleValueConfirmationIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTServerEnhancedHandleValueConfirmationIndication_t *evt = &(container->Data.GATTServerEnhancedHandleValueConfirmationIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTServerEnhancedAttributeWrittenIndication(bleEvtContainer_t *container)
+\brief	GATT Server attribute written
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTServerEnhancedAttributeWrittenIndication(bleEvtContainer_t *container)
+{
+	GATTServerEnhancedAttributeWrittenIndication_t *evt = &(container->Data.GATTServerEnhancedAttributeWrittenIndication);
+
+	if (evt->AttributeWrittenEvent.ValueLength > 0)
+	{
+		MEM_BufferFree(evt->AttributeWrittenEvent.Value);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTServerEnhancedCharacteristicCccdWrittenIndication(bleEvtContainer_t *container)
+\brief	GATT Server characteristic cccd written
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTServerEnhancedCharacteristicCccdWrittenIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTServerEnhancedCharacteristicCccdWrittenIndication_t *evt = &(container->Data.GATTServerEnhancedCharacteristicCccdWrittenIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTServerEnhancedAttributeWrittenWithoutResponseIndication(bleEvtContainer_t *container)
+\brief	GATT Server attribute written without response
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTServerEnhancedAttributeWrittenWithoutResponseIndication(bleEvtContainer_t *container)
+{
+	GATTServerEnhancedAttributeWrittenWithoutResponseIndication_t *evt = &(container->Data.GATTServerEnhancedAttributeWrittenWithoutResponseIndication);
+
+	if (evt->AttributeWrittenEvent.ValueLength > 0)
+	{
+		MEM_BufferFree(evt->AttributeWrittenEvent.Value);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTServerEnhancedErrorIndication(bleEvtContainer_t *container)
+\brief	GATT Server error
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTServerEnhancedErrorIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTServerEnhancedErrorIndication_t *evt = &(container->Data.GATTServerEnhancedErrorIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTServerEnhancedLongCharacteristicWrittenIndication(bleEvtContainer_t *container)
+\brief	GATT Server long characteristic written
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTServerEnhancedLongCharacteristicWrittenIndication(bleEvtContainer_t *container)
+{
+	GATTServerEnhancedLongCharacteristicWrittenIndication_t *evt = &(container->Data.GATTServerEnhancedLongCharacteristicWrittenIndication);
+
+	if (evt->LongCharacteristicWrittenEvent.ValueLength > 0)
+	{
+		MEM_BufferFree(evt->LongCharacteristicWrittenEvent.Value);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTServerEnhancedAttributeReadIndication(bleEvtContainer_t *container)
+\brief	GATT Server attribute read
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTServerEnhancedAttributeReadIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTServerEnhancedAttributeReadIndication_t *evt = &(container->Data.GATTServerEnhancedAttributeReadIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+#endif  /* GATT_ENABLE */
+
+#if GATTDB_APP_ENABLE
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBConfirm(bleEvtContainer_t *container)
+\brief	Status of the GATT Database (application) request
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBConfirm_t *evt = &(container->Data.GATTDBConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBReadAttributeIndication(bleEvtContainer_t *container)
+\brief	Reads an attribute value (from application level)
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBReadAttributeIndication(bleEvtContainer_t *container)
+{
+	GATTDBReadAttributeIndication_t *evt = &(container->Data.GATTDBReadAttributeIndication);
+
+	if (evt->ValueLength > 0)
+	{
+		MEM_BufferFree(evt->Value);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBFindServiceHandleIndication(bleEvtContainer_t *container)
+\brief	Finds the handle of a Service Declaration with a given UUID inside the database
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBFindServiceHandleIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBFindServiceHandleIndication_t *evt = &(container->Data.GATTDBFindServiceHandleIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBFindCharValueHandleInServiceIndication(bleEvtContainer_t *container)
+\brief	Finds the handle of a characteristic value (with a given UUID) inside a service
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBFindCharValueHandleInServiceIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBFindCharValueHandleInServiceIndication_t *evt = &(container->Data.GATTDBFindCharValueHandleInServiceIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBFindCccdHandleForCharValueHandleIndication(bleEvtContainer_t *container)
+\brief	Finds the handle of a characteristic's CCCD (giving the characteristic's value handle)
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBFindCccdHandleForCharValueHandleIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBFindCccdHandleForCharValueHandleIndication_t *evt = &(container->Data.GATTDBFindCccdHandleForCharValueHandleIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBFindDescriptorHandleForCharValueHandleIndication(bleEvtContainer_t *container)
+\brief	Finds the handle of a characteristic descriptor (giving the characteristic's value handle and descriptor's UUID)
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBFindDescriptorHandleForCharValueHandleIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBFindDescriptorHandleForCharValueHandleIndication_t *evt = &(container->Data.GATTDBFindDescriptorHandleForCharValueHandleIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBDynamicAddPrimaryServiceDeclarationIndication(bleEvtContainer_t *container)
+\brief	Adds a Primary Service declaration into the database
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBDynamicAddPrimaryServiceDeclarationIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBDynamicAddPrimaryServiceDeclarationIndication_t *evt = &(container->Data.GATTDBDynamicAddPrimaryServiceDeclarationIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBDynamicAddSecondaryServiceDeclarationIndication(bleEvtContainer_t *container)
+\brief	Adds a Secondary Service declaration into the database
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBDynamicAddSecondaryServiceDeclarationIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBDynamicAddSecondaryServiceDeclarationIndication_t *evt = &(container->Data.GATTDBDynamicAddSecondaryServiceDeclarationIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBDynamicAddIncludeDeclarationIndication(bleEvtContainer_t *container)
+\brief	Adds an Include declaration into the database
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBDynamicAddIncludeDeclarationIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBDynamicAddIncludeDeclarationIndication_t *evt = &(container->Data.GATTDBDynamicAddIncludeDeclarationIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBDynamicAddCharacteristicDeclarationAndValueIndication(bleEvtContainer_t *container)
+\brief	Adds a Characteristic declaration and its Value into the database
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBDynamicAddCharacteristicDeclarationAndValueIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBDynamicAddCharacteristicDeclarationAndValueIndication_t *evt = &(container->Data.GATTDBDynamicAddCharacteristicDeclarationAndValueIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBDynamicAddCharacteristicDescriptorIndication(bleEvtContainer_t *container)
+\brief	Adds a Characteristic descriptor into the database
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBDynamicAddCharacteristicDescriptorIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBDynamicAddCharacteristicDescriptorIndication_t *evt = &(container->Data.GATTDBDynamicAddCharacteristicDescriptorIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBDynamicAddCccdIndication(bleEvtContainer_t *container)
+\brief	Adds a CCCD in the database
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBDynamicAddCccdIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBDynamicAddCccdIndication_t *evt = &(container->Data.GATTDBDynamicAddCccdIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBDynamicAddCharacteristicDeclarationWithUniqueValueIndication(bleEvtContainer_t *container)
+\brief	Adds a Characteristic declaration with a Value contained in an universal value buffer
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBDynamicAddCharacteristicDeclarationWithUniqueValueIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBDynamicAddCharacteristicDeclarationWithUniqueValueIndication_t *evt = &(container->Data.GATTDBDynamicAddCharacteristicDeclarationWithUniqueValueIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBDynamicAddCharDescriptorWithUniqueValueIndication(bleEvtContainer_t *container)
+\brief	Adds a Characteristic descriptor with a Value contained in an universal value buffer
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBDynamicAddCharDescriptorWithUniqueValueIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBDynamicAddCharDescriptorWithUniqueValueIndication_t *evt = &(container->Data.GATTDBDynamicAddCharDescriptorWithUniqueValueIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBDynamicAddCharAggregateFormatIndication(bleEvtContainer_t *container)
+\brief	Adds a Characteristic Aggregate Format Descriptor in the database
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBDynamicAddCharAggregateFormatIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBDynamicAddCharAggregateFormatIndication_t *evt = &(container->Data.GATTDBDynamicAddCharAggregateFormatIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+#endif  /* GATTDB_APP_ENABLE */
+
+#if GATTDB_ATT_ENABLE
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBAttConfirm(bleEvtContainer_t *container)
+\brief	Status of the GATT Database (ATT) request
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBAttConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBAttConfirm_t *evt = &(container->Data.GATTDBAttConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBAttFindInformationIndication(bleEvtContainer_t *container)
+\brief	Find information
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBAttFindInformationIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBAttFindInformationIndication_t *evt = &(container->Data.GATTDBAttFindInformationIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBAttFindByTypeValueIndication(bleEvtContainer_t *container)
+\brief	Find by type value
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBAttFindByTypeValueIndication(bleEvtContainer_t *container)
+{
+	GATTDBAttFindByTypeValueIndication_t *evt = &(container->Data.GATTDBAttFindByTypeValueIndication);
+
+	for (uint32_t i = 0; i < evt->Params.GroupCount; i++)
+	{
+	}
+
+	if (evt->Params.GroupCount > 0)
+	{
+		MEM_BufferFree(evt->Params.HandleGroup);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBAttReadByTypeIndication(bleEvtContainer_t *container)
+\brief	Read by type
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBAttReadByTypeIndication(bleEvtContainer_t *container)
+{
+	GATTDBAttReadByTypeIndication_t *evt = &(container->Data.GATTDBAttReadByTypeIndication);
+
+	if (evt->Params.AttributeDataListLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeDataList);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBAttReadIndication(bleEvtContainer_t *container)
+\brief	Read
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBAttReadIndication(bleEvtContainer_t *container)
+{
+	GATTDBAttReadIndication_t *evt = &(container->Data.GATTDBAttReadIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBAttReadBlobIndication(bleEvtContainer_t *container)
+\brief	Read blob
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBAttReadBlobIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBAttReadBlobIndication_t *evt = &(container->Data.GATTDBAttReadBlobIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBAttReadMultipleIndication(bleEvtContainer_t *container)
+\brief	Read multiple
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBAttReadMultipleIndication(bleEvtContainer_t *container)
+{
+	GATTDBAttReadMultipleIndication_t *evt = &(container->Data.GATTDBAttReadMultipleIndication);
+
+	if (evt->Params.ListLength > 0)
+	{
+		MEM_BufferFree(evt->Params.ListOfValues);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBAttReadByGroupTypeIndication(bleEvtContainer_t *container)
+\brief	Read by group type
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBAttReadByGroupTypeIndication(bleEvtContainer_t *container)
+{
+	GATTDBAttReadByGroupTypeIndication_t *evt = &(container->Data.GATTDBAttReadByGroupTypeIndication);
+
+	if (evt->Params.AttributeDataListLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeDataList);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBAttWriteIndication(bleEvtContainer_t *container)
+\brief	Write
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBAttWriteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBAttWriteIndication_t *evt = &(container->Data.GATTDBAttWriteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBAttPrepareWriteIndication(bleEvtContainer_t *container)
+\brief	Prepare write
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBAttPrepareWriteIndication(bleEvtContainer_t *container)
+{
+	GATTDBAttPrepareWriteIndication_t *evt = &(container->Data.GATTDBAttPrepareWriteIndication);
+
+	if (evt->Params.AttributeLength > 0)
+	{
+		MEM_BufferFree(evt->Params.AttributeValue);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBAttExecuteWriteIndication(bleEvtContainer_t *container)
+\brief	Execute write
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBAttExecuteWriteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBAttExecuteWriteIndication_t *evt = &(container->Data.GATTDBAttExecuteWriteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBAttExecuteWriteFromQueueIndication(bleEvtContainer_t *container)
+\brief	Executes an operation from a Prepare Write queue
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBAttExecuteWriteFromQueueIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBAttExecuteWriteFromQueueIndication_t *evt = &(container->Data.GATTDBAttExecuteWriteFromQueueIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GATTDBAttPrepareNotificationIndicationIndication(bleEvtContainer_t *container)
+\brief	Prepare notification/indication
+***************************************************************************************************/
+static mem_status_t UnLoad_GATTDBAttPrepareNotificationIndicationIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GATTDBAttPrepareNotificationIndicationIndication_t *evt = &(container->Data.GATTDBAttPrepareNotificationIndicationIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+#endif  /* GATTDB_ATT_ENABLE */
+
+#if GAP_ENABLE
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConfirm(bleEvtContainer_t *container)
+\brief	Status of the GAP request
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConfirm_t *evt = &(container->Data.GAPConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPCheckNotificationStatusIndication(bleEvtContainer_t *container)
+\brief	Returns the notification status for a given Client and a given CCCD handle
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPCheckNotificationStatusIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPCheckNotificationStatusIndication_t *evt = &(container->Data.GAPCheckNotificationStatusIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPCheckIndicationStatusIndication(bleEvtContainer_t *container)
+\brief	Returns the indication status for a given Client and a given CCCD handle
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPCheckIndicationStatusIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPCheckIndicationStatusIndication_t *evt = &(container->Data.GAPCheckIndicationStatusIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPLoadKeysIndication(bleEvtContainer_t *container)
+\brief	Returns the keys of a bonded device
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPLoadKeysIndication(bleEvtContainer_t *container)
+{
+	GAPLoadKeysIndication_t *evt = &(container->Data.GAPLoadKeysIndication);
+
+	if (evt->Keys.LtkIncluded)
+	{
+
+		if (evt->Keys.LtkInfo.LtkSize > 0)
+		{
+			MEM_BufferFree(evt->Keys.LtkInfo.Ltk);
+		}
+		
+	}
+
+
+
+	if (evt->Keys.LtkIncluded)
+	{
+
+		if (evt->Keys.RandEdivInfo.RandSize > 0)
+		{
+			MEM_BufferFree(evt->Keys.RandEdivInfo.Rand);
+		}
+		
+	}
+
+	if (evt->Keys.IrkIncluded)
+	{
+	}
+
+	if (evt->Keys.AddressIncluded)
+	{
+
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPLoadEncryptionInformationIndication(bleEvtContainer_t *container)
+\brief	Returns the encryption key for a bonded device
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPLoadEncryptionInformationIndication(bleEvtContainer_t *container)
+{
+	GAPLoadEncryptionInformationIndication_t *evt = &(container->Data.GAPLoadEncryptionInformationIndication);
+
+	if (evt->LtkSize > 0)
+	{
+		MEM_BufferFree(evt->Ltk);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPLoadCustomPeerInformationIndication(bleEvtContainer_t *container)
+\brief	Returns the custom peer information in raw data format
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPLoadCustomPeerInformationIndication(bleEvtContainer_t *container)
+{
+	GAPLoadCustomPeerInformationIndication_t *evt = &(container->Data.GAPLoadCustomPeerInformationIndication);
+
+	if (evt->InfoSize > 0)
+	{
+		MEM_BufferFree(evt->Info);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPCheckIfBondedIndication(bleEvtContainer_t *container)
+\brief	Returns whether a connected peer device is bonded or not
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPCheckIfBondedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPCheckIfBondedIndication_t *evt = &(container->Data.GAPCheckIfBondedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGetBondedDevicesCountIndication(bleEvtContainer_t *container)
+\brief	Returns the number of bonded devices
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGetBondedDevicesCountIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGetBondedDevicesCountIndication_t *evt = &(container->Data.GAPGetBondedDevicesCountIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGetBondedDeviceNameIndication(bleEvtContainer_t *container)
+\brief	Returns the name of a bonded device
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGetBondedDeviceNameIndication(bleEvtContainer_t *container)
+{
+	GAPGetBondedDeviceNameIndication_t *evt = &(container->Data.GAPGetBondedDeviceNameIndication);
+
+	if (evt->NameSize > 0)
+	{
+		MEM_BufferFree(evt->Name);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventInitializationCompleteIndication(bleEvtContainer_t *container)
+\brief	Controller event - initialization complete
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventInitializationCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventInitializationCompleteIndication_t *evt = &(container->Data.GAPGenericEventInitializationCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventInternalErrorIndication(bleEvtContainer_t *container)
+\brief	Controller event - controller error
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventInternalErrorIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventInternalErrorIndication_t *evt = &(container->Data.GAPGenericEventInternalErrorIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventAdvertisingSetupFailedIndication(bleEvtContainer_t *container)
+\brief	Controller event - advertising setup failed
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventAdvertisingSetupFailedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventAdvertisingSetupFailedIndication_t *evt = &(container->Data.GAPGenericEventAdvertisingSetupFailedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventAdvertisingParametersSetupCompleteIndication(bleEvtContainer_t *container)
+\brief	Controller event - advertising parameters setup completed
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventAdvertisingParametersSetupCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventAdvertisingParametersSetupCompleteIndication_t *evt = &(container->Data.GAPGenericEventAdvertisingParametersSetupCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventAdvertisingDataSetupCompleteIndication(bleEvtContainer_t *container)
+\brief	Controller event - advertising data setup completed
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventAdvertisingDataSetupCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventAdvertisingDataSetupCompleteIndication_t *evt = &(container->Data.GAPGenericEventAdvertisingDataSetupCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventFilterAcceptListSizeReadIndication(bleEvtContainer_t *container)
+\brief	Controller event - Filter Accept List size
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventFilterAcceptListSizeReadIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventFilterAcceptListSizeReadIndication_t *evt = &(container->Data.GAPGenericEventFilterAcceptListSizeReadIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventDeviceAddedToFilterAcceptListIndication(bleEvtContainer_t *container)
+\brief	Controller event - device added to Filter Accept List
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventDeviceAddedToFilterAcceptListIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventDeviceAddedToFilterAcceptListIndication_t *evt = &(container->Data.GAPGenericEventDeviceAddedToFilterAcceptListIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventDeviceRemovedFromFilterAcceptListIndication(bleEvtContainer_t *container)
+\brief	Controller event - device removed from Filter Accept List
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventDeviceRemovedFromFilterAcceptListIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventDeviceRemovedFromFilterAcceptListIndication_t *evt = &(container->Data.GAPGenericEventDeviceRemovedFromFilterAcceptListIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventFilterAcceptListClearedIndication(bleEvtContainer_t *container)
+\brief	Controller event - Filter Accept List cleared
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventFilterAcceptListClearedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventFilterAcceptListClearedIndication_t *evt = &(container->Data.GAPGenericEventFilterAcceptListClearedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventRandomAddressReadyIndication(bleEvtContainer_t *container)
+\brief	Controller event - random address ready
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventRandomAddressReadyIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventRandomAddressReadyIndication_t *evt = &(container->Data.GAPGenericEventRandomAddressReadyIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventCreateConnectionCanceledIndication(bleEvtContainer_t *container)
+\brief	Controller event - create connection procedure canceled
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventCreateConnectionCanceledIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventCreateConnectionCanceledIndication_t *evt = &(container->Data.GAPGenericEventCreateConnectionCanceledIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventPublicAddressReadIndication(bleEvtContainer_t *container)
+\brief	Controller event - public address read
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventPublicAddressReadIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventPublicAddressReadIndication_t *evt = &(container->Data.GAPGenericEventPublicAddressReadIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventAdvTxPowerLevelReadIndication(bleEvtContainer_t *container)
+\brief	Controller event - advertising transmission power level
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventAdvTxPowerLevelReadIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventAdvTxPowerLevelReadIndication_t *evt = &(container->Data.GAPGenericEventAdvTxPowerLevelReadIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventPrivateResolvableAddressVerifiedIndication(bleEvtContainer_t *container)
+\brief	Controller event - Private Resolvable Address verified
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventPrivateResolvableAddressVerifiedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventPrivateResolvableAddressVerifiedIndication_t *evt = &(container->Data.GAPGenericEventPrivateResolvableAddressVerifiedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventRandomAddressSetIndication(bleEvtContainer_t *container)
+\brief	Controller event - A random address was set
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventRandomAddressSetIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventRandomAddressSetIndication_t *evt = &(container->Data.GAPGenericEventRandomAddressSetIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPAdvertisingEventStateChangedIndication(bleEvtContainer_t *container)
+\brief	Event received when advertising has been successfully enabled or disabled
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPAdvertisingEventStateChangedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPAdvertisingEventStateChangedIndication_t *evt = &(container->Data.GAPAdvertisingEventStateChangedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPAdvertisingEventCommandFailedIndication(bleEvtContainer_t *container)
+\brief	Event received when advertising could not be enabled or disabled
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPAdvertisingEventCommandFailedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPAdvertisingEventCommandFailedIndication_t *evt = &(container->Data.GAPAdvertisingEventCommandFailedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPScanningEventStateChangedIndication(bleEvtContainer_t *container)
+\brief	Event received when scanning had been successfully enabled or disabled
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPScanningEventStateChangedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPScanningEventStateChangedIndication_t *evt = &(container->Data.GAPScanningEventStateChangedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPScanningEventCommandFailedIndication(bleEvtContainer_t *container)
+\brief	Event received when scanning could not be enabled or disabled
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPScanningEventCommandFailedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPScanningEventCommandFailedIndication_t *evt = &(container->Data.GAPScanningEventCommandFailedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPScanningEventDeviceScannedIndication(bleEvtContainer_t *container)
+\brief	Event received when an advertising device has been scanned
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPScanningEventDeviceScannedIndication(bleEvtContainer_t *container)
+{
+	GAPScanningEventDeviceScannedIndication_t *evt = &(container->Data.GAPScanningEventDeviceScannedIndication);
+
+
+	if (evt->DataLength > 0)
+	{
+		MEM_BufferFree(evt->Data);
+	}
+	
+
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventConnectedIndication(bleEvtContainer_t *container)
+\brief	A connection has been established
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventConnectedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventConnectedIndication_t *evt = &(container->Data.GAPConnectionEventConnectedIndication);
+
+
+
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventPairingRequestIndication(bleEvtContainer_t *container)
+\brief	A pairing request has been received from the peer Central
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventPairingRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventPairingRequestIndication_t *evt = &(container->Data.GAPConnectionEventPairingRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventPeripheralSecurityRequestIndication(bleEvtContainer_t *container)
+\brief	A Peripheral Security Request has been received from the peer Peripheral
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventPeripheralSecurityRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventPeripheralSecurityRequestIndication_t *evt = &(container->Data.GAPConnectionEventPeripheralSecurityRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventPairingResponseIndication(bleEvtContainer_t *container)
+\brief	A pairing response has been received from the peer Peripheral
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventPairingResponseIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventPairingResponseIndication_t *evt = &(container->Data.GAPConnectionEventPairingResponseIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventAuthenticationRejectedIndication(bleEvtContainer_t *container)
+\brief	A link encryption or pairing request has been rejected by the peer Peripheral
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventAuthenticationRejectedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventAuthenticationRejectedIndication_t *evt = &(container->Data.GAPConnectionEventAuthenticationRejectedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventPasskeyRequestIndication(bleEvtContainer_t *container)
+\brief	Peer Peripheral has requested a passkey (maximum 6 digit PIN) for the pairing procedure
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventPasskeyRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventPasskeyRequestIndication_t *evt = &(container->Data.GAPConnectionEventPasskeyRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventOobRequestIndication(bleEvtContainer_t *container)
+\brief	Out-of-Band data must be provided for the pairing procedure
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventOobRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventOobRequestIndication_t *evt = &(container->Data.GAPConnectionEventOobRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventPasskeyDisplayIndication(bleEvtContainer_t *container)
+\brief	The pairing procedure requires this Peripheral to display the passkey for the Central's user
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventPasskeyDisplayIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventPasskeyDisplayIndication_t *evt = &(container->Data.GAPConnectionEventPasskeyDisplayIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventKeyExchangeRequestIndication(bleEvtContainer_t *container)
+\brief	The pairing procedure requires the SMP keys to be distributed to the peer
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventKeyExchangeRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventKeyExchangeRequestIndication_t *evt = &(container->Data.GAPConnectionEventKeyExchangeRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventKeysReceivedIndication(bleEvtContainer_t *container)
+\brief	SMP keys distributed by the peer during pairing have been received
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventKeysReceivedIndication(bleEvtContainer_t *container)
+{
+	GAPConnectionEventKeysReceivedIndication_t *evt = &(container->Data.GAPConnectionEventKeysReceivedIndication);
+
+	if (evt->Keys.LtkIncluded)
+	{
+
+		if (evt->Keys.LtkInfo.LtkSize > 0)
+		{
+			MEM_BufferFree(evt->Keys.LtkInfo.Ltk);
+		}
+		
+	}
+
+
+
+	if (evt->Keys.LtkIncluded)
+	{
+
+		if (evt->Keys.RandEdivInfo.RandSize > 0)
+		{
+			MEM_BufferFree(evt->Keys.RandEdivInfo.Rand);
+		}
+		
+	}
+
+	if (evt->Keys.IrkIncluded)
+	{
+	}
+
+	if (evt->Keys.AddressIncluded)
+	{
+
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventLongTermKeyRequestIndication(bleEvtContainer_t *container)
+\brief	The bonded peer Central has requested link encryption and the LTK must be provided
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventLongTermKeyRequestIndication(bleEvtContainer_t *container)
+{
+	GAPConnectionEventLongTermKeyRequestIndication_t *evt = &(container->Data.GAPConnectionEventLongTermKeyRequestIndication);
+
+	if (evt->RandSize > 0)
+	{
+		MEM_BufferFree(evt->Rand);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventEncryptionChangedIndication(bleEvtContainer_t *container)
+\brief	Link's encryption state has changed, e.g. during pairing or after a reconnection with a bonded peer
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventEncryptionChangedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventEncryptionChangedIndication_t *evt = &(container->Data.GAPConnectionEventEncryptionChangedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventPairingCompleteIndication(bleEvtContainer_t *container)
+\brief	Pairing procedure is complete, either successfully or with failure
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventPairingCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventPairingCompleteIndication_t *evt = &(container->Data.GAPConnectionEventPairingCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventDisconnectedIndication(bleEvtContainer_t *container)
+\brief	A connection has been terminated
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventDisconnectedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventDisconnectedIndication_t *evt = &(container->Data.GAPConnectionEventDisconnectedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventRssiReadIndication(bleEvtContainer_t *container)
+\brief	RSSI for an active connection has been read
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventRssiReadIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventRssiReadIndication_t *evt = &(container->Data.GAPConnectionEventRssiReadIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventTxPowerLevelReadIndication(bleEvtContainer_t *container)
+\brief	TX power level for an active connection has been read
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventTxPowerLevelReadIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventTxPowerLevelReadIndication_t *evt = &(container->Data.GAPConnectionEventTxPowerLevelReadIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventPowerReadFailureIndication(bleEvtContainer_t *container)
+\brief	Power reading could not be performed
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventPowerReadFailureIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventPowerReadFailureIndication_t *evt = &(container->Data.GAPConnectionEventPowerReadFailureIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventParameterUpdateRequestIndication(bleEvtContainer_t *container)
+\brief	A connection parameter update request has been received
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventParameterUpdateRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventParameterUpdateRequestIndication_t *evt = &(container->Data.GAPConnectionEventParameterUpdateRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventParameterUpdateCompleteIndication(bleEvtContainer_t *container)
+\brief	The connection has new parameters
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventParameterUpdateCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventParameterUpdateCompleteIndication_t *evt = &(container->Data.GAPConnectionEventParameterUpdateCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventLeDataLengthChangedIndication(bleEvtContainer_t *container)
+\brief	The new TX/RX Data Length paramaters
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventLeDataLengthChangedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventLeDataLengthChangedIndication_t *evt = &(container->Data.GAPConnectionEventLeDataLengthChangedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventLeSetDataLengthFailedIndication(bleEvtContainer_t *container)
+\brief	Failure indication for Set Data Length command
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventLeSetDataLengthFailedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventLeSetDataLengthFailedIndication_t *evt = &(container->Data.GAPConnectionEventLeSetDataLengthFailedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventLeScOobDataRequestIndication(bleEvtContainer_t *container)
+\brief	Event sent to request LE SC OOB Data (r, Cr and Addr) received from a peer
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventLeScOobDataRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventLeScOobDataRequestIndication_t *evt = &(container->Data.GAPConnectionEventLeScOobDataRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventLeScDisplayNumericValueIndication(bleEvtContainer_t *container)
+\brief	Event sent to display and confirm a Numeric Comparison Value when using the LE SC Numeric Comparison pairing method
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventLeScDisplayNumericValueIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventLeScDisplayNumericValueIndication_t *evt = &(container->Data.GAPConnectionEventLeScDisplayNumericValueIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventLeScKeypressNotificationIndication(bleEvtContainer_t *container)
+\brief	Remote Keypress Notification recieved during Passkey Entry Pairing Method
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventLeScKeypressNotificationIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventLeScKeypressNotificationIndication_t *evt = &(container->Data.GAPConnectionEventLeScKeypressNotificationIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPLeScPublicKeyRegeneratedIndication(bleEvtContainer_t *container)
+\brief	The private/public key pair used for LE Secure Connections pairing has been regenerated
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPLeScPublicKeyRegeneratedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPLeScPublicKeyRegeneratedIndication_t *evt = &(container->Data.GAPLeScPublicKeyRegeneratedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventLeScLocalOobDataIndication(bleEvtContainer_t *container)
+\brief	Local OOB data used for LE Secure Connections pairing
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventLeScLocalOobDataIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventLeScLocalOobDataIndication_t *evt = &(container->Data.GAPGenericEventLeScLocalOobDataIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventHostPrivacyStateChangedIndication(bleEvtContainer_t *container)
+\brief	The Host Privacy was enabled or disabled
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventHostPrivacyStateChangedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventHostPrivacyStateChangedIndication_t *evt = &(container->Data.GAPGenericEventHostPrivacyStateChangedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventControllerPrivacyStateChangedIndication(bleEvtContainer_t *container)
+\brief	The Controller Privacy was enabled or disabled
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventControllerPrivacyStateChangedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventControllerPrivacyStateChangedIndication_t *evt = &(container->Data.GAPGenericEventControllerPrivacyStateChangedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventTxPowerLevelSetCompleteIndication(bleEvtContainer_t *container)
+\brief	Tx Power Level set completed.
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventTxPowerLevelSetCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventTxPowerLevelSetCompleteIndication_t *evt = &(container->Data.GAPGenericEventTxPowerLevelSetCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventLePhyEventIndication(bleEvtContainer_t *container)
+\brief	Phy Mode of a connection has been updated by the Controller.
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventLePhyEventIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventLePhyEventIndication_t *evt = &(container->Data.GAPGenericEventLePhyEventIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGetBondedDevicesIdentityInformationIndication(bleEvtContainer_t *container)
+\brief	Returns a list of the identity information of bonded devices
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGetBondedDevicesIdentityInformationIndication(bleEvtContainer_t *container)
+{
+	GAPGetBondedDevicesIdentityInformationIndication_t *evt = &(container->Data.GAPGetBondedDevicesIdentityInformationIndication);
+
+	for (uint32_t i = 0; i < evt->NbOfDeviceIdentityAddresses; i++)
+	{
+
+
+	}
+
+	if (evt->NbOfDeviceIdentityAddresses > 0)
+	{
+		MEM_BufferFree(evt->IdentityAddresses);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPControllerNotificationIndication(bleEvtContainer_t *container)
+\brief	ADV/SCAN/CONN notification event from the controller
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPControllerNotificationIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPControllerNotificationIndication_t *evt = &(container->Data.GAPControllerNotificationIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPBondCreatedIndication(bleEvtContainer_t *container)
+\brief	A bond has been created by the stack or the application
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPBondCreatedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPBondCreatedIndication_t *evt = &(container->Data.GAPBondCreatedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventChannelMapSetIndication(bleEvtContainer_t *container)
+\brief	A channel map set operation has completed
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventChannelMapSetIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventChannelMapSetIndication_t *evt = &(container->Data.GAPGenericEventChannelMapSetIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventChannelMapReadIndication(bleEvtContainer_t *container)
+\brief	A channel map read operation has completed
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventChannelMapReadIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventChannelMapReadIndication_t *evt = &(container->Data.GAPConnectionEventChannelMapReadIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventChannelMapReadFailureIndication(bleEvtContainer_t *container)
+\brief	A channel map set operation has failed
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventChannelMapReadFailureIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventChannelMapReadFailureIndication_t *evt = &(container->Data.GAPConnectionEventChannelMapReadFailureIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventExtAdvertisingParamSetupCompleteIndication(bleEvtContainer_t *container)
+\brief	Extended advertising parameters setup completed
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventExtAdvertisingParamSetupCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventExtAdvertisingParamSetupCompleteIndication_t *evt = &(container->Data.GAPGenericEventExtAdvertisingParamSetupCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventExtAdvertisingDataSetupCompleteIndication(bleEvtContainer_t *container)
+\brief	Extended advertising data setup completed
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventExtAdvertisingDataSetupCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventExtAdvertisingDataSetupCompleteIndication_t *evt = &(container->Data.GAPGenericEventExtAdvertisingDataSetupCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventPeriodicAdvParamSetupCompleteIndication(bleEvtContainer_t *container)
+\brief	Periodic advertising parameters setup completed
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventPeriodicAdvParamSetupCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventPeriodicAdvParamSetupCompleteIndication_t *evt = &(container->Data.GAPGenericEventPeriodicAdvParamSetupCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventPeriodicAdvDataSetupCompleteIndication(bleEvtContainer_t *container)
+\brief	Periodic advertising data setup completed
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventPeriodicAdvDataSetupCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventPeriodicAdvDataSetupCompleteIndication_t *evt = &(container->Data.GAPGenericEventPeriodicAdvDataSetupCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventPeriodicAdvListUpdateCompleteIndication(bleEvtContainer_t *container)
+\brief	An update to the periodic advertiser list was successfully made
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventPeriodicAdvListUpdateCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventPeriodicAdvListUpdateCompleteIndication_t *evt = &(container->Data.GAPGenericEventPeriodicAdvListUpdateCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPAdvertisingEventExtAdvertisingStateChangedIndication(bleEvtContainer_t *container)
+\brief	Controller event - extended advertising state changed indication
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPAdvertisingEventExtAdvertisingStateChangedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPAdvertisingEventExtAdvertisingStateChangedIndication_t *evt = &(container->Data.GAPAdvertisingEventExtAdvertisingStateChangedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPAdvertisingEventAdvertisingSetTerminatedIndication(bleEvtContainer_t *container)
+\brief	Controller event - advertising was terminated in a given advertising set
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPAdvertisingEventAdvertisingSetTerminatedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPAdvertisingEventAdvertisingSetTerminatedIndication_t *evt = &(container->Data.GAPAdvertisingEventAdvertisingSetTerminatedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPAdvertisingEventExtAdvertisingSetRemoveCompletedIndication(bleEvtContainer_t *container)
+\brief	Controller event - advertising set(s) removed successfully from the controller
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPAdvertisingEventExtAdvertisingSetRemoveCompletedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPAdvertisingEventExtAdvertisingSetRemoveCompletedIndication_t *evt = &(container->Data.GAPAdvertisingEventExtAdvertisingSetRemoveCompletedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPAdvertisingEventExtScanReqReceivedIndication(bleEvtContainer_t *container)
+\brief	Controller event - a SCAN_REQ PDU or an AUX_SCAN_REQ PDU has been received
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPAdvertisingEventExtScanReqReceivedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPAdvertisingEventExtScanReqReceivedIndication_t *evt = &(container->Data.GAPAdvertisingEventExtScanReqReceivedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventPeriodicAdvertisingStateChangedIndication(bleEvtContainer_t *container)
+\brief	Controller event - Periodic advertising state changed indication
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventPeriodicAdvertisingStateChangedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventPeriodicAdvertisingStateChangedIndication_t *evt = &(container->Data.GAPGenericEventPeriodicAdvertisingStateChangedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPScanningEventExtDeviceScannedIndication(bleEvtContainer_t *container)
+\brief	Event received when an extended advertising device has been scanned
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPScanningEventExtDeviceScannedIndication(bleEvtContainer_t *container)
+{
+	GAPScanningEventExtDeviceScannedIndication_t *evt = &(container->Data.GAPScanningEventExtDeviceScannedIndication);
+
+
+
+	if (evt->DataLength > 0)
+	{
+		MEM_BufferFree(evt->Data);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPScanningEventPeriodicAdvSyncEstablishedIndication(bleEvtContainer_t *container)
+\brief	Controller event - periodic advertising sync established indication
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPScanningEventPeriodicAdvSyncEstablishedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPScanningEventPeriodicAdvSyncEstablishedIndication_t *evt = &(container->Data.GAPScanningEventPeriodicAdvSyncEstablishedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPScanningEventPeriodicAdvSyncTerminatedIndication(bleEvtContainer_t *container)
+\brief	Controller event - the controller stopped receiving periodic advertisements
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPScanningEventPeriodicAdvSyncTerminatedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPScanningEventPeriodicAdvSyncTerminatedIndication_t *evt = &(container->Data.GAPScanningEventPeriodicAdvSyncTerminatedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPScanningEventPeriodicAdvSyncLostIndication(bleEvtContainer_t *container)
+\brief	Controller event - the controller has not received a periodic advertising packet identified by the handle within the timeout period
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPScanningEventPeriodicAdvSyncLostIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPScanningEventPeriodicAdvSyncLostIndication_t *evt = &(container->Data.GAPScanningEventPeriodicAdvSyncLostIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPScanningEventPeriodicDeviceScannedIndication(bleEvtContainer_t *container)
+\brief	Event received when periodic advertising has been received
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPScanningEventPeriodicDeviceScannedIndication(bleEvtContainer_t *container)
+{
+	GAPScanningEventPeriodicDeviceScannedIndication_t *evt = &(container->Data.GAPScanningEventPeriodicDeviceScannedIndication);
+
+	if (evt->DataLength > 0)
+	{
+		MEM_BufferFree(evt->Data);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventPeriodicAdvCreateSyncCancelledIndication(bleEvtContainer_t *container)
+\brief	Controller event - periodic advertising create sync procedure canceled
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventPeriodicAdvCreateSyncCancelledIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventPeriodicAdvCreateSyncCancelledIndication_t *evt = &(container->Data.GAPGenericEventPeriodicAdvCreateSyncCancelledIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventChannelSelectionAlgorithm2Indication(bleEvtContainer_t *container)
+\brief	LE Channel Selection Algorithm #2 is used on the data channel connection
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventChannelSelectionAlgorithm2Indication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventChannelSelectionAlgorithm2Indication_t *evt = &(container->Data.GAPConnectionEventChannelSelectionAlgorithm2Indication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventTxEntryAvailableIndication(bleEvtContainer_t *container)
+\brief	At least one Tx entry is available in the L2CAP queue
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventTxEntryAvailableIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventTxEntryAvailableIndication_t *evt = &(container->Data.GAPGenericEventTxEntryAvailableIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventControllerLocalRPAReadIndication(bleEvtContainer_t *container)
+\brief	Controller event - local resolvable private address read
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventControllerLocalRPAReadIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventControllerLocalRPAReadIndication_t *evt = &(container->Data.GAPGenericEventControllerLocalRPAReadIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPCheckNvmIndexIndication(bleEvtContainer_t *container)
+\brief	Returns whether an NVM index is free or not
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPCheckNvmIndexIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPCheckNvmIndexIndication_t *evt = &(container->Data.GAPCheckNvmIndexIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGetDeviceIdFromConnHandleIndication(bleEvtContainer_t *container)
+\brief	Returns the device id corresponding to a connection handle
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGetDeviceIdFromConnHandleIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGetDeviceIdFromConnHandleIndication_t *evt = &(container->Data.GAPGetDeviceIdFromConnHandleIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGetConnectionHandleFromDeviceIdIndication(bleEvtContainer_t *container)
+\brief	Returns the connection handle corresponding to a device id
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGetConnectionHandleFromDeviceIdIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGetConnectionHandleFromDeviceIdIndication_t *evt = &(container->Data.GAPGetConnectionHandleFromDeviceIdIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPPairingEventNoLTKIndication(bleEvtContainer_t *container)
+\brief	No LTK was found for the Master peer
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPPairingEventNoLTKIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPPairingEventNoLTKIndication_t *evt = &(container->Data.GAPPairingEventNoLTKIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPPairingAlreadyStartedIndication(bleEvtContainer_t *container)
+\brief	Pairing was already started on this device ID
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPPairingAlreadyStartedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPPairingAlreadyStartedIndication_t *evt = &(container->Data.GAPPairingAlreadyStartedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventConnectionlessCteTransmitParamsSetupCompleteIndication(bleEvtContainer_t *container)
+\brief	Connectionless CTE transmit parameters have been successfully set
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventConnectionlessCteTransmitParamsSetupCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventConnectionlessCteTransmitParamsSetupCompleteIndication_t *evt = &(container->Data.GAPGenericEventConnectionlessCteTransmitParamsSetupCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventConnectionlessCteTransmitStateChangedIndication(bleEvtContainer_t *container)
+\brief	Connectionless CTE for an advertising set was enabled or disabled
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventConnectionlessCteTransmitStateChangedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventConnectionlessCteTransmitStateChangedIndication_t *evt = &(container->Data.GAPGenericEventConnectionlessCteTransmitStateChangedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventConnectionlessIqSamplingStateChangedIndication(bleEvtContainer_t *container)
+\brief	Connectionless CTE IQ sampling for an advertising train was enabled or disabled
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventConnectionlessIqSamplingStateChangedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventConnectionlessIqSamplingStateChangedIndication_t *evt = &(container->Data.GAPGenericEventConnectionlessIqSamplingStateChangedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventAntennaInformationReadIndication(bleEvtContainer_t *container)
+\brief	Antenna information was read from the controller
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventAntennaInformationReadIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventAntennaInformationReadIndication_t *evt = &(container->Data.GAPGenericEventAntennaInformationReadIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPScanningEventConnectionlessIqReportReceivedIndication(bleEvtContainer_t *container)
+\brief	IQ information from the CTE of a received advertising packet was reported
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPScanningEventConnectionlessIqReportReceivedIndication(bleEvtContainer_t *container)
+{
+	GAPScanningEventConnectionlessIqReportReceivedIndication_t *evt = &(container->Data.GAPScanningEventConnectionlessIqReportReceivedIndication);
+
+	if (evt->sampleCount > 0)
+	{
+		MEM_BufferFree(evt->I_samples);
+	}
+	
+
+	if (evt->sampleCount > 0)
+	{
+		MEM_BufferFree(evt->Q_samples);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventIqReportReceivedIndication(bleEvtContainer_t *container)
+\brief	IQ information received from a connected peer was reported
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventIqReportReceivedIndication(bleEvtContainer_t *container)
+{
+	GAPConnectionEventIqReportReceivedIndication_t *evt = &(container->Data.GAPConnectionEventIqReportReceivedIndication);
+
+	if (evt->sampleCount > 0)
+	{
+		MEM_BufferFree(evt->I_samples);
+	}
+	
+
+	if (evt->sampleCount > 0)
+	{
+		MEM_BufferFree(evt->Q_samples);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventCteRequestFailedIndication(bleEvtContainer_t *container)
+\brief	CTE Request to a connected peer has failed
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventCteRequestFailedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventCteRequestFailedIndication_t *evt = &(container->Data.GAPConnectionEventCteRequestFailedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventCteReceiveParamsSetupCompleteIndication(bleEvtContainer_t *container)
+\brief	Connection CTE receive parameters have been successfully set
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventCteReceiveParamsSetupCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventCteReceiveParamsSetupCompleteIndication_t *evt = &(container->Data.GAPConnectionEventCteReceiveParamsSetupCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventCteTransmitParamsSetupCompleteIndication(bleEvtContainer_t *container)
+\brief	Connection CTE transmit parameters have been successfully set
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventCteTransmitParamsSetupCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventCteTransmitParamsSetupCompleteIndication_t *evt = &(container->Data.GAPConnectionEventCteTransmitParamsSetupCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventCteReqStateChangedIndication(bleEvtContainer_t *container)
+\brief	CTE Request procedure was enabled or disabled
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventCteReqStateChangedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventCteReqStateChangedIndication_t *evt = &(container->Data.GAPConnectionEventCteReqStateChangedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventCteRspStateChangedIndication(bleEvtContainer_t *container)
+\brief	CTE Request procedure was enabled or disabled
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventCteRspStateChangedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventCteRspStateChangedIndication_t *evt = &(container->Data.GAPConnectionEventCteRspStateChangedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventPeriodicAdvRecvEnableCompleteIndication(bleEvtContainer_t *container)
+\brief	Enable or disable reports for the periodic advertising train command is complete
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventPeriodicAdvRecvEnableCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventPeriodicAdvRecvEnableCompleteIndication_t *evt = &(container->Data.GAPGenericEventPeriodicAdvRecvEnableCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventPeriodicAdvSyncTransferCompleteIndication(bleEvtContainer_t *container)
+\brief	The command used to instruct the Controller to send synchronization information about the advertising
+                train to a connected device is complete
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventPeriodicAdvSyncTransferCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventPeriodicAdvSyncTransferCompleteIndication_t *evt = &(container->Data.GAPGenericEventPeriodicAdvSyncTransferCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventPeriodicAdvSetInfoTransferCompleteIndication(bleEvtContainer_t *container)
+\brief	The command used to instruct the Controller to send synchronization information about the periodic advertising in an
+                advertising set to a connected device is complete
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventPeriodicAdvSetInfoTransferCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventPeriodicAdvSetInfoTransferCompleteIndication_t *evt = &(container->Data.GAPGenericEventPeriodicAdvSetInfoTransferCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventSetPeriodicAdvSyncTransferParamsCompleteIndication(bleEvtContainer_t *container)
+\brief	The command specifying how the Controller will process periodic advertising synchronization information is complete
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventSetPeriodicAdvSyncTransferParamsCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventSetPeriodicAdvSyncTransferParamsCompleteIndication_t *evt = &(container->Data.GAPGenericEventSetPeriodicAdvSyncTransferParamsCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventSetDefaultPeriodicAdvSyncTransferParamsCompleteIndication(bleEvtContainer_t *container)
+\brief	The command which sets the default parameters for  periodic advertising synchronization information is complete
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventSetDefaultPeriodicAdvSyncTransferParamsCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventSetDefaultPeriodicAdvSyncTransferParamsCompleteIndication_t *evt = &(container->Data.GAPGenericEventSetDefaultPeriodicAdvSyncTransferParamsCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPScanningEventPeriodicAdvSyncTransferReceivedIndication(bleEvtContainer_t *container)
+\brief	The synchronization to the periodic advertising was completed
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPScanningEventPeriodicAdvSyncTransferReceivedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPScanningEventPeriodicAdvSyncTransferReceivedIndication_t *evt = &(container->Data.GAPScanningEventPeriodicAdvSyncTransferReceivedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventPathLossThresholdIndication(bleEvtContainer_t *container)
+\brief	Path Loss Threshold event received
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventPathLossThresholdIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventPathLossThresholdIndication_t *evt = &(container->Data.GAPConnectionEventPathLossThresholdIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventTransmitPowerReportingIndication(bleEvtContainer_t *container)
+\brief	A Transmit Power Report was received
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventTransmitPowerReportingIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventTransmitPowerReportingIndication_t *evt = &(container->Data.GAPConnectionEventTransmitPowerReportingIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventEnhancedReadTransmitPowerLevelIndication(bleEvtContainer_t *container)
+\brief	Local information has been read
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventEnhancedReadTransmitPowerLevelIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventEnhancedReadTransmitPowerLevelIndication_t *evt = &(container->Data.GAPConnectionEventEnhancedReadTransmitPowerLevelIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventPathLossReportingParamsSetupCompleteIndication(bleEvtContainer_t *container)
+\brief	Path Loss Reporting parameters have been successfully set
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventPathLossReportingParamsSetupCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventPathLossReportingParamsSetupCompleteIndication_t *evt = &(container->Data.GAPConnectionEventPathLossReportingParamsSetupCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventPathLossReportingStateChangedIndication(bleEvtContainer_t *container)
+\brief	Path Loss Reporting has been enabled or disabled
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventPathLossReportingStateChangedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventPathLossReportingStateChangedIndication_t *evt = &(container->Data.GAPConnectionEventPathLossReportingStateChangedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventTransmitPowerReportingStateChangedIndication(bleEvtContainer_t *container)
+\brief	Transmit Power Reporting has been enabled or disabled for local and/or remote Controllers
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventTransmitPowerReportingStateChangedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventTransmitPowerReportingStateChangedIndication_t *evt = &(container->Data.GAPConnectionEventTransmitPowerReportingStateChangedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventEattConnectionRequestIndication(bleEvtContainer_t *container)
+\brief	GAP EATT Enhanced Connection Request event
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventEattConnectionRequestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventEattConnectionRequestIndication_t *evt = &(container->Data.GAPConnectionEventEattConnectionRequestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventEattConnectionCompleteIndication(bleEvtContainer_t *container)
+\brief	GAP EATT Enhanced Connection Complete event
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventEattConnectionCompleteIndication(bleEvtContainer_t *container)
+{
+	GAPConnectionEventEattConnectionCompleteIndication_t *evt = &(container->Data.GAPConnectionEventEattConnectionCompleteIndication);
+
+	if (evt->NoOfBearers > 0)
+	{
+		MEM_BufferFree(evt->BearerIDs);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventEattReconfigureResponseIndication(bleEvtContainer_t *container)
+\brief	GAP EATT Reconfigure Response event
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventEattReconfigureResponseIndication(bleEvtContainer_t *container)
+{
+	GAPConnectionEventEattReconfigureResponseIndication_t *evt = &(container->Data.GAPConnectionEventEattReconfigureResponseIndication);
+
+	if (evt->NoOfBearers > 0)
+	{
+		MEM_BufferFree(evt->BearerIDs);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPConnectionEventEattBearerStatusNotificationIndication(bleEvtContainer_t *container)
+\brief	GAP EATT Reconfigure Response event
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPConnectionEventEattBearerStatusNotificationIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPConnectionEventEattBearerStatusNotificationIndication_t *evt = &(container->Data.GAPConnectionEventEattBearerStatusNotificationIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventLeGenerateDhKeyCompleteIndication(bleEvtContainer_t *container)
+\brief	GAP LE DHKey generation complete event
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventLeGenerateDhKeyCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventLeGenerateDhKeyCompleteIndication_t *evt = &(container->Data.GAPGenericEventLeGenerateDhKeyCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGetHostVersionIndication(bleEvtContainer_t *container)
+\brief	Returns Host Version information
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGetHostVersionIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGetHostVersionIndication_t *evt = &(container->Data.GAPGetHostVersionIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGenericEventReadRemoteVersionInfoCompleteIndication(bleEvtContainer_t *container)
+\brief	Read Remote Version Information Complete Event
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGenericEventReadRemoteVersionInfoCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGenericEventReadRemoteVersionInfoCompleteIndication_t *evt = &(container->Data.GAPGenericEventReadRemoteVersionInfoCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPGetConnParamsIndication(bleEvtContainer_t *container)
+\brief	Get Connection Parameters Complete Event
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPGetConnParamsIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPGetConnParamsIndication_t *evt = &(container->Data.GAPGetConnParamsIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAPPlatformErrorIndication(bleEvtContainer_t *container)
+\brief	Platform error callback event
+***************************************************************************************************/
+static mem_status_t UnLoad_GAPPlatformErrorIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAPPlatformErrorIndication_t *evt = &(container->Data.GAPPlatformErrorIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+#endif  /* GAP_ENABLE */
+
+#if APP_ENABLE
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_APPThroughputTestIndication(bleEvtContainer_t *container)
+\brief	Start a throughput test
+***************************************************************************************************/
+static mem_status_t UnLoad_APPThroughputTestIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	APPThroughputTestIndication_t *evt = &(container->Data.APPThroughputTestIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_APPThroughputTestConfirm(bleEvtContainer_t *container)
+\brief	Start a throughput test
+***************************************************************************************************/
+static mem_status_t UnLoad_APPThroughputTestConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	APPThroughputTestConfirm_t *evt = &(container->Data.APPThroughputTestConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+#endif  /* APP_ENABLE */
+
+#if CS_ENABLE
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSConfirm(bleEvtContainer_t *container)
+\brief	Status of the CS request
+***************************************************************************************************/
+static mem_status_t UnLoad_CSConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	CSConfirm_t *evt = &(container->Data.CSConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSReadRemoteSupportedCapabilitiesIndication(bleEvtContainer_t *container)
+\brief	CS Read Remote Supported Capabilities Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSReadRemoteSupportedCapabilitiesIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	CSReadRemoteSupportedCapabilitiesIndication_t *evt = &(container->Data.CSReadRemoteSupportedCapabilitiesIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSReadRemoteFAETableIndication(bleEvtContainer_t *container)
+\brief	CS Read Remote FAE Table Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSReadRemoteFAETableIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	CSReadRemoteFAETableIndication_t *evt = &(container->Data.CSReadRemoteFAETableIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSSecurityEnableIndication(bleEvtContainer_t *container)
+\brief	CS Security Enable Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSSecurityEnableIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	CSSecurityEnableIndication_t *evt = &(container->Data.CSSecurityEnableIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSConfigCompleteIndication(bleEvtContainer_t *container)
+\brief	CS Config Complete Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSConfigCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	CSConfigCompleteIndication_t *evt = &(container->Data.CSConfigCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSProcedureEnableCompleteIndication(bleEvtContainer_t *container)
+\brief	CS Procedure Enable Complete Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSProcedureEnableCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	CSProcedureEnableCompleteIndication_t *evt = &(container->Data.CSProcedureEnableCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSSubeventResultIndication(bleEvtContainer_t *container)
+\brief	CS Subevent Result Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSSubeventResultIndication(bleEvtContainer_t *container)
+{
+	CSSubeventResultIndication_t *evt = &(container->Data.CSSubeventResultIndication);
+
+	if (evt->CSEventResult.DataLength > 0)
+	{
+		MEM_BufferFree(evt->CSEventResult.StepData);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSSubeventResultContinueIndication(bleEvtContainer_t *container)
+\brief	CS Subevent Result Continue Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSSubeventResultContinueIndication(bleEvtContainer_t *container)
+{
+	CSSubeventResultContinueIndication_t *evt = &(container->Data.CSSubeventResultContinueIndication);
+
+	if (evt->CSEventContinueResult.DataLength > 0)
+	{
+		MEM_BufferFree(evt->CSEventContinueResult.StepData);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSTestEndEvtIndication(bleEvtContainer_t *container)
+\brief	CS Test End Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSTestEndEvtIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	CSTestEndEvtIndication_t *evt = &(container->Data.CSTestEndEvtIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSEventResultDebugIndication(bleEvtContainer_t *container)
+\brief	CS Event Result Debug Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSEventResultDebugIndication(bleEvtContainer_t *container)
+{
+	CSEventResultDebugIndication_t *evt = &(container->Data.CSEventResultDebugIndication);
+
+	if (evt->DataLength > 0)
+	{
+		MEM_BufferFree(evt->Data);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSLEMetaErrorIndication(bleEvtContainer_t *container)
+\brief	CS Error in treating LE Meta events
+***************************************************************************************************/
+static mem_status_t UnLoad_CSLEMetaErrorIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	CSLEMetaErrorIndication_t *evt = &(container->Data.CSLEMetaErrorIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSReadLocalSupportedCapabilitiesIndication(bleEvtContainer_t *container)
+\brief	CS Read Local Supported Capabilities Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSReadLocalSupportedCapabilitiesIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	CSReadLocalSupportedCapabilitiesIndication_t *evt = &(container->Data.CSReadLocalSupportedCapabilitiesIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSSetDefaultSettingsIndication(bleEvtContainer_t *container)
+\brief	CS Set Default Settings Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSSetDefaultSettingsIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	CSSetDefaultSettingsIndication_t *evt = &(container->Data.CSSetDefaultSettingsIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSWriteRemoteFAETableIndication(bleEvtContainer_t *container)
+\brief	CS Write Remote FAE Table Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSWriteRemoteFAETableIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	CSWriteRemoteFAETableIndication_t *evt = &(container->Data.CSWriteRemoteFAETableIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSSetChannelClassificationIndication(bleEvtContainer_t *container)
+\brief	CS Set Channel Classification Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSSetChannelClassificationIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	CSSetChannelClassificationIndication_t *evt = &(container->Data.CSSetChannelClassificationIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSgCSEventTestCmdOpCodeIndication(bleEvtContainer_t *container)
+\brief	CS Test Command Complete Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSgCSEventTestCmdOpCodeIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	CSgCSEventTestCmdOpCodeIndication_t *evt = &(container->Data.CSgCSEventTestCmdOpCodeIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSgCSEventSetProcedureParamsCmdOpCodeIndication(bleEvtContainer_t *container)
+\brief	CS Set Procedure Parameters Command Complete Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSgCSEventSetProcedureParamsCmdOpCodeIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	CSgCSEventSetProcedureParamsCmdOpCodeIndication_t *evt = &(container->Data.CSgCSEventSetProcedureParamsCmdOpCodeIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSErrorIndication(bleEvtContainer_t *container)
+\brief	CS Error Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSErrorIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	CSErrorIndication_t *evt = &(container->Data.CSErrorIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSgCsEventWriteCachedRemoteCapabilitiesOpCodeIndication(bleEvtContainer_t *container)
+\brief	CS Write Cached Remote Capabilities Command Complete Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSgCsEventWriteCachedRemoteCapabilitiesOpCodeIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	CSgCsEventWriteCachedRemoteCapabilitiesOpCodeIndication_t *evt = &(container->Data.CSgCsEventWriteCachedRemoteCapabilitiesOpCodeIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_CSCommandStatusIndication(bleEvtContainer_t *container)
+\brief	CS Error Event Data
+***************************************************************************************************/
+static mem_status_t UnLoad_CSCommandStatusIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	CSCommandStatusIndication_t *evt = &(container->Data.CSCommandStatusIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+#endif  /* CS_ENABLE */
+
+#if GAPHANDOVER_ENABLE
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverConfirm(bleEvtContainer_t *container)
+\brief	Status of the GAP request
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverConfirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverConfirm_t *evt = &(container->Data.GapHandoverConfirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverGetDataSizeIndication(bleEvtContainer_t *container)
+\brief	Returns the Handover Data size for a given peer 
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverGetDataSizeIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverGetDataSizeIndication_t *evt = &(container->Data.GapHandoverGetDataSizeIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverGetCompleteIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Handover data was copied for a given peer 
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverGetCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverGetCompleteIndication_t *evt = &(container->Data.GapHandoverGetCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverSetCompleteIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Handover data was set 
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverSetCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverSetCompleteIndication_t *evt = &(container->Data.GapHandoverSetCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverGetTimeIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Timing information was received from the Link Layer 
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverGetTimeIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverGetTimeIndication_t *evt = &(container->Data.GapHandoverGetTimeIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverSuspendTransmitCompleteIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Tx for a connection was suspended 
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverSuspendTransmitCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverSuspendTransmitCompleteIndication_t *evt = &(container->Data.GapHandoverSuspendTransmitCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverResumeTransmitCompleteIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Tx for a connection was resumed 
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverResumeTransmitCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverResumeTransmitCompleteIndication_t *evt = &(container->Data.GapHandoverResumeTransmitCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverAnchorNotificationStateChangedIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Anchor notifications were enabled or disabled for a peer 
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverAnchorNotificationStateChangedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverAnchorNotificationStateChangedIndication_t *evt = &(container->Data.GapHandoverAnchorNotificationStateChangedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverAnchorSearchStartedIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Anchor search was started for a peer
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverAnchorSearchStartedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverAnchorSearchStartedIndication_t *evt = &(container->Data.GapHandoverAnchorSearchStartedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverAnchorSearchStoppedIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Anchor search was stopped for a peer
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverAnchorSearchStoppedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverAnchorSearchStoppedIndication_t *evt = &(container->Data.GapHandoverAnchorSearchStoppedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverAnchorMonitorIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Handover Anchor Monitor was received from Controller
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverAnchorMonitorIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverAnchorMonitorIndication_t *evt = &(container->Data.GapHandoverAnchorMonitorIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverAnchorMonitorPacketIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Handover Anchor Monitor Packet was received from Controller
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverAnchorMonitorPacketIndication(bleEvtContainer_t *container)
+{
+	GapHandoverAnchorMonitorPacketIndication_t *evt = &(container->Data.GapHandoverAnchorMonitorPacketIndication);
+
+	if (evt->PduSize > 0)
+	{
+		MEM_BufferFree(evt->Pdu);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverAnchorMonitorPacketContinueIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Handover Anchor Monitor Packet Continue was received from Controller
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverAnchorMonitorPacketContinueIndication(bleEvtContainer_t *container)
+{
+	GapHandoverAnchorMonitorPacketContinueIndication_t *evt = &(container->Data.GapHandoverAnchorMonitorPacketContinueIndication);
+
+	if (evt->PduSize > 0)
+	{
+		MEM_BufferFree(evt->Pdu);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverConnectedIndication(bleEvtContainer_t *container)
+\brief	Connection Event - Handover connection has been established
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverConnectedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverConnectedIndication_t *evt = &(container->Data.GapHandoverConnectedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverDisconnectedIndication(bleEvtContainer_t *container)
+\brief	Connection Event - Handover connection has been terminated
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverDisconnectedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverDisconnectedIndication_t *evt = &(container->Data.GapHandoverDisconnectedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverTimeSyncTransmitStateChangedIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Time Sync Transmit started or stopped
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverTimeSyncTransmitStateChangedIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverTimeSyncTransmitStateChangedIndication_t *evt = &(container->Data.GapHandoverTimeSyncTransmitStateChangedIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverTimeSyncReceiveCompleteIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Time Sync Receive command was successful
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverTimeSyncReceiveCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverTimeSyncReceiveCompleteIndication_t *evt = &(container->Data.GapHandoverTimeSyncReceiveCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverTimeSyncIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Handover Time Sync Event received from Controller
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverTimeSyncIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverTimeSyncIndication_t *evt = &(container->Data.GapHandoverTimeSyncIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverConnParamUpdateIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Connection Parameters Update Event received from Controller
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverConnParamUpdateIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverConnParamUpdateIndication_t *evt = &(container->Data.GapHandoverConnParamUpdateIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverUpdateConnParamsCompleteIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Update Connection Parameters command complete
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverUpdateConnParamsCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GapHandoverUpdateConnParamsCompleteIndication_t *evt = &(container->Data.GapHandoverUpdateConnParamsCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GapHandoverLlPendingDataIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Update Connection Parameters command complete
+***************************************************************************************************/
+static mem_status_t UnLoad_GapHandoverLlPendingDataIndication(bleEvtContainer_t *container)
+{
+	GapHandoverLlPendingDataIndication_t *evt = &(container->Data.GapHandoverLlPendingDataIndication);
+
+	if (evt->DataSize > 0)
+	{
+		MEM_BufferFree(evt->Data);
+	}
+	
+
+	return kStatus_MemSuccess;
+}
+
+#endif  /* GAPHANDOVER_ENABLE */
+
+#if GAP2_ENABLE
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAP2Confirm(bleEvtContainer_t *container)
+\brief	Status of the GAP request
+***************************************************************************************************/
+static mem_status_t UnLoad_GAP2Confirm(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAP2Confirm_t *evt = &(container->Data.GAP2Confirm);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAP2CtrlDebugInfoIndication(bleEvtContainer_t *container)
+\brief	Generic Event - Debug Information from the LL
+***************************************************************************************************/
+static mem_status_t UnLoad_GAP2CtrlDebugInfoIndication(bleEvtContainer_t *container)
+{
+	GAP2CtrlDebugInfoIndication_t *evt = &(container->Data.GAP2CtrlDebugInfoIndication);
+
+
+	if (evt->MaxCustErrInList > 0)
+	{
+		MEM_BufferFree(evt->ErrorList);
+	}
+	
+
+	if (evt->MaxErrInListDiff > 0)
+	{
+		MEM_BufferFree(evt->Reserved1);
+	}
+	
+
+	for (uint32_t i = 0; i < evt->MaxCustErrInList; i++)
+	{
+	}
+
+	if (evt->MaxCustErrInList > 0)
+	{
+		MEM_BufferFree(evt->ErrorDebugInfo);
+	}
+
+	if (evt->MaxCustErrInList > 0)
+	{
+		MEM_BufferFree(evt->WarningList);
+	}
+	
+
+	if (evt->MaxErrInListDiff > 0)
+	{
+		MEM_BufferFree(evt->Reserved2);
+	}
+	
+
+	for (uint32_t i = 0; i < evt->MaxCustErrInList; i++)
+	{
+	}
+
+	if (evt->MaxCustErrInList > 0)
+	{
+		MEM_BufferFree(evt->WarningDebugInfo);
+	}
+
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAP2GenericEventSetExtAdvertisingDecisionDataSetupCompleteIndication(bleEvtContainer_t *container)
+\brief	Gap_SetExtAdvertisingDecisionData Complete Event
+***************************************************************************************************/
+static mem_status_t UnLoad_GAP2GenericEventSetExtAdvertisingDecisionDataSetupCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAP2GenericEventSetExtAdvertisingDecisionDataSetupCompleteIndication_t *evt = &(container->Data.GAP2GenericEventSetExtAdvertisingDecisionDataSetupCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAP2GenericEventSetDecisionInstructionsSetupCompleteIndication(bleEvtContainer_t *container)
+\brief	Gap_SetDecisionInstructions Complete Event
+***************************************************************************************************/
+static mem_status_t UnLoad_GAP2GenericEventSetDecisionInstructionsSetupCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAP2GenericEventSetDecisionInstructionsSetupCompleteIndication_t *evt = &(container->Data.GAP2GenericEventSetDecisionInstructionsSetupCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAP2CtrlDebugInfo2Indication(bleEvtContainer_t *container)
+\brief	Generic Event - Secondary Debug Information from the LL
+***************************************************************************************************/
+static mem_status_t UnLoad_GAP2CtrlDebugInfo2Indication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAP2CtrlDebugInfo2Indication_t *evt = &(container->Data.GAP2CtrlDebugInfo2Indication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAP2EcdhP256ComputeA2BKeyIndication(bleEvtContainer_t *container)
+\brief	A2B key data
+***************************************************************************************************/
+static mem_status_t UnLoad_GAP2EcdhP256ComputeA2BKeyIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAP2EcdhP256ComputeA2BKeyIndication_t *evt = &(container->Data.GAP2EcdhP256ComputeA2BKeyIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAP2ExportA2BBlobIndication(bleEvtContainer_t *container)
+\brief	Obtain A2B encrypted key data
+***************************************************************************************************/
+static mem_status_t UnLoad_GAP2ExportA2BBlobIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAP2ExportA2BBlobIndication_t *evt = &(container->Data.GAP2ExportA2BBlobIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAP2ImportA2BBlobIndication(bleEvtContainer_t *container)
+\brief	Obtain A2B encrypted key data
+***************************************************************************************************/
+static mem_status_t UnLoad_GAP2ImportA2BBlobIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAP2ImportA2BBlobIndication_t *evt = &(container->Data.GAP2ImportA2BBlobIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAP2EcdhP256GenerateKeysIndication(bleEvtContainer_t *container)
+\brief	Obtain A2B encrypted key data
+***************************************************************************************************/
+static mem_status_t UnLoad_GAP2EcdhP256GenerateKeysIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAP2EcdhP256GenerateKeysIndication_t *evt = &(container->Data.GAP2EcdhP256GenerateKeysIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+/*!*************************************************************************************************
+\fn		static mem_status_t UnLoad_GAP2ChannelOverrideCompleteIndication(bleEvtContainer_t *container)
+\brief	Gap_LeChannelOverride Complete Event
+***************************************************************************************************/
+static mem_status_t UnLoad_GAP2ChannelOverrideCompleteIndication(bleEvtContainer_t *container)
+{
+	/* ******************************************
+
+	GAP2ChannelOverrideCompleteIndication_t *evt = &(container->Data.GAP2ChannelOverrideCompleteIndication);
+
+	****************************************** */
+	return kStatus_MemSuccess;
+}
+
+#endif  /* GAP2_ENABLE */
+
+
+void KHC_BLE_RX_UnMsgHandler(void *pData, void *param, uint8_t fsciInterface)
+{
+	if (!pData || !param)
+	{
+		return;
+	}
+
+	clientPacket_t *frame = (clientPacket_t *)pData;
+	bleEvtContainer_t *container = (bleEvtContainer_t *)param;
+	uint8_t og = frame->structured.header.opGroup;
+	uint8_t oc = frame->structured.header.opCode;
+	uint16_t id = (og << 8) + oc, i;
+
+	for (i = 0; i < sizeof(unEvtHandlerTbl) / sizeof(unEvtHandlerTbl[0]); i++)
+	{
+		if (unEvtHandlerTbl[i].id == id)
+		{
+			unEvtHandlerTbl[i].handlerFunc(container);
+			break;
+		}
+	}
+
+	/* Clear received packet */
+	MEM_BufferFree(pData);
+}
