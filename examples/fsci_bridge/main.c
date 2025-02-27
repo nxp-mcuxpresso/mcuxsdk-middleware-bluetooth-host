@@ -22,6 +22,8 @@
 #include "app_conn.h"
 #include "fsl_os_abstraction.h"
 
+#include "RNG_Interface.h"
+
 #ifdef LCE_KW47_MCXW72
 #include "app_lce_init.h"
 #endif
@@ -61,6 +63,9 @@ static void start_task(void *argument)
 
     /* Start BLE Platform related ressources such as clocks, Link layer and HCI transport to Link Layer */
     (void)APP_InitBle();
+
+    /* RNG software initialization and PRNG initial seeding (from hardware) */
+    (void)RNG_Init();
 
     /* Start LCE */
 #ifdef LCE_KW47_MCXW72
@@ -102,7 +107,10 @@ int main(void)
     
     /* Start BLE Platform related ressources such as clocks, Link layer and HCI transport to Link Layer */
     (void)APP_InitBle();
-    
+
+    /* RNG software initialization and PRNG initial seeding (from hardware) */
+    (void)RNG_Init();
+
     /* Start LCE */
 #ifdef LCE_KW47_MCXW72
     (void)APP_InitLce();

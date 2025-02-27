@@ -59,7 +59,7 @@
 
 #define gAppTaskWaitTimeout_ms_c       osaWaitForever_c
 
-#define gBdAddr_d 0x00, 0x60, 0x37, 0xC9, 0x44, 0xCB
+#define gBdAddr_d 0xCB, 0x44, 0xC9, 0x37, 0x60, 0x00
 /*! *********************************************************************************
  *     Framework Configuration
  ********************************************************************************** */

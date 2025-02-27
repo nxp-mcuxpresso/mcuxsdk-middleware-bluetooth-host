@@ -24,9 +24,7 @@
 #include "host_ble_init.h"
 #include "w_uart_application.h"
 
-#if !defined(SDK_OS_FREE_RTOS)
 #include "RNG_Interface.h"
-#endif
 #if defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)
 #include "NVM_Interface.h"
 #endif /* gAppUseNvm_d */
@@ -73,6 +71,9 @@ static void start_task(void *argument)
 
     /* Start BLE Platform related ressources such as clocks, Link layer and HCI transport to Link Layer */
     (void)APP_InitBle();
+
+    /* RNG software initialization and PRNG initial seeding (from hardware) */
+    (void)RNG_Init();
 
 #if (defined gFsciOverRpmsgBridge_c) && (gFsciOverRpmsgBridge_c > 0U)
     BluetoothLEHost_AppInitController();
@@ -144,6 +145,9 @@ int main(void)
 
     /* Start BLE Platform related ressources such as clocks, Link layer and HCI transport to Link Layer */
     (void)APP_InitBle();
+
+    /* RNG software initialization and PRNG initial seeding (from hardware) */
+    (void)RNG_Init();
 
     /* Initialize shell */
     Shell_Init();

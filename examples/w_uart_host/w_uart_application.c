@@ -318,7 +318,6 @@ uint8_t uuid_uart_stream[16] = {0xE0, 0x1C, 0x4B, 0x5E, 0x1E, 0xEB, 0xA1, 0x5C, 
 
 static bool_t mScanningOn = FALSE;
 static bool_t mInitiatingConnection = FALSE;
-static uint64_t mSupportedFeatures;
 
 /* wireless uart write handle */
 static SERIAL_MANAGER_WRITE_HANDLE_DEFINE(s_writeHandle);
@@ -334,6 +333,9 @@ static bool_t mPeerWasBonded = FALSE;
 #endif /* gAppUsePairing_d */
 
 static bool_t mGattCallbacksInitialized = FALSE;
+
+/* This is the last device id used to indetify the last request GATT Get MTU */
+static deviceId_t mLastGetMtuDeviceId = gInvalidDeviceId_c;
 /************************************************************************************
 *************************************************************************************
 * Private prototypes
@@ -413,12 +415,19 @@ void BleApp_EventCallback
 )
 {
     deviceId_t deviceId = gInvalidDeviceId_c;
+    uint16_t tempMtu = 0;
+    union
+    {
+        uint8_t     *pUuidArray;
+        bleUuid_t   *pUuidObj;
+    } temp; /* MISRA rule 11.3 */
+
+    temp.pUuidArray = uuid_service_wireless_uart;
 
     switch (pMsg->id)
     {
         case GAPGenericEventInitializationCompleteIndication_FSCI_ID:
         {
-            mSupportedFeatures = pMsg->Data.GAPGenericEventInitializationCompleteIndication.SupportedFeatures;
             BleApp_GenericEvtInitCompleteHandler();
         }
         break;
@@ -489,7 +498,9 @@ void BleApp_EventCallback
                             &pMsg->Data.GAPScanningEventDeviceScannedIndication.Address,
                             gcBleDeviceAddressSize_c);
                 gConnReqParams.peerAddressType = (GAPConnectRequest_PeerAddressType_t)pMsg->Data.GAPScanningEventDeviceScannedIndication.AddressType;
+#if gAppUsePrivacy_d
                 gConnReqParams.usePeerIdentityAddress = pMsg->Data.GAPScanningEventDeviceScannedIndication.advertisingAddressResolved;
+#endif
                 GAPStopScanningRequest(gFsciInterface_c);
             }
         }
@@ -531,36 +542,27 @@ void BleApp_EventCallback
                 GAPConnectionEventConnectedIndication_connectionRole_gBleLlConnectionCentral_c)
             {
                 Serial_Print(" as central.\n\r", gAllowToBlock_d);
-#if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
-#if (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
-                /* Check if the peer was previously bonded */
-                GAPCheckIfBondedRequest_t req;
-                req.DeviceId = pMsg->Data.GAPConnectionEventConnectedIndication.DeviceId;
-                mLastUsedPeerDeviceId = req.DeviceId;
-                (void)GAPCheckIfBondedRequest(&req, gFsciInterface_c);
-#endif /* gAppUseBonding_d*/
-#endif /* gAppUsePairing_d */
             }
             else
             {
                 Serial_Print(" as peripheral.\n\r", gAllowToBlock_d);
-#if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
-#if (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
-                mDataLengthChangeLocallyInitiated = TRUE;
-#endif
-#endif
-                GapUpdateLeDataLengthRequest_t req;
-                bool_t codedPhySupported = (mSupportedFeatures & (uint32_t)gLeCodedPhy_c) != 0U;
-
-                req.DeviceId = pMsg->Data.GAPConnectionEventConnectedIndication.DeviceId;
-                req.TxOctets = gBleMaxTxOctets_c;
-                req.TxTime = codedPhySupported ? gBleMaxTxTimeCodedPhy_c : gBleMaxTxTime_c;
-                GapUpdateLeDataLengthRequest(&req, gFsciInterface_c);
             }
+
+            mAppUartNewLine = TRUE;
+
             BleServDisc_RegisterCallback(BleApp_ServiceDiscoveryCallback);
 
+#if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U) && \
+     defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
+            /* Check if the peer was previously bonded */
+            GAPCheckIfBondedRequest_t req;
+            req.DeviceId = pMsg->Data.GAPConnectionEventConnectedIndication.DeviceId;
+            mLastUsedPeerDeviceId = req.DeviceId;
+            (void)GAPCheckIfBondedRequest(&req, gFsciInterface_c);
+#else /* gAppUsePairing_d && gAppUseBonding_d*/
             /* run the state machine */
             BleApp_StateMachineHandler(deviceId, mAppEvt_PeerConnected_c);
+#endif /* gAppUsePairing_d && gAppUseBonding_d*/
         }
         break;
 
@@ -615,18 +617,26 @@ void BleApp_EventCallback
 
         case GATTClientProcedureExchangeMtuIndication_FSCI_ID:
         {
-#if (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
-            if ((mGapRole == gGapCentral_c) && (mPeerWasBonded == TRUE))
-            {
-                /* Encrypt Link */
-                GAPEncryptLinkRequest_t req;
-                req.DeviceId = mLastUsedPeerDeviceId;
-                (void)GAPEncryptLinkRequest(&req, gFsciInterface_c);
-            }
-#endif
             BleApp_StateMachineHandler(pMsg->Data.GATTClientProcedureExchangeMtuIndication.DeviceId,
                                        mAppEvt_GattProcComplete_c);
 
+        }
+        break;
+
+        case GATTGetMtuIndication_FSCI_ID:
+        {
+            tempMtu = pMsg->Data.GATTGetMtuIndication.Mtu;
+            tempMtu = gAttMaxWriteDataSize_d(tempMtu);
+
+            mAppUartBufferSize = mAppUartBufferSize <= tempMtu ? mAppUartBufferSize : tempMtu;
+
+            /* Moving to Service Discovery State*/
+            maPeerInformation[mLastGetMtuDeviceId].appState = mAppServiceDisc_c;
+
+            /* Start Service Discovery*/
+            (void)BleServDisc_FindService(mLastGetMtuDeviceId,
+                                          gBleUuidType128_c,
+                                          temp.pUuidObj);
         }
         break;
 
@@ -646,15 +656,31 @@ void BleApp_EventCallback
                                 gcBleDeviceAddressSize_c);
                     GAPAddDeviceToFilterAcceptListRequest(&req, gFsciInterface_c);
                 }
-                Serial_Print("\n\rPairing successful.\n\r", gAllowToBlock_d);
                 BleApp_StateMachineHandler(pMsg->Data.GAPConnectionEventPairingCompleteIndication.DeviceId,
                                            mAppEvt_PairingComplete_c);
             }
-            else
+        }
+        break;
+
+        case GAPConnectionEventAuthenticationRejectedIndication_FSCI_ID:
+        {
+            if (mGapRole == gGapCentral_c)
             {
-                Serial_Print("\n\rPairing failed with reason: ", gAllowToBlock_d);
-                Serial_PrintDec(pMsg->Data.GAPConnectionEventPairingCompleteIndication.PairingData.PairingFailed_FailReason);
-                Serial_Print("\n\r", gAllowToBlock_d);
+                /* Start Pairing Procedure 
+                 * peripheral could have lost the bond */
+                GAPPairRequest_t req;
+                req.DeviceId = pMsg->Data.GAPConnectionEventPeripheralSecurityRequestIndication.DeviceId;
+                req.PairingParameters.WithBonding = gPairingParameters.withBonding;
+                req.PairingParameters.SecurityModeAndLevel = GAPPairRequest_PairingParameters_SecurityModeAndLevel_gMode1Level3_c;
+                req.PairingParameters.MaxEncryptionKeySize = mcEncryptionKeySize_c;
+                req.PairingParameters.LocalIoCapabilities = GAPPairRequest_PairingParameters_LocalIoCapabilities_gIoKeyboardDisplay_c;
+                req.PairingParameters.OobAvailable = gPairingParameters.oobAvailable;
+                req.PairingParameters.CentralKeys = gPairingParameters.centralKeys;
+                req.PairingParameters.PeripheralKeys = gPairingParameters.peripheralKeys;
+                req.PairingParameters.LeSecureConnectionSupported = gPairingParameters.leSecureConnectionSupported;
+                req.PairingParameters.UseKeypressNotifications = gPairingParameters.useKeypressNotifications;
+
+                (void)GAPPairRequest(&req, gFsciInterface_c);
             }
         }
         break;
@@ -731,7 +757,15 @@ void BleApp_EventCallback
                             pMsg->Data.GAPLoadCustomPeerInformationIndication.InfoSize);
             }
 
-            BleApp_StateMachineHandler(mLastUsedPeerDeviceId, mAppEvt_PeerConnected_c);
+#if (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
+            if ((mGapRole == gGapCentral_c) && (mPeerWasBonded == TRUE))
+            {
+                /* Encrypt Link */
+                GAPEncryptLinkRequest_t req;
+                req.DeviceId = mLastUsedPeerDeviceId;
+                (void)GAPEncryptLinkRequest(&req, gFsciInterface_c);
+            }
+#endif
         }
         break;
 
@@ -739,12 +773,7 @@ void BleApp_EventCallback
         {
             if (pMsg->Data.GAPConnectionEventEncryptionChangedIndication.NewEncryptionState == TRUE)
             {
-                Serial_Print("\n\rLink encrypted successfully. \n\r", gAllowToBlock_d);
-                BleApp_StateMachineHandler(pMsg->Data.GAPConnectionEventEncryptionChangedIndication.DeviceId, mAppEvt_EncryptionComplete_c);
-            }
-            else
-            {
-                Serial_Print("\n\rLink encryption failed. \n\r", gAllowToBlock_d);
+                BleApp_StateMachineHandler(pMsg->Data.GAPConnectionEventEncryptionChangedIndication.DeviceId, mAppEvt_PeerConnected_c);
             }
         }
         break;
@@ -773,6 +802,68 @@ void BleApp_EventCallback
             /* deviceId is at the same position in the union */
             deviceId = pMsg->Data.GATTClientProcedureDiscoverAllPrimaryServicesIndication.DeviceId;
             BleApp_StateMachineHandler(deviceId, mAppEvt_GattProcComplete_c);
+        }
+        break;
+
+        case GATTClientProcedureWriteCharacteristicValueIndication_FSCI_ID:
+        {
+            /* deviceId is at the same position in the union */
+            if ((pMsg->Data.GATTClientProcedureWriteCharacteristicValueIndication.ProcedureResult == 
+                 GATTClientProcedureWriteCharacteristicValueIndication_ProcedureResult_gProcedureError_c) &&
+                (pMsg->Data.GATTClientProcedureWriteCharacteristicValueIndication.Error == 
+                 GATTClientProcedureWriteCharacteristicValueIndication_Error_gGattConnectionSecurityRequirementsNotMet_c)
+                )
+            {
+#if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
+                deviceId = pMsg->Data.GATTClientProcedureWriteCharacteristicValueIndication.DeviceId;
+
+                if (mGapRole == gGapCentral_c)
+                {
+                    /* Start Pairing Procedure in central role
+                     * local bond could be lost */
+                    GAPPairRequest_t req;
+                    req.DeviceId = deviceId;
+                    req.PairingParameters.WithBonding = gPairingParameters.withBonding;
+                    req.PairingParameters.SecurityModeAndLevel = GAPPairRequest_PairingParameters_SecurityModeAndLevel_gMode1Level3_c;
+                    req.PairingParameters.MaxEncryptionKeySize = mcEncryptionKeySize_c;
+                    req.PairingParameters.LocalIoCapabilities = GAPPairRequest_PairingParameters_LocalIoCapabilities_gIoKeyboardDisplay_c;
+                    req.PairingParameters.OobAvailable = gPairingParameters.oobAvailable;
+                    req.PairingParameters.CentralKeys = gPairingParameters.centralKeys;
+                    req.PairingParameters.PeripheralKeys = gPairingParameters.peripheralKeys;
+                    req.PairingParameters.LeSecureConnectionSupported = gPairingParameters.leSecureConnectionSupported;
+                    req.PairingParameters.UseKeypressNotifications = gPairingParameters.useKeypressNotifications;
+
+                    (void)GAPPairRequest(&req, gFsciInterface_c);
+                }
+                else if (mGapRole == gGapPeripheral_c)
+                {
+                    /* Send Security Request in peripheral role
+                     * peer bond could be lost */
+                    GAPSendPeripheralSecurityRequestRequest_t req;
+                    req.DeviceId = deviceId;
+                    req.PairingParameters.WithBonding = gPairingParameters.withBonding;
+                    req.PairingParameters.SecurityModeAndLevel = GAPSendPeripheralSecurityRequestRequest_PairingParameters_SecurityModeAndLevel_gMode1Level3_c;
+                    req.PairingParameters.MaxEncryptionKeySize = gPairingParameters.maxEncryptionKeySize;
+                    req.PairingParameters.LocalIoCapabilities =
+                      GAPSendPeripheralSecurityRequestRequest_PairingParameters_LocalIoCapabilities_gIoDisplayOnly_c;
+                    req.PairingParameters.OobAvailable = gPairingParameters.oobAvailable;
+                    req.PairingParameters.CentralKeys = gPairingParameters.centralKeys;
+                    req.PairingParameters.PeripheralKeys = gPairingParameters.peripheralKeys;
+                    req.PairingParameters.LeSecureConnectionSupported = FALSE;
+                    req.PairingParameters.UseKeypressNotifications = FALSE;
+
+                    (void)GAPSendPeripheralSecurityRequestRequest(&req, gFsciInterface_c);
+                }
+                else
+                {
+                    /* No action required */
+                }
+#endif /* gAppUsePairing_d */
+            }
+            else
+            {
+                BleApp_StateMachineHandler(deviceId, mAppEvt_GattProcError_c);
+            }
         }
         break;
 
@@ -814,6 +905,10 @@ void BleApp_EventCallback
         break;
 #endif
         case GAPAdvertisingEventCommandFailedIndication_FSCI_ID:
+        {
+            panic(0, 0, 0, 0);
+        }
+        case GAPScanningEventCommandFailedIndication_FSCI_ID:
         {
             panic(0, 0, 0, 0);
         }
@@ -910,7 +1005,8 @@ void BleApp_StateMachineHandler
         {
         case mAppIdle_c:
         {
-            if (event == mAppEvt_PeerConnected_c)
+            if (event == mAppEvt_PeerConnected_c ||
+                event == mAppEvt_PairingComplete_c)
             {
                 /* Let the central device initiate the Exchange MTU procedure*/
                 if (maPeerInformation[peerDeviceId].gapRole == gGapCentral_c)
@@ -924,25 +1020,13 @@ void BleApp_StateMachineHandler
                 }
                 else
                 {
-#if defined(gAppUseBonding_d) && (gAppUseBonding_d)
-                    /* Check if peer information was restored after bonding */
-                    if (maPeerInformation[peerDeviceId].clientInfo.hUartStream != gGattDbInvalidHandle_d)
-                    {
-                        /* Moving to Running State */
-                        maPeerInformation[peerDeviceId].appState = mAppRunning_c;
-                        break;
-                    }
-                    else
-#endif /* gAppUseBonding_d */
-                    {
-                        /* Moving to Service Discovery State*/
-                        maPeerInformation[peerDeviceId].appState = mAppServiceDisc_c;
+                    /* Moving to Service Discovery State*/
+                    maPeerInformation[peerDeviceId].appState = mAppServiceDisc_c;
 
-                        /* Start Service Discovery*/
-                        (void)BleServDisc_FindService(peerDeviceId,
-                                gBleUuidType128_c,
-                                temp.pUuidObj);
-                    }
+                    /* Start Service Discovery*/
+                    (void)BleServDisc_FindService(peerDeviceId,
+                                                  gBleUuidType128_c,
+                                                  temp.pUuidObj);
                 }
             }
         }
@@ -952,24 +1036,12 @@ void BleApp_StateMachineHandler
         {
             if (event == mAppEvt_GattProcComplete_c)
             {
-#if defined(gAppUseBonding_d) && (gAppUseBonding_d)
-                if (maPeerInformation[peerDeviceId].clientInfo.hUartStream != gGattDbInvalidHandle_d)
-                {
-                    /* Moving to Running State and wait for Link encryption result */
-                    maPeerInformation[peerDeviceId].appState = mAppRunning_c;
-                    break;
-                }
-                else
-#endif /* gAppUseBonding_d */
-                {
-                    /* Moving to Service Discovery State*/
-                    maPeerInformation[peerDeviceId].appState = mAppServiceDisc_c;
+                mLastGetMtuDeviceId = peerDeviceId;
 
-                    /* Start Service Discovery*/
-                    (void)BleServDisc_FindService(peerDeviceId,
-                            gBleUuidType128_c,
-                            temp.pUuidObj);
-                }
+                /* update stream length with minimum of maximum MTU's of connected devices */
+                GATTGetMtuRequest_t req;
+                req.DeviceId = peerDeviceId;
+                GATTGetMtuRequest(&req, gFsciInterface_c);
             }
             else
             {
@@ -1520,13 +1592,13 @@ static void BleApp_Start
                 /* Register GATT Callbacks and start scanning */
                 if (mGattCallbacksInitialized == FALSE)
                 {
-                 RegisterRemovableObserver(GATTConfirm_FSCI_ID,
-                                           hsdkObserverGATTClientRegisterProcedureCallback);
-                 GATTClientRegisterProcedureCallbackRequest(gFsciInterface_c);
+                    RegisterRemovableObserver(GATTConfirm_FSCI_ID,
+                                              hsdkObserverGATTClientRegisterProcedureCallback);
+                    GATTClientRegisterProcedureCallbackRequest(gFsciInterface_c);
                 }
                 else
                 {
-                 GapStartScanningRequest();
+                    GapStartScanningRequest();
                 }
             }
             break;
@@ -1546,15 +1618,15 @@ static void BleApp_Start
                 /* Register GATT Callbacks. When done set advertising parameters and data and start Advertising */
                 if (mGattCallbacksInitialized == FALSE)
                 {
-                 RegisterRemovableObserver(GATTConfirm_FSCI_ID,
-                                           hsdkObserverGATTClientRegisterProcedureCallback);
-                 GATTClientRegisterProcedureCallbackRequest(gFsciInterface_c);
+                    RegisterRemovableObserver(GATTConfirm_FSCI_ID,
+                                              hsdkObserverGATTClientRegisterProcedureCallback);
+                    GATTClientRegisterProcedureCallbackRequest(gFsciInterface_c);
                 }
                 else
                 {
-                 GAPSetAdvertisingParametersRequest_t *req = (GAPSetAdvertisingParametersRequest_t*)(&gAdvParams);
-                 /* Set advertising parameters, data and start Advertising */
-                 GAPSetAdvertisingParametersRequest(req, gFsciInterface_c);
+                    GAPSetAdvertisingParametersRequest_t *req = (GAPSetAdvertisingParametersRequest_t*)(&gAdvParams);
+                    /* Set advertising parameters, data and start Advertising */
+                    GAPSetAdvertisingParametersRequest(req, gFsciInterface_c);
                 }
             }
             break;
@@ -1615,6 +1687,7 @@ static void BleApp_StoreServiceHandles
     }
 }
 
+#if gWuart_CentralRole_c == 1
 /*! *********************************************************************************
  * \brief        Handles scanning timer callback.
  *
@@ -1630,6 +1703,7 @@ static void ScanningTimerCallback
     /* Stop scanning */
     (void)App_PostCallbackMessage(BleApp_GapStopScanningRequest, NULL);
 }
+#endif /* gWuart_CentralRole_c == 1 */
 
 /*! *********************************************************************************
 * \brief       Checks the advertising data looking for the UUIDs of the desired service.

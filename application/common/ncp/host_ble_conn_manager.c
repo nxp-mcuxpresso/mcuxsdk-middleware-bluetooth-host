@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2022-2024 NXP
+* Copyright 2022-2025 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -431,6 +431,7 @@ static void gapSmpHandler(bleEvtContainer_t* pMsg)
     {
         case GAPConnectionEventPairingCompleteIndication_FSCI_ID:
         {
+#if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
             if (pMsg->Data.GAPConnectionEventPairingCompleteIndication.PairingStatus
                 == GAPConnectionEventPairingCompleteIndication_PairingStatus_PairingSuccessful)
             {
@@ -438,9 +439,10 @@ static void gapSmpHandler(bleEvtContainer_t* pMsg)
                 {
 #if (defined(gAppUsePrivacy_d) && (gAppUsePrivacy_d == 1U))
                     mLastCheckNewBondValue = TRUE;
-#endif
+#endif /* (defined(gAppUsePrivacy_d) && (gAppUsePrivacy_d == 1U)) */
                 }
             }
+#endif /* (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U)) */
         }
         break;
 

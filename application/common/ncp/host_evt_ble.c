@@ -1,6 +1,6 @@
 /* Source file generated from BLE.xml */
 /*
- * Copyright 2024 NXP
+ * Copyright 2024-2025 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -9408,10 +9408,16 @@ static mem_status_t Load_GAPLoadKeysIndication(bleEvtContainer_t *container, uin
 	}
 
 	evt->Keys.IrkIncluded = (bool_t)pPayload[idx]; idx++;
-
+	if (evt->Keys.IrkIncluded)
+	{
+		FLib_MemCpy(evt->Keys.Irk, pPayload + idx, 16); idx += 16;
+	}
 
 	evt->Keys.CsrkIncluded = (bool_t)pPayload[idx]; idx++;
-
+	if (evt->Keys.CsrkIncluded)
+	{
+		FLib_MemCpy(evt->Keys.Csrk, pPayload + idx, 16); idx += 16;
+	}
 
 
 	if (evt->Keys.LtkIncluded)
@@ -9936,7 +9942,10 @@ static mem_status_t Load_GAPScanningEventDeviceScannedIndication(bleEvtContainer
 	FLib_MemCpy(evt->Data, pPayload + idx, evt->DataLength); idx += evt->DataLength;
 	evt->AdvEventType = (GAPScanningEventDeviceScannedIndication_AdvEventType_t)pPayload[idx]; idx++;
 	evt->DirectRpaUsed = (bool_t)pPayload[idx]; idx++;
-
+	if (evt->DirectRpaUsed)
+	{
+		FLib_MemCpy(evt->DirectRpa, pPayload + idx, 6); idx += 6;
+	}
 
 	evt->advertisingAddressResolved = (bool_t)pPayload[idx]; idx++;
 
@@ -9964,10 +9973,16 @@ static mem_status_t Load_GAPConnectionEventConnectedIndication(bleEvtContainer_t
 	evt->PeerAddressType = (GAPConnectionEventConnectedIndication_PeerAddressType_t)pPayload[idx]; idx++;
 	FLib_MemCpy(evt->PeerAddress, pPayload + idx, 6); idx += 6;
 	evt->peerRpaResolved = (bool_t)pPayload[idx]; idx++;
-
+	if (evt->peerRpaResolved)
+	{
+		FLib_MemCpy(evt->peerRpa, pPayload + idx, 6); idx += 6;
+	}
 
 	evt->localRpaUsed = (bool_t)pPayload[idx]; idx++;
-
+	if (evt->localRpaUsed)
+	{
+		FLib_MemCpy(evt->localRpa, pPayload + idx, 6); idx += 6;
+	}
 
 	evt->connectionRole = (GAPConnectionEventConnectedIndication_connectionRole_t)pPayload[idx]; idx++;
 
@@ -10141,10 +10156,16 @@ static mem_status_t Load_GAPConnectionEventKeysReceivedIndication(bleEvtContaine
 	}
 
 	evt->Keys.IrkIncluded = (bool_t)pPayload[idx]; idx++;
-
+	if (evt->Keys.IrkIncluded)
+	{
+		FLib_MemCpy(evt->Keys.Irk, pPayload + idx, 16); idx += 16;
+	}
 
 	evt->Keys.CsrkIncluded = (bool_t)pPayload[idx]; idx++;
-
+	if (evt->Keys.CsrkIncluded)
+	{
+		FLib_MemCpy(evt->Keys.Csrk, pPayload + idx, 16); idx += 16;
+	}
 
 
 	if (evt->Keys.LtkIncluded)

@@ -136,9 +136,6 @@ void BluetoothLEHost_AppInit(void)
     /* Cryptographic hardware initialization */
     SecLib_Init();
 
-    /* RNG software initialization and PRNG initial seeding (from hardware) */
-    (void)RNG_Init();
-
 #if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))
     (void)PLATFORM_EnableBleSecureKeyManagement();
 #endif
