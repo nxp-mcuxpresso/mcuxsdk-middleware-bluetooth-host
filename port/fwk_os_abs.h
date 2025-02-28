@@ -21,7 +21,7 @@ Public macros
 #define osaTaskParam_t  osa_task_param_t
 
 /*! @brief Constant to pass as timeout value in order to wait indefinitely. */
-#define osaWaitForever_c   ((uint32_t)(-1))
+#define osaWaitForever_c   ((uint32_t)(~0UL))
 
 /*==================================================================================================
 Public type definitions
