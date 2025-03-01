@@ -186,7 +186,7 @@ void App_GenericCallback
 /*! *********************************************************************************
 *\fn           void BluetoothLEHost_AppInit(void)
 *\brief        This is the initialization function for each application. This
-*              function should contain all the initialization code required by the
+*              function should contain the initialization code required by the
 *              bluetooth demo.
 *
 *\param  [in]  none.
@@ -211,6 +211,17 @@ void BluetoothLEHost_Init
 (
     appBluetoothLEInitCompleteCallback_t pCallback
 );
+
+/*! *********************************************************************************
+*\fn           void BluetoothLEHost_ResumeInit(void)
+*\brief        This is the host initialization function (initialize the Bluetooth LE
+*              stack).
+*
+*\param  [in]  none
+*
+*\retval       void.
+********************************************************************************** */
+void BluetoothLEHost_ResumeInit(void);
 
 /*! *********************************************************************************
 *\fn           void BluetoothLEHost_HandleMessages(void)

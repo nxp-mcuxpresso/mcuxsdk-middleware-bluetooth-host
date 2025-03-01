@@ -111,6 +111,23 @@ void vApplicationIdleHook(void);
 ********************************************************************************** */
 bleResult_t App_PostCallbackMessage(appCallbackHandler_t handler, appCallbackParam_t param);
 
+/*! *********************************************************************************
+*\fn            void APP_FscitransmitPayload(uint8_t OG,
+*                                                   uint8_t OC,
+*                                                   const uint8_t *pMsg,
+*                                                   uint16_t msgLen)
+*\brief         Send FSCI commands to NCP over RPMSG.
+*
+* \param[in]    OG operation Group
+* \param[in]    OC operation Code
+* \param[in]    pMsg pointer to payload
+* \param[in]    msgLen length of the payload
+* \param[in]    fsciInterface the interface on which the packet should be sent
+*
+*\retval        void
+********************************************************************************** */
+void APP_FscitransmitPayload(uint8_t OG, uint8_t OC, const uint8_t *pMsg, uint16_t msgLen);
+
 #ifdef __cplusplus
 }
 #endif

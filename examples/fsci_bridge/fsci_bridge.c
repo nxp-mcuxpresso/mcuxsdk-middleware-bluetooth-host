@@ -38,6 +38,7 @@
 #include "fwk_platform_ble.h"
 #include "RNG_Interface.h"
 #include "host_ble_init.h"
+#include "fsci_ble_types.h"
 #if defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)
 #include "NVM_Interface.h"
 #include "host_app_nvm.h"
@@ -50,7 +51,10 @@
 ************************************************************************************/
 #define APP_SERIAL_INTERFACE_ID         0
 #define mAppFsciOpcodeGroup_c           0x49    /* gFsciBleGapOpcodeGroup_c + 1 */
-
+/*! FSCI operation group for GAP */
+#define gFsciBleGapOpcodeGroup_c                    0x48U
+#define gBleCtrlWritePublicDeviceAddressOpCode_c    0x48U
+#define gBleGapCmdReadPublicDeviceAddressOpCode_c   0x25U
 /************************************************************************************
 *************************************************************************************
 * Private memory declarations
@@ -73,6 +77,7 @@ OSA_EVENT_HANDLE_DEFINE(mAppEvent);
 #if defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0)
 static void BleApp_ChangeLowPowerModeConstraints(uint8_t lpMode);
 #endif
+static void BleApp_HandleReadPublicAddress(void *pParam);
 
 /************************************************************************************
 *************************************************************************************
@@ -236,18 +241,22 @@ static void ReceiveFromNBUCallback(uint8_t packetType, uint8_t *data, uint16_t l
     {
         pSerialPacket->raw[0] = packetType;
         FLib_MemCpy(&pSerialPacket->raw[1], (uint8_t*)data, len);
+        if ((pSerialPacket->headerAndStatus.header.opGroup == gFsciBleGapOpcodeGroup_c) &&
+            (pSerialPacket->headerAndStatus.header.opCode == gBleGapCmdReadPublicDeviceAddressOpCode_c))
+        {
+            (void)MEM_BufferFree(pSerialPacket);
+            (void)App_PostCallbackMessage(BleApp_HandleReadPublicAddress, NULL);
+        }
 #if defined(gAppUseNvmOnFsciBridge_d) && (gAppUseNvmOnFsciBridge_d == 1)
-        if (pSerialPacket->headerAndStatus.header.opGroup == gFsciAppBleNvmCbOpcodeGroup_c)
+        else if (pSerialPacket->headerAndStatus.header.opGroup == gFsciAppBleNvmCbOpcodeGroup_c)
         {
             App_FsciBleNvmCbHandler(pSerialPacket, NULL, 0U);
         }
+#endif
         else
         {
             FSCI_transmitFormatedPacket(pSerialPacket, APP_SERIAL_INTERFACE_ID);
         }
-#else
-        FSCI_transmitFormatedPacket(pSerialPacket, APP_SERIAL_INTERFACE_ID);
-#endif
     }
 }
 
@@ -353,6 +362,91 @@ bleResult_t App_PostCallbackMessage
 
     return gBleSuccess_c;
 }
+
+/*! *********************************************************************************
+ *\fn           void App_SetBDAddr(void)
+ *\brief        This is used to set the Bluetooth LE Device Address on the NCP.
+ *
+ *\param  [in]  none.
+ *
+ *\retval       void.
+ ********************************************************************************** */
+void App_SetBDAddr(void)
+{
+    /* FSCI payload size is 7 (1 octet reset field and 6 octets for the address) */
+    uint32_t fsciDataSize = sizeof(uint8_t) + gcBleDeviceAddressSize_c;
+    uint8_t *pClientPacket;
+    uint8_t *pBuffer;
+    uint8_t aBdAddr[gcBleDeviceAddressSize_c] = {0U};
+
+    PLATFORM_GetBDAddr(aBdAddr);
+
+    /* Build FSCI Request */
+    pClientPacket = MEM_BufferAlloc(fsciDataSize);
+    
+    if (pClientPacket != NULL)
+    {
+        pBuffer = pClientPacket;
+        /* Add reset field (ignored) */
+        fsciBleGetBufferFromBoolValue(FALSE, pBuffer);
+        /* Add address */
+        fsciBleGetBufferFromArray(aBdAddr, pBuffer, gcBleDeviceAddressSize_c);
+        /* Send request. Group GAP,command WritePublicDeviceAddress */
+        APP_FscitransmitPayload(gFsciBleGapOpcodeGroup_c, gBleCtrlWritePublicDeviceAddressOpCode_c, (void *)pClientPacket, fsciDataSize);
+    }
+}
+
+/*! *********************************************************************************
+*\fn            void APP_FscitransmitPayload(uint8_t OG,
+*                                                   uint8_t OC,
+*                                                   const uint8_t *pMsg,
+*                                                   uint16_t msgLen)
+*\brief         Send FSCI commands to NCP over RPMSG.
+*
+* \param[in]    OG operation Group
+* \param[in]    OC operation Code
+* \param[in]    pMsg pointer to payload
+* \param[in]    msgLen length of the payload
+* \param[in]    fsciInterface the interface on which the packet should be sent
+*
+*\retval        void
+********************************************************************************** */
+void APP_FscitransmitPayload(uint8_t OG, uint8_t OC, const uint8_t *pMsg, uint16_t msgLen)
+{
+    uint8_t          *buffer_ptr = NULL;
+    uint16_t          buffer_size, index;
+    uint8_t           checksum;
+    clientPacketHdr_t header;
+    
+    /* Compute size */
+    buffer_size = sizeof(clientPacketHdr_t) + msgLen + gFsci_TailBytes_c;
+    
+    /* Allocate buffer */
+    buffer_ptr = MEM_BufferAlloc(buffer_size);
+    if (NULL != buffer_ptr)
+    {
+        /* Message header */
+        header.startMarker = 0x02U;
+        header.opGroup     = OG;
+        header.opCode      = OC;
+        header.len         = msgLen;
+        
+        /* Compute CRC for TX packet, on opcode group, opcode, payload length, and payload fields */
+        checksum = FSCI_computeChecksum((uint8_t *)&header + 1, sizeof(header) - 1u);
+        checksum ^= FSCI_computeChecksum(pMsg, msgLen);
+        
+        index = 0;
+        FLib_MemCpy(&buffer_ptr[index], &header, sizeof(header));
+        index += sizeof(header);
+        FLib_MemCpy(&buffer_ptr[index], pMsg, msgLen);
+        index += msgLen;
+        /* Store the Checksum */
+        buffer_ptr[index++] = checksum;
+
+        /* send message to Serial Manager */
+        (void)PLATFORM_SendHciMessage(buffer_ptr, index);
+    }
+}
 /************************************************************************************
 *************************************************************************************
 * Private functions
@@ -383,6 +477,20 @@ static void BleApp_ChangeLowPowerModeConstraints(uint8_t lpMode)
 #endif
 }
 #endif
+
+/*! *********************************************************************************
+*\fn            static void BleApp_HandleReadPublicAddress(void *pParam)
+*\brief         Handles Read Public Address from Core 1 application.
+*
+* \param[in]    pParam  Not used.
+*
+*\retval        void
+********************************************************************************** */
+static void BleApp_HandleReadPublicAddress(void *pParam)
+{
+    (void)pParam;
+    App_SetBDAddr();
+}
 
 /*! *********************************************************************************
 * @}

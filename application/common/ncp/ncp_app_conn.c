@@ -213,7 +213,19 @@ void BluetoothLEHost_Init
     /* BLE common part */
     mpfInitDoneCallback = pCallback;
     mpfGenericHandler = App_GenericHandler;
-    
+}
+
+/*! *********************************************************************************
+*\fn           void BluetoothLEHost_ResumeInit(void)
+*\brief        This is the host initialization function (initialize the Bluetooth LE
+*              stack).
+*
+*\param  [in]  none
+*
+*\retval       void.
+********************************************************************************** */
+void BluetoothLEHost_ResumeInit(void)
+{
 #if (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U))
     /* Init NVM */
     (void)App_NcpNvmInit();

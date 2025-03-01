@@ -199,13 +199,7 @@ static bleResult_t App_FsciBleNvmDataReq
     uint32_t nvmDataSize,
     uint8_t *pNvmData
 );
-static void APP_FscitransmitPayload
-(
-    uint8_t OG,
-    uint8_t OC,
-    const uint8_t *pMsg,
-    uint16_t msgLen
-);
+
 /************************************************************************************
 *************************************************************************************
 * Public functions
@@ -429,58 +423,6 @@ static bleResult_t App_FsciBleNvmDataReq
     }
     
     return result;
-}
-
-/*! *********************************************************************************
-*\fn            static void APP_FscitransmitPayload(uint8_t OG,
-*                                                   uint8_t OC,
-*                                                   const uint8_t *pMsg,
-*                                                   uint16_t msgLen)
-*\brief         Send FSCI NCP NVM commands to NCP over RPMSG.
-*
-* \param[in]    OG operation Group
-* \param[in]    OC operation Code
-* \param[in]    pMsg pointer to payload
-* \param[in]    msgLen length of the payload
-* \param[in]    fsciInterface the interface on which the packet should be sent
-*
-*\retval        void
-********************************************************************************** */
-static void APP_FscitransmitPayload(uint8_t OG, uint8_t OC, const uint8_t *pMsg, uint16_t msgLen)
-{
-    uint8_t          *buffer_ptr = NULL;
-    uint16_t          buffer_size, index;
-    uint8_t           checksum;
-    clientPacketHdr_t header;
-    
-    /* Compute size */
-    buffer_size = sizeof(clientPacketHdr_t) + msgLen + gFsci_TailBytes_c;
-    
-    /* Allocate buffer */
-    buffer_ptr = MEM_BufferAlloc(buffer_size);
-    if (NULL != buffer_ptr)
-    {
-        /* Message header */
-        header.startMarker = 0x02U;
-        header.opGroup     = OG;
-        header.opCode      = OC;
-        header.len         = msgLen;
-        
-        /* Compute CRC for TX packet, on opcode group, opcode, payload length, and payload fields */
-        checksum = FSCI_computeChecksum((uint8_t *)&header + 1, sizeof(header) - 1u);
-        checksum ^= FSCI_computeChecksum(pMsg, msgLen);
-        
-        index = 0;
-        FLib_MemCpy(&buffer_ptr[index], &header, sizeof(header));
-        index += sizeof(header);
-        FLib_MemCpy(&buffer_ptr[index], pMsg, msgLen);
-        index += msgLen;
-        /* Store the Checksum */
-        buffer_ptr[index++] = checksum;
-
-        /* send message to Serial Manager */
-        (void)PLATFORM_SendHciMessage(buffer_ptr, index);
-    }
 }
 
 /*! *********************************************************************************

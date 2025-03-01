@@ -121,7 +121,9 @@ static void BluetoothLEHost_Initialized(void);
 static void Hcit_RxCallBack(uint8_t packetType, uint8_t *data, uint16_t len);
 static void NBU_CheckTemperatureChange(void);
 static void NBU_Init();
-
+static void Ble_SetBDAddr(bleDeviceAddress_t bdAddr);
+static bleResult_t BleApp_ReadPublicDeviceAddress(void);
+static void BleApp_HandleWritePublicDeviceAddress(void *pParam);
 /************************************************************************************
 *************************************************************************************
 * Private memory declarations
@@ -134,6 +136,7 @@ static uint8_t mWritePktInfoIdx          = 0U;
 static uint8_t mNbrPacketInfoSkipped     = 0U; /* for debug */
 static OSA_TASK_HANDLE_DEFINE(s_startTaskHandle);
 static OSA_TASK_DEFINE(start_task, gMainThreadPriority_c, 1, gMainThreadStackSize_c, 0);
+static bool_t mAppInitInProgress = FALSE;
 
 /************************************************************************************
 *************************************************************************************
@@ -211,6 +214,11 @@ void BluetoothLEHost_AppInit(void)
 
     /* Initialize Bluetooth Host Stack */
     BluetoothLEHost_Init(BluetoothLEHost_Initialized);
+    
+    /* Bluetooth LE Host initialization postponed until the public device
+    address is set in the Controller */
+    mAppInitInProgress = TRUE;
+    (void)BleApp_ReadPublicDeviceAddress();
 }
 
 /*! *********************************************************************************
@@ -271,10 +279,9 @@ bleResult_t Hcit_PktReceived(hciPacketType_t type, void* packet, uint16_t size)
 /*! *********************************************************************************
 * \brief   This function is used to set the BD address in the Controller.
 ********************************************************************************** */
-void Ble_SetBDAddr(void)
+static void Ble_SetBDAddr(bleDeviceAddress_t bdAddr)
 {
     /* Set BD address by HCI message */
-    uint8_t bdAddr[gcBleDeviceAddressSize_c] = {gBdAddr_d};
     uint8_t aHciPacket[mHciSetMacAddrCommandLength_c + gHciCommandPacketHeaderLength_c];
     uint16_t opcode = HciCommand(gHciVendorSpecificDebugCommands_c, gHciSetMacAddrCommand_c);
 
@@ -400,7 +407,6 @@ void tx_application_define_hook(void)
 {
     (void)OSA_TaskCreate((osa_task_handle_t)s_startTaskHandle, OSA_TASK(start_task), NULL);
     NBU_Init();
-    Ble_SetBDAddr();
 }
 
 /*! *********************************************************************************
@@ -642,12 +648,24 @@ static void start_task(void *argument)
 static void Hcit_RxCallBack(uint8_t packetType, uint8_t *data, uint16_t len)
 {
     uint8_t *pPacketBuffer = MEM_BufferAlloc((uint32_t)len + 1U);
+    clientPacket_t *pFsciPacket = NULL;
 
     if (pPacketBuffer != NULL)
     {
         pPacketBuffer[0] = packetType;
         FLib_MemCpy(&pPacketBuffer[1], data, len);
-        FSCI_receivePacket(pPacketBuffer);
+        pFsciPacket = (clientPacket_t *)pPacketBuffer;
+        
+        if ((pFsciPacket->headerAndStatus.header.opGroup == gFsciBleGapOpcodeGroup_c) &&
+            (pFsciPacket->headerAndStatus.header.opCode == gBleCtrlWritePublicDeviceAddressOpCode_c))
+        {
+            /* Write public address request. Send to application for processing */
+            App_PostCallbackMessage(BleApp_HandleWritePublicDeviceAddress, pPacketBuffer);
+        }
+        else
+        {
+            FSCI_receivePacket(pPacketBuffer);
+        }
     }
 }
 
@@ -676,4 +694,73 @@ static void NBU_Init()
      * CAUTION: do not move before Controller_RadioInit */
     PLATFORM_LowPowerInit();
 #endif /* gNbuDisableLowpower_d */
+}
+
+/*! *********************************************************************************
+* \brief    Request Core 0 application to send the Public Device Address.
+********************************************************************************** */
+
+/*! *********************************************************************************
+*\private
+*\fn           static bleResult_t BleApp_ReadPublicDeviceAddress(void)
+*\brief        Request Core 0 application to send the Public Device Address.
+*
+*\param  [in]  none
+*
+*\retval       bleResult_t  gBleOutOfMemory_c in case of memory allocation failure
+*                           gBleSuccess_c otherwise.
+********************************************************************************** */
+static bleResult_t BleApp_ReadPublicDeviceAddress(void)
+{
+    bleResult_t result = gBleSuccess_c;
+    clientPacketStructured_t *pClientPacket;
+    uint32_t fsciDataSize = 0U;
+    
+    pClientPacket = fsciBleAllocFsciPacket(gFsciBleGapOpcodeGroup_c, gBleGapCmdReadPublicDeviceAddressOpCode_c, fsciDataSize);
+    
+    if (pClientPacket != NULL)
+    {
+        fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+    }
+    else
+    {
+        result = gBleOutOfMemory_c;
+    }
+    
+    return result;
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           static void BleApp_HandleWritePublicDeviceAddress(void *pParam)
+*\brief        Used to process the FSCI Write Public Device address command on the
+*              application task.
+*
+*\param  [in]  pParam   FSCI packet.
+*
+*\retval       void.
+********************************************************************************** */
+static void BleApp_HandleWritePublicDeviceAddress(void *pParam)
+{
+    clientPacket_t* pClientPacket   = (clientPacket_t*)pParam;
+    uint8_t*        pBuffer         = &pClientPacket->structured.payload[0];
+    bleDeviceAddress_t deviceAddress = {0U};
+    bool_t  reset = FALSE;
+
+    /* Reset field is ignored on Core 1 */
+    fsciBleGetBoolValueFromBuffer(reset, pBuffer);
+    (void)reset;
+
+    /* Get Device Address from buffer */
+    fsciBleGetArrayFromBuffer(deviceAddress, pBuffer, ((uint32_t)gcBleDeviceAddressSize_c));
+    /* Set address in the Controller */
+    Ble_SetBDAddr(deviceAddress);
+    (void)MEM_BufferFree(pParam);
+    
+    if (mAppInitInProgress == TRUE)
+    {
+        /* Resume application initialization */
+        mAppInitInProgress = FALSE;
+        BluetoothLEHost_ResumeInit();
+    }
 }
