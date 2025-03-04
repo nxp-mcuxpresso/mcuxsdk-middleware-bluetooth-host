@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file digital_key_service.c
 *
-* Copyright 2020-2022, 2024 NXP
+* Copyright 2020-2022, 2024-2025 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -66,14 +66,14 @@
 * \param[in]    deviceId          Peer device ID.
 * \param[in]    channelId         L2CAP channel ID.
 * \param[in]    messageType       Message type.
-* \param[in]    msgId             RS message ID (payload type).
+* \param[in]    msgId             Message ID (payload type).
 * \param[in]    length            Payload length.
 * \param[in]    pData             Pointer to buffer containing payload.
 *
 * \return       gBleSuccess_c or error.
 ************************************************************************************/
 bleResult_t DK_SendMessage(deviceId_t deviceId, uint16_t channelId, dkMessageType_t messageType,
-                           rangingMsgId_t msgId, uint16_t length, uint8_t *pData)
+                           uint8_t msgId, uint16_t length, uint8_t *pData)
 {
     bleResult_t result = gBleSuccess_c;
 
@@ -83,7 +83,7 @@ bleResult_t DK_SendMessage(deviceId_t deviceId, uint16_t channelId, dkMessageTyp
     if (NULL != l2caBuf)
     {
         l2caBuf[0] = (uint8_t)messageType;
-        l2caBuf[1] = (uint8_t)msgId;
+        l2caBuf[1] = msgId;
         Utils_BePackTwoByteValue(length, l2caBuf + gMessageHeaderSize_c + gPayloadHeaderSize_c);
         FLib_MemCpy((void*)(l2caBuf + gMessageHeaderSize_c + gPayloadHeaderSize_c + gLengthFieldSize_c), pData, length);
     }

@@ -1142,6 +1142,12 @@ STATIC void App_L2caLeControlCallback
         }
         break;
 
+        case gL2ca_ChannelStatusNotification_c:
+        {
+            messageLength = (uint8_t)sizeof(l2caLeCbChannelStatusNotification_t);
+        }
+        break;
+
         default:
         {
             messageLength = 0U;

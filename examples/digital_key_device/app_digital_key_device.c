@@ -1093,7 +1093,7 @@ static void App_HandleL2capPsmDataCallback(appEventData_t *pEventData)
     if (packetLength > (gMessageHeaderSize_c + gPayloadHeaderSize_c + gLengthFieldSize_c))
     {
         dkMessageType_t protocol = (dkMessageType_t)pPacket[0];
-        rangingMsgId_t msgId = (rangingMsgId_t)pPacket[1];
+        uint8_t msgId = pPacket[1];
         uint16_t length = 0;
         FLib_MemCpyReverseOrder(&length, &pPacket[2], gLengthFieldSize_c);
 
@@ -1101,7 +1101,7 @@ static void App_HandleL2capPsmDataCallback(appEventData_t *pEventData)
         {
             case gDKMessageTypeFrameworkMessage_c:
             {
-                if (msgId == gDkApduRQ_c)
+                if (msgId == (uint8_t)gDkApduRQ_c)
                 {
                     if (maPeerInformation[deviceId].appState == mAppCCCPhase2WaitingForRequest_c)
                     {
@@ -1131,7 +1131,7 @@ static void App_HandleL2capPsmDataCallback(appEventData_t *pEventData)
             
             case gDKMessageTypeSupplementaryServiceMessage_c:
             {
-                if ( (msgId == gFirstApproachRQ_c) || (msgId == gFirstApproachRS_c ) )
+                if ( (msgId == (uint8_t)gFirstApproachRQ_c) || (msgId == (uint8_t)gFirstApproachRS_c ) )
                 {
                     if ( packetLength == (gMessageHeaderSize_c + gPayloadHeaderSize_c + gLengthFieldSize_c + gFirstApproachReqRspPayloadLength) )
                     {
@@ -1159,7 +1159,7 @@ static void App_HandleL2capPsmDataCallback(appEventData_t *pEventData)
 
             case gDKMessageTypeDKEventNotification_c:
             {
-                if ( msgId == gDkEventNotification_c )
+                if ( msgId == (uint8_t)gDkEventNotification_c )
                 {
                     if ( packetLength == (gMessageHeaderSize_c + gPayloadHeaderSize_c + gLengthFieldSize_c + gCommandCompleteSubEventPayloadLength_c) )
                     {
@@ -1397,7 +1397,7 @@ static bleResult_t CCCPhase2_SendSPAKEResponse(deviceId_t deviceId, uint8_t *pDa
     result = DK_SendMessage(deviceId,
                             maPeerInformation[deviceId].customInfo.psmChannelId,
                             gDKMessageTypeFrameworkMessage_c,
-                            gDkApduRS_c,
+                            (uint8_t)gDkApduRS_c,
                             payloadLen,
                             payload);
     shell_write("\r\nSPAKE Response sent.\r\n");
@@ -1419,7 +1419,7 @@ static bleResult_t CCCPhase2_SendSPAKEVerify(deviceId_t deviceId, uint8_t *pData
     result = DK_SendMessage(deviceId,
                             maPeerInformation[deviceId].customInfo.psmChannelId,
                             gDKMessageTypeFrameworkMessage_c,
-                            gDkApduRS_c,
+                            (uint8_t)gDkApduRS_c,
                             payloadLen,
                             payload);
     shell_write("\r\nSPAKE Verify sent.\r\n");
@@ -1443,7 +1443,7 @@ static bleResult_t CCC_SendSubEvent(deviceId_t deviceId,
     result = DK_SendMessage(deviceId,
                             maPeerInformation[deviceId].customInfo.psmChannelId,
                             gDKMessageTypeDKEventNotification_c,
-                            gDkEventNotification_c,
+                            (uint8_t)gDkEventNotification_c,
                             gCommandCompleteSubEventPayloadLength_c,
                             payload);
 
@@ -1501,7 +1501,7 @@ static bleResult_t CCC_SendTimeSync(deviceId_t deviceId,
     result = DK_SendMessage(deviceId,
                             maPeerInformation[deviceId].customInfo.psmChannelId,
                             gDKMessageTypeSupplementaryServiceMessage_c,
-                            gTimeSync_c,
+                            (uint8_t)gTimeSync_c,
                             gTimeSyncPayloadLength_c,
                             payload);
     shell_write("\r\nTime Sync sent with UWB Device Time:");
@@ -1545,7 +1545,7 @@ static bleResult_t CCC_FirstApproachReq(deviceId_t deviceId, uint8_t* pBdAddr, g
         result = DK_SendMessage(deviceId,
                                 maPeerInformation[deviceId].customInfo.psmChannelId,
                                 gDKMessageTypeSupplementaryServiceMessage_c,
-                                gFirstApproachRQ_c,
+                                (uint8_t)gFirstApproachRQ_c,
                                 gFirstApproachReqRspPayloadLength,
                                 aPayload);
     }

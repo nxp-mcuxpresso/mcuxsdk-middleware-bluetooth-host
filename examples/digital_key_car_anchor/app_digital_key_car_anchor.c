@@ -1129,13 +1129,13 @@ static void App_HandleL2capPsmDataCallback(appEventData_t *pEventData)
     if (packetLength > (gMessageHeaderSize_c + gPayloadHeaderSize_c + gLengthFieldSize_c))
     {
         dkMessageType_t messageType = (dkMessageType_t)pPacket[0];
-        rangingMsgId_t msgId = (rangingMsgId_t)pPacket[1];
+        uint8_t msgId = pPacket[1];
 
         switch (messageType)
         {
             case gDKMessageTypeDKEventNotification_c:
             {
-                if ( msgId == gDkEventNotification_c )
+                if ( msgId == (uint8_t)gDkEventNotification_c )
                 {
                     if ( packetLength == (gMessageHeaderSize_c + gPayloadHeaderSize_c + gLengthFieldSize_c + gCommandCompleteSubEventPayloadLength_c) )
                     {
@@ -1156,7 +1156,7 @@ static void App_HandleL2capPsmDataCallback(appEventData_t *pEventData)
 
             case gDKMessageTypeSupplementaryServiceMessage_c:
             {
-                if ( msgId == gFirstApproachRQ_c )
+                if ( msgId == (uint8_t)gFirstApproachRQ_c )
                 {
                     if ( packetLength == (gMessageHeaderSize_c + gPayloadHeaderSize_c + gLengthFieldSize_c + gFirstApproachReqRspPayloadLength) )
                     {
@@ -1178,7 +1178,7 @@ static void App_HandleL2capPsmDataCallback(appEventData_t *pEventData)
                         shell_write("\r\nERROR: Invalid length for FirstApproachRQ.\r\n");
                     }
                 }
-                else if (msgId == gTimeSync_c)
+                else if (msgId == (uint8_t)gTimeSync_c)
                 {
                     shell_write("\r\nTime Sync received.\r\n");
                     shell_cmd_finished();

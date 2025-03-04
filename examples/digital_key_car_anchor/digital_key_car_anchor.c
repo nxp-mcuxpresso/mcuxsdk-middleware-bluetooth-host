@@ -801,7 +801,7 @@ bleResult_t CCCPhase2_SendSPAKERequest(deviceId_t deviceId, uint8_t *pData, uint
     result = DK_SendMessage(deviceId,
                             maPeerInformation[deviceId].customInfo.psmChannelId,
                             gDKMessageTypeFrameworkMessage_c,
-                            gDkApduRQ_c,
+                            (uint8_t)gDkApduRQ_c,
                             dataLen,
                             pData);
     
@@ -833,7 +833,7 @@ bleResult_t CCCPhase2_SendSPAKEVerify(deviceId_t deviceId, uint8_t *pData, uint1
     result = DK_SendMessage(deviceId,
                             maPeerInformation[deviceId].customInfo.psmChannelId,
                             gDKMessageTypeFrameworkMessage_c,
-                            gDkApduRQ_c,
+                            (uint8_t)gDkApduRQ_c,
                             dataLen,
                             pData);
     
@@ -879,7 +879,7 @@ bleResult_t CCC_FirstApproachRsp(deviceId_t deviceId, uint8_t* pBdAddr, gapLeScO
         result = DK_SendMessage(deviceId,
                                 maPeerInformation[deviceId].customInfo.psmChannelId,
                                 gDKMessageTypeSupplementaryServiceMessage_c,
-                                gFirstApproachRS_c,
+                                (uint8_t)gFirstApproachRS_c,
                                 gFirstApproachReqRspPayloadLength,
                                 aPayload);
     }
@@ -904,7 +904,7 @@ bleResult_t CCC_SendSubEvent(deviceId_t deviceId,
     result = DK_SendMessage(deviceId,
                             maPeerInformation[deviceId].customInfo.psmChannelId,
                             gDKMessageTypeDKEventNotification_c,
-                            gDkEventNotification_c,
+                            (uint8_t)gDkEventNotification_c,
                             gCommandCompleteSubEventPayloadLength_c,
                             payload);
 
@@ -1426,13 +1426,13 @@ static void BleApp_L2capPsmDataCallback (deviceId_t     deviceId,
         if (packetLength > (gMessageHeaderSize_c + gPayloadHeaderSize_c + gLengthFieldSize_c))
         {
             dkMessageType_t messageType = (dkMessageType_t)pPacket[0];
-            rangingMsgId_t msgId = (rangingMsgId_t)pPacket[1];
-            
+            uint8_t msgId = pPacket[1];
+
             switch (messageType)
             {
                 case gDKMessageTypeDKEventNotification_c:
                 {
-                    if ( msgId == gDkEventNotification_c )
+                    if ( msgId == (uint8_t)gDkEventNotification_c )
                     {
                         if ( packetLength == (gMessageHeaderSize_c + gPayloadHeaderSize_c + gLengthFieldSize_c + gCommandCompleteSubEventPayloadLength_c) )
                         {
@@ -1452,7 +1452,7 @@ static void BleApp_L2capPsmDataCallback (deviceId_t     deviceId,
                 
                 case gDKMessageTypeSupplementaryServiceMessage_c:
                 {
-                    if ( msgId == gFirstApproachRQ_c )
+                    if ( msgId == (uint8_t)gFirstApproachRQ_c )
                     {
                         if ( packetLength == (gMessageHeaderSize_c + gPayloadHeaderSize_c + gLengthFieldSize_c + gFirstApproachReqRspPayloadLength) )
                         {
@@ -1460,8 +1460,8 @@ static void BleApp_L2capPsmDataCallback (deviceId_t     deviceId,
                         }
                     }
                 }
-				break;
-                
+                break;
+
                 default:
                     ; /* For MISRA compliance */
                     break;

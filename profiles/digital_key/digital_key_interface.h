@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file digital_key_interface.h
 *
-* Copyright 2020-2022, 2024 NXP
+* Copyright 2020-2022, 2024-2025 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -49,9 +49,17 @@ typedef enum dkMessageType_tag {
     gDKMessageTypeDKEventNotification_c            = 0x03,
     gDKMessageTypeVehicleOEMAppMessage_c           = 0x04,
     gDKMessageTypeSupplementaryServiceMessage_c    = 0x05,
-    gDKMessageTypeHeadUnitPairingMessage_c         = 0x06
+    gDKMessageTypeHeadUnitPairingMessage_c         = 0x06,
+    gDKMessageTypeBTCSRangingServiceMessage_c      = 0x07
 } dkMessageType_t;
 
+/* Framework Message Payload Types */
+typedef enum frameworkMsgId_tag {
+    gDkApduRQ_c                      = 0x0B,
+    gDkApduRS_c                      = 0x0C,
+} frameworkMsgId_tag;
+
+/* UWB Ranging Service Payload Types */
 typedef enum rangingMsgId_tag {
     gRangingCapabilityRQ_c           = 0x01,
     gRangingCapabilityRS_c           = 0x02,
@@ -63,21 +71,36 @@ typedef enum rangingMsgId_tag {
     gRangingSuspendRS_c              = 0x08,
     gRangingRecoveryRQ_c             = 0x09,
     gRangingRecoveryRS_c             = 0x0A,
-    gDkApduRQ_c                      = 0x0B,
-    gDkApduRS_c                      = 0x0C,
-    gTimeSync_c                      = 0x0D,
-    gFirstApproachRQ_c               = 0x0E,
-    gFirstApproachRS_c               = 0x0F,
-    gPassthrough_c                   = 0x10,
-    gDkEventNotification_c           = 0x11,
-    gConfigurableRangingRecoveryRQ_c = 0x12,
-    gConfigurableRangingRecoveryRS_c = 0x13,
-    gRKEAuthRQ_c                     = 0x14,
-    gRKEAuthRS_c                     = 0x15,
-    gHeadUnitPairingPrep_c           = 0x16,
-    gHeadUnitPairingRQ_c             = 0x17,
-    gHeadUnitPairingRS_c             = 0x18
+    gConfigurableRangingRecoveryRQ_c = 0x0B,
+    gConfigurableRangingRecoveryRS_c = 0x0C,
 } rangingMsgId_t;
+
+/* DK Event Notification Payload Types */
+typedef enum dkEvtNotifMsgId_tag {
+    gDkEventNotification_c           = 0x01,
+} dkEvtNotifMsgId_t;
+
+/* Vehicle OEM App Payload Types */
+typedef enum vehicleOEMAppMsgId_tag {
+    gPassthrough_c                   = 0x01,
+} vehicleOEMAppMsgId_t;
+
+/* Supplementary Service Payload Types */
+typedef enum suplServiceMsgId_tag {
+    gTimeSync_c                      = 0x01,
+    gFirstApproachRQ_c               = 0x02,
+    gFirstApproachRS_c               = 0x03,
+    gRKEAuthRQ_c                     = 0x04,
+    gRKEAuthRS_c                     = 0x05,
+    gUWBFinalData_c                  = 0x06,
+} suplServiceMsgId_t;
+
+/* Head Unit Pairing Payload Types */
+typedef enum headUnitPairingMsgId_tag {
+    gHeadUnitPairingPrep_c           = 0x01,
+    gHeadUnitPairingRQ_c             = 0x02,
+    gHeadUnitPairingRS_c             = 0x03
+} headUnitPairingMsgId_t;
 
 typedef struct rangingMsg_tag {
     dkMessageType_t   messageHeader;
@@ -134,6 +157,80 @@ typedef enum dkSubEventHeadUnitType_tag {
     gHeadUnitPairingFail_c      = 0x01
 } dkSubEventHeadUnitType_t;
 
+#if !defined (gAppRasDataTransfer_d) || (gAppRasDataTransfer_d == 0U)
+/* BTCS Ranging Service Payload Types */
+typedef enum btcsMsgId_tag {
+    gRangingProcResStart_c          = 0x01,
+    gRangingProcResCont_c           = 0x02,
+    gRangingProcSessionCfg_c        = 0x03,
+} btcsMsgId_t;
+
+/* CSProcedureData Message Fragment Definitions */
+typedef enum btcsProcDataMsgFragm_tag {
+    gCsProcHeader_c          = 0x01,
+    gCsProcContHeader_c      = 0x02,
+    gCsSubEvtHeader_c        = 0x03,
+    gCsSubEvtContHeader_c    = 0x04,
+    gCsSubEvtData_c          = 0x05
+} btcsProcDataMsgFragm_t;
+
+/* CSProcHeader Message Fragment */
+typedef PACKED_STRUCT gCsProcHeaderData_tag {
+    uint8_t    seqNo;
+    uint8_t    configId;
+    uint8_t    antennaPathMask;
+    uint8_t    moduleId;
+} gCsProcHeaderData_t;
+
+/* CSProcContinueHeader Message Fragment */
+typedef PACKED_STRUCT gCsProcContHeaderData_tag {
+    uint8_t    seqNo;
+} gCsProcContHeaderData_t;
+
+/* CSSubEventHeader Message Fragment - Initiator Data */
+typedef PACKED_STRUCT gCsSubEvtHeaderInitData_tag {
+    uint16_t    startACLConnEvt;
+    uint8_t     procEvtDoneStatus;
+    uint8_t     abortReason;
+    uint16_t    freqCompensation;
+    uint8_t     PBRFormat;
+    int8_t      referencePowerLevel;
+    uint8_t     totalSubEvtSteps;
+    uint8_t     numStepsReported;
+    uint8_t     agc;
+    uint8_t     XTALTrim;
+    uint16_t    uncompensatedDelay;
+    uint8_t     numTimeAdj;
+} gCsSubEvtHeaderInitData_t;
+
+/* CSSubEventHeader Message Fragment - Reflector Data */
+typedef PACKED_STRUCT gCsSubEvtHeaderReflData_tag {
+    uint16_t    startACLConnEvt;
+    uint8_t     procEvtDoneStatus;
+    uint8_t     abortReason;
+    uint8_t     PBRFormat;
+    int8_t      referencePowerLevel;
+    uint8_t     totalSubEvtSteps;
+    uint8_t     numStepsReported;
+    uint8_t     agc;
+    uint8_t     XTALTrim;
+    uint16_t    uncompensatedDelay;
+    uint8_t     numTimeAdj;
+} gCsSubEvtHeaderReflData_t;
+
+/* CSSubEventContinueHeader Message Fragment */
+typedef PACKED_STRUCT gCsSubEvtContHeaderData_tag {
+    uint16_t    startACLConnEvt;
+    uint8_t     numStepsReported;
+} gCsSubEvtContHeaderData_t;
+
+/* BTCS_Ranging_Session_Config message parameters */
+typedef PACKED_STRUCT gRangingSessionCfg_tag {
+    bool_t    enableProcResTransfer;
+    uint8_t   desiredAntennaPaths;
+} gRangingSessionCfg_t;
+#endif
+
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -152,14 +249,14 @@ typedef enum dkSubEventHeadUnitType_tag {
 * \param[in]    deviceId          Peer device ID.
 * \param[in]    channelId         L2CAP channel ID.
 * \param[in]    messageType       Message type.
-* \param[in]    msgId             RS message ID (payload type).
+* \param[in]    msgId             Message ID (payload type).
 * \param[in]    length            Payload length.
 * \param[in]    pData             Pointer to buffer containing payload.
 *
 * \return       gBleSuccess_c or error.
 ************************************************************************************/
 bleResult_t DK_SendMessage(deviceId_t deviceId, uint16_t channelId, dkMessageType_t messageType,
-                           rangingMsgId_t msgId, uint16_t length, uint8_t *pData);
+                           uint8_t msgId, uint16_t length, uint8_t *pData);
 #ifdef __cplusplus
 extern "C" {
 #endif
