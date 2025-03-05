@@ -4,12 +4,12 @@ To enable or disable Privacy, the following APIs may be used:
 
 ```
 bleResult_t 
- **BleConnManager\_EnablePrivacy**(void);
+ BleConnManager_EnablePrivacy(void);
 ```
 
 ```
 bleResult_t 
- **BleConnManager\_DisablePrivacy**(void);
+ BleConnManager_DisablePrivacy(void);
       
 ```
 
@@ -17,7 +17,7 @@ The function BleConnManager\_EnablePrivacy calls *BleConnManager\_ManagePrivacyI
 
 ```
  static bleResult_t 
- **BleConnManager\_ManagePrivacyInternal**        
+ BleConnManager_ManagePrivacyInternal        
  (bool_t bCheckNewBond);
         
 ```

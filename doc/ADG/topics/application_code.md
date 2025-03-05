@@ -9,7 +9,7 @@ Before initializing the Bluetooth LE Host Stack, the start task calls *Bluetooth
 After the stack is initialized, the *BluetoothLEHost\_Initialized* callback is called. The function contains configurations made to the Bluetooth LE Host Stack after the initialization. This includes registering callbacks, setting security for services, starting services, allocating timers, adding devices to the Filter Accept List, and so on. For example, the Temperature Sensor configures the following:
 
 ```
-static void **BluetoothLEHost\_Initialized**(void)
+static void BluetoothLEHost_Initialized(void)
 {
   /* Common GAP configuration */
     BleConnManager_GapCommonConfig();
@@ -43,7 +43,7 @@ static void **BluetoothLEHost\_Initialized**(void)
 To start the application functionality, `BleApp_Start()` function is called. This function usually contains code to start advertising for sensor nodes or scanning for central devices. In the example of the Temperature Sensor, the function is the following:
 
 ```
-static void **BleApp\_Start**(void)
+static void BleApp_Start(void)
 {
     Led1On();
 

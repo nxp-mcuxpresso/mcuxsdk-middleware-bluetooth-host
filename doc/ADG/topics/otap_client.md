@@ -67,7 +67,7 @@ As noted earlier, the OTAP Client application needs to handle a lot of state inf
 To receive write notifications when the OTAP Server writes the OTAP Control Point attribute and ATT Confirmations when it indicates the OTAP Control Point attribute, the OTAP Client application must register a GATT Server callback and enable write notifications for the OTAP Control Point attribute. This is done in the *BluetoothLEHost\_Initialized\(\)* function in the *otap\_client\_att.c/otap\_client\_l2cap\_credit.c* file.
 
 ```
-**static void BluetoothLEHost\_Initialized**(void)
+static void BluetoothLEHost\_Initialized(void)
 {
     /* ... Missing code here ... */
 
@@ -81,49 +81,49 @@ To receive write notifications when the OTAP Server writes the OTAP Control Poin
 The *BleApp\_GattServerCallback\(\)* function handles all incoming communication from the OTAP Server.
 
 ```
-**static void BleApp\_GattServerCallback **(deviceId_t deviceId, gattServerEvent_t* pServerEvent)
+static void BleApp_GattServerCallback (deviceId_t deviceId, gattServerEvent_t* pServerEvent)
 {
-    **switch** (pServerEvent->eventType)
+    switch (pServerEvent->eventType)
     {
         /* ... Missing code here ... */
         
-        **case** gEvtCharacteristicCccdWritten_c:
+        case gEvtCharacteristicCccdWritten_c:
         {
             OtapClient_CccdWritten (deviceId,
                                 pServerEvent->eventData.charCccdWrittenEvent.handle,
                                 pServerEvent->eventData.charCccdWrittenEvent.newCccd);
         }
-        **break;**
+        break;
 
-       ** case** gEvtAttributeWritten_c:
+       case gEvtAttributeWritten_c:
         {
             OtapClient_AttributeWritten (deviceId,
                                      pServerEvent->eventData.attributeWrittenEvent.handle,
                                      pServerEvent->eventData.attributeWrittenEvent.cValueLength,
                                      pServerEvent->eventData.attributeWrittenEvent.aValue);
         }
-       ** break;**
+       break;
 
-        **case** gEvtAttributeWrittenWithoutResponse_c:
+        case gEvtAttributeWrittenWithoutResponse_c:
         {
             OtapClient_AttributeWrittenWithoutResponse (deviceId,
                                                     pServerEvent->eventData.attributeWrittenEvent.handle,
                                                     pServerEvent->eventData.attributeWrittenEvent.cValueLength,
                                                     pServerEvent->eventData.attributeWrittenEvent.aValue);
         }
-        **break;**
+        break;
 
-        **case **gEvtHandleValueConfirmation_c:
+        case gEvtHandleValueConfirmation_c:
         {
             OtapClient_HandleValueConfirmation (deviceId);
         }
-       ** break;**
+       break;*
 
         /* ... Missing code here ... */
         
-        **default:**
+        default:
             ; /* For MISRA compliance */
-        **break;**
+        break;
     }
 }
 ```
@@ -139,18 +139,18 @@ When an ATT Write Request is made by the OTAP Server the the *BleApp\_GattServer
 When an ATT Write Command \(GATT Write Without Response\) is sent by the OTAP Server the *BleApp\_GattServerCallback\(\)* function calls the *OtapClient\_AttributeWrittenWithoutResponse\(\)* function which handles Data Chunks if the selected transfer method is ATT and returns an error if any problems are encountered. Data chunks are handled by the *OtapClient\_HandleDataChunk\(\)* function.
 
 ```
-**static void BleApp\_AttributeWrittenWithoutResponse** (deviceId_t deviceId,
+static void BleApp_AttributeWrittenWithoutResponse (deviceId_t deviceId,
                                                                      uint16_t handle,
                                                                      uint16_t length,
                                                                      uint8_t* pValue)
 {
     /* ... Missing code here ... */
-    **if** (handle == value_otap_data)
+    f (handle == value_otap_data)
     {
         /* ... Missing code here ... */
-        **if** (otapClientData.transferMethod == gOtapTransferMethodAtt_c)
+        if (otapClientData.transferMethod == gOtapTransferMethodAtt_c)
         {
-            **if** (((otapCommand_t*)pValue)->cmdId == gOtapCmdIdImageChunk_c)
+            if (((otapCommand_t*)pValue)->cmdId == gOtapCmdIdImageChunk_c)
             {
                 OtapClient_HandleDataChunk (deviceId,
                                             length,
@@ -174,11 +174,11 @@ Finally, when an ATT Confirmation is received for a previously sent ATT Indicati
 Outgoing communication from the OTAP Client to the OTAP Server is done using the *OtapCS\_SendCommandToOtapServer\(\)* function. This function writes the value to be indicated to the OTAP Control Point attribute in the GATT database and then calls the *OtapCS\_SendControlPointIndication\(\)*which checks if indications are enabled for the target device and sends the actual ATT Indication. Both functions are implemented in the *otap\_service.c* file.
 
 ```
-bleResult_t **OtapCS\_SendCommandToOtapServer** (uint16_t serviceHandle,
+bleResult_t OtapCS_SendCommandToOtapServer (uint16_t serviceHandle,
                                             void* pCommand,
                                             uint16_t cmdLength)
 {
-    **union**
+    union
     {
         uint8_t*                uuid_char_otap_control_pointTemp;
         bleUuid_t*              bleUuidTemp;
@@ -193,31 +193,31 @@ bleResult_t **OtapCS\_SendCommandToOtapServer** (uint16_t serviceHandle,
     result = GattDb_FindCharValueHandleInService(serviceHandle,
                                                  gBleUuidType128_c, pUuid, &handle);
 
-    **if** (result == gBleSuccess_c)
+    if (result == gBleSuccess_c)
     {
         /* Write characteristic value */
         result = GattDb_WriteAttribute(handle,
                                        cmdLength,
                                        (uint8_t*)pCommand);
 
-       ** if** (result == gBleSuccess_c)
+       if (result == gBleSuccess_c)
         {
             /* Send Command to the OTAP Server via ATT Indication */
             result = OtapCS_SendControlPointIndication (handle);
         }
     }
 
-   ** return** result;
+   return result;
 }
 
-**static** bleResult_t **OtapCS\_SendControlPointIndication** (uint16_t handle)
+static bleResult_t OtapCS_SendControlPointIndication (uint16_t handle)
 {
     uint16_t     hCccd;
     bool_t       isIndicationActive;
     /* Get handle of CCCD */
     GattDb_FindCccdHandleForCharValueHandle (handle, &hCccd);
     Gap_CheckIndicationStatus (...);
-    **return** GattServer_SendIndication (...);
+    return GattServer_SendIndication (...);
 }
 ```
 
@@ -236,13 +236,13 @@ App_RegisterLeCbCallbacks(BleApp_L2capPsmDataCallback, BleApp_L2capPsmControlCal
 The control callback is used to handle L2CAP LE PSM-related events: PSM disconnections, PSM Connection Complete, No peer credits, and so on.
 
 ```
-**static void BleApp\_L2capPsmControlCallback**
+static void BleApp_L2capPsmControlCallback
              (l2capControlMessageType_t   messageType,
-              **void***   pMessage)
+              void*   pMessage)
 {
-    **switch** (messageType)
+    switch (messageType)
     {
-        **case** **gL2ca\_LePsmConnectRequest\_c:**
+        case gL2ca_LePsmConnectRequest_c:
         {
             l2caLeCbConnectionRequest_t *pConnReq =
                             (l2caLeCbConnectionRequest_t *)pMessage;
@@ -250,58 +250,58 @@ The control callback is used to handle L2CAP LE PSM-related events: PSM disconne
              * PSM connection requests and expects L2CAP PSM connection responses.
              * Disconnect the peer. */
             Gap_Disconnect (pConnReq->deviceId);
-            **break**;
+            break;
         }
-        **case** **gL2ca\_LePsmConnectionComplete\_c:**
+        case gL2ca_LePsmConnectionComplete_c:
         {
             l2caLeCbConnectionComplete_t *pConnComplete =
                              (l2caLeCbConnectionComplete_t *)pMessage;
             /* Call the application PSM connection complete handler. */
             OtapClient_HandlePsmConnectionComplete (pConnComplete);
-        **break**;
+        break;
     }
-    **case** **gL2ca\_LePsmDisconnectNotification\_c:**
+    case gL2ca_LePsmDisconnectNotification_c:
     {
         l2caLeCbDisconnection_t *pCbDisconnect = (l2caLeCbDisconnection_t *)pMessage;
         /* Call the application PSM disconnection handler. */
         OtapClient_HandlePsmDisconnection (pCbDisconnect);
-        **break**;
+        break;
     }
-    **case** **gL2ca\_NoPeerCredits\_c:**
+    case gL2ca_NoPeerCredits_c:
     {
         l2caLeCbNoPeerCredits_t *pCbNoPeerCredits =
                         (l2caLeCbNoPeerCredits_t *)pMessage;
         L2ca_SendLeCredit (pCbNoPeerCredits->deviceId,
                            otapClientData.l2capPsmChannelId,
                            mAppLeCbInitialCredits_c);
-        **break**;
+        break;
     }
    /* ... Missing code here ... */
-    **case** **gL2ca\_Error\_c:**
+    case gL2ca_Error_c:
         {
             /* Handle error */
             break;
         }
-        **default:**
+        default:
             ; /* For MISRA compliance */
-       ** break;**
+       break;
 }
 ```
 
 The OTAP Client must initiate the L2CAP PSM connection if it wants to use the L2CAP transfer method; this can be done using the *L2ca\_ConnectLePsm\(\)* function. The *L2ca\_ConnectLePsm\(\)* function is called by the *OtapClient\_ContinueImageDownload\(\)* if the transfer method is L2CAP and the PSM is found to be disconnected.
 
 ```
-**static void OtapClient\_ContinueImageDownload** (deviceId_t deviceId)
+static void OtapClient\_ContinueImageDownload** (deviceId_t deviceId)
 {
     /* ... Missing code here ... */
     /* Check if the L2CAP OTAP PSM is connected and if not try to connect and exit immediately. */
-    **if** ((otapClientData.l2capPsmConnected == FALSE) &&
+    if ((otapClientData.l2capPsmConnected == FALSE) &&
                 (otapClientData.state != mOtapClientStateImageDownloadComplete_c))
     {
         L2ca_ConnectLePsm (gOtap_L2capLePsm_c,
                            deviceId,
                            mAppLeCbInitialCredits_c);
-        **bValidState = FALSE;**;
+        bValidState = FALSE;;
     }
     /* ... Missing code here ... */
 }
@@ -310,7 +310,7 @@ The OTAP Client must initiate the L2CAP PSM connection if it wants to use the L2
 The PSM data callback *BleApp\_L2capPsmDataCallback\(\)* is used by the OTAP Client to handle incoming image file parts from the OTAP Server.
 
 ```
-**static void BleApp\_L2capPsmDataCallback** (deviceId_t  deviceId,
+static void BleApp\_L2capPsmDataCallback (deviceId_t  deviceId,
    uint8_t*    pPacket,
    uint16_t    uint16_t lePsm,
    uint16_t    packetLengt
@@ -324,7 +324,7 @@ The PSM data callback *BleApp\_L2capPsmDataCallback\(\)* is used by the OTAP Cli
 All data chunks regardless of their source \(ATT or L2CAP\) are handled by the *OtapClient\_HandleDataChunk\(\)* function. This function checks the validity of Image Chunk messages, parses the image file, requests the continuation or restart of the image download and triggers the bootloader when the image download is complete.
 
 ```
-**static void OtapClient\_HandleDataChunk** (deviceId_t deviceId, uint16_t length, uint8_t* pData);
+static void OtapClient\_HandleDataChunk (deviceId_t deviceId, uint16_t length, uint8_t* pData);
 ```
 
 The Image File CRC Value is computed on the fly as the image chunks are received using the *OTA\_CrcCompute\(\)* function from the *OtaSupport* module which is called by the *OtapClient\_HandleDataChunk\(\)* function. The *OTA\_CrcCompute\(\)* function has a parameter for the intermediary CRC value which must be initialized to 0 every time a new image download is started.

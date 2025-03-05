@@ -6,8 +6,8 @@ Continuing the example from [Discover primary services by UUID](discover_primary
 
 ```
 gattService_t * pService = &heartRateService;
-**static **gattCharacteristic_t hrcpCharacteristic;
-**static **uint8_t mcHrcpChar;
+static gattCharacteristic_t hrcpCharacteristic;
+static uint8_t mcHrcpChar;
 bleResult_t result = GattClient_DiscoverCharacteristicOfServiceByUuid
 (
     deviceId,
@@ -26,12 +26,12 @@ This API can be used as in the previous examples, following a Service Discovery 
 gatt Service_t dummyService;
 dummyService. startHandle = 0x0001;
 dummyService. endHandle = 0xFFFF;
-**static **gattCharacteristic_t hrcpCharacteristic;
-**static **uint8_t mcHrcpChar;
-bleResult_t result = **GattClient\_DiscoverCharacteristicOfServiceByUuid**
+static gattCharacteristic_t hrcpCharacteristic;
+static uint8_t mcHrcpChar;
+bleResult_t result = GattClient_DiscoverCharacteristicOfServiceByUuid
 (
     deviceId,
-    *gBleUuidType16\_c*,
+    gBleUuidType16_c,
     gBleSig_HrControlPoint_d,
     &dummyService,
     &hrcpCharacteristic,
@@ -40,10 +40,10 @@ bleResult_t result = **GattClient\_DiscoverCharacteristicOfServiceByUuid**
 );
 ```
 
-In either case, the value of the *mcHrcpChar* variable should be checked in the procedure callback.
+.
 
 ```
-**void ****gattClientProcedureCallback**
+void gattClientProcedureCallback
 (
     deviceId_t             deviceId,
     gattProcedureType_t    procedureType,
@@ -51,29 +51,29 @@ In either case, the value of the *mcHrcpChar* variable should be checked in the 
     bleResult_t            error
 )
 {
-    **switch** (procedureType)
+    switch (procedureType)
     {
         /* ... */
-        **case***gGattProcDiscoverCharacteristicByUuid\_c*:
-            **if** (*gGattProcSuccess\_c* == procedureResult)
+        case gGattProcDiscoverCharacteristicByUuid_c:
+            if (gGattProcSuccess_c == procedureResult)
             {
-                **if** (1 == mcHrcpChar)
+                if (1 == mcHrcpChar)
                 {
                     /* HRCP found, read discovered data */
                     PRINT(hrcpCharacteristic. properties );
                     PRINT(hrcpCharacteristic. value . handle );
                 }
-                **else**
+                else
                 {
                     /* HRCP not found! */
                 }
             }
-            **else**
+            else
             {
                 /* Handle error */
                 PRINT(error);
             }
-            **break**;
+            break;
         /* ... */
     }
 }

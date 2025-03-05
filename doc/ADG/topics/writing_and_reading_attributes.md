@@ -3,7 +3,7 @@
 These are the two functions to perform basic attribute operations from the application:
 
 ```
-bleResult_t **GattDb\_WriteAttribute
+bleResult_t GattDb_WriteAttribute
 **(
     uint16_t           handle,
     uint16_t           valueLength,
@@ -16,7 +16,7 @@ The value length must be valid, as defined when the database is created. Otherwi
 Also, if the database is created statically, as explained in [Creating GATT database](creating_gatt_database.md#), the *handle* may be referenced through the enumeration member with a friendly name defined in the *gatt\_db.h*.
 
 ```
-bleResult_t **GattDb\_ReadAttribute**
+bleResult_t GattDb_ReadAttribute
 (
     uint16_t     handle,
     uint16_t     maxBytes,

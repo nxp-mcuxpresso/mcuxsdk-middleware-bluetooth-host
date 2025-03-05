@@ -3,7 +3,7 @@
 This API for this procedure is shown here:
 
 ```
-bleResult_t **GattClient\_ReadUsingCharacteristicUuid**
+bleResult_t GattClient_ReadUsingCharacteristicUuid
 (
     deviceId_t               deviceId,
     bleUuidType_t            uuidType,
@@ -26,24 +26,24 @@ Instead, the Characteristic Read by UUID Procedure allows reading a Characterist
 The described example is implemented as follows:
 
 ```
-**\#define** mcMaxValueLength_c
+#define mcMaxValueLength_c
 /* First byte is for handle-value pair length. Next 2 bytes are the handle */
 static uint8_t aValue[1 + 2 + mcMaxValueLength_c];
-**static** uint16_t deviceNameLength;
+static uint16_t deviceNameLength;
 bleUuid_t uuid = {
         .uuid16 = gBleSig_GapDeviceName_d
 };
-bleResult_t result = **GattClient\_ReadUsingCharacteristicUuid**
+bleResult_t result = GattClient_ReadUsingCharacteristicUuid
 (
     deviceId,
-    *gBleUuidType16\_c*,
+    gBleUuidType16_c,
     &uuid,
     &pHandleRange,
     aValue,
     1 + 2 + mcMaxValueLength_c,
     deviceNameLength
 );
-**if** (*gBleSuccess\_c* != result)
+if (gBleSuccess_c != result)
 {
     /* Handle error */
 }
@@ -52,7 +52,7 @@ bleResult_t result = **GattClient\_ReadUsingCharacteristicUuid**
 The Client Procedure Callback is triggered when the reading is complete. Because only one air packet is exchanged during this procedure, it can only be used as a quick reading of Characteristic Values with length no greater than *ATT\_MTU – 1*.
 
 ```
-**void ****gattClientProcedureCallback**
+void gattClientProcedureCallback
 (
     deviceId_t                 deviceId,
     gattProcedureType_t        procedureType,
@@ -60,11 +60,11 @@ The Client Procedure Callback is triggered when the reading is complete. Because
     bleResult_t                error
 )
 {
-    **switch** (procedureType)
+    switch (procedureType)
     {
         /* ... */
-        **case ***gGattProcReadUsingCharacteristicUuid\_c*:
-            **if** (*gGattProcSuccess\_c* == procedureResult)
+         case gGattProcReadUsingCharacteristicUuid\_c*:
+              if (gGattProcSuccess_c == procedureResult)
             {
                /* Read handle-value pair length */
                 PRINT(aValue[0]);
@@ -75,17 +75,17 @@ The Client Procedure Callback is triggered when the reading is complete. Because
                 /* Read value length */
                 PRINT(deviceNameLength);
                 /* Read data */
-                **for** ( uint8_t j = 0; j < deviceNameLength; j++)
+                for ( uint8_t j = 0; j < deviceNameLength; j++)
                 {
                     PRINT(aValue[3 + j]);
                 }
             }
-            **else**
+             else
             {
                 /* Handle error */
                 PRINT(error);
             }
-            **break**;
+            break;
         /* ... */
     }
 }

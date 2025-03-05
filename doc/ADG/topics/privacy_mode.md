@@ -11,7 +11,7 @@ The privacy mode of a device is stored in NVM together with the IRK with a defau
 To change the privacy mode of a device and make the change persistent, the user must call the following API:
 
 ```
-bleResult_t **Gap\_SetPrivacyMode **
+bleResult_t Gap_SetPrivacyMode
 (
     uint8_t nvmIndex,
     blePrivacyMode_t privacyMode

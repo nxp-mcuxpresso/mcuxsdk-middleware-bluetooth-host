@@ -15,8 +15,8 @@ Consider an example where the Client supports a maximum ATT\_MTU of 250, and the
 To initiate the MTU exchange, call the following function from *gatt\_client\_interface.h*:
 
 ```
-bleResult_t result = **GattClient\_ExchangeMtu**(deviceId, mtu);
-**if** (*gBleSuccess\_c* != result)
+bleResult_t result = GattClient_ExchangeMtu(deviceId, mtu);
+if (gBleSuccess_c != result)
 {
     /* Treat error */
 }
@@ -27,7 +27,7 @@ When having the role of a GATT Client, the value of the maximum supported *ATT\_
 When the exchange is complete, the *gGattProcExchangeMtu\_c* procedure type triggers the Client callback.
 
 ```
-**void ****gattClientProcedureCallback**
+void gattClientProcedureCallback
 (
     deviceId_t deviceId,
     gattProcedureType_t procedureType,
@@ -35,26 +35,26 @@ When the exchange is complete, the *gGattProcExchangeMtu\_c* procedure type trig
     bleResult_t error
 )
 {
-    **switch** (procedureType)
+    switch (procedureType)
     {
         /* ... */
-        **case***gGattProcExchangeMtu\_c*:
-            **if** (*gGattProcSuccess\_c* == procedureResult)
+        case gGattProcExchangeMtu_c*:
+            if (gGattProcSuccess_c == procedureResult)
             {
                 /* To obtain the new MTU */
                 uint16_t newMtu;
                 bleResult_t result = Gatt_GetMtu(deviceId, &newMtu);
-                **if** (*gBleSuccess\_c* == result)
+                if (gBleSuccess_c == result)
                 {
                     /* Use the value of the new MTU */
-                    (**void**) newMtu;
+                    (void) newMtu;
                 }
             }
-            **else**
+            else
             {
                 /* Handle error */
             }
-            **break**;
+            break;
         /* ... */
     }
 }

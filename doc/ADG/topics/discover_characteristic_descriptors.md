@@ -3,7 +3,7 @@
 To discover all descriptors of a Characteristic, the following API is provided:
 
 ```
-bleResult_t **GattClient\_DiscoverAllCharacteristicDescriptors**
+bleResult_t GattClient_DiscoverAllCharacteristicDescriptors
 (
     deviceId_t                 deviceId,
     gattCharacteristic_t *     pIoCharacteristic,
@@ -21,17 +21,17 @@ If, however, the application does not know where the next declaration lies and c
 Continuing the example from [Discover characteristics by UUID](discover_characteristics_by_uuid.md#), the following code assumes that the Heart Rate Control Point Characteristic has no more than 5 descriptors and performs Descriptor Discovery.
 
 ```
-**\#define** mcMaxDescriptors_c 5
-**static **gattAttribute_t aDescriptors[mcMaxDescriptors_c];
+#define mcMaxDescriptors_c 5
+static gattAttribute_t aDescriptors[mcMaxDescriptors_c];
 hrcpCharacteristic. aDescriptors = aDescriptors;
-bleResult_t result = **GattClient\_DiscoverAllCharacteristicDescriptors**
+bleResult_t result = GattClient\_DiscoverAllCharacteristicDescriptors
 (
     deviceId,
     &hrcpCharacteristic,
     0xFFFF, /* We do not know where the next Characterstic Service begins */
     mcMaxDescriptors_c
 );
-**if** (*gBleSuccess\_c* != result)
+if (gBleSuccess_c != result)
 {
     /* Handle error */
 }
@@ -40,7 +40,7 @@ bleResult_t result = **GattClient\_DiscoverAllCharacteristicDescriptors**
 The Client Procedure Callback is triggered at the end of the procedure.
 
 ```
-**void ****gattClientProcedureCallback**
+void gattClientProcedureCallback
 (
     deviceId_t             deviceId,
     gattProcedureType_t    procedureType,
@@ -48,28 +48,28 @@ The Client Procedure Callback is triggered at the end of the procedure.
     bleResult_t            error
 )
 {
-    **switch** (procedureType)
+    switch (procedureType)
     {
         /* ... */
-        **case***gGattProcDiscoverAllCharacteristicDescriptors\_c*:
-            **if** (*gGattProcSuccess\_c* == procedureResult)
+        case gGattProcDiscoverAllCharacteristicDescriptors_c:
+            if (gGattProcSuccess_c == procedureResult)
             {
                 /* Read number of discovered descriptors */
                 PRINT(hrcpCharacteristic. cNumDescriptors );
                 /* Read descriptor data */
-                **for** ( uint8_t j = 0; j < hrcpCharacteristic. cNumDescriptors ; j++)
+                for ( uint8_t j = 0; j < hrcpCharacteristic. cNumDescriptors ; j++)
                 {
                     PRINT(hrcpCharacteristic. aDescriptors [j]. handle );
                     PRINT(hrcpCharacteristic. aDescriptors [j]. uuidType );
                     PRINT(hrcpCharacteristic. aDescriptors [j]. uuid );
                 }
             }
-            **else**
+            else
             {
                 /* Handle error */
                 PRINT(error);
             }
-            **break**;
+            break;
         /* ... */
     }
 }

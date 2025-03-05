@@ -1,6 +1,6 @@
 # Bluetooth Low Energy Host Stack initialization
 
-The Bluetooth Low Energy Host Stack must be initialized when platform setup is complete and all RTOS tasks have been started. This initialization is done by restarting the blackbox using a FSCI CPU Reset Request command. This is performed automatically by the ***Ble\_Initialize****\(App\_GenericCallback\)*function.
+The Bluetooth Low Energy Host Stack must be initialized when platform setup is complete and all RTOS tasks have been started. This initialization is done by restarting the blackbox using a FSCI CPU Reset Request command. This is performed automatically by the ***Ble_Initialize(App_GenericCallback\)*** function.
 
 ```
 /* Send FSCI CPU reset command to BlackBox */

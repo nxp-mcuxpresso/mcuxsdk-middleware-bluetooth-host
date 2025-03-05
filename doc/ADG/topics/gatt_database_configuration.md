@@ -7,12 +7,12 @@ To create a GATT database remotely, *GATTDBDynamic* commands must be used. The G
 Current supported API for adding services is the following:
 
 ```
-bleResult_t **GattDbDynamic\_AddGattService** (gattServiceHandles_t* pOutServiceHandles);
-bleResult_t **GattDbDynamic\_AddGapService** (gapServiceHandles_t* pOutServiceHandles);
-bleResult_t **GattDbDynamic\_AddIpssService** (ipssServiceHandles_t* pOutServiceHandles);
-bleResult_t **GattDbDynamic\_AddHeartRateService** (heartRateServiceHandles_t* pOutServiceHandles);
-bleResult_t **GattDbDynamic\_AddBatteryService** (batteryServiceHandles_t* pOutServiceHandles);
-bleResult_t **GattDbDynamic\_AddDeviceInformationService** (deviceInfoServiceHandles_t* pOutServiceHandles);
+bleResult_t GattDbDynamic_AddGattService (gattServiceHandles_t* pOutServiceHandles);
+bleResult_t GattDbDynamic_AddGapService (gapServiceHandles_t* pOutServiceHandles);
+bleResult_t GattDbDynamic_AddIpssService (ipssServiceHandles_t* pOutServiceHandles);
+bleResult_t GattDbDynamic_AddHeartRateService (heartRateServiceHandles_t* pOutServiceHandles);
+bleResult_t GattDbDynamic_AddBatteryService (batteryServiceHandles_t* pOutServiceHandles);
+bleResult_t GattDbDynamic_AddDeviceInformationService (deviceInfoServiceHandles_t* pOutServiceHandles);
 ```
 
 The service handles are optional.
@@ -20,7 +20,7 @@ The service handles are optional.
 Also, a generic function is provided, so that the user can add any generic service to the database:
 
 ```
-bleResult_t **GattDbDynamic\_AddServiceInDatabase** (serviceInfo_t* pServiceInfo);
+bleResult_t GattDbDynamic_AddServiceInDatabase (serviceInfo_t* pServiceInfo);
 ```
 
 Usually, a Bluetooth Low Energy Application is ported from a single chip solution, where the Bluetooth Low Energy Application and the Bluetooth Low Energy stack reside on the same processor and the GATT database is populated statically. The user should remove all the attribute handles from any structure and replace them with *gGattDbInvalidHandle\_d*. The attribute handles should be populated after the services are added dynamically to the database with the handles returned by the previous API.

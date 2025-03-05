@@ -5,7 +5,7 @@ The application may decide to listen to periodic advertising by going through th
 1.  \[Optional\] Add a known periodic advertiser to the periodic advertiser list held in the Controller by calling:
 
     ```
-    **bleResult\_t Gap\_UpdatePeriodicAdvList**
+    bleResult_t Gap_UpdatePeriodicAdvList
     (
         gapPeriodicAdvListOperation_t operation,
         bleAddressType_t               addrType,
@@ -19,7 +19,7 @@ The application may decide to listen to periodic advertising by going through th
 2.  Synchronize with a periodic advertiser by calling:
 
     ```
-    bleResult_t **Gap\_PeriodicAdvCreateSync**
+    bleResult_t Gap_PeriodicAdvCreateSync
     (
         gapPeriodicAdvSyncReq_t*   pReq,
     );
@@ -32,7 +32,7 @@ The application may decide to listen to periodic advertising by going through th
 3.  Terminate the synchronization with the periodic advertiser by calling:
 
     ```
-    bleResult_t **Gap\_PeriodicAdvTerminateSync**
+    bleResult_t Gap_PeriodicAdvTerminateSync
     (
         uint16_t syncHandle
     );

@@ -5,7 +5,7 @@ All the procedures initiated by a Client are asynchronous. They rely on exchangi
 To be informed of the procedure completion, the application must install a callback with the following signature:
 
 ```
-**typedef ****void** (* gattClientProcedureCallback_t )
+typedef void (* gattClientProcedureCallback_t )
 (
     deviceId_t             deviceId,
     gattProcedureType_t    procedureType,
@@ -30,7 +30,7 @@ typedef void (*gattClientEnhancedProcedureCallback_t)
 To install this callback, the following function must be called:
 
 ```
-bleResult_t **GattClient\_RegisterProcedureCallback**
+bleResult_t GattClient_RegisterProcedureCallback
 (
     gattClientProcedureCallback_t callback
 );
@@ -39,7 +39,7 @@ bleResult_t **GattClient\_RegisterProcedureCallback**
 The EATT procedure callback should be installed using the following API:
 
 ```
-bleResult_t **GattClient\_RegisterEnhancedProcedureCallback**
+bleResult_t GattClient_RegisterEnhancedProcedureCallback
 (
  gattClientEnhancedProcedureCallback_t callback
 );
@@ -50,7 +50,7 @@ The *procedureType* parameter can be used to identify the procedure that was sta
 The *procedureResult* parameter indicates whether the procedure completes successfully or an error occurs. In the latter case, the *error* parameter contains the error code.
 
 ```
-**void ****gatt ClientProcedureCallback**
+void gatt ClientProcedureCallback
 (
     deviceId_t             deviceId,
     gattProcedureType_t    procedureType,
@@ -58,7 +58,7 @@ The *procedureResult* parameter indicates whether the procedure completes succes
     bleResult_t            error
 )
 {
-    **switch** (procedureType)
+    switch (procedureType)
     {
         /* ... */
     }

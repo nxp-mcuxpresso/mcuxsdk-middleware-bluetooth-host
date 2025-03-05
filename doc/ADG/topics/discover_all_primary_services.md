@@ -3,7 +3,7 @@
 The following API can be used to discover all the Primary Services in a Server’s database:
 
 ```
-bleResult_t **GattClient\_DiscoverAllPrimaryServices**
+bleResult_t GattClient_DiscoverAllPrimaryServices
 (
     deviceId_t         deviceId,
     gattService_t *    aOutPrimaryServices,
@@ -21,17 +21,17 @@ If there is equality, it is possible that the Server contains more than *maxServ
 In the following example, the application expects to find no more than 10 Services on the Server.
 
 ```
-**\#define** mcMaxPrimaryServices_c 10
-**static **gattService_t primaryServices[mcMaxPrimaryServices_c];
+#define mcMaxPrimaryServices_c 10
+static gattService_t primaryServices[mcMaxPrimaryServices_c];
 uint8_t mcPrimaryServices;
-bleResult_t result = **GattClient\_DiscoverAllPrimaryServices**
+bleResult_t result = GattClient_DiscoverAllPrimaryServices
 (
     deviceId,
     primaryServices,
     mcMaxPrimaryServices_c,
     &mcPrimaryServices
 );
-**if** (gBleSuccess_c != result)
+if (gBleSuccess_c != result)
 {
     /* Treat error */
 }
@@ -40,7 +40,7 @@ bleResult_t result = **GattClient\_DiscoverAllPrimaryServices**
 The operation triggers the Client Procedure Callback when complete. The application may read the number of discovered services and each service’s handle range and UUID.
 
 ```
-**void ****gattClientProcedureCallback**
+void gattClientProcedureCallback
 (
     deviceId_t             deviceId,
     gattProcedureType_t    procedureType,
@@ -48,16 +48,16 @@ The operation triggers the Client Procedure Callback when complete. The applicat
     bleResult_t            error
 )
 {
-    **switch** (procedureType)
+    switch (procedureType)
     {
         /* ... */
-        **case ***gGattProcDiscoverAllPrimaryServices\_c*:
-            **if** (*gGattProcSuccess\_c* == procedureResult)
+        case gGattProcDiscoverAllPrimaryServices_c:
+            if (gGattProcSuccess_c == procedureResult)
             {
                 /* Read number of discovered services */
                 PRINT( mcPrimaryServices );
                 /* Read each service's handle range and UUID */
-                **for** (**int** j = 0; j < mcPrimaryServices; j++)
+                for (int j = 0; j < mcPrimaryServices; j++)
                 {
                     PRINT( primaryServices[j]. startHandle );
                     PRINT( primaryServices[j]. endHandle );
@@ -65,12 +65,12 @@ The operation triggers the Client Procedure Callback when complete. The applicat
                     PRINT( primaryServices[j]. uuid );
                 }
             }
-            **else**
+            else
             {
                 /* Handle error */
                 PRINT( error );
             }
-            **break**;
+            break;
         /* ... */
     }
 }

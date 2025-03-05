@@ -5,7 +5,7 @@ In Bluetooth LE 5.0, the user is able to change the PHY mode in a connection thr
 To set the PHY, the user can call:
 
 ```
-bleResult_t **Gap\_LeSetPhy**
+bleResult_t Gap_LeSetPhy
 (
     bool_t       defaultMode,
     deviceId_t   deviceId,
@@ -26,7 +26,7 @@ The application should listen for gLePhyEvent\_c with the gPhyUpdateComplete\_c 
 To read the current PHY on a connection, call the following API:
 
 ```
-bleResult_t **Gap\_LeReadPhy **
+bleResult_t Gap_LeReadPhy
 (
     deviceId_t deviceId
 );

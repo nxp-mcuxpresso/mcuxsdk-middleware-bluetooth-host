@@ -7,7 +7,7 @@ The only difference is that the handle of the attribute to be read/written is pr
 All of the following APIs have an enhanced counterpart of the form *GattClient\_Enhanced\[procedure\]*. A *bearerId*parameter was added to specify on which bearer the transaction should take place. A value of *0* for the bearer Id identifies the Unenhanced ATT bearer. Values higher than *0* are used to identify the Enhanced ATT bearer used for the ATT procedure.
 
 ```
-bleResult_t **GattClient\_ReadCharacteristicDescriptor**
+bleResult_t GattClient_ReadCharacteristicDescriptor
 (
     deviceId_t             deviceId,
     gattAttribute_t *      pIoDescriptor,
@@ -20,7 +20,7 @@ The *pIoDescriptor-\>handle* is required \(it may have been discovered previousl
 Writing a descriptor is also performed similarly with this function:
 
 ```
-bleResult_t **GattClient\_WriteCharacteristicDescriptor**
+bleResult_t GattClient_WriteCharacteristicDescriptor
 (
     deviceId_t             deviceId,
     gattAttribute_t *      pDescriptor,
@@ -36,27 +36,27 @@ One of the most frequently written descriptors is the Client Characteristic Conf
 In the following example, a Characteristic’s descriptors are discovered and its CCCD written to activate notifications.
 
 ```
-**static** gattCharacteristic_t myChar;
+static gattCharacteristic_t myChar;
 myChar. value . handle = 0x00A0; /* Or maybe it was previously discovered? */
-**\#define** mcMaxDescriptors_c 5
-**static** gattAttribute_t aDescriptors[mcMaxDescriptors_c];
+#define mcMaxDescriptors_c 5
+static gattAttribute_t aDescriptors[mcMaxDescriptors_c];
 myChar. aDescriptors = aDescriptors;
 /* ... */
 {
-    bleResult_t result = **GattClient\_DiscoverAllCharacteristicDescriptors**
+    bleResult_t result = GattClient_DiscoverAllCharacteristicDescriptors
     (
         deviceId,
         &myChar,
         0xFFFF,
         mcMaxDescriptors_c
     );
-    **if** (*gBleSuccess\_c* != result)
+    if (gBleSuccess_c != result)
     {
         /* Handle error */
     }
 }
 /* ... */
-**void gattClientProcedureCallback**
+void gattClientProcedureCallback
 (
     deviceId_t                 deviceId,
     gattProcedureType_t        procedureType,
@@ -64,16 +64,16 @@ myChar. aDescriptors = aDescriptors;
     bleResult_t                error
 )
 {
-    **switch** (procedureType)
+    switch (procedureType)
     {
       /* ... */
-      **case ***gGattProcDiscoverAllCharacteristicDescriptors\_c*:
-         **if** (*gGattProcSuccess\_c* == procedureResult)
+      case gGattProcDiscoverAllCharacteristicDescriptors_c:
+         if (gGattProcSuccess_c == procedureResult)
           {
            /* Find CCCD */
-            **for** ( uint8_t j = 0; j < myChar. cNumDescriptors ; j++)
+            for ( uint8_t j = 0; j < myChar. cNumDescriptors ; j++)
                {
-                **if** (aDescriptors[j].uuidType && gBleSig_CCCD_d ==myChar.aDescriptors[j].uuid.uuid16) )
+                if (aDescriptors[j].uuidType && gBleSig_CCCD_d ==myChar.aDescriptors[j].uuid.uuid16) )
                  {
                     uint8_t cccdValue[2];
                     packTwoByteValue(*gCccdNotification\_c*, cccdValue);
@@ -84,26 +84,26 @@ myChar. aDescriptors = aDescriptors;
                        2,
                        cccdValue
                      );
-                    **if** (*gBleSuccess\_c* != result)
+                    if (gBleSuccess_c != result)
                        {
                         /* Handle error */
                        }
-                       **break**;
+                       break;
                      }
                 }
             }
-            **else**
+            else
             {
                 /* Handle error */
                 PRINT(error);
             }
-            **break**;
-        **case ***gGattProcWriteCharacteristicDescriptor\_c*:
-            **if** (*gGattProcSuccess\_c* == procedureResult)
+            break;
+        case gGattProcWriteCharacteristicDescriptor_c:
+            if (gGattProcSuccess_c == procedureResult)
             {
                 /* Notification successfully activated */
             }
-            **else**
+            else
             {
                 /* Handle error */
                 PRINT(error);

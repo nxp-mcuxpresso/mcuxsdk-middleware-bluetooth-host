@@ -5,7 +5,7 @@
 Therefore, after a Primary Service has been discovered, the following procedure may be used to discover services \(usually Secondary Services\) included in it:
 
 ```
-bleResult_t **GattClient\_FindIncludedServices**
+bleResult_t GattClient_FindIncludedServices
 (
     deviceId_t         deviceId,
     gattService_t *    pIoService,
@@ -24,8 +24,8 @@ The following example assumes the Heart Rate Service was discovered using the co
 ```
 /* Finding services included in the Heart Rate Primary Service */
 gattService_t * pPrimaryService = &heartRateService;
-**\#define** mxMaxIncludedServices_c 3
-**static **gattService_t includedServices[mxMaxIncludedServices_c];
+#define mxMaxIncludedServices_c 3
+static gattService_t includedServices[mxMaxIncludedServices_c];
 /* Linking the array */
 pPrimaryService-> aIncludedServices = includedServices;
 bleResult_t result = GattClient_FindIncludedServices
@@ -34,7 +34,7 @@ bleResult_t result = GattClient_FindIncludedServices
     pPrimaryService,
     mxMaxIncludedServices_c
 );
-**if** (*gBleSuccess\_c* != result)
+if (gBleSuccess_c != result)
 {
     /* Treat error */
 }
@@ -43,7 +43,7 @@ bleResult_t result = GattClient_FindIncludedServices
 When the Client Procedure Callback is triggered, if any included services are found, the application can read their handle range and their UUIDs.
 
 ```
-**void** gattClientProcedureCallback
+void gattClientProcedureCallback
 (
     deviceId_t deviceId,
     gattProcedureType_t procedureType,
@@ -51,15 +51,15 @@ When the Client Procedure Callback is triggered, if any included services are fo
     bleResult_t error
 )
 {
-    **switch** (procedureType)
+    switch (procedureType)
     {
         /* ... */
-        **case** gGattProcFindIncludedServices_c:
-            **if** (*gGattProcSuccess\_c* == procedureResult)
+        case gGattProcFindIncludedServices_c:
+            if (*gGattProcSuccess\_c* == procedureResult)
             {
                 /* Read included services data */
                 PRINT( pPrimaryService-> cNumIncludedServices );
-                **for** (**int** j = 0; j < pPrimaryService-> cNumIncludedServices ; j++)
+                for (**int** j = 0; j < pPrimaryService-> cNumIncludedServices ; j++)
                 {
                     PRINT( pPrimaryService-> aIncludedServices [j]. startHandle );
                     PRINT( pPrimaryService-> aIncludedServices [j]. endHandle );
@@ -67,12 +67,12 @@ When the Client Procedure Callback is triggered, if any included services are fo
                     PRINT( pPrimaryService-> aIncludedServices [j]. uuid );
                 }
             }
-            **else**
+            else
             {
                 /* Handle error */
                 PRINT( error );
             }
-            **break**;
+            break;
         /* ... */
     }
 }

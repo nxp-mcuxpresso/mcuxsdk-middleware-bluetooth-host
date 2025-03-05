@@ -36,42 +36,42 @@ However, there may be some cases when an application wants to manage this data t
     This function executes synchronously.
 
     ```
-    bleResult_t **Gap\_LoadKeys**
+    bleResult_t Gap_LoadKeys
     (
         uint8_t            nvmIndex,
         gapSmpKeys_t*      pOutKeys,
         gapSmpKeyFlags_t*  pOutKeyFlags,
         bool_t*            pOutLeSc,
-        bool_t*             pOutAuth);
+        bool_t*            pOutAuth);
     );
     ```
 
     The `gapSmpKeys_t` is the structure used during the key distribution phase, as well as in the `gConnEvtKeysReceived_c` event and is as follows. The difference is that the Bluetooth LE device address cannot be set to NULL neither when loading a bond or when creating one as it identifies the bonded device together with the NVM index.
+    <br>  
+    **Table 3. 'gapSmpKeys_t' structure**
+                        
+                            
+| Event Data  | Data type         | Data Description                                                                                                                                                      |
+| ----------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| cLtkSize    | uint8_t           | Encryption Key Size filled by the stack. If aLtk is NULL, this is ignored.<br>In Advanced Secure Mode, this should be the size of the LTK encrypted blob of 40 bytes. |
+| aLtk        | uint8_t\*         | Long Term (Encryption) Key or LTK encrypted blob if Advanced Secure Mode is enabled. NULL if LTK is<br>not distributed, else size is given by cLtkSize                |
+| aIrk        | uint8_t\*         | Identity Resolving Key. NULL if aIrk is not distributed.                                                                                                              |
+| aCsrk       | uint8_t\*         | Connection Signature Resolving Key. NULL if aCsrk is not distributed.                                                                                                 |
+| cRandSize   | uint8_t           | Size of RAND filled by the stack; usually equal to gcSmpMaxRandSize_c. If<br>aLtk is NULL, this is ignored.                                                           |
+| aRand       | uint8_t\*         | RAND value used to identify the LTK. If aLtk is NULL, this is ignored.                                                                                                |
+| ediv        | uint16_t          | EDIV value used to identify the LTK. If aLtk is NULL, this is ignored.                                                                                                |
+| addressType | bleAddress Type_t | Public or Random address.                                                                                                                                             |
+| aAddress    | uint8_t\*         | Device Address. It cannot be NULL.                    
 
-    |Event Data|Data type|Data Description|
-    |----------|---------|----------------|
-    |`cLtkSize`|uint8\_t|Encryption Key Size filled by the stack. If `aLtk` is NULL, this is ignored. In Advanced Secure Mode, this should be the size of the LTK encrypted blob of 40 bytes.
+The structure for the GAP SMP Key Flags is the following:
 
-|
-    |`aLtk`|uint8\_t\*|Long Term \(Encryption\) Key or LTK encrypted blob if Advanced Secure Mode is enabled. NULL if LTK is not distributed, else size is given by `cLtkSize`
-
-.|
-    |`aIrk`|uint8\_t\*|Identity Resolving Key. NULL if `aIrk` is not distributed.|
-    |`aCsrk`|uint8\_t\*|Connection Signature Resolving Key. NULL if `aCsrk` is not distributed.|
-    |`cRandSize`|uint8\_t|Size of RAND filled by the stack; usually equal to `gcSmpMaxRandSize_c`. If `aLtk` is NULL, this is ignored.|
-    |`aRand`|uint8\_t\*|RAND value used to identify the LTK. If `aLtk`is NULL, this is ignored.|
-    |`ediv`|uint16\_t|EDIV value used to identify the LTK. If `aLtk` is NULL, this is ignored.|
-    |`addressType`|`bleAddressType_t`|Public or Random address.|
-    |`aAddress`|uint8\_t\*|Device Address. It cannot be NULL.|
-
-    The structure for the GAP SMP Key Flags is the following:
-
-    |Flag Type|Description|
-    |---------|-----------|
-    |`gNoKeys_c`|No key is available.|
-    |`gLtk_c`|Long-Term Key is available.|
-    |`gIrk_c`|Identity Resolving Key is available.|
-    |`gCsrk_c`|Connection Signature Resolving Key is available.|
+   **Table 4. GAP SMP Key Flags**
+  | Flag Type | Description                                      |
+  | --------- | ------------------------------------------------ |
+  | gNoKeys_c | No key is available.                             |
+  | gLtk_c    | Long-Term Key is available.                      |
+  | gIrk_c    | Identity Resolving Key is available.             |
+  | gCsrk_c   | Connection Signature Resolving Key is available. |
 
 2.  Save the Keys to create a bond or update an existing bonded device.
 
@@ -86,7 +86,7 @@ However, there may be some cases when an application wants to manage this data t
     LE SC flag indicates if Bluetooth LE 4.2 Secure Connections was used during pairing and Auth specifies if the peer is authenticated for MITM protection.
 
     ```
-    bleResult_t **Gap\_SaveKeys**
+    bleResult_t Gap_SaveKeys
     (
         uint8_t         nvmIndex,
         gapSmpKeys_t*   pKeys,

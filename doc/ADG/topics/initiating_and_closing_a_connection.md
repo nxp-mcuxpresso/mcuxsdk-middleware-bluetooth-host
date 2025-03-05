@@ -3,7 +3,7 @@
 To connect to a scanned Peripheral, extract its address and address type from the *gDeviceScanned\_c* event data, stop scanning, and call the following function:
 
 ```
-bleResult_t **Gap\_Connect**
+bleResult_t Gap_Connect
 (
 const gapConnectionRequestParameters_t * pParameters,
 gapConnectionCallback_t connCallback
@@ -13,7 +13,7 @@ gapConnectionCallback_t connCallback
 When using the common application structure, the application can also use the following API defined in *app\_conn.h*:
 
 ```
-bleResult_t **BluetoothLEHost\_Connect**
+bleResult_t BluetoothLEHost_Connect
 (
     gapConnectionRequestParameters_t*   pParameters,
     gapConnectionCallback_t             connCallback
@@ -23,7 +23,7 @@ bleResult_t **BluetoothLEHost\_Connect**
 An easy way to create the connection parameter structure is to initialize it with the defaults, then change only the necessary fields. The default structure is defined as shown here:
 
 ```
-**\#define** gGapDefaultConnectionRequestParameters_d \
+#define gGapDefaultConnectionRequestParameters_d \
 { \
     /* scanInterval */       gGapScanIntervalDefault_d, \
     /* scanWindow */         gGapScanWindowDefault_d, \
@@ -83,7 +83,7 @@ The *connCallback* is triggered by GAP to send all events related to the active 
 The very first event that should be listened inside this callback is the *gConnEvtConnected\_c* event. If the application decides to drop the connection establishment before this event is generated, it should call the following macro:
 
 ```
-**\#define** Gap_CancelInitiatingConnection()\
+#define Gap_CancelInitiatingConnection()\
     Gap_Disconnect(gCancelOngoingInitiatingConnection_d)
 ```
 
@@ -94,7 +94,7 @@ Upon receiving the *gConnEvtConnected\_c* event, the application may proceed to 
 The *deviceId* is a unique 8-bit, unsigned integer, used to identify an active connection for subsequent GAP and GATT API calls. All functions related to a certain connection require a *deviceId* parameter. For example, to disconnect, call this function:
 
 ```
-bleResult_t **Gap\_Disconnect**
+bleResult_t Gap_Disconnect
 (
     deviceId_t deviceId
 );

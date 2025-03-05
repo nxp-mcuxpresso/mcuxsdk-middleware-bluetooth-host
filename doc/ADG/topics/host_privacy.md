@@ -3,7 +3,7 @@
 To enable or disable Host Privacy, the following API may be used:
 
 ```
-bleResult_t **Gap\_EnableHostPrivacy**
+bleResult_t Gap_EnableHostPrivacy
 (
     bool_t              enable,
     const uint8_t *     aIrk

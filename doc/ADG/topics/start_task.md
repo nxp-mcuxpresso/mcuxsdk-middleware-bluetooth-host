@@ -7,12 +7,12 @@ The function calls *BluetoothLEHost\_HandleMessages*, which represents the Appli
 The stack size and priority of the main task are defined in *fsl\_os\_abstraction\_config.h*:
 
 ```
-**\#ifndef** gMainThreadStackSize_c
-**\#define** gMainThreadStackSize_c 1024
-**\#endif**
-**\#ifndef** gMainThreadPriority_c
-**\#define** gMainThreadPriority_c 7
-**\#endif**
+#ifndef gMainThreadStackSize_c
+#define gMainThreadStackSize_c 1024
+#endif
+#ifndef gMainThreadPriority_c
+#define gMainThreadPriority_c 7
+#endif
 ```
 
 **Parent topic:**[Application main framework](../topics/application_main_framework.md)

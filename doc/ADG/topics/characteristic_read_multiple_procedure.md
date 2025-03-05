@@ -3,7 +3,7 @@
 The API for this procedure is shown here:
 
 ```
-bleResult_t **GattClient\_ReadMultipleCharacteristicValues**
+bleResult_t GattClient_ReadMultipleCharacteristicValues
 (
     deviceId_t                 deviceId,
     uint8_t                    cNumCharacteristics,
@@ -18,14 +18,14 @@ The application must know the value handle and value length of each Characterist
 The following example involves reading three characteristics in a single packet.
 
 ```
-**\#define** mcNumCharacteristics_c 3
-**\#define** mcChar1Length_c 4
-**\#define** mcChar2Length_c 5
-**\#define** mcChar3Length_c 6
-**static** uint8_t aValue1[mcChar1Length_c];
-**static** uint8_t aValue2[mcChar2Length_c];
-**static** uint8_t aValue3[mcChar3Length_c];
-**static** gattCharacteristic_t myChars[mcNumCharacteristics_c];
+#define mcNumCharacteristics_c 3
+#define mcChar1Length_c 4
+#define mcChar2Length_c 5
+#define mcChar3Length_c 6
+static uint8_t aValue1[mcChar1Length_c];
+static uint8_t aValue2[mcChar2Length_c];
+static uint8_t aValue3[mcChar3Length_c];
+static gattCharacteristic_t myChars[mcNumCharacteristics_c];
 myChars[0]. value . handle = 0x0015;
 myChars[1]. value . handle = 0x0025;
 myChars[2]. value . handle = 0x0035;
@@ -35,13 +35,13 @@ myChars[2]. value . maxValueLength = mcChar3Length_c;
 myChars[0]. value . paValue = aValue1;
 myChars[1]. value . paValue = aValue2;
 myChars[2]. value . paValue = aValue3;
-bleResult_t result = **GattClient\_ReadMultipleCharacteristicValues**
+bleResult_t result = GattClient_ReadMultipleCharacteristicValues
 (
     deviceId,
     mcNumCharacteristics_c,
     myChars
 );
-**if** (*gBleSuccess\_c* != result)
+if (gBleSuccess_c != result)
 {
     /* Handle error */
 }
@@ -50,7 +50,7 @@ bleResult_t result = **GattClient\_ReadMultipleCharacteristicValues**
 When the Client Procedure Callback is triggered, if no error occurs, each Characteristic’s value length should be equal to the requested lengths.
 
 ```
-**void ****gattClientProcedureCallback**
+void gattClientProcedureCallback
 (
     deviceId_t             deviceId,
     gattProcedureType_t p  rocedureType,
@@ -58,29 +58,29 @@ When the Client Procedure Callback is triggered, if no error occurs, each Charac
     bleResult_t            error
 )
 {
-    **switch** (procedureType)
+    switch (procedureType)
     {
         /* ... */
-        **case***gGattProcReadMultipleCharacteristicValues\_c*:
-            **if** (*gGattProcSuccess\_c* == procedureResult)
+       case gGattProcReadMultipleCharacteristicValues_c:
+            if (gGattProcSuccess_c == procedureResult)
             {
-                **for** ( uint8_t i = 0; i < mcNumCharacteristics_c; i++)
+                for ( uint8_t i = 0; i < mcNumCharacteristics_c; i++)
                 {
                     /* Read value length */
                     PRINT(myChars[i]. value . valueLength );
                     /* Read data */
-                    **for** ( uint8_t j = 0; j < myChars[i]. value . valueLength ; j++)
+                    for ( uint8_t j = 0; j < myChars[i]. value . valueLength ; j++)
                     {
                         PRINT(myChars[i]. value . paValue [j]);
                     }
                 }
             }
-            **else**
+            else
             {
                 /* Handle error */
                 PRINT(error);
             }
-            **break**;
+            break;
         /* ... */
     }
 }
@@ -89,7 +89,7 @@ When the Client Procedure Callback is triggered, if no error occurs, each Charac
 If the server does not know the length of the characteristic values, then the Read Multiple Variable Characteristic Values procedure can be used. This sub-procedure is used to read multiple characteristic values of variable length from a server when the client knows the characteristic value handles. The response returns the characteristic values and their corresponding lengths in the Length Value Tuple List parameter.
 
 ```
-bleResult_t **GattClient\_ReadMultipleVariableCharacteristicValues**
+bleResult_t GattClient_ReadMultipleVariableCharacteristicValues
 (
   deviceId_t             deviceId,
   uint8_t                cNumCharacteristics,
@@ -112,7 +112,7 @@ myChars[2].value .handle = 0x0035;
 myChars[0].value .paValue = aValue1;
 myChars[1].value .paValue = aValue2;
 myChars[2].value .paValue = aValue3;
-bleResult_t result = **GattClient\_ReadMultipleVariableCharacteristicValues**
+bleResult_t result = GattClient_ReadMultipleVariableCharacteristicValues
 (
     deviceId,
     mcNumCharacteristics_c,
@@ -127,7 +127,7 @@ if (gBleSuccess_c != result)
 The result of this procedure is sent to the application via the GATT procedure callback. The response includes the characteristic value together with a handle, length pair corresponding to each characteristic.
 
 ```
-static void **BleApp\_GattClientCallback**
+static void BleApp_GattClientCallback
 (
     deviceId_t              serverDeviceId,
     gattProcedureType_t     procedureType,

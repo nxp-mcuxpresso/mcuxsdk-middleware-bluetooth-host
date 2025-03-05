@@ -2,9 +2,9 @@
 
 The Bluetooth LE OTAP Commands general format is shown below. A command consists of two parts, a Command ID, and a Command Payload as shown in the table below.
 
-|Field Name|CmdId|CmdPayload|
-|----------|-----|----------|
-|Size \(Bytes\)|1|variable|
+|Field Name|CmdId        |  CmdPayload|
+|----------|------|----------|
+|Size \(Bytes\)  |     1  |variable|
 
 Commands are sent over the transport medium starting with the Command ID and continuing with the Command Payload.
 

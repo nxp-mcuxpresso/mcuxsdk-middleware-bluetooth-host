@@ -5,12 +5,12 @@ The APIs provided for these Server-initiated operations are very similar.
 All of the following APIs have an enhanced counterpart of the form *GattServer\_Enhanced\[procedure\]*. A *bearerId* parameter was added to specify on which bearer the transaction should take place. A value of *0* for the bearerId identifies the Unenhanced ATT bearer. Values higher than*0* are used to identify the Enhanced ATT bearer used for the ATT procedure.
 
 ```
-bleResult_t **GattServer\_SendNotification**
+bleResult_t GattServer_SendNotification
 (
     deviceId_t     deviceId,
     uint16_t       handle
 );
-bleResult_t **GattServer\_SendIndication
+bleResult_t GattServer_SendIndication
 **(
     deviceId_t     deviceId,
     uint16_t       handle
@@ -22,13 +22,13 @@ Only the attribute handle needs to be provided to these functions. The attribute
 **Note:** It is the application developer’s responsibility to check if the Client designated by the *deviceId* has previously activated Notifications/Indications by writing the corresponding CCCD value. To do that, the following GAP APIs should be used:
 
 ```
-bleResult_t **Gap\_CheckNotificationStatus
-**(
+bleResult_t Gap_CheckNotificationStatus
+(
     deviceId_t     deviceId,
     uint16_t       handle,
     bool_t *       pOutIsActive
 );
-bleResult_t **Gap\_CheckIndicationStatus**
+bleResult_t Gap_CheckIndicationStatus
 (
     deviceId_t     deviceId,
     uint16_t       handle,

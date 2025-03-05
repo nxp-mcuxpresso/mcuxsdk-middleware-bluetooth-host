@@ -3,7 +3,7 @@
 To enable or disable Controller Privacy, the following API may be used:
 
 ```
-bleResult_t **Gap\_EnableControllerPrivacy**
+bleResult_t Gap_EnableControllerPrivacy
 (
     bool_t                               enable,
     const uint8_t *                      aOwnIrk,
