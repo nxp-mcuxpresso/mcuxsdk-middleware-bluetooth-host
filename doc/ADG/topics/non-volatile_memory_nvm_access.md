@@ -5,11 +5,11 @@ The Bluetooth LE Host Stack implements an internal module responsible for managi
 The application developers determine the NVM access mechanism through the definition of three functions and one variable. The functions must first pre-process the information and then perform standard NVM operations \(erase, write, read\). The declarations are as follows:
 
 ```
-** bleResult\_t App\_NvmErase**
+bleResult_t App_NvmErase
 (
     uint8_t mEntryIdx
 );
-bleResult_t **App\_NvmRead**
+bleResult_t App\_NvmRead
 (
     uint8_t  mEntryIdx,
     void*    pBondHeader,
@@ -20,7 +20,7 @@ bleResult_t **App\_NvmRead**
     void*    pBondDataDescriptor,
     uint8_t  mDescriptorIndex
 );
-bleResult_t **App\_NvmWrite**
+bleResult_t App_NvmWrite
 (
     uint8_t  mEntryIdx,
     void*    pBondHeader,
@@ -56,7 +56,7 @@ A descriptor is uniquely identified by the pair *mEntryIdx - mDescriptorIndex*.
 
 If one or more pointers passed as parameters are NULL, the read from or write to the corresponding blob of the bonding slot must be ignored. The erase function must clear the entire bonding data slot specified by the entry index.
 
-## Note: {#section_n4n_rtp_lvb .section}
+## Note: 
 
 When Advanced Secure Mode is chosen \( `gAppSecureMode_d` is defined as `1` in `app_preinclude.h`\), two additional application NVM functions are defined to handle local keys encrypted blob storage. Their declaration is:
 

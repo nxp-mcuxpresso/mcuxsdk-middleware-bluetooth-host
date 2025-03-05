@@ -14,7 +14,7 @@ extern gattDbAttribute_t* gattDatabase;
 The attribute template is defined as shown here:
 
 ```
-**typedef** **struct** {
+typedef struct{
     uint16_t handle ;
 /*!< Attribute handle - cannot be 0x0000; attribute handles need not be consecutive, but must be strictly increasing. */
     uint16_t permissions ;

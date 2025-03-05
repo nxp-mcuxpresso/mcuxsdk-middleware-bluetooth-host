@@ -20,6 +20,4 @@ topics/creating_a_bluetooth_low_energy_application_when_t.md
 topics/reference_documentation.md
 topics/Acronyms.md
 topics/note_source_code.md
-topics/revision_history.md
-topics/legal_information.md
 ```

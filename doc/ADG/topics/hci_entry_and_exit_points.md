@@ -3,10 +3,10 @@
 The HCI entry point of the Host Stack is the second function located in the *ble\_general.h* file:
 
 ```
-**void** **Ble\_HciRecv**
+void Ble\_HciRecv
 (
     hciPacketType_t packetType,
-    **void*** pHciPacket,
+    void* pHciPacket,
     uint16_t packetSize
 );
 ```

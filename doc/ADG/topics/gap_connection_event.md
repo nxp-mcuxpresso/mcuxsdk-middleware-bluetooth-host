@@ -3,11 +3,11 @@
 The GAP Connection Event is triggered by the Host Stack and sent to the application via the connection callback. Before any application-specific interactions, the Connection Manager callback is called to handle common application events, such as device connect, disconnect or pairing-related requests. It is called inside the registered connection such as shown below:
 
 ```
-**static** **void** **BleApp\_ConnectionCallback** ( deviceId_t peerDeviceId, gapConnectionEvent_t * pConnectionEvent)
+static voidBle App_ConnectionCallback ( deviceId_t peerDeviceId, gapConnectionEvent_t * pConnectionEvent)
 {
     /* Connection Manager to handle Host Stack interactions */
     BleConnManager_GapPeripheralEvent(peerDeviceId, pConnectionEvent);
-    **switch** (pConnectionEvent-> eventType )
+    switch (pConnectionEvent-> eventType )
     {
         ...
     }

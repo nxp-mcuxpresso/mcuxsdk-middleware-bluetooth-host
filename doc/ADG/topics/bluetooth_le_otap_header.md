@@ -23,7 +23,7 @@ The total size of the header without the optional fields \(if defined by the *He
 
 All the fields in the header have a little endian format with the exception of the *Header String* field which is an ASCII character string.
 
-A packed structure type definition for the contents of the Bluetooth LE OTAP Header can be found in the *otap\_interface.h*file.
+A packed structure type definition for the contents of the Bluetooth LE OTAP Header can be found in the *otap\_interface.h* file.
 
 
 ```{include} ../topics/upgrade_file_identifier.md

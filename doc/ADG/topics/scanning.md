@@ -3,7 +3,7 @@
 The most basic setup for a Central device begins with scanning, which is performed by the following function from *gap\_interface.h*:
 
 ```
-bleResult_t **Gap\_StartScanning**
+bleResult_t Gap_StartScanning
 (
   const gapScanningParameters_t* pScanningParameters,
   gapScanningCallback_t scanningCallback,
@@ -16,7 +16,7 @@ bleResult_t **Gap\_StartScanning**
 If the *pScanningParameters* pointer is NULL, the currently set parameters are used. If no parameters have been set after a device power-up, the standard default values are used:
 
 ```
-**\#define** gGapDefaultScanningParameters_d \
+#define gGapDefaultScanningParameters_d \
 { \
     /* type */             gGapScanTypePassive_c, \
     /* interval */         gGapScanIntervalDefault_d, \
@@ -41,14 +41,14 @@ Gap_StartScanning(&scanningParamters, scanningCallback, enableFilterDuplicates, 
 When using the common application structure, the application can use the following API defined in *app\_conn.h*:
 
 ```
-bleResult_t **BluetoothLEHost\_StartScanning**
+bleResult_t BluetoothLEHost_StartScanning
 (
     appScanningParams_t   *pAppScanParams,
     gapScanningCallback_t pfCallback
 );
 ```
 
-The API uses the *appScanningParams\_t* structures, which is defined as follows:
+The API uses the *appScanningParams\_t* structure, which is defined as follows:
 
 ```
 typedef struct appScanningParams_tag
@@ -84,7 +84,7 @@ If this information signals a known Peripheral that the Central wants to connect
 To stop scanning, call this function:
 
 ```
-bleResult_t **Gap\_StopScanning** (**void**);
+bleResult_t Gap_StopScanning (void);
 ```
 
 By default, the GAP layer is configured to report all scanned devices to the application using the *gDeviceScanned\_c* event type. However, some use cases might require to perform specific GAP Discovery Procedures. In such use cases the advertising reports might require the filtering of Flags AD value from the advertising data. Other use cases require the Bluetooth LE Host Stack to automatically initiate a connection when a specific device has been scanned.
@@ -92,7 +92,7 @@ By default, the GAP layer is configured to report all scanned devices to the app
 To enable filtering based on the Flags AD value or to set device addresses for automatic connections, the following function must be called before the scanning is started:
 
 ```
-bleResult_t **Gap\_SetScanMode**
+bleResult_t Gap_SetScanMode
 (
     gapScanMode_t           scanMode,
     gapAutoConnectParams_t* pAutoConnectParams,

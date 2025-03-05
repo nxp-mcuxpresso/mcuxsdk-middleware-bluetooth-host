@@ -3,7 +3,7 @@
 The main API for reading a Characteristic Value is shown here:
 
 ```
-bleResult_t **GattClient\_ReadCharacteristicValue**
+bleResult_t GattClient\_ReadCharacteristicValue
 (
     deviceId_t                 deviceId,
     gattCharacteristic_t *     pIoCharacteristic,
@@ -22,16 +22,16 @@ The following examples assume that the application knows the Characteristic Valu
 ```
 gattCharacteristic_t myCharacteristic;
 myCharacteristic. value . handle = 0x10AB;
-**\#define** mcMaxValueLength_c 50
-**static** uint8_t aValue[mcMaxValueLength_c];
+#define mcMaxValueLength_c 50
+static uint8_t aValue[mcMaxValueLength_c];
 myCharacteristic. value . paValue = aValue;
-bleResult_t result = **GattClient\_ReadCharacteristicValue**
+bleResult_t result = GattClient_ReadCharacteristicValue
 (
     deviceId,
     &myCharacteristic,
     mcMaxValueLength_c
 );
-**if** (*gBleSuccess\_c* != result)
+if (gBleSuccess_c != result)
 {
     /* Handle error */
 }
@@ -40,7 +40,7 @@ bleResult_t result = **GattClient\_ReadCharacteristicValue**
 Regardless of the value length, the Client Procedure Callback is triggered when the reading is complete. The received value length is also filled in the *value* structure.
 
 ```
-**void ****gattClientProcedureCallback**
+void gattClientProcedureCallback
 (
     deviceId_t             deviceId,
     gattProcedureType_t    procedureType,
@@ -48,26 +48,26 @@ Regardless of the value length, the Client Procedure Callback is triggered when 
     bleResult_t            error
 )
 {
-    **switch** (procedureType)
+    switch (procedureType)
     {
         /* ... */
         case*gGattProcReadCharacteristicValue\_c*:
-            **if** (*gGattProcSuccess\_c* == procedureResult)
+            if (*gGattProcSuccess_c == procedureResult)
             {
                 /* Read value length */
                 PRINT(myCharacteristic. value . valueLength );
                 /* Read data */
-                **for** ( uint16_t j = 0; j < myCharacteristic. value . valueLength ; j++)
+                for ( uint16_t j = 0; j < myCharacteristic. value . valueLength ; j++)
                 {
                     PRINT(myCharacteristic. value . paValue [j]);
                 }
             }
-            **else**
+            else
             {
                 /* Handle error */
                 PRINT(error);
             }
-            **break**;
+            break;
         /* ... */
     }
 }

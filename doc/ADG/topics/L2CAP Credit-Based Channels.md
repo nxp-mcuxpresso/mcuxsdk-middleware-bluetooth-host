@@ -9,7 +9,7 @@ The Bluetooth LE Host Stack supports both the Credit-based Flow Control Mode and
 The first thing an application must do is register the control and data callbacks:
 
 ```
-bleResult_t   **L2ca\_RegisterLeCbCallbacks**
+bleResult_t   L2ca_RegisterLeCbCallbacks
 `(`
     l2caLeCbDataCallback_t     pCallback,
     l2caLeCbControlCallback_t  pCtrlCallback
@@ -23,7 +23,7 @@ The data callback receives the data which is being exchanged on the channel.
 To use L2CAP credit-based channels, the application must register a PSM. The PSM is analogous to a TCP/UDP port. It is an identifier used to determine the upper layer protocol which is making use of the L2CAP channel. The dynamic PSM range is 0x0080-0x00FF. The number of PSMs supported by an application can be configured at compile time via the `gL2caMaxLePsmSupported_c` define. The following API must be called in order to register a PSM:
 
 ```
-bleResult_t  **L2ca\_RegisterLePsm**
+bleResult_t  L2ca_RegisterLePsm
 ( 
    uint16_t     lePsm,
    uint16_t     lePsmMtu`
@@ -39,7 +39,7 @@ The local MPS is not configurable by the application. It is set automatically by
 A previously registered PSM can be deregistered:
 
 ```
-bleResult_t **L2ca\_DeregisterLePsm**
+bleResult_t L2ca_DeregisterLePsm
 (
   uint16_t     lePsm
 `);`
@@ -48,7 +48,7 @@ bleResult_t **L2ca\_DeregisterLePsm**
 The number of credit-based channels that can be opened is configurable by the application via the `gL2caMaxLeCbChannels_c` define. This is the total number for all peers. To open a channel, the following API must be called:
 
 ```
-bleResult_t **L2ca\_ConnectLePsm**
+bleResult_t L2ca_ConnectLePsm
 (
    uint16_t     lePsm, 
    deviceId_t   deviceId,   
@@ -59,7 +59,7 @@ bleResult_t **L2ca\_ConnectLePsm**
 To open up to five channels using Enhanced Credit-based Flow Control Mode, use this API:
 
 ```
-bleResult_t  **L2ca\_EnhancedConnectLePsm**
+bleResult_t  L2ca_EnhancedConnectLePsm
 (
   uint16_t     lePsm,
   deviceId_t   deviceId,
@@ -76,14 +76,14 @@ The connect APIs must be called by both the initiator and the responder \(upon r
 If the responder does not wish to accept the connection request, it can use the following APIs:
 
 ```
- bleResult_t  **L2ca\_CancelConnection**
+ bleResult_t  L2ca_CancelConnection
     (
       uint16_t      lePsm,
       deviceId_t    deviceId,
      l2caLeCbConnectionRequestResult_t refuseReason
     );
- bleResult_t **L2ca\_EnhancedCancelConnection
-  **(
+ bleResult_t L2ca_EnhancedCancelConnection
+    (
     uint16_t lePsm,
     deviceId_t deviceId,
     l2caLeCbConnectionRequestResult_t refuseReason,
@@ -97,7 +97,7 @@ When a channel has been successfully established, the `gL2ca_LePsmConnectionComp
 To send data on a channel:
 
 ```
- bleResult_t **L2ca\_SendLeCbData **
+ bleResult_t L2ca_SendLeCbData
 (
    deviceId_t      deviceId,
    uint16_t        channelId,
@@ -109,7 +109,7 @@ To send data on a channel:
 The Host Stack keeps track of the credits granted to peers for each channel and decrements them accordingly. When a peer’s credit count reaches zero, the application is notified through the `gL2ca_NoPeerCredits_c` event and it can decide to send more credits to the peer for that channel:
 
 ```
- bleResult_t **L2ca\_SendLeCredit**
+ bleResult_t L2ca_SendLeCredit
  (
   deviceId_t     deviceId,
   uint16_t       channelId,
@@ -131,7 +131,7 @@ When the application sends a packet using `L2ca_SendLeCbData`, it receives a `gL
 To disconnect a channel:
 
 ```
-bleResult_t **L2ca\_DisconnectLeCbChannel**
+bleResult_t L2ca_DisconnectLeCbChannel
 (
     deviceId_t  deviceId,
     uint16_t    channelId
@@ -141,7 +141,7 @@ bleResult_t **L2ca\_DisconnectLeCbChannel**
 As mentioned previously, channels which use the Enhanced Credit-based Flow Control Mode can be reconfigured. This is achieved via the API:
 
 ```
-bleResult_t **L2ca\_EnhancedChannelReconfigure**
+bleResult_t L2ca_EnhancedChannelReconfigure
 (
     deviceId_t     deviceId,
     uint16_t       newMtu,

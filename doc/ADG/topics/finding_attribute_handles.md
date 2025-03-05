@@ -17,7 +17,7 @@ bleResult_t GattDb_FindServiceHandle
 To find a specific Characteristic Value Handle in a Service whose declaration handle is known, the following API is provided:
 
 ```
-bleResult_t **GattDb\_FindCharValueHandleInService**
+bleResult_t GattDb_FindCharValueHandleInService
 (
     uint16_t               serviceHandle,
     bleUuidType_t          characteristicUuidType,
@@ -31,7 +31,7 @@ If the return value is *gBleSuccess\_c*, the handle is written at *pOutCharValue
 To find a Characteristic Descriptor of a given type in a Characteristic, when the Characteristic Value Handle is known, the following API is provided:
 
 ```
-bleResult_t **GattDb\_FindDescriptorHandleForCharValueHandle**
+bleResult_t GattDb_FindDescriptorHandleForCharValueHandle
 (
     uint16_t           charValueHandle,
     bleUuidType_t      descriptorUuidType,
@@ -45,7 +45,7 @@ Similarly, the function returns *gBleGattDbInvalidHandle\_c* is the handle is in
 One of the most commonly used Characteristic Descriptors is the Client Configuration Characteristic Descriptor \(CCCD\), which has the UUID equal to *gBleSig\_CCCD\_d*. For this specific type, a special API is used as a shortcut:
 
 ```
-bleResult_t **GattDb\_FindCccdHandleForCharValueHandle**
+bleResult_t GattDb_FindCccdHandleForCharValueHandle
 (
     uint16_t     charValueHandle,
     uint16_t *   pOutCccdHandle

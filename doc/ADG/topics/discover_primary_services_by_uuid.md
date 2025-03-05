@@ -3,7 +3,7 @@
 To discover only Primary Services of a known type \(Service UUID\), the following API can be used:
 
 ```
-bleResult_t **GattClient\_DiscoverPrimaryServicesByUuid**
+bleResult_t GattClient_DiscoverPrimaryServicesByUuid
 (
     deviceId_t         deviceId,
     bleUuidType_t      uuidType,
@@ -21,9 +21,9 @@ This procedure is useful when the Client is only interested in a specific type o
 For example, when two devices implement the Heart Rate \(HR\) Profile, an HR Collector connects to an HR Sensor and may only be interested in discovering the Heart Rate Service \(HRS\) to work with its Characteristics. The following code example shows how to achieve this. Standard values for Service and Characteristic UUIDs, as defined by the Bluetooth SIG, are located in the *ble\_sig\_defines.h* file.
 
 ```
-**static **gattService_t heartRateService;
-**static **uint8_t mcHrs;
-bleResult_t result = **GattClient\_DiscoverPrimaryServicesByUuid**
+static gattService_t heartRateService;
+static uint8_t mcHrs;
+bleResult_t result = GattClient_DiscoverPrimaryServicesByUuid
 (
     deviceId,
     gBleUuidType16_c,             /* Service UUID type */
@@ -35,7 +35,7 @@ bleResult_t result = **GattClient\_DiscoverPrimaryServicesByUuid**
     if the HRS is found, 0 otherwise */
                                   
 );
-**if** (*gBleSuccess\_c* != result)
+if (gBleSuccess_c != result)
 {
     /* Treat error */
 }
@@ -44,7 +44,7 @@ bleResult_t result = **GattClient\_DiscoverPrimaryServicesByUuid**
 In the Client Procedure Callback, the application should check if any Service with the given UUID was found and read its handle range \(also perhaps proceed with Characteristic Discovery within that service range\).
 
 ```
-**void** gattClientProcedureCallback
+void gattClientProcedureCallback
 (
     deviceId_t deviceId,
     gattProcedureType_t procedureType,
@@ -52,29 +52,29 @@ In the Client Procedure Callback, the application should check if any Service wi
     bleResult_t error
 )
 {
-    **switch** (procedureType)
+    switch (procedureType)
     {
         /* ... */
-        **case** gGattProcDiscoverPrimaryServicesByUuid_c:
-            **if** (gGattProcSuccess_c == procedureResult)
+        case gGattProcDiscoverPrimaryServicesByUuid_c:
+            if (gGattProcSuccess_c == procedureResult)
             {
-                **if** (1 == mcHrs)
+                if (1 == mcHrs)
                 {
                     /* HRS found, read the handle range */
                     PRINT( heartRateService. startHandle );
                     PRINT( heartRateService. endHandle );
                 }
-                **else**
+                else
                 {
                     /* HRS not found! */
                 }
             }
-            **else**
+            else
             {
                 /* Handle error */
                 PRINT( error );
             }
-            **break**;
+            break;
         /* ... */
     }
 }

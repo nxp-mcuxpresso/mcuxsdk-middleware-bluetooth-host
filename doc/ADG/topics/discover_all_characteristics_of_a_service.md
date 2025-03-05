@@ -3,7 +3,7 @@
 The main API for Characteristic Discovery has the following prototype:
 
 ```
-bleResult_t **GattClient\_DiscoverAllCharacteristicsOfService**
+bleResult_t GattClient\_DiscoverAllCharacteristicsOfService
 (
     deviceId_t         deviceId,
     gattService_t *    pIoService,
@@ -19,8 +19,8 @@ The following example discovers all Characteristics contained in the Heart Rate 
 
 ```
 gattService_t* pService = &heartRateService
-**\#define** mcMaxCharacteristics_c 10
-**static **gattCharacteristic_t hrsCharacteristics[mcMaxCharacteristics_c];
+#define mcMaxCharacteristics_c 10
+static gattCharacteristic_t hrsCharacteristics[mcMaxCharacteristics_c];
 pService->aCharacteristics = hrsCharacteristics;
 bleResult_t result = GattClient_DiscoverAllCharacteristicsOfService
 (
@@ -33,7 +33,7 @@ bleResult_t result = GattClient_DiscoverAllCharacteristicsOfService
 The Client Procedure Callback is triggered when the procedure completes.
 
 ```
-**void ****gattClientProcedureCallback**
+void gattClientProcedureCallback
 (
     deviceId_t                 deviceId,
     gattProcedureType_t        procedureType,
@@ -41,16 +41,16 @@ The Client Procedure Callback is triggered when the procedure completes.
     bleResult_t                error
 )
 {
-    **switch** (procedureType)
+    switch (procedureType)
     {
       /* ... */
-      **case***gGattProcDiscoverAllCharacteristics\_c*:
-          **if** (*gGattProcSuccess\_c* == procedureResult)
+      case gGattProcDiscoverAllCharacteristics_c:
+          if (gGattProcSuccess_c == procedureResult)
           {
             /* Read number of discovered Characteristics */
               PRINT(pService-> cNumCharacteristics );
             /* Read discovered Characteristics data */
-              **for** ( uint8_t j = 0; j < pService-> cNumCharacteristics ; j++)
+              for ( uint8_t j = 0; j < pService-> cNumCharacteristics ; j++)
                 {
             /* Characteristic UUID is found inside the value field
                to avoid duplication */
@@ -69,12 +69,12 @@ The Client Procedure Callback is triggered when the procedure completes.
                     PRINT(pService-> aCharacteristics [j]. value . handle );
                 }
             }
-            **else**
+            else
             {
                 /* Handle error */
                 PRINT( error );
             }
-            **break**;
+            break;
         /* ... */
     }
 }

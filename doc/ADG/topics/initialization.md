@@ -5,7 +5,7 @@ The application developer is required to configure the Host Task as part of the 
 The prototype of the task function is located in the *ble\_host\_tasks.h* file:
 
 ```
-**void** **Host\_TaskHandler**(**void** * args);
+void Host_TaskHandler(void * args);
 ```
 
 It should be called with *NULL* as an argument in the task code from the application.

@@ -3,7 +3,7 @@
 When the Client receives a notification from the Server, it triggers a callback with the following prototype:
 
 ```
-**typedef ****void** (* gattClientNotificationCallback_t )
+typedef void (* gattClientNotificationCallback_t )
 (
     deviceId_t     deviceId,
     uint16_t       characteristicValueHandle,
@@ -28,7 +28,7 @@ typedef void (*gattClientEnhancedNotificationCallback_t)
 The callback must be installed with:
 
 ```
-bleResult_t **GattClient\_RegisterNotificationCallback**
+bleResult_t GattClient_RegisterNotificationCallback
 (
     gattClientNotificationCallback_t callback
 );
@@ -39,7 +39,7 @@ Very similar definitions exist for indications.
 The EATT notification callback should be installed using the following API:
 
 ```
-bleResult_t **GattClient\_RegisterEnhancedNotificationCallback**
+bleResult_t GattClient_RegisterEnhancedNotificationCallback
 (
  gattClientEnhancedNotificationCallback_t callback
 )
@@ -64,7 +64,7 @@ typedef void (*gattClientMultipleValueNotificationCallback_t)
 The callback must be installed with:
 
 ```
-bleResult_t **GattClient\_RegisterMultipleValueNotificationCallback**
+bleResult_t GattClient_RegisterMultipleValueNotificationCallback
 (
     gattClientMultipleValueNotificationCallback_t callback
 );

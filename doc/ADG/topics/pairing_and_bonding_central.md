@@ -2,8 +2,8 @@
 
 After the user has connected to a Peripheral, use the following function to check whether this device has bonded in the past:
 
-``` {#253UKJ}
-bleResult_t **Gap\_CheckIfBonded**
+``` 
+bleResult_t Gap_CheckIfBonded
 (
     deviceId_t   deviceId,
     bool_t *     pOutIsBonded
@@ -13,8 +13,8 @@ bleResult_t **Gap\_CheckIfBonded**
 
 If it has, link encryption can be requested with:
 
-``` {#1KCSZT}
-bleResult_t **Gap\_EncryptLink**
+```
+bleResult_t Gap_EncryptLink
 (
     deviceId_t     deviceId
 );
@@ -24,8 +24,8 @@ If the link encryption is successful, the *gConnEvtEncryptionChanged\_c* connect
 
 On the other hand, if this is a new device \(not bonded\), pairing may be started as shown here:
 
-``` {#SXPLM}
-bleResult_t **Gap\_Pair**
+``` 
+bleResult_t Gap_Pair
 (
     deviceId_t                       deviceId,
     const gapPairingParameters_t *   pPairingParameters
@@ -34,8 +34,8 @@ bleResult_t **Gap\_Pair**
 
 The pairing parameters are shown here:
 
-``` {#1C5Z7K}
-**typedef** **struct** gapPairingParameters_tag {
+``` 
+typedef struct gapPairingParameters_tag {
     bool_t                        withBonding ;
     gapSecurityModeAndLevel_t     securityModeAndLevel ;
     uint8_t                       maxEncryptionKeySize ;
@@ -82,13 +82,13 @@ The negotiation of the distributed keys is as follows:
 
 -   In the SMP Pairing Request \(started by *Gap\_Pair*\), the Central sets the flags for the keys it wants to distribute \(*centralKeys*\) and receive \(*peripheralKeys*\).
 
-| |CENTRAL|PERIPHERAL|
-|--|-------|----------|
-| |**Central keys**|**Peripheral keys**|**Peripheral keys**|**Central keys**|
-|**Long Term Key \(LTK\) +EDIV +RAND**|If it wants to be a peripheral in a future reconnection|If it wants encryption|If it wants encryption|If it wants to become a central in a future reconnection|
-|**Identity Resolving Key \(IRK\)**|If it uses or intends to use private resolvable addresses|If a peripheral is using a private resolvable address|If it uses or intends to use private resolvable addresses|If a central is using a private resolvable address|
-|**Connection Signature Resolving Key \(CSRK\)**|If it wants to sign data as GATT Client|If it wants the peripheral to sign data as GATT Client|If it wants to sign data as GATT Client|If it wants the Central to sign data as GATT Client|
-|**Identity address**|If it distributes the IRK|N/A|If it distributes the IRK|N/A|
+
+|                                           | Central keys (Central)                                              | Peripheral keys (Central)                                       | Peripheral () keys                                           | Central keys (peripheral)                                            |
+| ----------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------- | -------------------------------------------------------- |
+| Long Term Key (LTK)<br>+EDIV +RAND        | If it wants to be a peripheral in a future reconnection   | If it wants encryption                                 | If it wants encryption                                    | If it wants to become a central in a future reconnection |
+| Identity Resolving Key (IRK)              | If it uses or intends to use private resolvable addresses | If a peripheral is using a private resolvable address  | If it uses or intends to use private resolvable addresses | If a central is using a private resolvable address       |
+| Connection Signature Resolving Key (CSRK) | If it wants to sign data as GATT Client                   | If it wants the peripheral to sign data as GATT Client | If it wants to sign data as GATT Client                   | If it wants the Central to sign data as GATT Client      |
+| Identity address                          | If it distributes the IRK                                 | N/A                                                    | If it distributes the IRK                  
 
 -   The Peripheral examines the two distributions and must send an SMP Pairing Response \(started by the *Gap\_AcceptPairingRequest*\) after performing any changes it deems necessary. The Peripheral is only allowed to set to 0 some flags that are set to 1 by the Central, but not the other way around. For example, it cannot request/distribute keys that were not offered/requested by the Central. If the Peripheral is adverse to the Central’s distributions, it can reject the pairing by using the *Gap\_RejectPairing* function.
 -   The Central examines the updated distributions from the Pairing Response. If it is adverse to the changes made by the Peripheral, it can reject the pairing \(*Gap\_RejectPairing*\). Otherwise, the pairing continues and, during the key distribution phase \(the *gConnEvtKeyExchangeRequest\_c* event\) only the final negotiated keys are included in the key structure sent with *Gap\_SendSmpKeys*.
@@ -115,8 +115,8 @@ If the pairing continues, the following connection events may occur:
     -   *gConnEvtPairingComplete\_c*: the pairing process is complete, either successfully, or an error may have occurred during the SMP packet exchanges; note that this is different from the *gConnEvtKeyExchangeRequest\_c* event; the latter signals that the pairing was rejected by the peer, while the former is used for failures due to the SMP packet exchanges.
     -   *gConnEvtLeScKeypressNotification\_c*: the stack informs the application that a remote SMP Keypress Notification has been received during Passkey Entry Pairing Method.
 
-After the link encryption or pairing is completed successfully, the Central may immediately start exchanging data using the GATT APIs.
-
+After the link encryption or pairing is completed successfully, the Central may immediately start exchanging data using the GATT APIs. Gap_RejectPairing may be called on any pairing event<br>   
+**Figure 4. Central pairing flow – APIs and events.** 
 |![](../images/figure5.png "Central pairing flow – APIs and events. Gap_RejectPairing may be called on any pairing event")
 
 |

@@ -4,7 +4,7 @@
 2.  Set the periodic advertising parameters using the same handle as in the previous command.
 
     ```
-    bleResult_t **Gap\_SetPeriodicAdvParameters**
+    bleResult_t Gap_SetPeriodicAdvParameters
     (
         gapPeriodicAdvParameters_t*    pAdvertisingParameters
     );
@@ -15,7 +15,7 @@
 3.  Next, set the periodic advertising data by calling:
 
     ```
-    bleResult_t **Gap\_SetPeriodicAdvertisingData**
+    bleResult_t Gap_SetPeriodicAdvertisingData
     (
         uint8_t                      handle,
         gapAdvertisingData_t*  pAdvertisingData,
@@ -29,7 +29,7 @@
 5.  Last, enable Periodic Advertising. Periodic advertising starts only after extended advertising is started.
 
     ```
-    bleResult_t **Gap\_StartPeriodicAdvertising**
+    bleResult_t Gap_StartPeriodicAdvertising
     (
         uint8_t handle,
         bool_t  bIncludeADI

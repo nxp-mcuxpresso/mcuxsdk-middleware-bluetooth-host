@@ -10,8 +10,8 @@ First, when building the GATT Database \(see [Creating GATT database](creating_g
 
 Second, if the GATT Database requires additional security besides that already specified in attribute permissions \(for example, certain services require higher security in certain situations\), the following function must be called:
 
-``` {#MUCQB}
-bleResult_t **Gap\_RegisterDeviceSecurityRequirements**
+```
+bleResult_t Gap_RegisterDeviceSecurityRequirements
 (
     const gapDeviceSecurityRequirements_t * pSecurity
 );
@@ -23,8 +23,8 @@ Although the Peripheral does not initiate any kind of security procedure, it can
 
 The informing is performed through the Peripheral Security Request packet at SMP level. To use it, the following GAP API is provided:
 
-``` {#V5JQV}
-bleResult_t **Gap\_SendPeripheralSecurityRequest**
+``` 
+bleResult_t Gap_SendPeripheralSecurityRequest
 (
     deviceId_t                    deviceId,
     const gapPairingParameters_t* pPairingParameters
@@ -39,8 +39,8 @@ If the two devices have bonded in the past, the Central proceeds directly to enc
 
 When the devices have been previously pairing without using LE Secure Connections, along with the Peripheral’s LTK, the EDIV \(2 bytes\) and RAND \(8 bytes\) values were also sent \(their meaning is defined by the SMP\). Therefore, before providing the key to the Controller, the application should check that the two values match with those received in the `gConnEvtLongTermKeyRequest_c` event. If they do, the application should reply with:
 
-``` {#1YXZCM}
-bleResult_t **Gap\_ProvideLongTermKey**
+``` 
+bleResult_t Gap_ProvideLongTermKey
 (
     deviceId_t         deviceId,
     const uint8_t      aLtk,
@@ -52,8 +52,8 @@ The LTK size cannot exceed the maximum value of 16.
 
 If the EDIV and RAND values do not match, or if the Peripheral does not recognize the bond, it can reject the encryption request with:
 
-``` {#1VZ4HT}
-bleResult_t **Gap\_DenyLongTermKey**
+```
+bleResult_t Gap_DenyLongTermKey
 (
     deviceId_t deviceId
 );
@@ -65,8 +65,8 @@ If the devices are not bonded, the Peripheral should expect to receive the `gCon
 
 If the application agrees with the pairing parameters \(see [Pairing and bonding \(Central\)](pairing_and_bonding_central.md#) for detailed explanations\), it can reply with:
 
-``` {#1KH52H}
-bleResult_t **Gap\_AcceptPairingRequest**
+```
+bleResult_t Gap_AcceptPairingRequest
 (
     deviceId_t                       deviceId,
     const gapPairingParameters_t *   pPairingParameters
@@ -77,8 +77,8 @@ This time, the Peripheral sends its own pairing parameters, as defined by the SM
 
 After sending this response, the application should expect to receive the same pairing events as the Central \(see [Pairing and bonding \(Central\)](pairing_and_bonding_central.md#)\), with one exception: the `gConnEvtPasskeyRequest_c` event is not called if the application sets the Passkey \(PIN\) for pairing before the connection by calling the API:
 
-``` {#1G3PEI}
-bleResult_t **Gap\_SetLocalPasskey**
+```
+bleResult_t Gap_SetLocalPasskey
 (
     uint32_t passkey
 );
@@ -90,8 +90,8 @@ If the Peripheral application never calls `Gap_SetLocalPasskey`, then the `gConn
 
 The Peripheral can use the following API to reject the pairing process:
 
-``` {#GSJ5}
-bleResult_t **Gap\_RejectPairing**
+```
+bleResult_t Gap_RejectPairing
 (
 deviceId_t                         deviceId,
 gapAuthenticationRejectReason_t    reason

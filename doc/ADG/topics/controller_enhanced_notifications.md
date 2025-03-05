@@ -13,14 +13,14 @@ The user can choose between two options:
     The user should call the following function to enable various events from the mask or use Event `None` to disable the feature. The `Device ID` is valid only for connection events.
 
     ``` {#JTNAG}
-    bleResult_t **Gap\_ControllerEnhancedNotification**
+    bleResult_t Gap_ControllerEnhancedNotification
     (    uint16_t eventType,
         deviceId_t deviceId
     );
     ```
 
-    The event type is a bitmask having the following options:
-
+    The event type is a bitmask having the following options:<br>  
+    **Table 5. Event types and their description**
     |**Event Type**|**Event Description**|
     |--------------|---------------------|
     |gNotifEventNone\_c|No enhanced notification event enabled|
@@ -41,8 +41,8 @@ The user can choose between two options:
     |gNotifConnInd\_c|Connect indication|
     |gNotifPhyUpdateInd\_c|Phy update indication|
 
-    After enabling events, the user should wait for a `gControllerNotificationEvent_c` GAP Generic Event in the GAP Generic Callback. The first event received should have the event type set to `gNotifEventNone_c` with a status of `success` confirming the selected event mask has been enabled. The same event types apply for both the GAP command and the GAP event. The structure for the Controller Notification event is the following:
-
+    After enabling events, the user should wait for a `gControllerNotificationEvent_c` GAP Generic Event in the GAP Generic Callback. The first event received should have the event type set to `gNotifEventNone_c` with a status of `success` confirming the selected event mask has been enabled. The same event types apply for both the GAP command and the GAP event. The structure for the Controller Notification event is the following:<br>  
+    **Table 6. Controller Notification Event structure**
     |**Event Data**|**Data type**|**Data Description**|
     |--------------|-------------|--------------------|
     |eventType|bleNotificationEvent\_t|Enhanced notification event type|
@@ -59,7 +59,7 @@ The user can choose between two options:
     The user should call the following function to enable various events from the mask or use Event None to disable the feature. The same event types apply as the GAP layer types. The connection handle is valid only for connection events.
 
     ``` {#1VZILL}
-    bleResult_t **Controller\_ConfigureEnhancedNotification**
+    bleResult_t Controller_ConfigureEnhancedNotification
     (
         uint16_t eventType,
         uint16_t conn_handle
@@ -68,8 +68,8 @@ The user can choose between two options:
 
     The event monitoring is done in a user-installed callback by calling:
 
-    ``` {#WZE2T}
-    bleResult_t **Controller\_RegisterEnhancedEventCallback**
+    ``` 
+    bleResult_t Controller_RegisterEnhancedEventCallback
     (
         bleCtrlNotificationCallback_t notificationCallback
     );
@@ -77,7 +77,7 @@ The user can choose between two options:
 
     Where the types are the following:
 
-    ``` {#1AGCXC}
+    ``` 
     typedef struct bleCtrlNotificationEvent_tag
     {
         uint16_t event_type; /*! bleNotificationEventType_t */
@@ -94,8 +94,9 @@ The user can choose between two options:
     );
     ```
 
-    The event structure is nearly identical as the GAP one, except there is no status as the function call executes synchronously.
-
+    The event structure is nearly identical as the GAP one, except there is no status as the function call executes synchronously. <br>  
+    **Table 7. 'bleCtrlNotificationEvent_tag' Event structure**
+ 
     |**Event Data**|**Data type**|**Data Description**|
     |--------------|-------------|--------------------|
     |event\_type|bleNotificationEvent\_t|Enhanced notification event type|

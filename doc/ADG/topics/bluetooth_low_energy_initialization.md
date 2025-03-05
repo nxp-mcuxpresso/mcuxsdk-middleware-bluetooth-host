@@ -3,7 +3,7 @@
 The *ble\_init.h* and *ble\_init.c* files contain the declaration and the implementation of the following function:
 
 ```
-bleResult_t **Ble\_Initialize**
+bleResult_t Ble\_Initialize
 (
     gapGenericCallback_t gapGenericCallback
 )

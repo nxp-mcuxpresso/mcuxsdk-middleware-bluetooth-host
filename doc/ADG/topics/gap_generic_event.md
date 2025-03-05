@@ -3,11 +3,11 @@
 The GAP Generic Event is triggered by the Bluetooth LE Host Stack and sent to the application via the generic callback. Before any application-specific interactions, the Connection Manager callback is called to handle common application events, such as device address storage.
 
 ```
-**void** **BleApp\_GenericCallback** ( gapGenericEvent_t * pGenericEvent)
+void BleApp_GenericCallback ( gapGenericEvent_t * pGenericEvent)
 {
     /* Call Bluetooth Low Energy Conn Manager */
     BleConnManager_GenericEvent(pGenericEvent);
-    **switch** (pGenericEvent-> eventType )
+    switch (pGenericEvent-> eventType )
     {
         ...
     }

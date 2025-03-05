@@ -22,7 +22,7 @@ The `autoCreditsMgmt` parameter is used to tell the Bluetooth LE Host Stack if i
 For example, to establish two Enhanced ATT bearers with a peer device the application may call the `Gap_EattConnectionRequest` as shown below:
 
 ```
-bleResult_t result = **Gap\_EattConnectionRequest**(peerDeviceId,
+bleResult_t result = Gap_EattConnectionRequest(peerDeviceId,
                         64U,
                          2U,
                          3U,
@@ -40,7 +40,7 @@ case gConnEvtEattConnectionRequest_c:
 {
     gapEattConnectionRequest_t *pEattConnectionReq = &pConnectionEvent->eventData.eattConnectionRequest;
     
-    bleResult_t result = **Gap\_EattConnectionAccept**(peerDeviceId,
+    bleResult_t result = Gap_EattConnectionAccept(peerDeviceId,
                                                 TRUE,
                                                 pEattConnectionReq->mtu,
                                                 3U,
@@ -56,7 +56,7 @@ break;
 
 In case the `localMtu` specified when accepting a connection differs from the MTU requested by the peer device, the minimum of the two would become the MTU of the Enhanced Bearers.
 
-After the `**Gap\_EattConnectionRequest**` or `**Gap\_EattConnectionAccept**` is called, for the result the application should wait for the `gConnEvtEattConnectionComplete_c` connection event of type `gapEattConnectionComplete_t` shown below:
+After the `Gap_EattConnectionRequest` or `Gap_EattConnectionAccept` is called, for the result the application should wait for the `gConnEvtEattConnectionComplete_c` connection event of type `gapEattConnectionComplete_t` shown below:
 
 ```
 typedef struct {

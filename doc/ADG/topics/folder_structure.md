@@ -1,7 +1,7 @@
 # Folder structure
 
-The [Figure 1](#FIG_JDZ_RKF_CY) shows the application folder structure.
-
+The [Figure 11](#FIG_JDZ_RKF_CY) shows the application folder structure. <br>  
+**Figure 11. Application Folder structure in workspace** <br>
 ![](../images/app_folder_structure2.png "Application Folder structure in workspace")
 
 The *app* folder follows a specific structure which is recommended for any application developed using the Bluetooth Low Energy Host Stack:

@@ -3,7 +3,7 @@
 The first GATT Server call is the installation of the Server Callback, which has the following prototype:
 
 ```
-**typedef ****void** (* gattServerCallback_t )
+typedef void (* gattServerCallback_t )
 (
     deviceId_t             deviceId,    /*!< Device ID identifying the active connection. */
     gattServerEvent_t *    pServerEvent /*!< Server event. */
@@ -19,7 +19,7 @@ typedef void (*gattServerEnhancedCallback_t) ( deviceId_t deviceId, bearerId_t b
 The callback can be installed with:
 
 ```
-bleResult_t **GattServer\_RegisterCallback**
+bleResult_t GattServer_RegisterCallback
 (
     gattServerCallback_t callback
 );
@@ -28,7 +28,7 @@ bleResult_t **GattServer\_RegisterCallback**
 The EATT server callback should be installed using the following API:
 
 ```
-bleResult_t **GattServer\_RegisterEnhancedCallback**
+bleResult_t GattServer_RegisterEnhancedCallback
 (
      gattServerEnhancedCallback_t callback
 );

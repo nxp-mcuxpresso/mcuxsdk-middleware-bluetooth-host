@@ -8,45 +8,45 @@ To configure the FSCI module, the following parameters can be set on both the Bl
 
 ```
 /* Enable/Disable FSCI */
-**\#define** gFsciIncluded_c                 1
+#define gFsciIncluded_c                 1
 
 /* Enable/Disable FSCI Low Power Commands*/
-**\#define** gFSCI_IncludeLpmCommands_c      0
+#define gFSCI_IncludeLpmCommands_c      0
 
 /* Defines FSCI length - set this to FALSE is FSCI length has 1 byte */
-**\#define** gFsciLenHas2Bytes_c             1
+#define gFsciLenHas2Bytes_c             1
 
 /* Defines FSCI maximum payload length */
-**\#define** gFsciMaxPayloadLen_c            1660
+#define gFsciMaxPayloadLen_c            1660
 
 /* Enable/Disable Ack transmission */
-**\#define** gFsciTxAck_c                    0
+#define gFsciTxAck_c                    0
 
 /* Enable/Disable Ack reception */
-**\#define** gFsciRxAck_c                    0
+#define gFsciRxAck_c                    0
 
 /* Enable FSCI Rx restart with timeout */
-**\#define** gFsciRxTimeout_c                1
-**\#define** mFsciRxTimeoutUsePolling_c      1
+#define gFsciRxTimeout_c                1
+#define mFsciRxTimeoutUsePolling_c      1
 
 /* Use Misra Compliant version of FSCI module */
-**\#define** gFsciUseDedicatedTask_c         1
+#define gFsciUseDedicatedTask_c         1
 
 /* FSCI task size */
-**\#if** defined(DEBUG)
-**\#define** gFsciTaskStackSize_c            4600
-**\#else**
-**\#define** gFsciTaskStackSize_c            2600
-**\#endif**
+#if defined(DEBUG)
+#define gFsciTaskStackSize_c            4600
+#else
+#define gFsciTaskStackSize_c            2600
+#endif
 ```
 
 To perform the FSCI module initialization, the following code can be used:
 
 ```
-**/\*Define fsci serial manager handle\*/**
-**\#if defined**(gFsciIncluded_c) && (gFsciIncluded_c > 0)
-extern serial_handle_t g_fsciHandleList[gFsciIncluded_c];
-**\#endif** /*gFsciIncluded_c > 0*/
+/* Define fsci serial manager handle */
+  #if defined(gFsciIncluded_c) && (gFsciIncluded_c > 0)
+    extern serial_handle_t g_fsciHandleList[gFsciIncluded_c];
+  #endif /*gFsciIncluded_c > 0*/
 
 void BluetoothLEHost_AppInit(void)
 {

@@ -24,7 +24,7 @@ The GATT Server allows the application to register a set of attribute handles as
 All Control-Point Characteristics in the GATT Database must have their Value handle registered. In fact, the application may register any other handle for write notifications for its own purposes with the following API:
 
 ```
-bleResult_t **GattServer\_RegisterHandlesForWriteNotifications**
+bleResult_t GattServer\_RegisterHandlesForWriteNotifications
 (
     uint8_t         handleCount,
     const uint16_t *      aAttributeHandles
@@ -38,7 +38,7 @@ After an attribute handle has been registered with this function, whenever the C
 -   *gEvtAttributeWritten\_c* is triggered when the attribute is written with a Write procedure \(ATT Write Request\). In this instance, the application has to decide whether the written value is valid and whether it must be written in the database, and, if so, the application must write the value with the *GattDb\_WriteAttribute*, see [GATT database application interface](gatt_database_application_interface.md). At this point, the GATT Server module does not automatically send the ATT Write Response over the air. Instead, it waits for the application to call this function:
 
 ```
-bleResult_t **GattServer\_SendAttributeWrittenStatus**
+bleResult_t GattServer_SendAttributeWrittenStatus
 (
     deviceId_t     deviceId,
     uint16_t       attributeHandle,

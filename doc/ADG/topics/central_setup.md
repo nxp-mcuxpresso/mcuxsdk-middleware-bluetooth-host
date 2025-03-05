@@ -46,7 +46,7 @@ The application configures the extended scanning by going through the following 
     When using the common application structure, the application can use the following API defined in *app\_conn.h*, to search the contents from *pData* in an advertising element:
 
     ```
-    bool_t **BluetoothLEHost\_MatchDataInAdvElementList**
+    bool_t BluetoothLEHost_MatchDataInAdvElementList
     (
         gapAdStructure_t *pElement,
         void             *pData,
@@ -57,7 +57,7 @@ The application configures the extended scanning by going through the following 
 3.  Stop scanning by calling the function below:
 
     ```
-    bleResult_t **Gap\_StopScanning**(void);
+    bleResult_t Gap_StopScanning(void);
     ```
 
     Application should wait for a *gScanStateChanged\_c* or a *gScanCommandFailed\_c* in the Scanning Callback.
@@ -65,7 +65,7 @@ The application configures the extended scanning by going through the following 
 4.  Connect to a device by calling the function below:
 
     ```
-    bleResult_t **Gap\_Connect**
+    bleResult_t Gap_Connect
     (
     const gapConnectionRequestParameters_t* pParameters,
     gapConnectionCallback_t connCallback
@@ -75,7 +75,7 @@ The application configures the extended scanning by going through the following 
     When using the common application structure, the following API can be used:
 
     ```
-    bleResult_t **BluetoothLEHost\_Connect**
+    bleResult_t BluetoothLEHost_Connect
     (
         gapConnectionRequestParameters_t*   pParameters,
         gapConnectionCallback_t             connCallback

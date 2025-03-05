@@ -24,7 +24,7 @@ This *BleApp\_GattIndicationCallback\(\)* function is called when any attribute 
 The *BleApp\_GattIndicationCallback\(\)* function from the demo calls an application-specific function called *BleApp\_AttributeIndicated\(\)* in which the OTAP Commands are handled.
 
 ```
-**static void BleApp\_AttributeIndicated**
+static void BleApp_AttributeIndicated
 (
     deviceId_t     deviceId,
     uint16_t       handle,
@@ -32,7 +32,7 @@ The *BleApp\_GattIndicationCallback\(\)* function from the demo calls an applica
     uint16_t       length
 )
 {
-    **if** (handle == mPeerInformation.customInfo.otapServerConfig.hControlPoint)
+    if (handle == mPeerInformation.customInfo.otapServerConfig.hControlPoint)
     {
        otapCommandVars.pValueTemp = pValue;
         otapCommand_t*  pOtaCmd = otapCommandVars.otapCommandTemp;
@@ -43,12 +43,12 @@ The *BleApp\_GattIndicationCallback\(\)* function from the demo calls an applica
                         (uint8_t*)(&(pOtaCmd->cmd)),
                         length - gOtap_CmdIdFieldSize_c);
     }
-    **elseif** (handle == otherHandle)
+    elseif (handle == otherHandle)
     {
         /* Handle other attribute indications here */
         /* ... Missing code here ... */
     }
-    **else**
+    else
     {
         /*! A GATT Client is trying to GATT Indicate an unknown attribute value.
          * This should not happen. Disconnect the link. */
@@ -62,7 +62,7 @@ OTAP Server demo does not have internal storage, so all commands are forwarded v
 To send OTAP Commands to the OTAP Client the application running the OTAP Server calls the *OtapServer\_SendCommandToOtapClient\(\)* function, which performs an ATT Write operation on the OTAP Control Point attribute.
 
 ```
-**static void OtapServer\_SendCommandToOtapClient** 
+static void OtapServer_SendCommandToOtapClient 
         (deviceId_t  otapClientDevId,
          void*       pCommand,
          uint16_t    cmdLength)
@@ -81,12 +81,12 @@ To send OTAP Commands to the OTAP Client the application running the OTAP Server
                                                       &otapCtrlPointChar,
                                                       cmdLength,
                                                       pCommand);
-**
-    if** (gBleSuccess_c == bleResult)
+
+    if (gBleSuccess_c == bleResult)
     {
         otapServerData.lastCmdSentToOtapClient = (otapCmdIdt_t)(((otapCommand_t*)pCommand)->cmdId);
     }
-    **else**
+    else
     {
         /*! A Bluetooth Low Energy error has occurred - Disconnect */
         (void)Gap_Disconnect (otapClientDevId);
@@ -98,20 +98,20 @@ To send OTAP Commands to the OTAP Client the application running the OTAP Server
 The ATT Confirmation for the ATT Write is received in the *BleApp\_GattClientCallback\(\)* set up earlier which receives a GATT procedure success message for a *gGattProcWriteCharacteristicValue\_c* procedure type.
 
 ```
-**static void BleApp\_GattClientCallback**(
+static void BleApp_GattClientCallback(
     deviceId_t              serverDeviceId,
     gattProcedureType_t     procedureType,
     gattProcedureResult_t   procedureResult,
     bleResult_t             error
 )
 {
-   ** union**
+   union
     {
         uint8_t                     errorTemp;
         attErrorCode_t              attErrorCodeTemp;
     }attErrorCodeVars;
 
-    **if** (procedureResult == gGattProcError_c)
+    if (procedureResult == gGattProcError_c)
     {
         attErrorCodeVars.errorTemp = (uint8_t)error & 0xFFU;
         attErrorCode_t attError = attErrorCodeVars.attErrorCodeTemp;
@@ -119,33 +119,33 @@ The ATT Confirmation for the ATT Write is received in the *BleApp\_GattClientCal
             attError == gAttErrCodeInsufficientAuthorization_c  ||
             attError == gAttErrCodeInsufficientAuthentication_c)
         {
-    **\#if **gAppUsePairing_d
+    #if gAppUsePairing_d
             /* Start Pairing Procedure */
             (void)Gap_Pair (serverDeviceId, &gPairingParameters);
-    **\#endif**
+    #endif
         }
 
         BleApp_StateMachineHandler (serverDeviceId, mAppEvt_GattProcError_c);
     }
-    **else if** (procedureResult == gGattProcSuccess_c)
+    else if (procedureResult == gGattProcSuccess_c)
     {
-        **switch**(procedureType)
+        switch(procedureType)
         {
             /* ... Missing code here... */
-           ** case** gGattProcWriteCharacteristicValue_c:
+            case gGattProcWriteCharacteristicValue_c:
             {
                 BleApp_HandleValueWriteConfirmations (serverDeviceId);
             }
-            **break;**
+            break;
 
-           ** default:**
+            default:
                 ; /* For MISRA compliance */
-           ** break;**
+           break;
         }
 
         BleApp_StateMachineHandler(serverDeviceId, mAppEvt_GattProcComplete_c);
     }
-    **else**
+    else
     {
         ; /* For MISRA compliance */
     }
@@ -171,55 +171,55 @@ The data callback *BleApp\_L2capPsmDataCallback\(\)* is not used by the OTAP Ser
 The control callback is used to handle L2CAP LE PSM connection requests from the OTAP Client and other events: PSM disconnections, No peer credits, and so on. The OTAP Client must initiate the L2CAP PSM connection if it wants to use the L2CAP transfer method.
 
 ```
-**static** **void** **BleApp\_L2capPsmControlCallback**(l2capControlMessageType_t messageType,
-                                                                          **void***              pMessage)
+static void BleApp_L2capPsmControlCallback(l2capControlMessageType_t messageType,
+                                                                          void              pMessage)
 {
-    **switch** (messageType)
+    switch (messageType)
     {
-        **case** *gL2ca\_LePsmConnectRequest\_c*:
+        case gL2ca_LePsmConnectRequest_c:
         {
             l2caLeCbConnectionRequest_t *pConnReq = ( l2caLeCbConnectionRequest_t *)pMessage;
             /* Respond to the peer L2CAP CB Connection request - send a connection response. */
             L2ca_ConnectLePsm (gOtap_L2capLePsm_c,
                                pConnReq-> deviceId,
                                mAppLeCbInitialCredits_c);
-            **break**;
+            break;
         }
-        **case** *gL2ca\_LePsmConnectionComplete\_c*:
+        case gL2ca_LePsmConnectionComplete_c:
         {
             l2caLeCbConnectionComplete_t *pConnComplete = ( l2caLeCbConnectionComplete_t *)pMessage;
-            **if** (pConnComplete->result == *gSuccessful\_c*)
+            if (pConnComplete->result == *gSuccessful_c)
             {
                 /* Set the application L2CAP PSM Connection flag to TRUE because there is no gL2ca_LePsmConnectionComplete_c
                  * event on the responder of the PSM connection. */
                 otapServerData. l2capPsmConnected = TRUE;
                 otapServerData. l2capPsmChannelId = pConnComplete->cId;
             }
-            **break**;
+            break;
         }
-        **case** *gL2ca\_LePsmDisconnectNotification\_c*:
+        case gL2ca_LePsmDisconnectNotification_c:
         {
             l2caLeCbDisconnection_t *pCbDisconnect = ( l2caLeCbDisconnection_t *)pMessage;
             /* Call App State Machine */
-            BleApp_StateMachineHandler (pCbDisconnect-> deviceId, *mAppEvt\_CbDisconnected\_c*);
+            BleApp_StateMachineHandler (pCbDisconnect-> deviceId, mAppEv_CbDisconnected_c);
             otapServerData. l2capPsmConnected = FALSE;
-            **break**;
+            break;
         }
-        **case** *gL2ca\_NoPeerCredits\_c*:
+        case gL2ca_NoPeerCredits_c:
         {
             l2caLeCbNoPeerCredits_t *pCbNoPeerCredits = ( l2caLeCbNoPeerCredits_t *)pMessage;
             L2ca_SendLeCredit (pCbNoPeerCredits-> deviceId,
                                otapServerData. l2capPsmChannelId,
                                mAppLeCbInitialCredits_c);
-            **break**;
+            break;
         }
-        **case** *gL2ca\_LocalCreditsNotification\_c*:
+        case gL2ca_LocalCreditsNotification_c*:
         {
             l2caLeCbLocalCreditsNotification_t *pMsg = ( l2caLeCbLocalCreditsNotification_t *)pMessage;
             **break**;
         }
-        **default**:
-            **break**;
+        default:
+            break;
     }
 }
 ```
@@ -229,12 +229,12 @@ The ATT transfer method is supported by default but the L2CAP transfer method on
 To send data chunks to the OTAP Client the OTAP Server application calls the *OtapServer\_SendCImgChunkToOtapClient\(\)* function which delivers the chunk via the selected transfer method. For the ATT transfer method the chunk is sent via the *GattClient\_CharacteristicWriteWithoutResponse\(\)* function and for the L2CAP transfer method the chunk is sent via the *L2ca\_SendLeCbData\(\)* function.
 
 ```
-**static void OtapServer\_SendCImgChunkToOtapClient** (deviceId_t otapClientDevId,
-                                                 **void***      pChunk,
+static void OtapServer\_SendCImgChunkToOtapClient (deviceId_t otapClientDevId,
+                                                 void      pChunk,
                                                  uint16_t   chunkCmdLength)
 {
     bleResult_t bleResult = gBleSuccess_c;
-    **if** (otapServerData.transferMethod == gOtapTransferMethodAtt_c)
+    if (otapServerData.transferMethod == gOtapTransferMethodAtt_c)
     {
         /* GATT Characteristic to be written without response - OTAP Client Data */
         gattCharacteristic_t otapDataChar;
@@ -246,14 +246,14 @@ To send data chunks to the OTAP Client the OTAP Server application calls the *Ot
                                                  chunkCmdLength,
                                                  pChunk);
     }
-    **else if** (otapServerData.transferMethod == gOtapTransferMethodL2capCoC_c)
+    else if (otapServerData.transferMethod == gOtapTransferMethodL2capCoC_c)
     {
         bleResult = L2ca_SendLeCbData (mPeerInformation.deviceId,
                                        otapServerData.l2capPsmChannelId,
                                        pChunk,
                                        chunkCmdLength);
     }
-    **if** (gBleSuccess_c != bleResult)
+    if (gBleSuccess_c != bleResult)
     {
         /*! A Bluetooth Low Energy error has occurred - Disconnect */
         Gap_Disconnect (otapClientDevId);
