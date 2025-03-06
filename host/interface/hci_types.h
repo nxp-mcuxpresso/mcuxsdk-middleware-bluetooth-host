@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -253,6 +253,7 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 
 /* LE Set Host Feature command */
 #define gHciLeSetHostFeature_c                              0x0074U
+#define gHciSetDataRelatedAddressChanges_c                  0x007CU
 
 #if defined(gBLE52_LePowerControlSupport_d) && (gBLE52_LePowerControlSupport_d == TRUE)
 #define gHciLeEnhancedReadTransmitPowerLevel_c              0x0076U

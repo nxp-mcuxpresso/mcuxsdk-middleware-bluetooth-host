@@ -59,6 +59,14 @@ typedef struct
     hciErrorCode_t      reason;
 } hciDisconnectionCompleteEvent_t;
 
+/*! OCF 0x007C */
+/*! HCI_Set_Data_Related_Address_Changes */
+typedef struct
+{
+    uint8_t             advertisingHandle;
+    uint8_t             changeReasons;
+} hciSetDataRelatedAddressChangesCommand_t;
+
 /*! OCF 0x001D */
 /*! HCI_Read_Remote_Version_Information */
 typedef struct
@@ -3539,6 +3547,20 @@ bleResult_t Hci_LeSetHostChannelClassification(
 #endif /* gConnCentralSupported_d || (gLeBroadcasterSupported_d && gBLE50_d && gBLE51_d) */
 
 /* Remote Information Group */
+/*! *********************************************************************************
+* \brief        The function sends the HCI Set Data Related Address Changes (OGF : 0x08; OCF : 0x007C) command to the Controller.
+*
+* \param[in]    pParam  pointer to a structure containing the advertising handle and change reason.
+* \param[out]   None
+*
+* \return       Status
+*
+* \remarks      Remote Information Group
+*
+********************************************************************************** */
+bleResult_t  Hci_SetDataRelatedAddressChanges(
+                const hciSetDataRelatedAddressChangesCommand_t *pParam);                             /* 8.122 */
+
 /*! *********************************************************************************
 * \brief        The function sends the HCI Read Remote Version Information (OGF : 0x01; OCF : 0x001D) command to the Controller.
 *

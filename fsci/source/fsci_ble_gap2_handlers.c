@@ -81,6 +81,12 @@ static void HandleCtrlCmdGetDebugInfoCmd
     uint32_t fsciInterfaceId
 );
 
+static void HandleGapCmdSetDataRelatedAddressChanges
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+
 static void HandleGapCmdLeChannelOverride
 (
     uint8_t *pBuffer,
@@ -309,6 +315,7 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
     NULL,
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
     HandleCtrlCmdGetTimestampExOpCode,                                          /* = 0x13, gBleCtrlCmdGetTimestampExOpCode_c */
+    HandleGapCmdSetDataRelatedAddressChanges,                                   /* = 0x14, gBleGapCmdSetDataRelatedAddressChanges_c */
 };
 
 #if gFsciBleTest_d
@@ -721,6 +728,33 @@ static void HandleCtrlCmdGetDebugInfoCmd
     {
         fsciBleError(gFsciOutOfMessages_c, fsciInterfaceId);
     }
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdSetDataRelatedAddressChanges(uint8_t *pBuffer,
+*                                                 uint32_t fsciInterfaceId)
+*\brief        Handler for gBleGapCmdSetDataRelatedAddressChanges_c.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+static void HandleGapCmdSetDataRelatedAddressChanges
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+)
+{
+    uint8_t advertisingHandle;
+    uint8_t changeReasons;
+
+    /* Get command parameters from buffer */
+    fsciBleGetUint8ValueFromBuffer(advertisingHandle, pBuffer);
+    fsciBleGetUint8ValueFromBuffer(changeReasons, pBuffer);
+
+    fsciBleGap2CallApiFunction(Gap_SetDataRelatedAddressChanges(advertisingHandle, changeReasons));
 }
 
 /*! *********************************************************************************

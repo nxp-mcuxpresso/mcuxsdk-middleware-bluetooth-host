@@ -120,6 +120,9 @@
 #define gLePhy2MFlag_c                      BIT1         /*!< Host prefers to use LE 2M Tx/Rx Phy, possibly among others */
 #define gLePhyCodedFlag_c                   BIT2         /*!< Host prefers to use LE Coded Tx/Rx Phy, possibly among others */
 
+#define gAdvDataChange_c                    BIT0         /*!< Advertising Data Change reason */
+#define gScanRspDataChange_c                BIT1         /*!< Scan Response Data Change reason */
+
 /*! Initiator filter policy values */
 #define gUseDeviceAddress_c                 0x00U        /*!< Initiates a connection with a specific device identified by its address. */
 #define gUseFilterAcceptList_c                     0x01U        /*!< Initiates connections with all the devices in the Filter Accept List at the same time. */
@@ -895,6 +898,7 @@ typedef enum {
     gHandoverConnectionUpdateProcedureEvent_c           = 0x4FU, /*!< This event is used to report the new connection parameters indicated during the Connection Update procedure */
     gHandoverApplyConnectionUpdateProcedureComplete_c   = 0x50U, /*!< This event is used to report the new connection parameters indicated during the Connection Update procedure */
     gVendorUnitaryTestComplete_c                        = 0x51U, /*!< Vendor Unitary Test command complete */
+    gLeSetDataRelatedAddressChangesComplete_c           = 0x52U, /*!< Set Data Related Address Changes command complete */
 } gapGenericEventType_t;
 
 /*! Internal Error Source - the command that triggered the error */
@@ -1038,6 +1042,7 @@ typedef enum {
     gLePeriodicAdvResponseReport_c = 0x88U,
 	gHandoverApplyConnectionUpdateProcedure_c = 0x89U,  /*!< An error occurred during the Handover Apply Connection Update procedure */
     gVendorUnitaryTest_c = 0x8AU,                   /*!< An error occurred during the Vendor Unitary Test procedure */
+    gSetDataRelatedAddressChanges_c = 0x8BU,        /*!< An error occurred during the Set Data Related Address procedure */
 } gapInternalErrorSource_t;
 
 /*! Internal Error Event Data */

@@ -115,6 +115,27 @@
 extern "C" {
 #endif
 
+/*!*************************************************************************************************
+ * \fn           bleResult_t Gap_SetDataRelatedAddressChanges(uint_8 advertisingHandle, uint8_t changeReasons)
+ *
+ * \brief        Command specifies circumstances when the Controller shall refresh any Resolvable Private Address used by the
+ *               advertising set identified by the Advertising_Handle parameter.
+ *
+ * \param [in]   advertisingHandle       Identify an advertising set.
+ * \param [in]   changeReasons           Change reasons. Any combination of gAdvDataChange_c and gScanRspDataChange_c. 0U to disable the feature.
+ *
+ * \retval       gBleSuccess_c
+ * \retval       gBleOutOfMemory_c       Cannot allocate memory for the Host task.
+ * \retval       gBleInvalidParameter_c  A parameter has an invalid value or is outside
+ *                                       the accepted range
+ *
+***************************************************************************************************/
+bleResult_t Gap_SetDataRelatedAddressChanges
+(
+    uint8_t advertisingHandle,
+    uint8_t changeReasons
+);
+
 /*! *********************************************************************************
 * \brief  Registers the device security requirements.
 * This function includes a central security for all services and, optionally, additional stronger security

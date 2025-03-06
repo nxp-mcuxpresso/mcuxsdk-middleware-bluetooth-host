@@ -384,6 +384,7 @@ static const int16_t maGenericEventToOpcode[]=
   -1,                                                                                      /* reserved: 0x4FU */
   -1,                                                                                      /* reserved: 0x50U */
   -1,                                                                                      /* reserved: 0x51U */
+  -1,                                                                                      /* reserved: 0x52U */
 };
 
 static const int16_t maGenericEvent2ToOpcode[]= {
@@ -408,6 +409,7 @@ static const int16_t maGenericEvent2ToOpcode[]= {
     -1,                                                                                      /* reserved: 0x4FU */
     -1,                                                                                      /* reserved: 0x50U */
     (int16_t)gBleGapEvtGenericEventVendorUnitaryTestCompleteOpCode_c,                        /* = 0x51U, gVendorUnitaryTestComplete_c */
+    (int16_t)gBleGapEvtGenericEventSetDataRelatedAddressChangesComplete_c,                  /* = 0x52U */
 };
 
 
