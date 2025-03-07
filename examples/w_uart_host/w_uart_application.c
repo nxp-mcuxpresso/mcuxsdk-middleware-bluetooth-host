@@ -288,6 +288,9 @@ extern servDiscInfo_t maServDiscInfo[gAppMaxConnections_c];
 /* Role of the device */
 gapRole_t mGapRole;
 
+/* Counter of the active connections */
+static uint8_t mcActiveConnNo;
+
 /* Application specific information */
 appPeerInfo_t maPeerInformation[gAppMaxConnections_c];
 
@@ -325,17 +328,18 @@ static SERIAL_MANAGER_WRITE_HANDLE_DEFINE(s_writeHandle);
 static SERIAL_MANAGER_READ_HANDLE_DEFINE(s_readHandle);
 
 #if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
-static deviceId_t mLastUsedPeerDeviceId;
+/* This is the last device id used to indetify the last request GAPCheckIfBonded */
+static deviceId_t mLastCheckIfBondedDeviceId = gInvalidDeviceId_c;
 #if (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
 static bool_t mDataLengthChangeLocallyInitiated = FALSE;
-static bool_t mPeerWasBonded = FALSE;
-#endif /* gAppUseBonding_d */
-#endif /* gAppUsePairing_d */
+#endif /* defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U) */
+#endif /* defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U) */
 
 static bool_t mGattCallbacksInitialized = FALSE;
 
 /* This is the last device id used to indetify the last request GATT Get MTU */
 static deviceId_t mLastGetMtuDeviceId = gInvalidDeviceId_c;
+
 /************************************************************************************
 *************************************************************************************
 * Private prototypes
@@ -489,7 +493,8 @@ void BleApp_EventCallback
         case GAPScanningEventDeviceScannedIndication_FSCI_ID:
         {
             /* Checks Scan data for a device to connect */
-            if (checkScanEvent((gapScannedDevice_t*)(&pMsg->Data.GAPScanningEventDeviceScannedIndication)))
+            if (checkScanEvent((gapScannedDevice_t*)(&pMsg->Data.GAPScanningEventDeviceScannedIndication)) &&
+                (mcActiveConnNo < gAppMaxConnections_c))
             {
                 /* Found device - stop scanning and initiate connection */
                 mInitiatingConnection = TRUE;
@@ -510,8 +515,10 @@ void BleApp_EventCallback
         {
             deviceId = pMsg->Data.GAPConnectionEventConnectedIndication.DeviceId;
 
+            mcActiveConnNo++;
+
             mInitiatingConnection = FALSE;
-            mAppUartNewLine = TRUE;
+
             maPeerInformation[deviceId].deviceId = pMsg->Data.GAPConnectionEventConnectedIndication.DeviceId;
             maPeerInformation[deviceId].gapRole = (gapRole_t)pMsg->Data.GAPConnectionEventConnectedIndication.connectionRole;
             maPeerInformation[deviceId].addressType = (bleAddressType_t)pMsg->Data.GAPConnectionEventConnectedIndication.PeerAddressType;
@@ -557,7 +564,7 @@ void BleApp_EventCallback
             /* Check if the peer was previously bonded */
             GAPCheckIfBondedRequest_t req;
             req.DeviceId = pMsg->Data.GAPConnectionEventConnectedIndication.DeviceId;
-            mLastUsedPeerDeviceId = req.DeviceId;
+            mLastCheckIfBondedDeviceId = req.DeviceId;
             (void)GAPCheckIfBondedRequest(&req, gFsciInterface_c);
 #else /* gAppUsePairing_d && gAppUseBonding_d*/
             /* run the state machine */
@@ -604,6 +611,7 @@ void BleApp_EventCallback
 
             /* mark device id as invalid */
             maPeerInformation[peerDeviceId].deviceId = gInvalidDeviceId_c;
+            mcActiveConnNo--;
             peerDeviceId = gInvalidDeviceId_c;
 
             mAppUartNewLine = TRUE;
@@ -687,11 +695,13 @@ void BleApp_EventCallback
 
         case GAPPairingEventNoLTKIndication_FSCI_ID:
         {
-            if (maPeerInformation[mLastUsedPeerDeviceId].gapRole == gGapPeripheral_c)
+            deviceId_t peerDeviceId = (deviceId_t)pMsg->Data.GAPPairingEventNoLTKIndication.DeviceId;
+
+            if (maPeerInformation[peerDeviceId].gapRole == gGapPeripheral_c)
             {
 #if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
                 GAPSendPeripheralSecurityRequestRequest_t req;
-                req.DeviceId = mLastUsedPeerDeviceId;
+                req.DeviceId = peerDeviceId;
                 req.PairingParameters.WithBonding = gPairingParameters.withBonding;
                 req.PairingParameters.SecurityModeAndLevel = GAPSendPeripheralSecurityRequestRequest_PairingParameters_SecurityModeAndLevel_gMode1Level3_c;
                 req.PairingParameters.MaxEncryptionKeySize = gPairingParameters.maxEncryptionKeySize;
@@ -714,9 +724,9 @@ void BleApp_EventCallback
             if (pMsg->Data.GAPCheckIfBondedIndication.IsBonded == TRUE)
             {
                 /* Restore bonding information */
-                mPeerWasBonded = TRUE;
+                maPeerInformation[mLastCheckIfBondedDeviceId].isBonded = TRUE;
                 GAPLoadCustomPeerInformationRequest_t req;
-                req.DeviceId = mLastUsedPeerDeviceId;
+                req.DeviceId = mLastCheckIfBondedDeviceId;
                 req.Offset = 0U;
                 req.InfoSize = sizeof(wucConfig_t);
                 (void)GAPLoadCustomPeerInformationRequest(&req, gFsciInterface_c);
@@ -724,12 +734,12 @@ void BleApp_EventCallback
             else
             {
                 /* If peer was not bonded send peripheral security request */
-                mPeerWasBonded = FALSE;
-                BleApp_StateMachineHandler(mLastUsedPeerDeviceId, mAppEvt_PeerConnected_c);
+                maPeerInformation[mLastCheckIfBondedDeviceId].isBonded = FALSE;
+                BleApp_StateMachineHandler(mLastCheckIfBondedDeviceId, mAppEvt_PeerConnected_c);
                 if (mGapRole == gGapPeripheral_c)
                 {
                     GAPSendPeripheralSecurityRequestRequest_t req;
-                    req.DeviceId = mLastUsedPeerDeviceId;
+                    req.DeviceId = mLastCheckIfBondedDeviceId;
                     req.PairingParameters.WithBonding = gPairingParameters.withBonding;
                     req.PairingParameters.SecurityModeAndLevel =
                       GAPSendPeripheralSecurityRequestRequest_PairingParameters_SecurityModeAndLevel_gMode1Level3_c;
@@ -752,17 +762,18 @@ void BleApp_EventCallback
             /* Restored custom connection information. Encrypt link */
             if (pMsg->Data.GAPLoadCustomPeerInformationIndication.Info != NULL)
             {
-                FLib_MemCpy((uint8_t *) &maPeerInformation[mLastUsedPeerDeviceId].clientInfo,
+                FLib_MemCpy((uint8_t *) &maPeerInformation[mLastCheckIfBondedDeviceId].clientInfo,
                             pMsg->Data.GAPLoadCustomPeerInformationIndication.Info,
                             pMsg->Data.GAPLoadCustomPeerInformationIndication.InfoSize);
             }
 
 #if (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
-            if ((mGapRole == gGapCentral_c) && (mPeerWasBonded == TRUE))
+            if ((mGapRole == gGapCentral_c) && 
+                (maPeerInformation[mLastCheckIfBondedDeviceId].isBonded == TRUE))
             {
                 /* Encrypt Link */
                 GAPEncryptLinkRequest_t req;
-                req.DeviceId = mLastUsedPeerDeviceId;
+                req.DeviceId = mLastCheckIfBondedDeviceId;
                 (void)GAPEncryptLinkRequest(&req, gFsciInterface_c);
             }
 #endif
@@ -808,6 +819,8 @@ void BleApp_EventCallback
         case GATTClientProcedureWriteCharacteristicValueIndication_FSCI_ID:
         {
             /* deviceId is at the same position in the union */
+            deviceId = pMsg->Data.GATTClientProcedureWriteCharacteristicValueIndication.DeviceId;
+
             if ((pMsg->Data.GATTClientProcedureWriteCharacteristicValueIndication.ProcedureResult == 
                  GATTClientProcedureWriteCharacteristicValueIndication_ProcedureResult_gProcedureError_c) &&
                 (pMsg->Data.GATTClientProcedureWriteCharacteristicValueIndication.Error == 
@@ -815,8 +828,6 @@ void BleApp_EventCallback
                 )
             {
 #if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
-                deviceId = pMsg->Data.GATTClientProcedureWriteCharacteristicValueIndication.DeviceId;
-
                 if (mGapRole == gGapCentral_c)
                 {
                     /* Start Pairing Procedure in central role
@@ -908,6 +919,8 @@ void BleApp_EventCallback
         {
             panic(0, 0, 0, 0);
         }
+        break;
+
         case GAPScanningEventCommandFailedIndication_FSCI_ID:
         {
             panic(0, 0, 0, 0);
@@ -1378,6 +1391,8 @@ static void BleApp_GenericEvtInitCompleteHandler
 #endif
 #endif
 #endif
+
+    mcActiveConnNo = 0U;
 
     for (peerId = 0; peerId < (uint8_t)gAppMaxConnections_c; peerId++)
     {

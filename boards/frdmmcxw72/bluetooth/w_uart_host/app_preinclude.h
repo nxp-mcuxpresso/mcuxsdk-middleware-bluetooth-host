@@ -37,7 +37,7 @@
  *     App Configuration
  ********************************************************************************** */
 /*! Maximum number of connections supported for this application */
-#define gAppMaxConnections_c            2
+#define gAppMaxConnections_c            8U
 
 /*! Enable/disable use of bonding capability */
 #define gAppUseBonding_d                0

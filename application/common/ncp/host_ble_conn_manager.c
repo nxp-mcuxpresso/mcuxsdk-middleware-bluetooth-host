@@ -230,7 +230,6 @@ static void hsdkObserverGAPAddDeviceToFilterAcceptList(bleEvtContainer_t *contai
         FLib_MemCpy(req.Address,
                     pOutIdentityAddresses[mFilterAcceptListCount].identityAddress.idAddress,
                     gcBleDeviceAddressSize_c);
-        GAPAddDeviceToFilterAcceptListRequest(&req, gFsciInterface_c);
 
         mFilterAcceptListCount++;
         GAPAddDeviceToFilterAcceptListRequest(&req, gFsciInterface_c);
@@ -831,13 +830,23 @@ static void App_ManagePrivacyInternal(bleEvtContainer_t* pMsg)
 
         case GAPGetBondedDevicesIdentityInformationIndication_FSCI_ID:
         {
-            mIdentityInfoCount = pMsg->Data.GAPGetBondedDevicesIdentityInformationIndication.NbOfDeviceIdentityAddresses;
+            uint8_t tmpIdentityInfoCount = pMsg->Data.GAPGetBondedDevicesIdentityInformationIndication.NbOfDeviceIdentityAddresses;
 
-            if (mIdentityInfoCount > 0U)
+            if (tmpIdentityInfoCount > 0U)
             {
                 if (pOutIdentityAddresses == NULL)
                 {
-                    pOutIdentityAddresses = MEM_BufferAlloc(sizeof(gapIdentityInformation_t) * mIdentityInfoCount);
+                    pOutIdentityAddresses = MEM_BufferAlloc(sizeof(gapIdentityInformation_t) * tmpIdentityInfoCount);
+                }
+                else if (tmpIdentityInfoCount != mIdentityInfoCount)
+                {
+                    (void)MEM_BufferFree(pOutIdentityAddresses);
+                    pOutIdentityAddresses = MEM_BufferAlloc(sizeof(gapIdentityInformation_t) * tmpIdentityInfoCount);
+                    mIdentityInfoCount = tmpIdentityInfoCount;
+                }
+                else
+                {
+                    /* MISRA */
                 }
 
                 if (pOutIdentityAddresses != NULL)

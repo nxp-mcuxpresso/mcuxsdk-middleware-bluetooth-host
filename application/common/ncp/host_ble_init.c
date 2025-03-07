@@ -220,7 +220,7 @@ void App_HandleMessages(void)
             App_HandleObservedHSDKMessageInput(pMsgIn);
 
             /* Messages must always be freed. */
-            (void)MEM_BufferFree(pMsgIn);
+            (void)MSG_Free(pMsgIn);
         }
     }
 

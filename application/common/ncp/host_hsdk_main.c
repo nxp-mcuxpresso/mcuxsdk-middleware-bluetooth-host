@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2022-2023 NXP
+* Copyright 2022-2023, 2025 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -13,6 +13,7 @@
 #include "FunctionLib.h"
 #include "fsl_component_panic.h"
 #include "fsl_component_mem_manager.h"
+#include "fsl_component_messaging.h"
 #include "host_hsdk_interface.h"
 
 /************************************************************************************
@@ -209,7 +210,7 @@ void fsciCbHandler(void* pData, void* param, uint32_t fsciInterface)
 {
     if (mpfHSDKMessageCallback != NULL)
     {
-       bleEvtContainer_t *container = MEM_BufferAlloc( sizeof(bleEvtContainer_t));
+       bleEvtContainer_t *container = (bleEvtContainer_t*)MSG_Alloc(sizeof(bleEvtContainer_t));
        if (container != NULL)
        {
            KHC_BLE_RX_MsgHandler(pData, container, (uint8_t)fsciInterface);
