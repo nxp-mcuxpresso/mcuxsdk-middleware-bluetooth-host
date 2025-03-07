@@ -1443,6 +1443,19 @@ void fsciBleGap2StatusMonitor(bleResult_t result)
     fsciBleStatusMonitor(gFsciBleGap2OpcodeGroup_c, (uint8_t)gBleGap2StatusOpCode_c, result);
 }
 
+/*! *********************************************************************************
+*\fn           void fsciBleCtrlDebugInfoCmdMonitor(
+*                                           uint32_t    debugInfoSize,
+*                                           uint8_t     *pDebugInfo)
+*
+*\brief        Constructs the FSCI packet by serializing the input parameters
+*              executes FSCI transmit.
+*
+*\param[in]    debugInfoSize    Size of the debug info stored in pDebugInfo
+*\param[in]    *pDebugInfo      Debug info from controller. The structure varies.
+*
+*\retval       void.
+********************************************************************************** */
 void fsciBleCtrlDebugInfoCmdMonitor
 (
     uint32_t    debugInfoSize,

@@ -70,7 +70,7 @@ typedef enum
     gBleGapCmdSetPeriodicAdvertisingResponseDataOpCode_c                        = 0x0F,                     /*! Gap_SetPeriodicAdvResponseData command operation code */
     gBleGapCmdSetPeriodicSyncSubeventOpCode_c                                   = 0x10,                     /*! Gap_SetPeriodicSyncSubevent command operation code */
     gBleGapCmdConnectV2OpCode_c                                                 = 0x11,                     /*! Gap_ConnectFromPawr command operation code */
-    gBleGapCmdSetPeriodicAdvParametersV2OpCode_c                                = 0x12,
+    gBleGapCmdSetPeriodicAdvParametersV2OpCode_c                                = 0x12,                     /*! Gap_SetPeriodicAdvParametersV2 command operation code */
     gBleCtrlCmdGetTimestampExOpCode_c                                           = 0x13,                     /*! Controller_GetTimestampEx command operation code */
     gBleGapCmdSetDataRelatedAddressChanges_c                                    = 0x14,                     /*! Gap_SetDataRelatedAddress command operation code */
 
@@ -85,16 +85,16 @@ typedef enum
     gBleGapEvtEcdhP256GenerateKeysOpCode_c                                      = 0x89,                     /*! ECDH_P256_GenerateKeys out parameters event operation code */
     gBleGapChannelOverrideComplete_c                                            = 0x8A,                     /*! gapGenericCallback (type = gLeChannelOverrideComplete_c) event operation code */
     gBleGapEvtEncryptAdvertisingDataOpCode_c                                    = 0x8B,                     /*! Gap_EncryptAdvertisingData out parameters event operation code */
-    gBleGapEvtDecryptAdvertisingDataOpCode_c                                    = 0x8C,                    /*! Gap_DecryptAdvertisingData out parameters event operation code */
+    gBleGapEvtDecryptAdvertisingDataOpCode_c                                    = 0x8C,                     /*! Gap_DecryptAdvertisingData out parameters event operation code */
     gBleGapEvtGenericEventPeriodicAdvSetSubeventDataCompleteOpCode_c            = 0x8D,                     /*! gapGenericCallback (type = gPeriodicAdvSetSubeventDataComplete_c) event operation code */
     gBleGapEvtGenericEventPeriodicAdvSetResponseDataCompleteOpCode_c            = 0x8E,                     /*! gapGenericCallback (type = gPeriodicAdvSetResponseDataComplete_c) event operation code */
     gBleGapEvtGenericEventPeriodicSyncSubeventCompleteOpCode_c                  = 0x8F,                     /*! gapGenericCallback (type = gPeriodicSyncSubeventComplete_c) event operation code */
     gBleGapEvtScanningEventPeriodicDeviceScannedV2OpCode_c                      = 0x90,                     /*! gapScanningCallback (type = gPeriodicDeviceScannedV2_c) event operation code */
     gBleGapEvtAdvertisingEventPerAdvSubeventDataRequestOpCode_c                 = 0x91,                     /*! gapAdvertisingCallback (type = gPerAdvSubeventDataRequest_c) event operation code */
-    gBleGapEvtAdvertisingEventPerAdvResponseOpCode_c                            = 0x92,
+    gBleGapEvtAdvertisingEventPerAdvResponseOpCode_c                            = 0x92,                     /*! gapAdvertisingCallback (type = gPerAdvResponse_c) event operation code */
     gBleCtrlEvtGetTimestampExOpCode_c                                           = 0x93,                     /*! Output data from gBleCtrlCmdGetTimestampExOpCode_c */
     gBleGapEvtGenericEventVendorUnitaryTestCompleteOpCode_c                     = 0x94,                     /*! gapGenericCallback (type = gVendorUnitaryTestComplete_c) event operation code */
-    gBleGapEvtGenericEventSetDataRelatedAddressChangesComplete_c               = 0x95,                     /*! gapGenericCallback (type = gLeSetDataRelatedAddressCommandComplete_c) event operation code */
+    gBleGapEvtGenericEventSetDataRelatedAddressChangesComplete_c                = 0x95,                     /*! gapGenericCallback (type = gLeSetDataRelatedAddressCommandComplete_c) event operation code */
 } fsciBleGap2OpCode_t;
 
 /************************************************************************************
@@ -231,12 +231,25 @@ void fsciBleGap2Enable(bool_t enable);
 #endif /* gFsciBleTest_d */
 /* GAP2 Event Handlers */
 void fsciBleGap2StatusMonitor(bleResult_t result);
+
+/*! *********************************************************************************
+*\fn           void fsciBleCtrlDebugInfoCmdMonitor(
+*                                           uint32_t    debugInfoSize,
+*                                           uint8_t     *pDebugInfo)
+*
+*\brief        Constructs the FSCI packet by serializing the input parameters
+*              executes FSCI transmit.
+*
+*\param[in]    debugInfoSize    Size of the debug info stored in pDebugInfo
+*\param[in]    *pDebugInfo      Debug info from controller. The structure varies.
+*
+*\retval       void.
+********************************************************************************** */
 void fsciBleCtrlDebugInfoCmdMonitor
 (
     uint32_t    debugInfoSize,
     uint8_t     *pDebugInfo
 );
-
 
 /*! *********************************************************************************
 *\fn           void fsciBleCtrlGetTimestampExCmdMonitor(
