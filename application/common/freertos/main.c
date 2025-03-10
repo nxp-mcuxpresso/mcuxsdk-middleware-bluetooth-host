@@ -78,7 +78,7 @@ int main(void)
     OSA_Start();
 
     /*won't run here*/
-    assert(0);
+    assert(FALSE);
     return 0;
 }
 
