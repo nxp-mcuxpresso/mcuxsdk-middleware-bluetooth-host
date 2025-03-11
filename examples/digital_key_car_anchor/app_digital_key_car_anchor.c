@@ -108,6 +108,9 @@ static gapSmpKeys_t gAppOutKeys = {
 static gapSmpKeyFlags_t gAppOutKeyFlags;
 static bool_t gAppOutLeSc;
 static bool_t gAppOutAuth;
+
+static bleDeviceAddress_t mRandomStaticAddr = APP_BD_ADDR;
+
 #if (defined (gAppSecureMode_d) && (gAppSecureMode_d == 0U) || (defined(gA2BEnabled_d) && (gA2BEnabled_d > 0U)))
 /* 
 Global used to identify if a bond was added by
@@ -147,7 +150,6 @@ static void A2A_HandleGenericCallbackBondCreatedEvent(appEventData_t *pEventData
 static void App_HandleGenericCallbackBondCreatedEvent(appEventData_t *pEventData);
 #endif /* (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U)) */
 #endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
-static void AppSetBD_ADDR(void);
 
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
 button_status_t BleApp_HandleKeys0(void *buttonHandle, button_callback_message_t *message, void *callbackParam);
@@ -210,8 +212,9 @@ void BluetoothLEHost_AppInit(void)
     (void)BUTTON_InstallCallback((button_handle_t)g_buttonHandle[1], BleApp_HandleKeys1, NULL);
 #endif /* (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 1)) */
 
-    /* Configures Bluetooth address on the anchor form APP_BD_ADDR  */
-    AppSetBD_ADDR();
+    /* Configures Bluetooth Identity Address on the anchor from APP_BD_ADDR (Random Static)  */
+    gSmpKeys.aAddress = mRandomStaticAddr;
+    gSmpKeys.addressType = gBleAddrTypeRandom_c;
     
     /* Add/modify init code starting from here */
     
@@ -1410,26 +1413,6 @@ static bleResult_t CCC_TriggerTimeSync(deviceId_t deviceId)
     return result;
 }
 #endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
-
-/*! *********************************************************************************
-* \brief        Configures Bluetooth Address
-*
-********************************************************************************** */
-static void AppSetBD_ADDR(void)
-{
-    hardwareParameters_t *pHWParams = NULL;
-    uint8_t appBdAddr[gcBleDeviceAddressSize_c] = APP_BD_ADDR;
-
-    (void)NV_ReadHWParameters(&pHWParams);
-    
-    if ( !FLib_MemCmp(appBdAddr, pHWParams->bluetooth_address, gcBleDeviceAddressSize_c) )
-    {
-        OSA_DisableIRQGlobal();
-        FLib_MemCpy(pHWParams->bluetooth_address, appBdAddr, gcBleDeviceAddressSize_c);
-        OSA_EnableIRQGlobal();
-        (void)NV_WriteHWParameters();
-    }
-}
 
 #if defined(gA2ASerialInterface_d) && (gA2ASerialInterface_d == 1)
 /*! *********************************************************************************
