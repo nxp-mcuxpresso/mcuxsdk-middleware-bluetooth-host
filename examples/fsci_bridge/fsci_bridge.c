@@ -307,7 +307,6 @@ void BluetoothLEHost_AppInit(void)
     (void)MEM_Init();
     FSCI_commInit( g_fsciHandleList );
     PLATFORM_SetHciRxCallback(&ReceiveFromNBUCallback);
-    (void)RNG_Init();
 #if defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)
     /* Initialize NV module */
     (void)NvModuleInit();
