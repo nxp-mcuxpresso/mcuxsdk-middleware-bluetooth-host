@@ -10,7 +10,7 @@ NXP Bluetooth Le Host and Sample Applications
   CHANGELOG <CHANGELOG.md>  
   
   :caption NXP Bluetooth Le Host Documentation
-  Bluetooth Low Energy Application Developer’s Guide <doc/ADG/ADG.md>
-  Bluetooth Low Energy Software Quick Start Guide <doc/QSG/QSG.md>
-  Bluetooth Low Energy Demo Applications User Guide <doc/DAUG/DAUG.md>
-  Bluetooth Low Energy CCC Digital Key R3 Application Note <doc/AN12791/AN12791.md>
+  Bluetooth Low Energy Application Developer’s Guide <doc/Bluetooth Low Energy Application Developers Guide/Bluetooth Low Energy Application Developers Guide.md>
+  Bluetooth Low Energy Software Quick Start Guide <doc/Bluetooth Low Energy Quick Start Guide/Bluetooth Low Energy Quick Start Guide.md>
+  Bluetooth Low Energy Demo Applications User Guide <doc/Bluetooth Low Energy Demo Applications Users Guide/Bluetooth Low Energy Demo Applications Users Guide.md>
+  Bluetooth Low Energy CCC Digital Key R3 Application Note <doc/Bluetooth Low Energy CCC Digital Key Application Note/Bluetooth Low Energy CCC Digital Key Application Note.md>
