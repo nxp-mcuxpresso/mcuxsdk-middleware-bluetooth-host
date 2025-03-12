@@ -50,8 +50,14 @@
 /*! Set the Tx power in dBm */
 #define mAdvertisingDefaultTxPower_c    0
 
+/* Use a Random Static Address as Identity Address instead of the device's BD_ADDR */
+#define gUseRandomStaticAddress_d
+
+/* Do not send any Peripheral Security Requests */
 #define gCentralInitiatedPairing_d
-#define gUseCustomIRK_d                 1
+
+/* Use an application defined IRK (APP_SMP_IRK) instead of generating one */
+#define gUseCustomIRK_d
 
 #define APP_BD_ADDR     {0xC5, 0xBC, 0x70, 0x37, 0x60, 0xC4}
 #define APP_SMP_IRK     {0x0A, 0x2D, 0xF4, 0x65, 0xE3, 0xBD, 0x7B, 0x49, 0x1E, 0xB4, 0xC0, 0x95, 0x95, 0x13, 0x46, 0x73}

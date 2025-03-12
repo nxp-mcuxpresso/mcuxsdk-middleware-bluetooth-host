@@ -223,7 +223,7 @@ void BleConnManager_GenericEvent(gapGenericEvent_t* pGenericEvent)
             FLib_MemCpy(maBleDeviceAddress,
                         pGenericEvent->eventData.aAddress,
                         sizeof(bleDeviceAddress_t));
-#if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
+#if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U)) && !defined(gUseRandomStaticAddress_d)
             gSmpKeys.addressType = gBleAddrTypePublic_c;
             gSmpKeys.aAddress = maBleDeviceAddress;
 #endif /* gAppUsePairing_d */
@@ -1266,7 +1266,7 @@ STATIC void BleConnManager_MCUInfoToSmpKeys(void)
         SHA256_Hash (uid, len, sha256Output);
         FLib_MemCpy (gSmpKeys.aLtk, sha256Output, gSmpKeys.cLtkSize);
 
-#if (!defined(gUseCustomIRK_d) || (gUseCustomIRK_d == 0U))
+#if !defined(gUseCustomIRK_d)
         /* generate IRK */
         uid[len - 1U]++;
         SHA256_Hash (uid, len, sha256Output);
