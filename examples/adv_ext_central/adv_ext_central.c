@@ -209,6 +209,11 @@ static struct
 static gapRole_t   maGapRole[gAppMaxConnections_c];
 static uint8_t mResponseSlot;
 #endif /* (gAppPAWRSupport_d == TRUE) */
+
+#if (gAppEADSupport_d == TRUE)
+static uint8_t maEADKey[gcEadKeySize_c] = { 0x00U, 0x01U, 0x02U, 0x03U, 0x04U, 0x05U, 0x06U, 0x07U, 0x08U, 0x09, 0x0AU, 0x0BU, 0x0C, 0x0DU, 0x0E, 0x0FU };
+static uint8_t maEADIv[gcEadIvSize_c] = {0x11U, 0x22U, 0x33U, 0x44U, 0x55U, 0x66U, 0x77U, 0x88U};
+#endif /* (gAppEADSupport_d == TRUE) */
 /************************************************************************************
 *************************************************************************************
 * Private functions prototypes
@@ -266,6 +271,9 @@ button_status_t BleApp_HandleKeys0(void *buttonHandle, button_callback_message_t
 #if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)
 static void Uart_PrintMenu(void *pData);
 #endif /* defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE) */
+#if (gAppEADSupport_d == TRUE)
+static void BleApp_DecryptAndPrintAdvData(uint8_t *pAdvData);
+#endif /* (gAppEADSupport_d == TRUE) */
 /************************************************************************************
 *************************************************************************************
 * Public functions
@@ -1168,6 +1176,45 @@ static bool_t CheckForPAWRPeripheralDevice(uint8_t* pData, uint16_t dataLength)
                 break;
             }
         }
+        #if (gAppEADSupport_d == TRUE)
+        else if ((uint8_t)adElement.adType == (uint8_t)gAdEncryptedAdvertisingData_c)
+        {
+            do
+            {
+                if (adElement.length <= (1U + gcEadRandomizerSize_c + gcEadMicSize_c))
+                {
+                    AppPrintString("\n\r Wrong Encrypted data length");
+                    break;
+                }
+                uint8_t *pDecryptedData = MEM_BufferAlloc((uint32_t)adElement.length - (1U + gcEadRandomizerSize_c + gcEadMicSize_c));
+                if (pDecryptedData == NULL)
+                {
+                    AppPrintString("\n\r Memory allocation for decrypted data failed");
+                    break;
+                }
+                if (gBleSuccess_c != Gap_DecryptAdvertisingData(adElement.aData, (uint16_t)adElement.length - 1U, maEADKey, maEADIv, pDecryptedData))
+                {
+                    AppPrintString("\n\r Decryption failed");
+                }
+                else
+                {
+                    if ((pDecryptedData[1U] == (uint8_t)gAdManufacturerSpecificData_c) && (pDecryptedData[0U] >= pawrLength))
+                    {
+                        foundMatch =  FLib_MemCmp (&pDecryptedData[2U], aPawrString, pawrLength);
+                    }
+                }
+                 (void)MEM_BufferFree(pDecryptedData);
+            } while(FALSE);
+            if(foundMatch)
+            {
+                break;
+            }
+        }
+        else
+        {
+            ;
+        }
+#endif /* (gAppEADSupport_d == TRUE) */
         /* Move on to the next AD element type */
         index += (uint32_t)adElement.length + sizeof(uint8_t);
     }
@@ -1398,10 +1445,20 @@ static void AppPrintExtAdvEvent( gapExtScannedDevice_t* pExtScannedDevice)
     while( dataLength < pExtScannedDevice->dataLength )
     {
         dataLength += ((uint16_t)*pData + 1U);
-        if(pData[1] == (uint8_t)gAdManufacturerSpecificData_c)
+        if (pData[1] == (uint8_t)gAdManufacturerSpecificData_c)
         {
             AppPrintString((char *)&pData[2]);
         }
+#if (gAppEADSupport_d == TRUE)
+        else if (pData[1] == (uint8_t)gAdEncryptedAdvertisingData_c)
+        {
+            BleApp_DecryptAndPrintAdvData(pData);
+        }
+        else
+        {
+            /* MISRA rule 15.7 - All if else if constructs shall be terminated with an else statement */
+        }
+#endif /* (gAppEADSupport_d == TRUE) */
         pData =  &pExtScannedDevice->pData[dataLength];
     }
 }
@@ -1539,6 +1596,16 @@ static void AppHandlePeriodicDeviceScanEvent( gapPeriodicScannedDevice_t* pGapPe
             {
                 AppPrintString((char *)&pData[2]);
             }
+#if (gAppEADSupport_d == TRUE)
+            else if (pData[1] == (uint8_t)gAdEncryptedAdvertisingData_c)
+            {
+                BleApp_DecryptAndPrintAdvData(pData);
+            }
+            else
+            {
+                /* MISRA rule 15.7 - All if else if constructs shall be terminated with an else statement */
+            }
+#endif /* (gAppEADSupport_d == TRUE) */
             pData =  &pGapPeriodicScannedDevice->pData[dataLength];
         }
     }
@@ -1801,6 +1868,16 @@ static void BleApp_PrintPeriodicDeviceScannedV2(gapPeriodicScannedDeviceV2_t* pP
         {
             AppPrintString((char *)&pData[2]);
         }
+#if (gAppEADSupport_d == TRUE)
+        else if (pData[1] == (uint8_t)gAdEncryptedAdvertisingData_c)
+        {
+            BleApp_DecryptAndPrintAdvData(pData);
+        }
+        else
+        {
+            /* MISRA rule 15.7 - All if else if constructs shall be terminated with an else statement */
+        }
+#endif /* (gAppEADSupport_d == TRUE) */
         pData =  &pPeriodicScannedDeviceV2->pData[dataLength];
     }
 }
@@ -1840,27 +1917,52 @@ static void BleApp_HandlePAWRDeviceScanned(gapPeriodicScannedDeviceV2_t* pPeriod
                             .aData = (uint8_t*)aPawrResponseData
                         }
                     };
+#if (gAppEADSupport_d == FALSE)
                     gapAdvertisingData_t responseData = 
                     {
                         NumberOfElements(data),
                         (void *)data
                     };
-                    gapPeriodicAdvertisingResponseData_t pawrResponseData = {0U};
-                    pawrResponseData.pResponseData = &responseData;
-                    pawrResponseData.requestEvent = pPeriodicScannedDevice->periodicEventCounter;
-                    pawrResponseData.requestSubevent = pPeriodicScannedDevice->subevent;
-                    pawrResponseData.responseSubevent = pPeriodicScannedDevice->subevent;
-                    pawrResponseData.responseSlot = pExtAdv->responseSlot;
-                    /* Send the sesponse and signal it wants to connect*/
-                    if (gBleSuccess_c !=  Gap_SetPeriodicAdvResponseData(
-                                                                         pPeriodicScannedDevice->syncHandle,
-                                                                         &pawrResponseData))
+#else /* (gAppEADSupport_d == TRUE) */
+                    gapAdvertisingData_t unencryptedResponseData = 
                     {
-                        AppPrintString("\r\nGap_SetPeriodicAdvResponseData Failed");
-                    }
-                    else
+                        NumberOfElements(data),
+                        (void *)data
+                    };
+                    uint8_t aEncryptedPawrResponseData[gcBleDeviceAddressSize_c + 2U + gcEadRandomizerSize_c + gcEadMicSize_c];
+                    gapAdStructure_t encryptedData[] = 
                     {
-                        AppPrintString("\r\nGap_SetPeriodicAdvResponseData Succeded");
+                        {
+                            .length = (uint8_t)NumberOfElements(aEncryptedPawrResponseData) + 1U,
+                            .adType = gAdEncryptedAdvertisingData_c,
+                            .aData = (uint8_t*)aEncryptedPawrResponseData
+                        }
+                    };
+                    gapAdvertisingData_t responseData = 
+                    {
+                        NumberOfElements(encryptedData),
+                        (void *)encryptedData
+                    };
+                    if (gBleSuccess_c == Gap_EncryptAdvertisingData(&unencryptedResponseData, maEADKey, maEADIv, aEncryptedPawrResponseData))
+#endif /* (gAppEADSupport_d == TRUE) */
+                    {
+                        gapPeriodicAdvertisingResponseData_t pawrResponseData = {0U};
+                        pawrResponseData.pResponseData = &responseData;
+                        pawrResponseData.requestEvent = pPeriodicScannedDevice->periodicEventCounter;
+                        pawrResponseData.requestSubevent = pPeriodicScannedDevice->subevent;
+                        pawrResponseData.responseSubevent = pPeriodicScannedDevice->subevent;
+                        pawrResponseData.responseSlot = pExtAdv->responseSlot;
+                        /* Send the sesponse and signal it wants to connect*/
+                        if (gBleSuccess_c !=  Gap_SetPeriodicAdvResponseData(
+                                                                             pPeriodicScannedDevice->syncHandle,
+                                                                             &pawrResponseData))
+                        {
+                            AppPrintString("\r\nGap_SetPeriodicAdvResponseData Failed");
+                        }
+                        else
+                        {
+                            AppPrintString("\r\nGap_SetPeriodicAdvResponseData Succeded");
+                        }
                     }
                 }
             }
@@ -2108,6 +2210,49 @@ static void Uart_PrintMenu(void *pData)
     AppPrintString("\r\n");
 }
 #endif /* defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE) */
+#if (gAppEADSupport_d == TRUE)
+/*! *********************************************************************************
+*\private
+*\fn          void BleApp_DecryptAndPrintAdvData(void)
+*\brief       The function allocates memory for the decrypted data, performs
+*             decryption, prints the data in case it is gAdManufacturerSpecificData_c
+*             type and frees the memory afterwards.
+*
+*\param  [in] pAdvData pointer to the advertising data in the format (length type data).
+*
+*\retval  void.
+********************************************************************************** */
+static void BleApp_DecryptAndPrintAdvData(uint8_t *pAdvData)
+{
+    do
+    {
+        if (pAdvData[0U] <= (1U + gcEadRandomizerSize_c + gcEadMicSize_c))
+        {
+            AppPrintString("\n\r Wrong Encrypted data length");
+            break;
+        }
+        uint8_t *pDecryptedData = MEM_BufferAlloc((uint32_t)pAdvData[0U] - (1U + gcEadRandomizerSize_c + gcEadMicSize_c));
+        if (pDecryptedData == NULL)
+        {
+            AppPrintString("\n\r Memory allocation for decrypted data failed");
+            break;
+        }
+        if (gBleSuccess_c != Gap_DecryptAdvertisingData(&pAdvData[2], (uint16_t)pAdvData[0U] - 1U, maEADKey, maEADIv, pDecryptedData))
+        {
+            AppPrintString("\n\r Decryption failed");
+        }
+        else
+        {
+            AppPrintString("\n\rDecrypted data :\n\r");
+            if (pDecryptedData[1U] == (uint8_t)gAdManufacturerSpecificData_c)
+            {
+                AppPrintString((char *)&pDecryptedData[2U]);
+            }
+        }
+        (void)MEM_BufferFree(pDecryptedData);
+    } while(FALSE);
+}
+#endif /* (gAppEADSupport_d == TRUE) */
 /*! *********************************************************************************
 * @}
 ********************************************************************************** */

@@ -362,6 +362,11 @@ static SERIAL_MANAGER_READ_HANDLE_DEFINE(s_readHandle);
 
 static appExtAdvertisingParams_t mAppExtAdvParams;
 
+#if (gAppEADSupport_d == TRUE)
+static uint8_t maEADKey[gcEadKeySize_c] = { 0x00U, 0x01U, 0x02U, 0x03U, 0x04U, 0x05U, 0x06U, 0x07U, 0x08U, 0x09, 0x0AU, 0x0BU, 0x0C, 0x0DU, 0x0E, 0x0FU };
+static uint8_t maEADIv[gcEadIvSize_c] = {0x11U, 0x22U, 0x33U, 0x44U, 0x55U, 0x66U, 0x77U, 0x88U};
+#endif /* (gAppEADSupport_d == TRUE) */
+
 /************************************************************************************
 *************************************************************************************
 * Private functions prototypes
@@ -374,7 +379,9 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
 static void BleApp_GattServerCallback (deviceId_t deviceId, gattServerEvent_t* pServerEvent);
 static void BluetoothLEHost_Initialized(void);
 static void BluetoothLEHost_GenericCallback(gapGenericEvent_t *pGenericEvent);
-
+static void BleApp_HandlePeriodicAdvParamSetupComplete(void);
+static void BleApp_HandleExtAdvertisingStateChanged(void);
+static void BleApp_HandlePeriodicAdvertisingStateChanged(void);
 /* Timer Callbacks */
 static void DisconnectTimerCallback(void *pParam);
 
@@ -418,6 +425,14 @@ static void BleApp_HandleChangeNonConnNonScannAdvDataMode(void);
 #if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)
 static void BleApp_HandleChangeDbafNonConnNonScannAdvDataMode(void);
 #endif /* defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE) */
+#if (gAppEADSupport_d == TRUE)
+static gapAdvertisingData_t *BleApp_CreateEncryptedExtendedAdvData(gapAdvertisingData_t *pAdvData);
+static void BleApp_DestroyEncryptedExtendedAdvData(gapAdvertisingData_t *pAdvData);
+#if (gAppPAWRSupport_d == TRUE)
+static void BleApp_DestroyEncryptedPAWRSubeventData(gapPeriodicAdvertisingSubeventData_t *pPAWRSubeventData);
+static gapPeriodicAdvertisingSubeventData_t *BleApp_CreateEncryptedPAWRSubeventData(gapPeriodicAdvertisingSubeventData_t *pPAWRSubeventData);
+#endif /* (gAppPAWRSupport_d == TRUE) */
+#endif /* (gAppEADSupport_d == TRUE) */
 /************************************************************************************
 *************************************************************************************
 * Public functions
@@ -639,7 +654,6 @@ static void BluetoothLEHost_Initialized(void)
 ********************************************************************************** */
 static void BluetoothLEHost_GenericCallback (gapGenericEvent_t* pGenericEvent)
 {
-    bleResult_t bleResult;
 
 #if mAE_PeripheralDebug_c
     AppPrintString("\n\rGeneric Callback - ");
@@ -650,34 +664,24 @@ static void BluetoothLEHost_GenericCallback (gapGenericEvent_t* pGenericEvent)
     switch (pGenericEvent->eventType)
     {
     case gExtAdvertisingParametersSetupComplete_c:
-    case gExtAdvertisingDataSetupComplete_c:
         {
             maLastAdvIndexForThisHandle[maPExtAdvParam[mExtAdvAPIOwner]->handle] = mExtAdvAPIOwner;
         }
       break;
+    case gExtAdvertisingDataSetupComplete_c:
+        {
+            maLastAdvIndexForThisHandle[maPExtAdvParam[mExtAdvAPIOwner]->handle] = mExtAdvAPIOwner;
+#if (gAppEADSupport_d == TRUE)
+            BleApp_DestroyEncryptedExtendedAdvData(mAppExtAdvParams.pGapAdvData);
+            BleApp_DestroyEncryptedExtendedAdvData(mAppExtAdvParams.pScanResponseData);
+            mAppExtAdvParams.pGapAdvData = NULL;
+            mAppExtAdvParams.pScanResponseData = NULL;
+#endif /* (gAppEADSupport_d == TRUE) */
+        }
+      break;
     case gPeriodicAdvParamSetupComplete_c:
         {
-#if (gAppPAWRSupport_d == TRUE)
-            if (mExtAdvAPIOwner == mPeriodicAdvIndex_c)
-            {
-#endif /* (gAppPAWRSupport_d == TRUE) */
-                bleResult = Gap_SetPeriodicAdvertisingData(gPeriodicAdvParams.handle, maPPeriodicAdvData[mPeriodicAdvDataIndex], FALSE);
-                if (gBleSuccess_c != bleResult)
-                {
-                    AppPrintString("\n\r Gap_SetPeriodicAdvertisingData Failed");
-                    EndSequence();
-                }
-#if (gAppPAWRSupport_d == TRUE)
-            }
-            else
-            {
-                if (gBleSuccess_c != Gap_StartPeriodicAdvertising(gPAWRParams.handle, FALSE))
-                {
-                    AppPrintString("\n\r Gap_StartPeriodicAdvertising Failed");
-                    EndSequence();
-                }
-            }
-#endif /* (gAppPAWRSupport_d == TRUE) */
+            BleApp_HandlePeriodicAdvParamSetupComplete();
         }
         break;
     case gPeriodicAdvDataSetupComplete_c:
@@ -718,36 +722,8 @@ static void BluetoothLEHost_GenericCallback (gapGenericEvent_t* pGenericEvent)
         }
         break;
     case gPeriodicAdvertisingStateChanged_c:
-
-        if(maAdvStatus[mExtAdvAPIOwner] == mAdvStatus_On_c)
         {
-            maAdvStatus[mExtAdvAPIOwner] = mAdvStatus_Off_c;
-            AppPrintString(advTypeStrings[mExtAdvAPIOwner]);
-            AppPrintString(" Stopped" );
-            if(mExtAdvSequence == mExtAdvSeq_ChangePeriodicData_c)
-            {
-                if(gBleSuccess_c !=  Gap_SetPeriodicAdvertisingData(gPeriodicAdvParams.handle, maPPeriodicAdvData[mPeriodicAdvDataIndex], FALSE))
-                {
-                    AppPrintString("\n\rGap_SetPeriodicAdvertisingData failed");
-                    EndSequence();
-                }
-            }
-            else
-            {
-                EndSequence();
-            }
-        }
-        else
-        {
-            maAdvStatus[mExtAdvAPIOwner] = mAdvStatus_On_c;
-            AppPrintString(advTypeStrings[mExtAdvAPIOwner]);
-            AppPrintString(" Started" );
-            if(mExtAdvSequence == mExtAdvSeq_ChangePeriodicData_c)
-            {
-                AppPrintString(advTypeStrings[mExtAdvAPIOwner]);
-                AppPrintString(" Data Changed" );
-            }
-            EndSequence();
+            BleApp_HandlePeriodicAdvertisingStateChanged();
         }
         break;
 #if (gAppPAWRSupport_d == TRUE)
@@ -757,6 +733,21 @@ static void BluetoothLEHost_GenericCallback (gapGenericEvent_t* pGenericEvent)
         }
     break;
 #endif /* (gAppPAWRSupport_d == TRUE) */
+    case gInternalError_c:
+        {
+            if(pGenericEvent->eventData.internalError.errorSource == gRemoveAdvertisingSet_c)
+            {
+                AppPrintString("\n\rGap_RemoveAdvSet failed");
+#if (gAppEADSupport_d == TRUE)
+                BleApp_DestroyEncryptedExtendedAdvData(mAppExtAdvParams.pGapAdvData);
+                BleApp_DestroyEncryptedExtendedAdvData(mAppExtAdvParams.pScanResponseData);
+                mAppExtAdvParams.pGapAdvData = NULL;
+                mAppExtAdvParams.pScanResponseData = NULL;
+#endif /* (gAppEADSupport_d == TRUE) */
+                EndSequence();
+            }
+        }
+    break;
     default:
         {
             ; /* No action required */
@@ -792,40 +783,8 @@ static void BleApp_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent
         break;
 
     case gExtAdvertisingStateChanged_c:
-
-        if(maAdvStatus[mExtAdvAPIOwner] == mAdvStatus_On_c)
         {
-            maAdvStatus[mExtAdvAPIOwner] = mAdvStatus_Off_c;
-            AppPrintString(advTypeStrings[mExtAdvAPIOwner]);
-            AppPrintString(" Stopped" );
-            if(mExtAdvSequence == mExtAdvSeq_ChangeExtAdvData_c)
-            {
-                if(gBleSuccess_c != Gap_SetExtAdvertisingData(maPExtAdvParam[mExtAdvAPIOwner]->handle, maPExtAdvData[mExtAdvAPIOwner], maPExtScanData[mExtAdvAPIOwner]))
-                {
-                    AppPrintString("\n\rGap_SetExtAdvertisingData failed");
-                    EndSequence();
-                }
-            }
-            if(mExtAdvSequence == mExtAdvSeq_Stop_c)
-            {
-                maAdvStatus[mExtAdvAPIOwner] = mAdvStatus_Off_c;
-                EndSequence();
-            }
-        }
-        else
-        {
-            Led1Flashing();
-            maAdvStatus[mExtAdvAPIOwner] = mAdvStatus_On_c;
-            maLastAdvIndexForThisHandle[maPExtAdvParam[mExtAdvAPIOwner]->handle] = mExtAdvAPIOwner;
-            AppPrintString(advTypeStrings[mExtAdvAPIOwner]);
-            AppPrintString(" Started on handle " );
-            AppPrintDec((uint32_t)maPExtAdvParam[mExtAdvAPIOwner]->handle);
-            if(mExtAdvSequence == mExtAdvSeq_ChangeExtAdvData_c)
-            {
-                AppPrintString(advTypeStrings[mExtAdvAPIOwner]);
-                AppPrintString(" Data Changed" );
-            }
-            EndSequence();
+            BleApp_HandleExtAdvertisingStateChanged();
         }
         break;
     case gAdvertisingSetTerminated_c:
@@ -1382,57 +1341,77 @@ static void BleApp_HandleExtAdvNonConnNonScannMode(uint8_t mode)
 {
     mAppExtAdvParams.duration = gBleExtAdvNoDuration_c;
     mAppExtAdvParams.maxExtAdvEvents = gBleExtAdvNoMaxEvents_c;
-
-    if(ExtAdvAPIRequest((advIndex_t)mode) == gApiReq_Denied_c)
+    do
     {
-        AppPrintString("\n\rAnother Advertising Operation in Progress. Try later...");
-    }
-    else
-    {
+        if (ExtAdvAPIRequest((advIndex_t)mode) == gApiReq_Denied_c)
+        {
+            AppPrintString("\n\rAnother Advertising Operation in Progress. Try later...");
+            break;
+        }
         if (maAdvStatus[mode] == mAdvStatus_Off_c)
         {
             maPExtAdvParam[mode]->handle = Alloc_AdvHandler();
-            if(maPExtAdvParam[mode]->handle == mInvalidAdvHandle)
+            if (maPExtAdvParam[mode]->handle == mInvalidAdvHandle)
             {
                 AppPrintString("\n\r No Advertising Handle Available. Stop Another Advertising");
                 FreeExtAdvAPI();
+                break;
             }
-            else
+            mAppExtAdvParams.pGapExtAdvParams = maPExtAdvParam[mode];
+            mAppExtAdvParams.handle = maPExtAdvParam[mode]->handle;
+            mAppExtAdvParams.pGapAdvData = maPExtAdvData[mode];
+            mAppExtAdvParams.pScanResponseData = maPExtScanData[mode];
+#if (gAppEADSupport_d == TRUE)
+            if (maPExtAdvData[mode] != NULL)
             {
-                mAppExtAdvParams.pGapExtAdvParams = maPExtAdvParam[mode];
-                mAppExtAdvParams.handle = maPExtAdvParam[mode]->handle;
-                mAppExtAdvParams.pGapAdvData = maPExtAdvData[mode];
-                mAppExtAdvParams.pScanResponseData = maPExtScanData[mode];
-#if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)
-                mAppExtAdvParams.pGapDecisionData = &gAdvDecisionData;
-#endif /* defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE) */
-
-                if(((uint8_t)maLastAdvIndexForThisHandle[maPExtAdvParam[mode]->handle] == mode) || (maLastAdvIndexForThisHandle[maPExtAdvParam[mode]->handle] == mAdvIndexMax_c))
+                mAppExtAdvParams.pGapAdvData = BleApp_CreateEncryptedExtendedAdvData(maPExtAdvData[mode]);
+                if (mAppExtAdvParams.pGapAdvData == NULL)
                 {
-                    if(gBleSuccess_c == BluetoothLEHost_StartExtAdvertising(&mAppExtAdvParams, BleApp_AdvertisingCallback, BleApp_ConnectionCallback))
-                    {
-                        mExtAdvSequence = mExtAdvSeq_Start_c;
-                    }
-                    else
-                    {
-                        AppPrintString("\n\rGap_SetExtAdvertisingParameters failed");
-                        Free_AdvHandler(maPExtAdvParam[mode]->handle);
-                        FreeExtAdvAPI();
-                    }
+                    AppPrintString("\n\rAdvertising data encryption failed");
+                    Free_AdvHandler(maPExtAdvParam[mode]->handle);
+                    FreeExtAdvAPI();
+                    break;
+                }
+            }
+            if ((maPExtScanData[mode] != NULL) && (maPExtScanData[mode]->cNumAdStructures != 0U))
+            {
+                mAppExtAdvParams.pScanResponseData = BleApp_CreateEncryptedExtendedAdvData(maPExtScanData[mode]);
+                if (mAppExtAdvParams.pScanResponseData == NULL)
+                {
+                    AppPrintString("\n\rScan response data encryption failed");
+                    Free_AdvHandler(maPExtAdvParam[mode]->handle);
+                    FreeExtAdvAPI();
+                    break;
+                }
+            }
+#endif /* (gAppEADSupport_d == TRUE) */
+#if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)
+            mAppExtAdvParams.pGapDecisionData = &gAdvDecisionData;
+#endif /* defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE) */
+            
+            if(((uint8_t)maLastAdvIndexForThisHandle[maPExtAdvParam[mode]->handle] == mode) || (maLastAdvIndexForThisHandle[maPExtAdvParam[mode]->handle] == mAdvIndexMax_c))
+            {
+                if(gBleSuccess_c == BluetoothLEHost_StartExtAdvertising(&mAppExtAdvParams, BleApp_AdvertisingCallback, BleApp_ConnectionCallback))
+                {
+                    mExtAdvSequence = mExtAdvSeq_Start_c;
                 }
                 else
                 {
-                    if(gBleSuccess_c == Gap_RemoveAdvSet(maPExtAdvParam[mode]->handle))
-                    {
-                        mExtAdvSequence = mExtAdvSeq_Start_c;
-                    }
-                    else
-                    {
-                        AppPrintString("\n\rGap_RemoveAdvSet failed");
-                        Free_AdvHandler(maPExtAdvParam[mode]->handle);
-                        FreeExtAdvAPI();
-                    }
+                    AppPrintString("\n\rGap_SetExtAdvertisingParameters failed");
+                    Free_AdvHandler(maPExtAdvParam[mode]->handle);
+                    FreeExtAdvAPI();
                 }
+                break;
+            }
+            if(gBleSuccess_c == Gap_RemoveAdvSet(maPExtAdvParam[mode]->handle))
+            {
+                mExtAdvSequence = mExtAdvSeq_Start_c;
+            }
+            else
+            {
+                AppPrintString("\n\rGap_RemoveAdvSet failed");
+                Free_AdvHandler(maPExtAdvParam[mode]->handle);
+                FreeExtAdvAPI();
             }
         }
         else if(maAdvStatus[mode] ==  mAdvStatus_On_c)
@@ -1441,25 +1420,23 @@ static void BleApp_HandleExtAdvNonConnNonScannMode(uint8_t mode)
             {
                 AppPrintString("\n\rPeriodic Advertising is ON. Stop the Periodic Advertising First");
                 FreeExtAdvAPI();
+                break;
+            }
+            if(gBleSuccess_c == Gap_StopExtAdvertising(maPExtAdvParam[mode]->handle))
+            {
+                mExtAdvSequence = mExtAdvSeq_Stop_c;
             }
             else
             {
-                if(gBleSuccess_c == Gap_StopExtAdvertising(maPExtAdvParam[mode]->handle))
-                {
-                    mExtAdvSequence = mExtAdvSeq_Stop_c;
-                }
-                else
-                {
-                    AppPrintString("\n\rGap_StopExtAdvertising failed");
-                    FreeExtAdvAPI();
-                }
+                AppPrintString("\n\rGap_StopExtAdvertising failed");
+                FreeExtAdvAPI();
             }
         }
         else
         {
             FreeExtAdvAPI();
         }
-    }
+    } while(FALSE);
 }
 
 static void BleApp_HandlePeriodicAdvMode(uint8_t mode)
@@ -1683,6 +1660,43 @@ static void BleApp_HandlePeriodicAdvertisingResponse(gapPerAdvResponse_t *pAdvRe
                      BleApp_CheckPAWRConnect(&pData[2], pAdvResponse->advHandle, pAdvResponse->subevent);
                  }
              }
+#if (gAppEADSupport_d == TRUE)
+        else if (pData[1] == (uint8_t)gAdEncryptedAdvertisingData_c)
+        {
+            do
+            {
+                if (pData[0U] <= (1U + gcEadRandomizerSize_c + gcEadMicSize_c))
+                {
+                    AppPrintString("\n\r Wrong Encrypted data length");
+                    break;
+                }
+                uint8_t *pDecryptedData = MEM_BufferAlloc((uint32_t)pData[0U] - (1U + gcEadRandomizerSize_c + gcEadMicSize_c));
+                if (pDecryptedData == NULL)
+                {
+                    AppPrintString("\n\r Memory allocation for decrypted data failed");
+                    break;
+                }
+                if (gBleSuccess_c != Gap_DecryptAdvertisingData(&pData[2], (uint16_t)pData[0U] - 1U, maEADKey, maEADIv, pDecryptedData))
+                {
+                    AppPrintString("\n\r Decryption failed");
+                }
+                else
+                {
+                    if ((pDecryptedData[1U] == (uint8_t)gAdManufacturerSpecificData_c) && (pDecryptedData[0U] == (gcBleDeviceAddressSize_c + 1U)))
+                    {
+                        AppPrintString("Decrypted: ");
+                        AppPrintHexLe((uint8_t *)&pDecryptedData[2], gcBleDeviceAddressSize_c);
+                        /* Check whether the response received is from a device eligible to connect and proceed to connect in case it is. */
+                        if ( pAdvResponse->subevent == connSubevent )
+                        {
+                            BleApp_CheckPAWRConnect(&pDecryptedData[2], pAdvResponse->advHandle, pAdvResponse->subevent);
+                        }
+                    }
+                }
+                 (void)MEM_BufferFree(pDecryptedData);
+            } while(FALSE);
+        }
+#endif /* (gAppEADSupport_d == TRUE) */
              else
              {
                  AppPrintString((char *)&pData[2]);
@@ -1723,10 +1737,21 @@ static void BleApp_HandlePerAdvSubeventDataRequest(gapPerAdvSubeventDataRequest_
         /* Set PAWR Data*/
         if(cDataSendCounter == 0U)
         {
-            if (gBleSuccess_c != Gap_SetPeriodicAdvSubeventData(gPAWRParams.handle, &gAppPAWRSubeventsData))
+#if (gAppEADSupport_d == FALSE)
+            gapPeriodicAdvertisingSubeventData_t *pPAWRSubeventsData = &gAppPAWRSubeventsData;
+#else /* (gAppEADSupport_d == TRUE) */
+             gapPeriodicAdvertisingSubeventData_t *pPAWRSubeventsData = BleApp_CreateEncryptedPAWRSubeventData(&gAppPAWRSubeventsData);
+            if (pPAWRSubeventsData != NULL)
             {
-                AppPrintString("\n\rGap_SetPeriodicAdvSubeventData failed");
+#endif /* (gAppEADSupport_d == TRUE) */
+                if (gBleSuccess_c != Gap_SetPeriodicAdvSubeventData(gPAWRParams.handle, pPAWRSubeventsData))
+                {
+                    AppPrintString("\n\rGap_SetPeriodicAdvSubeventData failed");
+                }
+#if (gAppEADSupport_d == TRUE)
+                BleApp_DestroyEncryptedPAWRSubeventData(pPAWRSubeventsData);
             }
+#endif /* (gAppEADSupport_d == TRUE) */
         }
         cDataSendCounter = (cDataSendCounter + 1U) % mAppPAWR_SubeventDataFrequency_c;
     }
@@ -1805,6 +1830,423 @@ static void BleApp_HandleChangeDbafNonConnNonScannAdvDataMode(void)
     }
 }
 #endif /* defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE) */
+
+#if (gAppEADSupport_d == TRUE)
+/*! *********************************************************************************
+*\private
+*\fn          gapAdvertisingData_t *BleApp_CreateEncryptedExtendedAdvData(gapAdvertisingData_t *pAdvData)
+*\brief       Creates an encrypted gapAdvertisingData_t struct starting from the unencrypted 
+*             structure received as parameter. Only gAdManufacturerSpecificData_c advertising type 
+*             data is encrypted. If the originalstructure doesn't contain any gAdManufacturerSpecificData_c
+*             data the function doesn't allocate any memory and returns the original structure's address.
+*
+*\param  [in] pAdvData   Pointer to structure containing unencrypted advertising data.
+*
+*\retval      gapAdvertisingData_t * pointer to the encrypted advertising data structure.
+********************************************************************************** */
+
+static gapAdvertisingData_t *BleApp_CreateEncryptedExtendedAdvData(gapAdvertisingData_t *pAdvData)
+{
+
+    gapAdvertisingData_t *pEncAdvData = NULL;
+    gapAdvertisingData_t advDataToEncrypt;
+    uint8_t outAdvLength = 0U;
+    uint8_t cNum = 0;
+    do
+    {
+        if (pAdvData == NULL)
+        {
+            break;
+        }
+        if (pAdvData->cNumAdStructures == 0U)
+        {
+            break;
+        }
+        for (cNum = 0U; cNum < pAdvData->cNumAdStructures; cNum++)
+        {
+            /*Only gAdManufacturerSpecificData_c ad type structures will be encrypted */
+            if(pAdvData->aAdStructures[cNum].adType == gAdManufacturerSpecificData_c)
+            {
+                break;
+            }
+        }
+         if (cNum == pAdvData->cNumAdStructures)
+         {
+             /*no advertising structure to be encrypted*/
+             /* no memory allocation needed. The function returns the pointer received as parameter */
+             pEncAdvData = pAdvData;
+             break;
+         }
+        /* There are adv data structures to encrypt*/
+        /* Check whether there are adv structures too big to be accommodated in ED type structures*/
+        for (cNum = 0U; cNum < pAdvData->cNumAdStructures; cNum++)
+        {
+            if ((pAdvData->aAdStructures[cNum].adType == gAdManufacturerSpecificData_c ) && ((pAdvData->aAdStructures[cNum].length + 1U) > (255U - gcEadMicSize_c - gcEadRandomizerSize_c)))
+            {
+                break;
+            }
+        }
+        if (cNum < pAdvData->cNumAdStructures)
+        {
+            /* there are adv structures too big to encrypt*/
+            break;
+        }
+        
+        advDataToEncrypt.cNumAdStructures = 1;
+        /* Allocate memory for the encrypted advertising data*/
+        pEncAdvData = MEM_BufferAlloc(sizeof(gapAdvertisingData_t) + sizeof(gapAdStructure_t) * pAdvData->cNumAdStructures);
+        if(pEncAdvData == NULL)
+        {
+            break;
+        }
+        pEncAdvData->cNumAdStructures = pAdvData->cNumAdStructures;
+        pEncAdvData->aAdStructures = (gapAdStructure_t*)(void*)&pEncAdvData[1U];
+        for (cNum = 0U; cNum < pAdvData->cNumAdStructures; cNum++)
+        {
+            if (pAdvData->aAdStructures[cNum].adType == gAdManufacturerSpecificData_c)
+            {
+                /* Allocate memory and perform encrytption*/
+                advDataToEncrypt.aAdStructures = &pAdvData->aAdStructures[cNum];
+                outAdvLength = advDataToEncrypt.aAdStructures[0U].length + 1U + gcEadRandomizerSize_c + gcEadMicSize_c;
+                pEncAdvData->aAdStructures[cNum].adType = gAdEncryptedAdvertisingData_c;
+                pEncAdvData->aAdStructures[cNum].length = outAdvLength + 1U;
+                pEncAdvData->aAdStructures[cNum].aData = MEM_BufferAlloc(outAdvLength);
+                if (pEncAdvData->aAdStructures[cNum].aData == NULL)
+                {
+                    break;
+                }
+                if (gBleSuccess_c != Gap_EncryptAdvertisingData(&advDataToEncrypt, maEADKey, maEADIv, pEncAdvData->aAdStructures[cNum].aData))
+                {
+                    break;
+                }
+            }
+            else
+            {
+                 pEncAdvData->aAdStructures[cNum] = pAdvData->aAdStructures[cNum];
+            }
+        }
+        if (cNum < pAdvData->cNumAdStructures)
+        {
+            /*Encyption or buffer allocation failed*/
+            pEncAdvData->cNumAdStructures = cNum + 1U;
+            BleApp_DestroyEncryptedExtendedAdvData(pEncAdvData);
+            pEncAdvData = NULL;
+        }
+    } while(FALSE);
+    return pEncAdvData;
+}
+
+/*! *********************************************************************************
+*\private
+*\fn          void BleApp_DestroyEncryptedExtendedAdvData(gapAdvertisingData_t *pAdvData)
+*\brief       Destroys an encrypted gapAdvertisingData_t struct created using
+*             BleApp_CreateEncryptedExtendedAdvData function.
+*
+*\param  [in] pAdvData   Pointer to the structure containing encrypted advertising data.
+*
+*\retval  void.
+********************************************************************************** */
+static void BleApp_DestroyEncryptedExtendedAdvData(gapAdvertisingData_t *pAdvData)
+{
+    bool_t freeAdvDataPointer = FALSE;
+    if (pAdvData != NULL)
+    {
+        for (uint8_t cNum = 0U; cNum < pAdvData->cNumAdStructures; cNum++)
+        {
+            if (pAdvData->aAdStructures[cNum].adType == gAdEncryptedAdvertisingData_c)
+            {
+                if (pAdvData->aAdStructures[cNum].aData != NULL)
+                {
+                    (void)MEM_BufferFree(pAdvData->aAdStructures[cNum].aData);
+                }
+                freeAdvDataPointer = TRUE;
+            }
+        }
+        if (freeAdvDataPointer)
+        {
+            (void)MEM_BufferFree(pAdvData);
+        }
+    }
+}
+#if (gAppPAWRSupport_d == TRUE)
+/*! *********************************************************************************
+*\private
+*\fn          gapPeriodicAdvertisingSubeventData_t *BleApp_CreateEncryptedPAWRSubeventData(gapPeriodicAdvertisingSubeventData_t *pPAWRSubeventData)
+*\brief       Creates an gapPeriodicAdvertisingSubeventData_t struct starting from the 
+*             structure received as parameter. The new structure contains enctypted advertising data wherever
+*             the original structure contains gAdManufacturerSpecificData_c advertising data 
+*
+*\param  [in] pPAWRSubeventData   Pointer to original subevent data structure.
+*
+*\retval      gapPeriodicAdvertisingSubeventData_t * pointer to the newly created structure containing encrypted advertising data.
+********************************************************************************** */
+
+static gapPeriodicAdvertisingSubeventData_t *BleApp_CreateEncryptedPAWRSubeventData(gapPeriodicAdvertisingSubeventData_t *pPAWRSubeventData)
+{
+    gapPeriodicAdvertisingSubeventData_t *pEncPAWRSubeventData = NULL;
+    uint8_t cNum = 0U;
+    do
+    {
+        if ((pPAWRSubeventData == NULL) || (pPAWRSubeventData->cNumSubevents == 0U) || (pPAWRSubeventData->aSubeventDataStructures == NULL))
+        {
+            break;
+        }
+        /* allocate memory for the new gapPeriodicAdvertisingSubeventData_t structure*/
+        pEncPAWRSubeventData = MEM_BufferAlloc(sizeof(gapPeriodicAdvertisingSubeventData_t) + sizeof(gapSubeventDataStructure_t) * pPAWRSubeventData->cNumSubevents);
+        if (pEncPAWRSubeventData == NULL)
+        {
+            break;
+        }
+        pEncPAWRSubeventData->cNumSubevents = pPAWRSubeventData->cNumSubevents;
+        pEncPAWRSubeventData->aSubeventDataStructures = (gapSubeventDataStructure_t*)(void*)&pEncPAWRSubeventData[1U];
+        for (cNum = 0; cNum < pPAWRSubeventData->cNumSubevents; cNum++)
+        {
+            pEncPAWRSubeventData->aSubeventDataStructures[cNum] = pPAWRSubeventData->aSubeventDataStructures[cNum];
+            if (pEncPAWRSubeventData->aSubeventDataStructures[cNum].pAdvertisingData != NULL)
+            {
+                /* For each advertising data structure allocate memory and perform encryption.*/
+                pEncPAWRSubeventData->aSubeventDataStructures[cNum].pAdvertisingData = BleApp_CreateEncryptedExtendedAdvData(pPAWRSubeventData->aSubeventDataStructures[cNum].pAdvertisingData);
+                if (pEncPAWRSubeventData->aSubeventDataStructures[cNum].pAdvertisingData == NULL)
+                {
+                    break;
+                }
+            }
+        }
+        if (cNum < pPAWRSubeventData->cNumSubevents)
+        {
+            /*Encyption or buffer allocation failed*/
+            pEncPAWRSubeventData->cNumSubevents = cNum + 1U;
+            BleApp_DestroyEncryptedPAWRSubeventData(pEncPAWRSubeventData);
+            pEncPAWRSubeventData = NULL;
+        }
+    }while (FALSE);
+    return pEncPAWRSubeventData;
+}
+
+/*! *********************************************************************************
+*\private
+*\fn          void BleApp_DestroyEncryptedPAWRSubeventData(gapPeriodicAdvertisingSubeventData_t *pPAWRSubeventData)
+*\brief       Destroys an encrypted gapPeriodicAdvertisingSubeventData_t struct created using
+*             BleApp_CreateEncryptedPAWRSubeventData function.
+*
+*\param  [in] pPAWRSubeventData   Pointer to the structure containing encrypted advertising data.
+*
+*\retval  void.
+********************************************************************************** */
+static void BleApp_DestroyEncryptedPAWRSubeventData(gapPeriodicAdvertisingSubeventData_t *pPAWRSubeventData)
+{
+    if( pPAWRSubeventData != NULL)
+    {
+        for (uint8_t cNum = 0; cNum < pPAWRSubeventData->cNumSubevents; cNum++ )
+        {
+            if (pPAWRSubeventData->aSubeventDataStructures[cNum].pAdvertisingData != NULL)
+            {
+                BleApp_DestroyEncryptedExtendedAdvData(pPAWRSubeventData->aSubeventDataStructures[cNum].pAdvertisingData);
+            }
+        }
+    }
+    (void)MEM_BufferFree(pPAWRSubeventData);
+}
+#endif /* (gAppPAWRSupport_d == TRUE) */
+#endif /* (gAppEADSupport_d == TRUE) */
+
+/*! *********************************************************************************
+*\private
+*\fn          void BleApp_HandlePeriodicAdvParamSetupComplete(void)
+*\brief       The function handles gPeriodicAdvParamSetupComplete_c event received in
+*             BluetoothLEHost_GenericCallback function.
+*
+*\param  [in] none.
+*
+*\retval  void.
+********************************************************************************** */
+static void BleApp_HandlePeriodicAdvParamSetupComplete(void)
+{
+    bleResult_t bleResult;
+    do
+    {
+#if (gAppPAWRSupport_d == TRUE)
+        if (mExtAdvAPIOwner == mPeriodicAdvIndex_c)
+        {
+#endif /* (gAppPAWRSupport_d == TRUE) */
+            gapAdvertisingData_t *pAdvData = maPPeriodicAdvData[mPeriodicAdvDataIndex];
+#if (gAppEADSupport_d == TRUE)
+            if (maPPeriodicAdvData[mPeriodicAdvDataIndex] != NULL)
+            {
+                pAdvData = BleApp_CreateEncryptedExtendedAdvData(maPPeriodicAdvData[mPeriodicAdvDataIndex]);
+                if (pAdvData == NULL)
+                {
+                    AppPrintString("\n\rAdvertising data encryption failed");
+                    EndSequence();
+                    break;
+                }
+            }
+#endif /* (gAppEADSupport_d == TRUE) */
+            bleResult = Gap_SetPeriodicAdvertisingData(gPeriodicAdvParams.handle, pAdvData, FALSE);
+#if (gAppEADSupport_d == TRUE)
+            BleApp_DestroyEncryptedExtendedAdvData(pAdvData);
+#endif /* (gAppEADSupport_d == TRUE) */
+            if (gBleSuccess_c != bleResult)
+            {
+                AppPrintString("\n\r Gap_SetPeriodicAdvertisingData Failed");
+                EndSequence();
+            }
+#if (gAppPAWRSupport_d == TRUE)
+        }
+        else
+        {
+            if (gBleSuccess_c != Gap_StartPeriodicAdvertising(gPAWRParams.handle, FALSE))
+            {
+                AppPrintString("\n\r Gap_StartPeriodicAdvertising Failed");
+                EndSequence();
+            }
+        }
+#endif /* (gAppPAWRSupport_d == TRUE) */
+    } while(FALSE);
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void BleApp_HandlePeriodicAdvertisingStateChanged(void)
+*\brief       The function handles gPeriodicAdvertisingStateChanged_c event received in
+*             BluetoothLEHost_GenericCallback function.
+*
+*\param  [in] none.
+*
+*\retval  void.
+********************************************************************************** */
+static void BleApp_HandlePeriodicAdvertisingStateChanged(void)
+{
+    do
+    {
+        if(maAdvStatus[mExtAdvAPIOwner] == mAdvStatus_On_c)
+        {
+            maAdvStatus[mExtAdvAPIOwner] = mAdvStatus_Off_c;
+            AppPrintString(advTypeStrings[mExtAdvAPIOwner]);
+            AppPrintString(" Stopped" );
+            if(mExtAdvSequence == mExtAdvSeq_ChangePeriodicData_c)
+            {
+                gapAdvertisingData_t *pAdvData = maPPeriodicAdvData[mPeriodicAdvDataIndex];
+#if (gAppEADSupport_d == TRUE)
+                if (maPPeriodicAdvData[mPeriodicAdvDataIndex] != NULL)
+                {
+                    pAdvData = BleApp_CreateEncryptedExtendedAdvData(maPPeriodicAdvData[mPeriodicAdvDataIndex]);
+                    if (pAdvData == NULL)
+                    {
+                        AppPrintString("\n\rAdvertising data encryption failed");
+                        EndSequence();
+                        break;
+                    }
+                }
+#endif /* (gAppEADSupport_d == TRUE) */
+                if(gBleSuccess_c !=  Gap_SetPeriodicAdvertisingData(gPeriodicAdvParams.handle, pAdvData, FALSE))
+                {
+                    AppPrintString("\n\rGap_SetPeriodicAdvertisingData failed");
+                    EndSequence();
+                }
+#if (gAppEADSupport_d == TRUE)
+                BleApp_DestroyEncryptedExtendedAdvData(pAdvData);
+#endif /* (gAppEADSupport_d == TRUE) */
+            }
+            else
+            {
+                EndSequence();
+            }
+        }
+        else
+        {
+            maAdvStatus[mExtAdvAPIOwner] = mAdvStatus_On_c;
+            AppPrintString(advTypeStrings[mExtAdvAPIOwner]);
+            AppPrintString(" Started" );
+            if(mExtAdvSequence == mExtAdvSeq_ChangePeriodicData_c)
+            {
+                AppPrintString(advTypeStrings[mExtAdvAPIOwner]);
+                AppPrintString(" Data Changed" );
+            }
+            EndSequence();
+        }
+    } while(FALSE);
+}
+
+/*! *********************************************************************************
+*\private
+*\fn          void BleApp_HandleExtAdvertisingStateChanged(void)
+*\brief       The function handles gExtAdvertisingStateChanged_c event received in
+*             BleApp_AdvertisingCallback function.
+*
+*\param  [in] none.
+*
+*\retval  void.
+********************************************************************************** */
+static void BleApp_HandleExtAdvertisingStateChanged(void)
+{
+    do
+    {
+        if(maAdvStatus[mExtAdvAPIOwner] == mAdvStatus_On_c)
+        {
+            maAdvStatus[mExtAdvAPIOwner] = mAdvStatus_Off_c;
+            AppPrintString(advTypeStrings[mExtAdvAPIOwner]);
+            AppPrintString(" Stopped" );
+            if(mExtAdvSequence == mExtAdvSeq_ChangeExtAdvData_c)
+            {
+                gapAdvertisingData_t *pAdvData = maPExtAdvData[mExtAdvAPIOwner];
+                gapAdvertisingData_t *pScanData = maPExtScanData[mExtAdvAPIOwner];
+#if (gAppEADSupport_d == TRUE)
+                if (maPExtAdvData[mExtAdvAPIOwner] != NULL)
+                {
+                    pAdvData = BleApp_CreateEncryptedExtendedAdvData(maPExtAdvData[mExtAdvAPIOwner]);
+                    if (pAdvData == NULL)
+                    {
+                        AppPrintString("\n\rAdvertising data encryption failed");
+                        EndSequence();
+                        break;
+                    }
+                }
+                if ((maPExtScanData[mExtAdvAPIOwner] != NULL) && (maPExtScanData[mExtAdvAPIOwner]->cNumAdStructures != 0U))
+                {
+                    pScanData = BleApp_CreateEncryptedExtendedAdvData(maPExtScanData[mExtAdvAPIOwner]);
+                    if (pScanData == NULL)
+                    {
+                        AppPrintString("\n\rAdvertising data encryption failed");
+                        EndSequence();
+                        break;
+                    }
+                }
+#endif /* (gAppEADSupport_d == TRUE) */
+                if(gBleSuccess_c != Gap_SetExtAdvertisingData(maPExtAdvParam[mExtAdvAPIOwner]->handle, pAdvData, pScanData))
+                {
+                    AppPrintString("\n\rGap_SetExtAdvertisingData failed");
+                    EndSequence();
+                }
+#if (gAppEADSupport_d == TRUE)
+                BleApp_DestroyEncryptedExtendedAdvData(pAdvData);
+                BleApp_DestroyEncryptedExtendedAdvData(pScanData);
+#endif /* (gAppEADSupport_d == TRUE) */
+            }
+            if(mExtAdvSequence == mExtAdvSeq_Stop_c)
+            {
+                maAdvStatus[mExtAdvAPIOwner] = mAdvStatus_Off_c;
+                EndSequence();
+            }
+        }
+        else
+        {
+            Led1Flashing();
+            maAdvStatus[mExtAdvAPIOwner] = mAdvStatus_On_c;
+            maLastAdvIndexForThisHandle[maPExtAdvParam[mExtAdvAPIOwner]->handle] = mExtAdvAPIOwner;
+            AppPrintString(advTypeStrings[mExtAdvAPIOwner]);
+            AppPrintString(" Started on handle " );
+            AppPrintDec((uint32_t)maPExtAdvParam[mExtAdvAPIOwner]->handle);
+            if(mExtAdvSequence == mExtAdvSeq_ChangeExtAdvData_c)
+            {
+                AppPrintString(advTypeStrings[mExtAdvAPIOwner]);
+                AppPrintString(" Data Changed" );
+            }
+            EndSequence();
+        }
+    } while(FALSE);
+}
+
 /*! *********************************************************************************
 * @}
 ********************************************************************************** */

@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -232,7 +232,7 @@ gapExtAdvertisingParameters_t gExtAdvParamsConnectable =
 #define extConnectableData0 "\
 \n\rEA Connectable Data 01 EA Connectable Data 02 EA Connectable Data 03\
 \n\rEA Connectable Data 04 EA Connectable Data 05 EA Connectable Data 06\
-\n\rEA Connectable Data 07 EA Connectable Data 08 EA Connectable Data 09"    
+\n\rEA Connectable Data 07 EA Connectable Data 08 EA Connectable Data 09"
 
 
 static gapAdStructure_t extAdvConnectableData[] = {

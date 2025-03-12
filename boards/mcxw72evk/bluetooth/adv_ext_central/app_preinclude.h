@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*
- * Copyright 2021 - 2024 NXP
+ * Copyright 2021 - 2025 NXP
  *
  *
  *
@@ -125,6 +125,7 @@
 #define gBLE60_DecisionBasedAdvertisingFilteringSupport_d FALSE
 
 #define gAppPAWRSupport_d                                 FALSE
+#define gAppEADSupport_d                                  FALSE
 /*! *********************************************************************************
  *  Auto Configuration
  ********************************************************************************** */

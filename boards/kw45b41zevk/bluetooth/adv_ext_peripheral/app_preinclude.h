@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*
- * Copyright 2021 - 2024 NXP
+ * Copyright 2021 - 2025 NXP
  *
  *
  *
@@ -105,7 +105,7 @@
 
 #define SERIAL_MANAGER_TASK_STACK_SIZE  288
 
-#define gMainThreadStackSize_c          864
+#define gMainThreadStackSize_c          1120
 
 #define TM_TASK_STACK_SIZE              392
 
@@ -126,6 +126,7 @@
 /* See documentation on how to enable DBAF */
 #define gBLE60_DecisionBasedAdvertisingFilteringSupport_d FALSE
 #define gAppPAWRSupport_d                                 FALSE
+#define gAppEADSupport_d                                  FALSE
 /*! *********************************************************************************
  *  Auto Configuration
  ********************************************************************************** */
