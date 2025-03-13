@@ -194,7 +194,7 @@ bleResult_t BluetoothLEHost_ReencryptAdvertisingData
             result = Gap_EncryptAdvertisingData(pAdvData, mKey, mIv, pOutput);
             if (result == gBleSuccess_c)
             {
-                mEncryptedAdvScanStruct.length = advLength;
+                mEncryptedAdvScanStruct.length = (uint8_t)advLength;
                 mEncryptedAdvScanStruct.adType = gAdEncryptedAdvertisingData_c;
                 mEncryptedAdvScanStruct.aData = pOutput;
                 result = Gap_SetExtAdvertisingData(advHandle, &mEncryptedAdvertisingData, NULL);
