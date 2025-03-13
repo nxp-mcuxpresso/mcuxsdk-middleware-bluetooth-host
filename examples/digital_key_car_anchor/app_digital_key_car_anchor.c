@@ -516,15 +516,35 @@ void APP_UserInterfaceEventHandler(void *pData)
                 }
                 break;
 
+                case mAppHandover_UnexpectedError_c:
+                {
+                    shell_write("\r\nUnexpected handover error.\r\n");
+                }
+                break;
+
                 case mAppHandover_AnchorSearchFailedToSync_c:
                 {
                     shell_write("\r\nHandover failed - Anchor search unsuccessful.\r\n");
                 }
                 break;
 
+                case mAppHandover_OutOfMemory_c:
+                {
+                    shell_write("\r\nOut of memory error.\r\n");
+                }
+                break;
+
+                case mAppHandover_ConnParamsUpdateFail_c:
+                {
+                    shell_write("\r\nConnection parameters update failed.\r\n");
+                }
+                break;
+
                 default:
                 {
-                    shell_write("\r\nHandover error.\r\n");
+                    shell_write("\r\nHandover error ");
+                    shell_writeDec(pEventData->eventData.handoverError);
+                    shell_write(".\r\n");
                     shell_cmd_finished();
                 }
                 break;
