@@ -25,7 +25,7 @@ The application is built to work with any other Bluetooth LE device. To showcase
 3.  Configure the other device as a GAP central. Change its name to 'Collector'. Start scanning and connect to the HRS device by selecting the corresponding device index from the list of scanned devices. In the example below, the HRS device is device number 2. The number of listed scanned devices can be controller through the `mShellGapMaxScannedDevicesCount_c` define in `shell_gap.c`.
 
     ```
-    nBLE Shell>gap devicename Collector
+    BLE Shell>gap devicename Collector
     --> GATTDB Event: Attribute Written
     Collector>gap scanstart filter
     --> GAP Event: Scan started.

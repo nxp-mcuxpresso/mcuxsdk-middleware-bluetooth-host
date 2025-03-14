@@ -6,12 +6,12 @@ For displaying operating information and ANCS Notifications \(AMS information an
 
 See [Table 1](#TABLE_ZV4_LDL_FDB) for hardware references.
 
-|**Platform**|**ADVSW**|**CONNLED**|
-|------------|---------|-----------|
-|KW45B41Z-EVK / K32W148-EVK|SW2|LED2|
-|FRDM-MCXW71|SW2|Blue LED|
-|KW47-EVK / MCXW72-EVK|SW2|LED1|
-|FRDM-MCXW72|SW4|Blue LED|
+| Platform                                 | ADVSW | CONNLED  |
+| ---------------------------------------- | ----- | -------- |
+| KW45B41Z-EVK / K32W148-EVK / MCX-W71-EVK | SW2   | LED2     |
+| FRDM-MCXW71                              | SW2   | Blue LED |
+| KW47-EVK / MCX-W72-EVK                   | SW2   | LED2     |
+| FRDM-MCXW72                              | SW4   | Blue LED |
 
 **Parent topic:**[ANCS/AMS client \(ancs\_c\)](../topics/ancs_client.md)
 

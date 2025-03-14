@@ -4,12 +4,12 @@ After flashing the board, the device is in idle mode \(all LEDs flashing\). To s
 
 See [User interface](user_interface_018.md) below for hardware references.
 
-|Platform|SCANSW|CONNLED|
-|--------|------|-------|
-|KW45B41Z-EVK / K32W148-EVK|SW2|LED2|
-|FRDM-MCXW71|SW2|Blue LED|
-|KW47-EVK / MCXW72-EVK|SW2|LED2|
-|FRDM-MCXW72|SW4|Blue LED|
+| Platform                                 | SCANSW | CONNLED  |
+| ---------------------------------------- | ------ | -------- |
+| KW45B41Z-EVK / K32W148-EVK / MCX-W71-EVK | SW2    | LED2     |
+| FRDM-MCXW71                              | SW2    | Blue LED |
+| KW47-EVK / MCX-W72-EVK                   | SW2    | LED2     |
+| FRDM-MCXW72                              | SW4    | Blue LED |
 
 **Parent topic:**[HID Host](../topics/hid_host.md)
 

@@ -71,7 +71,7 @@ To run the application, follow the steps below:
 
         **Note:** The extension of the secured file is \*.sb3. See the figure below.
 
-        ![Selecting location to save *.sb3 file](../images/save_sb3.PNG "Selecting location to save *.sb3 file")
+        ![Selecting location to save \*.sb3 file](../images/save_sb3.PNG "Selecting location to save *.sb3 file")
 
     -   You can now configure two different JSON files, used to:
 
@@ -85,7 +85,7 @@ To run the application, follow the steps below:
 
         ![CM33 sign JSON configuration](../images/json_config.PNG "CM33 sign JSON configuration")
 
-        After configuring the JSON file used for signing the MCU file, a new similar window appears. As shown in the [Figure 11](#fig_mmp_tpz_t5b), the window is designed for configuring the *\*.sb3* container. This window helps you to configure the encryption key file, the root certificates, and the signing certificates by either drag and dropping or browsing for new files. For details on each field of the JSON file, see */Documentation/KW45JsonDescription.pdf* provided with Over the Air Programming tool.
+        After configuring the JSON file used for signing the MCU file, a new similar window appears. As shown in the [Figure](../images/Json_config2.PNG), the window is designed for configuring the *\*.sb3* container. This window helps you to configure the encryption key file, the root certificates, and the signing certificates by either drag and dropping or browsing for new files. For details on each field of the JSON file, see */Documentation/KW45JsonDescription.pdf* provided with Over the Air Programming tool.
 
         By default, the JSON is configured for the demo applications to run as shown in the figure below. <br>
 
@@ -116,8 +116,7 @@ To run the application, follow the steps below:
 
 7.  Start the embedded applications by pressing **ADVSW** first on the OTAP Client and then on the OTAP Server. The transfer progress and transfer-related messages and/or errors are shown in the application window. The duration of the transfer depends on the size of the image and the chosen data rate and transfer method. See the figure below. <br>
 
-    ![est Tool OTAP Bluetooth LE image transfer in progress](../images/transfer.PNG "Test Tool OTAP Bluetooth LE image transfer in
-                            progress")
+    ![Test Tool OTAP Bluetooth LE image transfer in progress](../images/transfer.PNG "Test Tool OTAP Bluetooth LE image transfer in progress")
 
 8.  After all the blocks are sent, the OTAP Client sends an `Image Transfer Complete` command to the OTAP Server. When the PC Application receives this command, it displays a `Sent Image with Success` message in the log window. See the figure below. <br>
     ![Test Tool OTAP Bluetooth LE Image Transfer Completed](../images/complete.PNG "Test Tool OTAP Bluetooth LE Image Transfer Completed")

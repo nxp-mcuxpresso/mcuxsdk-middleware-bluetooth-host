@@ -5,9 +5,10 @@ The following platforms support Extended Advertising Peripheral and Central appl
 -   KW45B41Z-EVK
 -   K32W148-EVK
 -   FRDM-MCXW71
+-   MCX-W71-EVK
 -   KW47-EVK
--   MCXW72-EVK
 -   FRDM-MCXW72
+-   MCX-W72-EVK
 
 Deep-sleep mode is used by default.
 

@@ -4,12 +4,12 @@ After flashing the board, the peripheral is in idle mode \(all LEDs flashing\). 
 
 The table below describes the hardware references.
 
-| **Platform**                   | **ADVSW** | **CONNLED**|
-| -------------------------- | ----- | -------- |
-| KW45B41Z-EVK / K32W148-EVK | SW2   | LED2     |
-| FRDM-MCXW71                | SW2   | Blue LED |
-| KW47-EVK / MCXW72-EVK      | SW2   | LED2     |
-| FRDM-MCXW72                | SW4   | Blue LED |
+| Platform                                 | ADVSW | CONNLED  |
+| ---------------------------------------- | ----- | -------- |
+| KW45B41Z-EVK / K32W148-EVK / MCX-W71-EVK | SW2   | LED2     |
+| FRDM-MCXW71                              | SW2   | Blue LED |
+| KW47-EVK / MCX-W72-EVK                   | SW2   | LED2     |
+| FRDM-MCXW72                              | SW4   | Blue LED |
 
 **Parent topic:**[EATT Peripheral](../topics/eatt_peripheral.md)
 
