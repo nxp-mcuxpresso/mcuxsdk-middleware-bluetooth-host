@@ -2,7 +2,8 @@
 
 To demonstrate the profile functionality, most of the scenarios require one of the supported platforms and a Bluetooth Low Energy capable central device. The device is usually a smartphone or a tablet that runs a compatible Bluetooth LE application. The figure below shows the **IoT Toolbox** UI.
 
-<figure><img src="../images/iot_toolbox.jpg" align="centre" height ="400" width="250"  /><figcaption>IOT toolbox </figcaption></figure>
+**IOT toolbox**
+![](../images/iot_toolbox.jpg "IOT toolbox")
 
 The recommended application is the IoT Toolbox, which can be installed on Apple iOS or Android OS handheld devices that support Bluetooth Low Energy. The application can be found on [Apple Playstore](https://apps.apple.com/pl/app/iot-toolbox/id1362450908) or on [Google Play](https://play.google.com/store/apps/details?id=com.freescale.kinetisbletoolbox).
 

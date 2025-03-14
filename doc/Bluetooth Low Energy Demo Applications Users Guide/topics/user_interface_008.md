@@ -4,12 +4,12 @@ After flashing the board, the central is in Idle mode \(all LEDs flashing\). To 
 
 See the table below for hardware references for EATT Central.
 
-| Platform                   | SCANSW | CONNLED  |
-| -------------------------- | ------ | -------- |
-| KW45B41Z-EVK / K32W148-EVK | SW2    | LED2     |
-| FRDM-MCXW71                | SW2    | Blue LED |
-| KW47-EVK / MCXW72-EVK      | SW2    | LED2     |
-| FRDM-MCXW72                | SW4    | Blue LED |
+| Platform                                 | SCANSW | CONNLED  |
+| ---------------------------------------- | ------ | -------- |
+| KW45B41Z-EVK / K32W148-EVK / MCX-W71-EVK | SW2    | LED2     |
+| FRDM-MCXW71                              | SW2    | Blue LED |
+| KW47-EVK / MCX-W72-EVK                   | SW2    | LED2     |
+| FRDM-MCXW72                              | SW4    | Blue LED |
 
 **Parent topic:**[EATT Central](../topics/eatt_central.md)
 

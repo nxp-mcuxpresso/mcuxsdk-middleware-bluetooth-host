@@ -6,12 +6,12 @@ Start the OTAP Server PC application after the embedded applications are flashed
 
 See [Table 1](#GUID-8EA23B19-A7DC-4A3A-B948-679ED79AA2E0) for the hardware references.
 
-|Platform|ADVSW|SCANSW|CONNLED|
-|--------|-----|------|-------|
-|KW45B41Z-EVK / K32W148-EVK|SW2|SW2|LED2|
-|FRDM-MCXW71|SW2|SW2|Blue LED|
-|KW47-EVK / MCXW72-EVK|SW2|SW2|LED2|
-|FRDM-MCXW72|SW4|SW4|Blue LED|
+| Platform                                 | ADVSW | SCANSW | CONNLED  |
+| ---------------------------------------- | ----- | ------ | -------- |
+| KW45B41Z-EVK / K32W148-EVK / MCX-W71-EVK | SW2   | SW2    | LED2     |
+| FRDM-MCXW71                              | SW2   | SW2    | Blue LED |
+| KW47-EVK / MCX-W72-EVK                   | SW2   | SW2    | LED2     |
+| FRDM-MCXW72                              | SW4   | SW4    | Blue LED |
 
 **Parent topic:**[Over the Air Programming \(OTAP\)](../topics/over_the_air_programming_otap.md)
 

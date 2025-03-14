@@ -13,8 +13,6 @@ To use the Beacon application with the advertising extensions capabilities, the 
 -   The fifth ADVSW press stops them all, both **CONNLED** and **EXTADVLED** turn off.
 
 
-**Note:** Periodic advertising support is currently disabled at Link Layer level.
-
 Not all smartphones support extended advertising, hence a different method to view the AE beacon is to use the `ble_shell` application. In order to do this, perform the following steps:
 
 1.  Flash a board with the beacon application, as described above.
@@ -25,9 +23,6 @@ Not all smartphones support extended advertising, hence a different method to vi
 
 
 5.  To start the periodic advertising, press **ADVSW** button again on the beacon.
-
-    **Note:** Periodic advertising support is currently disabled at Link Layer level.
-
 6.  To sync with the beacon, issue the following commands on the shell terminal as shown in the figure below.
 
     |![](../images/beacon_periodic.png "Shell commands to view the periodic advertising")

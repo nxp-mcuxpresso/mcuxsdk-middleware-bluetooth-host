@@ -9,9 +9,9 @@ The setup requires two supported platforms, one for the temperature sensor and o
 
     Once the connection is established, the PHY is automatically updated to 2M, if both the sensor and the collector support this feature as shown in the figure below. The PHY update is configurable from the application.
 
-    |![](../images/temp_collector_output.png "Output Console on Temperature Collector")
+    **Output Console on Temperature Collector**
+    ![](../images/temp_collector_output.png "Output Console on Temperature Collector")
 
-|
 
 5.  Subsequent key pressing triggers other notifications for the collector. If no key is pressed in an interval of 5 seconds, the sensor node disconnects and re-enters Deep-sleep mode.
 
