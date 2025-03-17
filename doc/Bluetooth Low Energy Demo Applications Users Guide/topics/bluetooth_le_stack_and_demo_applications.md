@@ -57,3 +57,11 @@
 :heading-offset: 1
 ```
 
+```{include} ../topics/wireless_uart_host.md
+:heading-offset: 1
+```
+
+```{include} ../topics/fsci_bridge.md
+:heading-offset: 1
+```
+
