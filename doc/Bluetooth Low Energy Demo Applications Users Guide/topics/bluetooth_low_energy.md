@@ -16,6 +16,9 @@ The Software Development Package provides a Bluetooth Low Energy v5.3-compliant 
 12. [Wireless UART demo application](wireless_uart.md)
 13. [Bluetooth LE Shell application](bluetooth_le_shell_513.md)
 14. [Hybrid \(Dual-Mode\) Bluetooth Low Energy and Generic FSK](hybrid_dual-mode_bluetooth_low_energy_and_generic_.md)
+15. [Wireless UART Host](wireless_uart_host.md)
+16. [FSCI Bridge](fsci_bridge.md)
+17. [NCP FSCI Black Box](ncp_fsci_black_box.md)
 
 **Note:** Refer to the application notes that are located in the '`documentation`' folder.
 
