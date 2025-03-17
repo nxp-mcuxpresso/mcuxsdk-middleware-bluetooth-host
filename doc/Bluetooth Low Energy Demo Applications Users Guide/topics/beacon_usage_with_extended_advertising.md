@@ -16,7 +16,7 @@ To use the Beacon application with the advertising extensions capabilities, the 
 Not all smartphones support extended advertising, hence a different method to view the AE beacon is to use the `ble_shell` application. In order to do this, perform the following steps:
 
 1.  Flash a board with the beacon application, as described above.
-2.  Flash a board with the ble\_shell application, as described in [Bluetooth LE Shell](bluetooth_le_shell.md) and connect to it using a serial port.
+2.  Flash a board with the ble\_shell application, as described in [Bluetooth LE Shell](../topics/bluetooth_le_shell_513.md) and connect to it using a serial port.
 3.  Press the **ADVSW** button two times on the beacon to start extended advertising on the coded PHY.
 4.  To view the advertising data, enter the following commands in the shell terminal to set the scanning PHY to coded and start scanning. See the figure below. <br>
     |![](../images/beacon_ext_adv_data.png "Shell commands to view extended advertising")
@@ -34,7 +34,7 @@ Not all smartphones support extended advertising, hence a different method to vi
 To use very large advertising data for extended advertising, set the `gBeaconLargeExtAdvData_c` `define` to 1. The same steps are used to view the data using `ble_shell` :
 
 1.  Flash a board with the beacon application.
-2.  Flash a board with the ble\_shell application, as described in [Bluetooth LE Shell](bluetooth_le_shell.md) and connect to it using a serial port.
+2.  Flash a board with the ble\_shell application, as described in [Bluetooth LE Shell](../topics/bluetooth_le_shell_513.md) and connect to it using a serial port.
 3.  Press the **ADVSW** button two times on the beacon to start extended advertising on the coded PHY.
 4.  To view the advertising data, enter the following commands in the shell terminal to set the scanning PHY to coded and start scanning. See the figure below.
 

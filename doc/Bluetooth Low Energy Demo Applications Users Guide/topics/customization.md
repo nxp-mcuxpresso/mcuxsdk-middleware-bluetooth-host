@@ -6,7 +6,7 @@ For Bluetooth LE, the default advertising config \(`gAdvParams`\) parameter is f
 
 **Note:** The Generic FSK protocol is active during the inactive periods of the Bluetooth LE protocol. The demo is currently configured to have the scan window equal to the scan interval to make the user aware of this, but this can be changed.
 
-For Generic FSK, the following defines of interest can be found in `genfsk_app.h`, described in [Table 1](#table_c455c96c-4d92-4087-afcd-e9f3bb3d08eb) below:
+For Generic FSK, the following defines of interest can be found in `genfsk_app.h`, described below:
 
 | Name                       | Description |
 | -------------------------- |------------ |
@@ -19,7 +19,7 @@ For Generic FSK, the following defines of interest can be found in `genfsk_app.h
 
 The demo can be found in the `w_uart_genfsk` from the available examples.
 
-The demo is based on the basic Wireless UART with the addition of some Generic FSK files required for working in dual-mode, described in [Table 2](#table_778615bb-a523-4fe1-89d6-c3678cb0cf26).
+The demo is based on the basic Wireless UART with the addition of some Generic FSK files required for working in dual-mode, described below.
 
 | File name       | Description |
 | --------------- | ----------- |

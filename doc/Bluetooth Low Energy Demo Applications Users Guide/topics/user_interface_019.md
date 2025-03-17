@@ -4,7 +4,7 @@ After flashing the board, both nodes enter Low-power mode. In case the sensor is
 
 The user can manually change this configuration and enable LED support, else all subsequent LED behavior references are ignored and all LEDs are off. The devices disconnect and enter Deep-sleep only if low power is enabled. When the node is awake and communicating, **CONNLED** is on. To wake up the node, press the **WAKESW** button.
 
-See [Table 1](#GUID-C51728A3-DBD3-482A-B25C-686AE9147C40) below for hardware references.
+The table below describes the hardware references.
 
 | Platform                                 | WAKESW | CONNLED  |
 | ---------------------------------------- | ------ | -------- |
