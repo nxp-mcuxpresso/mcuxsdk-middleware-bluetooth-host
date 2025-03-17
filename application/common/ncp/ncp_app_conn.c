@@ -530,6 +530,21 @@ void App_GenericCallback
     (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
 }
 
+#if (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U))
+/*! *********************************************************************************
+*\fn           void BluetoothLEHost_ProcessIdleTask(void)
+*\brief        Handles Connectivity background task, usually executed from Idle task.
+*
+*\param  [in]  none.
+*
+*\retval       void.
+********************************************************************************** */
+void BluetoothLEHost_ProcessIdleTask(void)
+{
+    App_NvmIdle();
+}
+#endif /* (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U)) */
+
 /************************************************************************************
 *************************************************************************************
 * Private functions
@@ -1194,20 +1209,4 @@ static void App_GenericHandler
         }
         break;
     }
-}
-
-/*! *********************************************************************************
-*\private
-*\fn           void BluetoothLEHost_ProcessIdleTask(void)
-*\brief        Handles Connectivity background task, usually executed from Idle task.
-*
-*\param  [in]  none.
-*
-*\retval       void.
-********************************************************************************** */
-void BluetoothLEHost_ProcessIdleTask(void)
-{
-#if (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U))
-    App_NvmIdle();
-#endif /* (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U)) */
 }

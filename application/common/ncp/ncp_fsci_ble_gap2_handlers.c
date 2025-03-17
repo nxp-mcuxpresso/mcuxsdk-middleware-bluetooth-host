@@ -83,6 +83,12 @@ static void HandleCtrlCmdGetDebugInfoCmd
     uint32_t fsciInterfaceId
 );
 
+static void HandleGapCmdSetDataRelatedAddressChanges
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+
 static void HandleGapCmdLeChannelOverride
 (
     uint8_t *pBuffer,
@@ -104,13 +110,13 @@ static void HandleGapCmdDecryptAdvertisingData
 static void fsciBleGapEncryptAdvertisingDataEvtMonitor
 (
     uint8_t *pOutput,
-    uint16_t pOutputSize
+    uint16_t outputSize
 );
 
 static void fsciBleGapDecryptAdvertisingDataEvtMonitor
 (
     uint8_t *pOutput,
-    uint16_t pOutputSize
+    uint16_t outputSize
 );
 #if defined(gA2BSupportEnabled_d) && (gA2BSupportEnabled_d == TRUE)
 static void HandleGapCmdEcdhP256ComputeA2BKey
@@ -311,6 +317,7 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
     NULL,
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
     HandleCtrlCmdGetTimestampExOpCode,                                          /* = 0x13, gBleCtrlCmdGetTimestampExOpCode_c */
+    HandleGapCmdSetDataRelatedAddressChanges,                                   /* = 0x14, gBleGapCmdSetDataRelatedAddressChanges_c */
 };
 
 #if gFsciBleTest_d
@@ -626,9 +633,15 @@ static void HandleCtrlCmdGenericHciCmd
         {
             fsciBleGetArrayFromBuffer(payload, pBuffer, ((uint32_t)payloadLength));
         }
+        union
+        {
+          uint8_t u8;
+          uint32_t u32;
+        } packetSize = {0U};
 
         /* Build HCI packet */
-        uint8_t* pHciPacket = MEM_BufferAlloc(payloadLength + gHciCommandPacketHeaderLength_c);
+        packetSize.u8 = payloadLength + gHciCommandPacketHeaderLength_c;
+        uint8_t* pHciPacket = MEM_BufferAlloc(packetSize.u32);
         if (pHciPacket != NULL)
         {
             FLib_MemCpy((void*)pHciPacket, (const void*)&opcode, 2U);
@@ -641,7 +654,7 @@ static void HandleCtrlCmdGenericHciCmd
             }
 
             /* Send HCI command */
-            status = Ble_HciSend(gHciCommandPacket_c,(void*)(pHciPacket),gHciCommandPacketHeaderLength_c + payloadLength);
+            status = Ble_HciSend(gHciCommandPacket_c,(void*)(pHciPacket),(gHciCommandPacketHeaderLength_c + (uint16_t)payloadLength));
             fsciBleGap2StatusMonitor(status);
         }
         else
@@ -673,14 +686,19 @@ static void HandleCtrlCmdGetDebugInfoCmd
 )
 {
     bleResult_t status = gBleSuccess_c;
-    uint32_t debugInfoAddress = 0U;
+    union
+    {
+      uint32_t u32;
+      void* p;
+    } debugInfoAddress = {0U};
+
     uint32_t debugInfoSize = 0U;
     uint8_t *pDebugInfo = NULL;
 
     /* Get SMU debug information size */
     fsciBleGetUint32ValueFromBuffer(debugInfoSize, pBuffer);
     /* Get SMU debug information address */
-    fsciBleGetUint32ValueFromBuffer(debugInfoAddress, pBuffer);
+    fsciBleGetUint32ValueFromBuffer(debugInfoAddress.u32, pBuffer);
 
     pDebugInfo = MEM_BufferAlloc(debugInfoSize);
 
@@ -690,7 +708,7 @@ static void HandleCtrlCmdGetDebugInfoCmd
         PLATFORM_RemoteActiveReq();
 
         /* Copy NBU debug data */
-        FLib_MemCpy((void*)pDebugInfo, (void*)debugInfoAddress, debugInfoSize);
+        FLib_MemCpy((void*)pDebugInfo, debugInfoAddress.p, debugInfoSize);
         /* Release Radio Domain */
         PLATFORM_RemoteActiveRel();
 
@@ -712,6 +730,33 @@ static void HandleCtrlCmdGetDebugInfoCmd
     {
         fsciBleError(gFsciOutOfMessages_c, fsciInterfaceId);
     }
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdSetDataRelatedAddressChanges(uint8_t *pBuffer,
+*                                                 uint32_t fsciInterfaceId)
+*\brief        Handler for gBleGapCmdSetDataRelatedAddressChanges_c.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+static void HandleGapCmdSetDataRelatedAddressChanges
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+)
+{
+    uint8_t advertisingHandle;
+    uint8_t changeReasons;
+
+    /* Get command parameters from buffer */
+    fsciBleGetUint8ValueFromBuffer(advertisingHandle, pBuffer);
+    fsciBleGetUint8ValueFromBuffer(changeReasons, pBuffer);
+
+    fsciBleGap2CallApiFunction(Gap_SetDataRelatedAddressChanges(advertisingHandle, changeReasons));
 }
 
 /*! *********************************************************************************
@@ -771,8 +816,8 @@ static void HandleGapCmdEncryptAdvertisingData
     if (pAdvertisingData != NULL)
     {
         fsciBleGapGetAdvertisingDataFromBuffer(pAdvertisingData, &pBuffer);
-        advDataSize = fsciBleGapGetAdvertisingDataBufferSize(pAdvertisingData) - 1U;
-        pOutput = MEM_BufferAlloc(advDataSize + gcEadRandomizerSize_c + gcEadMicSize_c);
+        advDataSize = (uint16_t)(fsciBleGapGetAdvertisingDataBufferSize(pAdvertisingData) - 1U);
+        pOutput = MEM_BufferAlloc((uint32_t)advDataSize + gcEadRandomizerSize_c + gcEadMicSize_c);
 
         if (pOutput != NULL)
         {
@@ -827,7 +872,7 @@ static void HandleGapCmdDecryptAdvertisingData
         {
             fsciBleGetArrayFromBuffer(pInput, pBuffer, inputSize);
 
-            pOutput = MEM_BufferAlloc(inputSize - gcEadMicSize_c - gcEadRandomizerSize_c);
+            pOutput = MEM_BufferAlloc((uint32_t)inputSize - gcEadMicSize_c - gcEadRandomizerSize_c);
 
             if (pOutput != NULL)
             {
@@ -1981,7 +2026,7 @@ void HandleGapCmdSetPeriodicAdvParametersV2OpCode(uint8_t *pBuffer, uint32_t fsc
 *
 *\retval       void.
 ********************************************************************************** */   
-void HandleCtrlCmdGetTimestampExOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
+static void HandleCtrlCmdGetTimestampExOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
 #if !defined(gNcpApplication_d) || (gNcpApplication_d == 0)
     uint32_t ll_timing_slot = 0U;

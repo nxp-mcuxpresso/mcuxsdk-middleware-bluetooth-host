@@ -156,6 +156,9 @@ typedef void (*appBluetoothLEInitCompleteCallback_t)(void);
 * Public memory declarations
 *************************************************************************************
 ********************************************************************************** */
+extern appAdvertiserHandler_t   pfAdvertiserHandler;
+extern gapAdvertisingCallback_t pfAdvCallback;
+extern gapScanningCallback_t    pfScanCallback;
 extern gapConnectionCallback_t  pfConnCallback;
 extern OSA_EVENT_HANDLE_DEFINE(mAppEvent);
 extern messaging_t mHostAppInputQueue;
@@ -259,66 +262,6 @@ bool BluetoothLEHost_IsMessagePending(void);
 void BluetoothLEHost_SetGenericCallback
 (
     gapGenericCallback_t pfGenericCallback
-);
-
-/*! *********************************************************************************
-*\fn           bleResult_t BluetoothLEHost_Connect(
-*                  gapConnectionRequestParameters_t*   pParameters,
-*                  gapConnectionCallback_t             connCallback
-*              )
-*\brief        Start connection using the connection parameters specified.
-*
-*\param  [in]  pParameters     Pointer to the connection parameters.
-*\param  [in]  connCallback    Callback used to receive connection events.
-*
-*\return       bleResult_t     Result of the operation.
-*
-*\remarks      This function should be used by the application if the callback
-*              should be executed in the context of the Application Task.
-********************************************************************************** */
-bleResult_t BluetoothLEHost_Connect
-(
-    gapConnectionRequestParameters_t*   pParameters,
-    gapConnectionCallback_t             connCallback
-);
-
-/*! *********************************************************************************
-*\fn           void BluetoothLEHost_SetConnectionCallback(
-*                  gapConnectionCallback_t             connCallback
-*              )
-*\brief        Sets the Host connection callback.
-*
-*\param  [in]  connCallback    Callback used to receive connection events.
-*
-*\return      None
-*
-*\remarks      Normally the connection callback is set as part of the Connect and Start
-*              Advertising APIs. This function is required in the context of using Periodic
-*              Advertising with Responses, where a PAwR scanner might receive a connection
-*              from a PAwR advertiser having not previously called any of the callback-setting
-*              APIs. Call this function with the desired callback before scanning for PAwR if
-*              anticipating a connection to be realized from PAwR.
-********************************************************************************** */
-void BluetoothLEHost_SetConnectionCallback
-(
-    gapConnectionCallback_t             connCallback
-);
-
-/*! *********************************************************************************
-*\fn           void App_ConnectionCallback(deviceId_t            peerDeviceId,
-*                                          gapConnectionEvent_t* pConnectionEvent);
-*\brief        Sends the GAP Connection Event triggered by the Host Stack to the
-*              application.
-*
-*\param  [in]  peerDeviceId        The id of the peer device.
-*\param  [in]  pConnectionEvent    Pointer to the connection event.
-*
-*\retval       void.
-********************************************************************************** */
-void App_ConnectionCallback
-(
-    deviceId_t            peerDeviceId,
-    gapConnectionEvent_t* pConnectionEvent
 );
 
 /*! *********************************************************************************
@@ -604,10 +547,7 @@ void App_NvmIdle(void);
 ********************************************************************************** */
 void App_HandleBleNvmEvent(uint16_t size, uint8_t *pData);
 
-#endif /* (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U)) */
-
 /*! *********************************************************************************
-*\private
 *\fn           void BluetoothLEHost_ProcessIdleTask(void)
 *\brief        Handles Connectivity background task, usually executed from Idle task.
 *
@@ -616,6 +556,8 @@ void App_HandleBleNvmEvent(uint16_t size, uint8_t *pData);
 *\retval       void.
 ********************************************************************************** */
 void BluetoothLEHost_ProcessIdleTask(void);
+
+#endif /* (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U)) */
 
 #if defined(SDK_OS_FREE_RTOS)
 /*! *********************************************************************************

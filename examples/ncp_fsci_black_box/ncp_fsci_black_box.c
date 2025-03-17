@@ -56,7 +56,7 @@
 * Private macros
 *************************************************************************************
 ************************************************************************************/
-#define PACKET_INFO_QUEUE_SIZE  8    /* Number has to be a power of 2 */
+#define PACKET_INFO_QUEUE_SIZE  (8U)    /* Number has to be a power of 2 */
 
 #define gHciVendorSpecificDebugCommands_c   0x03FU
 #define mHciSetMacAddrCommandLength_c       (8U)
@@ -69,14 +69,14 @@
 #if defined(gNbu_Hadm_d) && (gNbu_Hadm_d==1)
 #define CS_HANDOFF_ENABLED           0U /* 0: no, 1: event, 2: procedure */
 #endif
-#if CS_HANDOFF_ENABLED
+#if defined(CS_HANDOFF_ENABLED) && (CS_HANDOFF_ENABLED > 0)
 /* event config pointer */
 #if CS_HANDOFF_ENABLED==1
 #define CS_HANDOFF_TYPE               BLE_HADM_EventConfig_t
 #elif CS_HANDOFF_ENABLED==2
 #define CS_HANDOFF_TYPE               const TBleHadmConnection_t
 #else
-  #errro CS_HANDOFF_ENABLED invalid
+#error CS_HANDOFF_ENABLED invalid
 #endif /* CS_HANDOFF_ENABLED */
 #endif /* CS_HANDOFF_ENABLED */
 /************************************************************************************
@@ -91,7 +91,7 @@ typedef struct hci_pkt_info_tag
     hciPacketType_t     packetType;
 } hci_pkt_info_t;
 
-#if CS_HANDOFF_ENABLED
+#if defined(CS_HANDOFF_ENABLED) && (CS_HANDOFF_ENABLED > 0)
 /* structure used to copy the event config. As the RPMSG payload size is limited,
    the config copy is segmented */
 typedef PACKED_STRUCT
@@ -117,13 +117,16 @@ static bool_t nbu_tasks_init_done = FALSE;
 static bool_t isHighZ = FALSE; /*For peak power reduction feature.*/
 /*osa start_task*/
 static void start_task(void *argument);
-static void BluetoothLEHost_Initialized(void);
 static void Hcit_RxCallBack(uint8_t packetType, uint8_t *data, uint16_t len);
+#if defined(gNbu_Hadm_d) && (gNbu_Hadm_d==1)
 static void NBU_CheckTemperatureChange(void);
-static void NBU_Init();
+#endif /* defined(gNbu_Hadm_d) && (gNbu_Hadm_d==1) */
+static void NBU_Init(void);
 static void Ble_SetBDAddr(bleDeviceAddress_t bdAddr);
 static bleResult_t BleApp_ReadPublicDeviceAddress(void);
 static void BleApp_HandleWritePublicDeviceAddress(void *pParam);
+static void AppFSCI_Send( uint8_t *pPacket, uint16_t packetLen, bool_t freePacket);
+
 /************************************************************************************
 *************************************************************************************
 * Private memory declarations
@@ -137,13 +140,7 @@ static uint8_t mNbrPacketInfoSkipped     = 0U; /* for debug */
 static OSA_TASK_HANDLE_DEFINE(s_startTaskHandle);
 static OSA_TASK_DEFINE(start_task, gMainThreadPriority_c, 1, gMainThreadStackSize_c, 0);
 static bool_t mAppInitInProgress = FALSE;
-
-/************************************************************************************
-*************************************************************************************
-* Public memory declarations
-*************************************************************************************
-************************************************************************************/
-const nbuIntf_t nbuInterface = {
+static const nbuIntf_t nbuInterface = {
     .nbuHciIntf = NbuHci_SendPktToHost,
     .nbuChannelSwitchIntf = NULL,
     .nbuDbgIoSet = NULL,
@@ -151,42 +148,34 @@ const nbuIntf_t nbuInterface = {
     .nbuEnterCritical = OSA_InterruptDisable,
     .nbuExitCritical = OSA_InterruptEnable
 };
-
 /* Set fsci handler */
-serial_handle_t g_fsciHandleList[gFsciIncluded_c];
+static serial_handle_t g_fsciHandleList[gFsciIncluded_c];
 
+#if defined(CS_HANDOFF_ENABLED) && (CS_HANDOFF_ENABLED > 0)
+static CS_HANDOFF_TYPE *p_hadm_config = NULL;
+/* event start time in LL timing */
+static uint32_t ulStartTimeHSlot;
+static uint16_t ulStartTimeOffsetUs;
+/* event start time in TSTMR0 value */
+static uint64_t ullStartTimeTsTmr;
+static EventConfig_t sHciConfig;
+#endif /* CS_HANDOFF_ENABLED */
+
+/************************************************************************************
+*************************************************************************************
+* Public memory declarations
+*************************************************************************************
+************************************************************************************/
 /* Definition missing from marvell NBU libs
    ThreadX requires this two variables to be set to know the location o*/
 uint32_t *      _tx_initialize_low_level_ptr;
 uint32_t *      tx_application_define_ptr;
-
-#if CS_HANDOFF_ENABLED
-CS_HANDOFF_TYPE *p_hadm_config = NULL;
-/* event start time in LL timing */
-uint32_t ulStartTimeHSlot;
-uint16_t ulStartTimeOffsetUs;
-/* event start time in TSTMR0 value */
-uint64_t ullStartTimeTsTmr;
-EventConfig_t sHciConfig;
-#endif /* CS_HANDOFF_ENABLED */
 
 /************************************************************************************
 *************************************************************************************
 * Public functions
 *************************************************************************************
 ************************************************************************************/
-/*! *********************************************************************************
-* \brief  This function sends a fsci packet through rpmsg.
-********************************************************************************** */
-void AppFSCI_Send( uint8_t *pPacket, uint16_t packetLen, bool_t freePacket)
-{
-    (void)PLATFORM_SendHciMessage(pPacket, (uint32_t)packetLen);
-    if(freePacket)
-    {
-        (void)MEM_BufferFree(pPacket);
-    }
-}
-
 /*! *********************************************************************************
 * \brief  This is the initialization function for each application. This function
 *         should contain all the initialization code required by the Bluetooth demo.
@@ -213,7 +202,7 @@ void BluetoothLEHost_AppInit(void)
     BluetoothLEHost_SetGenericCallback(BleApp_GenericCallback);
 
     /* Initialize Bluetooth Host Stack */
-    BluetoothLEHost_Init(BluetoothLEHost_Initialized);
+    BluetoothLEHost_Init(NULL);
     
     /* Bluetooth LE Host initialization postponed until the public device
     address is set in the Controller */
@@ -238,7 +227,7 @@ bleResult_t Hcit_PktReceived(hciPacketType_t type, void* packet, uint16_t size)
     /* delay processing of HCI commands into idle task as not all NBU tasks are initialized */
     if (nbu_tasks_init_done == TRUE)
     {
-        NbuHci_SendPktToController(type, packet, size);
+        NbuHci_SendPktToController((unsigned long)type, packet, size);
     }
     else
     {
@@ -261,7 +250,7 @@ bleResult_t Hcit_PktReceived(hciPacketType_t type, void* packet, uint16_t size)
             /* ERROR: Message will be lost */
             mNbrPacketInfoSkipped++;
         }
-        if (mNbrPacketInfoSkipped > 0)
+        if (mNbrPacketInfoSkipped > 0U)
         {
             assert(0);
             return gBleOutOfMemory_c;
@@ -269,7 +258,7 @@ bleResult_t Hcit_PktReceived(hciPacketType_t type, void* packet, uint16_t size)
         maHciPacketInfo[mWritePktInfoIdx].packetType = type;
         maHciPacketInfo[mWritePktInfoIdx].pPacket = pPacketBuffer;
         maHciPacketInfo[mWritePktInfoIdx].packetSize = size;
-        mWritePktInfoIdx = (mWritePktInfoIdx+1)&(PACKET_INFO_QUEUE_SIZE-1);
+        mWritePktInfoIdx = (mWritePktInfoIdx + 1U) & (PACKET_INFO_QUEUE_SIZE - 1U);
         mPendingPktInfo++;
     }
     
@@ -309,16 +298,16 @@ static void Ble_SetBDAddr(bleDeviceAddress_t bdAddr)
 *           (though ptBLE_RD->RX_PKT_STATUS.RX_BLE_PKT_STATUS.uRxCodedIndic) but
 *           this CI indication is only valid when packet is entirely received.
 ********************************************************************************** */
-uint8_t NbuGetCodedIndicator()
+unsigned char NbuGetCodedIndicator(void)
 {
-    return (((XCVR_2P4GHZ_PHY->STAT0 & GEN4PHY_STAT0_DATA_RATE_MASK) >> GEN4PHY_STAT0_DATA_RATE_SHIFT) == 3 ? 1 : 0);
+    return (((XCVR_2P4GHZ_PHY->STAT0 & GEN4PHY_STAT0_DATA_RATE_MASK) >> GEN4PHY_STAT0_DATA_RATE_SHIFT) == 3U ? 1U : 0U);
 }
 
 /*! *********************************************************************************
 * \brief    This function is used to configure LDOs for peak power reduction purpose.
 *           It is called by LL if peak power reduction feature is enabled in LL.
 ********************************************************************************** */
-void NbuPwrPeakReductionActivityStart()
+void NbuPwrPeakReductionActivityStart(void)
 {
     XCVR_forceLdoAntEnable();
     isHighZ = FALSE;
@@ -328,7 +317,7 @@ void NbuPwrPeakReductionActivityStart()
 * \brief    This function is used to configure LDOs for peak power reduction purpose.
 *           It is called by LL if peak power reduction feature is enabled in LL.
 ********************************************************************************** */
-void NbuPwrPeakReductionActivityStop()
+void NbuPwrPeakReductionActivityStop(void)
 {
     XCVR_setLdoAntHiz();
     isHighZ = TRUE;
@@ -338,7 +327,7 @@ void NbuPwrPeakReductionActivityStop()
 * \brief    This function is used to configure LDOs for peak power reduction purpose.
 *           It is called by LL if peak power reduction feature is enabled in LL.
 ********************************************************************************** */
-void NbuPwrPeakReductionDisable()
+void NbuPwrPeakReductionDisable(void)
 {
     if (isHighZ)
     {
@@ -359,7 +348,9 @@ void NBU_Idle(void)
         p_hadm_config = NULL;
     }
 #endif
+#if defined(gNbu_Hadm_d) && (gNbu_Hadm_d==1)
     NBU_CheckTemperatureChange();
+#endif /* defined(gNbu_Hadm_d) && (gNbu_Hadm_d==1) */
     /* Enable logging timestamps - required LL to be enabled - move it to somewhere else */
     BOARD_DBGLOGCOUNTERRUNNING();
 #if !defined(FPGA_TARGET) || (FPGA_TARGET == 0)
@@ -376,9 +367,9 @@ void NBU_Idle(void)
         OSA_EnableIRQGlobal();
         BOARD_DBGLPIOSET(1U, 0U);
         /* we are not under exception context, we can send the packet now */
-        NbuHci_SendPktToController(maHciPacketInfo[mReadPktInfoIdx].packetType, maHciPacketInfo[mReadPktInfoIdx].pPacket, maHciPacketInfo[mReadPktInfoIdx].packetSize);
-        MEM_BufferFree(maHciPacketInfo[mReadPktInfoIdx].pPacket);
-        mReadPktInfoIdx = (mReadPktInfoIdx+1)&(PACKET_INFO_QUEUE_SIZE-1);
+        NbuHci_SendPktToController((unsigned long)maHciPacketInfo[mReadPktInfoIdx].packetType, maHciPacketInfo[mReadPktInfoIdx].pPacket, maHciPacketInfo[mReadPktInfoIdx].packetSize);
+        (void)MEM_BufferFree(maHciPacketInfo[mReadPktInfoIdx].pPacket);
+        mReadPktInfoIdx = (mReadPktInfoIdx + 1U) & (PACKET_INFO_QUEUE_SIZE - 1U);
         BOARD_DBGLPIOSET(1U, 1U);
     }
     else
@@ -395,7 +386,9 @@ void NBU_Idle(void)
         OSA_EnableIRQGlobal();
     }
     nbu_tasks_init_done = TRUE;
+#if (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U))
     BluetoothLEHost_ProcessIdleTask();
+#endif /* (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U)) */
 }
 
 /*! *********************************************************************************
@@ -439,7 +432,7 @@ int main(void)
 
     /* Init OSA: should be called before any other OSA API*/
     OSA_Init();
-    Controller_RadioInit();
+    (void)Controller_RadioInit();
     /* Debug init */
     BOARD_DBGINITRFACTIVE();
     BOARD_DBGINITDTEST();
@@ -447,9 +440,9 @@ int main(void)
     /* Init NbuDbg IOs, will configure pinmux and GPIOD
         - need to be done after PLATFORM_RemoteActiveReq() */
     BOARD_DBGINITDBGIO();
-    Controller_SetNbuVersion(nbu_version.repo_digest);
+    (void)Controller_SetNbuVersion(nbu_version.repo_digest);
     /* Start LL scheduler */
-    Controller_Init(&nbuInterface);  /* never returns */
+    (void)Controller_Init(&nbuInterface);  /* never returns */
     /* Won't run here*/
     assert(0);
     return 0;
@@ -464,7 +457,7 @@ int __main(void)
     return 0;
 }
 
-#if CS_HANDOFF_ENABLED
+#if defined(CS_HANDOFF_ENABLED) && (CS_HANDOFF_ENABLED > 0)
 /* Callback from link-layer */
 #if CS_HANDOFF_ENABLED==1
 BLE_HADM_STATUS_t BLE_HADM_SubeventContinue(BLE_HADM_SubeventConfig_t *pConfig, uint32 startTimeHSlot, uint32 startTimeOffsetUs)
@@ -490,24 +483,17 @@ BLE_HADM_STATUS_t BLE_HADM_ProcedureContinue(const TBleHadmConnection_t *pConfig
 * Private functions
 *************************************************************************************
 ************************************************************************************/
-/*! *********************************************************************************
- * \brief        Configures BLE Stack after initialization
- ********************************************************************************** */
-static void BluetoothLEHost_Initialized(void)
-{
-    /* Host initialized */
-}
 
 /*! *********************************************************************************
 * \brief  This function is used to send HCI packets to the host.
 ********************************************************************************** */
 static void NbuHci_SendPktToHost(unsigned long packetType, void *pPacket, unsigned short packetSize)
 {
-    Ble_HciRecvFromIsr((hciPacketType_t)packetType, pPacket, (uint16_t)packetSize);
+    (void)Ble_HciRecvFromIsr((hciPacketType_t)packetType, pPacket, (uint16_t)packetSize);
 }
 
 
-#if CS_HANDOFF_ENABLED
+#if defined(CS_HANDOFF_ENABLED) && (CS_HANDOFF_ENABLED > 0)
 /*! *********************************************************************************
 * \brief        Configures HADM after initialization
 ********************************************************************************** */
@@ -597,12 +583,12 @@ static void  NBU_HADM_CopyConfig(void)
 }
 #endif /* #if CS_HANDOFF_ENABLED==1 || CS_HANDOFF_ENABLED==2 */
 
+#if defined(gNbu_Hadm_d) && (gNbu_Hadm_d==1)
 /*! *********************************************************************************
 * \brief   This function is used to check the temperature and report a change.
 ********************************************************************************** */
 static void NBU_CheckTemperatureChange(void)
 {
-#if defined(gNbu_Hadm_d) && (gNbu_Hadm_d==1)
     static int32_t nbu_last_temperature = PLATFORM_SENSOR_UNKNOWN_TEMPERATURE/10;
     int32_t new_temperature;
 
@@ -619,9 +605,8 @@ static void NBU_CheckTemperatureChange(void)
         /* Inform interested parties */
         lcl_hadm_handle_temperature_change(new_temperature/10);
     }
-#endif /* gNbu_Hadm_d */
 }
-
+#endif /* gNbu_Hadm_d */
 /*! *********************************************************************************
 * \brief   Application task.
 ********************************************************************************** */
@@ -654,13 +639,13 @@ static void Hcit_RxCallBack(uint8_t packetType, uint8_t *data, uint16_t len)
     {
         pPacketBuffer[0] = packetType;
         FLib_MemCpy(&pPacketBuffer[1], data, len);
-        pFsciPacket = (clientPacket_t *)pPacketBuffer;
+        pFsciPacket = (clientPacket_t *)(void *)pPacketBuffer;
         
         if ((pFsciPacket->headerAndStatus.header.opGroup == gFsciBleGapOpcodeGroup_c) &&
-            (pFsciPacket->headerAndStatus.header.opCode == gBleCtrlWritePublicDeviceAddressOpCode_c))
+            (pFsciPacket->headerAndStatus.header.opCode == (uint8_t)gBleCtrlWritePublicDeviceAddressOpCode_c))
         {
             /* Write public address request. Send to application for processing */
-            App_PostCallbackMessage(BleApp_HandleWritePublicDeviceAddress, pPacketBuffer);
+            (void)App_PostCallbackMessage(BleApp_HandleWritePublicDeviceAddress, pPacketBuffer);
         }
         else
         {
@@ -672,14 +657,14 @@ static void Hcit_RxCallBack(uint8_t packetType, uint8_t *data, uint16_t len)
 /*! *********************************************************************************
 * \brief    Application configuration function called after the NBU has been initialized.
 ********************************************************************************** */
-static void NBU_Init()
+static void NBU_Init(void)
 {
     /* Init MemManager for buffer allocation in serial manager */
-    MEM_Init();
+    (void)MEM_Init();
     /* Low level init for the BLE controller */
     PLATFORM_InitBle();
     /* Init Framework Intercore Service */
-    PLATFORM_FwkSrvInit();
+    (void)PLATFORM_FwkSrvInit();
 #if !defined(FPGA_TARGET) || (FPGA_TARGET == 0)
     /* SFC module requires FwkSrv service to be initialized */
     SFC_Init();
@@ -716,7 +701,7 @@ static bleResult_t BleApp_ReadPublicDeviceAddress(void)
     clientPacketStructured_t *pClientPacket;
     uint32_t fsciDataSize = 0U;
     
-    pClientPacket = fsciBleAllocFsciPacket(gFsciBleGapOpcodeGroup_c, gBleGapCmdReadPublicDeviceAddressOpCode_c, fsciDataSize);
+    pClientPacket = fsciBleAllocFsciPacket(gFsciBleGapOpcodeGroup_c, (uint8_t)gBleGapCmdReadPublicDeviceAddressOpCode_c, fsciDataSize);
     
     if (pClientPacket != NULL)
     {
@@ -762,5 +747,25 @@ static void BleApp_HandleWritePublicDeviceAddress(void *pParam)
         /* Resume application initialization */
         mAppInitInProgress = FALSE;
         BluetoothLEHost_ResumeInit();
+    }
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           static void AppFSCI_Send(uint8_t *pPacket, uint16_t packetLen, bool_t freePacket)
+*\brief        This function sends a fsci packet through rpmsg.
+*
+*\param  [in]  pPacket      FSCI packet.
+*\param  [in]  packetLen    Packet length.
+*\param  [in]  freePacket   Set to TRUE when pPacket should be freed, FALSE otherwise.
+*
+*\retval       void.
+********************************************************************************** */
+static void AppFSCI_Send(uint8_t *pPacket, uint16_t packetLen, bool_t freePacket)
+{
+    (void)PLATFORM_SendHciMessage(pPacket, (uint32_t)packetLen);
+    if(freePacket)
+    {
+        (void)MEM_BufferFree(pPacket);
     }
 }

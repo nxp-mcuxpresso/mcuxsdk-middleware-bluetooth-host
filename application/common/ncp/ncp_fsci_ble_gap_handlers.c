@@ -2344,16 +2344,16 @@ const pfGapGetBufferFromGenericEventHandler_t maGapGetBufferFromGenericEventHand
     NULL,                                                                       /* reserved: 0x48U */
     NULL,                                                                       /* reserved: 0x49U */
     NULL,                                                                       /* reserved: 0x4AU */
-#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
-    GetBufferFromPeriodicAdvSetSubeventDataCompleteEvent,                       /* 0x4BU, gPeriodicAdvSetSubeventDataComplete_c */
-    GetBufferFromPeriodicAdvSetResponseDataCompleteEvent,                       /* 0x4CU, gPeriodicAdvSetResponseDataComplete_c */
-    GetBufferFromPeriodicAdvSetResponseDataCompleteEvent,                       /* 0x4DU, gPeriodicSyncSubeventComplete_c */
-#else /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
     NULL,                                                                       /* reserved: 0x4BU */
+#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
+    GetBufferFromPeriodicAdvSetSubeventDataCompleteEvent,                       /* 0x4CU, gPeriodicAdvSetSubeventDataComplete_c */
+    GetBufferFromPeriodicAdvSetResponseDataCompleteEvent,                       /* 0x4DU, gPeriodicAdvSetResponseDataComplete_c */
+    GetBufferFromPeriodicAdvSetResponseDataCompleteEvent,                       /* 0x4EU, gPeriodicSyncSubeventComplete_c */
+#else /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
     NULL,                                                                       /* reserved: 0x4CU */
     NULL,                                                                       /* reserved: 0x4DU */
-#endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
     NULL,                                                                       /* reserved: 0x4EU */
+#endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
     NULL,                                                                       /* reserved: 0x4FU */
     NULL,                                                                       /* reserved: 0x50U */
     GetBufferFromVendorUnitaryTestCompleteEvent,                                /* 0x51U, gVendorUnitaryTestComplete_c */
@@ -2455,16 +2455,16 @@ const pfGapGetGenericEventBufferSizeHandler_t maGapGetGenericEventBufferSizeHand
     NULL,                                                                       /* reserved: 0x48U */
     NULL,                                                                       /* reserved: 0x49U */
     NULL,                                                                       /* reserved: 0x4AU */
+    NULL,                                                                       /* reserved: 0x4BU */    
 #if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
-    GetPeriodicAdvSetSubeventDataCompleteBufferSize,                            /* 0x4BU, gPeriodicAdvSetSubeventDataComplete_c */
-    GetPeriodicAdvSetResponseDataCompleteBufferSize,                            /* 0x4CU, gPeriodicAdvSetResponseDataComplete_c */
-    GetPeriodicAdvSetResponseDataCompleteBufferSize,                            /* 0x4DU, gPeriodicSyncSubeventComplete_c */
+    GetPeriodicAdvSetSubeventDataCompleteBufferSize,                            /* 0x4CU, gPeriodicAdvSetSubeventDataComplete_c */
+    GetPeriodicAdvSetResponseDataCompleteBufferSize,                            /* 0x4DU, gPeriodicAdvSetResponseDataComplete_c */
+    GetPeriodicAdvSetResponseDataCompleteBufferSize,                            /* 0x4EU, gPeriodicSyncSubeventComplete_c */
 #else /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
-    NULL,                                                                       /* reserved: 0x4BU */
-    NULL,                                                                       /* resreved: 0x4CU */
+    NULL,                                                                       /* reserved: 0x4CU */
     NULL,                                                                       /* reserved: 0x4DU */
+    NULL,                                                                       /* reserved: 0x4EU */
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
-    NULL,                                                                       /* resreved: 0x4EU */
     NULL,                                                                       /* resreved: 0x4FU */
     NULL,                                                                       /* resreved: 0x50U */
     GetVendorUnitaryTestCompleteBufferSize,                                     /* 0x51U, gVendorUnitaryTestComplete_c */
@@ -6114,7 +6114,7 @@ static void GetBufferFromPerAdvSyncTransferReceived
     uint8_t             **ppBuffer
 )
 {
-    fsciBleGetBufferFromUint8Value((uint8_t)pGenericEvent->eventData.perAdvSyncTransferReceived.status, *ppBuffer);
+    fsciBleGetBufferFromEnumValue(pGenericEvent->eventData.perAdvSyncTransferReceived.status, *ppBuffer, bleResult_t);
     fsciBleGetBufferFromUint8Value(pGenericEvent->eventData.perAdvSyncTransferReceived.deviceId, *ppBuffer);
     fsciBleGetBufferFromUint16Value(pGenericEvent->eventData.perAdvSyncTransferReceived.serviceData, *ppBuffer);
     fsciBleGetBufferFromUint16Value(pGenericEvent->eventData.perAdvSyncTransferReceived.syncHandle, *ppBuffer);
@@ -6722,7 +6722,7 @@ static uint32_t GetPerAdvSyncTransferReceivedBufferSize
     gapGenericEvent_t   *pGenericEvent
 )
 {
-    return sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint16_t) +
+    return sizeof(bleResult_t) + sizeof(uint8_t) + sizeof(uint16_t) +
            sizeof(uint16_t) + sizeof(uint8_t) + sizeof(uint8_t) +
            gcBleDeviceAddressSize_c + sizeof(uint8_t) +
            sizeof(uint16_t) + sizeof(uint8_t) + sizeof(uint8_t) +

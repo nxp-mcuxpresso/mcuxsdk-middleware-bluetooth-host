@@ -177,7 +177,7 @@
 /* Enable 5.3 optional features */
 #define gBLE53_d                            1
 
-#define gGapSimultaneousEAChainedReports_c  2
+#define gGapSimultaneousEAChainedReports_c  (2U)
 
 /* Defines number of timers needed by the protocol stack */
 #define gTmrStackTimers_c (3U + (gAppMaxConnections_c * 2U) + gL2caMaxLeCbChannels_c + gGapSimultaneousEAChainedReports_c)
