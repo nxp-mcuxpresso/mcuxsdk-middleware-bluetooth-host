@@ -6,10 +6,10 @@ Open a serial port terminal using the following settings:
 
 **baud rate 115200, data bits 8, parity none, stop bits 1**.
 
-See [Table 1](#TABLE_WSM_HQ3_HLB) and [Table 2](#TABLE_A41_JQ3_HLB) below for hardware references.
+See Table 1 and Table 2 below for hardware references.
 
 **Hardware references**:
-Table 8.  Extended Advertising Peripherals
+Table 1.  Extended Advertising Peripherals
 | Platform                                 | WAKESW | OPTSW | ADVLED   | CONNLED |
 | ---------------------------------------- | ------ | ----- | -------- | ------- |
 | KW45B41Z-EVK / K32W148-EVK / MCX-W71-EVK | SW3    | SW2   | LED2     | LED1    |
@@ -17,7 +17,7 @@ Table 8.  Extended Advertising Peripherals
 | KW47-EVK / MCX-W72-EVK                   | SW3    | SW2   | LED2     | LED1    |
 | FRDM-MCXW72                              | SW2    | SW4   | Blue LED | RGB LED |
 
-Table 9.  Extended Advertising Central
+Table 2.  Extended Advertising Central
 | Platform                                 | WAKESW | SCANLED  | CONNLED |
 | ---------------------------------------- | ------ | -------- | ------- |
 | KW45B41Z-EVK / K32W148-EVK / MCX-W71-EVK | SW2    | LED2     | LED1    |

@@ -4,7 +4,7 @@ After flashing the board, the device is in idle mode \(all LEDs flashing\). To s
 
 For displaying operating information and ANCS Notifications \(AMS information and commands\), the demo application uses a shell exposed via a serial communication interface.
 
-See [Table 1](#TABLE_ZV4_LDL_FDB) for hardware references.
+The table below describes the hardware references.
 
 | Platform                                 | ADVSW | CONNLED  |
 | ---------------------------------------- | ----- | -------- |
