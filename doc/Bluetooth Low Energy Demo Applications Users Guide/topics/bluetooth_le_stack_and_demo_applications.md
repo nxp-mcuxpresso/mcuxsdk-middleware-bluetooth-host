@@ -65,3 +65,7 @@
 :heading-offset: 1
 ```
 
+```{include} ../topics/ncp_fsci_black_box.md
+:heading-offset: 1
+```
+
