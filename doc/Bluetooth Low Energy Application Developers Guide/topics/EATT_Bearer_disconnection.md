@@ -8,7 +8,7 @@ bleResult_t result = gBleSuccess_c;
 result = Gap_EattDisconnect(peerDeviceId, bearerId);
 if (gBleSuccess_c != result)
 {
- /* Treat error */
+    /* Treat error */
 }
 
 ```

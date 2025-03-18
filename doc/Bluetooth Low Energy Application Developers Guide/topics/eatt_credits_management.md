@@ -7,9 +7,9 @@ If the application chooses to manage the credits of the L2CAP channels used as E
 ```
 bleResult_t Gap_EattSendCredits
 (
-    deviceId_t  deviceId,
-    bearerId_t  bearerId,
-    uint16_t    credits
+    deviceId_t  deviceId,
+    bearerId_t  bearerId,
+    uint16_t    credits
 );
         
 ```

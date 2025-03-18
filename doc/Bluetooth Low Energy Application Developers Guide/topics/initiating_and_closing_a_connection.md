@@ -44,7 +44,7 @@ An easy way to create the connection parameter structure is to initialize it wit
 In the following example, Central scans for a specific Heart Rate Sensor with a known address. When it finds it, it immediately connects to it.
 
 ```
-static void **BleApp\_ScanningCallback**
+static void BleApp_ScanningCallback
 (
     gapScanningEvent_t *pScanningEvent
 )
@@ -73,7 +73,7 @@ static void **BleApp\_ScanningCallback**
 The *connCallback* is triggered by GAP to send all events related to the active connection. It has the following prototype:
 
 ```
-**typedef** **void** (* gapConnectionCallback_t )
+typedef void (* gapConnectionCallback_t )
 (
     deviceId_t             deviceId,
     gapConnectionEvent_t * pConnectionEvent

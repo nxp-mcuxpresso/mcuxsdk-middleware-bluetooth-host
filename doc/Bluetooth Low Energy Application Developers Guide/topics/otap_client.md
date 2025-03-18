@@ -25,17 +25,17 @@ To use internal storage, set up the `gUseInternalStorageLink_d=1` symbol in the 
 
 The OTAP demo applications for the IAR EW IDE have some settings in the Linker options tab which must be configured to use OtaSupport and the OTAP Bootloader. In the **Project Target Options**-\>**Linker**-\>**Config** tab, 3 symbols must be correctly defined. To use NVM storage, the`gUseNVMLink_d` symbol must be set to `1`. The `gUseInternalStorageLink_d` symbol must be set to `0` when OTAP external storage is used and to `1`when the internal storage is used. The `gEraseNVMLink_d` must be set to 0.
 
-An example linker configuration window for IAR is shown in [Figure 1](#FIG_HMX_VNN_CY).
+An example linker configuration window for IAR is shown below.
 
 ![](../images/Linker_Config_IAR_EW_IDE_OTAPClient_Ext_St_NVM.png "Linker Config IAR EW IDE - OTAP Client External Storage and NVM Configuration")
 
 **Note:** The gEraseNVMLink\_d=1 IAR linker flag places some dummy bytes into the NVM region to invalidate the data and force the application to erase the entire NVM region. When generating an image for the OTA upgrade, this flag must be set to 0. This results in a smaller image size being transferred and lower power consumption. If the NVM region must be erased after the upgrade process, the "Preserve NVM" checkbox \(from the Over The Air programming tool\) should be unchecked.
 
-For MCUXpresso IDE, the linker settings required for OTAP applications can be set up from the “**SDK Import Wizard**” or from the “**Project Properties** -\>**MCU settings**”. Refer to [Figure 2](#fig2).
+For MCUXpresso IDE, the linker settings required for OTAP applications can be set up from the “**SDK Import Wizard**” or from the “**Project Properties** -\>**MCU settings**”. Refer to [Figure](../images/MCUX_memory.PNG).
 
 ![](../images/MCUX_memory.PNG "MCUX memory")
 
-The demo applications use internal storage by default. To enable external storage support for MCUX, set the `gAppOtaExternalStorage_c` value to \(`1`\) in the `app_preinclude.h`file. Also remove the `INT_STORAGE` section \(from **Project Properties**-\> **MCU settings**\) and extend the `PROGRAM_FLASH`section as shown in the [Figure 3](#fig_cdv_fq4_nvb).
+The demo applications use internal storage by default. To enable external storage support for MCUX, set the `gAppOtaExternalStorage_c` value to \(`1`\) in the `app_preinclude.h`file. Also remove the `INT_STORAGE` section \(from **Project Properties**-\> **MCU settings**\) and extend the `PROGRAM_FLASH`section as shown in the [Figure](../images/MCUX_ext_storage.png).
 
 ![](../images/MCUX_ext_storage.png "Enabling external storage")
 
@@ -48,7 +48,7 @@ The New Image Info Request contains enough information about the currently runni
 
 An example function that checks if an *ImageVerison* field from a New Image Notification or a New Image Info Response corresponds to a newer image \(based on the suggested format of this field\) is provided in the OTAP Client demo applications. The function is called *OtapClient\_IsRemoteImageNewer\(\)*.
 
-The OTAP Client application is a little more complicated than the OTAP Server application because more state information needs to be handled \(current image position, current chunk sequence number, image file parsing information, and so on\). An example state diagram for the OTAP Client is shown below. The [Figure 4](#FIG_GKR_D4N_CY) briefly lists the steps of the image download process. Note that some of the states may not be explicitly present in the demo applications.
+The OTAP Client application is a little more complicated than the OTAP Server application because more state information needs to be handled \(current image position, current chunk sequence number, image file parsing information, and so on\). An example state diagram for the OTAP Client is shown below. The [Figure](../images/figure23.png) briefly lists the steps of the image download process. Note that some of the states may not be explicitly present in the demo applications.
 
 ![](../images/figure23.png "OTAP Client Example State Diagram")
 
@@ -67,7 +67,7 @@ As noted earlier, the OTAP Client application needs to handle a lot of state inf
 To receive write notifications when the OTAP Server writes the OTAP Control Point attribute and ATT Confirmations when it indicates the OTAP Control Point attribute, the OTAP Client application must register a GATT Server callback and enable write notifications for the OTAP Control Point attribute. This is done in the *BluetoothLEHost\_Initialized\(\)* function in the *otap\_client\_att.c/otap\_client\_l2cap\_credit.c* file.
 
 ```
-static void BluetoothLEHost\_Initialized(void)
+static void BluetoothLEHost_Initialized(void)
 {
     /* ... Missing code here ... */
 
@@ -291,7 +291,7 @@ static void BleApp_L2capPsmControlCallback
 The OTAP Client must initiate the L2CAP PSM connection if it wants to use the L2CAP transfer method; this can be done using the *L2ca\_ConnectLePsm\(\)* function. The *L2ca\_ConnectLePsm\(\)* function is called by the *OtapClient\_ContinueImageDownload\(\)* if the transfer method is L2CAP and the PSM is found to be disconnected.
 
 ```
-static void OtapClient\_ContinueImageDownload** (deviceId_t deviceId)
+static void OtapClient_ContinueImageDownload (deviceId_t deviceId)
 {
     /* ... Missing code here ... */
     /* Check if the L2CAP OTAP PSM is connected and if not try to connect and exit immediately. */
@@ -310,10 +310,10 @@ static void OtapClient\_ContinueImageDownload** (deviceId_t deviceId)
 The PSM data callback *BleApp\_L2capPsmDataCallback\(\)* is used by the OTAP Client to handle incoming image file parts from the OTAP Server.
 
 ```
-static void BleApp\_L2capPsmDataCallback (deviceId_t  deviceId,
-   uint8_t*    pPacket,
-   uint16_t    uint16_t lePsm,
-   uint16_t    packetLengt
+static void BleApp_L2capPsmDataCallback (deviceId_t  deviceId,
+                                         uint8_t*    pPacket,
+                                         uint16_t    uint16_t lePsm,
+                                         uint16_t    packetLength)
 {
    OtapClient_HandleDataChunk (deviceId,
                                packetLength,
@@ -324,7 +324,7 @@ static void BleApp\_L2capPsmDataCallback (deviceId_t  deviceId,
 All data chunks regardless of their source \(ATT or L2CAP\) are handled by the *OtapClient\_HandleDataChunk\(\)* function. This function checks the validity of Image Chunk messages, parses the image file, requests the continuation or restart of the image download and triggers the bootloader when the image download is complete.
 
 ```
-static void OtapClient\_HandleDataChunk (deviceId_t deviceId, uint16_t length, uint8_t* pData);
+static void OtapClient_HandleDataChunk (deviceId_t deviceId, uint16_t length, uint8_t* pData);
 ```
 
 The Image File CRC Value is computed on the fly as the image chunks are received using the *OTA\_CrcCompute\(\)* function from the *OtaSupport* module which is called by the *OtapClient\_HandleDataChunk\(\)* function. The *OTA\_CrcCompute\(\)* function has a parameter for the intermediary CRC value which must be initialized to 0 every time a new image download is started.

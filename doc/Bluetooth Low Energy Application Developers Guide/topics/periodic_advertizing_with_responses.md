@@ -1,4 +1,4 @@
-# Periodic Advertising with Responses \(PAwR\) {#periodic_advertizing_with_responses}
+# Periodic Advertising with Responses \(PAwR\)
 
 This section describes the Central and Peripheral setup for Periodic Advertising with Responses \(PAwR\).
 

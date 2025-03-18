@@ -100,7 +100,7 @@ gapAuthenticationRejectReason_t    reason
 
 The `reason` should indicate why the application rejects the pairing. The value `gLinkEncryptionFailed_c` is reserved for the `gConnEvtAuthenticationRejected_c` connection event to indicate the link encryption failure rather than pairing failures. Therefore, it is not meant as a pairing reject reason.
 
-The `Gap_RejectPairing` function may be called not only after the Pairing Request was received, but also during the pairing process. For example, when handling pairing events or asynchronously, if for any reason the Peripheral decides to abort the pairing, this function can be called. This also holds true for the Central. [Figure 1](#FIG_MFY_NJB_BY) illustrates the Peripheral pairing flow and lists the main APIs and events. `Gap_RejectPairing` can be called on any pairing event.
+The `Gap_RejectPairing` function may be called not only after the Pairing Request was received, but also during the pairing process. For example, when handling pairing events or asynchronously, if for any reason the Peripheral decides to abort the pairing, this function can be called. This also holds true for the Central. [Figure](../images/figure4-peripheralflow.png) illustrates the Peripheral pairing flow and lists the main APIs and events. `Gap_RejectPairing` can be called on any pairing event.
 
 ![](../images/figure4-peripheralflow.png "Peripheral pairing flow – APIs and events ")
 

@@ -4,7 +4,7 @@ The client side of the service, which includes the service discovery, notificati
 
 ```
 /*! Temperature Client - Configuration */
-**typedef** **struct** tmcConfig_tag
+typedef struct tmcConfig_tag
 {
     uint16_t                 hService;
     uint16_t                 hTemperature ;

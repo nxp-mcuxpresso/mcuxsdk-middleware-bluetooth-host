@@ -1,6 +1,6 @@
-# Advanced Secure Mode \(kw45\_k32w\)
+# Advanced Secure Mode
 
-This section describes the advanced security capabilities of the Bluetooth LE Host Stack which are available on the KW45/K32W1 platform via the EdgeLock Secure Enclave \(ELKE\).
+This section describes the advanced security capabilities of the Bluetooth LE Host Stack which are available on the KW45/K32W1/KW47/MCXW72 platform via the EdgeLock Secure Enclave \(ELKE\).
 
 The security capabilities are enabled at application, Host and Controller level by setting Advanced Secure Mode to active. To do this, the user must set the *gAppSecureMode\_d* macro to *1* in the project’s *app\_preinclude.h* file. This macro is defined by default as *0* in *app\_preinclude\_common.h*:
 

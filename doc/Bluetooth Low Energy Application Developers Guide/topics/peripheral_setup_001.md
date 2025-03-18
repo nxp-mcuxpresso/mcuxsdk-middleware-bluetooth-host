@@ -1,6 +1,6 @@
 # Peripheral setup
 
-This section describes the extended advertising GAP API. The application should not use both the extended and legacy API Refer to [Scanning](topics/scanning.md). If this requirement cannot be met, the application should at least wait for the generated events in the Advertising Callback prior to using the other API. That is, it is advisable to call legacy functions only after the event pertaining to an extended API is received, and vice versa. This GAP constraint can be considered an extension of the HCI constraint from the Bluetooth 5 specification: "A Host should not issue legacy commands to a Controller that supports the LE Feature \(Extended Advertising\)".
+This section describes the extended advertising GAP API. The application should not use both the extended and legacy API Refer to [Scanning](../topics/scanning.md). If this requirement cannot be met, the application should at least wait for the generated events in the Advertising Callback prior to using the other API. That is, it is advisable to call legacy functions only after the event pertaining to an extended API is received, and vice versa. This GAP constraint can be considered an extension of the HCI constraint from the Bluetooth 5 specification: "A Host should not issue legacy commands to a Controller that supports the LE Feature \(Extended Advertising\)".
 
 The application configures extended advertising by going through the following states:
 

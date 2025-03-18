@@ -2,7 +2,7 @@
 
 A BIN file is an binary file which contains an executable image. The most common extension for this type of file is `.bin`. Most modern compiler toolchains can output a BIN format executable.
 
-To enable the creation of a BIN file for your embedded application in IAR Embedded Workbench open the target properties and go to the *Output Converter* tab. Activate the *“Generate additional output”* checkbox and choose the *binary* option from the *“Output format”* drop down menu. From the same pane you can also override the name of the output file. The [Figure 1](#FIG_WTW_JYM_CY) shows a screenshot of the described configuration.
+To enable the creation of a BIN file for your embedded application in IAR Embedded Workbench open the target properties and go to the *Output Converter* tab. Activate the *“Generate additional output”* checkbox and choose the *binary* option from the *“Output format”* drop down menu. From the same pane you can also override the name of the output file. The [Figure](../images/fig21new.PNG) shows a screenshot of the described configuration.
 
 ![](../images/fig21new.PNG "Enabling BIN Output in IAR Embedded Workbench")
 
@@ -14,7 +14,7 @@ arm-none-eabi-objcopy -v -O binary --only-section=.text --only-section=.data --o
    "${BuildArtifactFileBaseName}.bin"
 ```
 
-The [Figure 2](#ide_bin2) shows the Build steps and Post-build steps in **Settings** window.
+The [Figure](../images/fig22new.png) below shows the Build steps and Post-build steps in **Settings** window.
 
 ![](../images/fig22new.png "Enabling BIN output in MCUXpresso IDE Post-build steps")
 

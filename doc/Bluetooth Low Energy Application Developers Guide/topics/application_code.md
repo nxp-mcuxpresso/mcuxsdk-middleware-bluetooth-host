@@ -70,7 +70,7 @@ This includes advertising data, scanning data, connection parameters, advertisin
 
 -   *app\_preinclude.h*.
 
-This header file contains macros to override the default configuration of any module in the application. It is added as a preinclude file in the preprocessor command line in IAR, as shown in [Figure 1](#FIG_YHS_G1G_CY):
+This header file contains macros to override the default configuration of any module in the application. It is added as a preinclude file in the preprocessor command line in IAR, as shown in [Figure](../images/figure_16_new_preprocessor.png):
 
 ![](../images/figure_16_new_preprocessor.png "Preinclude file")
 

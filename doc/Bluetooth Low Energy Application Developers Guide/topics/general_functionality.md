@@ -4,7 +4,7 @@ A Bluetooth Low Energy OTAP system consists of an OTAP Server and an OTAP Client
 
 The OTAP Server runs on the GATT Client via the Bluetooth Low Energy OTAP Profile and the OTAP Client runs on the GATT Server via the Bluetooth Low Energy OTAP Service. For the moment the OTAP Server runs on the GAP Central and the OTAP Client runs on the GAP Peripheral.
 
-The [Figure 1](#FIG_NW4_JML_CY) shows a typical image upgrade scenario.
+The [Figure](../images/figure16.png) shows a typical image upgrade scenario.
 
 ![](../images/figure16.png "Typical Bluetooth Low Energy OTAP Image Upgrade Scenario")
 

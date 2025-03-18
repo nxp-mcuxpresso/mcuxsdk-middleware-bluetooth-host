@@ -10,10 +10,10 @@ The first thing an application must do is register the control and data callback
 
 ```
 bleResult_t   L2ca_RegisterLeCbCallbacks
-`(`
+(
     l2caLeCbDataCallback_t     pCallback,
     l2caLeCbControlCallback_t  pCtrlCallback
-`);`
+);
 ```
 
 The control callback receives events related to channel management such as connection, disconnection, received credits, reconfiguration, and so on.
@@ -26,8 +26,8 @@ To use L2CAP credit-based channels, the application must register a PSM. The PSM
 bleResult_t  L2ca_RegisterLePsm
 ( 
    uint16_t     lePsm,
-   uint16_t     lePsmMtu`
-);`
+   uint16_t     lePsmMtu
+);
 ```
 
 The MTU configured via this API is used by every channel opened under the PSM, if the Credit-based Flow Control Mode is used. The minimum MTU is 23 and the maximum MTU is 65535.
@@ -42,7 +42,7 @@ A previously registered PSM can be deregistered:
 bleResult_t L2ca_DeregisterLePsm
 (
   uint16_t     lePsm
-`);`
+);
 ```
 
 The number of credit-based channels that can be opened is configurable by the application via the `gL2caMaxLeCbChannels_c` define. This is the total number for all peers. To open a channel, the following API must be called:

@@ -19,7 +19,7 @@ UID128(uuid_service_wireless_uart, 0xE0, 0x1C, 0x4B, 0x5E, 0x1E, 0xEB, 0xA1, 0x5
 (app.c)
 #include "gatt_db_handles.h"
 ........
-/* Start Service Discovery*/                   
+/* Start Service Discovery*/
 BleServDisc_FindService(peerDeviceId, gBleUuidType128_c, (bleUuid_t*) &uuid_service_wireless_uart);
 ```
 

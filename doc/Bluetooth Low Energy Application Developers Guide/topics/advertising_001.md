@@ -3,16 +3,15 @@
 Before starting advertising, the advertising parameters should be configured. Otherwise, the following defaults are used.
 
 ```
-\#define gGapDefaultAdvertisingParameters_d \
-{ \
+#define gGapDefaultAdvertisingParameters_d \
+{
    /* minInterval */     gGapAdvertisingIntervalDefault_c, \
    /* maxInterval */     gGapAdvertisingIntervalDefault_c, \
    /* advertisingType */ gConnectableUndirectedAdv_c, \
    /* addressType */     gBleAddrTypePublic_c, \
    /* peerAddressType */  gBleAddrTypePublic_c, \
    /* peerAddress */     {0U, 0U, 0U, 0U, 0U, 0U}, \
-   /* channelMap */      
-                        (gapAdvertisingChannelMapFlags_t)gGapAdvertisingChannelMapDefault_c,  \
+   /* channelMap */      (gapAdvertisingChannelMapFlags_t)gGapAdvertisingChannelMapDefault_c,  \
    /* filterPolicy */    gProcessAll_c \
 }
 ```
@@ -22,7 +21,7 @@ To set different advertising parameters, a *gapAdvertisingParameters\_t* structu
 After that, the following function should be called:
 
 ```
-bleResult_t Gap\_SetAdvertisingParameters
+bleResult_t Gap_SetAdvertisingParameters
 (
     const gapAdvertisingParameters_t *     pAdvertisingParameters
 );
@@ -35,7 +34,7 @@ Next, the advertising data should be configured and, if the advertising type sup
 The function used to configure the advertising and/or scan response data is shown here:
 
 ```
-bleResult_t Gap\_SetAdvertisingData
+bleResult_t Gap_SetAdvertisingData
 (
   const gapAdvertisingData_t *     pAdvertisingData,
   const gapScanResponseData_t *    pScanResponseData
@@ -49,7 +48,7 @@ The application should listen to the *gAdvertisingDataSetupComplete\_c* generic 
 After all the necessary setup is done, advertising may be started with this function:
 
 ```
-bleResult_t Gap\_StartAdvertising
+bleResult_t Gap_StartAdvertising
 (
     gapAdvertisingCallback_t advertisingCallback,
     gapConnectionCallback_t connectionCallback

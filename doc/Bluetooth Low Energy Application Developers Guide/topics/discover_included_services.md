@@ -55,11 +55,11 @@ void gattClientProcedureCallback
     {
         /* ... */
         case gGattProcFindIncludedServices_c:
-            if (*gGattProcSuccess\_c* == procedureResult)
+            if (gGattProcSuccess_c == procedureResult)
             {
                 /* Read included services data */
                 PRINT( pPrimaryService-> cNumIncludedServices );
-                for (**int** j = 0; j < pPrimaryService-> cNumIncludedServices ; j++)
+                for (int j = 0; j < pPrimaryService-> cNumIncludedServices ; j++)
                 {
                     PRINT( pPrimaryService-> aIncludedServices [j]. startHandle );
                     PRINT( pPrimaryService-> aIncludedServices [j]. endHandle );

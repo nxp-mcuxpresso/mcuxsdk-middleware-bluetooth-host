@@ -20,7 +20,7 @@ GAP defines four possible roles that a Bluetooth Low Energy device may have in a
 
 ![](../images/figure2.png "GAP topology")
 
-[Figure 1](#FIG_EF5_SB5_1Y) illustrates the generic GAP topology.
+The [Figure](../images/figure2.png) illustrates the generic GAP topology.
 
 
 ```{include} ../topics/peripheral_setup_002.md
@@ -67,7 +67,7 @@ GAP defines four possible roles that a Bluetooth Low Energy device may have in a
 :heading-offset: 1
 ```
 
-```{include} ../topics/L2CAP%20Credit-Based%20Channels.md
+```{include} ../topics/L2CAP_Credit-Based_Channels.md
 :heading-offset: 1
 ```
 

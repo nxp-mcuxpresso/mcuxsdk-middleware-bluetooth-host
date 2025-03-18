@@ -24,7 +24,7 @@ The GATT Server allows the application to register a set of attribute handles as
 All Control-Point Characteristics in the GATT Database must have their Value handle registered. In fact, the application may register any other handle for write notifications for its own purposes with the following API:
 
 ```
-bleResult_t GattServer\_RegisterHandlesForWriteNotifications
+bleResult_t GattServer_RegisterHandlesForWriteNotifications
 (
     uint8_t         handleCount,
     const uint16_t *      aAttributeHandles

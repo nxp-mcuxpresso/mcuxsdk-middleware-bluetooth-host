@@ -11,7 +11,7 @@ static uint8_t mcHrcpChar;
 bleResult_t result = GattClient_DiscoverCharacteristicOfServiceByUuid
 (
     deviceId,
-    *gBleUuidType16\_c*,
+    gBleUuidType16_c,
     gBleSig_HrControlPoint_d,
     pService,
     &hrcpCharacteristic,

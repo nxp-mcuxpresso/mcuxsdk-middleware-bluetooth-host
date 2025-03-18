@@ -5,11 +5,11 @@ In order to take advantage of the Enhanced ATT features, first a number of Enhan
 ```
 bleResult_t Gap_EattConnectionRequest
 (
-   deviceId_t  deviceId,
-   uint16_t    mtu,
-   uint8_t     cBearers,
-   uint16_t    initialCredits,
-   bool_t      autoCreditsMgmt
+    deviceId_t  deviceId,
+    uint16_t    mtu,
+    uint8_t     cBearers,
+    uint16_t    initialCredits,
+    bool_t      autoCreditsMgmt
 );
 ```
 
@@ -22,34 +22,34 @@ The `autoCreditsMgmt` parameter is used to tell the Bluetooth LE Host Stack if i
 For example, to establish two Enhanced ATT bearers with a peer device the application may call the `Gap_EattConnectionRequest` as shown below:
 
 ```
-bleResult_t result = Gap_EattConnectionRequest(peerDeviceId,
-                        64U,
-                         2U,
-                         3U,
-                         TRUE);
-if (gBleSuccess_c != result)
+bleResult_t result = Gap_EattConnectionRequest(peerDeviceId,
+                                               64U,
+                                               2U,
+                                               3U,
+                                               TRUE);
+if (gBleSuccess_c != result)
 {
-    /* Treat error */
+    /* Treat error */
 }
 ```
 
 If an EATT Connection Request is received from a peer device it would be signaled through the `gConnEvtEattConnectionRequest_c` connection event of type `gapEattConnectionRequest_t` sent to the connection callback. The application should handle this event by calling `Gap_EattConnectionAccept`. The example below shows how an application may accept an incoming EATT Connection Request with the same MTU as requested by the peer device.
 
 ```
-case gConnEvtEattConnectionRequest_c:
+case gConnEvtEattConnectionRequest_c:
 {
-    gapEattConnectionRequest_t *pEattConnectionReq = &pConnectionEvent->eventData.eattConnectionRequest;
-    
-    bleResult_t result = Gap_EattConnectionAccept(peerDeviceId,
-                                                TRUE,
-                                                pEattConnectionReq->mtu,
-                                                3U,
-                                                TRUE);
-        
-    if (gBleSuccess_c != result)
-    {
-        /* Treat error */
-    }
+    gapEattConnectionRequest_t *pEattConnectionReq = &pConnectionEvent->eventData.eattConnectionRequest;
+    
+    bleResult_t result = Gap_EattConnectionAccept(peerDeviceId,
+                                                TRUE,
+                                                pEattConnectionReq->mtu,
+                                                3U,
+                                                TRUE);
+        
+    if (gBleSuccess_c != result)
+    {
+        /* Treat error */
+    }
 }
 break;
 ```
@@ -59,12 +59,12 @@ In case the `localMtu` specified when accepting a connection differs from the MT
 After the `Gap_EattConnectionRequest` or `Gap_EattConnectionAccept` is called, for the result the application should wait for the `gConnEvtEattConnectionComplete_c` connection event of type `gapEattConnectionComplete_t` shown below:
 
 ```
-typedef struct {
-    l2caLeCbConnectionRequestResult_t           status;
-    uint16_t                                    mtu;
-    uint8_t                                     cBearers;
-    bearerId_t                                  aBearerIds[gGapEattMaxBearers];
-} gapEattConnectionComplete_t;
+typedef struct {
+    l2caLeCbConnectionRequestResult_t           status;
+    uint16_t                                    mtu;
+    uint8_t                                     cBearers;
+    bearerId_t                                  aBearerIds[gGapEattMaxBearers];
+} gapEattConnectionComplete_t;
 ```
 
 If successful, the `aBearerIds` array contains the bearer ids, for the Enhanced ATT bearers established. These ids may be used with the GATT Enhanced APIs in order to trigger GATT procedures over Enhanced ATT bearers.

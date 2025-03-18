@@ -63,7 +63,7 @@ void gattClientProcedureCallback
     switch (procedureType)
     {
         /* ... */
-         case gGattProcReadUsingCharacteristicUuid\_c*:
+         case gGattProcReadUsingCharacteristicUuid_c:
               if (gGattProcSuccess_c == procedureResult)
             {
                /* Read handle-value pair length */

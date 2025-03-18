@@ -1,2 +1,2 @@
-# Legal information {#legal-conf-ApplicationnoteUsermanualUserguideReferencemanualNon-automotive}
+# Legal information
 

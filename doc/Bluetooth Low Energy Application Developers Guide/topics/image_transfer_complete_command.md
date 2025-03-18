@@ -2,14 +2,9 @@
 
 This command is sent by the OTAP Client to the OTAP Server when an image file has been completely transferred and its integrity has been checked.
 
-|CmdId|Name|Dir|Parameters|Param Size
-
- \(Bytes\)
-
-|Description|Total Size \(CmdId+Payload\)|
-|-----|----|---|----------|------------------------|-----------|----------------------------|
-|0x06|Image Transfer Complete|C-\>S|ImageId|2|Image Id|4|
-|Status|1|Status of the image transfer. 0x00 - Success|
+| CmdId | Name | Dir | Parameters | Param Size | Description | Total Size \(CmdId+Payload\) |
+| ----- | ---- | --- | ---------- | ---------- | ----------- | ---------------------------- |
+| 0x06 | Image Transfer Complete | C-\>S | <table><tbody><tr><td><p>ImageId</p></td></tr></tbody><tbody><tr><td><p>Status</p></td></tr></tbody></table> | <table><tbody><tr><td><p>2</p></td></tr></tbody><tbody><tr><td><p>1</p></td></tr></tbody></table> | <table><tbody><tr><td><p>Image Id</p></td></tr></tbody><tbody><tr><td><p>Status of the image transfer. 0x00 - Success</p></td></tr></tbody></table> | 4 |
 
 The *ImageId* parameter contains the ID of the image file that was transferred.
 

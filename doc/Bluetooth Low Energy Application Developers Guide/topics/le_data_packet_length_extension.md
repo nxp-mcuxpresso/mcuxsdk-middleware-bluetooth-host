@@ -26,7 +26,7 @@ bleResult_t Gap_UpdateLeDataLength
 );
 ```
 
-After the procedure executes, a *gConnEvtLeDataLengthChanged\_c* connection event is triggered with the maximum values for number of payload octets and time to transmit and receive a link layer data channel PDU. The event is send event if the remote device initiates the procedure. This procedure is shown in [Figure 5](#FIG_Z2L_PKB_BY).<br>
+After the procedure executes, a *gConnEvtLeDataLengthChanged\_c* connection event is triggered with the maximum values for number of payload octets and time to transmit and receive a link layer data channel PDU. The event is send event if the remote device initiates the procedure. This procedure is shown in [Figure](../images/figure7.png).<br>
 **Figure 5. Data Length Update Procedure** 
 ![](../images/figure7.png "Data Length Update Procedure")
 
