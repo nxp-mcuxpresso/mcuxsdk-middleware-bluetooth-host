@@ -70,7 +70,7 @@ The *centralKeys* should have the flags set for all the keys that are available 
 
 The *peripheralKeys* should follow the same guidelines. The LTK is mandatory if encryption is to be performed, while the peer’s IRK should be requested if the Peripheral is using Private Resolvable Addresses.
 
-See [Table 2](pairing_and_bonding_central.md#TABLE_PJN_XLV_1Y) for detailed guidelines regarding key distribution.
+See table below for detailed guidelines regarding key distribution.
 
 The first three rows are both guidelines for Pairing Parameters \(*centralKeys* and *peripheralKeys*\) and for distribution of keys with *Gap\_SendSmpKeys*.
 
@@ -83,12 +83,12 @@ The negotiation of the distributed keys is as follows:
 -   In the SMP Pairing Request \(started by *Gap\_Pair*\), the Central sets the flags for the keys it wants to distribute \(*centralKeys*\) and receive \(*peripheralKeys*\).
 
 
-|                                           | Central keys (Central)                                              | Peripheral keys (Central)                                       | Peripheral () keys                                           | Central keys (peripheral)                                            |
-| ----------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------- | -------------------------------------------------------- |
-| Long Term Key (LTK)<br>+EDIV +RAND        | If it wants to be a peripheral in a future reconnection   | If it wants encryption                                 | If it wants encryption                                    | If it wants to become a central in a future reconnection |
-| Identity Resolving Key (IRK)              | If it uses or intends to use private resolvable addresses | If a peripheral is using a private resolvable address  | If it uses or intends to use private resolvable addresses | If a central is using a private resolvable address       |
-| Connection Signature Resolving Key (CSRK) | If it wants to sign data as GATT Client                   | If it wants the peripheral to sign data as GATT Client | If it wants to sign data as GATT Client                   | If it wants the Central to sign data as GATT Client      |
-| Identity address                          | If it distributes the IRK                                 | N/A                                                    | If it distributes the IRK                  
+|   | Central keys (Central) | Peripheral keys (Central) | Peripheral () keys | Central keys (peripheral) |
+| - | ---------------------- | ------------------------- | ------------------ | ------------------------- |
+| Long Term Key (LTK)<br>+EDIV +RAND | If it wants to be a peripheral in a future reconnection | If it wants encryption | If it wants encryption | If it wants to become a central in a future reconnection |
+| Identity Resolving Key (IRK) | If it uses or intends to use private resolvable addresses | If a peripheral is using a private resolvable address | If it uses or intends to use private resolvable addresses | If a central is using a private resolvable address |
+| Connection Signature Resolving Key (CSRK) | If it wants to sign data as GATT Client | If it wants the peripheral to sign data as GATT Client | If it wants to sign data as GATT Client | If it wants the Central to sign data as GATT Client |
+| Identity address | If it distributes the IRK | N\/A | If it distributes the IRK | N\/A |
 
 -   The Peripheral examines the two distributions and must send an SMP Pairing Response \(started by the *Gap\_AcceptPairingRequest*\) after performing any changes it deems necessary. The Peripheral is only allowed to set to 0 some flags that are set to 1 by the Central, but not the other way around. For example, it cannot request/distribute keys that were not offered/requested by the Central. If the Peripheral is adverse to the Central’s distributions, it can reject the pairing by using the *Gap\_RejectPairing* function.
 -   The Central examines the updated distributions from the Pairing Response. If it is adverse to the changes made by the Peripheral, it can reject the pairing \(*Gap\_RejectPairing*\). Otherwise, the pairing continues and, during the key distribution phase \(the *gConnEvtKeyExchangeRequest\_c* event\) only the final negotiated keys are included in the key structure sent with *Gap\_SendSmpKeys*.
@@ -115,11 +115,10 @@ If the pairing continues, the following connection events may occur:
     -   *gConnEvtPairingComplete\_c*: the pairing process is complete, either successfully, or an error may have occurred during the SMP packet exchanges; note that this is different from the *gConnEvtKeyExchangeRequest\_c* event; the latter signals that the pairing was rejected by the peer, while the former is used for failures due to the SMP packet exchanges.
     -   *gConnEvtLeScKeypressNotification\_c*: the stack informs the application that a remote SMP Keypress Notification has been received during Passkey Entry Pairing Method.
 
-After the link encryption or pairing is completed successfully, the Central may immediately start exchanging data using the GATT APIs. Gap_RejectPairing may be called on any pairing event<br>   
-**Figure 4. Central pairing flow – APIs and events.** 
-|![](../images/figure5.png "Central pairing flow – APIs and events. Gap_RejectPairing may be called on any pairing event")
+After the link encryption or pairing is completed successfully, the Central may immediately start exchanging data using the GATT APIs. Gap_RejectPairing may be called on any pairing event.
 
-|
+**Figure 4. Central pairing flow – APIs and events.**
+![](../images/figure5.png "Central pairing flow – APIs and events. Gap_RejectPairing may be called on any pairing event")
 
 **Parent topic:**[Central setup](../topics/central_setup_001.md)
 

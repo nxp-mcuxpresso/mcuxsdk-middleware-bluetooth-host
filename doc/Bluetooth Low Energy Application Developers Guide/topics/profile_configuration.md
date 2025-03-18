@@ -1,6 +1,6 @@
 # Profile configuration
 
-The implemented profiles and services are located in *middleware/wireless/bluetooth/profiles* folder. The application links every service source file and interface it needs to implement the profile. For example, for the Temperature Sensor the tree looks as shown [Figure 1](#FIG_UBP_3VF_CY):
+The implemented profiles and services are located in *middleware/wireless/bluetooth/profiles* folder. The application links every service source file and interface it needs to implement the profile. For example, for the Temperature Sensor the tree looks as shown [Figure](../images/figure12.png):
 
 ![](../images/figure12.png "Temperature Sensor profile-related files")
 

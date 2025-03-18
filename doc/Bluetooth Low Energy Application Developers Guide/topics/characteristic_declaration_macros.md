@@ -6,7 +6,7 @@ The following macros are used to declare Characteristics:
 
 -   *CHARACTERISTIC \(name, uuid16, properties\)*
 -   *CHARACTERISTIC\_UUID32 \(name, uuid32, properties\)*
--   *CHARACTERISTIC \_UUID128 \(name, uuid128, properties**\)***
+-   *CHARACTERISTIC \_UUID128 \(name, uuid128, properties\)*
 
 See Service declaration for *uuidXXX* parameter explanation.
 

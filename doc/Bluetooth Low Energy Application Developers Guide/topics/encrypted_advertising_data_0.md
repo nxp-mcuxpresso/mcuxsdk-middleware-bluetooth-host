@@ -1,4 +1,4 @@
-# Encrypted Advertising Data {#encrypted_advertising_data_0}
+# Encrypted Advertising Data
 
 This section describes the Central and Peripheral setup for encrypted advertising data.
 

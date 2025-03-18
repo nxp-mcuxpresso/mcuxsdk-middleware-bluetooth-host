@@ -24,7 +24,7 @@ Continuing the example from [Discover characteristics by UUID](discover_characte
 #define mcMaxDescriptors_c 5
 static gattAttribute_t aDescriptors[mcMaxDescriptors_c];
 hrcpCharacteristic. aDescriptors = aDescriptors;
-bleResult_t result = GattClient\_DiscoverAllCharacteristicDescriptors
+bleResult_t result = GattClient_DiscoverAllCharacteristicDescriptors
 (
     deviceId,
     &hrcpCharacteristic,

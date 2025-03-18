@@ -9,7 +9,7 @@ bleResult_t App_NvmErase
 (
     uint8_t mEntryIdx
 );
-bleResult_t App\_NvmRead
+bleResult_t App_NvmRead
 (
     uint8_t  mEntryIdx,
     void*    pBondHeader,

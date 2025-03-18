@@ -12,7 +12,7 @@ The user can choose between two options:
 
     The user should call the following function to enable various events from the mask or use Event `None` to disable the feature. The `Device ID` is valid only for connection events.
 
-    ``` {#JTNAG}
+    ```
     bleResult_t Gap_ControllerEnhancedNotification
     (    uint16_t eventType,
         deviceId_t deviceId
@@ -58,7 +58,7 @@ The user can choose between two options:
 
     The user should call the following function to enable various events from the mask or use Event None to disable the feature. The same event types apply as the GAP layer types. The connection handle is valid only for connection events.
 
-    ``` {#1VZILL}
+    ```
     bleResult_t Controller_ConfigureEnhancedNotification
     (
         uint16_t eventType,

@@ -18,7 +18,7 @@ The application configures the extended scanning by going through the following 
     When using the common application structure, the application can use the following API defined in *app\_conn.h*:
 
     ```
-    bleResult_t **BluetoothLEHost\_StartScanning**
+    bleResult_t BluetoothLEHost_StartScanning
     (
         appScanningParams_t   *pAppScanParams,
         gapScanningCallback_t pfCallback

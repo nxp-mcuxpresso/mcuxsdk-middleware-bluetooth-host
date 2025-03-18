@@ -4,7 +4,7 @@ These are the two functions to perform basic attribute operations from the appli
 
 ```
 bleResult_t GattDb_WriteAttribute
-**(
+(
     uint16_t           handle,
     uint16_t           valueLength,
     const uint8_t *    aValue

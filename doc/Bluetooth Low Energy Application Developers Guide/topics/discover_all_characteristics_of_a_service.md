@@ -3,7 +3,7 @@
 The main API for Characteristic Discovery has the following prototype:
 
 ```
-bleResult_t GattClient\_DiscoverAllCharacteristicsOfService
+bleResult_t GattClient_DiscoverAllCharacteristicsOfService
 (
     deviceId_t         deviceId,
     gattService_t *    pIoService,

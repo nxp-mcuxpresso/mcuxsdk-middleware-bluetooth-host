@@ -8,10 +8,9 @@ After the OTAP Client has determined that the OTAP Sever has a newer image it ca
 
 The OTAP Client decides how often Image Block Request Commands are sent and can even stop a block transfer which is in progress via the Stop Image Transfer Command. The OTAP Client is in complete control of the image download process and can stop it and restart it at any time based on its resources and application requirements.
 
-A typical **Bluetooth LE OTAP Image Transfer** scenario is shown in the message sequence chart [Figure 1](#FIG_Y2G_TRM_CY).
+A typical **Bluetooth LE OTAP Image Transfer** scenario is shown in the message sequence chart [Figure](../images/../images/figure17_OTAP_Image_Transfer.png).
 
-![](../images/figure17.png "Typical Bluetooth LE OTAP Image Transfer Scenario Message Sequence
-        Chart")
+![](../images/figure17_OTAP_Image_Transfer.png "Typical Bluetooth LE OTAP Image Transfer Scenario Message Sequence Chart")
 
 **Parent topic:**[Bluetooth LE OTAP protocol](../topics/bluetooth_le_otap_protocol.md)
 

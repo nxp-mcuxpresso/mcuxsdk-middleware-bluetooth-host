@@ -2,20 +2,17 @@
 
 The format and fields of the Bluetooth Low Energy OTAP Header are summarized in the table below.
 
-|Octets|Data Types|Field Name|Mandatory/Optional|
-|4|Unsigned 32-bit integer|Upgrade File Identifier|M|
-|2|Unsigned 16-bit integer|Header Version|M|
-|2|Unsigned 16-bit integer|Header Length|M|
-|2|Unsigned 16-bit integer|Header Field Control|M|
-|2|Unsigned 16-bit integer|Company Identifier|M|
-|2|Unsigned 16-bit integer|Image ID|M|
-|8|8 byte array|Image Version|M|
-|32|Character string|Header String|M|
-|4|Unsigned 32-bit integer|Total Image File Size
-
- \(including header\)
-
-|M|
+| Octets | Data Types              | Field Name              | Mandatory/Optional |
+| ------ | ----------------------- | ----------------------- | ------------------ |
+| 4      | Unsigned 32-bit integer | Upgrade File Identifier | M                  |
+| 2      | Unsigned 16-bit integer | Header Version          | M                  |
+| 2      | Unsigned 16-bit integer | Header Length           | M                  |
+| 2      | Unsigned 16-bit integer | Header Field Control    | M                  |
+| 2      | Unsigned 16-bit integer | Company Identifier      | M                  |
+| 2      | Unsigned 16-bit integer | Image ID                | M                  |
+| 8      | 8 byte array            | Image Version           | M                  |
+| 32     | Character string        | Header String           | M                  |
+| 4      | Unsigned 32-bit integer | Total Image File Size   | M                  |
 
 The fields are shown in the order they are placed in memory from the first location to the last.
 

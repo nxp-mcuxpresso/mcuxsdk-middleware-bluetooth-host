@@ -4,26 +4,9 @@ This command is sent by the OTAP Client to the OTAP Server to request a part of 
 
 When an OTAP Server Receives this command it should stop any image file chunk transfer sequences in progress.
 
-|CmdId|Name|Dir|Parameters|Param Size
-
- \(Bytes\)
-
-|Description|Total Size \(CmdId+Payload\)|
-|-----|----|---|----------|------------------------|-----------|----------------------------|
-|0x04|Image Block Request|C-\>S|ImageId|2|Image Id|16|
-|StartPosition|4|Start position of the image block to be transferred.|
-|BlockSize|4|Requested total block size in bytes.|
-|ChunkSize|2|Should be optimized to the TransferChannel type. The maximum number of chunks per block is 256. Value is in bytes.|
-|TransferMethod|1|0x00 - ATT
-
- 0x01 – L2CAP PSM Credit based channel
-
-|
-|L2capChannelOrPsm|2|0x0004 - ATT
-
- Other values – PSM for credit based channels
-
-|
+| CmdId | Name | Dir | Parameters | Param Size | Description | Total Size \(CmdId+Payload\) |
+| ----- | ---- | --- | ---------- | ---------- | ----------- | ---------------------------- |
+| 0x04 | Image Block Request | C-\>S | <table><tbody><tr><td><p>StartPosition</p></td></tr></tbody><tbody><tr><td><p>BlockSize</p></td></tr></tbody><tbody><tr><td><p>ChunkSize</p></td></tr></tbody><tbody><tr><td><p>TransferMethod</p></td></tr></tbody><tbody><tr><td><p>L2capChannelOrPsm</p></td></tr></tbody></table> | <table><tbody><tr><td><p>4</p></td></tr></tbody><tbody><tr><td><p>4</p></td></tr></tbody><tbody><tr><td><p>2</p></td></tr></tbody><tbody><tr><td><p>1</p></td></tr></tbody><tbody><tr><td><p>2</p></td></tr></tbody></table> | <table><tbody><tr><td><p>Start position of the image block to be transferred.</p></td></tr></tbody><tbody><tr><td><p>Requested total block size in bytes.</p></td></tr></tbody><tbody><tr><td><p>Should be optimized to the Transfer Channel type. The maximum number of chunks per block is 256. Value is inbytes.</p></td></tr></tbody><tbody><tr><td><p>0x00 - ATT 0x01 – L2CAP PSM Credit based channel</p></td></tr></tbody><tbody><tr><td><p>0x0004 - ATT Other values – PSM for credit based channels</p></td></tr></tbody></table> | 16 |
 
 The *ImageId* parameter contains the ID of the upgrade image.
 

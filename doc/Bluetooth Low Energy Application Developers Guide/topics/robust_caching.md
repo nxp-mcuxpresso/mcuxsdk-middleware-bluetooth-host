@@ -47,11 +47,8 @@ The function *GattDb\_ComputeDatabaseHash\(\)* is used by the server to compute 
 
 For static databases, hash computation is disabled by default. If you have a static database and want to compute the database hash, then declare the following define to `TRUE` in `app_preinclude.h`: *gGattDbComputeHash\_d*. By doing this, the hash value is computed during the host initialization. The value is written directly to the database as characteristic and it can be viewed in the memory, as see in the image below. Since static databases do not change in structure over time, this value remains constant, so it can be saved separately and written manually to memory if needed. See Figure 10 below.<br>  
 
-||
 **Figure 10. Memory view of the Database Hash characteristic** <br>  
-|![](../images/image1.png "Memory view of the Database Hash characteristic")
-
-|
+![](../images/image1.png "Memory view of the Database Hash characteristic")
 
 On the client side, the *GattClient\_GetDatabaseHash\(\)* function is used to read the hash value from a peer GATT server. If the *gGattAutomaticRobustCachingSupport\_c* define is enabled, then the following steps are executed automatically:
 

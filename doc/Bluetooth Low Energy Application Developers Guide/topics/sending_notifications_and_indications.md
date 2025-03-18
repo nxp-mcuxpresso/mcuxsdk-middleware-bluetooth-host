@@ -11,7 +11,7 @@ bleResult_t GattServer_SendNotification
     uint16_t       handle
 );
 bleResult_t GattServer_SendIndication
-**(
+(
     deviceId_t     deviceId,
     uint16_t       handle
 );

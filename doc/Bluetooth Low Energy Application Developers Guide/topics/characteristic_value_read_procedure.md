@@ -3,7 +3,7 @@
 The main API for reading a Characteristic Value is shown here:
 
 ```
-bleResult_t GattClient\_ReadCharacteristicValue
+bleResult_t GattClient_ReadCharacteristicValue
 (
     deviceId_t                 deviceId,
     gattCharacteristic_t *     pIoCharacteristic,
@@ -51,7 +51,7 @@ void gattClientProcedureCallback
     switch (procedureType)
     {
         /* ... */
-        case*gGattProcReadCharacteristicValue\_c*:
+        case gGattProcReadCharacteristicValue_c:
             if (*gGattProcSuccess_c == procedureResult)
             {
                 /* Read value length */

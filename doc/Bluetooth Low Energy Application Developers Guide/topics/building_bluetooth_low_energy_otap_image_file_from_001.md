@@ -4,7 +4,7 @@ A SREC \(Motorola S-record\) file is an ASCII format file which contains binary 
 
 The steps described in this section enable the creation of a SREC file for your embedded application in IAR Embedded Workbench.
 
-For this, open the target properties and go to the **Output Converter** tab. Activate the **Generate additional output** checkbox and choose the **Motorola** option from the **Output format** drop down menu. From the same pane you can also override the name of the output file. A screenshot of the described configuration is shown in [Figure 1](#FIG1_UNY_MXM_CY).
+For this, open the target properties and go to the **Output Converter** tab. Activate the **Generate additional output** checkbox and choose the **Motorola** option from the **Output format** drop down menu. From the same pane you can also override the name of the output file. A screenshot of the described configuration is shown in [Figure](../images/figure_19_new_srec.png).
 
 ![](../images/figure_19_new_srec.png "Enabling Options for Node "otap_client_att_freertos" in IAR Embedded
                 Workbench")
@@ -17,11 +17,11 @@ arm-none-eabi-objcopy -v -O srec --only-section=.text --only-section=.data --onl
 "${BuildArtifactFileBaseName}.srec"
 ```
 
-A snapshot of this window is shown in the [Figure 2](#fig223_UNY_MXM_CY).
+A snapshot of this window is shown in the [Figure](../images/figure_30_srec.png) below.
 
 ![](../images/figure_30_srec.png "Enabling SREC Output in IAR Embedded Workbench")
 
-The format of the SREC file is shown in [Table 1](#1TABLE_LB3_WXM_CY). It contains lines of text called records which have a specific format. An example of the contents of a SREC file is shown below.
+The format of the SREC file is shown in table below. It contains lines of text called records which have a specific format. An example of the contents of a SREC file is shown below.
 
 ```
 
@@ -50,27 +50,9 @@ The data field is placed after the address and it contains 2 \* n ASCII hex digi
 
 The last element of the S record is the checksum, which comprises 2 ASCII hex digits. The checksum is computed by adding all the bytes of the byte count, address, and data fields. Then the ones complement of the least significant octet of the sum is computed to determine the checksum.
 
-|Field|Record Type|Count|Address|Data|Checksum|Line Terminator|
-|-----|-----------|-----|-------|----|--------|---------------|
-|Format|“Sn”, n=0..9
-
-|ASCII
-
- hex digits
-
-|ASCII
-
- hex digits
-
-|ASCII
-
- hex digits
-
-|ASCII
-
- hex digits
-
-|“\\r\\n”|
+| Field  | Record Type | Count | Address |Data | Checksum | Line Terminator |
+| -----  | ----------- | ----- | ------- |---- | -------- | --------------- |
+| Format | “Sn”, n=0..9| ASCII<br>hex digits | ASCII<br>hex digits | ASCII<br>hex digits | ASCII<br>hex digits |“\\r\\n” |
 |Length \(characters\)|2|2|4,6,8|*Count –*len*\(Address\) –*len\(*Checksum\)*|2|2|
 
 More details about the SREC file format can be found at this location: [en.wikipedia.org/wiki/SREC\_\(file\_format\)](https://en.wikipedia.org/wiki/SREC_%28file_format%29).

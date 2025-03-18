@@ -11,16 +11,18 @@ Starting with Bluetooth 5, the advertising channels are separated in primary adv
     -   Use 37 channels, with the same channel index as the data channels.
     -   Can use any LE PHY, but the same PHY during an Extended Advertising Event.
     -   PHY payload can vary from 0 to 255 bytes.
-    -   Auxiliary packets on these channels are part of the Extended Advertising Event that begins at the same time with the advertising event on primary channel and ends with the last packet on the secondary channel.<br>.. 
-**Figure 6. Extended advertising** <br>..
-        ![Figure 6](../images/extended_advertising.png "Extended advertising")
-**Figure 7. Extended advertising – Multiple chains** <br>..
-        ![Figure 7](../images/extendedadvertising_multiplechains.png "Extended advertising – Multiple chains")
+    -   Auxiliary packets on these channels are part of the Extended Advertising Event that begins at the same time with the advertising event on primary channel and ends with the last packet on the secondary channel.<br>
+
+    **Extended advertising** <br>
+    ![Figure 1](../images/extended_advertising.png "Extended advertising")
+
+    **Extended advertising – Multiple chains** <br>
+    ![Figure 2](../images/extendedadvertising_multiplechains.png "Extended advertising – Multiple chains")
 
 
 An advertising data set is represented by advertising PDUs belonging together in an advertising event. Each set has different advertising parameters: PDU type, advertising interval, and PHY mode. The advertising data sets are identified by the Advertising SID \(Set ID\) field from the ADI – Advertising Data Info. Advertising data or Scan response data can be changed for each adverting data set and the random value of DID \(Data ID\) field is updated to differentiate between them.
 
-Refer to [Figure 6](../images/extended_advertising.png) and [Figure 7](../images/extendedadvertising_multiplechains.png).
+Refer to [Figure 1](../images/extended_advertising.png) and [Figure 2](../images/extendedadvertising_multiplechains.png).
 
 
 ```{include} ../topics/peripheral_setup_001.md

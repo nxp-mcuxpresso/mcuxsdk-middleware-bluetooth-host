@@ -4,7 +4,7 @@ Before any OTAP transactions can be done the application which acts as an OTAP S
 
 A good starting point for OTAP transactions for both the OTAP Server and The OTAP client is the moment the Server writes the OTAP Control Point CCCD to receive ATT Indications from the OTAP Client. At that point the Server can send a New Image Notification to the Client if it finds out what kind of device the client is through other means than the OTAP server. How this can be done is entirely application-specific. If the OTAP Server does not know exactly what kind of device is the OTAP Client it can wait for the Client to send a New Image Info Request. Again, the best behavior depends on application requirements.
 
-Once OTAP communication begins then the OTAP Server just has to wait for commands from the OTAP Client and answer them. This behavior is almost completely stateless. An example state diagram for the OTAP Server application is shown in [Figure 1](#FIG_LZD_DZM_CY).
+Once OTAP communication begins then the OTAP Server just has to wait for commands from the OTAP Client and answer them. This behavior is almost completely stateless. An example state diagram for the OTAP Server application is shown in [Figure](../images/figure20.png).
 
 ![](../images/figure20.png "OTAP Server Example State Diagram")
 
@@ -216,7 +216,7 @@ static void BleApp_L2capPsmControlCallback(l2capControlMessageType_t messageType
         case gL2ca_LocalCreditsNotification_c*:
         {
             l2caLeCbLocalCreditsNotification_t *pMsg = ( l2caLeCbLocalCreditsNotification_t *)pMessage;
-            **break**;
+            break;
         }
         default:
             break;
@@ -229,7 +229,7 @@ The ATT transfer method is supported by default but the L2CAP transfer method on
 To send data chunks to the OTAP Client the OTAP Server application calls the *OtapServer\_SendCImgChunkToOtapClient\(\)* function which delivers the chunk via the selected transfer method. For the ATT transfer method the chunk is sent via the *GattClient\_CharacteristicWriteWithoutResponse\(\)* function and for the L2CAP transfer method the chunk is sent via the *L2ca\_SendLeCbData\(\)* function.
 
 ```
-static void OtapServer\_SendCImgChunkToOtapClient (deviceId_t otapClientDevId,
+static void OtapServer_SendCImgChunkToOtapClient(deviceId_t otapClientDevId,
                                                  void      pChunk,
                                                  uint16_t   chunkCmdLength)
 {

@@ -76,7 +76,7 @@ void gattClientProcedureCallback
                 if (aDescriptors[j].uuidType && gBleSig_CCCD_d ==myChar.aDescriptors[j].uuid.uuid16) )
                  {
                     uint8_t cccdValue[2];
-                    packTwoByteValue(*gCccdNotification\_c*, cccdValue);
+                    packTwoByteValue(gCccdNotification_c, cccdValue);
                     bleResult_t result = GattClient_WriteCharacteristicDescriptor
                      (
                        deviceId,
