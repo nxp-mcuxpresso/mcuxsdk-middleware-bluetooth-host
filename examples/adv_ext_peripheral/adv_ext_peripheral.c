@@ -1388,7 +1388,6 @@ static void BleApp_HandleExtAdvNonConnNonScannMode(uint8_t mode)
 #if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)
             mAppExtAdvParams.pGapDecisionData = &gAdvDecisionData;
 #endif /* defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE) */
-            
             if(((uint8_t)maLastAdvIndexForThisHandle[maPExtAdvParam[mode]->handle] == mode) || (maLastAdvIndexForThisHandle[maPExtAdvParam[mode]->handle] == mAdvIndexMax_c))
             {
                 if(gBleSuccess_c == BluetoothLEHost_StartExtAdvertising(&mAppExtAdvParams, BleApp_AdvertisingCallback, BleApp_ConnectionCallback))
@@ -1693,7 +1692,7 @@ static void BleApp_HandlePeriodicAdvertisingResponse(gapPerAdvResponse_t *pAdvRe
                         }
                     }
                 }
-                 (void)MEM_BufferFree(pDecryptedData);
+                (void)MEM_BufferFree(pDecryptedData);
             } while(FALSE);
         }
 #endif /* (gAppEADSupport_d == TRUE) */
@@ -1740,7 +1739,7 @@ static void BleApp_HandlePerAdvSubeventDataRequest(gapPerAdvSubeventDataRequest_
 #if (gAppEADSupport_d == FALSE)
             gapPeriodicAdvertisingSubeventData_t *pPAWRSubeventsData = &gAppPAWRSubeventsData;
 #else /* (gAppEADSupport_d == TRUE) */
-             gapPeriodicAdvertisingSubeventData_t *pPAWRSubeventsData = BleApp_CreateEncryptedPAWRSubeventData(&gAppPAWRSubeventsData);
+            gapPeriodicAdvertisingSubeventData_t *pPAWRSubeventsData = BleApp_CreateEncryptedPAWRSubeventData(&gAppPAWRSubeventsData);
             if (pPAWRSubeventsData != NULL)
             {
 #endif /* (gAppEADSupport_d == TRUE) */
@@ -1870,13 +1869,13 @@ static gapAdvertisingData_t *BleApp_CreateEncryptedExtendedAdvData(gapAdvertisin
                 break;
             }
         }
-         if (cNum == pAdvData->cNumAdStructures)
-         {
-             /*no advertising structure to be encrypted*/
-             /* no memory allocation needed. The function returns the pointer received as parameter */
-             pEncAdvData = pAdvData;
-             break;
-         }
+        if (cNum == pAdvData->cNumAdStructures)
+        {
+            /*no advertising structure to be encrypted*/
+            /* no memory allocation needed. The function returns the pointer received as parameter */
+            pEncAdvData = pAdvData;
+            break;
+        }
         /* There are adv data structures to encrypt*/
         /* Check whether there are adv structures too big to be accommodated in ED type structures*/
         for (cNum = 0U; cNum < pAdvData->cNumAdStructures; cNum++)
@@ -1922,7 +1921,7 @@ static gapAdvertisingData_t *BleApp_CreateEncryptedExtendedAdvData(gapAdvertisin
             }
             else
             {
-                 pEncAdvData->aAdStructures[cNum] = pAdvData->aAdStructures[cNum];
+                pEncAdvData->aAdStructures[cNum] = pAdvData->aAdStructures[cNum];
             }
         }
         if (cNum < pAdvData->cNumAdStructures)

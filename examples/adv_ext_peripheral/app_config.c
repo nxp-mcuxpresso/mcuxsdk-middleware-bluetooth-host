@@ -153,7 +153,7 @@ gapExtAdvertisingParameters_t gExtAdvParamsScannable =
 #define extScannableData0 "\
 \n\rEA Scan Response Data 01 EA Scan Response Data 02 EA Scan Response Data 03\
 \n\rEA Scan Response Data 04 EA Scan Response Data 05 EA Scan Response Data 06\
-\n\rEA Scan Response Data 07 EA Scan Response Data 08 EA Scan Response Data 09"    
+\n\rEA Scan Response Data 07 EA Scan Response Data 08 EA Scan Response Data 09"
 
 
 #define extScannableData1 "\
@@ -231,9 +231,7 @@ gapExtAdvertisingParameters_t gExtAdvParamsConnectable =
 };
 #define extConnectableData0 "\
 \n\rEA Connectable Data 01 EA Connectable Data 02 EA Connectable Data 03\
-\n\rEA Connectable Data 04 EA Connectable Data 05 EA Connectable Data 06\
-\n\rEA Connectable Data 07 EA Connectable Data 08 EA Connectable Data 09"
-
+\n\rEA Connectable Data 04 EA Connectable Data 05 EA Connectable Data 06"
 
 static gapAdStructure_t extAdvConnectableData[] = {
   {
