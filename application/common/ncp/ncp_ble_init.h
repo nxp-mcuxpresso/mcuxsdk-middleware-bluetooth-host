@@ -80,11 +80,20 @@ extern bool_t gHostInitResetController;
 *************************************************************************************
 ************************************************************************************/
 
-/************************************************************************************
-*************************************************************************************
-* Private memory declarations
-*************************************************************************************
-************************************************************************************/
+/*! *********************************************************************************
+*\fn           bleResult_t Hcit_PktReceived(hciPacketType_t type, void* packet, uint16_t size)
+*\brief        This function is used to send HCI packets to the controller.
+*
+*\param  [in]  type     HCI packet type.
+*\param  [in]  packet   HCI packet.
+*\param  [in]  size     HCI packet length.
+*
+*\return       bleResult_t        Result of the operation.
+*
+*\remarks      The gInitializationComplete_c generic GAP event is triggered on
+*              completion.
+********************************************************************************** */
+bleResult_t Hcit_PktReceived(hciPacketType_t type, void* packet, uint16_t size);
 
 /*! *********************************************************************************
 *\fn           bleResult_t Ble_Initialize(gapGenericCallback_t gapGenericCallback)

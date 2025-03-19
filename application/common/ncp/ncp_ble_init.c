@@ -78,7 +78,6 @@ static xcvr_DcocDacTrim_t mXcvrDacTrim;
 * Public functions declarations
 *************************************************************************************
 ************************************************************************************/
-bleResult_t Hcit_PktReceived(hciPacketType_t type, void* packet, uint16_t size);
 
 /************************************************************************************
 *************************************************************************************
@@ -157,8 +156,7 @@ bleResult_t Ble_Initialize
     }
 
     /* BLE Host Stack Init */
-    return Ble_HostInitialize(gapGenericCallback,
-                (hciHostToControllerInterface_t) Hcit_PktReceived);
+    return Ble_HostInitialize(gapGenericCallback, Hcit_PktReceived);
 
 #endif /* gUseHciTransportUpward_d */
 }

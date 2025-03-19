@@ -891,7 +891,6 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_ncp_common)
         SOURCES application/common/ncp/ncp_app_conn.c
                 application/common/ncp/ncp_app_conn.h
                 application/common/ncp/ncp_app_nvm.c
-                application/common/ncp/ncp_ble_conn_manager.c
                 application/common/ncp/ncp_ble_init.c
                 application/common/ncp/ncp_ble_init.h
                 application/common/ble_host_tasks.c
