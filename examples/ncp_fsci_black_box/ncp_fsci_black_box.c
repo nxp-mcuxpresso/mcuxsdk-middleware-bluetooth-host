@@ -649,7 +649,7 @@ static void Hcit_RxCallBack(uint8_t packetType, uint8_t *data, uint16_t len)
         }
         else
         {
-            FSCI_receivePacket(pPacketBuffer);
+            (void)App_PostCallbackMessage(FSCI_receivePacket, pPacketBuffer);
         }
     }
 }
