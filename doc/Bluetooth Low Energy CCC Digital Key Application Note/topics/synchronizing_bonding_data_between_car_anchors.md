@@ -8,17 +8,17 @@ During owner pairing, the bonding data is displayed in the shell as seen in the 
 
 **Note:** Currently only the Bluetooth Low Energy bonding data is transferred between anchors. No CCC Digital Key R3-specific keys are exchanged.
 
-Saved bonding data can also be viewed using the "`listbd`" command and a specific bond can be removed using the "`removebd`" command. See [Figure 1](#FIG_M4T_VSQ_HLB)
+Saved bonding data can also be viewed using the "`listbd`" command and a specific bond can be removed using the "`removebd`" command. See [Figure 1](../images/bondingdata.png) for details.
 
 A bond can only be removed if a connection to that specific device is not currently active. The commands presented in this subsection are also supported on the Device for test purposes.
 
-![](../images/bondingdata_2021_2.png "Adding bonding data to a Car Anchor, listing bonds and removing a
-                    bond")
+**Adding bonding data to a Car Anchor, listing bonds and removing a bond**
+
+![](../images/bondingdata.png "Adding bonding data to a Car Anchor, listing bonds and removing a bond")
 
 **Note:**
 
--   To simulate anchors residing on the same car, the Bluetooth Device Address and the Identity Resolving Key are set at compile time for the `*digital\_key\_car\_anchor*` project. To simulate anchors residing on different cars, change the values of the *`APP_BD_ADDR`* and *`APP_SMP_IRK`* macros in the project's `*app\_preinclude.h*`.
--   As the Bluetooth Device Address is written into the hardware parameters, it remains the same until a mass erase is performed on the board. A mass erase should always be performed on a board used with the `*digital\_key\_car\_anchor*` application before flashing another application.
+-   To simulate anchors residing on the same car, Random Static Address required by the Digital Key protocol and the Identity Resolving Key are set at compile time for the `digital_key_car_anchor` project. To simulate anchors residing on different cars, change the values of the *`APP_BD_ADDR`* and *`APP_SMP_IRK`* macros in the project's `app_preinclude.h`.
 
 **Parent topic:**[Running CCC Digital Key scenarios using the Shell Interface](../topics/running_ccc_digital_key_scenarios_using_the_shell_.md)
 
