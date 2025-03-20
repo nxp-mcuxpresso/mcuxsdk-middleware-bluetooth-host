@@ -37,7 +37,7 @@ The following sections present the steps required for building the *wireless\_UA
 
 **Board**: One of the following boards:
 
--   kw45b41zevk
+-   **kw45b41zevk** (for this guide)
 -   kw45b41zloc
 -   k32w148evk
 -   frdmmcxw71
