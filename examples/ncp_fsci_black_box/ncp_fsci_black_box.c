@@ -133,7 +133,7 @@ static void AppFSCI_Send( uint8_t *pPacket, uint16_t packetLen, bool_t freePacke
 *************************************************************************************
 ************************************************************************************/
 static hci_pkt_info_t maHciPacketInfo[PACKET_INFO_QUEUE_SIZE];
-volatile static uint8_t mPendingPktInfo  = 0U;
+static volatile uint8_t mPendingPktInfo  = 0U;
 static uint8_t mReadPktInfoIdx           = 0U;
 static uint8_t mWritePktInfoIdx          = 0U;
 static uint8_t mNbrPacketInfoSkipped     = 0U; /* for debug */
