@@ -5,11 +5,11 @@ The following CCC Digital Key R3 examples are provisioned by default with a shel
 -   Digital Key Car Anchor
 -   Digital Key Device
 
-After connecting through the Terminal application and pressing the RST switch on the board, a welcome message appears. Entering the command "`help`" displays the list of available commands and their descriptions. See [Figure 1](#FIG_DFP_3JC_FLB).
+After connecting through the Terminal application and pressing the RST switch on the board, a welcome message appears. Entering the command "`help`" displays the list of available commands and their descriptions. See [Figure 1](../images/ccc_anc_cmd_list.png).
 
-|![](../images/help_2021_2.png "List of commands")
+**List of commands**
 
-|
+![](../images/ccc_anc_cmd_list.png "List of commands")
 
 
 ```{include} ../topics/owner_pairing_scenario.md
