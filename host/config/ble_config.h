@@ -251,6 +251,8 @@
     #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     24
 #elif (defined(CPU_MCXW235BIHNAR) || (CPU_MCXW236BIHNAR))
     #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     4
+#elif (defined(CPU_KW43B43ZC7MFTA))
+    #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     16
 #else
     #warning Undefined platform!
 #endif
