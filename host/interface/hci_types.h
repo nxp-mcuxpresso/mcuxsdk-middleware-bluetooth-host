@@ -280,20 +280,20 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 
 /* Temporary values for Channel Sounding support, values to be finalized in the core spec */
 #if (defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == TRUE))
-#define gHciLeReadLocalSupportedHadmCapabilities_c               0x0089U
-#define gHciLeReadRemoteSupportedHadmCapabilities_c              0x008AU
-#define gHciLeWriteRemoteCachedCapabilities_c                    0x008BU
-#define gHciLeSetHadmSecurityEnable_c                            0x008CU
-#define gHciLeHadmSetDefaultSettings_c                           0x008DU
-#define gHciLeReadRemoteFaeTable_c                               0x008EU
-#define gHciLeWriteRemoteFaeTable_c                              0x008FU
-#define gHciLeCreateHadmConfig_c                                 0x0090U
-#define gHciLeRemoveHadmConfig_c                                 0x0091U
-#define gHciLeSetChannelClassification_c                         0x0092U
-#define gHciLeHadmSetProcedureParameters_c                       0x0093U
-#define gHciLeSetHadmProcedureEnable_c                           0x0094U
-#define gHciLeHadmTest_c                                         0x0095U
-#define gHciLeHadmTestEnd_c                                      0x0096U
+#define gHciLeCsReadLocalSupportedCapabilities_c               0x0089U
+#define gHciLeCsReadRemoteSupportedCapabilities_c              0x008AU
+#define gHciLeCsWriteRemoteCachedCapabilities_c                0x008BU
+#define gHciLeCsSetSecurityEnable_c                            0x008CU
+#define gHciLeCsSetDefaultSettings_c                           0x008DU
+#define gHciLeCsReadRemoteFaeTable_c                           0x008EU
+#define gHciLeCsWriteRemoteFaeTable_c                          0x008FU
+#define gHciLeCsCreateConfig_c                                 0x0090U
+#define gHciLeCsRemoveConfig_c                                 0x0091U
+#define gHciLeCsSetChannelClassification_c                     0x0092U
+#define gHciLeCsSetProcedureParameters_c                       0x0093U
+#define gHciLeCsSetProcedureEnable_c                           0x0094U
+#define gHciLeCsTest_c                                         0x0095U
+#define gHciLeCsTestEnd_c                                      0x0096U
 #endif /* gBLE_ChannelSounding_d */
 
 #define gHciLeSetDecisionData_c                     0x0080U
@@ -320,7 +320,7 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 
 
 #if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == TRUE)
-#define gHciVendorHadmConfig_c                                   0x00AFU
+#define gHciVendorCsConfig_c                                     0x00AFU
 #endif
 
 /* Macros used to build full HCI OpCodes */
@@ -459,15 +459,15 @@ typedef enum
     gHciLeSkdReportEvent_c                          = 0x40,
 
     /* BLE v6.0 - Channel Sounding */
-    gHciLeHadmReadRemoteSupportedCapabilitiesCompleteEvent_c = 0x2C,
-    gHciLeHadmReadRemoteFaeTableCompleteEvent_c              = 0x2D,
-    gHciLeHadmSetSecurityEnableCompleteEvent_c               = 0x2E,
-    gHciLeHadmConfigCompleteEvent_c                          = 0x2F,
-    gHciLeHadmProcedureEnableCompleteEvent_c                 = 0x30,
-    gHciLeHadmSubeventResultEvent_c                          = 0x31,
-    gHciLeHadmSubeventResultContinueEvent_c                  = 0x32,
-    gHciLeHadmTestEndCompleteEvent_c                         = 0x33,
-    gHciLeHadmSubeventDebugResultEvent_c                     = 0xF0,
+    gHciLeCsReadRemoteSupportedCapabilitiesCompleteEvent_c = 0x2C,
+    gHciLeCsReadRemoteFaeTableCompleteEvent_c              = 0x2D,
+    gHciLeCsSetSecurityEnableCompleteEvent_c               = 0x2E,
+    gHciLeCsConfigCompleteEvent_c                          = 0x2F,
+    gHciLeCsProcedureEnableCompleteEvent_c                 = 0x30,
+    gHciLeCsSubeventResultEvent_c                          = 0x31,
+    gHciLeCsSubeventResultContinueEvent_c                  = 0x32,
+    gHciLeCsTestEndCompleteEvent_c                         = 0x33,
+    gHciLeCsSubeventDebugResultEvent_c                     = 0xF0,
 
     gHciLeVendorEnhancedNotificationEvent_c                  = 0xFF,
 } hciLeMetaSubEventCode_tag;
