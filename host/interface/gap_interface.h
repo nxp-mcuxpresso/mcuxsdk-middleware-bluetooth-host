@@ -787,6 +787,21 @@ bleResult_t Gap_SetLocalPasskey
     uint32_t passkey
 );
 
+/*!*************************************************************************************************
+*\fn    bleResult_t Gap_AllowDebugKeys(bool_t  allow)
+*
+*\brief This function is used to allow the use of debug keys by not rejecting public keys that are
+*       identical to our own.
+*
+*\param [in] allow      allow/disallow public keys that are identical to our own during pairing.
+*
+*\retval     bleResult_t    gBleSuccess_c or error.
+***************************************************************************************************/
+bleResult_t Gap_AllowDebugKeys
+(
+    bool_t  allow
+);
+
 /*! *********************************************************************************
 * \brief  Sets internal scan filters and actions.
 *
