@@ -475,7 +475,7 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
             {
                 /* Connection was establised before the extended advertising set was started */
                 gStopExtAdvSetAfterConnect = TRUE;
-                gCurrentAdvHandle = (uint8_t)gNoAdvSetHandle_c;
+                gCurrentAdvHandle = gNoAdvSetHandle_c;
             }
 #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
             (void)TM_Stop((timer_handle_t)mAppTimerId);
@@ -650,7 +650,7 @@ void BleApp_OP_Start(void)
 ********************************************************************************** */
 void BleApp_StopDiscovery(void)
 {
-    gCurrentAdvHandle = (uint8_t)gNoAdvSetHandle_c;
+    gCurrentAdvHandle = gNoAdvSetHandle_c;
     (void)Gap_StopExtAdvertising(0xFF);
 #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
     (void)TM_Stop((timer_handle_t)mAppTimerId);
@@ -1258,7 +1258,7 @@ static void BleApp_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent
                 Led1Flashing();
 #endif /* #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode) */
             }
-            else if (gCurrentAdvHandle == (uint8_t)gExtendedAdvSetHandle_c)
+            else if (gCurrentAdvHandle == gExtendedAdvSetHandle_c)
             {
                 /* Inform the user interface handler that extended advertising started */
                 appEvent = mAppEvt_AdvertisingStartedExtendedLR_c;
@@ -1349,7 +1349,7 @@ static void BleApp_Advertise(void)
         gAppAdvParams.pGapExtAdvParams = &gLegacyAdvParams;
         gAppAdvParams.handle = gLegacyAdvSetHandle_c;
     }
-    else if (gCurrentAdvHandle == (uint8_t)gExtendedAdvSetHandle_c)
+    else if (gCurrentAdvHandle == gExtendedAdvSetHandle_c)
     {
         gAppAdvParams.pGapExtAdvParams = &gExtAdvParams;
         gAppAdvParams.handle = gExtendedAdvSetHandle_c;

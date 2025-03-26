@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2020-2023 NXP
+* Copyright 2020-2023, 2025 NXP
 *
 *
 *
@@ -103,7 +103,7 @@ tmrErrCode_t TMR_StartTimer
 )
 {   tmrErrCode_t status = gTmrError_c;
 
-    if (timerId < gTmrTotalTimers_c)
+    if (timerId < (uint8_t)gTmrTotalTimers_c)
     {
       (void)TM_InstallCallback(maTmrTimerTable[timerId].timerHandle,callback, param);
 
@@ -132,7 +132,7 @@ tmrErrCode_t TMR_FreeTimer(tmrTimerID_t timerID)
 {
     tmrErrCode_t status = gTmrOutOfRange_c;
 
-    if (timerID < gTmrTotalTimers_c)
+    if (timerID < (uint8_t)gTmrTotalTimers_c)
     {
         (void)TM_Close(maTmrTimerTable[timerID].timerHandle);
         TMR_SetTimerStatus(timerID, mTmrStatusFree_c);
@@ -164,7 +164,7 @@ bool_t TMR_IsTimerActive(tmrTimerID_t timerId)
 tmrErrCode_t TMR_StopTimer(tmrTimerID_t timerId)
 {
     tmrErrCode_t result = gTmrInvalidId_c;
-    if( (timerId >= gTmrTotalTimers_c) || (TMR_IsTimerAllocated(timerId) == 0U) )
+    if( (timerId >= (uint8_t)gTmrTotalTimers_c) || (TMR_IsTimerAllocated(timerId) == 0U) )
     {
         result = gTmrInvalidId_c;
     }

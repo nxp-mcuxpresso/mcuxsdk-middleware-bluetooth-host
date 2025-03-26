@@ -543,7 +543,7 @@ void APP_UserInterfaceEventHandler(void *pData)
                 default:
                 {
                     shell_write("\r\nHandover error ");
-                    shell_writeDec(pEventData->eventData.handoverError);
+                    shell_writeDec((uint32_t)(pEventData->eventData.handoverError));
                     shell_write(".\r\n");
                     shell_cmd_finished();
                 }

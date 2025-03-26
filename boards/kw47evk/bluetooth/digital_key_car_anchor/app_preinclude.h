@@ -140,8 +140,8 @@
  *     BLE Stack Configuration
  ********************************************************************************** */
 #define gLegacyAdvSetHandle_c               	0x00U
-#define gExtendedAdvSetHandle_c             	0x01
-#define gNoAdvSetHandle_c                   	0xFF
+#define gExtendedAdvSetHandle_c             	0x01U
+#define gNoAdvSetHandle_c                   	0xFFU
 
 #define gAppMaxConnections_c                	8U
 
