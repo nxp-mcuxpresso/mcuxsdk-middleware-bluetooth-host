@@ -344,6 +344,13 @@ extern const bool_t gAppHciDataLogEnabled;
 const bool_t gAppHciDataLogEnabled = gAppHciDataLogExport_d;
 #endif /* defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d==TRUE) */
 
+/*! Enable the reporting of intrusion detection events from the Host stack */
+extern const bool_t gEnableIntrusionDetectionSystem;
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+const bool_t gEnableIntrusionDetectionSystem = TRUE;
+#else
+const bool_t gEnableIntrusionDetectionSystem = FALSE;
+#endif
 /************************************************************************************
 *************************************************************************************
 * Public functions

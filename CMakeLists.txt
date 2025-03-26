@@ -11,6 +11,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host)
                 host/interface/ble_sig_defines.h
                 host/interface/ble_utils.h
                 host/interface/gap_interface.h
+                host/interface/gap_ids_interface.h
                 host/interface/gap_types.h
                 host/interface/gatt_client_interface.h
                 host/interface/gatt_database.h
@@ -287,6 +288,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_interface)
                 host/interface/ble_sig_defines.h
                 host/interface/ble_utils.h
                 host/interface/gap_interface.h
+                host/interface/gap_ids_interface.h
                 host/interface/gap_types.h
                 host/interface/gatt_client_interface.h
                 host/interface/gatt_database.h
@@ -465,6 +467,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_interface_black_box)
                 host/interface/ble_sig_defines.h
                 host/interface/ble_utils.h
                 host/interface/gap_interface.h
+                host/interface/gap_ids_interface.h
                 host/interface/gap_types.h
                 host/interface/gatt_client_interface.h
                 host/interface/gatt_database.h

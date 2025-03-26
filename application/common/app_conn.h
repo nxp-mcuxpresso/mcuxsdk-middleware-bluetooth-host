@@ -39,6 +39,7 @@
 
 #include "fsl_component_messaging.h"
 
+#include "gap_ids_interface.h"
 /*! *********************************************************************************
 *************************************************************************************
 * Public type definitions
@@ -66,6 +67,7 @@ typedef enum {
     gAppL2caLeDataMsg_c,
     gAppL2caLeControlMsg_c,
     gAppSecLibMultiplyMsg_c,
+    gAppIdsEventMsg_c
 } appHostMsgType_t;
 
 /* Host to Application GATT Server Message */
@@ -129,6 +131,7 @@ typedef struct appMsgFromHost_tag
         l2caLeCbDataMsg_t       l2caLeCbDataMsg;
         l2capControlMessage_t   l2caLeCbControlMsg;
         secLibMsgData_t         secLibMsgData;
+        idsEventData_t          idsEventData;
     } msgData;
 } appMsgFromHost_t;
 
@@ -255,6 +258,40 @@ void BluetoothLEHost_SetGenericCallback
 (
     gapGenericCallback_t pfGenericCallback
 );
+
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+/*! *********************************************************************************
+*\fn           void BluetoothLEHost_SetIdsCallback(ids pfIdsCallback, uint32_t bitMask)
+*
+*\brief        Set advanced IDS callback. Set a callback to receive all Bluetooth
+*              LE stack IDS security events.
+*
+*\param  [in]  pfIdsCallback      Callback used by the application to receive
+*                                 all IDS security events.
+*\param  [in]  bitMask            Bitmask of enabled idsEventType_t events.
+*
+*\retval       void.
+********************************************************************************** */
+void BluetoothLEHost_SetIdsCallback
+(
+    idsCallback_t pfIdsCallback,
+    uint32_t      bitMask
+);
+
+/*! *********************************************************************************
+*\fn           bleResult_t App_IdsCallback(idsEventData_t *pIdsEventData)
+*\brief        Callback used by the Host Stack to propagate IDS security
+*              events to the application.
+*
+*\param  [in]  pGenericEvent    Pointer to the IDS security event.
+*
+*\retval       void.
+********************************************************************************** */
+void App_IdsCallback
+(
+    idsEventData_t *pIdsEventData
+);
+#endif /* gIntrusionDetectionSystem_d */
 
 /*! *********************************************************************************
 *\fn           bleResult_t BluetoothLEHost_Connect(

@@ -116,6 +116,14 @@ static void App_GenericHandler
 (
     gapGenericEvent_t *pGenericEvent
 );
+
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+static void App_IdsHandler
+(
+    idsEventData_t *pIdsEvent
+);
+#endif
+
 STATIC void App_GattServerCallback
 (
     deviceId_t         peerDeviceId,
@@ -174,6 +182,11 @@ static gattClientNotificationCallback_t     pfGattClientNotifCallback = NULL;
 static gattClientNotificationCallback_t     pfGattClientIndCallback   = NULL;
 static l2caLeCbDataCallback_t               pfL2caLeCbDataCallback    = NULL;
 static l2caLeCbControlCallback_t            pfL2caLeCbControlCallback = NULL;
+
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+static idsCallback_t                        mpfIdsHandler             = NULL;
+static idsCallback_t                        mpfAppIdsCallback         = NULL;
+#endif
 
 /* Application input queues */
 static messaging_t mAppCbInputQueue;
@@ -262,6 +275,9 @@ void BluetoothLEHost_Init
         /* BLE common part */
         mpfInitDoneCallback = pCallback;
         mpfGenericHandler = App_GenericHandler;
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+        mpfIdsHandler = App_IdsHandler;
+#endif
 
         /* BLE Host Stack Init */
         if (Ble_Initialize(App_GenericCallback) != gBleSuccess_c)
@@ -391,6 +407,30 @@ void BluetoothLEHost_SetGenericCallback
 {
     mpfAppGenericCallback = pfGenericCallback;
 }
+
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+/*! *********************************************************************************
+*\fn           void BluetoothLEHost_SetIdsCallback(ids pfIdsCallback)
+*
+*\brief        Set advanced IDS callback. Set a callback to receive all Bluetooth
+*              LE stack IDS security events.
+*
+*\param  [in]  pfIdsCallback      Callback used by the application to receive
+*                                 all IDS security events.
+*
+*\retval       void.
+********************************************************************************** */
+void BluetoothLEHost_SetIdsCallback
+(
+    idsCallback_t pfIdsCallback,
+    uint32_t      bitMask
+)
+{
+    mpfAppIdsCallback = pfIdsCallback;
+
+    (void)IDS_RegisterCallback(App_IdsCallback, bitMask);
+}
+#endif
 
 /*! *********************************************************************************
 \fn            bleResult_t App_RegisterGattServerCallback(
@@ -577,6 +617,43 @@ void App_GenericCallback
     (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
 }
 
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+/*! *********************************************************************************
+*\fn           bleResult_t App_IdsCallback(idsEventData_t *pIdsEventData)
+*\brief        Callback used by the Host Stack to propagate IDS security
+*              events to the application.
+*
+*\param  [in]  pGenericEvent    Pointer to the IDS security event.
+*
+*\retval       void.
+********************************************************************************** */
+void App_IdsCallback
+(
+    idsEventData_t *pIdsEventData
+)
+{
+    appMsgFromHost_t *pMsgIn = NULL;
+
+    pMsgIn = MSG_Alloc((uint32_t)&(pMsgIn->msgData) + sizeof(idsEventData_t));
+
+    if (pMsgIn == NULL)
+    {
+        return;
+    }
+
+    pMsgIn->msgType = (uint32_t)gAppIdsEventMsg_c;
+    FLib_MemCpy(&pMsgIn->msgData.idsEventData,
+                pIdsEventData,
+                sizeof(idsEventData_t));
+
+    /* Put message in the Host Stack to App queue */
+    (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
+
+    /* Signal application */
+    (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+}
+#endif
+
 /************************************************************************************
 *************************************************************************************
 * Private functions
@@ -629,6 +706,16 @@ static bool_t App_HandleHostMessageInput_Gap
     bool_t matchFound = TRUE;
     switch ( pMsg->msgType )
     {
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+        case (uint32_t)gAppIdsEventMsg_c:
+        {
+            if (mpfIdsHandler != NULL)
+            {
+                mpfIdsHandler(&pMsg->msgData.idsEventData);
+            }
+        }
+        break;
+#endif
         case (uint32_t)gAppGapGenericMsg_c:
         {
             if (mpfGenericHandler != NULL)
@@ -1248,6 +1335,29 @@ static void App_GenericHandler
         break;
     }
 }
+
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+/*! *********************************************************************************
+*\private
+*\fn           void App_IdsHandler(idsEventData_t *pIdsEvent)
+*\brief        Handles IDS event callback.
+*
+*\param  [in]  pIdsEvent    Pointer to idsEventData_t.
+*
+*\retval       void.
+********************************************************************************** */
+static void App_IdsHandler
+(
+    idsEventData_t *pIdsEvent
+)
+{
+    /* Call application handler for advanced use */
+    if (mpfAppIdsCallback != NULL)
+    {
+        mpfAppIdsCallback(pIdsEvent);
+    }
+}
+#endif
 
 /*! *********************************************************************************
 *\private
