@@ -4,14 +4,5 @@ After flashing the board, the device is in idle mode \(all LEDs flashing\). To s
 
 For displaying operating information and ANCS Notifications \(AMS information and commands\), the demo application uses a shell exposed via a serial communication interface.
 
-The table below describes the hardware references.
-
-| Platform                                 | ADVSW | CONNLED  |
-| ---------------------------------------- | ----- | -------- |
-| KW45B41Z-EVK / K32W148-EVK / MCX-W71-EVK | SW2   | LED2     |
-| FRDM-MCXW71                              | SW2   | Blue LED |
-| KW47-EVK / MCX-W72-EVK                   | SW2   | LED2     |
-| FRDM-MCXW72                              | SW4   | Blue LED |
-
 **Parent topic:**[ANCS/AMS client \(ancs\_c\)](../topics/ancs_client.md)
 

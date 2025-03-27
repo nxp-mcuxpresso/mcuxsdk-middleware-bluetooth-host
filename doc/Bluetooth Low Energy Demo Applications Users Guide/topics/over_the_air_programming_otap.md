@@ -19,6 +19,10 @@ This section describes the implemented profiles and services, user interactions,
 :heading-offset: 2
 ```
 
+```{include} ../topics/storage_type_selection.md
+:heading-offset: 2
+```
+
 ```{include} ../topics/usage_with_iot_toolbox.md
 :heading-offset: 2
 ```
