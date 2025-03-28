@@ -113,11 +113,6 @@
 /*! Size of bond data structures for a bonded device  */
 #define gBleBondIdentityHeaderSize_c     (56U)
 
-/* Enable/Disable Bluetooth LE debug keys */
-#if defined(gAppUseDebugKeys_d) && (gAppUseDebugKeys_d == 1)
-#define gSecLibUseBleDebugKeys_d 1
-#endif /* defined(gAppUseDebugKeys_d) && (gAppUseDebugKeys_d == 1) */
-
 /*! *********************************************************************************
  *   Auto Configuration
  ********************************************************************************** */
