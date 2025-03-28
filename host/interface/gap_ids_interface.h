@@ -8,7 +8,9 @@
 #ifndef GAP_IDS_INTERFACE_H
 #define GAP_IDS_INTERFACE_H
 
+#include "EmbeddedTypes.h"
 #include "ble_constants.h"
+#include "ble_general.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -130,9 +132,9 @@ typedef void(*idsCallback_t)(idsEventData_t *pEventData);
 * Public memory declarations
 *************************************************************************************
 ************************************************************************************/
-
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
 extern uint32_t gIdsMask;
-
+#endif
 /************************************************************************************
 *************************************************************************************
 * Public prototypes
