@@ -30,6 +30,7 @@
 #endif
 #include "FsciCommunication.h"
 #include "FsciCommands.h"
+#include "NV_FsciCommands.h"
 #include "app.h"
 
 /*  Application */
@@ -277,7 +278,16 @@ gFsciStatus_t FSCI_ProcessRxPkt(clientPacket_t *pPacket, uint32_t fsciInterface)
         (pPacket->structured.header.opCode == (uint8_t)mFsciMsgResetCPUReq_c))
     {
         (void)FSCI_MsgResetCPUReqFunc(pPacket, fsciInterface);
+        (void)MEM_BufferFree(pPacket);
     }
+#if defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)
+#if defined(gNvmEnableFSCIRequests_c) && (gNvmEnableFSCIRequests_c > 0)
+    else if (pPacket->structured.header.opGroup == (uint8_t)gNV_FsciReqOG_d)
+    {
+        NV_FsciMsgHandler(pPacket, NULL, fsciInterface);
+    }
+#endif
+#endif
     else
     {
         if (PLATFORM_SendHciMessage(pPacket->raw,
@@ -285,9 +295,9 @@ gFsciStatus_t FSCI_ProcessRxPkt(clientPacket_t *pPacket, uint32_t fsciInterface)
         {
             status = gFsciError_c;
         }
+        (void)MEM_BufferFree(pPacket);
     }
-    (void)MEM_BufferFree(pPacket);
-
+    
     return status;
 }
 

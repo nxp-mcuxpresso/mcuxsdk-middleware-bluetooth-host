@@ -73,6 +73,10 @@
 /* enable NVM to be used as non volatile storage management by the host stack */
 #define gAppUseNvm_d                     0
 
+/*enable FSCI Monitoring */
+#define gNvmEnableFSCIMonitoring_c       0
+#define gNvmEnableFSCIRequests_c         0
+
 /* erase NVM pages at download( armgcc only) */
 #if ((defined gAppUseNvm_d) && (gAppUseNvm_d != 0)) && defined(__GNUC__)
 #define gNvmErasePartitionWhenFlashing_c 1U
