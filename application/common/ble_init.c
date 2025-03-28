@@ -24,12 +24,6 @@
 #include "board_extPA.h"
 #endif
 
-#if !(defined(gUseHciTransportDownward_d) && gUseHciTransportDownward_d)
-#if !defined(gNcpApplication_d) || (gNcpApplication_d == 0)
-#include "ble_controller_task_config.h"
-#endif /* gNcpApplication_d */
-#endif /* gUseHciTransportDownward_d */
-
 #include "fwk_platform_ble.h"
 
 #if (!defined(gBleSetMacAddrFromVendorCommand_d)) || (defined(gBleSetMacAddrFromVendorCommand_d) && (gBleSetMacAddrFromVendorCommand_d == 0))
