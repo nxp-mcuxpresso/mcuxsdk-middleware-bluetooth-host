@@ -1144,10 +1144,6 @@ void BleConnManager_GapCommonConfig(void)
                            gConnDefaultRxPhySettings_c,
                            0);
     }
-
-#if defined(gAppUseDebugKeys_d) && (gAppUseDebugKeys_d == 1)
-    Gap_AllowDebugKeys(TRUE);
-#endif /* defined(gAppUseDebugKeys_d) && (gAppUseDebugKeys_d == 1) */
 }
 
 /************************************************************************************
