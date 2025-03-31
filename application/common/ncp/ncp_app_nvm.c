@@ -672,7 +672,7 @@ bleResult_t App_HostNvmRead
                 }
             }
             
-            MEM_BufferFree(pAppBleNvmReadData);
+            (void)MEM_BufferFree(pAppBleNvmReadData);
         }
         else
         {
@@ -900,6 +900,8 @@ static void App_FsciBleNvmCbHandler
         }
         break;
     }
+
+    (void)MEM_BufferFree(pData);
 }
 
 /*! *********************************************************************************

@@ -308,6 +308,8 @@ void App_FsciBleNvmCbHandler
         }
         break;
     }
+
+    (void)MEM_BufferFree(pData);
 }
 
 /************************************************************************************
