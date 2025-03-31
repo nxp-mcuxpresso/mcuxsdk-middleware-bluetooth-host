@@ -1,6 +1,6 @@
 .. _examples__wireless_examples__bluetooth_docs:
 NXP Bluetooth Le Host and Sample Applications
-=============================================
+==============================================
 
 .. toctree::
   :maxdepth: 1
@@ -15,3 +15,4 @@ NXP Bluetooth Le Host and Sample Applications
   Bluetooth Low Energy Demo Applications User Guide <doc/Bluetooth Low Energy Demo Applications Users Guide/Bluetooth Low Energy Demo Applications Users Guide.md>
   Bluetooth Low Energy CCC Digital Key R3 Application Note <doc/Bluetooth Low Energy CCC Digital Key Application Note/Bluetooth Low Energy CCC Digital Key Application Note.md>
   Bluetooth Low Energy Host Stack FSCI Application Programming <doc/Bluetooth Low Energy Host Stack FSCI Application Programming/Bluetooth Low Energy Host Stack FSCI Application Programming.md>
+  doc/Bluetooth Low Energy Host Stack API Reference Manual/index.rst
