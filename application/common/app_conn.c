@@ -428,7 +428,11 @@ void BluetoothLEHost_SetIdsCallback
 {
     mpfAppIdsCallback = pfIdsCallback;
 
-    (void)IDS_RegisterCallback(App_IdsCallback, bitMask);
+    if (gBleSuccess_c != IDS_RegisterCallback(App_IdsCallback, bitMask))
+    {
+        /* Could not register IDS callback */
+        panic(0, 0, 0, 0);
+    }
 }
 #endif
 

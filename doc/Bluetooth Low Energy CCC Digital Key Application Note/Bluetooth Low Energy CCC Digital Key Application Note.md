@@ -15,6 +15,7 @@ topics/running_ccc_digital_key_scenarios_using_the_shell_.md
 topics/running_the_connection_handover_scenario.md
 topics/running_the_a2b_scenario.md
 topics/running_passive_entry_scenario_with_decision_based.md
+topics/intrusion_detection_system.md
 topics/references.md
 topics/acronyms_and_abbreviations.md
 topics/note_source_code.md

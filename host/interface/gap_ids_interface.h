@@ -17,28 +17,8 @@
 * Public macros
 *************************************************************************************
 ************************************************************************************/
-#define gGapSdvAllFlags_c \
-    gSecEvt_Sweyntooth_MaxEncKeySize_c |\
-    gSecEvt_DhKeyCheckZero_c |\
-    gSecEvt_UnexpectedSmpMessage_c |\
-    gSecEvt_IdenticalPeerPublicKey_c |\
-    gSecEvt_UnauthenticatedServer_c |\
-    gSecEvt_MicFailureDisconnect_c |\
-    gSecEvt_EncReqNonBonded_c |\
-    gSecEvt_MalformedL2cap_c |\
-    gSecEvt_MalformedAtt_c |\
-    gSecEvt_UnauthorizedDbAccess_c |\
-    gSecEvt_LlLenOverflow_c |\
-    gSecEvt_SequentialAttDeadlock_c |\
-    gSecEvt_RepeatedAttemptsDisconnect_c |\
-    gSecEvt_ForcedRepairing_c |\
-    gSecEvt_L2capFragmentsExceedMTU_c |\
-    gSecEvt_BleedingTooth_c |\
-    gSecEvt_KNOB_c |\
-    gSecEvt_Sweyntooth_HciDesyncDeadlock_c |\
-    gSecEvt_InvalidPublicKey_c |\
-    gSecEvt_WrongConfirmValue_c |\
-    gSecEvt_DHKeyCheckFailed_c \
+/* All events enabled */
+#define gGapIdsAllFlags_c (0xFFFFFFFFU)
 
 #define IDS_IS_ENABLED(event)   ((gIdsMask & ((uint32_t)event)) != 0U)
 

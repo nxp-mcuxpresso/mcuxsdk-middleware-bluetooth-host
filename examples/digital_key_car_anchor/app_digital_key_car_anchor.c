@@ -174,6 +174,10 @@ static void BleApp_HandoverCommHandler(uint8_t opGroup, uint8_t cmdId, uint16_t 
 #endif /* defined(gHandoverDemo_d) && (gHandoverDemo_d == 1U) */
 static void BleApp_OP_StartCaller(appCallbackParam_t param);
 static void BleApp_PE_StartCaller(appCallbackParam_t param);
+
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+static void BleApp_IdsCallback(idsEventData_t *pEventData);
+#endif
 /************************************************************************************
 *************************************************************************************
 * Public functions
@@ -257,6 +261,10 @@ void BluetoothLEHost_AppInit(void)
 #if defined(gA2ASerialInterface_d) && (gA2ASerialInterface_d == 1)
     (void)A2A_Init(gSerMgrIf2, A2A_ProcessCommand);
 #endif /* defined(gA2ASerialInterface_d) && (gA2ASerialInterface_d == 1) */
+
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+    BluetoothLEHost_SetIdsCallback(BleApp_IdsCallback, gGapIdsAllFlags_c);
+#endif
 }
 
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
@@ -1783,6 +1791,21 @@ static void BleApp_PE_StartCaller(appCallbackParam_t param)
     (void)param;
     BleApp_PE_Start();
 }
+
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+/*! *********************************************************************************
+* \brief        Application callback for handling intrusion events reported by
+*               the Host stack.
+*
+********************************************************************************** */
+static void BleApp_IdsCallback(idsEventData_t *pEventData)
+{
+    shell_write("\r\nReceived IDS event ");
+    shell_writeDec((uint32_t)pEventData->type);
+    shell_write(" triggered by peer ");
+    shell_writeHex(pEventData->aAddr, gcBleDeviceAddressSize_c);
+}
+#endif /* gIntrusionDetectionSystem_d */
 /*! *********************************************************************************
 * @}
 ********************************************************************************** */

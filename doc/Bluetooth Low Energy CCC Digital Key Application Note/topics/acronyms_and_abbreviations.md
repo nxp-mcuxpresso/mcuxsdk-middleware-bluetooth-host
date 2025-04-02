@@ -8,12 +8,13 @@
  CCC          | Car Connectivity Consortium          
  DBAF         | Decision Based Advertising Filtering 
  IDE          | Integrated Design Environment        
+ IDS          | Intrusion Detection System           
  E2E          | EdgeLock-to-EdgeLock                 
  IRK          | Identity Resolving Key               
  LTK          | Long Term Key                        
  OOB          | Out-of-Band                          
  RSSI         | Received Signal Strength Indicator   
  SDK          | Software Development Kit             
- UVW          | Ultra-Wideband                       
+ UWB          | Ultra-Wideband                       
 
 
