@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2019-2023 NXP
+* Copyright 2019-2023, 2025 NXP
 *
 *
 * \file
@@ -318,6 +318,13 @@ bool_t OtapClient_Config(void)
         otaConfig.maxConsecutiveTransactions = (int)gAppOtaMaxConsecutiveTransactions_c;
         otaConfig.PostedOpInIdleTask = TRUE;
         OTA_SetConfig(&otaConfig);
+#else
+        ota_status = OTA_ServiceInit(NULL, 0U);
+        if (ota_status != gOtaSuccess_c)
+        {
+            retStatus = FALSE;
+            break;
+        }
 #endif
 
 #if ((defined gAppOtaExternalStorage_c) && (gAppOtaExternalStorage_c == 1))
