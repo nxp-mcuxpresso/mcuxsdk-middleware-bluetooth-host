@@ -22,7 +22,6 @@
 #if defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)
 #include "fsl_adapter_flash.h"
 #endif
-#include "fsl_component_led.h"
 #endif /* !defined(gNcpApplication_d) || (gNcpApplication_d == 0) */
 #include "fsl_component_panic.h"
 

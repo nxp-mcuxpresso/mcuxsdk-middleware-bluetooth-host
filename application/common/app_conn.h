@@ -15,10 +15,6 @@
 *************************************************************************************
 ********************************************************************************** */
 #include "EmbeddedTypes.h"
-#if !defined(gNcpApplication_d) || (gNcpApplication_d == 0)
-#include "fsl_component_button.h"
-#include "fsl_component_led.h"
-#endif /* !defined(gNcpApplication_d) || (gNcpApplication_d == 0) */
 #include "fsl_os_abstraction.h"
 #include "l2ca_cb_interface.h"
 #include "ble_config.h"
