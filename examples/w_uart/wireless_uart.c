@@ -59,7 +59,8 @@
 #if defined(K32W232H_SERIES) || defined(KW45B41Z82_SERIES) || defined(KW45B41Z83_SERIES) || defined(K32W1480_SERIES) || \
     defined(KW47B42ZB7_cm33_core0_SERIES) || defined(KW47B42ZB6_cm33_core0_SERIES) || defined(KW47B42ZB3_cm33_core0_SERIES) || \
     defined(KW47B42ZB2_cm33_core0_SERIES) || defined(KW47B42Z97_cm33_core0_SERIES) || defined(KW47B42Z96_cm33_core0_SERIES) || \
-    defined(KW47B42Z83_cm33_core0_SERIES) || defined(MCXW716C_SERIES) || defined(MCXW716A_SERIES) || defined(MCXW727C_cm33_core0_SERIES)
+    defined(KW47B42Z83_cm33_core0_SERIES) || defined(MCXW716C_SERIES) || defined(MCXW716A_SERIES) || defined(MCXW727C_cm33_core0_SERIES) || \
+    defined(KW43B43ZC7_SERIES)
 #include "sensors.h"
 #endif
 
