@@ -577,7 +577,10 @@ void BleApp_EventCallback
         {
 #if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
 #if (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
-            if ((mGapRole == gGapPeripheral_c) && (mDataLengthChangeLocallyInitiated == TRUE))
+            deviceId_t peerDeviceId = pMsg->Data.GAPConnectionEventLeDataLengthChangedIndication.DeviceId;
+
+            if ((maPeerInformation[peerDeviceId].gapRole == gGapPeripheral_c) &&
+                (mDataLengthChangeLocallyInitiated == TRUE))
             {
                 /* Check if the peer was previously bonded */
                 mDataLengthChangeLocallyInitiated = FALSE;
@@ -672,7 +675,9 @@ void BleApp_EventCallback
 
         case GAPConnectionEventAuthenticationRejectedIndication_FSCI_ID:
         {
-            if (mGapRole == gGapCentral_c)
+            deviceId_t peerDeviceId = pMsg->Data.GAPConnectionEventPeripheralSecurityRequestIndication.DeviceId;
+
+            if (maPeerInformation[peerDeviceId].gapRole == gGapCentral_c)
             {
                 /* Start Pairing Procedure 
                  * peripheral could have lost the bond */
@@ -736,7 +741,7 @@ void BleApp_EventCallback
                 /* If peer was not bonded send peripheral security request */
                 maPeerInformation[mLastCheckIfBondedDeviceId].isBonded = FALSE;
                 BleApp_StateMachineHandler(mLastCheckIfBondedDeviceId, mAppEvt_PeerConnected_c);
-                if (mGapRole == gGapPeripheral_c)
+                if (maPeerInformation[mLastCheckIfBondedDeviceId].gapRole == gGapPeripheral_c)
                 {
                     GAPSendPeripheralSecurityRequestRequest_t req;
                     req.DeviceId = mLastCheckIfBondedDeviceId;
@@ -768,7 +773,7 @@ void BleApp_EventCallback
             }
 
 #if (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
-            if ((mGapRole == gGapCentral_c) && 
+            if ((maPeerInformation[mLastCheckIfBondedDeviceId].gapRole == gGapCentral_c) && 
                 (maPeerInformation[mLastCheckIfBondedDeviceId].isBonded == TRUE))
             {
                 /* Encrypt Link */
@@ -828,7 +833,7 @@ void BleApp_EventCallback
                 )
             {
 #if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
-                if (mGapRole == gGapCentral_c)
+                if (maPeerInformation[deviceId].gapRole == gGapCentral_c)
                 {
                     /* Start Pairing Procedure in central role
                      * local bond could be lost */
@@ -846,7 +851,7 @@ void BleApp_EventCallback
 
                     (void)GAPPairRequest(&req, gFsciInterface_c);
                 }
-                else if (mGapRole == gGapPeripheral_c)
+                else if (maPeerInformation[deviceId].gapRole == gGapPeripheral_c)
                 {
                     /* Send Security Request in peripheral role
                      * peer bond could be lost */
@@ -1670,10 +1675,10 @@ static void BleApp_AdvertisingEvtStateChangedHandler
     if (mAdvState.advOn)
     {
 #if (defined(gAppLedCnt_c) && (gAppLedCnt_c ==1))
-    LedSetColor(0, kLED_Blue);
+        LedSetColor(0, kLED_Blue);
 #endif /* gAppLedCnt_c == 1 */
-    Led1Flashing();
-    Serial_Print("\n\rAdvertising...\n\r", gAllowToBlock_d);
+        Led1Flashing();
+        Serial_Print("\n\rAdvertising...\n\r", gAllowToBlock_d);
     }
     else
     {
@@ -2052,6 +2057,8 @@ static void hsdkObserverGATTServerRegisterCallbackRequest
     bleEvtContainer_t *pContainer
 )
 {
+    mGattCallbacksInitialized = TRUE;
+
     if (mGapRole == gGapPeripheral_c)
     {
 #if defined(gUseControllerNotifications_c) && (gUseControllerNotifications_c)
