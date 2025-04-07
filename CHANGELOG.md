@@ -2,6 +2,22 @@
 
 All notable changes to NXP Bluetooth Le Host will be documented in this file.
 
+## [1.10.6] - mcux v2025-06-00-pvw1
+
+### Added
+- **Encypted Advertising Data** support in Extendded Advertising Applications.
+- Support for **disable UART** for **CS applications** for **low power measurements**.
+- Support for **LCE (DSPV) non-blocking API** integration to **RADE**.
+- **Intrusion Detection System** as **Experimental**.
+
+### Improved
+- **L2CAP command length validation** to cover all signaling commands.
+- **Extended NBU Wireless_uart_host  multiple connections** support. 
+
+### Supported Platforms
+- KW45, KW47, MCXW71, MCXW72, K32W1
+
+
 ## [1.10.5] - mcux v2025-03-00
 
 ### Added
