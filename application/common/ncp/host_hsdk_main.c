@@ -105,7 +105,7 @@ gHSDKStatus_t RegistergHSDKCallback
 * \brief        Registers an observer that will be removed after the first match.
 *
 * \param[in]    fsciIds    Event identifier that is awaited.
-* \param[in]    pCallback  Callback where to direct teh event.
+* \param[in]    pCallback  Callback where to direct the event.
 *
 * Return value: True if the observer has been registered with success
 *               False otherwise.
@@ -130,7 +130,7 @@ bool_t RegisterRemovableObserver(bleFsciIds_t fsciIds, eventCallback_t pCallback
 * \brief        Mark observer as invalid.
 *
 * \param[in]    fsciIds    Event identifier that is awaited.
-* \param[in]    pCallback  Callback where to direct teh event.
+* \param[in]    pCallback  Callback where to direct the event.
 *
 * Return value: True if the observer has been marked as invalid with success
 *               False otherwise.

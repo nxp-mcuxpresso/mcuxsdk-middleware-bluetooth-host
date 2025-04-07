@@ -763,6 +763,16 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_profiles_battery_service)
     )
 endif()
 
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_profiles_ncp_battery_service)
+    mcux_add_source(
+        SOURCES application/common/ncp/profiles/battery/host_battery_service.c
+                application/common/ncp/profiles/battery/host_battery_interface.h
+    )
+    mcux_add_include(
+        INCLUDES application/common/ncp/profiles/battery
+    )
+endif()
+
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_profiles_device_info_service)
     mcux_add_source(
         SOURCES profiles/device_info/device_info_service.c

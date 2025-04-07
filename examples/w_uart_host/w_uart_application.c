@@ -34,10 +34,17 @@
 #include "gap_interface.h"
 #include "gatt_db_app_interface.h"
 
+/* Profile / Services */
+#include "host_battery_interface.h"
+
 /* Application headers */
 #include "w_uart_application.h"
 #include "host_ble_conn_manager.h"
 #include "host_ble_init.h"
+
+#if defined(MCXW727C_cm33_core0_SERIES)
+#include "sensors.h"
+#endif
 
 /************************************************************************************
 *************************************************************************************
@@ -48,6 +55,8 @@
 #define mAppUartBufferSize_c            gAttMaxWriteDataSize_d(gAttMaxMtu_c) /* Local Buffer Size */
 
 #define mAppUartFlushIntervalInMs_c     (7)     /* Flush Timeout in Ms */
+
+#define mBatteryLevelReportInterval_c   (10)    /* Battery level report interval in seconds  */
 
 #define gAllowToBlock_d                 (TRUE)
 #define gNoBlock_d                      (FALSE)
@@ -124,6 +133,16 @@ static void BleApp_GenericEvtInitCompleteHandler
 static void UartStreamFlushTimerCallback
 (
     void *pData
+);
+
+/*! *********************************************************************************
+* \brief        Handles battery measurement timer callback.
+*
+* \param[in]    pParam        Callback parameters.
+********************************************************************************** */
+static void BatteryMeasurementTimerCallback
+(
+    void *pParam
 );
 
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c == 1))
@@ -294,9 +313,14 @@ static uint8_t mcActiveConnNo;
 /* Application specific information */
 appPeerInfo_t maPeerInformation[gAppMaxConnections_c];
 
+/* Service Data*/
+static bool_t      mBasValidClientList[gAppMaxConnections_c] = {FALSE};
+static basConfig_t mBasServiceConfig = {(uint16_t)mBatteryServiceHandle_c, 0, mBasValidClientList, gAppMaxConnections_c};
+
 /* Timers used by the application */
 static TIMER_MANAGER_HANDLE_DEFINE(mAppTimerId);
 static TIMER_MANAGER_HANDLE_DEFINE(mUartStreamFlushTimerId);
+static TIMER_MANAGER_HANDLE_DEFINE(mBatteryMeasurementTimerId);
 
 /* If the board has only one button, multiplex the required functionalities on it using an application timer */
 #if (gAppButtonCnt_c == 1)
@@ -535,12 +559,23 @@ void BleApp_EventCallback
             }
 #endif
 
+            /* Subscribe client*/
+            (void)Bas_Subscribe(&mBasServiceConfig, deviceId);
+
             /* UI */
             LedStopFlashingAllLeds();
 #if (defined(gAppLedCnt_c) && (gAppLedCnt_c == 1))
             LedSetColor(0, kLED_White);
 #endif /* gAppLedCnt_c == 1 */
             Led1On();
+
+            if (TM_IsTimerActive((timer_handle_t)mBatteryMeasurementTimerId) == 0U)
+            {
+                /* Start battery measurements */
+                (void)TM_InstallCallback((timer_handle_t)mBatteryMeasurementTimerId, BatteryMeasurementTimerCallback, NULL);
+                (void)TM_Start((timer_handle_t)mBatteryMeasurementTimerId,
+                            (uint8_t)kTimerModeLowPowerTimer | (uint8_t)kTimerModeSetSecondTimer, mBatteryLevelReportInterval_c);
+            }
 
             Serial_Print("Connected to device ", gAllowToBlock_d);
             Serial_PrintDec(deviceId);
@@ -606,6 +641,9 @@ void BleApp_EventCallback
             maPeerInformation[peerDeviceId].clientInfo.hService = gGattDbInvalidHandleIndex_d;
             maPeerInformation[peerDeviceId].clientInfo.hUartStream = gGattDbInvalidHandleIndex_d;
 
+            /* Unsubscribe client */
+            (void)Bas_Unsubscribe(&mBasServiceConfig, peerDeviceId);
+
             /* Reset Service Discovery to be sure*/
             BleServDisc_Stop(peerDeviceId);
 
@@ -615,6 +653,10 @@ void BleApp_EventCallback
             /* mark device id as invalid */
             maPeerInformation[peerDeviceId].deviceId = gInvalidDeviceId_c;
             mcActiveConnNo--;
+            if(mcActiveConnNo == 0U)
+            {
+                (void)TM_Stop((timer_handle_t)mBatteryMeasurementTimerId);
+            }
             peerDeviceId = gInvalidDeviceId_c;
 
             mAppUartNewLine = TRUE;
@@ -1441,9 +1483,14 @@ static void BleApp_GenericEvtInitCompleteHandler
     mScanningOn = FALSE;
 #endif /* gWuart_CentralRole_c */
 
+    /* Start services */
+    mBasServiceConfig.batteryLevel = SENSORS_GetBatteryLevel();
+    (void)Bas_Start(&mBasServiceConfig);
+
     /* Allocate application timer */
     (void)TM_Open(mAppTimerId);
     (void)TM_Open(mUartStreamFlushTimerId);
+    (void)TM_Open(mBatteryMeasurementTimerId);
 
 #if (gAppButtonCnt_c == 1)
     (void)TM_Open(mSwitchPressTimerId);
@@ -1867,6 +1914,20 @@ static void Uart_TxCallBack
 )
 {
     (void)MEM_BufferFree(pMessage->buffer);
+}
+
+/*! *********************************************************************************
+* \brief        Handles battery measurement timer callback.
+*
+* \param[in]    pParam        Callback parameters.
+********************************************************************************** */
+static void BatteryMeasurementTimerCallback
+(
+    void *pParam
+)
+{
+    mBasServiceConfig.batteryLevel = SENSORS_GetBatteryLevel();
+    (void)App_PostCallbackMessage(Bas_RecordBatteryMeasurement, &mBasServiceConfig);
 }
 
 #if defined(gUseControllerNotifications_c) && (gUseControllerNotifications_c)

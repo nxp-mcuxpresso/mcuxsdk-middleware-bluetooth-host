@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2022-2023 NXP
+* Copyright 2022-2023, 2025 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -164,7 +164,7 @@ void App_HandleObservedHSDKMessageInput(bleEvtContainer_t* pMsg);
 * \brief        Registers an observer that will be removed after the first match.
 *
 * \param[in]    fsciIds    Event identifier that is awaited.
-* \param[in]    pCallback  Callback where to direct teh event.
+* \param[in]    pCallback  Callback where to direct the event.
 *
 * Return value: True if the observer has been registered with success
 *               False otherwise. 
@@ -175,7 +175,7 @@ bool_t RegisterRemovableObserver(bleFsciIds_t fsciIds, eventCallback_t pCallback
 * \brief        Registers an observer that will be removed after the first match.
 *
 * \param[in]    fsciIds    Event identifier that is awaited.
-* \param[in]    pCallback  Callback where to direct teh event.
+* \param[in]    pCallback  Callback where to direct the event.
 *
 * Return value: True if the observer has been registered with success
 *               False otherwise. 

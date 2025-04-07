@@ -17,6 +17,7 @@
 #include "fsl_component_mem_manager.h"
 #include "fsl_component_timer_manager.h"
 #include "fwk_platform.h"
+#include "board_platform.h"
 
 #include "host_hsdk_interface.h"
 #include "host_cmd_ble.h"
@@ -33,6 +34,10 @@
 #include "w_uart_application.h"
 #include "dynamic_database.h"
 #include "host_ble_service_discovery.h"
+
+#if defined(MCXW727C_cm33_core0_SERIES)
+#include "sensors.h"
+#endif
 
 /************************************************************************************
 *************************************************************************************
@@ -372,7 +377,7 @@ static void gattDbAddPrimarySerivceHandler(bleEvtContainer_t* pMsg)
 
         case mBatteryServiceHandle_c:
         {
-            uint8_t aInitialValue = 0x5AU;
+            uint8_t aInitialValue = SENSORS_GetBatteryLevel();
 
             /* Battery Service Added - add the Battery Level Characteristic */
             uuid.uuid16 = gBleSig_BatteryLevel_d;
@@ -538,8 +543,8 @@ static void gattDbAddCharacteristicHandler(bleEvtContainer_t* pMsg)
             /* Add the Hardware revision characteristic */
             gattCharacteristicPropertiesBitFields_t characteristicProperties = gGattCharPropRead_c;
             uint16_t maxValueLength = 0U;
-            uint16_t initialValueLength = 7U;
-            uint8_t aInitialValue[7] = "MCXW345";
+            uint16_t initialValueLength = sizeof(BOARD_NAME) - 1U;
+            uint8_t aInitialValue[15] = BOARD_NAME;
             gattAttributePermissionsBitFields_t valueAccessPermissions = gPermissionFlagReadable_c;
             uuid.uuid16 = gBleSig_HardwareRevisionString_d;
 
@@ -598,7 +603,7 @@ static void gattDbAddCharacteristicHandler(bleEvtContainer_t* pMsg)
         case mDeviceInfoServiceHandle_c + 11U:
         case mDeviceInfoServiceHandle_c + 12U:
         {
-            /* Register wireless UART hanle for write notifications */
+            /* Register wireless UART handle for write notifications */
             GATTServerRegisterHandlesForWriteNotificationsRequest_t req;
             req.HandleCount = 1U;
             req.AttributeHandles = &mCharMonitoredHandles;
