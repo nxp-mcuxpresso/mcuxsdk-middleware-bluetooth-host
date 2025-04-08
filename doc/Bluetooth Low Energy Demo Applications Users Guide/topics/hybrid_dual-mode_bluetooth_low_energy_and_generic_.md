@@ -12,6 +12,8 @@ The Generic FSK part of the application can either enter in the receive state by
 
 The Generic FSK has lower priority than the Bluetooth LE. Therefore, any ongoing Generic FSK receive is paused by the Controller when Bluetooth LE activity is ongoing. The reception is automatically resumed by the Controller when there is no Bluetooth LE activity.
 
+When using Generic FSK, packet loss should be expected. The Generic FSK communication does not offer an acknowledgement mechanism to guarantee success for packet transmission, therefore this communication method does not offer reliability. If the user wants to improve reliability, packet repetition may be used, or the user may implement a custom protocol at application level.
+
 The first Generic FSK transmit command is buffered if there is continuous Bluetooth LE activity \(for example, for continuous Bluetooth LE scanning\). Any succeeding Generic FSK transmit command indicates failure in the command line interface, if the initial buffered transmit command was not sent yet.
 
 This section describes the implemented profiles and services, user interactions, and testing methods for the Hybrid \(Dual-Mode\) Bluetooth Low Energy and Generic FSK application.

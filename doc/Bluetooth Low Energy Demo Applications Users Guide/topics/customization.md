@@ -4,6 +4,8 @@ Use the steps below to change the default settings of this demo.
 
 For Bluetooth LE, the default advertising config \(`gAdvParams`\) parameter is found in the `app_config.c` file. Also, the scanning parameters \(gScanParams\) can be found in this file.
 
+The maximum number of connections supported by the Bluetooth LE, for this application, is defined in the `app_preinclude.h` file, with the macro name `gAppMaxConnections_c`.
+
 **Note:** The Generic FSK protocol is active during the inactive periods of the Bluetooth LE protocol. The demo is currently configured to have the scan window equal to the scan interval to make the user aware of this, but this can be changed.
 
 For Generic FSK, the following defines of interest can be found in `genfsk_app.h`, described below:
