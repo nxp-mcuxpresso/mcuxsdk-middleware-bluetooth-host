@@ -566,6 +566,16 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_fsci_private_interface)
     )
 endif()
 
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_fsci_generic)
+    mcux_add_source(
+        SOURCES fsci/source/fsci_ble.c
+                fsci/source/fsci_ble.h
+    )
+    mcux_add_include(
+        INCLUDES fsci/source
+    )
+endif()
+
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_fsci_source)
     mcux_add_source(
         SOURCES fsci/source/fsci_ble.c
@@ -950,3 +960,36 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.bridge_nvm)
                  fsci/source
     )
 endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.loc_ncp_nvm)
+    mcux_add_source(
+        SOURCES application/common/ncp/ncp_app_nvm.c
+                )
+    mcux_add_include(
+        INCLUDES application/common/ncp
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_ncp_fsci_types_pub)
+    mcux_add_source(
+        SOURCES ../bluetooth/fsci/source/fsci_ble_types.c
+                ../bluetooth/fsci/source/fsci_ble_types.h
+    )
+    mcux_add_include(
+        INCLUDES ../bluetooth/fsci/source
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_port_fsci)
+    mcux_add_source(
+        SOURCES application/common/ble_port_fsci/ble_port_fsci_op.h
+            application/common/ble_port_fsci/ble_port_fsci_types.h
+    )
+    mcux_add_include(
+        INCLUDES application/common/ble_port_fsci
+    )
+endif()
+
+
+mcux_add_cmakelists(${CMAKE_CURRENT_LIST_DIR}/application/common/ble_port_fsci/core0)
+mcux_add_cmakelists(${CMAKE_CURRENT_LIST_DIR}/application/common/ble_port_fsci/core1)

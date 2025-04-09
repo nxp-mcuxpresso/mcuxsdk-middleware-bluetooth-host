@@ -40,6 +40,8 @@ menu "bluetooth"
         bool "fsci_interface"
     config MCUX_COMPONENT_middleware.wireless.ble_fsci_private_interface
         bool "fsci_private_interface"
+    config MCUX_COMPONENT_middleware.wireless.ble_fsci_generic
+        bool "fsci_generic"
     config MCUX_COMPONENT_middleware.wireless.ble_fsci_source
         bool "fsci_source"
     config MCUX_COMPONENT_middleware.wireless.ble_fsci_source_handover
@@ -98,4 +100,12 @@ menu "bluetooth"
         bool "ncp"
     config MCUX_COMPONENT_middleware.wireless.bridge_nvm
         bool "Component middleware.wireless.bridge_nvm"
+    config MCUX_COMPONENT_middleware.wireless.ble_ncp_fsci_types_pub
+        bool "ble_ncp_fsci_types_pub"
+    config MCUX_COMPONENT_middleware.wireless.loc_ncp_nvm
+        bool "loc_ncp_nvm"
+    config MCUX_COMPONENT_middleware.wireless.ble_port_fsci
+        bool "ble_port_fsci"
+    orsource "application/common/ble_port_fsci/core1/Kconfig"
+    orsource "application/common/ble_port_fsci/core0/Kconfig"
 endmenu
