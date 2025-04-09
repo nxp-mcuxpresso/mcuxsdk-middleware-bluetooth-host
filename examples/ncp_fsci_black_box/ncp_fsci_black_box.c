@@ -84,13 +84,6 @@
 * Private type definitions
 *************************************************************************************
 ************************************************************************************/
-typedef struct hci_pkt_info_tag
-{
-    void*               pPacket;
-    uint16_t            packetSize;
-    hciPacketType_t     packetType;
-} hci_pkt_info_t;
-
 #if defined(CS_HANDOFF_ENABLED) && (CS_HANDOFF_ENABLED > 0)
 /* structure used to copy the event config. As the RPMSG payload size is limited,
    the config copy is segmented */
@@ -113,10 +106,10 @@ typedef PACKED_STRUCT
 *************************************************************************************
 ************************************************************************************/
 static void NbuHci_SendPktToHost(unsigned long packetType, void *pPacket, unsigned short packetSize);
-static bool_t nbu_tasks_init_done = FALSE;
 static bool_t isHighZ = FALSE; /*For peak power reduction feature.*/
 /*osa start_task*/
 static void start_task(void *argument);
+static void idle_task(void* param);
 static void Hcit_RxCallBack(uint8_t packetType, uint8_t *data, uint16_t len);
 #if defined(gNbu_Hadm_d) && (gNbu_Hadm_d==1)
 static void NBU_CheckTemperatureChange(void);
@@ -132,13 +125,10 @@ static void AppFSCI_Send( uint8_t *pPacket, uint16_t packetLen, bool_t freePacke
 * Private memory declarations
 *************************************************************************************
 ************************************************************************************/
-static hci_pkt_info_t maHciPacketInfo[PACKET_INFO_QUEUE_SIZE];
-static volatile uint8_t mPendingPktInfo  = 0U;
-static uint8_t mReadPktInfoIdx           = 0U;
-static uint8_t mWritePktInfoIdx          = 0U;
-static uint8_t mNbrPacketInfoSkipped     = 0U; /* for debug */
 static OSA_TASK_HANDLE_DEFINE(s_startTaskHandle);
 static OSA_TASK_DEFINE(start_task, gMainThreadPriority_c, 1, gMainThreadStackSize_c, 0);
+static OSA_TASK_HANDLE_DEFINE(idle_task_handle);
+static OSA_TASK_DEFINE(idle_task, OSA_TASK_PRIORITY_MIN, 1, 600, false);
 static bool_t mAppInitInProgress = FALSE;
 static const nbuIntf_t nbuInterface = {
     .nbuHciIntf = NbuHci_SendPktToHost,
@@ -182,7 +172,7 @@ uint32_t *      tx_application_define_ptr;
 ********************************************************************************** */
 void BluetoothLEHost_AppInit(void)
 {
-    union 
+    union
     {
         void *pVoid;
         pfFSCI_Send_t pfFSCI_Send;
@@ -195,7 +185,7 @@ void BluetoothLEHost_AppInit(void)
 
     /* Register BLE handlers in FSCI */
     fsciBleRegister(0);
-    
+
     PLATFORM_SetHciRxCallback(Hcit_RxCallBack);
 
     /* Register generic callback */
@@ -203,7 +193,7 @@ void BluetoothLEHost_AppInit(void)
 
     /* Initialize Bluetooth Host Stack */
     BluetoothLEHost_Init(NULL);
-    
+
     /* Bluetooth LE Host initialization postponed until the public device
     address is set in the Controller */
     mAppInitInProgress = TRUE;
@@ -224,44 +214,8 @@ void BleApp_GenericCallback(gapGenericEvent_t* pGenericEvent)
 bleResult_t Hcit_PktReceived(hciPacketType_t type, void* packet, uint16_t size)
 {
     PWR_DBG_LOG("Rcv PKT type=%d pkt=%x sz=%d", type, packet, size);
-    /* delay processing of HCI commands into idle task as not all NBU tasks are initialized */
-    if (nbu_tasks_init_done == TRUE)
-    {
-        NbuHci_SendPktToController((unsigned long)type, packet, size);
-    }
-    else
-    {
-        /* We are in interrupt context, we can't directly send the packet to the LL
-         or we will have issue with ThreadX
-         So, we store the packet and wait for Idle to send it */
-        uint8_t *pPacketBuffer = MEM_BufferAlloc((uint32_t)size);
-        if (pPacketBuffer != NULL)
-        {
-            FLib_MemCpy(pPacketBuffer, (uint8_t*)packet, size);
-        }
-        else
-        {
-            /* Out of memory */
-            mNbrPacketInfoSkipped++;
-        }
+    NbuHci_SendPktToController((unsigned long)type, packet, size);
 
-        if (mPendingPktInfo >= PACKET_INFO_QUEUE_SIZE)
-        {
-            /* ERROR: Message will be lost */
-            mNbrPacketInfoSkipped++;
-        }
-        if (mNbrPacketInfoSkipped > 0U)
-        {
-            assert(0);
-            return gBleOutOfMemory_c;
-        }
-        maHciPacketInfo[mWritePktInfoIdx].packetType = type;
-        maHciPacketInfo[mWritePktInfoIdx].pPacket = pPacketBuffer;
-        maHciPacketInfo[mWritePktInfoIdx].packetSize = size;
-        mWritePktInfoIdx = (mWritePktInfoIdx + 1U) & (PACKET_INFO_QUEUE_SIZE - 1U);
-        mPendingPktInfo++;
-    }
-    
     return gBleSuccess_c;
 }
 
@@ -360,50 +314,41 @@ void NBU_Idle(void)
 #endif /* FPGA_TARGET */
     OSA_DisableIRQGlobal();
 
-    if(mPendingPktInfo > 0U)
-    {
-        PWR_DBG_LOG("mPendingPktInfo=%x", mPendingPktInfo);
-        mPendingPktInfo--;
-        OSA_EnableIRQGlobal();
-        BOARD_DBGLPIOSET(1U, 0U);
-        /* we are not under exception context, we can send the packet now */
-        NbuHci_SendPktToController((unsigned long)maHciPacketInfo[mReadPktInfoIdx].packetType, maHciPacketInfo[mReadPktInfoIdx].pPacket, maHciPacketInfo[mReadPktInfoIdx].packetSize);
-        (void)MEM_BufferFree(maHciPacketInfo[mReadPktInfoIdx].pPacket);
-        mReadPktInfoIdx = (mReadPktInfoIdx + 1U) & (PACKET_INFO_QUEUE_SIZE - 1U);
-        BOARD_DBGLPIOSET(1U, 1U);
-    }
-    else
-    {
-        BOARD_DBGLPIOSET(0U, 0U);
+    BOARD_DBGLPIOSET(0U, 0U);
 #if !defined(gNbuJtagCapability) || (gNbuJtagCapability==0)
-        /* Try to go to low power (Deep Sleep), if that's not possible, it will
-         go to WFI only. */
-         /* To keep full debug capability, set gNbuJtagCapability to 1 to avoid
-         Deep Sleep or WFI. */
-        PLATFORM_EnterLowPower();
+    /* Try to go to low power (Deep Sleep), if that's not possible, it will
+     * go to WFI only.
+     * To keep full debug capability, set gNbuJtagCapability to 1 to avoid
+     * Deep Sleep or WFI. */
+    PLATFORM_EnterLowPower();
 #endif
-        BOARD_DBGLPIOSET(0U, 1U);
-        OSA_EnableIRQGlobal();
-    }
-    nbu_tasks_init_done = TRUE;
+    BOARD_DBGLPIOSET(0U, 1U);
+    OSA_EnableIRQGlobal();
+
 #if (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U))
     BluetoothLEHost_ProcessIdleTask();
 #endif /* (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U)) */
 }
 
 /*! *********************************************************************************
-* \brief    This function is called from ThreadX's tx_application_define function
-*           If needed, we can create ThreadX objects (tasks, queues...) from there
-*           This is also used to configure the Systicks (weren't before) 
+* \brief The tx_application_define function executes after the basic ThreadX initialization is complete.
+*        It is responsible for setting up all of the initial system resources, including threads, queues,
+*        semaphores, mutexes, event flags, and memory pools.
 ********************************************************************************** */
-void tx_application_define_hook(void)
+void tx_application_define(void *first_unused_memory)
 {
-    (void)OSA_TaskCreate((osa_task_handle_t)s_startTaskHandle, OSA_TASK(start_task), NULL);
-    NBU_Init();
+    /* We create only the idle task here, the idle task pre-loop section will initialize remaining tasks, including
+     * the main application task.
+     * The idea is to do the remaining initialization at a Post Kernel stage, where the ThreadX scheduler runs and
+     * all ThreadX primitives are available for context switching etc */
+    OSA_TaskCreate(idle_task_handle, OSA_TASK(idle_task), NULL);
+
+    /* Enable Systick */
+    SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
 }
 
 /*! *********************************************************************************
-* \brief    main function used for initialization 
+* \brief    main function used for initialization
 ********************************************************************************** */
 int main(void)
 {
@@ -420,6 +365,7 @@ int main(void)
 
 #define TICK_RATE_HZ 1000U
     SysTick->LOAD |= (BOARD_GetSystemCoreClockFreq() / TICK_RATE_HZ) - 1U;
+    SysTick->VAL  = 0;
     /* Not enabling the Systicks now, will be done in _tx_thread_schedule */
     SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk;
 
@@ -441,8 +387,11 @@ int main(void)
         - need to be done after PLATFORM_RemoteActiveReq() */
     BOARD_DBGINITDBGIO();
     (void)Controller_SetNbuVersion(nbu_version.repo_digest);
-    /* Start LL scheduler */
-    (void)Controller_Init(&nbuInterface);  /* never returns */
+    /* pre-kernel initialization for the BLE controller */
+    (void)Controller_Init(&nbuInterface);
+    /* start ThreadX */
+    OSA_Start();
+
     /* Won't run here*/
     assert(0);
     return 0;
@@ -613,10 +562,27 @@ static void NBU_CheckTemperatureChange(void)
 static void start_task(void *argument)
 {
     BluetoothLEHost_AppInit();
-    
+
     while(TRUE)
     {
         BluetoothLEHost_HandleMessages();
+    }
+}
+
+/*! *********************************************************************************
+* \brief   Application Idle task.
+********************************************************************************** */
+static void idle_task(void* param)
+{
+    LL_API_PostKernelInit();
+    LL_API_IdleInit();
+    NBU_Init();
+    (void)OSA_TaskCreate((osa_task_handle_t)s_startTaskHandle, OSA_TASK(start_task), NULL);
+
+    while(true)
+    {
+        NBU_Idle();
+        LL_API_Idle();
     }
 }
 
@@ -640,7 +606,7 @@ static void Hcit_RxCallBack(uint8_t packetType, uint8_t *data, uint16_t len)
         pPacketBuffer[0] = packetType;
         FLib_MemCpy(&pPacketBuffer[1], data, len);
         pFsciPacket = (clientPacket_t *)(void *)pPacketBuffer;
-        
+
         if ((pFsciPacket->headerAndStatus.header.opGroup == gFsciBleGapOpcodeGroup_c) &&
             (pFsciPacket->headerAndStatus.header.opCode == (uint8_t)gBleCtrlWritePublicDeviceAddressOpCode_c))
         {
@@ -700,9 +666,9 @@ static bleResult_t BleApp_ReadPublicDeviceAddress(void)
     bleResult_t result = gBleSuccess_c;
     clientPacketStructured_t *pClientPacket;
     uint32_t fsciDataSize = 0U;
-    
+
     pClientPacket = fsciBleAllocFsciPacket(gFsciBleGapOpcodeGroup_c, (uint8_t)gBleGapCmdReadPublicDeviceAddressOpCode_c, fsciDataSize);
-    
+
     if (pClientPacket != NULL)
     {
         fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
@@ -711,7 +677,7 @@ static bleResult_t BleApp_ReadPublicDeviceAddress(void)
     {
         result = gBleOutOfMemory_c;
     }
-    
+
     return result;
 }
 
@@ -741,7 +707,7 @@ static void BleApp_HandleWritePublicDeviceAddress(void *pParam)
     /* Set address in the Controller */
     Ble_SetBDAddr(deviceAddress);
     (void)MEM_BufferFree(pParam);
-    
+
     if (mAppInitInProgress == TRUE)
     {
         /* Resume application initialization */
