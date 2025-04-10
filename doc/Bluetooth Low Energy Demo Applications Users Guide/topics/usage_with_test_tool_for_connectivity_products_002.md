@@ -5,6 +5,10 @@ Below is a list of requirements for usage with Test Tool for Connectivity produc
 -   Over The Air Programming Tool 1.4.0 or newer on [CONNECTIVITY-TOOL-SUITE](https://www.nxp.com/design/microcontrollers-developer-resources/connectivity-tool-suite:CONNECTIVITY-TOOL-SUITE#downloads)
 -   Serial COM port drivers – these are board-specific.
 
+<div style="border: 4px solid red; padding: 20px;">
+<b>IMPORTANT</b>: Before starting the OTAP process, ensure that the target board is provisioned with the Encryption Key and the Authentication Key used to create the secured .sb3 image container. The keys are displayed by the OTAP Tool when the sb3 is created, as described in the section below. For details on how to provision a board by burning key fuses, refer to the accompanying document.
+</div>
+
 To run the application, follow the steps below:
 
 1.  Flash the OTAP Server onto a supported platform and the OTAP Client to another supported platform. Make sure the board running the OTAP Server is connected to your PC and your PC has appropriate drivers for the USB to serial device on that board.
@@ -46,12 +50,12 @@ To run the application, follow the steps below:
     ![](../images/Figure_33a.png "Test Tool - Selecting the OTAP Bluetooth LE protocol")
 
 6.  **Load the image file into the application, then configure the image file header and start the OTAP Server:**
-    -   To select the updated image In the Over the Air Programming tool, select the “**Browse File**” button and then navigate to the `.srec` or `.bin` file containing the image to be sent to the OTAP Client. After the `.srec` or `.bin` file is chosen, a pop-up window asks to choose the target processor. Choose the **KW45/K32W** processor and press **OK**. See the figure below. <br>
+    -   To select the updated image In the Over the Air Programming tool, select the “**Browse File**” button and then navigate to the `.srec` or `.bin` file containing the image to be sent to the OTAP Client. After the `.srec` or `.bin` file is chosen, a pop-up window asks to choose the target processor. In this example, the  **KW45/K32W** processor will be used. Choose the **KW45/K32W** processor and press **OK**. See the figure below. <br>
 
         ![Over the Air Programming tool Bluetooth LE Processor Selection](../images/Procesor_selection.PNG "Over the Air Programming tool Bluetooth LE Processor
                                             Selection")
 
-    -   Once the processor is selected, a new pop-up window would appear that allows selecting the type of image \(KW45Z/K32W1\(MCU\)\) as shown in the figure below. <br> \(In the specified case, we selected the KW45Z/KW45Z/K32W1\(MCU\).
+    -   Once the processor is selected, a new pop-up window would appear that allows selecting the type of image as shown in the figure below. <br> \(In the specified case, we selected the KW45Z/KW45Z/K32W1\(MCU\).
 
         ![Selecting uploaded image type](../images/selecting_image.PNG "Selecting uploaded image type")
 
@@ -89,7 +93,7 @@ To run the application, follow the steps below:
 
         ![SB3 JSON configuration](../images/Json_config2.PNG "SB3 JSON configuration")
 
-    -   After the `.sb3` file is created, the “**Encryption Key**” and “**Authentication Key**” are presented. For the secured update to be successful, the destination board must have been provisioned with these keys through fuse burning, as described in the accompanying document. Depending on the board type, it can either be already provisioned by NXP \(KW45B41Z-EVK / K32W148-EVK samples\) or not provisioned \(loosen samples\). See the figure below. <br>
+    -   After the `.sb3` file is created, the “**Encryption Key**” and “**Authentication Key**” are presented. For the secured update to be successful, the destination board must have been provisioned with these keys through fuse burning, as described in the accompanying document. Depending on the board type, it can either be already provisioned by NXP \(KW45\KW47\MCX-W71\MCX-W72 samples) or not provisioned \(loose samples\). See the figure below. <br>
 
         ![Encryption key and authentication key](../images/key.PNG "Encryption key and authentication key")
 
