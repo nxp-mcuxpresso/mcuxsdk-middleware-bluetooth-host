@@ -51,7 +51,8 @@ static uint8_t mOwnDeviceAddress[gcBleDeviceAddressSize_c];
 #if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
 #if (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
 static uint8_t mIdentityInfoCount = 0U;
-static uint8_t mFilterAcceptListCount = 0U;
+/* Index used to add multiple devices to filter accept list using asynchronous request */
+static uint8_t mFilterAcceptListIdx = 0U;
 static gapIdentityInformation_t *pOutIdentityAddresses = NULL;
 #if (defined(gAppUsePrivacy_d) && (gAppUsePrivacy_d == 1U))
 static bool_t mLastCheckNewBondValue = FALSE;
@@ -219,19 +220,19 @@ static void hsdkObserverGetBondedDevicesIdentityInformation(bleEvtContainer_t *c
 ***************************************************************************************************/
 static void hsdkObserverGAPAddDeviceToFilterAcceptList(bleEvtContainer_t *container)
 {
-    if (mFilterAcceptListCount < mIdentityInfoCount)
+    if (mFilterAcceptListIdx < mIdentityInfoCount)
     {
         GAPAddDeviceToFilterAcceptListRequest_t req;
         RegisterRemovableObserver(GAPConfirm_FSCI_ID,
                               hsdkObserverGAPAddDeviceToFilterAcceptList);
 
         req.AddressType =
-          (GAPAddDeviceToFilterAcceptListRequest_AddressType_t)pOutIdentityAddresses[mFilterAcceptListCount].identityAddress.idAddressType;
+          (GAPAddDeviceToFilterAcceptListRequest_AddressType_t)pOutIdentityAddresses[mFilterAcceptListIdx].identityAddress.idAddressType;
         FLib_MemCpy(req.Address,
-                    pOutIdentityAddresses[mFilterAcceptListCount].identityAddress.idAddress,
+                    pOutIdentityAddresses[mFilterAcceptListIdx].identityAddress.idAddress,
                     gcBleDeviceAddressSize_c);
 
-        mFilterAcceptListCount++;
+        mFilterAcceptListIdx++;
         GAPAddDeviceToFilterAcceptListRequest(&req, gFsciInterface_c);
     }
 }
@@ -797,7 +798,7 @@ static void App_ManagePrivacyInternal(bleEvtContainer_t* pMsg)
             else
             {
                  /* New bonded devices found */
-                if (mFilterAcceptListCount >= mIdentityInfoCount)
+                if (mFilterAcceptListIdx >= mIdentityInfoCount)
                 {
                     if ((mIdentityInfoCount == mcDevicesInResolvingList + 1U)
                         || (mLastCheckNewBondValue == FALSE))
@@ -842,12 +843,13 @@ static void App_ManagePrivacyInternal(bleEvtContainer_t* pMsg)
                 {
                     (void)MEM_BufferFree(pOutIdentityAddresses);
                     pOutIdentityAddresses = MEM_BufferAlloc(sizeof(gapIdentityInformation_t) * tmpIdentityInfoCount);
-                    mIdentityInfoCount = tmpIdentityInfoCount;
                 }
                 else
                 {
                     /* MISRA */
                 }
+
+                mIdentityInfoCount = tmpIdentityInfoCount;
 
                 if (pOutIdentityAddresses != NULL)
                 {
@@ -869,9 +871,10 @@ static void App_ManagePrivacyInternal(bleEvtContainer_t* pMsg)
                     /* Add first device to filter accept list */
                     if (mLastCheckNewBondValue == FALSE)
                     {
+                        mFilterAcceptListIdx = 1U;
+
                         if (mIdentityInfoCount > 1U)
                         {
-                            mFilterAcceptListCount = 1U;
                             RegisterRemovableObserver(GAPConfirm_FSCI_ID,
                                                       hsdkObserverGAPAddDeviceToFilterAcceptList);
                         }
