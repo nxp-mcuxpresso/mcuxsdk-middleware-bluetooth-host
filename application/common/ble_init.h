@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -65,18 +65,6 @@ extern "C" {
     #endif /* gUseHciTransportDownward_d */
 #endif /* gHostInitResetController_c */
 
-#if defined(KW45B41Z83_SERIES) || \
-    defined(KW45B41Z82_SERIES) || \
-    defined(K32W1480_SERIES)   || \
-    defined(CPU_MCXW345CHNA) || defined(CPU_MCXW345CUKA) || \
-    defined(KW47B42ZB7_cm33_core0_SERIES) || defined(KW47B42ZB6_cm33_core0_SERIES) || defined(KW47B42ZB3_cm33_core0_SERIES) || \
-    defined(KW47B42ZB2_cm33_core0_SERIES) || defined(KW47B42Z97_cm33_core0_SERIES) || defined(KW47B42Z96_cm33_core0_SERIES) || \
-    defined(KW47B42Z83_cm33_core0_SERIES) || defined(MCXW727C_cm33_core0_SERIES) || defined(MCXW716C_SERIES) || defined(MCXW716A_SERIES) || \
-    defined(CPU_KW43B43ZC7MFTA)
-
-#define RADIO_SUBSYSTEM (1U)
-#endif
-
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -127,23 +115,6 @@ bleResult_t Ble_Initialize
 *              event in the generic callback.
 ********************************************************************************** */
 bleResult_t Ble_DeInitialize(void);
-/*! *********************************************************************************
-*\fn           void Ble_SetBDAddr(void)
-*\brief        Set Bluetooth Device Address in Controller. .
-*
-*\param  [in]  void
-*
-*\return       void
-*
-*\remarks      Must be done after HCI init and before Host init
-********************************************************************************** */
-#if defined(gUseHciTransportDownward_d) && gUseHciTransportDownward_d
-
-#if defined(RADIO_SUBSYSTEM) && (RADIO_SUBSYSTEM == 1U)
-void Ble_SetBDAddr(void);
-#endif
-
-#endif
 
 #ifdef __cplusplus
 }

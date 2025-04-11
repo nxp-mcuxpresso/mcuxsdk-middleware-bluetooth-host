@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016 - 2023 NXP
+* Copyright 2016 - 2023, 2025 NXP
 *
 *
 * \file
@@ -77,6 +77,20 @@ static uint32_t RestoreXcvrDcocDacTrimFromFlash(xcvr_DcocDacTrim_t *xcvrDacTrim)
 #endif /* gXcvrDacTrimValueSorageAddr_d */
 
 #endif /* gUseHciTransportDownward_d */
+
+#if defined(gUseHciTransportDownward_d) && gUseHciTransportDownward_d
+/*! *********************************************************************************
+*\fn           void Ble_SetBDAddr(void)
+*\brief        Set Bluetooth Device Address in Controller. .
+*
+*\param  [in]  void
+*
+*\return       void
+*
+*\remarks      Must be done after HCI init and before Host init
+********************************************************************************** */
+static void Ble_SetBDAddr(void);
+#endif
 
 /************************************************************************************
 *************************************************************************************
@@ -285,7 +299,7 @@ static uint32_t RestoreXcvrDcocDacTrimFromFlash(xcvr_DcocDacTrim_t *xcvrDacTrim)
 #endif /* gXcvrDacTrimValueSorageAddr_d */
 
 #if defined(gUseHciTransportDownward_d) && gUseHciTransportDownward_d
-void Ble_SetBDAddr(void)
+static void Ble_SetBDAddr(void)
 {
     uint8_t bleDeviceAddress[gcBleDeviceAddressSize_c] = {0};
 
