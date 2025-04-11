@@ -77,4 +77,16 @@ void BLE_PortFsciUnblock(uint8_t operation);
 ********************************************************************************** */
 uint8_t BLE_PortFsciRegisterBlockingEvent (void);
 
+/*! *********************************************************************************
+*\fn           void AppFSCI_RxCallBack(uint8_t packetType, uint8_t *data, uint16_t len)
+*\brief        RPMSG callback function. Transfers the message to the FSCI module.
+*
+*\param  [in]  packetType   Packet type (ignored)
+*\param  [in]  data         Pointer to the FSCI message
+*\param  [in]  len          Message length
+*
+*\retval       void.
+********************************************************************************** */
+void AppFSCI_RxCallBack(uint8_t packetType, uint8_t *data, uint16_t len);
+
 #endif

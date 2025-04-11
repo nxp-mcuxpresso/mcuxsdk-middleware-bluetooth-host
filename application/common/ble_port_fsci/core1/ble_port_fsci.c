@@ -61,8 +61,6 @@ static pfFsciPortOpHandler_t mOpHandlers[255] = {0};
 ************************************************************************************/
 /* Helper function to send a message to Core 0 via FSCI */
 static void AppFSCI_Send(uint8_t *pPacket, uint16_t packetLen, bool_t freePacket);
-/* RPMSG callback function for messages from Core 0 */
-static void AppFSCI_RxCallBack(uint8_t packetType, uint8_t *data, uint16_t len);
 /* Helper function to handle FSCI messages */
 static void BLE_PortFsciRxHandler(void* pData, void* param, uint32_t fsciInterface);
 
@@ -91,8 +89,6 @@ void BLE_PortFsciInit(void)
 
     /* Init FSCI */
     FSCI_commInit(g_fsciHandleList);
-    /* Register Rx callback */
-    PLATFORM_SetHciRxCallback(AppFSCI_RxCallBack);
 
     /* Register BLE handlers in FSCI */
     FSCI_RegisterOpGroup(BLE_PORT_FSCI_OG,
@@ -212,7 +208,7 @@ static void AppFSCI_Send(uint8_t *pPacket, uint16_t packetLen, bool_t freePacket
 
 /*! *********************************************************************************
 *\fn           void AppFSCI_RxCallBack(uint8_t packetType, uint8_t *data, uint16_t len)
-*\brief        RPMSG callback function. Transfers the message to the FSIC module.
+*\brief        RPMSG callback function. Transfers the message to the FSCI module.
 *
 *\param  [in]  packetType   Packet type (ignored)
 *\param  [in]  data         Pointer to the FSCI message
@@ -220,7 +216,7 @@ static void AppFSCI_Send(uint8_t *pPacket, uint16_t packetLen, bool_t freePacket
 *
 *\retval       void.
 ********************************************************************************** */
-static void AppFSCI_RxCallBack(uint8_t packetType, uint8_t *data, uint16_t len)
+void AppFSCI_RxCallBack(uint8_t packetType, uint8_t *data, uint16_t len)
 {
     uint8_t *pPacketBuffer = MEM_BufferAlloc((uint32_t)len + 1U);
 

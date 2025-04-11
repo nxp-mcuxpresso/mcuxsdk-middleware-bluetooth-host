@@ -57,12 +57,6 @@
 * Private type definitions
 *************************************************************************************
 ************************************************************************************/
-typedef struct hci_pkt_info_tag
-{
-    void*               pPacket;
-    uint16_t            packetSize;
-    hciPacketType_t     packetType;
-} hci_pkt_info_t;
 
 /************************************************************************************
 *************************************************************************************
@@ -89,17 +83,16 @@ static void start_task(void *argument);
 ********************************************************************************** */
 static void NBU_CheckTemperatureChange(void);
 
+/*! *********************************************************************************
+* \brief   Application Idle task.
+********************************************************************************** */
+static void idle_task(void* param);
+
 /************************************************************************************
 *************************************************************************************
 * Private memory declarations
 *************************************************************************************
 ************************************************************************************/
-static hci_pkt_info_t hciPacketInfo[PACKET_INFO_QUEUE_SIZE];
-volatile static uint8_t pendingPktInfo  = 0;
-static uint8_t readPktInfoIdx           = 0;
-static uint8_t writePktInfoIdx          = 0;
-static uint8_t nbrPacketInfoSkipped     = 0; /* for debug */
-
 const nbuIntf_t nbuInterface = {
     .nbuHciIntf = NbuHci_SendPktToHost,
     .nbuChannelSwitchIntf = NULL,
@@ -109,11 +102,14 @@ const nbuIntf_t nbuInterface = {
     .nbuExitCritical = OSA_InterruptEnable
 };
 
-/* Set task handle */
+/* Set task handle for application task */
 static OSA_TASK_HANDLE_DEFINE(s_startTaskHandle);
 static OSA_TASK_DEFINE(start_task, gMainThreadPriority_c, 1, gMainThreadStackSize_c, 0);
 
-static bool_t nbu_tasks_init_done = FALSE;
+/* Set task handle for idle task */
+static OSA_TASK_HANDLE_DEFINE(idle_task_handle);
+static OSA_TASK_DEFINE(idle_task, OSA_TASK_PRIORITY_MIN, 1, 600, false);
+
 static bool_t isHighZ = FALSE; /*For peak power reduction feature.*/
 
 /************************************************************************************
@@ -145,43 +141,7 @@ bleResult_t Hcit_PktReceived
 )
 {
     PWR_DBG_LOG("Rcv PKT type=%d pkt=%x sz=%d", type, packet, size);
-    /* delay processing of HCI commands into idle task as not all NBU tasks are initialized */
-    if (nbu_tasks_init_done == TRUE)
-    {
-        NbuHci_SendPktToController(type, packet, size);
-    }
-    else
-    {
-        /* We are in interrupt context, we can't directly send the packet to the LL
-           or we will have issue with ThreadX
-           So, we store the packet and wait for Idle to send it */
-        uint8_t *pPacketBuffer = MEM_BufferAlloc((uint32_t)size);
-        if (pPacketBuffer != NULL)
-        {
-            FLib_MemCpy(pPacketBuffer, (uint8_t*)packet, size);
-        }
-        else
-        {
-           /* ERROR: Out of memory */
-           nbrPacketInfoSkipped++;
-        }
-
-        if (pendingPktInfo >= PACKET_INFO_QUEUE_SIZE)
-        {
-           /* ERROR: Message will be lost */
-           nbrPacketInfoSkipped++;
-        }
-        if (nbrPacketInfoSkipped > 0)
-        {
-            assert(0);
-            return gBleOutOfMemory_c;
-        }
-        hciPacketInfo[writePktInfoIdx].packetType = type;
-        hciPacketInfo[writePktInfoIdx].pPacket = pPacketBuffer;
-        hciPacketInfo[writePktInfoIdx].packetSize = size;
-        writePktInfoIdx = (writePktInfoIdx+1)&(PACKET_INFO_QUEUE_SIZE-1);  /* modulo PACKET_INFO_QUEUE_SIZE */
-        pendingPktInfo++;
-    }
+    NbuHci_SendPktToController((unsigned long)type, packet, size);
 
     return gBleSuccess_c;
 }
@@ -196,6 +156,14 @@ bleResult_t Hcit_PktReceived
 ********************************************************************************** */
 void NBU_Idle(void)
 {
+#if defined(CS_HANDOFF_ENABLED) && (CS_HANDOFF_ENABLED!=0)
+    if( p_hadm_config != NULL )
+    {
+        NBU_HADM_CopyConfig();
+        p_hadm_config = NULL;
+    }
+#endif
+
     NBU_CheckTemperatureChange();
 
     /* Enable logging timestamps - required LL to be enabled - move it to somewhere else */
@@ -209,42 +177,55 @@ void NBU_Idle(void)
 
     OSA_DisableIRQGlobal();
 
-    if (pendingPktInfo > 0)
-    {
-        PWR_DBG_LOG("pendingPktInfo=%x", pendingPktInfo);
-        pendingPktInfo--;
-        OSA_EnableIRQGlobal();
+    BOARD_DBGLPIOSET(0u, 0u);
 
-        BOARD_DBGLPIOSET(1u, 0u);
-
-        /* we are not under exception context, we can send the packet now */
-        NbuHci_SendPktToController(hciPacketInfo[readPktInfoIdx].packetType, hciPacketInfo[readPktInfoIdx].pPacket, hciPacketInfo[readPktInfoIdx].packetSize);
-        MEM_BufferFree(hciPacketInfo[readPktInfoIdx].pPacket);
-
-        readPktInfoIdx = (readPktInfoIdx+1)&(PACKET_INFO_QUEUE_SIZE-1);  /* modulo PACKET_INFO_QUEUE_SIZE */
-
-        BOARD_DBGLPIOSET(1u, 1u);
-    }
-    else
-    {
-        BOARD_DBGLPIOSET(0u, 0u);
-
+#if !defined (SDK_OS_FREE_RTOS)
 #if !defined(gNbuJtagCapability)    || (gNbuJtagCapability==0)
-        /* Try to go to low power (Deep Sleep), if that's not possible, it will
-         * go to WFI only.
-         * To keep full debug capability, set gNbuJtagCapability to 1 to avoid
-         * Deep Sleep or WFI. */
-        PLATFORM_EnterLowPower();
+    /* Try to go to low power (Deep Sleep), if that's not possible, it will
+     * go to WFI only.
+     * To keep full debug capability, set gNbuJtagCapability to 1 to avoid
+     * Deep Sleep or WFI. */
+    PLATFORM_EnterLowPower();
+#endif
 #endif
 
-        BOARD_DBGLPIOSET(0u, 1u);
+    BOARD_DBGLPIOSET(0u, 1u);
 
-        OSA_EnableIRQGlobal();
+    OSA_EnableIRQGlobal();
+
+#ifdef SIMULATOR
+    {
+        bool_t test_status = FALSE;
+        test_status = test_conn_init();
+#if defined(gNbu_Hadm_d) && (gNbu_Hadm_d==1)
+        //test_status = test_conn_hadm();
+        test_status = test_hadm_test_mode();
+#endif
+        assert(TRUE==test_status);
+
+        while(1);
     }
-    nbu_tasks_init_done = TRUE;
+#endif
 #if (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U))
     App_NvmIdle();
 #endif /* (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U)) */
+}
+
+/*! *********************************************************************************
+* \brief The tx_application_define function executes after the basic ThreadX initialization is complete.
+*        It is responsible for setting up all of the initial system resources, including threads, queues,
+*        semaphores, mutexes, event flags, and memory pools.
+********************************************************************************** */
+void tx_application_define(void *first_unused_memory)
+{
+    /* We create only the idle task here, the idle task pre-loop section will initialize remaining tasks, including
+     * the main application task.
+     * The idea is to do the remaining initialization at a Post Kernel stage, where the ThreadX scheduler runs and
+     * all ThreadX primitives are available for context switching etc */
+    OSA_TaskCreate(idle_task_handle, OSA_TASK(idle_task), NULL);
+
+    /* Enable Systick */
+    SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
 }
 
 /*! *********************************************************************************
@@ -301,8 +282,13 @@ void NBU_Init()
 {
     /* Init MemManager for buffer allocation in serial manager */
     MEM_Init();
+#ifndef SIMULATOR
     /* Low level init for the BLE controller */
     PLATFORM_InitBle();
+#endif
+    /* Init HCI Transport module */
+    PLATFORM_SetHciRxCallback(AppFSCI_RxCallBack);
+#ifndef SIMULATOR
     /* Init Framework Intercore Service */
     PLATFORM_FwkSrvInit();
 
@@ -310,9 +296,23 @@ void NBU_Init()
     /* SFC module requires FwkSrv service to be initialized */
     SFC_Init();
 #endif /* FPGA_TARGET */
+#endif
+
+#if defined(PHY_15_4_ENABLED) && (PHY_15_4_ENABLED == 1)
+    /* Init 15.4 Phy must be after PLATFORM_FwkSrvInit() for the RNG seeding */
+    init_15_4_Phy();
+#endif
 
 #if defined(CS_HANDOFF_ENABLED) && (CS_HANDOFF_ENABLED!=0)
     NBU_HADM_Init();
+#endif
+
+#if defined(gUseIpcTransport_d) && (gUseIpcTransport_d == 1)
+    Ipc_Init(s_IpcRpmsgHandle, &ipcRpmsgConfig, NULL);
+#endif
+
+#if defined(HDI_MODE) && (HDI_MODE == 1)
+    NBU_InitPhySwitch();
 #endif
 
 #if !defined(gNbuDisableLowpower_d) || (gNbuDisableLowpower_d==0)
@@ -320,19 +320,10 @@ void NBU_Init()
          * If gNbuDisableLowpower_d is set to 1, this function won't be called so
          * PLATFORM_EnterLowPower will only go to WFI
          * CAUTION: do not move before Controller_RadioInit */
+#ifndef SIMULATOR
         PLATFORM_LowPowerInit();
 #endif
-}
-
-/*! *********************************************************************************
-* \brief    This function is called from ThreadX's tx_application_define function
-*           If needed, we can create ThreadX objects (tasks, queues...) from there
-*           This is also used to configure the Systicks (weren't before)
-********************************************************************************** */
-void tx_application_define_hook(void)
-{
-    (void)OSA_TaskCreate((osa_task_handle_t)s_startTaskHandle, OSA_TASK(start_task), NULL);
-    NBU_Init();
+#endif
 }
 
 /*! *********************************************************************************
@@ -374,8 +365,11 @@ int main(void)
         - need to be done after PLATFORM_RemoteActiveReq() */
     BOARD_DBGINITDBGIO();
     Controller_SetNbuVersion(nbu_version.repo_digest);
-    /* Start LL scheduler */
-    Controller_Init(&nbuInterface);  /* never returns */
+    /* pre-kernel initialization for the BLE controller */
+    (void)Controller_Init(&nbuInterface);
+    /* start ThreadX */
+    OSA_Start();
+
     /* Won't run here*/
     assert(0);
     return 0;
@@ -447,6 +441,23 @@ static void start_task(void *argument)
     while (TRUE)
     {
         BluetoothLEHost_HandleMessages();
+    }
+}
+
+/*! *********************************************************************************
+* \brief   Application Idle task.
+********************************************************************************** */
+static void idle_task(void* param)
+{
+    LL_API_PostKernelInit();
+    LL_API_IdleInit();
+    NBU_Init();
+    (void)OSA_TaskCreate((osa_task_handle_t)s_startTaskHandle, OSA_TASK(start_task), NULL);
+
+    while(true)
+    {
+        NBU_Idle();
+        LL_API_Idle();
     }
 }
 
