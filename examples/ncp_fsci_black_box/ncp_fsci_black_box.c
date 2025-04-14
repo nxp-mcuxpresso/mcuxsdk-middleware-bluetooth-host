@@ -438,7 +438,14 @@ BLE_HADM_STATUS_t BLE_HADM_ProcedureContinue(const TBleHadmConnection_t *pConfig
 ********************************************************************************** */
 static void NbuHci_SendPktToHost(unsigned long packetType, void *pPacket, unsigned short packetSize)
 {
-    (void)Ble_HciRecvFromIsr((hciPacketType_t)packetType, pPacket, (uint16_t)packetSize);
+    union {
+        hciPacketType_t         packetTypeEnum;
+        unsigned long           packetTypeULong;
+    } hciPacketType = {};
+    
+    hciPacketType.packetTypeULong = packetType;
+    
+    (void)Ble_HciRecvFromIsr(hciPacketType.packetTypeEnum, pPacket, (uint16_t)packetSize);
 }
 
 
