@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2016-2021, 2023 - 2024 NXP
+* Copyright 2016-2021, 2023 - 2025 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -260,7 +260,7 @@ void BleServDisc_SignalGattClientEvent
                         pInfo->mpServiceDiscoveryBuffer->aCharacteristics =
                                  pInfo->mpCharDiscoveryBuffer;
                         
-                        GATTClientDiscoverAllCharacteristicsOfServiceRequest_t req;
+                        GATTClientDiscoverAllCharacteristicsOfServiceRequest_t req = {};
                         req.DeviceId = peerDeviceId;
                         req.MaxNbOfCharacteristics = gMaxServiceCharCount_d;
                         req.Service.StartHandle = pInfo->mpServiceDiscoveryBuffer->startHandle;
@@ -328,7 +328,7 @@ void BleServDisc_SignalGattClientEvent
                                     pCurrentChar->aDescriptors = pInfo->mpCharDescriptorBuffer +
                                                                  pInfo->mCurrentDescInDiscoveryIndex;
                                     
-                                    GATTClientDiscoverAllCharacteristicDescriptorsRequest_t req;
+                                    GATTClientDiscoverAllCharacteristicDescriptorsRequest_t req = {};
                                     req.DeviceId = peerDeviceId;
                                     req.Characteristic.Value.Handle = pCurrentChar->value.handle;
                                     req.Characteristic.Value.UuidType = (UuidType_t)pCurrentChar->value.uuidType;
@@ -366,7 +366,7 @@ void BleServDisc_SignalGattClientEvent
                                 pCurrentChar->aDescriptors = pInfo->mpCharDescriptorBuffer +
                                                              pInfo->mCurrentDescInDiscoveryIndex;
                                 
-                                GATTClientDiscoverAllCharacteristicDescriptorsRequest_t req;
+                                GATTClientDiscoverAllCharacteristicDescriptorsRequest_t req = {};
                                 req.DeviceId = peerDeviceId;
                                 req.Characteristic.Properties = (Properties_t)pCurrentChar->properties;
                                 req.Characteristic.NbOfDescriptors = pCurrentChar->cNumDescriptors;
@@ -419,7 +419,7 @@ void BleServDisc_SignalGattClientEvent
                                                                pInfo->mpCharDiscoveryBuffer;
 
                          /* Start Characteristic Discovery for current service */
-                         GATTClientDiscoverAllCharacteristicsOfServiceRequest_t req;
+                         GATTClientDiscoverAllCharacteristicsOfServiceRequest_t req = {};
                          req.DeviceId = peerDeviceId;
                          req.MaxNbOfCharacteristics = gMaxServiceCharCount_d;
                          req.Service.StartHandle = (pInfo->mpServiceDiscoveryBuffer + pInfo->mCurrentServiceInDiscoveryIndex)->startHandle;
