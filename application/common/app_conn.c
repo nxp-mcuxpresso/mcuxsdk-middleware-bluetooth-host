@@ -25,6 +25,10 @@
 #endif /* !defined(gNcpApplication_d) || (gNcpApplication_d == 0) */
 #include "fsl_component_panic.h"
 
+#if (defined(CPU_MCXW236BIHNAR) || defined(CPU_MCXW235BIHNAR))
+#include "ble_controller.h"
+#endif
+
 /* Fwk */
 #include "app.h"
 #include "RNG_Interface.h"
@@ -312,6 +316,12 @@ void BluetoothLEHost_Init
 ********************************************************************************** */
 void BluetoothLEHost_HandleMessages(void)
 {
+#if (defined(CPU_MCXW236BIHNAR) || defined(CPU_MCXW235BIHNAR))
+#if !defined(SDK_OS_FREE_RTOS)
+    BLEController_EmngrHandleAllEvents();
+#endif
+#endif
+
 #if defined(SDK_OS_FREE_RTOS) || defined(FSL_RTOS_THREADX)
     osa_event_flags_t event = 0U;
     (void)OSA_EventWait((osa_event_handle_t)mAppEvent,
