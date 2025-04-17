@@ -436,7 +436,8 @@ typedef enum bleResult_tag
     gSmPairingErrorNumericComparisonFailed_c                    = gSmStatusBase_c | 0x3DU,  /*!< Indicates that the confirm values in the numeric comparison protocol do not match. */
     gSmPairingErrorOobNotAvailable_c                            = gSmStatusBase_c | 0x3EU,  /*!< Indicates that the OOB data is not available. */
     gSmPairingErrorRepeatedAttempts_c                           = gSmStatusBase_c | 0x3FU,  /*!< Indicates that the pairing or authentication procedure is disallowed because too little time has elapsed since last pairing request or security request. */
-
+    gSmPairingErrorBusy_c                                       = gSmStatusBase_c | 0x40U,  /*!< Indicates that the device is not ready to perform a pairing procedure */ 
+    
     /* SM Tool Box statuses. */
     gSmTbResolvableAddressDoesNotMatchIrk_c                     = gSmStatusBase_c | 0x60U,  /*!< The provided Resolvable Private Address and IRK do not match. */
     gSmTbInvalidDataSignature_c                                 = gSmStatusBase_c | 0x61U,  /*!< The provided data signature does not match the computed data signature. */
