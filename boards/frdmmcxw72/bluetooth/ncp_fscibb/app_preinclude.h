@@ -38,6 +38,9 @@
 /*! Maximum number of connections supported for this application */
 #define gAppMaxConnections_c            8U
 
+/* The maximum number of BLE connection supported by platform */
+#define MAX_PLATFORM_SUPPORTED_CONNECTIONS     (24U)
+
 #define gNcpApplication_d               1
 
 /* Number of devices identified by address to keep track of for Repeated Attempts */

@@ -180,6 +180,9 @@
 #define gAppMaxConnections_c           (1U)
 #endif
 
+/* The maximum number of BLE connection supported by platform */
+#define MAX_PLATFORM_SUPPORTED_CONNECTIONS     (4U)
+
 /*! Number of credit-based channels supported */
 #ifndef gL2caMaxLeCbChannels_c
 #define gL2caMaxLeCbChannels_c         (2U)

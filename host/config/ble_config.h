@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -216,45 +216,9 @@
 #endif
 
 /* The maximum number of BLE connection supported by platform */
-#if defined(CPU_QN9080C)
-    #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     16
-
-#elif (defined(CPU_MKW36A512VHT4) || defined(CPU_MKW36A512VFP4) || defined(CPU_MKW36A512VFT4) || \
-       defined(CPU_MKW36Z512VHT4) || defined(CPU_MKW36Z512VFP4) || defined(CPU_MKW35A512VFP4) || \
-       defined(CPU_MKW35A512VFT4) || defined(CPU_MKW35Z512VHT4) || defined(CPU_MKW34A512VFT4) || \
-       defined(CPU_K32W032S1M2CAx_cm0plus) || defined(CPU_K32W032S1M2VPJ_cm0plus) || \
-       defined(CPU_K32W032S1M2CAx_cm4) || defined(CPU_K32W032S1M2VPJ_cm4) || \
-       defined(CPU_MKW38A512VFT4) || defined (CPU_MKW38Z512VFT4) || defined(CPU_MKW39A512VFT4) || \
-       defined(CPU_MKW37A512VFT4) || defined(CPU_MKW37Z512VFT4) || \
-       defined(CPU_K32W232H050VFTA) || defined(CPU_NHS52S04HN40) || \
-       defined(CPU_MCXW345CHNA))
-
-    #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     8
-
-#elif defined(KW45B41Z82_SERIES) || defined(KW45B41Z83_SERIES) || defined(K32W1480_SERIES) || defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA)
-    #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     24
-
-#elif (defined(CPU_MKW41Z256VHT4) || defined(CPU_MKW41Z512CAT4) || defined(CPU_MKW41Z512VHT4) || \
-       defined(CPU_MKW31Z256VHT4) || defined(CPU_MKW31Z512CAT4) || defined(CPU_MKW31Z512VHT4))
-    #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     2
-
-#elif defined(CPU_MKW40Z160VHT4) || defined(CPU_MKW30Z160VHM4)
-    #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     1
-
-#elif (defined(KW47B42ZB7_cm33_core0_SERIES) || defined(CPU_KW47B42ZB7AFTA_cm33_core0) || defined(KW47B42ZB6_cm33_core0_SERIES) || defined(CPU_KW47B42ZB6AFTA_cm33_core0) || \
-       defined(KW47B42ZB3_cm33_core0_SERIES) || defined(CPU_KW47B42ZB3AFTA_cm33_core0) || defined(KW47B42ZB2_cm33_core0_SERIES) || defined(CPU_KW47B42ZB2AFTA_cm33_core0) || \
-       defined(KW47B42Z97_cm33_core0_SERIES) || defined(CPU_KW47B42Z97AFTA_cm33_core0) || defined(KW47B42Z96_cm33_core0_SERIES) || defined(CPU_KW47B42Z96AFTA_cm33_core0) || \
-       defined(KW47B42Z83_cm33_core0_SERIES) || defined(CPU_KW47B42Z83AFTA_cm33_core0) || defined(MCXW727C_cm33_core0_SERIES) || defined(CPU_MCXW727CMFTA_cm33_core0) || \
-       defined(CPU_MCXW727CMFTA_cm33_core1))
-    #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     24
-#elif (defined(CPU_MCXW716CMFTA) || (CPU_MCXW716CMFPA) || (CPU_MCXW716AMFTA) || (CPU_MCXW716AMFPA))
-    #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     24
-#elif (defined(CPU_MCXW235BIHNAR) || (CPU_MCXW236BIHNAR))
-    #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     4
-#elif (defined(CPU_KW43B43ZC7MFTA))
-    #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     16
-#else
-    #warning Undefined platform!
+#ifndef MAX_PLATFORM_SUPPORTED_CONNECTIONS
+    #warning MAX_PLATFORM_SUPPORTED_CONNECTIONS is not defined!
+    #define MAX_PLATFORM_SUPPORTED_CONNECTIONS     (4U)
 #endif
 
 #if (gAppMaxConnections_c > MAX_PLATFORM_SUPPORTED_CONNECTIONS)
