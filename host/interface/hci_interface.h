@@ -1868,7 +1868,7 @@ typedef struct hciLeCsConfigCompleteEvent_tag
     uint8_t         mode0Steps;
     uint8_t         role;
     uint8_t         RTTTypes;
-    uint8_t         RTTPhy;
+    uint8_t         csSyncPhy;
     uint8_t         channelMap[gHCICSChannelMapSize];
     uint8_t         channelMapRepetition;
     uint8_t         channelSelectionType;
