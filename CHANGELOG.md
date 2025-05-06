@@ -1,6 +1,32 @@
 # Changelog
 
-All notable changes to NXP Bluetooth Le Host will be documented in this file.
+All notable changes to NXP Bluetooth LE Host will be documented in this file.
+
+## [1.10.7] - mcux v2025-06-00-pvw2
+
+### Added
+- Support for **Bluetooth LE Debug Keys**
+- Support for **pairing failure** reason 0x10 (Busy)
+- Extended NBU **Wireless_uart_host battery service**
+- **Channel Sounding RSSI Information** at application level
+- Application support for **4-antenna configuration**
+
+### Improved
+- **Clean** include directives
+- Allow central-only devices to use **Gap_EncryptAdvertisingData**
+- **CSTACK** size optimization for **RADE** using baremetal apps
+
+### Fixed
+- Extended NBU **memory leak** issues
+- Issues when **gAppOtaASyncFlashTransactions_c** is set to 0
+- Issue with **CS procedure** affected by the CS data export
+- Extended NBU **Wireless_uart_host privacy**
+
+### Changed
+- Updated **Bluetooth LE Host Documentation**. 
+
+### Supported Platforms
+- KW45, KW47, MCXW71, MCXW72, K32W1
 
 ## [1.10.6] - mcux v2025-06-00-pvw1
 
