@@ -28,9 +28,6 @@
 **************************************************************************************
 * Private macros
 *************************************************************************************/
-#define gAppNvmMsgFromHostApp_c          (1U << 0U)
-#define gAppAddrReadMsgFromHostApp_c     (1U << 1U)
-#define gAppShellRegMsgFromHostApp_c     (1U << 2U)
 
 /************************************************************************************
 *************************************************************************************
@@ -51,7 +48,7 @@ OSA_EVENT_HANDLE_DEFINE(mNcpHostEvent);
 *************************************************************************************
 * Private memory declarations
 *************************************************************************************/
-static uint8_t mpBlockOpIdx = 0U;
+static uint8_t mpBlockOpIdx = (1U << 0U); /* First OSA event index */
 static pfFsciPortOpHandler_t mOpHandlers[255] = {0};
 
 /************************************************************************************
@@ -99,11 +96,11 @@ void BLE_PortFsciInit(void)
 
     RNG_Init();
 
-    /* Read and set device address */
-    BleApp_ReadPublicDeviceAddress();
-
     /* Initialize events */
     (void)OSA_EventCreate(mNcpHostEvent, (uint8_t)TRUE);
+
+    /* Read and set device address */
+    BleApp_ReadPublicDeviceAddress();
 
 #if (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U))
     /* Init NVM */
@@ -141,7 +138,7 @@ uint8_t BLE_PortFsciRegisterBlockingEvent (void)
     uint8_t currntIdx = mpBlockOpIdx;
 
     /* Increase index */
-    mpBlockOpIdx++;
+    mpBlockOpIdx = (mpBlockOpIdx << 1U);
 
     return currntIdx;
 }
