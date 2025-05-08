@@ -1785,7 +1785,8 @@ void fsciBleGattClientProcedureEvtMonitor(deviceId_t deviceId, bearerId_t bearer
     {
 #endif /* gFsciBleTest_d */
 #if (defined(gMatterConfig_d) && (gMatterConfig_d > 0))
-    /* Not needed by Matter */
+    	/* Not needed by Matter */
+        (void)earlyReturn;
 #else
         if ((uint8_t)procedureType < SizeOfArray(maGattClientProcEvtHandlers))
         {

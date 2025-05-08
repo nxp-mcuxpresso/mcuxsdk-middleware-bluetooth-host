@@ -235,6 +235,18 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_matter_component_lib)
         FPU SP_FPU
         TOOLCHAINS mcux armgcc
     )
+    mcux_add_library(
+        LIBS host/lib/lib_ble_host_matter_cm33_nofp_nodsp_iar.a
+        DSP NO_DSP
+        FPU NO_FPU
+        TOOLCHAINS iar
+    )
+    mcux_add_library(
+        LIBS host/lib/lib_ble_host_matter_cm33_nofp_nodsp_gcc.a
+        DSP NO_DSP
+        FPU NO_FPU
+        TOOLCHAINS mcux armgcc
+    )
 endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_component_lib)

@@ -2356,7 +2356,11 @@ const pfGapGetBufferFromGenericEventHandler_t maGapGetBufferFromGenericEventHand
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
     NULL,                                                                       /* reserved: 0x4FU */
     NULL,                                                                       /* reserved: 0x50U */
+#if (defined(gMatterConfig_d) && (gMatterConfig_d > 0))
+    NULL,                                                                       /* reserved: 0x51U */
+#else
     GetBufferFromVendorUnitaryTestCompleteEvent,                                /* 0x51U, gVendorUnitaryTestComplete_c */
+#endif /* (defined(gMatterConfig_d) && (gMatterConfig_d > 0)) */
 };
 
 /*! Array of handler functions used by fsciBleGapGetGenericEventBufferSize */
@@ -2467,7 +2471,11 @@ const pfGapGetGenericEventBufferSizeHandler_t maGapGetGenericEventBufferSizeHand
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
     NULL,                                                                       /* resreved: 0x4FU */
     NULL,                                                                       /* resreved: 0x50U */
+#if (defined(gMatterConfig_d) && (gMatterConfig_d > 0))
+    NULL,                                                                       /* resreved: 0x51U */
+#else
     GetVendorUnitaryTestCompleteBufferSize,                                     /* 0x51U, gVendorUnitaryTestComplete_c */
+#endif /* (defined(gMatterConfig_d) && (gMatterConfig_d > 0)) */
 };
 
 #if gFsciBleBBox_d || gFsciBleTest_d

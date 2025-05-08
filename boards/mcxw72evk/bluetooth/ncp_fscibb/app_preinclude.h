@@ -33,7 +33,9 @@
  ********************************************************************************** */
 /* Use an optimized version of the application, for Matter commissioning */
 /* Ensure that the Matter flavor of the Host library is used */
-#define gMatterConfig_d                 0
+#ifndef gMatterConfig_d
+    #define gMatterConfig_d                 0
+#endif /* gMatterConfig_d */
 
 /*! Maximum number of connections supported for this application */
 #define gAppMaxConnections_c            8U
