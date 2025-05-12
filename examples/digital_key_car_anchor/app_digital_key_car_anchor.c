@@ -27,7 +27,9 @@
 #if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
 #include "fsl_shell.h"
 #endif
+#if defined(gPlatformUseHwParameter_d) && (gPlatformUseHwParameter_d > 0)
 #include "HWParameter.h"
+#endif /* defined(gPlatformUseHwParameter_d) && (gPlatformUseHwParameter_d > 0) */
 #include "app.h"
 #include "fwk_seclib.h"
 /* BLE Host Stack */
@@ -172,8 +174,12 @@ static void A2A_CheckLocalIrk(void);
 static void BleApp_HandoverEventHandler(appHandoverEvent_t eventType, void *pData);
 static void BleApp_HandoverCommHandler(uint8_t opGroup, uint8_t cmdId, uint16_t len, uint8_t *pData);
 #endif /* defined(gHandoverDemo_d) && (gHandoverDemo_d == 1U) */
+#if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
 static void BleApp_OP_StartCaller(appCallbackParam_t param);
+#endif /* (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0)) */
+#if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 1))
 static void BleApp_PE_StartCaller(appCallbackParam_t param);
+#endif /* (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 1)) */
 
 #if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
 static void BleApp_IdsCallback(idsEventData_t *pEventData);
@@ -1772,6 +1778,7 @@ static void BleApp_HandoverCommHandler(uint8_t opGroup, uint8_t cmdId, uint16_t 
 }
 #endif /* defined(gHandoverDemo_d) && (gHandoverDemo_d == 1U) */
 
+#if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
 /*! *********************************************************************************
 * \brief        Calls BleApp_OP_Start on application task
 *
@@ -1781,7 +1788,9 @@ static void BleApp_OP_StartCaller(appCallbackParam_t param)
     (void)param;
     BleApp_OP_Start();
 }
+#endif /* (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0)) */
 
+#if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 1))
 /*! *********************************************************************************
 * \brief        Calls BleApp_PE_Start on application task
 *
@@ -1791,6 +1800,7 @@ static void BleApp_PE_StartCaller(appCallbackParam_t param)
     (void)param;
     BleApp_PE_Start();
 }
+#endif /* (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 1)) */
 
 #if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
 /*! *********************************************************************************

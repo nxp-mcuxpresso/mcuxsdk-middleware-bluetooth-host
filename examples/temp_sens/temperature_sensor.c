@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -29,12 +29,9 @@
 #include "fsl_component_panic.h"
 #include "fsl_component_serial_manager.h"
 #include "FunctionLib.h"
-#if defined(K32W232H_SERIES) || defined(KW45B41Z82_SERIES) || \
-    defined(KW45B41Z83_SERIES) || defined(K32W1480_SERIES) || defined(MCXW345_SERIES) || \
-    defined(MCXW716C_SERIES) || defined(MCXW716A_SERIES) || \
-    defined(KW47B42ZB7_cm33_core0_SERIES) || defined(MCXW727C_cm33_core0_SERIES)
+#if defined(gAppUseSensors_d) && (gAppUseSensors_d > 0U)
 #include "sensors.h"
-#endif
+#endif /* defined(gAppUseSensors_d) && (gAppUseSensors_d > 0U) */
 
 /* BLE Host Stack */
 #include "gatt_server_interface.h"

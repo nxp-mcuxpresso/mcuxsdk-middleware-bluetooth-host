@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -638,12 +638,13 @@ static void BleApp_ScanningCallback (gapScanningEvent_t* pScanningEvent)
                 /* Start advertising timer */
                 (void)TM_InstallCallback((timer_handle_t)mAppTimerId, ScanningTimeoutTimerCallback, NULL);
                 (void)TM_Start((timer_handle_t)mAppTimerId, kTimerModeLowPowerTimer | kTimerModeSetSecondTimer, gScanningTime_c);
-
+#if defined(gAppLedCnt_c) && (gAppLedCnt_c > 0)
                 for (uint8_t i = 0; i < gAppLedCnt_c; i++)
                 {
                    LedOff(i);
                 }
                 Led1Flashing();
+#endif /* defined(gAppLedCnt_c) && (gAppLedCnt_c > 0) */
 
             }
             /* Node is not scanning */
@@ -725,11 +726,13 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
             OtapServer_HandleDisconnectionEvent (peerDeviceId);
 
             /* UI */
+#if defined(gAppLedCnt_c) && (gAppLedCnt_c > 0)
             for (uint8_t i = 0; i < gAppLedCnt_c; i++)
             {
                 LedOff(i);
             }
             Led1Flashing();
+#endif /* defined(gAppLedCnt_c) && (gAppLedCnt_c > 0) */
 
             /* Restart application */
             BleApp_Start();

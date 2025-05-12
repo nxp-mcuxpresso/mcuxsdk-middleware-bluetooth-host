@@ -56,12 +56,10 @@
 #include "wireless_uart.h"
 #include "genfsk_app.h"
 
-#if defined(K32W232H_SERIES) || defined(KW45B41Z82_SERIES) || defined(KW45B41Z83_SERIES) || defined(K32W1480_SERIES) || \
-    defined(KW47B42ZB7_cm33_core0_SERIES) || defined(KW47B42ZB6_cm33_core0_SERIES) || defined(KW47B42ZB3_cm33_core0_SERIES) || \
-    defined(KW47B42ZB2_cm33_core0_SERIES) || defined(KW47B42Z97_cm33_core0_SERIES) || defined(KW47B42Z96_cm33_core0_SERIES) || \
-    defined(KW47B42Z83_cm33_core0_SERIES) || defined(MCXW716C_SERIES) || defined(MCXW716A_SERIES) || defined(MCXW727C_cm33_core0_SERIES)
+#if defined(gAppUseSensors_d) && (gAppUseSensors_d > 0U)
 #include "sensors.h"
-#endif
+#endif /* defined(gAppUseSensors_d) && (gAppUseSensors_d > 0U) */
+
 
 #if defined(gUseControllerNotificationsCallback_c) && (gUseControllerNotificationsCallback_c)
     #error "This feature is not available on this board"
@@ -273,12 +271,14 @@ static appAdvertisingParams_t mAppAdvParams = {
 };
 #endif
 
+#if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
 #if defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1)
 /* Keep state of user intent to Transmit */
 static bool_t mbGfskTxStarted = FALSE;
 /* Keep state of user intent to Receive */
 static bool_t mbGfskRxStarted = FALSE;
 #endif /* defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1) */
+#endif /* (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0)) */
 /************************************************************************************
 *************************************************************************************
 * Public functions
