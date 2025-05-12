@@ -43,6 +43,9 @@
 #if defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)
 #include "NVM_Interface.h"
 #include "host_app_nvm.h"
+#if defined(gNvmEnableFSCIMonitoring_c) && (gNvmEnableFSCIMonitoring_c == 1)
+#include "NV_FsciCommands.h"
+#endif /* defined(gNvmEnableFSCIMonitoring_c) && (gNvmEnableFSCIMonitoring_c == 1) */
 #endif /* defined(gAppUseNvm_d) && (gAppUseNvm_d > 0) */
 
 /************************************************************************************
@@ -321,6 +324,9 @@ void BluetoothLEHost_AppInit(void)
     /* Initialize NV module */
     (void)NvModuleInit();
     (void)App_HostNvmInit();
+#if defined(gNvmEnableFSCIMonitoring_c) && (gNvmEnableFSCIMonitoring_c == 1)
+    NV_SetFSCIMonitoringState(TRUE);
+#endif /* defined(gNvmEnableFSCIMonitoring_c) && (gNvmEnableFSCIMonitoring_c == 1) */
 #endif /* gAppUseNvm_d */
     /* Prepare callback input queue.*/
     MSG_QueueInit(&mAppCbInputQueue);
