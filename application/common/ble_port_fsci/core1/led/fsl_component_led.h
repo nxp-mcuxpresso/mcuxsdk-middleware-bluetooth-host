@@ -26,25 +26,25 @@
 #if (defined(gAppLedCnt_c) && (gAppLedCnt_c > 0))
 /* Start flashing all LEDs.*/
 #define LedStartFlashingAllLeds(void)         FSCI_transmitPayload(BLE_PORT_FSCI_OG,\
-                                                  g_LedStartFlashingAllLeds_c, NULL, 0, gFsciInterface_c);
+                                                  (uint8_t)g_LedStartFlashingAllLeds_c, NULL, 0, gFsciInterface_c);
 /* Stop flashing all LEDs */
 #define LedStopFlashingAllLeds(void)          FSCI_transmitPayload(BLE_PORT_FSCI_OG,\
-                                                  g_LedStopFlashingAllLeds_c, NULL, 0, gFsciInterface_c);
+                                                  (uint8_t)g_LedStopFlashingAllLeds_c, NULL, 0, gFsciInterface_c);
 /* Trun on LED1 */
 #define Led1On(void)                          FSCI_transmitPayload(BLE_PORT_FSCI_OG,\
-                                                  g_Led1On_c, NULL, 0, gFsciInterface_c);
+                                                  (uint8_t)g_Led1On_c, NULL, 0, gFsciInterface_c);
 /* Trun on LED2 */
 #define Led2On(void)                          FSCI_transmitPayload(BLE_PORT_FSCI_OG,\
-                                                  g_Led2On_c, NULL, 0, gFsciInterface_c);
+                                                  (uint8_t)g_Led2On_c, NULL, 0, gFsciInterface_c);
 /* Start flashing LED1 */
 #define  Led1Flashing(void)                   FSCI_transmitPayload(BLE_PORT_FSCI_OG,\
-                                                  g_Led1Flashing_c, NULL, 0, gFsciInterface_c);
+                                                  (uint8_t)g_Led1Flashing_c, NULL, 0, gFsciInterface_c);
 /* Start flashing LED2 */
 #define Led2Flashing(void)                    FSCI_transmitPayload(BLE_PORT_FSCI_OG,\
-                                                  g_Led2Flashing_c, NULL, 0, gFsciInterface_c);
+                                                  (uint8_t)g_Led2Flashing_c, NULL, 0, gFsciInterface_c);
 /* Trun off LED1 */
 #define Led1Off(void)                         FSCI_transmitPayload(BLE_PORT_FSCI_OG,\
-                                                  g_Led1Off_c, NULL, 0, gFsciInterface_c);
+                                                  (uint8_t)g_Led1Off_c, NULL, 0, gFsciInterface_c);
 #else
 /* Start flashing all LEDs.*/
 #define LedStartFlashingAllLeds(void)

@@ -17,6 +17,7 @@
 *************************************************************************************
 ************************************************************************************/
 #include "fsl_common.h"
+#include "fsl_component_serial_manager.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -25,6 +26,22 @@
 ************************************************************************************/
 /*! @brief Macro to bypass arguments check */
 #define SHELL_IGNORE_PARAMETER_COUNT (0xFF)
+
+/*! @brief Macro to set maximum count of history commands. */
+#ifndef SHELL_HISTORY_COUNT
+#define SHELL_HISTORY_COUNT (3U)
+#endif
+
+/*! @brief Macro to set console buffer size. */
+#ifndef SHELL_BUFFER_SIZE
+#define SHELL_BUFFER_SIZE (64U)
+#endif
+
+/*! @brief The handle size of the shell module. It is the sum of the SHELL_HISTORY_COUNT * SHELL_BUFFER_SIZE +
+ * SHELL_BUFFER_SIZE + SERIAL_MANAGER_READ_HANDLE_SIZE + SERIAL_MANAGER_WRITE_HANDLE_SIZE*/
+#define SHELL_HANDLE_SIZE                                                                                   \
+    (160U + SHELL_HISTORY_COUNT * SHELL_BUFFER_SIZE + SHELL_BUFFER_SIZE + SERIAL_MANAGER_READ_HANDLE_SIZE + \
+     SERIAL_MANAGER_WRITE_HANDLE_SIZE)
 
 /*!
  * @brief Defines the shell handle
@@ -41,9 +58,7 @@
  *
  * @param name The name string of the shell handle.
  */
-#define SHELL_HANDLE_DEFINE(name) uint32_t name
-
-#define SERIAL_MANAGER_HANDLE_DEFINE(name) uint32_t name
+#define SHELL_HANDLE_DEFINE(name) uint32_t name[((SHELL_HANDLE_SIZE + sizeof(uint32_t) - 1U) / sizeof(uint32_t))]
 
 /************************************************************************************
 *************************************************************************************

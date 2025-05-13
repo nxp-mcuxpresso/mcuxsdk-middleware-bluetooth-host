@@ -34,7 +34,14 @@
 bleResult_t BleApp_ReadPublicDeviceAddress(void);
 
 /*! *********************************************************************************
-* \brief  This is the generic callback for Bluetooth events.
+*\fn        bleResult_t Hcit_PktReceived(hciPacketType_t type, void* packet, uint16_t size)
+*\brief     This is the generic callback for Bluetooth events.
+*
+*\param[in]     type       Packet type
+*\param[in]     packet     Pointer to packet
+*\param[in]     size       Packet size
+*
+*\retval    gBleSuccess_c               Operation successfull
 ********************************************************************************** */
 bleResult_t Hcit_PktReceived
 (

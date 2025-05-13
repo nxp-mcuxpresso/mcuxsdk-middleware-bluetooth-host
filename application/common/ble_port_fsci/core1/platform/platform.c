@@ -76,10 +76,10 @@ bleResult_t BleApp_ReadPublicDeviceAddress(void)
 
     mBlockTaskReadAddrIdx = BLE_PortFsciRegisterBlockingEvent();
 
-    FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_AppReadPublicDeviceAddress_c,
-                         NULL, fsciDataSize, gFsciInterface_c);
+    FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_AppReadPublicDeviceAddress_c,
+                         NULL, (uint16_t)fsciDataSize, gFsciInterface_c);
 
-    BLE_PortFsciRegisterOpHandler(g_AppWritePublicDeviceAddress_c, BleApp_HandleWritePublicDeviceAddress);
+    BLE_PortFsciRegisterOpHandler((uint8_t)g_AppWritePublicDeviceAddress_c, BleApp_HandleWritePublicDeviceAddress);
 
     BLE_PortFsciBlock(mBlockTaskReadAddrIdx);
 

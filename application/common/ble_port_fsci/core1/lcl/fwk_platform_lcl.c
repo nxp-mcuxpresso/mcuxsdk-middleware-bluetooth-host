@@ -14,9 +14,8 @@
  ************************************************************************************/
 #include "ble_port_fsci.h"
 #include "ble_port_fsci_op.h"
-#include "FsciInterface.h"
-#include "fsci_ble.h"
 #include "FsciCommunication.h"
+#include "fwk_platform_lcl.h"
 
 /*************************************************************************************
 * Private macros
@@ -46,14 +45,32 @@
 * Public functions
 *************************************************************************************
 ************************************************************************************/
+/*! *********************************************************************************
+*\brief        Setup debug GPIOs and antenna switching IOs for BLE localization apps
+*
+*\param  [in]  none
+*
+*\retval       none
+********************************************************************************** */
 void PLATFORM_InitLcl(void)
 {
-    FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_PlatformInitLclOpCode_c, NULL, 0, gFsciInterface_c);
+    FSCI_transmitPayload(BLE_PORT_FSCI_OG,
+                         (uint8_t)g_PlatformInitLclOpCode_c,
+                         NULL, 0, gFsciInterface_c);
 }
 
+/*! *********************************************************************************
+*\brief        Setup debug GPIOs for BLE localization apps
+*
+*\param  [in]  debug    False to requisite PORTD2 for antenna switch, True to restore
+*
+*\retval       none
+********************************************************************************** */
 void PLATFORM_InitLclGpioDebug(bool_t debug)
 {
-    FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_PlatformInitLclGpioDebugOpCode_c, NULL, 0, gFsciInterface_c);
+    FSCI_transmitPayload(BLE_PORT_FSCI_OG,
+                         (uint8_t)g_PlatformInitLclGpioDebugOpCode_c,
+                         NULL, 0, gFsciInterface_c);
 }
 
 /************************************************************************************

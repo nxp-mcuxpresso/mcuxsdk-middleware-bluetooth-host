@@ -76,20 +76,26 @@ button_status_t BUTTON_InstallCallback
 {
     button_state_t *buttonState;
     uint8_t buttonId;
+    union {
+      button_handle_t bh;
+      uint32_t bhu32;
+    } btHandle = {};
 
     assert(buttonHandle);
+
+    btHandle.bh = buttonHandle;
 
     buttonState = (button_state_t *)buttonHandle;
     buttonState->callback      = callback;
     buttonState->callbackParam = callbackParam;
 
-    buttonId = (uint8_t)(((uint32_t)buttonHandle - (uint32_t)g_buttonHandle) /
+    buttonId = (uint8_t)((btHandle.bhu32 - (uint32_t)g_buttonHandle) /
                          BUTTON_HANDLE_SIZE);
 
-    FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_BUTTON_InstallCallback_c,
-                         (void*)&buttonId, sizeof(buttonId), gFsciInterface_c);
+    FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_BUTTON_InstallCallback_c,
+                         (void*)&buttonId, (uint16_t)sizeof(buttonId), gFsciInterface_c);
 
-    BLE_PortFsciRegisterOpHandler(g_BUTTON_InstallCallback_c, ButtonsHandler);
+    BLE_PortFsciRegisterOpHandler((uint8_t)g_BUTTON_InstallCallback_c, ButtonsHandler);
 
     return kStatus_BUTTON_Success;
 }
@@ -133,5 +139,5 @@ static void ButtonsHandler
     buttonState = (button_state_t *)buttonHandle;
     msg.event = temp.pData->event;
 
-    buttonState->callback(buttonHandle, &msg, buttonState->callbackParam);
+    (void)buttonState->callback(buttonHandle, &msg, buttonState->callbackParam);
 }

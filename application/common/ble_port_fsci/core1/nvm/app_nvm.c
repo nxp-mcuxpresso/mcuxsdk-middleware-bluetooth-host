@@ -21,6 +21,7 @@
 #include "ble_port_fsci_op.h"
 #include "app_nvm.h"
 #include "ble_port_fsci.h"
+#include "app_conn.h"
 
 /*! *********************************************************************************
 *************************************************************************************
@@ -132,6 +133,22 @@ static void nvmCmdEraseHandler
     uint8_t len,
     void *pData
 );
+
+/* Blocking function used to read data from NVM on the host processor.*/
+static bleResult_t App_HostNvmRead
+(
+    uint8_t  mEntryIdx,
+    void*    pBondHeader,
+    void*    pBondDataDynamic,
+    void*    pBondDataStatic,
+    void*    pBondDataLegacy,
+    void*    pBondDataDeviceInfo,
+    void*    pBondDataDescriptor,
+    uint32_t descriptorBitmask,
+    uint8_t* pDataSetBitmask,
+    uint32_t *pBondDescriptorBitmask
+);
+
 #endif /* (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U)) */
 /************************************************************************************
 *************************************************************************************
@@ -218,6 +235,10 @@ bleResult_t App_NvmWrite
 )
 {
     bleResult_t status = gBleSuccess_c;
+    union {
+      uint8_t u8;
+      uint32_t u32;
+    } descrIdx = {};
 
     if (mEntryIdx >= (uint8_t)gMaxBondedDevices_c)
     {
@@ -230,7 +251,7 @@ bleResult_t App_NvmWrite
         {
             FLib_MemCpy(&maBondDataBlobs[mEntryIdx].bondHeader, pBondHeader, gBleBondIdentityHeaderSize_c );
             maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask |= nvmId_BondingHeaderBit_c;
-            maBondDataBlobs[mEntryIdx].bondDataSetValidHostBitmask &= ~nvmId_BondingHeaderBit_c;
+            maBondDataBlobs[mEntryIdx].bondDataSetValidHostBitmask &= (uint8_t)(~nvmId_BondingHeaderBit_c);
         }
 
         if (pBondDataDynamic != NULL)
@@ -239,7 +260,7 @@ bleResult_t App_NvmWrite
                         pBondDataDynamic,
                         gBleBondDataDynamicSize_c);
             maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask |= nvmId_BondingDataDynamicBit_c;
-            maBondDataBlobs[mEntryIdx].bondDataSetValidHostBitmask &= ~nvmId_BondingDataDynamicBit_c;
+            maBondDataBlobs[mEntryIdx].bondDataSetValidHostBitmask &= (uint8_t)(~nvmId_BondingDataDynamicBit_c);
         }
 
         if (pBondDataStatic != NULL)
@@ -248,7 +269,7 @@ bleResult_t App_NvmWrite
                         pBondDataStatic,
                         gBleBondDataStaticSize_c);
             maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask |= nvmId_BondingDataStaticBit_c;
-            maBondDataBlobs[mEntryIdx].bondDataSetValidHostBitmask &= ~nvmId_BondingDataStaticBit_c;
+            maBondDataBlobs[mEntryIdx].bondDataSetValidHostBitmask &= (uint8_t)(~nvmId_BondingDataStaticBit_c);
         }
 
         if (pBondDataLegacy != NULL)
@@ -257,7 +278,7 @@ bleResult_t App_NvmWrite
                         pBondDataLegacy,
                         gBleBondDataLegacySize_c);
             maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask |= nvmId_BondingDataLegacyBit_c;
-            maBondDataBlobs[mEntryIdx].bondDataSetValidHostBitmask &= ~nvmId_BondingDataLegacyBit_c;
+            maBondDataBlobs[mEntryIdx].bondDataSetValidHostBitmask &= (uint8_t)(~nvmId_BondingDataLegacyBit_c);
         }
 
         if (pBondDataDeviceInfo != NULL)
@@ -266,7 +287,7 @@ bleResult_t App_NvmWrite
                         pBondDataDeviceInfo,
                         gBleBondDataDeviceInfoSize_c);
             maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask |= nvmId_BondingDataDeviceInfoBit_c;
-            maBondDataBlobs[mEntryIdx].bondDataSetValidHostBitmask &= ~nvmId_BondingDataDeviceInfoBit_c;
+            maBondDataBlobs[mEntryIdx].bondDataSetValidHostBitmask &=(uint8_t)( ~nvmId_BondingDataDeviceInfoBit_c);
         }
 
         if (pBondDataDescriptor != NULL && mDescriptorIndex < gcGapMaximumSavedCccds_c)
@@ -275,9 +296,11 @@ bleResult_t App_NvmWrite
                         pBondDataDescriptor,
                         gBleBondDataDescriptorSize_c);
             maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask |= nvmId_BondingDataDescriptorBit_c;
-            maBondDataBlobs[mEntryIdx].bondDataSetValidHostBitmask &= ~nvmId_BondingDataDescriptorBit_c;
-            maBondDataBlobs[mEntryIdx].bondDescriptorSetValidBitmask |= 1 << mDescriptorIndex;
-            maBondDataBlobs[mEntryIdx].bondDescriptorSetValidHostBitmask &= ~(1 << mDescriptorIndex);
+            maBondDataBlobs[mEntryIdx].bondDataSetValidHostBitmask &= (uint8_t)(~nvmId_BondingDataDescriptorBit_c);
+            descrIdx.u8 = 1U << mDescriptorIndex;
+            maBondDataBlobs[mEntryIdx].bondDescriptorSetValidBitmask |= descrIdx.u32;
+            descrIdx.u8 = 1U << mDescriptorIndex;
+            maBondDataBlobs[mEntryIdx].bondDescriptorSetValidHostBitmask &= ~descrIdx.u32;
         }
 
         gAppNvmOperationPending = TRUE;
@@ -375,6 +398,10 @@ bleResult_t App_NvmRead
 )
 {
     bleResult_t status = gBleSuccess_c;
+    union {
+      uint8_t u8;
+      uint32_t u32;
+    } descrIdx = {};
 
     if (mEntryIdx >= (uint8_t)gMaxBondedDevices_c)
     {
@@ -385,7 +412,7 @@ bleResult_t App_NvmRead
 #if (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U))
         if (pBondHeader != NULL)
         {
-            if (maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask & nvmId_BondingHeaderBit_c)
+            if ((maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask & nvmId_BondingHeaderBit_c) != 0U)
             {
                 FLib_MemCpy(pBondHeader, &maBondDataBlobs[mEntryIdx].bondHeader, gBleBondIdentityHeaderSize_c);
             }
@@ -397,7 +424,7 @@ bleResult_t App_NvmRead
 
         if (pBondDataDynamic != NULL)
         {
-            if (maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask & nvmId_BondingDataDynamicBit_c)
+            if ((maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask & nvmId_BondingDataDynamicBit_c) != 0U)
             {
                 FLib_MemCpy(pBondDataDynamic,
                             (uint8_t*)&maBondDataBlobs[mEntryIdx].bondDataBlobDynamic,
@@ -411,7 +438,7 @@ bleResult_t App_NvmRead
 
         if (pBondDataStatic != NULL)
         {
-            if (maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask & nvmId_BondingDataStaticBit_c)
+            if ((maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask & nvmId_BondingDataStaticBit_c) != 0U)
             {
                 FLib_MemCpy(pBondDataStatic,
                             (uint8_t*)&maBondDataBlobs[mEntryIdx].bondDataBlobStatic,
@@ -425,7 +452,7 @@ bleResult_t App_NvmRead
 
         if (pBondDataLegacy != NULL)
         {
-            if (maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask & nvmId_BondingDataLegacyBit_c)
+            if ((maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask & nvmId_BondingDataLegacyBit_c) != 0U)
             {
                 FLib_MemCpy(pBondDataLegacy,
                             (uint8_t*)&maBondDataBlobs[mEntryIdx].bondDataBlobLegacy,
@@ -439,7 +466,7 @@ bleResult_t App_NvmRead
 
         if (pBondDataDeviceInfo != NULL)
         {
-            if (maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask & nvmId_BondingDataDeviceInfoBit_c)
+            if ((maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask & nvmId_BondingDataDeviceInfoBit_c) != 0U)
             {
                 FLib_MemCpy(pBondDataDeviceInfo,
                             (uint8_t*)&maBondDataBlobs[mEntryIdx].bondDataBlobDeviceInfo,
@@ -453,8 +480,9 @@ bleResult_t App_NvmRead
 
         if (pBondDataDescriptor != NULL && mDescriptorIndex < gcGapMaximumSavedCccds_c)
         {
-            if ((maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask & nvmId_BondingDataDescriptorBit_c) &&
-                (maBondDataBlobs[mEntryIdx].bondDescriptorSetValidBitmask & (1 << mDescriptorIndex)))
+            descrIdx.u8 = 1U << mDescriptorIndex;
+            if (((maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask & nvmId_BondingDataDescriptorBit_c) != 0U) &&
+                ((maBondDataBlobs[mEntryIdx].bondDescriptorSetValidBitmask & descrIdx.u32) != 0U))
             {
                 FLib_MemCpy(pBondDataDescriptor,
                             (uint8_t*)&(maBondDataBlobs[mEntryIdx].bondDataDescriptors[mDescriptorIndex]),
@@ -548,7 +576,7 @@ bleResult_t App_NvmRead
 *\retval    gBleUnexpectedError_c   Error occured while sending the request to the host
 *\retval    gBleSuccess_c           Operation successfull
 ********************************************************************************** */
-bleResult_t App_HostNvmRead
+static bleResult_t App_HostNvmRead
 (
     uint8_t  mEntryIdx,
     void*    pBondHeader,
@@ -605,7 +633,7 @@ bleResult_t App_HostNvmRead
             datasetBitmask |= nvmId_BondingDataDescriptorBit_c;
         }
 
-        fsciDataSize += 2 * sizeof(uint8_t) + sizeof(uint32_t);
+        fsciDataSize += 2U * sizeof(uint8_t) + sizeof(uint32_t);
 
         pBuffer = MEM_BufferAlloc(fsciDataSize);
 
@@ -617,10 +645,10 @@ bleResult_t App_HostNvmRead
             fsciBleGetBufferFromUint8Value(datasetBitmask, pBufAux);
             fsciBleGetBufferFromUint32Value(descriptorBitmask, pBufAux);
 
-            FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_AppBleNvmCbCmdRead_c,
-                                 pBuffer, fsciDataSize, gFsciInterface_c);
+            FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_AppBleNvmCbCmdRead_c,
+                                 pBuffer, (uint16_t)fsciDataSize, gFsciInterface_c);
 
-            BLE_PortFsciRegisterOpHandler(g_AppBleNvmCbCmdReadInd_c, nvmCmdReadHandler);
+            BLE_PortFsciRegisterOpHandler((uint8_t)g_AppBleNvmCbCmdReadInd_c, nvmCmdReadHandler);
 
             /* Block and wait for core 0 response */
             BLE_PortFsciBlock(mBlockTaskNvmReadIdx);
@@ -641,32 +669,32 @@ bleResult_t App_HostNvmRead
 
             if (status == gBleSuccess_c)
             {
-                if (*pDataSetBitmask & nvmId_BondingHeaderBit_c)
+                if ((*pDataSetBitmask & nvmId_BondingHeaderBit_c) != 0U)
                 {
                     FLib_MemCpy(pBondHeader, pNvmData, (gBleBondIdentityHeaderSize_c));
                     pNvmData += (gBleBondIdentityHeaderSize_c);
                 }
-                if (*pDataSetBitmask & nvmId_BondingDataDynamicBit_c)
+                if ((*pDataSetBitmask & nvmId_BondingDataDynamicBit_c) != 0U)
                 {
                     FLib_MemCpy(pBondDataDynamic, pNvmData, gBleBondDataDynamicSize_c);
                     pNvmData += gBleBondDataDynamicSize_c;
                 }
-                if (*pDataSetBitmask & nvmId_BondingDataStaticBit_c)
+                if ((*pDataSetBitmask & nvmId_BondingDataStaticBit_c) != 0U)
                 {
                     FLib_MemCpy(pBondDataStatic, pNvmData, gBleBondDataStaticSize_c);
                     pNvmData += gBleBondDataStaticSize_c;
                 }
-                if (*pDataSetBitmask & nvmId_BondingDataLegacyBit_c)
+                if ((*pDataSetBitmask & nvmId_BondingDataLegacyBit_c) != 0U)
                 {
                     FLib_MemCpy(pBondDataLegacy, pNvmData, gBleBondDataLegacySize_c);
                     pNvmData += gBleBondDataLegacySize_c;
                 }
-                if (*pDataSetBitmask & nvmId_BondingDataDeviceInfoBit_c)
+                if ((*pDataSetBitmask & nvmId_BondingDataDeviceInfoBit_c) != 0U)
                 {
                     FLib_MemCpy(pBondDataDeviceInfo, pNvmData, gBleBondDataDeviceInfoSize_c);
                     pNvmData += gBleBondDataDeviceInfoSize_c;
                 }
-                if (*pDataSetBitmask & nvmId_BondingDataDescriptorBit_c)
+                if ((*pDataSetBitmask & nvmId_BondingDataDescriptorBit_c) != 0U)
                 {
                     uint32_t tempDescBitmask = *pBondDescriptorBitmask;
                     uint8_t descIdx = 0U;
@@ -675,14 +703,14 @@ bleResult_t App_HostNvmRead
                     {
                         descIdx = HAL_CTZ(tempDescBitmask);
                         FLib_MemCpy(&((bleBondDataDescriptorBlob_t *)pBondDataDescriptor)[descIdx], pNvmData, gBleBondDataDescriptorSize_c);
-                        tempDescBitmask &= tempDescBitmask - 1;
+                        tempDescBitmask &= tempDescBitmask - 1U;
                         pNvmData += gBleBondDataDescriptorSize_c;
                     }
                 }
             }
 
-            MEM_BufferFree(pAppBleNvmReadData);
-            MEM_BufferFree(pBuffer);
+            (void)MEM_BufferFree(pAppBleNvmReadData);
+            (void)MEM_BufferFree(pBuffer);
         }
         else
         {
@@ -711,7 +739,7 @@ bleResult_t App_NcpNvmInit(void)
     mBlockTaskNvmReadIdx = BLE_PortFsciRegisterBlockingEvent();
 
     /* Initialize RAM NVM entries */
-    for (uint32_t i = 0U; i < gMaxBondedDevices_c; i++)
+    for (uint8_t i = 0U; i < (uint8_t)gMaxBondedDevices_c; i++)
     {
         result = App_HostNvmRead(i, &maBondDataBlobs[i].bondHeader,
                                  &maBondDataBlobs[i].bondDataBlobDynamic,
@@ -719,7 +747,7 @@ bleResult_t App_NcpNvmInit(void)
                                  &maBondDataBlobs[i].bondDataBlobLegacy,
                                  &maBondDataBlobs[i].bondDataBlobDeviceInfo,
                                  &maBondDataBlobs[i].bondDataDescriptors,
-                                 (1 << gcGapMaximumSavedCccds_c) - 1,
+                                 (1U << gcGapMaximumSavedCccds_c) - 1U,
                                  &maBondDataBlobs[i].bondDataSetValidHostBitmask,
                                  &maBondDataBlobs[i].bondDescriptorSetValidHostBitmask);
 
@@ -751,7 +779,7 @@ void App_NvmIdle(void)
 
     if (gAppNvmOperationPending)
     {
-        for (uint32_t i = 0U; i < gMaxBondedDevices_c; i++)
+        for (uint8_t i = 0U; i < (uint8_t)gMaxBondedDevices_c; i++)
         {
             if (maBondDataBlobs[i].bondDataSetValidBitmask != maBondDataBlobs[i].bondDataSetValidHostBitmask)
             {
@@ -762,27 +790,33 @@ void App_NvmIdle(void)
                 }
                 else
                 {
-                    if ((maBondDataBlobs[i].bondDataSetValidBitmask ^ maBondDataBlobs[i].bondDataSetValidHostBitmask) & nvmId_BondingHeaderBit_c)
+                    if (((maBondDataBlobs[i].bondDataSetValidBitmask ^ maBondDataBlobs[i].bondDataSetValidHostBitmask)
+                          & nvmId_BondingHeaderBit_c) != 0U)
                     {
                         pBondHeader = &maBondDataBlobs[i].bondHeader;
                     }
-                    if ((maBondDataBlobs[i].bondDataSetValidBitmask ^ maBondDataBlobs[i].bondDataSetValidHostBitmask) & nvmId_BondingDataDynamicBit_c)
+                    if (((maBondDataBlobs[i].bondDataSetValidBitmask ^ maBondDataBlobs[i].bondDataSetValidHostBitmask)
+                          & nvmId_BondingDataDynamicBit_c) != 0U)
                     {
                         pBondDataDynamic = &maBondDataBlobs[i].bondDataBlobDynamic;
                     }
-                    if ((maBondDataBlobs[i].bondDataSetValidBitmask ^ maBondDataBlobs[i].bondDataSetValidHostBitmask) & nvmId_BondingDataStaticBit_c)
+                    if (((maBondDataBlobs[i].bondDataSetValidBitmask ^ maBondDataBlobs[i].bondDataSetValidHostBitmask)
+                          & nvmId_BondingDataStaticBit_c) != 0U)
                     {
                         pBondDataStatic = &maBondDataBlobs[i].bondDataBlobStatic;
                     }
-                    if ((maBondDataBlobs[i].bondDataSetValidBitmask ^ maBondDataBlobs[i].bondDataSetValidHostBitmask) & nvmId_BondingDataLegacyBit_c)
+                    if (((maBondDataBlobs[i].bondDataSetValidBitmask ^ maBondDataBlobs[i].bondDataSetValidHostBitmask)
+                          & nvmId_BondingDataLegacyBit_c) != 0U)
                     {
                         pBondDataLegacy = &maBondDataBlobs[i].bondDataBlobLegacy;
                     }
-                    if ((maBondDataBlobs[i].bondDataSetValidBitmask ^ maBondDataBlobs[i].bondDataSetValidHostBitmask) & nvmId_BondingDataDeviceInfoBit_c)
+                    if (((maBondDataBlobs[i].bondDataSetValidBitmask ^ maBondDataBlobs[i].bondDataSetValidHostBitmask)
+                          & nvmId_BondingDataDeviceInfoBit_c) != 0U)
                     {
                         pBondDataDeviceInfo = &maBondDataBlobs[i].bondDataBlobDeviceInfo;
                     }
-                    if ((maBondDataBlobs[i].bondDataSetValidBitmask ^ maBondDataBlobs[i].bondDataSetValidHostBitmask) & nvmId_BondingDataDescriptorBit_c)
+                    if (((maBondDataBlobs[i].bondDataSetValidBitmask ^ maBondDataBlobs[i].bondDataSetValidHostBitmask)
+                          & nvmId_BondingDataDescriptorBit_c) != 0U)
                     {
                         pBondDataDescriptor = &maBondDataBlobs[i].bondDataDescriptors;
                     }
@@ -888,7 +922,7 @@ static void nvmCmdReadHandler(uint8_t opc, uint8_t len, void *pData)
     if (pAppBleNvmReadData != NULL)
     {
         /* NVM Data length is packet length minus result, dataSetBitmask and dataSetBitmask */
-        uint32_t nvmDataLen = len - (sizeof(bleResult_t) + sizeof(uint8_t) + sizeof(uint32_t));
+        uint32_t nvmDataLen = (uint32_t)len - (sizeof(bleResult_t) + sizeof(uint8_t) + sizeof(uint32_t));
 
         fsciBleGetEnumValueFromBuffer(pAppBleNvmReadData->result, pBuffer, bleResult_t);
         fsciBleGetUint8ValueFromBuffer(pAppBleNvmReadData->dataSetBitmask, pBuffer);
@@ -925,10 +959,10 @@ static bleResult_t App_HostNvmErase
     }
     else
     {
-        FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_AppBleNvmCbCmdErase_c,
-                             &mEntryIdx, sizeof(uint8_t), gFsciInterface_c);
+        FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_AppBleNvmCbCmdErase_c,
+                             &mEntryIdx, (uint16_t)sizeof(uint8_t), gFsciInterface_c);
 
-        BLE_PortFsciRegisterOpHandler(g_AppBleNvmCbCmdEraseInd_c, nvmCmdEraseHandler);
+        BLE_PortFsciRegisterOpHandler((uint8_t)g_AppBleNvmCbCmdEraseInd_c, nvmCmdEraseHandler);
     }
 
     return status;
@@ -984,6 +1018,10 @@ static bleResult_t App_HostNvmWrite
     uint16_t nvmDataSize = 0U;
     void *pNvmData = NULL;
     uint8_t noOfWriteDescriptors = 0U;
+    union {
+        uint8_t u8;
+        uint16_t u16;
+    } nvmData = {};
 
     if (mEntryIdx >= (uint8_t)gMaxBondedDevices_c)
     {
@@ -1029,11 +1067,12 @@ static bleResult_t App_HostNvmWrite
 
             for (noOfWriteDescriptors = 0U; tempDescBitmask > 0U; noOfWriteDescriptors++)
             {
-                tempDescBitmask &= tempDescBitmask - 1;
+                tempDescBitmask &= tempDescBitmask - 1U;
             }
 
             /* Compute required size for the number of CCCDs read */
-            nvmDataSize += noOfWriteDescriptors * gBleBondDataDescriptorSize_c;
+            nvmData.u8 = noOfWriteDescriptors * gBleBondDataDescriptorSize_c;
+            nvmDataSize += nvmData.u16;
             datasetBitmask |= nvmId_BondingDataDescriptorBit_c;
         }
 
@@ -1043,35 +1082,35 @@ static bleResult_t App_HostNvmWrite
         if (pNvmData != NULL)
         {
             uint8_t *pData = pNvmData;
-            uint32_t fsciDataSize = 2 * sizeof(uint8_t) + sizeof(uint32_t) + nvmDataSize;
+            uint32_t fsciDataSize = 2U * sizeof(uint8_t) + sizeof(uint32_t) + (uint32_t)nvmDataSize;
             uint8_t *pBuffer = MEM_BufferAlloc(fsciDataSize);
 
-            if (datasetBitmask & nvmId_BondingHeaderBit_c)
+            if ((datasetBitmask & nvmId_BondingHeaderBit_c) != 0U)
             {
                 FLib_MemCpy(pData, pBondHeader, (gBleBondIdentityHeaderSize_c));
                 pData += (gBleBondIdentityHeaderSize_c);
             }
-            if (datasetBitmask & nvmId_BondingDataDynamicBit_c)
+            if ((datasetBitmask & nvmId_BondingDataDynamicBit_c) != 0U)
             {
                 FLib_MemCpy(pData, pBondDataDynamic, gBleBondDataDynamicSize_c);
                 pData += gBleBondDataDynamicSize_c;
             }
-            if (datasetBitmask & nvmId_BondingDataStaticBit_c)
+            if ((datasetBitmask & nvmId_BondingDataStaticBit_c) != 0U)
             {
                 FLib_MemCpy(pData, pBondDataStatic, gBleBondDataStaticSize_c);
                 pData += gBleBondDataStaticSize_c;
             }
-            if (datasetBitmask & nvmId_BondingDataLegacyBit_c)
+            if ((datasetBitmask & nvmId_BondingDataLegacyBit_c) != 0U)
             {
                 FLib_MemCpy(pData, pBondDataLegacy, gBleBondDataLegacySize_c);
                 pData += gBleBondDataLegacySize_c;
             }
-            if (datasetBitmask & nvmId_BondingDataDeviceInfoBit_c)
+            if ((datasetBitmask & nvmId_BondingDataDeviceInfoBit_c) != 0U)
             {
                 FLib_MemCpy(pData, pBondDataDeviceInfo, gBleBondDataDeviceInfoSize_c);
                 pData += gBleBondDataDeviceInfoSize_c;
             }
-            if (datasetBitmask & nvmId_BondingDataDescriptorBit_c)
+            if ((datasetBitmask & nvmId_BondingDataDescriptorBit_c) != 0U)
             {
                 uint32_t tempDescBitmask = descriptorBitmask;
                 uint8_t descIdx = 0U;
@@ -1080,7 +1119,7 @@ static bleResult_t App_HostNvmWrite
                 {
                     descIdx = HAL_CTZ(tempDescBitmask);
                     FLib_MemCpy(pData, &((bleBondDataDescriptorBlob_t *)pBondDataDescriptor)[descIdx], gBleBondDataDescriptorSize_c);
-                    tempDescBitmask &= tempDescBitmask - 1;
+                    tempDescBitmask &= tempDescBitmask - 1U;
                     pData += gBleBondDataDescriptorSize_c;
                 }
             }
@@ -1095,11 +1134,11 @@ static bleResult_t App_HostNvmWrite
                 fsciBleGetBufferFromUint32Value(descriptorBitmask, pBufAux);
                 fsciBleGetBufferFromArray(pNvmData, pBufAux, nvmDataSize);
 
-                FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_AppBleNvmCbCmdWrite_c,
-                                     pBuffer, fsciDataSize, gFsciInterface_c);
+                FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_AppBleNvmCbCmdWrite_c,
+                                     pBuffer, (uint16_t)fsciDataSize, gFsciInterface_c);
 
-                BLE_PortFsciRegisterOpHandler(g_AppBleNvmCbCmdWriteInd_c, nvmCmdWriteHandler);
-                MEM_BufferFree(pBuffer);
+                BLE_PortFsciRegisterOpHandler((uint8_t)g_AppBleNvmCbCmdWriteInd_c, nvmCmdWriteHandler);
+                (void)MEM_BufferFree(pBuffer);
             }
             else
             {

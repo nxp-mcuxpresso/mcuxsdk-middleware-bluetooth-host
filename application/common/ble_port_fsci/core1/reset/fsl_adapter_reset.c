@@ -20,6 +20,6 @@
 ************************************************************************************/
 void HAL_ResetMCU(void)
 {
-    FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_HAL_ResetMCU_c, NULL, 0, 
-                         gFsciInterface_c);
+    FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_HAL_ResetMCU_c,
+                         NULL, 0, gFsciInterface_c);
 }

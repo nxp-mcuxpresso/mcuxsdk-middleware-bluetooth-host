@@ -22,6 +22,7 @@
 #include "FsciInterface.h"
 #include "FunctionLib.h"
 #include "fsl_component_mem_manager.h"
+#include "fsl_component_serial_manager.h"
 #include "ble_port_fsci.h"
 
 /*! *********************************************************************************
@@ -37,7 +38,6 @@
 * Private memory declarations
 *************************************************************************************
 ************************************************************************************/
-SERIAL_MANAGER_HANDLE_DEFINE(gSerMgrIf);
 /* Shell buffer */
 static uint8_t mBuffer[SHELL_SPRINTF_BUFFER_SIZE] = {0};
 /* Shell commands buffer */
@@ -82,8 +82,8 @@ shell_status_t SHELL_Init
 
     mBlockTaskShellRegisterIdx = BLE_PortFsciRegisterBlockingEvent();
 
-    FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_SHELL_Init_c, (uint8_t const*)prompt,
-                         strlen(prompt) + 1, gFsciInterface_c);
+    FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_SHELL_Init_c, (uint8_t const*)prompt,
+                         (uint16_t)(strlen(prompt) + 1U), gFsciInterface_c);
 
     return kStatus_SHELL_Success;
 }
@@ -113,7 +113,7 @@ shell_status_t SHELL_RegisterCommand
     cmdLength = FLib_StrLen(shellCommand->pcCommand);
     helpLength = FLib_StrLen(shellCommand->pcHelpString);
 
-    pTemp = MEM_BufferAlloc(1 + cmdLength + 1 + helpLength + 1);
+    pTemp = MEM_BufferAlloc(1U + cmdLength + 1U + helpLength + 1U);
     if (pTemp != NULL)
     {
         maCommands[mCrtCmd] = shellCommand->pFuncCallBack;
@@ -122,31 +122,31 @@ shell_status_t SHELL_RegisterCommand
         pPos = pTemp;
         pPos[0] = shellCommand->cExpectedNumberOfParameters;
         pPos++;
-        FLib_MemCpy(pPos, shellCommand->pcCommand, cmdLength + 1);
-        pPos += cmdLength + 1;
-        FLib_MemCpy(pPos, shellCommand->pcHelpString, helpLength + 1);
+        FLib_MemCpy(pPos, shellCommand->pcCommand, cmdLength + 1U);
+        pPos += cmdLength + 1U;
+        FLib_MemCpy(pPos, shellCommand->pcHelpString, helpLength + 1U);
 
-        FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_SHELL_RegisterCommand_c, pTemp,
-                             1 + cmdLength + 1 + helpLength + 1,
+        FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_SHELL_RegisterCommand_c, pTemp,
+                             (uint16_t)(1U + cmdLength + 1U + helpLength + 1U),
                              gFsciInterface_c);
 
         if (mCrtCmd < SHELL_MAX_COMMANDS)
         {
             mCrtCmd++;
 
-            BLE_PortFsciRegisterOpHandler(g_SHELL_RegisterCommand_c,
+            BLE_PortFsciRegisterOpHandler((uint8_t)g_SHELL_RegisterCommand_c,
                                           RegisterCmdCnf);
 
             /* Block here waiting for the other core to reply */
             BLE_PortFsciBlock(mBlockTaskShellRegisterIdx);
 
-            BLE_PortFsciRegisterOpHandler(g_SHELL_Command_c,
+            BLE_PortFsciRegisterOpHandler((uint8_t)g_SHELL_Command_c,
                                           CmdHandler);
 
             status = kStatus_SHELL_Success;
         }
 
-        MEM_BufferFree(pTemp);
+        (void)MEM_BufferFree(pTemp);
     }
 
     return status;
@@ -166,13 +166,13 @@ int SHELL_PrintfSynchronization(shell_handle_t shellHandle, const char *formatSt
     uint32_t length;
 
     va_start(ap, formatString);
-    length = SHELL_Sprintf(mBuffer, formatString, ap);
+    length = (uint32_t)SHELL_Sprintf(mBuffer, formatString, ap);
     mBuffer[length] = 0;
-    FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_SHELL_PrintfSynchronization_c,
-                         (uint8_t const*)mBuffer, length + 1, gFsciInterface_c);
+    FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_SHELL_PrintfSynchronization_c,
+                         (uint8_t const*)mBuffer, (uint16_t)(length + 1U), gFsciInterface_c);
     va_end(ap);
 
-    return kStatus_SHELL_Success;
+    return (int)kStatus_SHELL_Success;
 }
 
 /*! *********************************************************************************
@@ -184,7 +184,7 @@ int SHELL_PrintfSynchronization(shell_handle_t shellHandle, const char *formatSt
 ********************************************************************************** */
 void SHELL_PrintPrompt(shell_handle_t shellHandle)
 {
-    FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_SHELL_PrintPrompt_c,
+    FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_SHELL_PrintPrompt_c,
                          NULL, 0, gFsciInterface_c);
 }
 
@@ -216,7 +216,7 @@ static void SHELL_WriteBuffer
 
     for (i = 0; i < len; i++)
     {
-        mBuffer[*indicator] = val;
+        mBuffer[*indicator] = (uint8_t)val;
         (*indicator)++;
     }
 }
@@ -281,9 +281,9 @@ static void CmdHandler(uint8_t opc, uint8_t len, void *pData)
     while(i <  temp.pData->argc)
     {
         argv[i] = pPos;
-        pPos += FLib_StrLen(pPos) + 1;
+        pPos += FLib_StrLen(pPos) + 1U;
         i++;
     }
 
-    maCommands[temp.pData->id](NULL, temp.pData->argc, argv);
+    (void)maCommands[temp.pData->id](NULL, temp.pData->argc, argv);
 }
