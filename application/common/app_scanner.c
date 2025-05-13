@@ -121,7 +121,7 @@ bool_t BluetoothLEHost_MatchDataInAdvElementList
     uint8_t i;
     bool_t status = FALSE;
     
-    if( pElement->length != 0U)
+    if( (pElement->length != 0U) && (iDataLen < pElement->length))
     {
         for (i = 0; i < (pElement->length - 1U); i += iDataLen)
         {
@@ -159,183 +159,201 @@ STATIC void App_ScanningCallback
     appMsgFromHost_t *pMsgIn = NULL;
     uint32_t msgLen = GetRelAddr(appMsgFromHost_t,msgData) + sizeof(gapScanningEvent_t);
 
-    if (pScanningEvent->eventType == gDeviceScanned_c)
+    if (pScanningEvent != NULL)
     {
-        msgLen += pScanningEvent->eventData.scannedDevice.dataLength;
-    }
-    else if (pScanningEvent->eventType == gExtDeviceScanned_c)
-    {
-        msgLen += pScanningEvent->eventData.extScannedDevice.dataLength;
-    }
-    else if (pScanningEvent->eventType == gPeriodicDeviceScanned_c)
-    {
-        msgLen += pScanningEvent->eventData.periodicScannedDevice.dataLength;
-    }
-    else if (pScanningEvent->eventType == gPeriodicDeviceScannedV2_c)
-    {
-        msgLen += pScanningEvent->eventData.periodicScannedDeviceV2.dataLength;
-    }
-    else if (pScanningEvent->eventType == gConnectionlessIqReportReceived_c)
-    {
-        msgLen += 2U * (uint32_t)pScanningEvent->eventData.iqReport.sampleCount;
-    }
-    else
-    {
-        /* msgLen does not modify for all other event types */
-    }
-
-    pMsgIn = MSG_Alloc(msgLen);
-
-    if (pMsgIn != NULL)
-    {
-        pMsgIn->msgType = (uint32_t)gAppGapScanMsg_c;
-        pMsgIn->msgData.scanMsg.eventType = pScanningEvent->eventType;
-        
-        if (pScanningEvent->eventType == gScanCommandFailed_c)
+        if (pScanningEvent->eventType == gDeviceScanned_c)
         {
-            pMsgIn->msgData.scanMsg.eventData.failReason =
-                pScanningEvent->eventData.failReason;
-        }
-        else if (pScanningEvent->eventType == gDeviceScanned_c)
-        {
-#if defined(gAppFilterPeerAdv_c) && (gAppFilterPeerAdv_c == 1)
-            bleResult_t status = gBleSuccess_c;
-            bool_t peerConnected = FALSE;
-            
-            status = Gap_CheckIfConnected(pScanningEvent->eventData.scannedDevice.addressType,
-                                          pScanningEvent->eventData.scannedDevice.aAddress,
-                                          pScanningEvent->eventData.scannedDevice.advertisingAddressResolved,
-                                          &peerConnected);
-            
-            if ((status == gBleSuccess_c) && (peerConnected == FALSE))
+            if (pScanningEvent->eventData.scannedDevice.dataLength < (0xFFFFFFFFU - msgLen))
             {
-#endif /* defined(gAppFilterPeerAdv_c) && (gAppFilterPeerAdv_c == 1) */
-                FLib_MemCpy(&pMsgIn->msgData.scanMsg.eventData.scannedDevice,
-                            &pScanningEvent->eventData.scannedDevice,
-                            sizeof(pScanningEvent->eventData.scannedDevice));
-                
-                /*
-                * Copy data after the gapScanningEvent_t structure and update
-                * the data pointer
-                */
-                pMsgIn->msgData.scanMsg.eventData.scannedDevice.data =
-                    (uint8_t*)&pMsgIn->msgData +
-                        sizeof(gapScanningEvent_t);
-                FLib_MemCpy(pMsgIn->msgData.scanMsg.eventData.scannedDevice.data,
-                            pScanningEvent->eventData.scannedDevice.data,
-                            pScanningEvent->eventData.scannedDevice.dataLength);
-#if defined(gAppFilterPeerAdv_c) && (gAppFilterPeerAdv_c == 1)
+                msgLen += pScanningEvent->eventData.scannedDevice.dataLength;
             }
-            else
-            {
-                /* Do not send the event to the application */
-                MSG_Free(pMsgIn);
-                pMsgIn = NULL;
-            }
-#endif /* defined(gAppFilterPeerAdv_c) && (gAppFilterPeerAdv_c == 1) */
         }
         else if (pScanningEvent->eventType == gExtDeviceScanned_c)
         {
-#if defined(gAppFilterPeerAdv_c) && (gAppFilterPeerAdv_c == 1)
-            bleResult_t status = gBleSuccess_c;
-            bool_t peerConnected = FALSE;
-            
-            status = Gap_CheckIfConnected(pScanningEvent->eventData.extScannedDevice.addressType,
-                                          pScanningEvent->eventData.extScannedDevice.aAddress,
-                                          pScanningEvent->eventData.extScannedDevice.advertisingAddressResolved,
-                                          &peerConnected);
-            
-            if ((status == gBleSuccess_c) && (peerConnected == FALSE))
+            if (pScanningEvent->eventData.extScannedDevice.dataLength < (0xFFFFFFFFU - msgLen))
             {
-#endif /* defined(gAppFilterPeerAdv_c) && (gAppFilterPeerAdv_c == 1) */
-                FLib_MemCpy(&pMsgIn->msgData.scanMsg.eventData.extScannedDevice,
-                            &pScanningEvent->eventData.extScannedDevice,
-                            sizeof(pScanningEvent->eventData.extScannedDevice));
-                
-                /*
-                * Copy data after the gapScanningEvent_t structure and update
-                * the data pointer
-                */
-                pMsgIn->msgData.scanMsg.eventData.extScannedDevice.pData =
-                    (uint8_t*)&pMsgIn->msgData +
-                        sizeof(gapScanningEvent_t);
-                FLib_MemCpy(pMsgIn->msgData.scanMsg.eventData.extScannedDevice.pData,
-                            pScanningEvent->eventData.extScannedDevice.pData,
-                            pScanningEvent->eventData.extScannedDevice.dataLength);
-#if defined(gAppFilterPeerAdv_c) && (gAppFilterPeerAdv_c == 1)
+                msgLen += pScanningEvent->eventData.extScannedDevice.dataLength;
             }
-            else
-            {
-                /* Do not send the event to the application */
-                MSG_Free(pMsgIn);
-                pMsgIn = NULL;
-            }
-#endif /* defined(gAppFilterPeerAdv_c) && (gAppFilterPeerAdv_c == 1) */
         }
         else if (pScanningEvent->eventType == gPeriodicDeviceScanned_c)
         {
-            FLib_MemCpy(&pMsgIn->msgData.scanMsg.eventData.periodicScannedDevice,
-                        &pScanningEvent->eventData.periodicScannedDevice,
-                        sizeof(pScanningEvent->eventData.periodicScannedDevice));
-            
-            pMsgIn->msgData.scanMsg.eventData.periodicScannedDevice.pData =
-                (uint8_t*)&pMsgIn->msgData +
-                    sizeof(gapScanningEvent_t);
-            FLib_MemCpy(pMsgIn->msgData.scanMsg.eventData.periodicScannedDevice.pData,
-                        pScanningEvent->eventData.periodicScannedDevice.pData,
-                        pScanningEvent->eventData.periodicScannedDevice.dataLength);
+            if (pScanningEvent->eventData.periodicScannedDevice.dataLength < (0xFFFFFFFFU - msgLen))
+            {
+                msgLen += pScanningEvent->eventData.periodicScannedDevice.dataLength;
+            }
         }
         else if (pScanningEvent->eventType == gPeriodicDeviceScannedV2_c)
         {
-            FLib_MemCpy(&pMsgIn->msgData.scanMsg.eventData.periodicScannedDeviceV2,
-                        &pScanningEvent->eventData.periodicScannedDeviceV2,
-                        sizeof(pScanningEvent->eventData.periodicScannedDeviceV2));
-            
-            pMsgIn->msgData.scanMsg.eventData.periodicScannedDeviceV2.pData =
-                (uint8_t*)&pMsgIn->msgData +
-                    sizeof(gapScanningEvent_t);
-            FLib_MemCpy(pMsgIn->msgData.scanMsg.eventData.periodicScannedDeviceV2.pData,
-                        pScanningEvent->eventData.periodicScannedDeviceV2.pData,
-                        pScanningEvent->eventData.periodicScannedDeviceV2.dataLength);
+            if (pScanningEvent->eventData.periodicScannedDeviceV2.dataLength < (0xFFFFFFFFU - msgLen))
+            {
+                msgLen += pScanningEvent->eventData.periodicScannedDeviceV2.dataLength;
+            }
         }
         else if (pScanningEvent->eventType == gConnectionlessIqReportReceived_c)
         {
-            FLib_MemCpy(&pMsgIn->msgData.scanMsg.eventData.iqReport,
-                        &pScanningEvent->eventData.iqReport,
-                        sizeof(pScanningEvent->eventData.iqReport));
-            pMsgIn->msgData.scanMsg.eventData.iqReport.aI_samples = (int8_t*)&pMsgIn->msgData + sizeof(gapScanningEvent_t);
-            FLib_MemCpy(pMsgIn->msgData.scanMsg.eventData.iqReport.aI_samples,
-                        pScanningEvent->eventData.iqReport.aI_samples,
-                        pScanningEvent->eventData.iqReport.sampleCount);
-            pMsgIn->msgData.scanMsg.eventData.iqReport.aQ_samples = (int8_t*)&pMsgIn->msgData + sizeof(gapScanningEvent_t) + pScanningEvent->eventData.iqReport.sampleCount;
-            FLib_MemCpy(pMsgIn->msgData.scanMsg.eventData.iqReport.aQ_samples,
-                        pScanningEvent->eventData.iqReport.aQ_samples,
-                        pScanningEvent->eventData.iqReport.sampleCount);
-        }
-        else if (pScanningEvent->eventType == gPeriodicAdvSyncEstablished_c)
-        {
-            FLib_MemCpy(&pMsgIn->msgData.scanMsg.eventData.syncEstb,
-                        &pScanningEvent->eventData.syncEstb,
-                        sizeof(pScanningEvent->eventData.syncEstb));
-        }
-        else if (pScanningEvent->eventType == gPeriodicAdvSyncLost_c)
-        {
-            FLib_MemCpy(&pMsgIn->msgData.scanMsg.eventData.syncLost,
-                        &pScanningEvent->eventData.syncLost,
-                        sizeof(pScanningEvent->eventData.syncLost));
+            if ((2U * (uint32_t)pScanningEvent->eventData.iqReport.sampleCount) < (0xFFFFFFFFU - msgLen))
+            {
+                msgLen += 2U * (uint32_t)pScanningEvent->eventData.iqReport.sampleCount;
+            }
         }
         else
         {
-            /* no action for all other event types */
+            /* msgLen does not modify for all other event types */
         }
-    }
 
-    if (pMsgIn != NULL)
-    {
-        /* Put message in the Host Stack to App queue */
-        (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
-        
-        /* Signal application */
-        (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+        pMsgIn = MSG_Alloc(msgLen);
+
+        if (pMsgIn != NULL)
+        {
+            pMsgIn->msgType = (uint32_t)gAppGapScanMsg_c;
+            pMsgIn->msgData.scanMsg.eventType = pScanningEvent->eventType;
+            
+            if (pScanningEvent->eventType == gScanCommandFailed_c)
+            {
+                pMsgIn->msgData.scanMsg.eventData.failReason =
+                    pScanningEvent->eventData.failReason;
+            }
+            else if (pScanningEvent->eventType == gDeviceScanned_c)
+            {
+    #if defined(gAppFilterPeerAdv_c) && (gAppFilterPeerAdv_c == 1)
+                bleResult_t status = gBleSuccess_c;
+                bool_t peerConnected = FALSE;
+                
+                status = Gap_CheckIfConnected(pScanningEvent->eventData.scannedDevice.addressType,
+                                              pScanningEvent->eventData.scannedDevice.aAddress,
+                                              pScanningEvent->eventData.scannedDevice.advertisingAddressResolved,
+                                              &peerConnected);
+                
+                if ((status == gBleSuccess_c) && (peerConnected == FALSE))
+                {
+    #endif /* defined(gAppFilterPeerAdv_c) && (gAppFilterPeerAdv_c == 1) */
+                    FLib_MemCpy(&pMsgIn->msgData.scanMsg.eventData.scannedDevice,
+                                &pScanningEvent->eventData.scannedDevice,
+                                sizeof(pScanningEvent->eventData.scannedDevice));
+                    
+                    /*
+                    * Copy data after the gapScanningEvent_t structure and update
+                    * the data pointer
+                    */
+                    pMsgIn->msgData.scanMsg.eventData.scannedDevice.data =
+                        (uint8_t*)&pMsgIn->msgData +
+                            sizeof(gapScanningEvent_t);
+                    FLib_MemCpy(pMsgIn->msgData.scanMsg.eventData.scannedDevice.data,
+                                pScanningEvent->eventData.scannedDevice.data,
+                                pScanningEvent->eventData.scannedDevice.dataLength);
+    #if defined(gAppFilterPeerAdv_c) && (gAppFilterPeerAdv_c == 1)
+                }
+                else
+                {
+                    /* Do not send the event to the application */
+                    MSG_Free(pMsgIn);
+                    pMsgIn = NULL;
+                }
+    #endif /* defined(gAppFilterPeerAdv_c) && (gAppFilterPeerAdv_c == 1) */
+            }
+            else if (pScanningEvent->eventType == gExtDeviceScanned_c)
+            {
+    #if defined(gAppFilterPeerAdv_c) && (gAppFilterPeerAdv_c == 1)
+                bleResult_t status = gBleSuccess_c;
+                bool_t peerConnected = FALSE;
+                
+                status = Gap_CheckIfConnected(pScanningEvent->eventData.extScannedDevice.addressType,
+                                              pScanningEvent->eventData.extScannedDevice.aAddress,
+                                              pScanningEvent->eventData.extScannedDevice.advertisingAddressResolved,
+                                              &peerConnected);
+                
+                if ((status == gBleSuccess_c) && (peerConnected == FALSE))
+                {
+    #endif /* defined(gAppFilterPeerAdv_c) && (gAppFilterPeerAdv_c == 1) */
+                    FLib_MemCpy(&pMsgIn->msgData.scanMsg.eventData.extScannedDevice,
+                                &pScanningEvent->eventData.extScannedDevice,
+                                sizeof(pScanningEvent->eventData.extScannedDevice));
+                    
+                    /*
+                    * Copy data after the gapScanningEvent_t structure and update
+                    * the data pointer
+                    */
+                    pMsgIn->msgData.scanMsg.eventData.extScannedDevice.pData =
+                        (uint8_t*)&pMsgIn->msgData +
+                            sizeof(gapScanningEvent_t);
+                    FLib_MemCpy(pMsgIn->msgData.scanMsg.eventData.extScannedDevice.pData,
+                                pScanningEvent->eventData.extScannedDevice.pData,
+                                pScanningEvent->eventData.extScannedDevice.dataLength);
+    #if defined(gAppFilterPeerAdv_c) && (gAppFilterPeerAdv_c == 1)
+                }
+                else
+                {
+                    /* Do not send the event to the application */
+                    MSG_Free(pMsgIn);
+                    pMsgIn = NULL;
+                }
+    #endif /* defined(gAppFilterPeerAdv_c) && (gAppFilterPeerAdv_c == 1) */
+            }
+            else if (pScanningEvent->eventType == gPeriodicDeviceScanned_c)
+            {
+                FLib_MemCpy(&pMsgIn->msgData.scanMsg.eventData.periodicScannedDevice,
+                            &pScanningEvent->eventData.periodicScannedDevice,
+                            sizeof(pScanningEvent->eventData.periodicScannedDevice));
+                
+                pMsgIn->msgData.scanMsg.eventData.periodicScannedDevice.pData =
+                    (uint8_t*)&pMsgIn->msgData +
+                        sizeof(gapScanningEvent_t);
+                FLib_MemCpy(pMsgIn->msgData.scanMsg.eventData.periodicScannedDevice.pData,
+                            pScanningEvent->eventData.periodicScannedDevice.pData,
+                            pScanningEvent->eventData.periodicScannedDevice.dataLength);
+            }
+            else if (pScanningEvent->eventType == gPeriodicDeviceScannedV2_c)
+            {
+                FLib_MemCpy(&pMsgIn->msgData.scanMsg.eventData.periodicScannedDeviceV2,
+                            &pScanningEvent->eventData.periodicScannedDeviceV2,
+                            sizeof(pScanningEvent->eventData.periodicScannedDeviceV2));
+                
+                pMsgIn->msgData.scanMsg.eventData.periodicScannedDeviceV2.pData =
+                    (uint8_t*)&pMsgIn->msgData +
+                        sizeof(gapScanningEvent_t);
+                FLib_MemCpy(pMsgIn->msgData.scanMsg.eventData.periodicScannedDeviceV2.pData,
+                            pScanningEvent->eventData.periodicScannedDeviceV2.pData,
+                            pScanningEvent->eventData.periodicScannedDeviceV2.dataLength);
+            }
+            else if (pScanningEvent->eventType == gConnectionlessIqReportReceived_c)
+            {
+                FLib_MemCpy(&pMsgIn->msgData.scanMsg.eventData.iqReport,
+                            &pScanningEvent->eventData.iqReport,
+                            sizeof(pScanningEvent->eventData.iqReport));
+                pMsgIn->msgData.scanMsg.eventData.iqReport.aI_samples = (int8_t*)&pMsgIn->msgData + sizeof(gapScanningEvent_t);
+                FLib_MemCpy(pMsgIn->msgData.scanMsg.eventData.iqReport.aI_samples,
+                            pScanningEvent->eventData.iqReport.aI_samples,
+                            pScanningEvent->eventData.iqReport.sampleCount);
+                pMsgIn->msgData.scanMsg.eventData.iqReport.aQ_samples = (int8_t*)&pMsgIn->msgData + sizeof(gapScanningEvent_t) + pScanningEvent->eventData.iqReport.sampleCount;
+                FLib_MemCpy(pMsgIn->msgData.scanMsg.eventData.iqReport.aQ_samples,
+                            pScanningEvent->eventData.iqReport.aQ_samples,
+                            pScanningEvent->eventData.iqReport.sampleCount);
+            }
+            else if (pScanningEvent->eventType == gPeriodicAdvSyncEstablished_c)
+            {
+                FLib_MemCpy(&pMsgIn->msgData.scanMsg.eventData.syncEstb,
+                            &pScanningEvent->eventData.syncEstb,
+                            sizeof(pScanningEvent->eventData.syncEstb));
+            }
+            else if (pScanningEvent->eventType == gPeriodicAdvSyncLost_c)
+            {
+                FLib_MemCpy(&pMsgIn->msgData.scanMsg.eventData.syncLost,
+                            &pScanningEvent->eventData.syncLost,
+                            sizeof(pScanningEvent->eventData.syncLost));
+            }
+            else
+            {
+                /* no action for all other event types */
+            }
+        }
+
+        if (pMsgIn != NULL)
+        {
+            /* Put message in the Host Stack to App queue */
+            (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
+            
+            /* Signal application */
+            (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+        }
     }
 }

@@ -288,6 +288,12 @@ bleResult_t Hcit_SendPacket
                 pHciWriteBuffer[0] = (uint8_t)packetType;
             }
 
+            if (0xFFFFFFFFU - curLen < packetSize)
+            {
+                result = gHciTransportError_c;
+                break;
+            }
+
             FLib_MemCpy(pHciWriteBuffer + curLen, buf, packetSize);
             curLen += packetSize;
 
