@@ -266,10 +266,14 @@ void App_FsciBleNvmCbHandler
     {
         case gAppBleNvmCbCmdEraseOpCode_c:
         {
-            uint8_t entryIdx = 0U;
-            fsciBleGetUint8ValueFromBuffer(entryIdx, pBuffer);
-            /* Avoid buffer allocation by sending the NVM entry index as parameter */
-            App_PostCallbackMessage(App_NvmHostErase, (void *)entryIdx);
+            union
+            {
+                 uint8_t u8;
+                 void *ptr;
+            } entryIdx = {};
+            fsciBleGetUint8ValueFromBuffer(entryIdx.u8, pBuffer);
+            /* Avoid buffer allocation for one octet by sending the NVM entry index as parameter */
+            App_PostCallbackMessage(App_NvmHostErase, entryIdx.ptr);
         }
         break;
         case gAppBleNvmCbCmdWriteOpCode_c:
@@ -891,11 +895,16 @@ static bleResult_t App_NvmRead
 static void App_NvmHostErase(void *data)
 {
     bleResult_t result = gBleSuccess_c;
-    uint32_t entryIdx = (uint32_t)data;
+    union
+    {
+        uint8_t u8;
+        void *ptr;
+    } entryIdx = {};
+    entryIdx.ptr = data;
 
-    result = App_NvmErase((uint8_t)entryIdx);
+    result = App_NvmErase(entryIdx.u8);
 
-    (void)App_FsciBleNvmDataReq(gAppBleNvmCbCmdEraseIndOpCode_c, result, entryIdx, 0U, 0U, 0U, NULL);
+    (void)App_FsciBleNvmDataReq(gAppBleNvmCbCmdEraseIndOpCode_c, result, entryIdx.u8, 0U, 0U, 0U, NULL);
 }
 
 /*! *********************************************************************************

@@ -68,7 +68,7 @@
  *     Framework Configuration
  ********************************************************************************** */
  /* enable NVM to be used as non volatile storage management by the host stack */
-#define gAppUseNvmNcp_d                 0
+#define gAppUseNvmNcp_d                 1
 
 #define gFSCI_ResetCpu_c -              0
 
