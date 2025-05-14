@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*!
- * Copyright 2019-2024 NXP
+ * Copyright 2019-2025 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -22,7 +22,7 @@
  *     Board Configuration
  ********************************************************************************** */
 /* Number of Button required by the application */
-#define gAppButtonCnt_c                 2
+#define gAppButtonCnt_c                 1
 
 /* Number of LED required by the application */
 #define gAppLedCnt_c                    2

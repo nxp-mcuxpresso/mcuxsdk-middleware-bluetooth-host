@@ -130,9 +130,8 @@ static void BluetoothLEHost_GenericCallback (gapGenericEvent_t* pGenericEvent);
 static void BleApp_Start(void);
 
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
-button_status_t BleApp_HandleKeys0(void *buttonHandle, button_callback_message_t *message,void *callbackParam);
-#endif /*gAppButtonCnt_c > 0*/
-
+button_status_t BleApp_HandleKeys0(void *pButtonHandle, button_callback_message_t *pMessage, void *pCallbackParam);
+#endif /* (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0)) */
 /************************************************************************************
 *************************************************************************************
 * Public functions
@@ -150,10 +149,6 @@ void BluetoothLEHost_AppInit(void)
     LedStartFlashingAllLeds();
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
     (void)BUTTON_InstallCallback((button_handle_t)g_buttonHandle[0], BleApp_HandleKeys0, NULL);
-
-#if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 1))
-    (void)BUTTON_InstallCallback((button_handle_t)g_buttonHandle[1], BleApp_HandleKeys0, NULL);
-#endif
 #endif
     /* Initialize Bluetooth Host Stack */
     BluetoothLEHost_SetGenericCallback(BluetoothLEHost_GenericCallback);
@@ -161,22 +156,23 @@ void BluetoothLEHost_AppInit(void)
 }
 
 /*! *********************************************************************************
-* \brief        Handles keyboard events.
+* \brief        Handler for the first key.
 *
-* \param[in]    events    Key event structure.
+* \param[in]    pButtonHandle       Pointer to the button handle.
+* \param[in]    pMessage            Pointer to the message.
+* \param[in]    pCallbackParam      Pointer to the callback parameters.
 ********************************************************************************** */
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
-button_status_t BleApp_HandleKeys0(void *buttonHandle, button_callback_message_t *message,void *callbackParam)
+button_status_t BleApp_HandleKeys0(void *pButtonHandle, button_callback_message_t *pMessage, void *pCallbackParam)
 {
-    (void)buttonHandle;
-    (void)callbackParam;
-    (void)message;
-    /* Start application on any key */
+    (void)pButtonHandle;
+    (void)pCallbackParam;
+    (void)pMessage;
+    /* Start application on any event */
     BleApp_Start();
     return kStatus_BUTTON_Success;
 }
 #endif /*gAppButtonCnt_c > 0*/
-
 /************************************************************************************
 *************************************************************************************
 * Private functions

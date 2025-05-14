@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -56,11 +56,6 @@
 * Private macros
 *************************************************************************************
 ************************************************************************************/
-#define    gKBD_EventPB1_c       1U    /* Pushbutton 1 */
-#define    gKBD_EventPB2_c       2U    /* Pushbutton 2 */
-#define    gKBD_EventLongPB1_c   3U    /* Pushbutton 1 */
-#define    gKBD_EventLongPB2_c   4U    /* Pushbutton 2 */
-#define    gKBD_EventInvalid_c   0xFFU /* Invalid key event */
 #define LedTurnOffAllLeds() LedStopFlashingAllLeds()
 /************************************************************************************
 *************************************************************************************
@@ -247,8 +242,7 @@ static void BleApp_SerialInit(void);
 static void BluetoothLEHost_GenericCallback (gapGenericEvent_t* pGenericEvent);
 
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
-static void BleApp_HandleKeys(key_event_t events);
-button_status_t BleApp_HandleKeys0(void *buttonHandle, button_callback_message_t *message,void *callbackParam);
+button_status_t BleApp_HandleKeys0(void *pButtonHandle, button_callback_message_t *pMessage, void *pCallbackParam);
 #endif /* (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0)) */
 /************************************************************************************
 *************************************************************************************
@@ -265,20 +259,7 @@ void BluetoothLEHost_AppInit(void)
     BleApp_SerialInit();
     LedStartFlashingAllLeds();
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
-    {
-        union
-        {
-            void* pCbkParam;
-            uint32_t buttonPressed;
-        }cbkParam;
-        cbkParam.buttonPressed = 1UL;
-        (void)BUTTON_InstallCallback((button_handle_t)g_buttonHandle[0], BleApp_HandleKeys0, cbkParam.pCbkParam);
-
-#if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 1))
-        cbkParam.buttonPressed = 2UL;
-        (void)BUTTON_InstallCallback((button_handle_t)g_buttonHandle[1], BleApp_HandleKeys0, cbkParam.pCbkParam);
-#endif
-    }
+    (void)BUTTON_InstallCallback((button_handle_t)g_buttonHandle[0], BleApp_HandleKeys0, NULL);
 #endif
     /* Initialize Bluetooth Host Stack */
     BluetoothLEHost_SetGenericCallback(BluetoothLEHost_GenericCallback);
@@ -299,46 +280,29 @@ void BleApp_Start(void)
 }
 
 /*! *********************************************************************************
-* \brief        Handles keyboard events.
+* \brief        Handler for the first key.
 *
-* \param[in]    events    Key event structure.
+* \param[in]    pButtonHandle       Pointer to the button handle.
+* \param[in]    pMessage            Pointer to the message.
+* \param[in]    pCallbackParam      Pointer to the callback parameters.
 ********************************************************************************** */
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
-button_status_t BleApp_HandleKeys0(void *buttonHandle, button_callback_message_t *message,void *callbackParam)
+button_status_t BleApp_HandleKeys0(void *pButtonHandle, button_callback_message_t *pMessage, void *pCallbackParam)
 {
-    union
-    {
-        void* pCbkParam;
-        uint32_t buttonPressed;
-    }cbkParam;
-    (void)buttonHandle;
-    key_event_t keyEvent = gKBD_EventInvalid_c;
-    cbkParam.pCbkParam = callbackParam;
-    switch (message->event)
+    switch (pMessage->event)
     {
 
     case kBUTTON_EventOneClick:
     case kBUTTON_EventShortPress:
         {
-            if(cbkParam.buttonPressed == 2U)
-            {
-                keyEvent = gKBD_EventPB2_c;
-            }
-            else
-            {
-                keyEvent = gKBD_EventPB1_c;
-            }
+            BleApp_Start();
         }
         break;
     case kBUTTON_EventLongPress:
         {
-            if(cbkParam.buttonPressed == 2U)
+            if (mPeerInformation.deviceId != gInvalidDeviceId_c)
             {
-                keyEvent = gKBD_EventLongPB2_c;
-            }
-            else
-            {
-                keyEvent = gKBD_EventLongPB1_c;
+                (void)Gap_Disconnect(mPeerInformation.deviceId);
             }
         }
         break;
@@ -350,14 +314,9 @@ button_status_t BleApp_HandleKeys0(void *buttonHandle, button_callback_message_t
         }
     }
 
-    if(keyEvent !=  gKBD_EventInvalid_c)
-    {
-        BleApp_HandleKeys(keyEvent);
-    }
     return kStatus_BUTTON_Success;
 }
-#endif /*gAppButtonCnt_c > 0*/
-
+#endif /*gAppButtonCnt_c > 0 */
 /************************************************************************************
 *************************************************************************************
 * Private functions
@@ -1368,49 +1327,6 @@ static void BleApp_SerialInit(void)
     assert(kStatus_SerialManager_Success == status);
     (void)status;
 }
-
-/*! *********************************************************************************
-* \brief        Handle the buttons.
-*
-* \param[in]    events   the button event.
-********************************************************************************** */
-#if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
-static void BleApp_HandleKeys(key_event_t events)
-{
-#if defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d > 0U)
-    /* Start automatically if low-power is enabled */
-    BleApp_Start();
-#else
-    switch (events)
-    {
-        /* Start on button press if low-power is disabled */
-        case gKBD_EventPB1_c:
-        {
-            BleApp_Start();
-            break;
-        }
-
-        /* Disconnect on long button press */
-        case gKBD_EventLongPB1_c:
-        {
-            if (mPeerInformation.deviceId != gInvalidDeviceId_c)
-            {
-                (void)Gap_Disconnect(mPeerInformation.deviceId);
-            }
-            break;
-        }
-
-        case gKBD_EventPB2_c:  /* Fall-through */
-        case gKBD_EventLongPB2_c:   /* Fall-through */
-        default:
-        {
-            ; /* No action required */
-            break;
-        }
-    }
-#endif
-}
-#endif /* (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0)) */
 /*! *********************************************************************************
 * @}
 ********************************************************************************** */
