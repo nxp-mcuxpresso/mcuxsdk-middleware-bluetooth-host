@@ -120,6 +120,10 @@
 
 /*! Size of bond data structures for a bonded device  */
 #define gBleBondIdentityHeaderSize_c     (56U)
+
+#if defined(gUseControllerNotifications_c ) && (gUseControllerNotifications_c  == 1U)
+    #error "This platform does not support gUseControllerNotifications_c "
+#endif /* (gUseControllerNotifications_c ) && (gUseControllerNotifications_c  == 1U) */
 /*! *********************************************************************************
  *   Auto Configuration
  ********************************************************************************** */

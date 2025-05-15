@@ -103,6 +103,14 @@
 #define gAppSecureMode_d                 (0U)
 #endif
 
+#if defined(gAppSecureMode_d) && (gAppSecureMode_d == 1U)
+    #error "This platform does not support gAppSecureMode_d"
+#endif /* (gAppSecureMode_d) && (gAppSecureMode_d == 1U) */
+
+#if defined(gSecLibUseSecureSubSystem_d) && (gSecLibUseSecureSubSystem_d == 1U)
+    #error "This platform does not support gSecLibUseSecureSubSystem_d"
+#endif /* (gSecLibUseSecureSubSystem_d) && (gSecLibUseSecureSubSystem_d == 1U) */
+
 #if (gAppSecureMode_d == 1U)
 #define gSecLibSssUseEncryptedKeys_d     (1U)
 #define gHostSecureMode_d                (1U)
@@ -112,6 +120,10 @@
 
 /*! Size of bond data structures for a bonded device  */
 #define gBleBondIdentityHeaderSize_c     (56U)
+
+#if defined(gUseControllerNotifications_c ) && (gUseControllerNotifications_c  == 1U)
+    #error "This platform does not support gUseControllerNotifications_c "
+#endif /* (gUseControllerNotifications_c ) && (gUseControllerNotifications_c  == 1U) */
 /*! *********************************************************************************
  *   Auto Configuration
  ********************************************************************************** */
