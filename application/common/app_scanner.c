@@ -140,6 +140,65 @@ bool_t BluetoothLEHost_MatchDataInAdvElementList
 * Private functions
 *************************************************************************************
 ************************************************************************************/
+/*! *********************************************************************************
+*\private
+*\fn           void App_CheckScanningEvent(gapScanningEvent_t *pScanningEvent, 
+               uint32_t *pMsgLen)
+*\brief        
+*
+*\param  [in]       pScanningEvent  Pointer to the scanning event.
+*\param  [in/out]   pMsgLen         Pointer to the messageLength needed for 
+                                    allocation in the caller function.
+*
+*\retval       void.
+********************************************************************************** */
+static void App_CheckScanningEvent(gapScanningEvent_t *pScanningEvent, uint32_t *pMsgLen)
+{
+    if (pScanningEvent->eventType == gDeviceScanned_c)
+    {
+        if (pScanningEvent->eventData.scannedDevice.dataLength < 
+            (0xFFFFFFFFU - (*pMsgLen)))
+        {
+            *pMsgLen += pScanningEvent->eventData.scannedDevice.dataLength;
+        }
+    }
+    else if (pScanningEvent->eventType == gExtDeviceScanned_c)
+    {
+        if (pScanningEvent->eventData.extScannedDevice.dataLength < 
+            (0xFFFFFFFFU - (*pMsgLen)))
+        {
+            *pMsgLen += pScanningEvent->eventData.extScannedDevice.dataLength;
+        }
+    }
+    else if (pScanningEvent->eventType == gPeriodicDeviceScanned_c)
+    {
+        if (pScanningEvent->eventData.periodicScannedDevice.dataLength < 
+            (0xFFFFFFFFU - (*pMsgLen)))
+        {
+            *pMsgLen += pScanningEvent->eventData.periodicScannedDevice.dataLength;
+        }
+    }
+    else if (pScanningEvent->eventType == gPeriodicDeviceScannedV2_c)
+    {
+        if (pScanningEvent->eventData.periodicScannedDeviceV2.dataLength < 
+            (0xFFFFFFFFU - (*pMsgLen)))
+        {
+            *pMsgLen += pScanningEvent->eventData.periodicScannedDeviceV2.dataLength;
+        }
+    }
+    else if (pScanningEvent->eventType == gConnectionlessIqReportReceived_c)
+    {
+        if ((2U * (uint32_t)pScanningEvent->eventData.iqReport.sampleCount) < 
+            (0xFFFFFFFFU - (*pMsgLen)))
+        {
+            *pMsgLen += 2U * (uint32_t)pScanningEvent->eventData.iqReport.sampleCount;
+        }
+    }
+    else
+    {
+        /* *pMsgLen does not modify for all other event types */
+    }
+}
 
 /*! *********************************************************************************
 *\private
@@ -161,45 +220,7 @@ STATIC void App_ScanningCallback
 
     if (pScanningEvent != NULL)
     {
-        if (pScanningEvent->eventType == gDeviceScanned_c)
-        {
-            if (pScanningEvent->eventData.scannedDevice.dataLength < (0xFFFFFFFFU - msgLen))
-            {
-                msgLen += pScanningEvent->eventData.scannedDevice.dataLength;
-            }
-        }
-        else if (pScanningEvent->eventType == gExtDeviceScanned_c)
-        {
-            if (pScanningEvent->eventData.extScannedDevice.dataLength < (0xFFFFFFFFU - msgLen))
-            {
-                msgLen += pScanningEvent->eventData.extScannedDevice.dataLength;
-            }
-        }
-        else if (pScanningEvent->eventType == gPeriodicDeviceScanned_c)
-        {
-            if (pScanningEvent->eventData.periodicScannedDevice.dataLength < (0xFFFFFFFFU - msgLen))
-            {
-                msgLen += pScanningEvent->eventData.periodicScannedDevice.dataLength;
-            }
-        }
-        else if (pScanningEvent->eventType == gPeriodicDeviceScannedV2_c)
-        {
-            if (pScanningEvent->eventData.periodicScannedDeviceV2.dataLength < (0xFFFFFFFFU - msgLen))
-            {
-                msgLen += pScanningEvent->eventData.periodicScannedDeviceV2.dataLength;
-            }
-        }
-        else if (pScanningEvent->eventType == gConnectionlessIqReportReceived_c)
-        {
-            if ((2U * (uint32_t)pScanningEvent->eventData.iqReport.sampleCount) < (0xFFFFFFFFU - msgLen))
-            {
-                msgLen += 2U * (uint32_t)pScanningEvent->eventData.iqReport.sampleCount;
-            }
-        }
-        else
-        {
-            /* msgLen does not modify for all other event types */
-        }
+        App_CheckScanningEvent(pScanningEvent, &msgLen);
 
         pMsgIn = MSG_Alloc(msgLen);
 
