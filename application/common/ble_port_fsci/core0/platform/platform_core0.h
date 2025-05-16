@@ -23,7 +23,7 @@
 *
 *\retval       none
 ********************************************************************************** */
-void Platform_InitCore0Handlers();
+void Platform_InitCore0Handlers(void);
 
 #endif /* gFsciComponentPlatformCore0_d */
 #endif /* __PLATFORM_CORE0_H__ */

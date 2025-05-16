@@ -14,6 +14,7 @@
 *************************************************************************************
 ********************************************************************************** */
 #include "ble_port_fsci_op.h"
+#include "fsl_component_led_core0.h"
 #include "FsciInterface.h"
 #include "app.h"
 
@@ -33,11 +34,11 @@ static void Led1FlashingHandler(uint8_t opc, uint8_t len, void *pData);
 *
 *\retval    none
 ********************************************************************************** */
-void LED_InitCore0Handlers()
+void LED_InitCore0Handlers(void)
 {
-    BLE_PortFsciRegisterOpHandler(g_LedStartFlashingAllLeds_c, LedStartFlashingAllLedsHandler);
-    BLE_PortFsciRegisterOpHandler(g_LedStopFlashingAllLeds_c, LedStopFlashingAllLedsHandler);
-    BLE_PortFsciRegisterOpHandler(g_Led1Flashing_c, Led1FlashingHandler);
+    BLE_PortFsciRegisterOpHandler((uint8_t)g_LedStartFlashingAllLeds_c, LedStartFlashingAllLedsHandler);
+    BLE_PortFsciRegisterOpHandler((uint8_t)g_LedStopFlashingAllLeds_c, LedStopFlashingAllLedsHandler);
+    BLE_PortFsciRegisterOpHandler((uint8_t)g_Led1Flashing_c, Led1FlashingHandler);
 }
 
 /*! *********************************************************************************

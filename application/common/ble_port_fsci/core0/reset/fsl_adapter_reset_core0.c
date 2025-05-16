@@ -14,6 +14,7 @@
 *************************************************************************************
 ************************************************************************************/
 #include "fsl_adapter_reset.h"
+#include "fsl_adapter_reset_core0.h"
 #include "EmbeddedTypes.h"
 #include "ble_port_fsci_op.h"
 #include "ble_port_fsci_types.h"
@@ -37,9 +38,9 @@ static void Reset_RemoteHandler(uint8_t opc, uint8_t len, void *pData);
 *
 *\retval    none
 ********************************************************************************** */
-void Reset_InitCore0Handlers()
+void Reset_InitCore0Handlers(void)
 {
-    BLE_PortFsciRegisterOpHandler(g_HAL_ResetMCU_c, Reset_RemoteHandler);
+    BLE_PortFsciRegisterOpHandler((uint8_t)g_HAL_ResetMCU_c, Reset_RemoteHandler);
 }
 
 /************************************************************************************

@@ -27,7 +27,7 @@
 * Public type definitions
 *************************************************************************************
 ********************************************************************************** */
-enum blePortFsciOpCodes_t
+typedef enum
 {
     /* LED */
     g_LedStartFlashingAllLeds_c = 0x00,         /* Start flashing all LEDs command */
@@ -59,7 +59,7 @@ enum blePortFsciOpCodes_t
     g_AppBleNvmCbCmdEraseInd_c,                 /* Indication from host processor that the erase operation was performed */
     g_AppBleNvmCbCmdWriteInd_c,                 /* Indication from host processor that the write operation was performed */
     g_AppBleNvmCbCmdReadInd_c,                  /* Indication from host processor that the read operation was performed */
-};
+} blePortFsciOpCodes_t;
 
 /* FSCI callback handler prototype */
 typedef void (*pfFsciPortOpHandler_t)(uint8_t opc, uint8_t len, void *pData);

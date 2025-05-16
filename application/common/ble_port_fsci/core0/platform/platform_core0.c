@@ -43,11 +43,11 @@ static void BleApp_HandlePlatformInitLclGpioDebug(uint8_t opc, uint8_t len, void
 *
 *\retval       none
 ********************************************************************************** */
-void Platform_InitCore0Handlers()
+void Platform_InitCore0Handlers(void)
 {
-    BLE_PortFsciRegisterOpHandler(g_AppReadPublicDeviceAddress_c, BleApp_HandleReadPublicAddress);
-    BLE_PortFsciRegisterOpHandler(g_PlatformInitLclOpCode_c, BleApp_HandlePlatformInitLcl);
-    BLE_PortFsciRegisterOpHandler(g_PlatformInitLclGpioDebugOpCode_c, BleApp_HandlePlatformInitLclGpioDebug);
+    BLE_PortFsciRegisterOpHandler((uint8_t)g_AppReadPublicDeviceAddress_c, BleApp_HandleReadPublicAddress);
+    BLE_PortFsciRegisterOpHandler((uint8_t)g_PlatformInitLclOpCode_c, BleApp_HandlePlatformInitLcl);
+    BLE_PortFsciRegisterOpHandler((uint8_t)g_PlatformInitLclGpioDebugOpCode_c, BleApp_HandlePlatformInitLclGpioDebug);
 }
 
 /************************************************************************************
@@ -91,7 +91,7 @@ static void BleApp_HandleReadPublicAddress
         fsciBleGetBufferFromArray(aBdAddr, pBuffer, gcBleDeviceAddressSize_c);
 
         /* Transmit packet */
-        FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_AppWritePublicDeviceAddress_c,
+        FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_AppWritePublicDeviceAddress_c,
                              pClientPacket, gcBleDeviceAddressSize_c, gFsciInterface_c);
 
         (void)MEM_BufferFree(pClientPacket);

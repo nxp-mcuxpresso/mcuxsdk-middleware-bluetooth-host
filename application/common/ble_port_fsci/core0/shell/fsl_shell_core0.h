@@ -14,7 +14,7 @@
 *
 *\retval    none
 ********************************************************************************** */
-void Shell_InitCore0Handlers();
+void Shell_InitCore0Handlers(void);
 
 #endif /* gFsciComponentShellCore0_d */
 #endif /* __SHELL_CORE0_H__ */

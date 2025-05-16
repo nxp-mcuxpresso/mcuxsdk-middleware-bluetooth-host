@@ -23,7 +23,7 @@
 *
 *\retval    none
 ********************************************************************************** */
-void Reset_InitCore0Handlers();
+void Reset_InitCore0Handlers(void);
 
 #endif /* __ADAPTER_RESET_CORE0_H__ */
 #endif /* gFsciComponentResetCore0_d */

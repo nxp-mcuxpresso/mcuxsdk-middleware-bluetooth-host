@@ -8,7 +8,7 @@
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
 #ifndef __BUTTON_CORE0_H__
-#define __BUTTON_CORE_0H__
+#define __BUTTON_CORE0_H__
 
 #if defined (gFsciComponentButtonCore0_d) && (gFsciComponentButtonCore0_d > 0)
 /*! *********************************************************************************
@@ -24,6 +24,6 @@
 *
 *\retval    none
 ********************************************************************************** */
-void Button_InitCore0Handlers();
+void Button_InitCore0Handlers(void);
 #endif /* #if defined (gFsciComponentButtonCore0_d) && (gFsciComponentButtonCore0_d > 0) */
 #endif

@@ -14,6 +14,7 @@
 *************************************************************************************
 ************************************************************************************/
 #include "fsl_component_button.h"
+#include "fsl_component_button_core0.h"
 #include "ble_port_fsci_op.h"
 #include "FsciInterface.h"
 #include "FsciCommunication.h"
@@ -35,7 +36,14 @@ typedef struct _fsciPortButtonData_t
 * Private function prototypes
 *************************************************************************************
 ********************************************************************************** */
-/* Handle BUTTON_InstallCallback call from the remopte core */
+/* Button event handler */
+static button_status_t KeysHandler(
+    void *buttonHandle,
+    button_callback_message_t *message,
+    void *callbackParam
+);
+
+/* Handle BUTTON_InstallCallback call from the remote core */
 static void BUTTON_InstallCallbackRemoteHandler
 (
     uint8_t opc,
@@ -49,6 +57,24 @@ static void BUTTON_InstallCallbackRemoteHandler
 *************************************************************************************
 ********************************************************************************** */
 /*! *********************************************************************************
+*\brief  Initialize all button handlers
+*
+*\param  none
+*
+*\retval    none
+********************************************************************************** */
+void Button_InitCore0Handlers(void)
+{
+    BLE_PortFsciRegisterOpHandler((uint8_t)g_BUTTON_InstallCallback_c,
+                                  BUTTON_InstallCallbackRemoteHandler);
+}
+
+/*! *********************************************************************************
+*************************************************************************************
+* Private functions
+*************************************************************************************
+********************************************************************************** */
+/*! *********************************************************************************
 *\brief  Button event handler
 *
 *\param  [in]  buttonHandle     Button handle pointer
@@ -57,7 +83,7 @@ static void BUTTON_InstallCallbackRemoteHandler
 *
 *\retval    kStatus_BUTTON_Success
 ********************************************************************************** */
-button_status_t KeysHandler(
+static button_status_t KeysHandler(
     void *buttonHandle,
     button_callback_message_t *message,
     void *callbackParam
@@ -70,31 +96,13 @@ button_status_t KeysHandler(
     buttonData.event = message->event;
 
     /* Send Button event to the other core */
-    FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_BUTTON_InstallCallback_c,
-                         (void*)&buttonData, sizeof(buttonData),
+    FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_BUTTON_InstallCallback_c,
+                         (void*)&buttonData, (uint16_t)sizeof(buttonData),
                          gFsciInterface_c);
 
     return kStatus_BUTTON_Success;
 }
 
-/*! *********************************************************************************
-*\brief  Initialize all button handlers
-*
-*\param  none
-*
-*\retval    none
-********************************************************************************** */
-void Button_InitCore0Handlers()
-{
-    BLE_PortFsciRegisterOpHandler(g_BUTTON_InstallCallback_c,
-                                  BUTTON_InstallCallbackRemoteHandler);
-}
-
-/*! *********************************************************************************
-*************************************************************************************
-* Private functions
-*************************************************************************************
-********************************************************************************** */
 /*! *********************************************************************************
 *\brief        Handle BUTTON_InstallCallback call from the remopte core
 *

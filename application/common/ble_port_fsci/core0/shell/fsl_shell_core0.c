@@ -15,6 +15,7 @@
 *************************************************************************************
 ************************************************************************************/
 #include "fsl_shell.h"
+#include "fsl_shell_core0.h"
 #include "ble_port_fsci_op.h"
 #include "ble_port_fsci_types.h"
 #include "FsciInterface.h"
@@ -35,8 +36,8 @@
 *************************************************************************************
 ************************************************************************************/
 SHELL_HANDLE_DEFINE(g_shellHandle);
-uint8_t *mpStrings[SHELL_MAX_COMMANDS] = {0};
-shell_command_t aCmds[SHELL_MAX_COMMANDS] = {0};
+static uint8_t *mpStrings[SHELL_MAX_COMMANDS] = {0};
+static shell_command_t aCmds[SHELL_MAX_COMMANDS] = {0};
 
 /************************************************************************************
 *************************************************************************************
@@ -66,15 +67,15 @@ static void SHELL_RemoteHandler(uint8_t opc, uint8_t len, void *pData);
 *
 *\retval    none
 ********************************************************************************** */
-void Shell_InitCore0Handlers()
+void Shell_InitCore0Handlers(void)
 {
-    BLE_PortFsciRegisterOpHandler(g_SHELL_Init_c,
+    BLE_PortFsciRegisterOpHandler((uint8_t)g_SHELL_Init_c,
                                   SHELL_RemoteHandler);
-    BLE_PortFsciRegisterOpHandler(g_SHELL_RegisterCommand_c,
+    BLE_PortFsciRegisterOpHandler((uint8_t)g_SHELL_RegisterCommand_c,
                                   SHELL_RemoteHandler);
-    BLE_PortFsciRegisterOpHandler(g_SHELL_PrintfSynchronization_c,
+    BLE_PortFsciRegisterOpHandler((uint8_t)g_SHELL_PrintfSynchronization_c,
                                   SHELL_RemoteHandler);
-    BLE_PortFsciRegisterOpHandler(g_SHELL_PrintPrompt_c,
+    BLE_PortFsciRegisterOpHandler((uint8_t)g_SHELL_PrintPrompt_c,
                                   SHELL_RemoteHandler);
 }
 
@@ -103,22 +104,22 @@ static shell_status_t SHELL_LocalHandler(shell_handle_t shellHandle, int32_t arg
       characters) */
     for(idx=0;idx<argc;idx++)
     {
-        argvLength += FLib_StrLen(argv[idx]) + 1;
+        argvLength += FLib_StrLen(argv[idx]) + 1U;
     }
 
     pOutput = MEM_BufferAlloc(sizeof(fsciPortRegisterCmdData_t) + argvLength);
     if (pOutput != NULL)
     {
         uint8_t *pPos = NULL;
-        pOutput->argc = argc;
+        pOutput->argc = (uint8_t)argc;
 
         /* Copy all arguments */
         pPos = pOutput->aArgs;
         for(idx=0; idx<argc; idx++)
         {
             uint32_t argLength = FLib_StrLen(argv[idx]);
-            FLib_MemCpy(pPos, argv[idx], argLength + 1);
-            pPos += argLength + 1;
+            FLib_MemCpy(pPos, argv[idx], argLength + 1U);
+            pPos += argLength + 1U;
         }
 
         /* Search for this command index in mpStrings */
@@ -126,16 +127,16 @@ static shell_status_t SHELL_LocalHandler(shell_handle_t shellHandle, int32_t arg
         {
             if (FLib_MemCmp(argv[0], mpStrings[idx], FLib_StrLen(argv[0])) == TRUE)
             {
-                pOutput->id = idx;
+                pOutput->id = (uint8_t)idx;
                 break;
             }
         }
     }
 
     /* Send command to core 1 */
-    FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_SHELL_Command_c,
-                       (void*)pOutput, sizeof(fsciPortRegisterCmdData_t) +
-                       argvLength, gFsciInterface_c);
+    FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_SHELL_Command_c,
+                       (void*)pOutput, (uint16_t)(sizeof(fsciPortRegisterCmdData_t) +
+                       argvLength), gFsciInterface_c);
     (void)MEM_BufferFree(pOutput);
 
     return kStatus_SHELL_Success;
@@ -154,13 +155,13 @@ static void SHELL_RemoteHandler(uint8_t opc, uint8_t len, void *pData)
 {
     switch (opc)
     {
-        case g_SHELL_Init_c:
+        case (uint8_t)g_SHELL_Init_c:
         {
             uint32_t promptLength = FLib_StrLen(pData);
             void *pPrompt = MEM_BufferAlloc(promptLength);
             if (pPrompt != NULL)
             {
-                FLib_MemCpy(pPrompt, pData, promptLength + 1);
+                FLib_MemCpy(pPrompt, pData, promptLength + 1U);
                 (void)SHELL_Init((shell_handle_t)g_shellHandle,
                                  (serial_handle_t)gSerMgrIf, pPrompt);
             }
@@ -168,52 +169,54 @@ static void SHELL_RemoteHandler(uint8_t opc, uint8_t len, void *pData)
         break;
 
         /* cmd ID | cmd null terminated | help string null terminated */
-        case g_SHELL_RegisterCommand_c:
+        case (uint8_t)g_SHELL_RegisterCommand_c:
         {
             uint8_t *pPos = (uint8_t*)pData;
             uint8_t *pCmd = NULL;
             uint8_t *pHelp = NULL;
-            uint8_t cmdLength = 0;
-            uint8_t helpLength = 0;
+            uint32_t cmdLength = 0;
+            uint32_t helpLength = 0;
             shell_command_t *pShellCmd = &aCmds[mCrtCmd];
 
             pShellCmd->cExpectedNumberOfParameters = *pPos;
             pPos++;
             pCmd = pPos;
             cmdLength = FLib_StrLen((char const*)pCmd);
-            pPos += cmdLength + 1;
+            pPos += cmdLength + 1U;
             pHelp = pPos;
             helpLength = FLib_StrLen((char const*)pPos);
             pShellCmd->pFuncCallBack = SHELL_LocalHandler;
 
-            mpStrings[mCrtCmd] = MEM_BufferAlloc(cmdLength + 1 + helpLength + 1);
+            mpStrings[mCrtCmd] = MEM_BufferAlloc(cmdLength + 1U + helpLength + 1U);
             if (mpStrings[mCrtCmd] != NULL)
             {
                 pShellCmd->pcCommand = (char const*)mpStrings[mCrtCmd];
-                FLib_MemCpy(mpStrings[mCrtCmd], pCmd, cmdLength + 1);
-                pShellCmd->pcHelpString = (char *)(pShellCmd->pcCommand + cmdLength + 1);
-                FLib_MemCpy(pShellCmd->pcHelpString, pHelp, helpLength + 1);
+                FLib_MemCpy(mpStrings[mCrtCmd], pCmd, cmdLength + 1U);
+                pShellCmd->pcHelpString = (char *)(pShellCmd->pcCommand + cmdLength + 1U);
+                FLib_MemCpy(pShellCmd->pcHelpString, pHelp, helpLength + 1U);
                 (void)SHELL_RegisterCommand((shell_handle_t)g_shellHandle,
                                             (void*)pShellCmd);
 
-                FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_SHELL_RegisterCommand_c,
+                FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_SHELL_RegisterCommand_c,
                   NULL, 0, gFsciInterface_c);
                 mCrtCmd++;
             }
         }
         break;
 
-        case g_SHELL_PrintfSynchronization_c:
-            SHELL_PrintfSynchronization((shell_handle_t)g_shellHandle, "%s",
+        case (uint8_t)g_SHELL_PrintfSynchronization_c:
+            (void)SHELL_PrintfSynchronization((shell_handle_t)g_shellHandle, "%s",
                                         pData);
         break;
 
-        case g_SHELL_PrintPrompt_c:
+        case (uint8_t)g_SHELL_PrintPrompt_c:
             SHELL_PrintPrompt((shell_handle_t)g_shellHandle);
         break;
 
         default:
+        {
             ;
+        }
         break;
     }
 }

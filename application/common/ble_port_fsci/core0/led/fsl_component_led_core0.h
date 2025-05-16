@@ -24,7 +24,7 @@
 *
 *\retval    none
 ********************************************************************************** */
-void LED_InitCore0Handlers();
+void LED_InitCore0Handlers(void);
 
 #endif /* gFsciComponentLedCore0_d */
 #endif /* __LED_CORE0_H__ */
