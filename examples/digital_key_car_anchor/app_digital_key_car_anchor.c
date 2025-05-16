@@ -849,7 +849,59 @@ void App_HandleShellCmds(void *pData)
             App_HandleBondShellCmds(pData);
         }
         break;
+        
+        case mAppEvt_Shell_ListActiveDev_Command_c:
+        {
+            bool_t found = FALSE;
+            bool_t  peerBonded = FALSE;
+            uint8_t peerNvmIndex = 0U;
+            bleResult_t result = gBleUnavailable_c;
+            gapSmpKeys_t outKeys = {};
+            gapSmpKeyFlags_t outKeyFlags = 0U;
+            bool_t outLeSc = FALSE;
+            bool_t outAuth = FALSE;
+            uint8_t aBleDeviceAddress[gcBleDeviceAddressSize_c] = {};
+            outKeys.aAddress = aBleDeviceAddress;
 
+            shell_write("\r\nDevId      AddrType    Address\r\n");
+            for (uint32_t i = 0U; i < gAppMaxConnections_c; i++)
+            {
+                if (maPeerInformation[i].deviceId == gInvalidDeviceId_c)
+                {
+                    continue;
+                }
+
+                result = Gap_CheckIfBonded(maPeerInformation[i].deviceId , &peerBonded, &peerNvmIndex);
+
+                if ((result == gBleSuccess_c) && (peerBonded == TRUE))
+                {
+                    result = Gap_LoadKeys(peerNvmIndex, &outKeys, &outKeyFlags, &outLeSc, &outAuth);
+                }
+                else
+                {
+                    result = gBleUnavailable_c;
+                }
+
+                if (result == gBleSuccess_c)
+                {
+                    shell_writeHex((uint8_t*)&maPeerInformation[i].deviceId, sizeof(uint8_t));
+                    shell_write("         ");
+                    shell_writeHex((uint8_t*)&outKeys.addressType, sizeof(uint8_t));
+                    shell_write("          ");
+                    shell_writeHex((uint8_t*)&outKeys.aAddress, gcBleDeviceAddressSize_c);
+                    shell_write("\r\n");
+                    found = TRUE;
+                }
+            }
+
+            if(found == FALSE)
+            {
+                shell_write(" No active devices ");
+            }
+
+            shell_cmd_finished();
+        }
+        break;
 #if defined(gHandoverDemo_d) && (gHandoverDemo_d == 1)
         case mAppEvt_Shell_HandoverSendL2cap_Command_c:
         {
@@ -899,8 +951,34 @@ void App_HandleShellCmds(void *pData)
             }
         }
         break;
-#endif
         
+        
+        case mAppEvt_Shell_Handover_Command_c:
+        {
+            bleResult_t result = gBleInvalidParameter_c;
+            deviceId_t handoverDeviceId = pEventData->eventData.peerDeviceId;
+            shell_write("\r\nHandover started.\r\n");
+
+            if (maPeerInformation[handoverDeviceId].deviceId == gInvalidDeviceId_c)
+            {
+                shell_write("\r\n Handover device id error.\r\n");
+                result = gBleInvalidState_c;
+            }
+            else
+            {
+                AppHandover_SetPeerDevice(maPeerInformation[handoverDeviceId].deviceId);
+                result = AppHandover_StartTimeSync(TRUE);
+            }
+
+            if (result != gBleSuccess_c)
+            {
+                shell_write("\r\nHandover time synchronization error.\r\n");
+                shell_cmd_finished();
+            }
+        }
+        break;
+#endif
+
         default:
         {
             ; /* No action required */

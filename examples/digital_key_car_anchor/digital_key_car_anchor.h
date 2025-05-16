@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file digital_key_car_anchor.h
 *
-* Copyright 2020-2024 NXP
+* Copyright 2020-2025 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -66,6 +66,7 @@ typedef enum appEvent_tag{
     mAppEvt_Shell_SetBondingData_Command_c,
     mAppEvt_Shell_ListBondedDev_Command_c,
     mAppEvt_Shell_RemoveBondedDev_Command_c,
+    mAppEvt_Shell_ListActiveDev_Command_c,
     mAppEvt_AdvertisingStartedLegacy_c,
     mAppEvt_AdvertisingStartedExtendedLR_c,
     mAppEvt_AdvertisingStopped_c,

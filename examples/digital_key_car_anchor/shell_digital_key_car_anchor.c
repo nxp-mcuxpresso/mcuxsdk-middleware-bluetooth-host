@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file shell_digital_key_car_anchor.c
 *
-* Copyright 2021-2024 NXP
+* Copyright 2021-2025 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -59,11 +59,12 @@ static shell_status_t ShellTriggerTimeSync_Command(shell_handle_t shellHandle, i
 static shell_status_t ShellSetBondingData_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellListBondedDev_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellRemoveBondedDev_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
-
+static shell_status_t ShellListActiveDev_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 #if defined(gHandoverDemo_d) && (gHandoverDemo_d == 1)
 static shell_status_t ShellHandoverSendL2cap_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellHandoverAnchorMonitor_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellHandoverPacketMonitor_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
+static shell_status_t ShellHandoverDevId_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 #endif /* gHandoverDemo_d */
 
 static uint8_t BleApp_ParseHexValue(char* pInput);
@@ -144,6 +145,15 @@ static shell_command_t mListBondedDevCmd =
     .pcHelpString = "\r\n\"listbd\": List bonded devices.\r\n",
 };
 
+static shell_command_t mListActiveDevCmd =
+{
+    .pcCommand = "listad",
+    .cExpectedNumberOfParameters = 0,
+    .pFuncCallBack = ShellListActiveDev_Command,
+    .pcHelpString = "\r\n\"listad\": List active device IDs.\r\n",
+};
+
+
 static shell_command_t mRemoveBondedDevCmd =
 {
     .pcCommand = "removebd",
@@ -175,6 +185,14 @@ static shell_command_t mHandoverPacketMonitorCmd =
     .cExpectedNumberOfParameters = SHELL_IGNORE_PARAMETER_COUNT,
     .pFuncCallBack = ShellHandoverPacketMonitor_Command,
     .pcHelpString = "\r\n\"packetmon\": Start or stop packet monitoring.\r\n",
+};
+
+static shell_command_t mHandoverDevIdCmd =
+{
+    .pcCommand = "handover",
+    .cExpectedNumberOfParameters = SHELL_IGNORE_PARAMETER_COUNT,
+    .pFuncCallBack = ShellHandoverDevId_Command,
+    .pcHelpString = "\r\n\"handover\": Start handover for specific device id.\r\n",
 };
 #endif /* gHandoverDemo_d */
 
@@ -223,12 +241,17 @@ void AppShellInit(char* prompt)
     assert(kStatus_SHELL_Success == status);
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mRemoveBondedDevCmd);
     assert(kStatus_SHELL_Success == status);
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mListActiveDevCmd);
+    assert(kStatus_SHELL_Success == status);   
+       
 #if defined(gHandoverDemo_d) && (gHandoverDemo_d == 1)
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mHandoverSendL2capCmd);
     assert(kStatus_SHELL_Success == status);
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mHandoverAnchorMonitorCmd);
     assert(kStatus_SHELL_Success == status);
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mHandoverPacketMonitorCmd);
+    assert(kStatus_SHELL_Success == status);
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mHandoverDevIdCmd);
     assert(kStatus_SHELL_Success == status);
 #endif /* gHandoverDemo_d */
 #endif
@@ -607,6 +630,32 @@ static shell_status_t ShellListBondedDev_Command(shell_handle_t shellHandle, int
     }
     return kStatus_SHELL_Success;
 }
+                    
+                    
+/*! *********************************************************************************
+* \brief        List active devices.
+*
+* \param[in]    argc           Number of arguments
+* \param[in]    argv           Pointer to arguments
+*
+* \return       shell_status_t  Returns the command processing status
+********************************************************************************** */
+static shell_status_t ShellListActiveDev_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
+{
+    if(mpfShellEventHandler != NULL)
+    {
+        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
+        if(pEventData != NULL)
+        {
+            pEventData->appEvent = mAppEvt_Shell_ListActiveDev_Command_c;
+            if (gBleSuccess_c != App_PostCallbackMessage(mpfShellEventHandler, pEventData))
+            {
+               (void)MEM_BufferFree(pEventData);
+            }
+        }
+    }
+    return kStatus_SHELL_Success;
+}
 
 /*! *********************************************************************************
 * \brief        remove bonded devices.
@@ -811,6 +860,45 @@ static shell_status_t ShellHandoverPacketMonitor_Command(shell_handle_t shellHan
     else
     {
             shell_write("\r\nUsage: packetmon deviceId start|stop\r\n");
+    }
+    return kStatus_SHELL_Success;
+}
+                    
+/*! *********************************************************************************
+* \brief        Trigger Connection Handover for the specified peer device.
+*
+* \param[in]    argc           Number of arguments
+* \param[in]    argv           Pointer to arguments
+*
+* \return       shell_status_t  Returns the command processing status
+********************************************************************************** */                 
+static shell_status_t ShellHandoverDevId_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
+{
+    if (argc == 2)
+    {
+        if(mpfShellEventHandler != NULL)
+        {
+            appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
+            if(pEventData != NULL)
+            {
+                pEventData->appEvent = mAppEvt_Shell_Handover_Command_c;
+                if ( sizeof(uint8_t) == BleApp_ParseHexValue(argv[1]) )
+                {
+                    /* Store device id to be used for handover in eventData.peerDeviceId  */
+                    pEventData->eventData.peerDeviceId = (uint8_t)*argv[1];
+                    if (gBleSuccess_c != App_PostCallbackMessage(mpfShellEventHandler, pEventData))
+                    {
+                       (void)MEM_BufferFree(pEventData);
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        shell_write("\r\nUsage: \
+                    \r\nhandover deviceId \
+                    \r\n");
     }
     return kStatus_SHELL_Success;
 }
