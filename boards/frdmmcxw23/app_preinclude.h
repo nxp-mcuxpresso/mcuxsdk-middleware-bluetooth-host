@@ -351,7 +351,7 @@ _block_set_(288, (gLlBufferNbrLargeSizeEvent_c + gLlCmdBuffer288Bytes_c), 1) _eo
 
 /* Define the max tx power setting in dBm. Allowed values 0, 7 or 10 */
 #if !defined(gAppMaxTxPowerDbm_c)
-#define gAppMaxTxPowerDbm_c 10
+#define gAppMaxTxPowerDbm_c 0
 #endif /* !defined(gAppMaxTxPowerDbm_c) */
 
 /*! Set maximum transmit power. */
