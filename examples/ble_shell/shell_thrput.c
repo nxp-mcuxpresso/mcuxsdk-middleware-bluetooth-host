@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -63,9 +63,9 @@
 *************************************************************************************
 ************************************************************************************/
 #define mShellThrBufferSizeMax_c           (244U)
-
-#define mShellThrTxInterval_c              ((mShellThrConnectionInterval_d + \
-                                            mShellThrConnectionInterval_d / 4U) / 3U)  /* ms */
+#define mAttOverheadSize                   (17U)
+/* Estimated time required to send the maximum throughput size packet on the 1M phy */
+#define mShellThrTxInterval_c             (((mShellThrBufferSizeMax_c + mAttOverheadSize) * 8U)/1000U)
 
 #define mShellThrConnectionInterval_d      (12U) /* 15 ms */
 
@@ -116,6 +116,9 @@ static shell_status_t ShellThr_Start(uint8_t argc, char * argv[]);
 static shell_status_t ShellThr_Stop(uint8_t argc, char * argv[]);
 static bool_t ShellThr_IsTestInProgress(void);
 
+/* Shell throughput timer functions */
+static timer_status_t ShellThr_TimerOpen(void);
+static void ShellThr_TimerClose(void);
 /************************************************************************************
 *************************************************************************************
 * Private memory declarations
@@ -245,6 +248,9 @@ static appAdvertisingParams_t appThrputAdvParams = {
     &gAppAdvertisingData,
     &gAppScanRspData
 };
+
+/* Thrput timer status */
+static bool_t mThrTimerOn = FALSE;
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -1078,7 +1084,7 @@ static void ShellThr_StartThroughputTest(thrGapRoles_t role, deviceId_t peerId)
         gThrStatistics[peerId].lastPacketTs = 0;
 
         /* Allocate throughput test timer */
-        timerStatus = TM_Open(gThroughputTestTimerId);
+        timerStatus = ShellThr_TimerOpen();
 
         if (timerStatus == kStatus_TimerSuccess)
         {
@@ -1122,7 +1128,7 @@ static void ShellThr_StartThroughputTest(thrGapRoles_t role, deviceId_t peerId)
             gThroughputConfig[peerId].bTestInProgress = TRUE;
 
             /* Allocate throughput test timer */
-            timerStatus = TM_Open(gThroughputTestTimerId);
+            timerStatus = ShellThr_TimerOpen();
             
             if (timerStatus == kStatus_TimerSuccess)
             {
@@ -1246,7 +1252,7 @@ static void ShellThr_PrintReport(appCallbackParam_t pParam)
         gUseShellThrGenericCb = FALSE;
 
         /* Free timer */
-        (void)TM_Close((timer_handle_t)gThroughputTestTimerId);
+        ShellThr_TimerClose();
     }
 }
 
@@ -1304,5 +1310,46 @@ static bool_t ShellThr_IsTestInProgress(void)
     }
 
     return bTestInProgress;
+}
+
+/*! *********************************************************************************
+ * \brief  Open Throughput timer.
+ *
+ * \param[in]   void
+*
+ * \return       timer status
+ ********************************************************************************** */
+static timer_status_t ShellThr_TimerOpen(void)
+{
+    timer_status_t thrTimerStatus = kStatus_TimerSuccess;
+    if(mThrTimerOn == FALSE)
+    {
+        thrTimerStatus = TM_Open(gThroughputTestTimerId);
+        if(thrTimerStatus == kStatus_TimerSuccess)
+        {
+            mThrTimerOn = TRUE;
+        }
+    }
+    return thrTimerStatus;
+}
+
+/*! *********************************************************************************
+ * \brief  Close Throughput timer.
+ *
+ * \param[in]   void
+*
+ * \return       timer status
+ ********************************************************************************** */
+static void ShellThr_TimerClose(void)
+{
+    timer_status_t thrTimerStatus = kStatus_TimerSuccess;
+    if(mThrTimerOn == TRUE)
+    {
+        thrTimerStatus = TM_Close((timer_handle_t)gThroughputTestTimerId);
+        if(thrTimerStatus == kStatus_TimerSuccess)
+        {
+            mThrTimerOn = FALSE;
+        }
+    }
 }
 /* EOF */
