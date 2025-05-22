@@ -82,6 +82,9 @@
 /* Scan for non-CCC key fobs */
 #define gAppScanNonCCC_d                        0
 
+/* Enable the optional LE Coded PHY advertising */
+#define gAppLeCodedAdvEnable_d                  1
+
 #define gcAdvertisingIntervalCCC_1M_c           (68U)   /* 42.5 ms */
 #define gcAdvertisingIntervalCCC_CodedPhy_c     (135U)  /* 84.3 ms */
 
@@ -139,16 +142,14 @@
 /*! *********************************************************************************
  *     BLE Stack Configuration
  ********************************************************************************** */
-#define gLegacyAdvSetHandle_c               	0x00U
-#define gExtendedAdvSetHandle_c             	0x01U
-#define gNoAdvSetHandle_c                   	0xFFU
+#define gLegacyAdvSetHandle_c                   0x00U
+#define gExtendedAdvSetHandle_c                 0x01U
+#define gNoAdvSetHandle_c                       0xFFU
 
-#define gAppMaxConnections_c                	8U
+#define gAppMaxConnections_c                    8U
 
 /* Must open an L2CAP channel for each CCC peer */
-#define gL2caMaxLeCbChannels_c              	gAppMaxConnections_c
-
-#define gAppExtAdvEnable_d                  	1
+#define gL2caMaxLeCbChannels_c                  gAppMaxConnections_c
 
  /* Enable Serial Manager interface */
 #if gA2ASerialInterface_d

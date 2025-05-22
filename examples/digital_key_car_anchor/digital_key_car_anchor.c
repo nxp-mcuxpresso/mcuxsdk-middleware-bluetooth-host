@@ -113,9 +113,11 @@ static TIMER_MANAGER_HANDLE_DEFINE(mAppTimerId);
 #endif
 static TIMER_MANAGER_HANDLE_DEFINE(mL2caTimerId);
 static bool_t mL2caTimerValid = FALSE;
+
+#if defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1)
 /* Owner Pairing Mode enabled */
 static bool_t mOwnerPairingMode = TRUE;
-
+#endif /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
 /* Current Advertising Set */
 static uint8_t gCurrentAdvHandle = (uint8_t)gLegacyAdvSetHandle_c;
 /* Holds the identification information about the device are we doing OOB pairing with */
@@ -126,8 +128,9 @@ static deviceId_t mDeviceIdToDisconnect;
 /* application callback */
 static pfBleCallback_t mpfBleEventHandler = NULL;
 static pfBleCallback_t mpfBleUserInterfaceEventHandler = NULL;
+#if defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1)
 static bool_t gStopExtAdvSetAfterConnect = FALSE;
-
+#endif /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
 /************************************************************************************
 *************************************************************************************
 * Private functions prototypes
@@ -461,13 +464,16 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
 #endif /* defined(gHandoverDemo_d) && (gHandoverDemo_d) */
         case gConnEvtConnected_c:
         {
+#if defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1)
             bleResult_t result = gBleSuccess_c;
+#endif /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
             /* Save address used during discovery if controller privacy was used. */
             if (pConnectionEvent->eventData.connectedEvent.localRpaUsed)
             {
                 FLib_MemCpy(gaAppOwnDiscAddress, pConnectionEvent->eventData.connectedEvent.localRpa, gcBleDeviceAddressSize_c);
             }
 
+#if defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1)
             /* Advertising stops when connected - on all PHYs */
             result = Gap_StopExtAdvertising(0xFF);
             
@@ -477,6 +483,7 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
                 gStopExtAdvSetAfterConnect = TRUE;
                 gCurrentAdvHandle = gNoAdvSetHandle_c;
             }
+#endif /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
 #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
             (void)TM_Stop((timer_handle_t)mAppTimerId);
 #endif
@@ -619,12 +626,14 @@ void BleApp_FactoryReset(void)
 ********************************************************************************** */
 void BleApp_PE_Start(void)
 {
-    mOwnerPairingMode = FALSE;
     gAppAdvParams.pGapAdvData = &gAppAdvertisingDataEmpty;
+#if defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1)
+    mOwnerPairingMode = FALSE;
 #if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)
     gLegacyAdvParams.extAdvProperties = (bleAdvRequestProperties_t)(gAdvReqConnectable_c | gAdvUseDecisionPDU_c | gAdvIncludeAdvAinDecisionPDU_c);
     gExtAdvParams.extAdvProperties = (bleAdvRequestProperties_t)(gAdvReqConnectable_c | gAdvIncludeTxPower_c | gAdvUseDecisionPDU_c | gAdvIncludeAdvAinDecisionPDU_c);
 #endif /* defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE) */
+#endif /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
     BleApp_Start();
 }
 
@@ -635,12 +644,14 @@ void BleApp_PE_Start(void)
 void BleApp_OP_Start(void)
 {
     FLib_MemSet(gaAppOwnDiscAddress, 0x00, gcBleDeviceAddressSize_c);
-    mOwnerPairingMode = TRUE;
     gAppAdvParams.pGapAdvData = &gAppAdvertisingData;
+#if defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1)
+    mOwnerPairingMode = TRUE;
 #if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)
     gLegacyAdvParams.extAdvProperties = (bleAdvRequestProperties_t)(gAdvReqConnectable_c | gAdvReqScannable_c | gAdvReqLegacy_c);
     gExtAdvParams.extAdvProperties = (bleAdvRequestProperties_t)(gAdvReqConnectable_c | gAdvIncludeTxPower_c);
 #endif /* defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE) */
+#endif /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
     BleApp_Start();
 }
 
@@ -1239,13 +1250,14 @@ static void BleApp_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent
             {
                 /* Inform the user interface handler that legacy advertising started */
                 appEvent = mAppEvt_AdvertisingStartedLegacy_c;
-
+#if defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1)
                 if (FALSE == mOwnerPairingMode)
                 {
                     gCurrentAdvHandle = gExtendedAdvSetHandle_c;
                     gStopExtAdvSetAfterConnect = FALSE;
                     BleApp_Advertise();
                 }
+#endif /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
 
 #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
                 /* Start advertising timer */
@@ -1258,6 +1270,7 @@ static void BleApp_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent
                 Led1Flashing();
 #endif /* #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode) */
             }
+#if defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1)
             else if (gCurrentAdvHandle == gExtendedAdvSetHandle_c)
             {
                 /* Inform the user interface handler that extended advertising started */
@@ -1296,6 +1309,30 @@ static void BleApp_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent
 #endif /* #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode) */
                 }
             }
+#else /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
+            else
+            {
+                /* Inform the user interface handler that advertising has stopped */
+                appEvent = mAppEvt_AdvertisingStopped_c;
+                
+#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
+                timer_status_t status = TM_Stop((timer_handle_t)mAppTimerId);
+                if (status != kStatus_TimerSuccess)
+                {
+                    panic(0, (uint32_t)BleApp_AdvertisingCallback, 0, 0);
+                }
+                Led1Off();
+#else
+                if (0U == BleApp_GetNoOfActiveConnections())
+                {
+                    /* UI */
+                    LedStopFlashingAllLeds();
+                    Led1Flashing();
+                    Led2Flashing();
+                }
+#endif /* #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode) */
+            }
+#endif /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
 
             if(mpfBleUserInterfaceEventHandler != NULL)
             {
@@ -1349,11 +1386,13 @@ static void BleApp_Advertise(void)
         gAppAdvParams.pGapExtAdvParams = &gLegacyAdvParams;
         gAppAdvParams.handle = gLegacyAdvSetHandle_c;
     }
+#if defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1)
     else if (gCurrentAdvHandle == gExtendedAdvSetHandle_c)
     {
         gAppAdvParams.pGapExtAdvParams = &gExtAdvParams;
         gAppAdvParams.handle = gExtendedAdvSetHandle_c;
     }
+#endif /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
     else
     {
         /* For MISRA compliance */
