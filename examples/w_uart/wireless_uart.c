@@ -1379,7 +1379,11 @@ static void BleApp_ReceivedUartStream
             FLib_MemCpy(pBuffer, additionalInfoBuff, sizeof(additionalInfoBuff));
         }
 
-        FLib_MemCpy(&pBuffer[messageHeaderSize], pStream, (uint32_t)streamLength - messageHeaderSize);
+        if ((streamLength > 0U) && ((uint32_t)streamLength > messageHeaderSize))
+        {
+            uint32_t copyLen = (uint32_t)streamLength - messageHeaderSize;
+            FLib_MemCpy(&pBuffer[messageHeaderSize], pStream, copyLen);
+        }
 #if (defined(SERIAL_MANAGER_NON_BLOCKING_MODE) && (SERIAL_MANAGER_NON_BLOCKING_MODE > 0U))
         serial_manager_status_t status = SerialManager_InstallTxCallback((serial_write_handle_t)s_writeHandle, Uart_TxCallBack, pBuffer);
         (void)status;

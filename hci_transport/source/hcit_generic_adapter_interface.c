@@ -272,8 +272,13 @@ bleResult_t Hcit_SendPacket
     {
         if(packetType == gHciDataPacket_c)
         {
+            uint32_t payloadLen = 0U;
             aclDataPkt = true;
-            totalLen = (((((uint32_t)buf[3U]) << 8U) | ((uint32_t)buf[2U])) + 5U);
+            payloadLen = (((((uint32_t)buf[3U]) << 8U) | ((uint32_t)buf[2U])));
+            if (payloadLen <= (UINT32_MAX - 5U))
+            {
+              totalLen = payloadLen + 5U;
+            }
         }
         else
         {
