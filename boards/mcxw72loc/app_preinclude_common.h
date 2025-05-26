@@ -209,11 +209,15 @@
 #if defined(CONNFWK_SECLIB_MBEDTLS)
 /* The stack size of the Host task needs to be rise when using mbedTLS as mbedTLS structures are bigger */
 #ifndef gHost_TaskStackSize_c
-#define gHost_TaskStackSize_c                   1650
+#define gHost_TaskStackSize_c       1650
+#endif
+#elif defined(gSecLibUsePsa_d) && (gSecLibUsePsa_d > 0)
+#ifndef gHost_TaskStackSize_c
+#define gHost_TaskStackSize_c       2200
 #endif
 #else
 #ifndef gHost_TaskStackSize_c
-#define gHost_TaskStackSize_c                   1600
+#define gHost_TaskStackSize_c       1600
 #endif
 #endif
 
