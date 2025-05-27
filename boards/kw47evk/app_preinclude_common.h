@@ -100,7 +100,7 @@
 
 /* Enable/Disable application secure mode */
 #ifndef gAppSecureMode_d
-#define gAppSecureMode_d                 (0U) 
+#define gAppSecureMode_d                 (0U)
 #endif
 
 #if (gAppSecureMode_d == 1U)
@@ -208,7 +208,7 @@
 #endif
 #elif defined(gSecLibUsePsa_d) && (gSecLibUsePsa_d > 0)
 #ifndef gHost_TaskStackSize_c
-#define gHost_TaskStackSize_c       2200
+#define gHost_TaskStackSize_c       1850
 #endif
 #else
 #ifndef gHost_TaskStackSize_c
