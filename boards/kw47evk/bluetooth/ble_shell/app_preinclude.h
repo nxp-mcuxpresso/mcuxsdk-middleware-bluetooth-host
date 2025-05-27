@@ -73,7 +73,6 @@
 
 #define gBLE60_d        1
 #define gBLE60_DecisionBasedAdvertisingFilteringSupport_d       1
-#define gExpmDecisionBasedAdvertisingFilteringBit_d     BIT1
 
 #define gMaxNumDecisionInstructions_c     8U
 

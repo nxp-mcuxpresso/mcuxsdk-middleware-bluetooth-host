@@ -4954,24 +4954,6 @@ bleResult_t HCI_LE_Set_Decision_Data( hciLeSetDecisionDataCommand_t *pParam);
 bleResult_t HCI_LE_Set_Decision_Instructions(hciLeSetDecisionInstructionsCommand_t *pParam);
 #endif /* gLeObserverSupported_d */
 #endif /* gBLE60_DecisionBasedAdvertisingFilteringSupport_d */
-    
-#if (gBLE54_d && gLeBroadcasterSupported_d && gBLE54_AdvertisingCodingSelectionSupport_d) || (gBLE60_d && gBLE60_DecisionBasedAdvertisingFilteringSupport_d)
-/*! *********************************************************************************
-* \fn           bleResult_t Hci_VendorSetExpmSupportedFeatures(hciVendorSetExpmSupportedFeaturesCommand_t *pParam)
-*
-* \brief        The function sends the HCI Set Non-Officially Supported Features
-*               (OGF : 0x3f; OCF : 0x009e) command to the Controller.
-*
-* \param[in]    pParam      pointer to command paramteres
-* \param[out]   None
-*
-* \return       Status
-*
-* \remarks      HCI Vendor Specific Command
-*
-********************************************************************************** */
-bleResult_t Hci_VendorSetExpmSupportedFeatures(hciVendorSetExpmSupportedFeaturesCommand_t *pParam);
-#endif /* (gBLE54_d && gLeBroadcasterSupported_d && gBLE54_AdvertisingCodingSelectionSupport_d) || (gBLE60_d && gBLE60_DecisionBasedAdvertisingFilteringSupport_d) */
 
 #ifdef __cplusplus
     }

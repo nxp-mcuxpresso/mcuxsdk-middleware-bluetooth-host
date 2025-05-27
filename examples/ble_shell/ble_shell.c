@@ -297,10 +297,6 @@ static int8_t  gRssiValue = 0;
 #endif /* gRFCalibration_d */
 #endif /* (defined(CPU_MKW37A512VFT4) || defined(CPU_MKW38A512VFT4)) */
 
-#if defined(BLE_SHELL_DBAF_SUPPORT) && (BLE_SHELL_DBAF_SUPPORT)
-extern uint8_t gHostInitExpmFeatures;
-#endif /* BLE_SHELL_DBAF_SUPPORT */
-
 /************************************************************************************
  *************************************************************************************
  * Private functions prototypes
@@ -602,11 +598,6 @@ void BluetoothLEHost_AppInit(void)
 {
     /* Set generic callback */
     BluetoothLEHost_SetGenericCallback(BleApp_GenericCallback);
-
-    /* Enable experimental features */
-#if defined(BLE_SHELL_DBAF_SUPPORT) && (BLE_SHELL_DBAF_SUPPORT)
-    gHostInitExpmFeatures |= gExpmDecisionBasedAdvertisingFilteringBit_d;
-#endif /* BLE_SHELL_DBAF_SUPPORT */
 
     /* Initialize Bluetooth Host Stack */
     BluetoothLEHost_Init(BluetoothLEHost_Initialized);
