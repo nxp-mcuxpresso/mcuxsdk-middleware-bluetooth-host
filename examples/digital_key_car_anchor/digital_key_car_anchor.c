@@ -481,8 +481,10 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
             {
                 /* Connection was establised before the extended advertising set was started */
                 gStopExtAdvSetAfterConnect = TRUE;
-                gCurrentAdvHandle = gNoAdvSetHandle_c;
             }
+            /* Reset gCurrentAdvHandle */
+            gCurrentAdvHandle = gNoAdvSetHandle_c;
+
 #endif /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
 #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
             (void)TM_Stop((timer_handle_t)mAppTimerId);
