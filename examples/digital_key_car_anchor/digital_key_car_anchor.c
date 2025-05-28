@@ -131,6 +131,8 @@ static pfBleCallback_t mpfBleUserInterfaceEventHandler = NULL;
 #if defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1)
 static bool_t gStopExtAdvSetAfterConnect = FALSE;
 #endif /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
+
+static bleDeviceAddress_t mRandomStaticAddr = APP_BD_ADDR;
 /************************************************************************************
 *************************************************************************************
 * Private functions prototypes
@@ -943,7 +945,12 @@ void BluetoothLEHost_Initialized(void)
         /* Common GAP configuration */
         BleConnManager_GapCommonConfig();
     }
-    
+
+    /* Configures Bluetooth Identity Address on the anchor from APP_BD_ADDR (Random Static)
+       This is specific to the anchor project to ensure all anchors have the same Identity Address  */
+    gSmpKeys.aAddress = mRandomStaticAddr;
+    gSmpKeys.addressType = gBleAddrTypeRandom_c;
+
     /* Register for callbacks*/
     (void)App_RegisterGattServerCallback(BleApp_GattServerCallback);
 #if (defined(gAppScanNonCCC_d) && (gAppScanNonCCC_d == 1U))

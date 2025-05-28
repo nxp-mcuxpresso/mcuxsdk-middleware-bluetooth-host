@@ -50,8 +50,8 @@
 /*! Set the Tx power in dBm */
 #define mAdvertisingDefaultTxPower_c    0
 
-/* Use a Random Static Address as Identity Address instead of the device's BD_ADDR */
-#define gUseRandomStaticAddress_d
+/* Use a Random Static address as identity address, instead of a Public address */
+#define gRandomStaticAddress_d          1
 
 /* Do not send any Peripheral Security Requests */
 #define gCentralInitiatedPairing_d

@@ -111,8 +111,6 @@ static gapSmpKeyFlags_t gAppOutKeyFlags;
 static bool_t gAppOutLeSc;
 static bool_t gAppOutAuth;
 
-static bleDeviceAddress_t mRandomStaticAddr = APP_BD_ADDR;
-
 #if (defined (gAppSecureMode_d) && (gAppSecureMode_d == 0U) || (defined(gA2BEnabled_d) && (gA2BEnabled_d > 0U)))
 /* 
 Global used to identify if a bond was added by
@@ -221,10 +219,6 @@ void BluetoothLEHost_AppInit(void)
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 1))
     (void)BUTTON_InstallCallback((button_handle_t)g_buttonHandle[1], BleApp_HandleKeys1, NULL);
 #endif /* (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 1)) */
-
-    /* Configures Bluetooth Identity Address on the anchor from APP_BD_ADDR (Random Static)  */
-    gSmpKeys.aAddress = mRandomStaticAddr;
-    gSmpKeys.addressType = gBleAddrTypeRandom_c;
     
     /* Add/modify init code starting from here */
     

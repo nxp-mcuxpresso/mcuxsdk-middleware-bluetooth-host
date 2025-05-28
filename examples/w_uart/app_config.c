@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2021-2023 NXP
+* Copyright 2016-2019, 2021-2023, 2025 NXP
 *
 *
 * \file
@@ -45,8 +45,13 @@ gapAdvertisingParameters_t gAdvParams = {
     /* minInterval */         gGapAdvertisingIntervalRangeMinimum_c,
     /* maxInterval */         gGapAdvertisingIntervalRangeMinimum_c,
     /* advertisingType */     gAdvConnectableUndirected_c,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* addressType */         gBleAddrTypeRandom_c,
+    /* directedAddressType */ gBleAddrTypeRandom_c,
+#else
     /* addressType */         gBleAddrTypePublic_c,
     /* directedAddressType */ gBleAddrTypePublic_c,
+#endif
     /* directedAddress */     {0, 0, 0, 0, 0, 0},
     /* channelMap */          (gapAdvertisingChannelMapFlags_t) (gGapAdvertisingChannelMapDefault_c),
     /* filterPolicy */        gProcessAll_c
@@ -89,7 +94,11 @@ gapScanningParameters_t gScanParams =
     /* type */              gScanTypeActive_c,
     /* interval */          gGapScanIntervalDefault_d,
     /* window */            gGapScanWindowDefault_d,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* ownAddressType */    gBleAddrTypeRandom_c,
+#else
     /* ownAddressType */    gBleAddrTypePublic_c,
+#endif
     /* filterPolicy */      gScanAll_c,
     /* scanning PHY */      gLePhy1MFlag_c
 };
@@ -100,7 +109,11 @@ gapConnectionRequestParameters_t gConnReqParams =
     .scanInterval = 36,
     .scanWindow = 18,
     .filterPolicy = gUseDeviceAddress_c,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    .ownAddressType = gBleAddrTypeRandom_c,
+#else
     .ownAddressType = gBleAddrTypePublic_c,
+#endif
     .connIntervalMin = 16,
     .connIntervalMax = 16,
     .connLatency = 0,

@@ -223,7 +223,7 @@ void BleConnManager_GenericEvent(gapGenericEvent_t* pGenericEvent)
             FLib_MemCpy(maBleDeviceAddress,
                         pGenericEvent->eventData.aAddress,
                         sizeof(bleDeviceAddress_t));
-#if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U)) && !defined(gUseRandomStaticAddress_d)
+#if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
             gSmpKeys.addressType = gBleAddrTypePublic_c;
             gSmpKeys.aAddress = maBleDeviceAddress;
 #endif /* gAppUsePairing_d */
@@ -1088,8 +1088,13 @@ bleResult_t BleConnManager_DisablePrivacy(void)
 ********************************************************************************** */
 void BleConnManager_GapCommonConfig(void)
 {
-    /* Read public address from controller */
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* maBleDeviceAddress already created in BleConnManager_MCUInfoToSmpKeys - set it */
+    (void)Gap_SetRandomAddress(maBleDeviceAddress);
+#else
+    /* Read public address from controller - maBleDeviceAddress will be populated on event */
     (void)Gap_ReadPublicDeviceAddress();
+#endif /* gRandomStaticAddress_d */
 
 #if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
     /* Register security requirements if pairing is used */
@@ -1245,7 +1250,8 @@ STATIC void BleConnManager_GetLocalKey(uint8_t id, uint8_t* pOut)
 /*! *********************************************************************************
 *\private
 *\fn           void BleConnManager_MCUInfoToSmpKeys(void)
-*\brief        Generates LTK, IRK, CSRK, ediv and rand.
+*\brief        Generates LTK, IRK, CSRK, ediv and rand. Optionally: identity address
+*              (Random Static).
 *
 *\param  [in]  none.
 *
@@ -1288,6 +1294,18 @@ STATIC void BleConnManager_MCUInfoToSmpKeys(void)
         FLib_MemCpy (gSmpKeys.aRand,
                      &(sha256Output[sizeof(gSmpKeys.ediv)]),
                      gSmpKeys.cRandSize);
+
+        /* generate Random Static Address */
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+        uid[len - 1U]++;
+        SHA256_Hash (uid, len, sha256Output);
+        FLib_MemCpy(maBleDeviceAddress, &(sha256Output[0]), gcBleDeviceAddressSize_c);
+        /* Most significant two bits of a Random Static Address must be 11 */
+        maBleDeviceAddress[5] |= (BIT7 | BIT6);
+        /* Set the Random Static address into gSmpKeys */
+        gSmpKeys.aAddress = maBleDeviceAddress;
+        gSmpKeys.addressType = gBleAddrTypeRandom_c;
+#endif
     }
 }
 #endif /* (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U)) */
