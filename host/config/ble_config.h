@@ -225,6 +225,35 @@
 #error The number of connections configured by the application exceeds the number of connection supported by this platform.
 #endif
 
+/* GATT dynamic database preallocate static memory area.
+ * By default the dynamic 
+ * GATT database uses buffers from the memory manager. When adding multiple 
+ * characteristics this can cause the memory area to reach a high degree of 
+ * fragmentation.
+ * To avoid this, we can use a preallocated static memory area that is used for 
+ * attributes storage and another preallocated static memory area to store the 
+ * value fields of each attribute */
+
+/*! Dynamic Database maximum array size for holding attributes
+ * 1    - use dynamic memory allocation
+ * >1   - use static preallocated area with maximum size equal to this number;
+ *        if this space is not sufficient gBleOutOfMemory_c is returned
+ *        by GATT APIs
+ */
+#ifndef gGattDynamicAttrSize_c
+#define gGattDynamicAttrSize_c 1U
+#endif
+
+/*! Dynamic Database maximum array size for holding attribute values
+ * 1    - use dynamic memory allocation
+ * >1   - use static preallocated area with maximum size equal to this number
+ *        if this space is not sufficient gBleOutOfMemory_c is returned
+ *        by GATT APIs
+ */
+#ifndef gGattDynamicValSize_c
+#define gGattDynamicValSize_c 1U
+#endif
+
 #endif /* BLE_CONFIG_H */
 
 /*! *********************************************************************************

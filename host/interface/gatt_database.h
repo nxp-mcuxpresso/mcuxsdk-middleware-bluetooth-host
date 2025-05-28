@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2021-2023 NXP
+* Copyright 2016-2019, 2021-2023, 2025 NXP
 *
 *
 * \file
@@ -117,6 +117,12 @@ extern uint16_t gGattActiveClientSupportedFeaturesHandles[];
 
 extern uint16_t mServerServiceChangedCharHandle;
 extern uint16_t mServerServiceChangedCCCDHandle;
+
+extern uint32_t gGattDynamicAttrSize;
+extern uint8_t gaGattDynamicAttrBlob[];
+
+extern uint32_t gGattDynamicValSize;
+extern uint8_t gaGattDynamicValBlob[];
 
 /************************************************************************************
 *************************************************************************************

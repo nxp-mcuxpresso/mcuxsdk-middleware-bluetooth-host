@@ -269,6 +269,19 @@ extern uint8_t gGattClientSupportedFeatures[1];
 uint8_t gGattClientSupportedFeatures[1];
 #endif /* gBLE51_d && gGattCaching_d */
 
+/*!< Dynamic Database maximum array size for holding attributes */
+extern uint32_t gGattDynamicAttrSize;
+uint32_t gGattDynamicAttrSize = gGattDynamicAttrSize_c;
+/*!< Dynamic Database maximum array for holding attributes */
+extern uint8_t gaGattDynamicAttrBlob[gGattDynamicAttrSize_c];
+uint8_t gaGattDynamicAttrBlob[gGattDynamicAttrSize_c];
+/*!< Dynamic Database maximum array size for holding attribute values */
+extern uint32_t gGattDynamicValSize;
+uint32_t gGattDynamicValSize = gGattDynamicValSize_c;
+/*!< Dynamic Database maximum array for holding attribute values */
+extern uint8_t gaGattDynamicValBlob[gGattDynamicValSize_c];
+uint8_t gaGattDynamicValBlob[gGattDynamicValSize_c];
+
 extern procStatus_t gProcedureStatus[gAppMaxConnections_c * (1U + gAppEattMaxNoOfBearers_c)];
 procStatus_t gProcedureStatus[gAppMaxConnections_c * (1U + gAppEattMaxNoOfBearers_c)];
 procDataStruct_t* pProcedureData[gAppMaxConnections_c * (1U + gAppEattMaxNoOfBearers_c)];
