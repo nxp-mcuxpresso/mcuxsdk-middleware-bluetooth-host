@@ -1254,6 +1254,34 @@ bleResult_t Gap_GetBondedDeviceName
 );
 
 /*! *********************************************************************************
+* \brief  Store the name of a bonded device.
+*
+* \param[in]  nvmIndex      Index of the device in NVM bonding area.
+* \param[in]  pName         Array of characters holding the name.
+* \param[in]  cNameSize     Number of characters to be saved.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            The nvm index of the deviceId is bigger than
+*                                       the number of allowed bonded devices, or the
+*                                       nvm saving operation did not have enough memory.
+*
+* \remarks This function copies cNameSize characters from the pName array and
+* adds the NULL character to terminate the string.
+*
+* \remarks This function executes synchronously.
+*
+********************************************************************************** */
+bleResult_t Gap_SetBondedDeviceName
+(
+    uint8_t           nvmIndex,
+    const uchar_t*    pName,
+    uint8_t           cNameSize
+);
+/*! *********************************************************************************
 * \brief  Removes the bond with a device.
 *
 * \param[in] nvmIndex           Index of the device in the NVM bonding area.

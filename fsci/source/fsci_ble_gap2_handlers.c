@@ -244,6 +244,11 @@ void HandleGapCmdSetPeriodicAdvParametersV2OpCode
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif /* defined(gBLE54_d) && (gBLE54_d == 1U) */
 
+void HandleGapCmdSetBondedDeviceNameOpCode
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
 /*! *********************************************************************************
 *\private
 *\fn           void HandleCtrlCmdGetTimestampExOpCode(uint8_t *pBuffer,
@@ -316,6 +321,7 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
     HandleCtrlCmdGetTimestampExOpCode,                                          /* = 0x13, gBleCtrlCmdGetTimestampExOpCode_c */
     HandleGapCmdSetDataRelatedAddressChanges,                                   /* = 0x14, gBleGapCmdSetDataRelatedAddressChanges_c */
+    HandleGapCmdSetBondedDeviceNameOpCode,                                      /* = 0x15, gBleGapCmdSetBondedDeviceNameOpCode_c */
 };
 
 #if gFsciBleTest_d
@@ -2040,6 +2046,47 @@ static void HandleCtrlCmdGetTimestampExOpCode(uint8_t *pBuffer, uint32_t fsciInt
     }
 }
 
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdSetBondedDeviceNameOpCode(uint8_t *pBuffer,
+*                                                    uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleGapCmdSetBondedDeviceNameOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+void HandleGapCmdSetBondedDeviceNameOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
+{
+    uint8_t     nvmIndex = 0U;
+    uint8_t     nameSize = 0U;
+    uchar_t*    pName = NULL;
+
+    /* Get command parameters from buffer */
+    fsciBleGetUint8ValueFromBuffer(nvmIndex, pBuffer);
+    fsciBleGetUint8ValueFromBuffer(nameSize, pBuffer);
+
+    /* Allocate buffer for name (consider that nameSize
+    is bigger than 0) */
+    pName = MEM_BufferAlloc(nameSize);
+
+    if(NULL == pName)
+    {
+        /* No memory => the GAP command can not be executed */
+        fsciBleError(gFsciOutOfMessages_c, fsciInterfaceId);
+    }
+    else
+    {
+        /* Get name from buffer */
+        fsciBleGetArrayFromBuffer(pName, pBuffer, nameSize);
+
+        fsciBleGap2CallApiFunction(Gap_SetBondedDeviceName(nvmIndex, pName, nameSize));
+
+        /* Free buffer allocated for name */
+        (void)MEM_BufferFree(pName);
+    }
+}
 #endif /* gFsciBleGap2LayerEnabled_d */
 /*! *********************************************************************************
 * @}
