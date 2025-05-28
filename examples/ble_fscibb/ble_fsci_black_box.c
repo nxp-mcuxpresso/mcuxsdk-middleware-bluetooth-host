@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2023 NXP
+* Copyright 2016-2023, 2025 NXP
 *
 *
 * \file
@@ -71,6 +71,10 @@ static void BluetoothLEHost_Initialized(void);
 static void BleApp_ChangeLowPowerModeConstraints(uint8_t lpMode);
 #endif
 
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+static void BleApp_IdsCallback(idsEventData_t *pEventData);
+#endif
+
 /************************************************************************************
 *************************************************************************************
 * Public functions
@@ -90,6 +94,10 @@ void BluetoothLEHost_AppInit(void)
 
     /* Register generic callback */
     BluetoothLEHost_SetGenericCallback(BleApp_GenericCallback);
+
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+    BluetoothLEHost_SetIdsCallback(BleApp_IdsCallback, gGapIdsAllFlags_c);
+#endif
 
     /* Initialize Bluetooth Host Stack */
     BluetoothLEHost_Init(BluetoothLEHost_Initialized);
@@ -140,6 +148,18 @@ static void BleApp_ChangeLowPowerModeConstraints(uint8_t lpMode)
 #endif
 }
 #endif
+
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+/*! *********************************************************************************
+* \brief        Application callback for handling intrusion events reported by
+*               the Host stack.
+*
+********************************************************************************** */
+static void BleApp_IdsCallback(idsEventData_t *pEventData)
+{
+    fsciBleIdsEvtMonitor(pEventData);
+}
+#endif /* gIntrusionDetectionSystem_d */
 /*! *********************************************************************************
 * @}
 ********************************************************************************** */

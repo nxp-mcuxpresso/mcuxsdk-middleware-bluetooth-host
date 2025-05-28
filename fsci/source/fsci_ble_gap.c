@@ -3408,6 +3408,45 @@ void fsciBleGapLoadKeysEvtMonitor
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+/*! *********************************************************************************
+* \brief  IDS event monitoring function.
+*
+* \param[in]    pEventData    Intrusion Detection System event.
+*
+********************************************************************************** */
+void fsciBleIdsEvtMonitor
+(
+    idsEventData_t *pEventData
+)
+{
+    uint8_t                     opCode = gIdsEventOpCode_c;
+    opGroup_t                   opGroup = gFsciBleIdsOpcodeGroup_c;
+    clientPacketStructured_t*   pClientPacket = NULL;
+    uint8_t*                    pBuffer = NULL;
+
+    /* Allocate the packet to be sent over UART */
+    pClientPacket =  fsciBleAllocFsciPacket(opGroup, opCode, (sizeof(uint32_t) + gcBleDeviceAddressSize_c + 3U * sizeof(uint16_t)));
+
+    if(NULL == pClientPacket)
+    {
+        return;
+    }
+
+    pBuffer = &pClientPacket->payload[0];
+
+    /* Set event parameters in the buffer */
+    fsciBleGetBufferFromUint32Value((uint32_t)pEventData->type, pBuffer);
+    fsciBleGetBufferFromAddress(pEventData->aAddr, pBuffer);
+    fsciBleGetBufferFromUint16Value(pEventData->connInterval, pBuffer);
+    fsciBleGetBufferFromUint16Value(pEventData->peripheralLatency, pBuffer);
+    fsciBleGetBufferFromUint16Value(pEventData->supervisionTimeout, pBuffer);
+
+    /* Transmit the packet over UART */
+    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+}
+#endif
+
 void fsciBleGapGenericEvtMonitor(gapGenericEvent_t* pGenericEvent)
 {
     clientPacketStructured_t*   pClientPacket = NULL;

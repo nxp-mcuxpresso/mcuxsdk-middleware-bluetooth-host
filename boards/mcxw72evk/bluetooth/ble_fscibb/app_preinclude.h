@@ -151,6 +151,8 @@
 /* Max Descriptors - update according to the usecase */
 #define gMaxCharDescriptorsCount_d      4U
 
+/* See documentation on how to enable experimental feature IDS */
+#define gIntrusionDetectionSystem_d     FALSE
 /*! *********************************************************************************
  *     BLE LL Configuration
  ***********************************************************************************/

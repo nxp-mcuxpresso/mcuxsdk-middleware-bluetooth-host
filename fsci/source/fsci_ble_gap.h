@@ -24,6 +24,7 @@
 ************************************************************************************/
 
 #include "fsci_ble_gap_types.h"
+#include "gap_ids_interface.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -44,7 +45,13 @@
 #define gFsciBleGapOpcodeGroup_c                0x48U
 
 /*! FSCI operation group for GAP2 */
-#define gFsciBleGap2OpcodeGroup_c               0x4C
+#define gFsciBleGap2OpcodeGroup_c               0x4CU
+
+/*! FSCI operation group for IDS */
+#define gFsciBleIdsOpcodeGroup_c                0x4DU
+
+/* FSCI opcode for IDS event */
+#define gIdsEventOpCode_c                       0x81U
 
 #if defined(FsciCmdMonitor)
     //#warning "FsciCmdMonitor macro is already defined"
@@ -1806,6 +1813,19 @@ void fsciBleGapLoadKeysEvtMonitor
     bool_t*           pOutLeSc,
     bool_t*           pOutAuth
 );
+
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+/*! *********************************************************************************
+* \brief  IDS event monitoring function.
+*
+* \param[in]    pEventData    Intrusion Detection System event.
+*
+********************************************************************************** */
+void fsciBleIdsEvtMonitor
+(
+    idsEventData_t *pEventData
+);
+#endif
 
 /*! *********************************************************************************
 * \brief  gapGenericCallback event monitoring function.
