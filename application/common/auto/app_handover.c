@@ -340,6 +340,7 @@ void AppHandover_ProcessA2ACommand
     {
         case gHandoverStopTimeSyncCommandOpCode_c:
         {
+            mAppHandoverState = gContextRx_c;
             result = AppHandover_TimeSyncTransmit(gTimeSyncDisable_c);
         }
         break;
@@ -864,15 +865,6 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
             if (mAppHandoverState == gIdle_c)
             {
                 mAppHandoverState = gTimeSyncTx_c;
-            }
-            else if(mAppHandoverState == gTimeSyncTx_c)
-            {
-                mAppHandoverState = gContextRx_c;
-            }
-            else
-            {
-                result = gBleUnexpectedError_c;
-                error = mAppHandover_TimeSyncTx_c;
             }
         }
         break;
