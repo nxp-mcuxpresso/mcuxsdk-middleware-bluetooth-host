@@ -800,6 +800,9 @@ typedef enum
     gLeChannelSelAlg2_c                        = 1U << (1U * 8U + 6U), /* 14 */
     gLePowerClass1_c                           = 1U << (1U * 8U + 7U), /* 15 */
     gLeMinNumOfUsedChanProcedure_c             = 1U << (2U * 8U + 0U), /* 16 */
+    /* BLE v5.1 */
+    gLePeriodicAdvSyncTransferSender_c         = 1U << (3U * 8U + 0U), /* 24 */
+    gLePeriodicAdvSyncTransferReceiver_c       = 1U << (3U * 8U + 1U), /* 25 */
 	/* BLE v5.2 */
     gLePowerControlRequest1_c                  = (uint64_t)1 << (4U * 8U + 1U), /* 33 */
     gLePowerControlRequest2_c                  = (uint64_t)1 << (4U * 8U + 2U), /* 34 */

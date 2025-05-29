@@ -498,6 +498,8 @@ typedef enum
     gHciLeAdvSetTerminatedEventMask_c                   = BIT((2 * 8) + 1),
     gHciLeScanReqReceivedEventMask_c                    = BIT((2 * 8) + 2),
     gHciLeChannelSelAlgorithmEventMask_c                = BIT((2 * 8) + 3),
+    /* BLE v5.1 */
+    gHciLePeriodicAdvSyncTransferReceivedEventMask_c    = BIT((2 * 8) + 7),
     /* BLE v5.2 */
     gHciLePathLossThresholdEventMask_c                  = BIT((3 * 8) + 7),
     gHciLeTransmitPowerReportingEventMask_c             = BIT64((4 * 8) + 0),
