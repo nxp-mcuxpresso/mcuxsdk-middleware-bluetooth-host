@@ -6911,7 +6911,34 @@
 			</Cmd>
 		</Testing_Events>
 	</Events>
-
+	<Commands>
+		<MCXW23_Vendor_Commands>
+			<GroupDesc>MCXW23 Vendor Commands</GroupDesc>
+			<Cmd>
+				<CmdName>LE_MCXW23_CONF_XTAL_CAPS_CMD</CmdName>
+				<CmdDesc>LE_MCXW23_CONF_XTAL_CAPS_CMD Desc. OgB: 30 OcB: 1A</CmdDesc>
+				<CmdSync>01</CmdSync>
+				<CmdHeader>30 1A</CmdHeader>
+				<LengthFieldSize>1</LengthFieldSize>
+				<CmdParms>
+				<Parm>
+					<ParmName>CAP_IN</ParmName>
+					<ParmDesc>Cap In</ParmDesc>
+					<ParmSize>1</ParmSize>
+					<ParmType>tInt</ParmType>
+					<ParmDefaultValue>00</ParmDefaultValue>
+				</Parm>
+				<Parm>
+					<ParmName>CAP_OUT</ParmName>
+					<ParmDesc>Cap Out</ParmDesc>
+					<ParmSize>1</ParmSize>
+					<ParmType>tInt</ParmType>
+					<ParmDefaultValue>00</ParmDefaultValue>
+				</Parm>
+				</CmdParms>
+			</Cmd>
+		</MCXW23_Vendor_Commands>
+	</Commands>
 	<Settings>
 		<Endian>Little</Endian>
 		<LengthFieldSize>1</LengthFieldSize>
