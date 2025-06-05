@@ -433,6 +433,7 @@ static void BleApp_DestroyEncryptedPAWRSubeventData(gapPeriodicAdvertisingSubeve
 static gapPeriodicAdvertisingSubeventData_t *BleApp_CreateEncryptedPAWRSubeventData(gapPeriodicAdvertisingSubeventData_t *pPAWRSubeventData);
 #endif /* (gAppPAWRSupport_d == TRUE) */
 #endif /* (gAppEADSupport_d == TRUE) */
+static void BleApp_TrimAdvertisingData(gapAdvertisingData_t *pAdvData, uint16_t advDataMaxLen);
 /************************************************************************************
 *************************************************************************************
 * Public functions
@@ -746,6 +747,17 @@ static void BluetoothLEHost_GenericCallback (gapGenericEvent_t* pGenericEvent)
 #endif /* (gAppEADSupport_d == TRUE) */
                 EndSequence();
             }
+        }
+    break;
+    case gInitializationComplete_c:
+        {
+            /* Truncate advertising data which exceeds maximum advertising data length supported */
+            BleApp_TrimAdvertisingData(&gAppExtAdvDataScannable, pGenericEvent->eventData.initCompleteData.maxAdvDataSize);
+            BleApp_TrimAdvertisingData(&gAppExtAdvDataConnectable, pGenericEvent->eventData.initCompleteData.maxAdvDataSize);
+            BleApp_TrimAdvertisingData(&gAppExtAdvDataId1NonConnNonScan, pGenericEvent->eventData.initCompleteData.maxAdvDataSize);
+            BleApp_TrimAdvertisingData(&gAppExtAdvDataId2NonConnNonScan, pGenericEvent->eventData.initCompleteData.maxAdvDataSize);
+            BleApp_TrimAdvertisingData(&gAppExtAdvDataId1Periodic, pGenericEvent->eventData.initCompleteData.maxAdvDataSize);
+            BleApp_TrimAdvertisingData(&gAppExtAdvDataId2Periodic, pGenericEvent->eventData.initCompleteData.maxAdvDataSize);
         }
     break;
     default:
@@ -2245,7 +2257,46 @@ static void BleApp_HandleExtAdvertisingStateChanged(void)
         }
     } while(FALSE);
 }
-
+/*! *********************************************************************************
+*\private
+*\fn          void BleApp_TrimAdvertisingData(void)
+*\brief       The function limits the cNumAdStructures field of the gapAdvertisingData_t
+*             structure so that the total advertising data does not exceed advDataMaxLen.
+*\param  [in] pAdvData pointer to the gapAdvertisingData_t data structure to trim.
+*
+*\param  [in] advDataMaxLen maximum advertising data limit.
+*
+*\retval  void.
+********************************************************************************** */
+static void BleApp_TrimAdvertisingData(gapAdvertisingData_t *pAdvData, uint16_t advDataMaxLen)
+{
+    uint16_t len = 0U;
+    uint8_t i;
+    
+    if (pAdvData != NULL)
+    {
+        for (i = 0U; i < pAdvData->cNumAdStructures; i++)
+        {
+            len += 1U + (uint16_t)pAdvData->aAdStructures[i].length;
+#if (gAppEADSupport_d == TRUE)
+            /* In case of EAD the advertising data length of gAdManufacturerSpecificData_c
+               type gets increased with gcEadMicSize_c + gcEadRandomizerSize_c + 1U */
+            if (pAdvData->aAdStructures[i].adType == gAdManufacturerSpecificData_c )
+            {
+                len += gcEadMicSize_c + gcEadRandomizerSize_c + 1U;
+            }
+#endif /* (gAppEADSupport_d == TRUE) */
+            if (len > advDataMaxLen)
+            {
+                break;
+            }
+        }
+        if (i < pAdvData->cNumAdStructures)
+        {
+            pAdvData->cNumAdStructures = i;
+        }
+    }
+}
 /*! *********************************************************************************
 * @}
 ********************************************************************************** */
