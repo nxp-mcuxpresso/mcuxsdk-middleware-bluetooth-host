@@ -74,6 +74,10 @@ typedef struct repeatedAttemptsDevice_tag
 * Private prototypes
 *************************************************************************************
 ************************************************************************************/
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+STATIC void BleConnManager_MCUInfoToRandomStaticAddress(void);
+#endif
+
 #if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))
 STATIC void BleConnManager_ManageLocalKeys(void);
 #if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
@@ -186,6 +190,9 @@ void BleConnManager_GenericEvent(gapGenericEvent_t* pGenericEvent)
             BleConnManager_ManageLocalKeys();
 #else
             BleConnManager_MCUInfoToSmpKeys();
+#endif
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+            BleConnManager_MCUInfoToRandomStaticAddress();
 #endif
 #if (defined(gRepeatedAttempts_d) && (gRepeatedAttempts_d == 1U))
             (void)TM_Open(mRepeatedAttemptsTimerId);
@@ -1089,7 +1096,7 @@ bleResult_t BleConnManager_DisablePrivacy(void)
 void BleConnManager_GapCommonConfig(void)
 {
 #if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
-    /* maBleDeviceAddress already created in BleConnManager_MCUInfoToSmpKeys - set it */
+    /* maBleDeviceAddress already created in BleConnManager_MCUInfoToRandomStaticAddress - set it */
     (void)Gap_SetRandomAddress(maBleDeviceAddress);
 #else
     /* Read public address from controller - maBleDeviceAddress will be populated on event */
@@ -1156,6 +1163,37 @@ void BleConnManager_GapCommonConfig(void)
 * Private functions
 *************************************************************************************
 ************************************************************************************/
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+/*! *********************************************************************************
+*\private
+*\fn           void BleConnManager_MCUInfoToRandomStaticAddress(void)
+*\brief        Generates a Random Static Address from the board UID.
+*
+*\param  [in]  none.
+*
+*\retval       void.
+********************************************************************************** */
+STATIC void BleConnManager_MCUInfoToRandomStaticAddress(void)
+{
+    uint8_t uid[16] = {0};
+    uint8_t len = 0;
+    uint8_t sha256Output[SHA256_HASH_SIZE] = {0};
+
+    /* Take gcBleDeviceAddressSize_c octets from the end of sha256Output
+       to avoid collision with other keys generated from this hash */
+    PLATFORM_GetMCUUid (uid, &len);
+    SHA256_Hash (uid, len, sha256Output);
+    FLib_MemCpy(maBleDeviceAddress, &(sha256Output[SHA256_HASH_SIZE - gcBleDeviceAddressSize_c]), gcBleDeviceAddressSize_c);
+
+    /* Most significant two bits of a Random Static Address must be 11 */
+    maBleDeviceAddress[gcBleDeviceAddressSize_c - 1U] |= (BIT7 | BIT6);
+
+    /* Set the Random Static address into gSmpKeys */
+    gSmpKeys.aAddress = maBleDeviceAddress;
+    gSmpKeys.addressType = gBleAddrTypeRandom_c;
+}
+#endif
+
 #if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))
 #include "app_conn.h"
 /*! *********************************************************************************
@@ -1294,18 +1332,6 @@ STATIC void BleConnManager_MCUInfoToSmpKeys(void)
         FLib_MemCpy (gSmpKeys.aRand,
                      &(sha256Output[sizeof(gSmpKeys.ediv)]),
                      gSmpKeys.cRandSize);
-
-        /* generate Random Static Address */
-#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
-        uid[len - 1U]++;
-        SHA256_Hash (uid, len, sha256Output);
-        FLib_MemCpy(maBleDeviceAddress, &(sha256Output[0]), gcBleDeviceAddressSize_c);
-        /* Most significant two bits of a Random Static Address must be 11 */
-        maBleDeviceAddress[5] |= (BIT7 | BIT6);
-        /* Set the Random Static address into gSmpKeys */
-        gSmpKeys.aAddress = maBleDeviceAddress;
-        gSmpKeys.addressType = gBleAddrTypeRandom_c;
-#endif
     }
 }
 #endif /* (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U)) */
