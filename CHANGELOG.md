@@ -2,10 +2,51 @@
 
 All notable changes to NXP Bluetooth LE Host will be documented in this file.
 
+**NXP Bluetooth LE Host** is certified **Bluetooth 6.0**
+
+## [1.10.8] - mcux v2025-06-00
+
+### Added
+
+- **Gap_SetBondedDeviceName()** to set device name using NVM index
+- **RAS** queue for GATT indications sent
+- **gHciStatusBase_c** to **csError** status
+- Option to use statically allocated **memory** for dynamic **GATT database** (prevents heap fragmentation)
+- Checks for **controller** supported features and setting **PAST bits** accordingly
+- **Anchor** support to **export** device data via RAS using gAppHciDataLogExport_d = 2
+- **Anchor** support to **export** device local HCI data using gAppHciDataLogExport_d = 1
+- **Shell commands** to list peer devices and trigger connection handover
+- Define for **enabling** optional **CCC** LE Coded **PHY** advertising
+- **cs_sync_phy** parameter to mDefaultRangeSettings (**renamed** from outdated RTTPhy)
+
+### Improved
+
+- **Stack Host** now saves the most recently set **random address** after successful controller response
+- Miscellaneous **minor** application **updates**
+
+### Fixed
+
+- Compilation issue in **loc_reader app** with real-time RAS transfer
+- **CCC** application **handover state machine** race condition
+- **CCC** resets **gCurrentAdvHandle** upon connection
+- **RAS** uses correct bit for data overwrite preference
+
+### Changed
+
+- Updated **Bluetooth LE Host Documentation**.
+- **BLE_Shell** Tx timer interval adjusted for **max throughput** on 1M PHY
+- **CS_ConfigVendorCommand** updated with **Inline Phase Return** field
+- Renamed **tx_pwr_phy** to **phy** and removed obsolete rtt_phy field
+- Updated **documentation** to clarify **Controller Privacy** restrictions 
+
+### Supported Platforms
+
+- KW45, KW47, MCXW71, MCXW72, MCXW23
+
 ## [1.10.7] - mcux v2025-06-00-pvw2
 
 ### Added
-- Support for **Bluetooth LE Debug Keys**
+- Support for **Bluetooth LE Debug Keys** 
 - Support for **pairing failure** reason 0x10 (Busy)
 - Extended NBU **Wireless_uart_host battery service**
 - **Channel Sounding RSSI Information** at application level
