@@ -45,3 +45,11 @@
 :heading-offset: 1
 ```
 
+```{include} ../topics/FRDM-MCXW23_platform.md
+:heading-offset: 1
+```
+
+```{include} ../topics/MCXW23-EVK_platform.md
+:heading-offset: 1
+```
+

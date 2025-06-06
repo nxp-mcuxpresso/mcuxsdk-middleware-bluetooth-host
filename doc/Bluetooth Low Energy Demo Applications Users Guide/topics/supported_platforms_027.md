@@ -11,6 +11,8 @@ The following platforms support the Wireless UART application:
 -   KW47-LOC
 -   FRDM-MCXW72
 -   MCX-W72-EVK
+-   FRDM-MCXW23
+-   MCXW23-EVK
 
 **Parent topic:**[Wireless UART](../topics/wireless_uart.md)
 
