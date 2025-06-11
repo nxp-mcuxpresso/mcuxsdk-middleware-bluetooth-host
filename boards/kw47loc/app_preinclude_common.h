@@ -35,7 +35,7 @@
  * Scan timeout event
  * Scan request event
  * LDM timer */
-#define gBLE50_d        1
+#define gBLE50_d                                1
 
 /*! Enable Bluetooth 5.1 optional features at application level (if present)
  * Set Host Channel Classification
@@ -45,8 +45,8 @@
  * Modify Sleep Clock Accuracy
  * Periodic advertising receive
  * Generate DH Key v2 */
-#define gBLE51_d        1
-#define gGattCaching_d  1
+#define gBLE51_d                                1
+#define gGattCaching_d                          1
 
 /*! Enable Bluetooth 5.2 optional features at application level (if present)
  * ATT multiple handle value notification
@@ -54,26 +54,26 @@
  * GATT client enhanced procedures
  * Enhanced L2CAP
  * EATT */
-#define gBLE52_d        1
-#define gEATT_d         1
+#define gBLE52_d                                1
+#define gEATT_d                                 1
 #endif
 
 /* Number of bonded devices supported by the application. */
 #ifndef gMaxBondedDevices_c
     /* Make sure that (gMaxBondedDevices_c * gBleBondDataSize_c) fits into the Flash area
      * reserved by the application for bond information. */
-    #define gMaxBondedDevices_c         (gAppMaxConnections_c)
+    #define gMaxBondedDevices_c                 (gAppMaxConnections_c)
 #endif /* gMaxBondedDevices_c */
 
 #if defined(gAppUsePrivacy_d) && (gAppUsePrivacy_d == 0)
 #ifndef gMaxResolvingListSize_c
     /* If privacy disabled, set to minimum size in order to save RAM */
-    #define gMaxResolvingListSize_c     1
+    #define gMaxResolvingListSize_c             1
 #endif /* gMaxResolvingListSize_c */
 #else
 #ifndef gMaxResolvingListSize_c
     /* LL supported maximum size */
-    #define gMaxResolvingListSize_c     36
+    #define gMaxResolvingListSize_c             36
 #endif /* gMaxResolvingListSize_c */
 #endif
 
@@ -86,32 +86,32 @@
 #if defined(gBLE51_d) && (gBLE51_d == 1U)
 /* Default enabled for dynamic databases and disabled for static ones */
 #if defined(gGattDbDynamic_d) && (gGattDbDynamic_d == 1U)
-    #define gGattDbComputeHash_d        (1U)
+    #define gGattDbComputeHash_d                (1U)
 #else
 #ifndef gGattDbComputeHash_d
-    #define gGattDbComputeHash_d        (0U)
+    #define gGattDbComputeHash_d                (0U)
 #endif /* #ifndef gGattDbComputeHash_d */
 #endif /* defined(gGattDbDynamic_d) && (gGattDbDynamic_d == 1U) */
 #endif /* defined(gBLE51_d) && (gBLE51_d == 1U) */
 
 #ifndef gGattUseUpdateDatabaseCopyProc_c
-#define gGattUseUpdateDatabaseCopyProc_c FALSE
+#define gGattUseUpdateDatabaseCopyProc_c        FALSE
 #endif
 
 /* Enable/Disable application secure mode */
 #ifndef gAppSecureMode_d
-#define gAppSecureMode_d                 (0U)
+#define gAppSecureMode_d                        (0U)
 #endif
 
 #if (gAppSecureMode_d == 1U)
-#define gSecLibSssUseEncryptedKeys_d     (1U)
-#define gHostSecureMode_d                (1U)
+#define gSecLibSssUseEncryptedKeys_d            (1U)
+#define gHostSecureMode_d                       (1U)
 #else
-#define gHostSecureMode_d                (0U)
+#define gHostSecureMode_d                       (0U)
 #endif
 
 /*! Size of bond data structures for a bonded device  */
-#define gBleBondIdentityHeaderSize_c     (56U)
+#define gBleBondIdentityHeaderSize_c            (56U)
 
 /*! *********************************************************************************
  *   Auto Configuration
@@ -129,7 +129,7 @@
 
 /* Sensors module is required for Battery measurement (BLE battery service profile) and temperature measurement */
 #if !defined(gAppUseSensors_d)
-#define gAppUseSensors_d               1
+#define gAppUseSensors_d                        1
 #endif
 
 #if defined(gDebugConsoleEnable_d)
@@ -143,32 +143,32 @@
  *  For each Application, you can now set MinimalHeapSize_c to ensure minimal heap size is available
  *  at link time */
 #ifndef gMemManagerLightExtendHeapAreaUsage
-#define gMemManagerLightExtendHeapAreaUsage   1
+#define gMemManagerLightExtendHeapAreaUsage     1
 #endif
 
 #if ((defined(gAppLedCnt_c) && (gAppLedCnt_c == 1)) && \
     ((!defined(gAppRequireRgbLed_c)) || gAppRequireRgbLed_c == 0))
-#define gAppRequireMonochromeLed_c      1
+#define gAppRequireMonochromeLed_c              1
 #endif
 
 #if (defined(gAppLedCnt_c) && (gAppLedCnt_c == 2))
-#define gAppRequireRgbLed_c             1
-#define gAppRequireMonochromeLed_c      1
+#define gAppRequireRgbLed_c                     1
+#define gAppRequireMonochromeLed_c              1
 #endif
 
 /* Number of devices identified by address to keep track of for Repeated Attempts */
 #ifndef gRepeatedAttemptsNoOfDevices_c
-    #define gRepeatedAttemptsNoOfDevices_c  (4U)
+    #define gRepeatedAttemptsNoOfDevices_c      (4U)
 #endif
 
 /* Minimum timeout after a pairing failure before the same peer can re-attempt it */
 #ifndef gRepeatedAttemptsTimeoutMin_c
-    #define gRepeatedAttemptsTimeoutMin_c   (10U) /* seconds */
+    #define gRepeatedAttemptsTimeoutMin_c       (10U) /* seconds */
 #endif
 
 /* Maximum timeout after a pairing failure before the same peer can re-attempt it */
 #ifndef gRepeatedAttemptsTimeoutMax_c
-    #define gRepeatedAttemptsTimeoutMax_c   (640U) /* seconds */
+    #define gRepeatedAttemptsTimeoutMax_c       (640U) /* seconds */
 #endif
 
 /*! *********************************************************************************
@@ -178,28 +178,29 @@
 /* If the number of connection is not mentioned, set it to 1 as in ble_config.h. The MemManager
  * requires to know the number of connection for LL buffer sizing */
 #ifndef gAppMaxConnections_c
-#define gAppMaxConnections_c           (1U)
+#define gAppMaxConnections_c                    (1U)
 #endif
 
 /* The maximum number of BLE connection supported by platform */
-#define MAX_PLATFORM_SUPPORTED_CONNECTIONS     (24U)
+#define MAX_PLATFORM_SUPPORTED_CONNECTIONS      (24U)
 
 /*! Number of credit-based channels supported */
 #ifndef gL2caMaxLeCbChannels_c
-#define gL2caMaxLeCbChannels_c         (2U)
+#define gL2caMaxLeCbChannels_c                  (2U)
 #endif
 
 /* Simultaneous EA chained reports.
  * This value must be overwritten by applications that enable BLE 5.0 Observer features */
 #ifndef gGapSimultaneousEAChainedReports_c
-#define gGapSimultaneousEAChainedReports_c  (0U)
+#define gGapSimultaneousEAChainedReports_c      (0U)
 #endif
 
 /* Defines number of timers needed by the protocol stack */
-#define gTmrStackTimers_c (3U + (gAppMaxConnections_c * 2U) + gL2caMaxLeCbChannels_c + gGapSimultaneousEAChainedReports_c)
+#define gTmrStackTimers_c                       (3U + (gAppMaxConnections_c * 2U) + \
+                                                gL2caMaxLeCbChannels_c + gGapSimultaneousEAChainedReports_c)
 
 /* Specify if the Bluetooth address is set using vendor specific command or using Controller API */
-#define gBleSetMacAddrFromVendorCommand_d   (1)
+#define gBleSetMacAddrFromVendorCommand_d       (1)
 
 #if defined(CONNFWK_SECLIB_MBEDTLS)
 /* The stack size of the Host task needs to be rise when using mbedTLS as mbedTLS structures are bigger */
@@ -222,12 +223,12 @@
 
 #if gAppUseNvm_d
     /* configure NVM module */
-    #define  gNvStorageIncluded_d                (1)
-    #define  gNvFragmentation_Enabled_d          (1)
-    #define  gUnmirroredFeatureSet_d             (1)
+    #define  gNvStorageIncluded_d               (1)
+    #define  gNvFragmentation_Enabled_d         (1)
+    #define  gUnmirroredFeatureSet_d            (1)
     #if gNvFragmentation_Enabled_d
         /* Buffer size large enough to accommodate the maximum number of CCCDs for every device. */
-        #define  gNvRecordsCopiedBufferSize_c    (gMaxBondedDevices_c * 16)
+        #define  gNvRecordsCopiedBufferSize_c   (gMaxBondedDevices_c * 16)
     #endif
 #endif
 
@@ -238,7 +239,7 @@
 
 /* Define the max tx power setting in dBm. Allowed values 0, 7 or 10 */
 #if !defined(gAppMaxTxPowerDbm_c)
-#define gAppMaxTxPowerDbm_c     0
+#define gAppMaxTxPowerDbm_c                     0
 #endif
 
  /*! *********************************************************************************
@@ -247,18 +248,18 @@
 #if defined(SDK_OS_FREE_RTOS)
 
 #ifndef gMainThreadStackSize_c
-#define gMainThreadStackSize_c      2600
+#define gMainThreadStackSize_c                  2600
 #endif
 
 #ifndef gAppTaskWaitTimeout_ms_c
-#define gAppTaskWaitTimeout_ms_c       osaWaitForever_c
+#define gAppTaskWaitTimeout_ms_c                osaWaitForever_c
 #endif
 
 /*! When FreeRTOS is used, enable by default the Tickless mode for low power */
 #if defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0)
-#define configUSE_TICKLESS_IDLE          1
+#define configUSE_TICKLESS_IDLE                 1
 #undef  TM_ENABLE_TIME_STAMP
-#define TM_ENABLE_TIME_STAMP             1
+#define TM_ENABLE_TIME_STAMP                    1
 #endif
 
 #endif /* SDK_OS_FREE_RTOS */
