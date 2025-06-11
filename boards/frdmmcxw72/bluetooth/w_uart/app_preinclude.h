@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*
- * Copyright 2020 - 2024 NXP
+ * Copyright 2020 - 2025 NXP
  *
  *
  *
@@ -48,6 +48,9 @@
 /*! Enable/disable use of privacy */
 #define gAppUsePrivacy_d                0
 
+/* Use a Random Static address as identity address, instead of a Public address */
+#define gRandomStaticAddress_d          1
+
 #define gPasskeyValue_c                 999999
 
 #define gWuart_AutoStart_c              0
@@ -62,6 +65,7 @@
 #if ((defined gAppUseNvm_d) && (gAppUseNvm_d != 0)) && defined(__GNUC__)
 #define gNvmErasePartitionWhenFlashing_c 1U
 #endif
+
 /*! Repeated Attempts - Mitigation for pairing attacks */
 #define gRepeatedAttempts_d             0
 
