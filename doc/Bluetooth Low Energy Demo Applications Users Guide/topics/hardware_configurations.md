@@ -17,10 +17,6 @@
 :heading-offset: 1
 ```
 
-```{include} ../topics/K32W148-EVK_platform.md
-:heading-offset: 1
-```
-
 ```{include} ../topics/FRDM_MCXW71_platform.md
 :heading-offset: 1
 ```
@@ -42,6 +38,10 @@
 ```
 
 ```{include} ../topics/MCX-W72-EVK_platform.md
+:heading-offset: 1
+```
+
+```{include} ../topics/MCXW72-LOC_platform.md
 :heading-offset: 1
 ```
 
