@@ -133,10 +133,10 @@ typedef struct
 {
     uint16_t connectionHandle;
     uint16_t connEvent;
-    uint8_t  rssiRemote;
+    int8_t   rssiRemote;
     uint8_t  lqiRemote;
     uint8_t  statusRemote;
-    uint8_t  rssiActive;
+    int8_t   rssiActive;
     uint8_t  lqiActive;
     uint8_t  statusActive;
     uint32_t anchorClock625Us;
@@ -186,7 +186,7 @@ typedef struct
     uint8_t  statusPacket;
     uint8_t  phy;
     uint8_t  chIdx;
-    uint8_t  rssiPacket;
+    int8_t   rssiPacket;
     uint8_t  lqiPacket;
     uint16_t connEvent;
     uint32_t anchorClock625Us;

@@ -1291,10 +1291,10 @@ typedef struct handoverAnchorMonitorEvent_tag
 {
     uint16_t connectionHandle;      /*!< Connection identifier */
     uint16_t connEvent;             /*!< Current connection event counter */
-    uint8_t  rssiRemote;            /*!< RSSI of the packet from the remote device (+127 if not available) */
+    int8_t   rssiRemote;            /*!< RSSI of the packet from the remote device (+127 if not available) */
     uint8_t  lqiRemote;             /*!< LQI (Link Quality Indicator) of the packet from the remote device */
     uint8_t  statusRemote;          /*!< Status of the packet from the remote device; b0: NESN; b1: SN; b2: CRC status valid (1) or invalid (0); b3: RSSI status valid (1) or invalid (0)*/
-    uint8_t  rssiActive;            /*!< RSSI of the packet from the active device (+127 if not available) */
+    int8_t   rssiActive;            /*!< RSSI of the packet from the active device (+127 if not available) */
     uint8_t  lqiActive;             /*!< LQI (Link Quality Indicator) of the packet from the active device */
     uint8_t  statusActive;          /*!< Status of the packet from the active device; b0: NESN; b1: SN; b2: CRC status valid (1) or invalid (0); b3: RSSI status valid (1) or invalid (0)*/
     uint32_t anchorClock625Us;      /*!< Slot of the anchor point timing of the connection event */
@@ -1311,7 +1311,7 @@ typedef struct handoverAnchorMonitorPacketEvent_tag
     uint8_t  statusPacket;          /*!< Status of the packet */
     uint8_t  phy;                   /*!< PHY (0/1/2/3 for 1M/2M/LR S8/LR S2) */
     uint8_t  chIdx;                 /*!< BLE channel index */
-    uint8_t  rssiPacket;            /*!< RSSI of the packet (+127 if not available) */
+    int8_t   rssiPacket;            /*!< RSSI of the packet (+127 if not available) */
     uint8_t  lqiPacket;             /*!< LQI (Link Quality Indicator) of the packet */
     uint16_t connEvent;             /*!< Current connection event counter */
     uint32_t anchorClock625Us;      /*!< Slot value of packet start time (in 625us unit) */

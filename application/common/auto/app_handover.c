@@ -1001,13 +1001,12 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
                 if (checkMonitorFilterCounter(pAnchMntEvt->connectionHandle))
                 {
                     uint8_t buf[gHandoverAnchorMonitorLen_c] = {0U};
-                    
                     Utils_PackTwoByteValue(pAnchMntEvt->connectionHandle, &buf[0]);
                     Utils_PackTwoByteValue(pAnchMntEvt->connEvent, &buf[2]);
-                    buf[4] = pAnchMntEvt->rssiRemote;
+                    buf[4] = (uint8_t)(pAnchMntEvt->rssiRemote);
                     buf[5] = pAnchMntEvt->lqiRemote;
                     buf[6] = pAnchMntEvt->statusRemote;
-                    buf[7] = pAnchMntEvt->rssiActive;
+                    buf[7] = (uint8_t)(pAnchMntEvt->rssiActive);
                     buf[8] = pAnchMntEvt->lqiActive;
                     buf[9] = pAnchMntEvt->statusActive;
                     Utils_PackFourByteValue(pAnchMntEvt->anchorClock625Us, &buf[10]);
@@ -1041,13 +1040,12 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
             if (checkMonitorFilterCounter(pAnchMntPktEvt->connectionHandle))
             {
                 uint8_t buf[gHandoverPacketMonitorMaxLen_c] = {0U};
-                
                 buf[0] = pAnchMntPktEvt->packetCounter;
                 Utils_PackTwoByteValue(pAnchMntPktEvt->connectionHandle, &buf[1]);
                 buf[3] = pAnchMntPktEvt->statusPacket;
                 buf[4] = pAnchMntPktEvt->phy;
                 buf[5] = pAnchMntPktEvt->chIdx;
-                buf[6] = pAnchMntPktEvt->rssiPacket;
+                buf[6] = (uint8_t)(pAnchMntPktEvt->rssiPacket);
                 buf[7] = pAnchMntPktEvt->lqiPacket;
                 Utils_PackTwoByteValue(pAnchMntPktEvt->connEvent, &buf[8]);
                 Utils_PackTwoByteValue(pAnchMntPktEvt->anchorClock625Us, &buf[10]);
