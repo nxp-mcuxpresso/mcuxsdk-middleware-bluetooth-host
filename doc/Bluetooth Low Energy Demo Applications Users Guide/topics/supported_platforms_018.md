@@ -3,7 +3,6 @@
 The following platforms support the HID Device application:
 
 -   KW45B41Z-EVK
--   K32W148-EVK
 -   FRDM-MCXW71
 -   MCX-W71-EVK
 -   KW47-EVK

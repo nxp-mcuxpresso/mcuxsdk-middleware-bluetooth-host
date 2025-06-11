@@ -16,7 +16,7 @@ Other demos can be run by using two platforms, one for the peripheral and one fo
 -   Extended Advertising Central and Peripheral
 -   EATT Central and Peripheral
 
-To provide feedback and more interaction, some examples use a shell console via the virtual COM port. To access the device, open a serial port terminal and as shown in the figure below. For this example, Tera Term VT and a KW45B41Z-EVK or K32W148-EVK, or a FRDM-MCXW71 board can be used. The communication parameters are 115200 and 8N1.
+To provide feedback and more interaction, some examples use a shell console via the virtual COM port. To access the device, open a serial port terminal and as shown in the figure below. For this example, Tera Term VT and a KW45B41Z-EVK or a FRDM-MCXW71 board can be used. The communication parameters are 115200 and 8N1.
 
 ![](../images/tera_term_jlink_serial_port.png "Tera Term – mbed serial port")
 

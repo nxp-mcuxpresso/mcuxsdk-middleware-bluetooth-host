@@ -7,7 +7,7 @@ This is the list of requirements.
 
 To run the application, perform the following steps:
 
-1.  Flash the OTAP Client ATT to either the KW45B41Z-EVK or the K32W148-EVK platform. The Kinetis Bluetooth LE Toolbox only supports the ATT OTAP Client.
+1.  Flash the OTAP Client ATT to either the KW45B41Z-EVK or the FRDM-MCXW71 platform. The Kinetis Bluetooth LE Toolbox only supports the ATT OTAP Client.
 2.  In order to send over the air in `.bleota` format, create the application. In order to load the image file into the Over the Air Programming application and create the .sb3 file, follow the instructions described in [Usage with Over The Air Programming Tool](usage_with_test_tool_for_connectivity_products_002.md).  Once the `.sb3` file is created, press the "**Save File as Binary**" button to create the `.bleota` file. See the figure below. <br>
 
     ![](../images/Save_File_as_bleota.png "Save file in *.bleota file format")
