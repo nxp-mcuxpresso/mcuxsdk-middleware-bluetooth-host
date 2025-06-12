@@ -2595,10 +2595,18 @@ static void HandleGattCmdClientDiscoverAllCharacteristicsOfServiceOpCode(uint8_t
         fsciBleGattClientGetServiceFromBuffer(pIoService, &pBuffer);
         fsciBleGetUint8ValueFromBuffer(maxCharacteristicCount, pBuffer);
 
-        if((maxCharacteristicCount > 0U) && (maxCharacteristicCount < gMaxServiceCharCount_d))
+        if((maxCharacteristicCount > 0U) && (maxCharacteristicCount <= gMaxServiceCharCount_d))
         {
             /* Allocate buffer for the characteristics */
             pOutCharacteristics = fsciBleGattClientAllocOutOrIoCharacteristics(maxCharacteristicCount, deviceId, gUnenhancedBearerId_c);
+        }
+        else
+        {
+            /* Invalid maxCharacteristicCount */
+            /* Free memory allocated for GATT service */
+            fsciBleGattClientEraseTmpInfo(TRUE, deviceId, gUnenhancedBearerId_c);
+            /* Send error status */
+            fsciBleGattStatusMonitor(gBleInvalidParameter_c);
         }
 
         if(NULL != pOutCharacteristics)
@@ -3832,6 +3840,14 @@ static void HandleGattCmdClientEnhancedDiscoverAllCharacteristicsOfServiceOpCode
         {
             /* Allocate buffer for the characteristics */
             pOutCharacteristics = fsciBleGattClientAllocOutOrIoCharacteristics(maxCharacteristicCount, deviceId, bearerId);
+        }
+        else
+        {
+            /* Invalid maxCharacteristicCount */
+            /* Free memory allocated for GATT service */
+            fsciBleGattClientEraseTmpInfo(TRUE, deviceId, bearerId);
+            /* Send error status */
+            fsciBleGattStatusMonitor(gBleInvalidParameter_c);
         }
 
         if(NULL != pOutCharacteristics)
