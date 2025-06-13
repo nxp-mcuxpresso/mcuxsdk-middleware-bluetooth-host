@@ -2646,6 +2646,11 @@
 								<ParmHint>HCI_VENDOR_DTM_TEST_END - OgF:3F - OcF:112</ParmHint>
 							</ParmItem>
 							<ParmItem>
+								<ParmValue>C0 07</ParmValue>
+								<ParmText>LE_MCXW23_STOP_DTM_TX_V2_AND_COUNT_CMD</ParmText>
+								<ParmHint>LE_MCXW23_STOP_DTM_TX_V2_AND_COUNT_CMD - OgF:30 - OcF:07</ParmHint>
+							</ParmItem>
+							<ParmItem>
 								<ParmValue>FD 2F</ParmValue>
 								<ParmText>HCI_VENDOR_READ_PRIVATE_KEY</ParmText>
 								<ParmHint>HCI_VENDOR_READ_PRIVATE_KEY - OgF:3F - OcF:12F</ParmHint>
@@ -3592,6 +3597,32 @@
 											<Parm>
 												<ParmName>supportedMaxRxTime</ParmName>
 												<ParmDesc>supportedMaxRxTime Desc</ParmDesc>
+												<ParmSize>2</ParmSize>
+												<ParmType>tInt</ParmType>
+												<ParmLastValue>00</ParmLastValue>
+												<ParmDefaultValue>00</ParmDefaultValue>
+											</Parm>
+										</ParmTypeSpecifics>
+									</Parm>
+									<Parm>
+										<ParmName>LE_MCXW23_STOP_DTM_TX_V2_AND_COUNT_CMD</ParmName>
+										<ParmDesc>LE_MCXW23_STOP_DTM_TX_V2_AND_COUNT_CMD Desc</ParmDesc>
+										<ParmSize>2</ParmSize>
+										<ParmType>tStruct</ParmType>
+										<ParmLastValue>01</ParmLastValue>
+										<ParmDefaultValue>00</ParmDefaultValue>
+										<ParmTypeSpecifics>
+											<Parm>
+												<ParmName>Status</ParmName>
+												<ParmDesc>Status Desc</ParmDesc>
+												<ParmSize>1</ParmSize>
+												<ParmType>tInt</ParmType>
+												<ParmLastValue>00</ParmLastValue>
+												<ParmDefaultValue>00</ParmDefaultValue>
+											</Parm>
+											<Parm>
+												<ParmName>Number_Of_Packets_Transmitted</ParmName>
+												<ParmDesc>Number_Of_Packets_Transmitted Desc</ParmDesc>
 												<ParmSize>2</ParmSize>
 												<ParmType>tInt</ParmType>
 												<ParmLastValue>00</ParmLastValue>
@@ -6915,6 +6946,103 @@
 		<MCXW23_Vendor_Commands>
 			<GroupDesc>MCXW23 Vendor Commands</GroupDesc>
 			<Cmd>
+				<CmdName>LE_MCXW23_STOP_CW_CMD</CmdName>
+				<CmdDesc>LE_MCXW23_STOP_CW_CMD Desc. OgB: 30 OcB: 03</CmdDesc>
+				<CmdSync>01</CmdSync>
+				<CmdHeader>30 03</CmdHeader>
+				<CmdParms>
+				</CmdParms>
+			</Cmd>
+			<Cmd>
+				<CmdName>LE_MCXW23_START_DTM_TX_V2_AND_COUNT_CMD</CmdName>
+				<CmdDesc>LE_MCXW23_START_DTM_TX_V2_AND_COUNT_CMD Desc. OgB: 30 OcB: 06</CmdDesc>
+				<CmdSync>01</CmdSync>
+				<CmdHeader>30 06</CmdHeader>
+				<CmdParms>
+				<Parm>
+					<ParmName>TX_CHANNEL_IN</ParmName>
+					<ParmDesc>Tx Channel In</ParmDesc>
+					<ParmSize>1</ParmSize>
+					<ParmType>tInt</ParmType>
+					<ParmDefaultValue>00</ParmDefaultValue>
+				</Parm>
+				<Parm>
+					<ParmName>LENGTH_OF_TEST_DATA_IN</ParmName>
+					<ParmDesc>Length Of Test Data In</ParmDesc>
+					<ParmSize>1</ParmSize>
+					<ParmType>tInt</ParmType>
+					<ParmDefaultValue>00</ParmDefaultValue>
+				</Parm>
+				<Parm>
+					<ParmName>PACKET_PAYLOAD_IN</ParmName>
+					<ParmDesc>Packet Payload In</ParmDesc>
+					<ParmSize>1</ParmSize>
+					<ParmType>tInt</ParmType>
+					<ParmDefaultValue>00</ParmDefaultValue>
+				</Parm>
+				<Parm>
+					<ParmName>PHY_IN</ParmName>
+					<ParmDesc>Phy In</ParmDesc>
+					<ParmSize>1</ParmSize>
+					<ParmType>tInt</ParmType>
+					<ParmDefaultValue>00</ParmDefaultValue>
+				</Parm>
+				</CmdParms>
+			</Cmd>
+			<Cmd>
+				<CmdName>LE_MCXW23_STOP_DTM_TX_V2_AND_COUNT_CMD</CmdName>
+				<CmdDesc>LE_MCXW23_STOP_DTM_TX_V2_AND_COUNT_CMD Desc. OgB: 30 OcB: 07</CmdDesc>
+				<CmdSync>01</CmdSync>
+				<CmdHeader>30 07</CmdHeader>
+				<CmdParms>
+				</CmdParms>
+			</Cmd>
+			<Cmd>
+				<CmdName>LE_MCXW23_SET_APP_MODE_CMD</CmdName>
+				<CmdDesc>LE_MCXW23_SET_APP_MODE_CMD Desc. OgB: 30 OcB: 10</CmdDesc>
+				<CmdSync>01</CmdSync>
+				<CmdHeader>30 10</CmdHeader>
+				<CmdParms>
+				<Parm>
+					<ParmName>MODE_IN</ParmName>
+					<ParmDesc>Mode In</ParmDesc>
+					<ParmSize>1</ParmSize>
+					<ParmType>tInt</ParmType>
+					<ParmDefaultValue>00</ParmDefaultValue>
+				</Parm>
+				</CmdParms>
+			</Cmd>
+			<Cmd>
+				<CmdName>LE_MCXW23_SET_OUTPUT_POWER_CMD</CmdName>
+				<CmdDesc>LE_MCXW23_SET_OUTPUT_POWER_CMD Desc. OgB: 30 OcB: 13</CmdDesc>
+				<CmdSync>01</CmdSync>
+				<CmdHeader>30 13</CmdHeader>
+				<CmdParms>
+				<Parm>
+					<ParmName>POWER_IN</ParmName>
+					<ParmDesc>Power in (int)((dBm + 10)/2) e.g to achieve 0 dBm POWER_IN = 5</ParmDesc>
+					<ParmSize>1</ParmSize>
+					<ParmType>tInt</ParmType>
+					<ParmDefaultValue>00</ParmDefaultValue>
+				</Parm>
+				</CmdParms>
+			</Cmd>
+			<Cmd>
+				<CmdName>LE_MCXW23_CW_TRANSMITTER_CMD</CmdName>
+				<CmdDesc>LE_MCXW23_CW_TRANSMITTER_CMD Desc. OgB: 30 OcB: 14</CmdDesc>
+				<CmdSync>01</CmdSync>
+				<CmdHeader>30 14</CmdHeader>
+				<CmdParms>
+				<Parm>
+					<ParmName>CHANNEL_AND_ENABLE_IN</ParmName>
+					<ParmDesc>Channel And Enable In. Enable = (Value &amp; 0x80), Channel = (Value &amp; 0x7F)</ParmDesc>
+					<ParmSize>1</ParmSize>
+					<ParmType>tInt</ParmType>
+					<ParmDefaultValue>00</ParmDefaultValue>
+				</Parm>
+				</CmdParms>
+			</Cmd>
+			<Cmd>
 				<CmdName>LE_MCXW23_CONF_XTAL_CAPS_CMD</CmdName>
 				<CmdDesc>LE_MCXW23_CONF_XTAL_CAPS_CMD Desc. OgB: 30 OcB: 1A</CmdDesc>
 				<CmdSync>01</CmdSync>
@@ -6931,6 +7059,21 @@
 				<Parm>
 					<ParmName>CAP_OUT</ParmName>
 					<ParmDesc>Cap Out</ParmDesc>
+					<ParmSize>1</ParmSize>
+					<ParmType>tInt</ParmType>
+					<ParmDefaultValue>00</ParmDefaultValue>
+				</Parm>
+				</CmdParms>
+			</Cmd>
+			<Cmd>
+				<CmdName>LE_MCXW23_SET_CLOCKOUT_XTAL_CMD</CmdName>
+				<CmdDesc>LE_MCXW23_SET_CLOCKOUT_XTAL_CMD Desc. OgB: 30 OcB: 1C</CmdDesc>
+				<CmdSync>01</CmdSync>
+				<CmdHeader>30 1C</CmdHeader>
+				<CmdParms>
+				<Parm>
+					<ParmName>CLK_IN</ParmName>
+					<ParmDesc>Clk In</ParmDesc>
 					<ParmSize>1</ParmSize>
 					<ParmType>tInt</ParmType>
 					<ParmDefaultValue>00</ParmDefaultValue>
