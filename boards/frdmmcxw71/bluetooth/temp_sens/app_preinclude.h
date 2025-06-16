@@ -77,9 +77,6 @@
   #define gAppLedCnt_c                0
 #endif        
 
-/* Enables / Disables MWS coexistence */
-#define gMWS_UseCoexistence_d           0
-
 /*! Enable XCVR calibration storage in Flash */
 #define gControllerPreserveXcvrDacTrimValue_d     1
 
@@ -126,18 +123,6 @@
 /*! *********************************************************************************
  *     BLE LL Configuration
  ***********************************************************************************/
-/*  ble_ll_config.h file lists the parameters with their default values. User can override
- *    the parameter here by defining the parameter to a user defined value. */
-
-/*
- * Specific configuration of LL pools by block size and number of blocks for this application.
- * Optimized using the MEM_OPTIMIZE_BUFFER_POOL feature in MemManager,
- * we find that the most optimized combination for LL buffers.
- *
- * If LlPoolsDetails_c is not defined, default LL buffer configuration in app_preinclude_common.h
- * will be applied.
- */
-
 /* Include common configuration file and board configuration file */
 #include "app_preinclude_common.h"
 #endif /* _APP_PREINCLUDE_H_ */

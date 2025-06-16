@@ -311,10 +311,6 @@
 /*! *********************************************************************************
  *     BLE LL Configuration
  ***********************************************************************************/
-/*  ble_ll_config.h file lists the parameters with their default values. User can override
- *    the parameter here by defining the parameter to a user defined value. */
-#define gAppExtAdvEnable_d                      1
-#define gLlScanPeriodicAdvertiserListSize_c     8
 
 #endif /* _APP_PREINCLUDE_H_ */
 
