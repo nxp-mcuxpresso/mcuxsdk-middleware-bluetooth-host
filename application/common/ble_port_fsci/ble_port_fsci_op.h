@@ -59,6 +59,8 @@ typedef enum
     g_AppBleNvmCbCmdEraseInd_c,                 /* Indication from host processor that the erase operation was performed */
     g_AppBleNvmCbCmdWriteInd_c,                 /* Indication from host processor that the write operation was performed */
     g_AppBleNvmCbCmdReadInd_c,                  /* Indication from host processor that the read operation was performed */
+    /* NvFormat */
+    g_AppBleNvFormatCommand_c,                  /* NvFormat() command */
 } blePortFsciOpCodes_t;
 
 /* FSCI callback handler prototype */

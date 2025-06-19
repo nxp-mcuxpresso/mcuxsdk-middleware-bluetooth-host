@@ -9,6 +9,8 @@
  ********************************************************************************** */
 
 #include "NVM_Interface.h"
+#include "FsciInterface.h"
+#include "ble_port_fsci_op.h"
 
 /******************************************************************************
  * Name: NvFormat
@@ -23,6 +25,8 @@
  *****************************************************************************/
 NVM_Status_t NvFormat(void)
 {
+    FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_AppBleNvFormatCommand_c,
+                         NULL, 0, gFsciInterface_c);
     return gNVM_OK_c;
 }
 

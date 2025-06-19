@@ -187,6 +187,7 @@ static void App_NvmHostWrite(void *pData);
 static void nvmCmdWriteHandler(uint8_t opc, uint8_t len, void *pData);
 static void nvmCmdReadHandler(uint8_t opc, uint8_t len, void *pData);
 static void nvmCmdEraseHandler(uint8_t opc, uint8_t len, void *pData);
+static void nvmCmdNvFormatHandler(uint8_t opc, uint8_t len, void *pData);
 
 /************************************************************************************
 *************************************************************************************
@@ -204,6 +205,7 @@ void AppNvm_InitCore0Handlers(void)
     BLE_PortFsciRegisterOpHandler((uint8_t)g_AppBleNvmCbCmdRead_c, nvmCmdReadHandler);
     BLE_PortFsciRegisterOpHandler((uint8_t)g_AppBleNvmCbCmdWrite_c, nvmCmdWriteHandler);
     BLE_PortFsciRegisterOpHandler((uint8_t)g_AppBleNvmCbCmdErase_c, nvmCmdEraseHandler);
+    BLE_PortFsciRegisterOpHandler((uint8_t)g_AppBleNvFormatCommand_c, nvmCmdNvFormatHandler);
 }
 
 /************************************************************************************
@@ -1023,4 +1025,17 @@ static void nvmCmdEraseHandler(uint8_t opc, uint8_t len, void *pData)
     (void)App_PostCallbackMessage(App_NvmHostErase, entryIdx.ptr);
 }
 
+/*! *********************************************************************************
+*\brief        Handle the Factoryreset command from the radio core
+*
+*\param  [in]  opc      FSCI packet opcode.
+*\param  [in]  len      FSCI packet len.
+*\param  [in]  pParam   FSCI packet payload.
+*
+*\retval       void.
+********************************************************************************** */
+static void nvmCmdNvFormatHandler(uint8_t opc, uint8_t len, void *pData)
+{
+    NvFormat();
+}
 #endif /* gAppUseNvm_d */
