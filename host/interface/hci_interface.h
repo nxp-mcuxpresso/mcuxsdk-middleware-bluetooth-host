@@ -87,13 +87,6 @@ typedef struct
 /*! HCI Commands and Events for ************************************************
 *   OGF : 0x03 : Controller & Baseband Commands
 ***************************************************************************** */
-/*! OCF 0x0001 */
-/*! HCI_Set_Event_Mask - Command Complete Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciSetEventMaskCommandComplete_t;
-
 /*! Command Status Event : 0x0F */
 typedef struct
 {
@@ -239,15 +232,6 @@ typedef struct
     uint8_t             eventMask[8]; /* hciSetEventMaskEventShift_t */
 } hciSetEventMaskCommand_t;
 
-/*! OCF 0x0003 */
-/*! HCI_Reset */
-/*! No parameters */
-/*! HCI_Reset - Command Complete Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciResetCommandComplete_t;
-
 /*! OCF 0x002D */
 /*! HCI_Read_Transmit_Power_Level */
 typedef struct
@@ -271,12 +255,6 @@ typedef struct
     hciControllerToHostFlowControlEnable_t      eventMask;
 } hciSetControllerToHostFlowControlCommand_t;
 
-/*! HCI_Set_Controller_To_Host_Flow_Control - Command Complete Parameters */
-typedef struct
-{
-    hciErrorCode_t                              status;
-} hciSetControllerToHostFlowControlCommandComplete_t;
-
 /*! OCF 0x0033 */
 /*! HCI_Host_Buffer_Size */
 typedef struct
@@ -286,12 +264,6 @@ typedef struct
     uint16_t            hostTotalNumAclDataPackets;
     uint16_t            hostTotalNumSynchronousDataPackets;
 } hciHostBufferSizeCommand_t;
-
-/*! HCI_Host_Buffer_Size - Command Complete Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciHostBufferSizeCommandComplete_t;
 
 /*! OCF 0x0035 */
 /*! HCI_Host_Number_Of_Completed_Packets */
@@ -308,24 +280,12 @@ typedef struct
     uint16_t            hostNrOfCompletedPackets[gcGapMaximumActiveConnections_c];
 } hciHostNumberOfCompletedPacketsCommand_t;
 
-/*! HCI_Host_Number_Of_Completed_Packets - Command Complete Parameters */
-typedef struct
-{
-    hciErrorCode_t                      status;
-} hciHostNumberOfCompletedPacketsCommandComplete_t;
-
 /*! OCF 0x0063 */
 /*! HCI_Set_Event_Mask_Page_2 */
 typedef struct
 {
     uint8_t             eventMaskPage2[8]; /* hciSetEventMaskPage2EventShift_t */
 } hciSetEventMaskPage2Command_t;
-
-/*! HCI_Set_Event_Mask_Page_2 - Command Complete Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciSetEventMaskPage2CommandComplete_t;
 
 /*! OCF 0x007B */
 /*! HCI_Read_Authenticated_Payload_Timeout */
@@ -1281,19 +1241,9 @@ typedef struct
 
 typedef struct
 {
-    hciErrorCode_t                status;
-} hciSetTxPowerCommandComplete_t;
-
-typedef struct
-{
     uint16_t    connectionHandle;
     uint16_t    eventType;      /*! bleNotificationEventType_t */
 } hciVendorEnhancedNotificationCommand_t;
-
-typedef struct
-{
-    hciErrorCode_t                status;
-} hciVendorEnhancedNotificationCommandComplete_t;
 
 /*! OCF 0x0035 */
 /*! HCI Vendor BLE Advertising Index Change */
@@ -1962,12 +1912,6 @@ typedef struct
 /*! HCI Command Complete Events ************************************************
 *   OGF : 0x08 : LE Controller Commands
 ***************************************************************************** */
-/*! HCI_LE_Set_Event_Mask - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeSetEventMaskCommandComplete_t;
-
 /*! HCI_LE_Read_Buffer_Size - Return Parameters */
 typedef struct
 {
@@ -1984,18 +1928,6 @@ typedef struct
     uint8_t             leFeatures[8]; /* hciLeSupportedFeatures_tag */
 } hciLeReadLocalSupportedFeaturesCommandComplete_t;
 
-/*! HCI_LE_Set_Random_Address - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeSetRandomAddressCommandComplete_t;
-
-/*! HCI_LE_Set_Advertising_Parameters - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeSetAdvertingParametersCommandComplete_t;
-
 /*! HCI_LE_Read_Advertising_Channel_Tx_Power - Return Parameters */
 typedef struct
 {
@@ -2003,72 +1935,12 @@ typedef struct
     int8_t              transmitPowerlevel; /* This is a signed 8 bit integer - Range: -20..10 dBm */
 } hciLeReadAdvertisingChannelTxPowerCommandComplete_t;
 
-/*! HCI_LE_Set_Advertising_Data - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeSetAdvertisingDataCommandComplete_t;
-
-/*! HCI_LE_Set_Scan_Response_Data - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeSetScanResponseDataCommandComplete_t;
-
-/*! HCI_LE_Set_Advertising_Enable - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t              status;
-} hciLeSetAdvertisingEnableCommandComplete_t;
-
-/*! HCI_LE_Set_Scan_Parameters - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeSetScanParametersCommandComplete_t;
-
-/*! HCI_LE_Set_Scan_Enable - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t              status;
-} hciLeSetScanEnableCommandComplete_t;
-
-/*! HCI_LE_Create_Connection_Cancel - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeCreateConnectionCancelCommandComplete_t;
-
 /*! HCI_LE_Read_Filter_Accept_List_Size - Return Parameters */
 typedef struct
 {
     hciErrorCode_t      status;
     uint8_t             filterAcceptListSize;
 } hciLeReadFilterAcceptListSizeCommandComplete_t;
-
-/*! HCI_LE_Clear_Filter_Accept_List - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeClearFilterAcceptListCommandComplete_t;
-
-/*! HCI_LE_Add_Device_To_Filter_Accept_List - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeAddDeviceToFilterAcceptListCommandComplete_t;
-
-/*! HCI_LE_Remove_Device_From_Filter_Accept_List - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeRemoveDeviceFromFilterAcceptListCommandComplete_t;
-
-/*! HCI_LE_Set_Host_Channel_Classification - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeSetHostChannelClassificationCommandComplete_t;
 
 /*! HCI_LE_Read_Channel_Map - Return Parameters */
 typedef struct
@@ -2117,18 +1989,6 @@ typedef struct
     uint8_t             leStates[8]; /* hciLeLLSupportedStatesShift_t */
 } hciLeReadSupportedStatesCommandComplete_t;
 
-/*! HCI_LE_Receiver_Test - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t          status;
-} hciLeReceiverTestCommandComplete_t;
-
-/*! HCI_LE_Transmitter_Test - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeTransmitterTestCommandComplete_t;
-
 /*! HCI_LE_Test_End - Return Parameters */
 typedef struct
 {
@@ -2165,24 +2025,6 @@ typedef struct
     uint16_t            suggestedMaxTxTime;
 } hciLeReadSuggestedDefaultDataLengthCommandComplete_t;
 
-/*! HCI_LE_Write_Suggested_Default_Data_Length Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeWriteSuggestedDefaultDataLengthCommandComplete_t;
-
-/*! HCI_LE_Add_Device_To_Resolving_List Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeAddDeviceToResolvingListCommandComplete_t;
-
-/*! HCI_LE_Clear_Resolving_List Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeClearResolvingListCommandComplete_t;
-
 /*! HCI_LE_Read_Peer_Resolvable_Address Return Parameters */
 typedef struct
 {
@@ -2197,24 +2039,6 @@ typedef struct
     uint8_t             localResolvableAddress[gcBleDeviceAddressSize_c];
 } hciLeReadLocalResolvableAddressCommandComplete_t;
 
-/*! HCI_LE_Set_Address_Resolution_Enable Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeSetAddressResolutionEnableCommandComplete_t;
-
-/*! HCI_LE_Set_Resolvable_Private_Address_Timeout Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeSetResolvablePrivateAddressTimeoutCommandComplete_t;
-
-/*! HCI_LE_Set_Privacy_Mode */
-typedef struct hciLeSetPrivacyModeCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeSetPrivacyModeCommandComplete_t;
-
 /*! HCI_LE_Read_Phy - Return Parameters */
 typedef struct
 {
@@ -2224,30 +2048,7 @@ typedef struct
     uint8_t             rxPhy;
 } hciLeReadPhyCommandComplete_t;
 
-/*! HCI_LE_Set_Default_Phy - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeSetDefaultPhyCommandComplete_t;
-
-/*! HCI_LE_Enhanced_Receiver_Test - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeEnhancedReceieverTestCommandComplete_t;
-
-/*! HCI_LE_Enhanced_Transmitter_Test - Return Parameters */
-typedef struct
-{
-    hciErrorCode_t      status;
-} hciLeEnhancedTransmitterTestCommandComplete_t;
-
 #if (gBLE50_d == TRUE)
-/*! HCI_LE_Set_Advertising_Set_Random_Address - Return Parameters */
-typedef struct hciLeSetAdvSetRandomAddrCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeSetAdvSetRandomAddrCommandComplete_t;
 
 /*! HCI_LE_Set_Ext_Advertising_Parameters - Return Parameters */
 typedef struct hciLeSetExtAdvParamsCommandComplete_tag
@@ -2255,24 +2056,6 @@ typedef struct hciLeSetExtAdvParamsCommandComplete_tag
     hciErrorCode_t      status;
     int8_t              transmitPowerlevel; /* This is a signed 8 bit integer - Range: -20..10 dBm */
 } hciLeSetExtAdvertingParamsCommandComplete_t;
-
-/*! HCI_LE_Set_Ext_Advertising_Data - Return Parameters */
-typedef struct hciLeSetExtAdvertisingDataCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeSetExtAdvertingDataCommandComplete_t;
-
-/*! HCI_LE_Set_Ext_Scan_Response_Data - Return Parameters */
-typedef struct hciLeSetExtScanRespDataCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeSetExtScanRespDataCommandComplete_t;
-
-/*! HCI_LE_Set_Extended_Advertising_Enable - Return Parameters */
-typedef struct hciLeSetExtAdvEnableCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeSetExtAdvEnableCommandComplete_t;
 
 /*! HCI_LE_Read_Maximum_Advertising_Data_Length - Return Parameters */
 typedef struct hciLeReadMaxAdvDataLenCommandComplete_tag
@@ -2288,80 +2071,7 @@ typedef struct hciLeReadNumOfSupportedAdvSetsCommandComplete_tag
     uint8_t             numOfAdvSets;
 } hciLeReadNumOfSupportedAdvSetsCommandComplete_t;
 
-/*! HCI_LE_Remove_Advertising_Set */
-typedef struct hciLeRemoveAdvSetCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeRemoveAdvSetCommandComplete_t;
-
-/*! HCI_LE_Clear_Advertising_Sets - Return Parameters */
-typedef struct hciLeClearAdvSetsCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeClearAdvSetsCommandComplete_t;
-
 #if defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE)
-/*! HCI_LE_Set_Periodic_Advertising_Parameters */
-typedef struct hciLeSetPeriodicAdvParamsCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeSetPeriodicAdvParamsCommandComplete_t;
-
-/*! HCI_LE_Set_Periodic_Advertising_Data - Return Parameters */
-typedef struct hciLeSetPeriodicAdvDataCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeSetPeriodicAdvDataCommandComplete_t;
-
-/*! HCI_LE_Set_Periodic_Advertising_Enable - Return Parameters */
-typedef struct hciLeSetPeriodicAdvEnableCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeSetPeriodicAdvEnableCommandComplete_t;
-#endif /* defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE) */
-
-/*! HCI_LE_Set_Ext_Scan_Parameters - Return Parameters */
-typedef struct hciLeSetExtScanParamsCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeSetExtScanParamsCommandComplete_t;
-
-/*! HCI_LE_Set_Ext_Scan_Enable - Return Parameters */
-typedef struct hciLeSetExtScanEnableCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeSetExtScanEnableCommandComplete_t;
-
-#if defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE)
-/*! HCI_LE_Periodic_Advertising_Create_Sync_Cancel - Return Parameters */
-typedef struct hciLePeriodicAdvCreateSyncCancelCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLePeriodicAdvCreateSyncCancelCommandComplete_t;
-
-/*! HCI_LE_Periodic_Advertising_Terminate_Sync */
-typedef struct hciLePeriodicAdvTerminateSyncCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLePeriodicAdvTerminateSyncCommandComplete_t;
-
-/*! HCI_LE_Clear_Periodic_Advertiser_List - Return Parameters */
-typedef struct hciLeClearPeriodicAdvListCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeClearPeriodicAdvListCommandComplete_t;
-
-typedef struct hciLeAddDeviceToPeriodicAdvListCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeAddDeviceToPeriodicAdvListCommandComplete_t;
-
-/*! HCI_LE_Remove_Device_From_Periodic_Advertiser_List - Return Parameters */
-typedef struct hciLeRemoveDeviceFromPeriodicAdvListCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeRemoveDeviceFromPeriodicAdvListCommandComplete_t;
-
 /*! HCI_LE_Read_Periodic_Advertiser_List_Size */
 typedef struct hciLeReadPeriodicAdvListSizeCommandComplete_tag
 {
@@ -2372,31 +2082,7 @@ typedef struct hciLeReadPeriodicAdvListSizeCommandComplete_tag
 #endif /* (gBLE50_d == TRUE) */
 
 #if (gBLE51_d == TRUE)
-/*! HCI_LE_Generate_-DHKey[v2]_Parameters - Return Parameters */
-typedef struct hciLeGenerateDhKeyV2ParamsCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeGenerateDhKeyV2ParamsCommandComplete_t;
-
-/*! HCI_LE_Modify_Sleep_Clock_Accuracy - Return Parameters */
-typedef struct hciLeModifySleepClockAccuracyParamsCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeModifySleepClockAccuracyParamsCommandComplete_t;
-
 #if defined(gBLE51_ConnectionlessCTESupport_d) && (gBLE51_ConnectionlessCTESupport_d == TRUE)
-/*! HCI_LE_Set_Connectionless_CTE_Transmit_Parameters - Return Parameters */
-typedef struct hciLeSetConnectionlessCteTransmitParamsCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeSetConnectionlessCteTransmitParamsCommandComplete_t;
-
-/*! HCI_LE_Set_Connectionless_CTE_Transmit_Enable - Return Parameters */
-typedef struct hciLeSetConnectionlessCteTransmitEnableCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciLeSetConnectionlessCteTransmitEnableCommandComplete_t;
-
 /*! HCI_LE_Set_Connectionless_IQ_Sampling_Enable - Return Parameters */
 typedef struct hciLeSetConnectionlessIqSamplingEnableCommandComplete_tag
 {
@@ -2448,12 +2134,6 @@ typedef struct hciLeReadAntennaInformationCommandComplete_tag
 #endif /* ((gBLE51_ConnectionCTESupport_d == TRUE) || (gBLE51_ConnectionlessCTESupport_d == TRUE)) */
 
 #if defined(gBLE51_PeriodicAdvSyncTransferSupport_d) && (gBLE51_PeriodicAdvSyncTransferSupport_d == TRUE)
-/*! HCI_LE_Set_Periodic_Advertising_Receive_Enable - Return Parameters */
-typedef struct hciLeSetPeriodicAdvRecvEnableCommandComplete_tag
-{
-    hciErrorCode_t  status;
-} hciLeSetPeriodicAdvRecvEnableCommandComplete_t;
-
 /*! HCI_LE_Periodic_Advertising_Sync_Transfer - Return Parameters */
 typedef struct hciLePeriodicAdvSyncTransferCommandComplete_tag
 {
@@ -2475,11 +2155,6 @@ typedef struct hciLeSetPeriodicAdvSyncTransferParamsCommandComplete_tag
     uint16_t        connHandle;
 } hciLeSetPeriodicAdvSyncTransferParamsCommandComplete_t;
 
-/*! HCI_LE_Set_Default_Periodic_Advertising_Sync_Transfer_Parameters - Return Parameters */
-typedef struct hciLeSetDefaultPeriodicAdvSyncTransferParamsCommandComplete_tag
-{
-    hciErrorCode_t  status;
-} hciLeSetDefaultPeriodicAdvSyncTransferParamsCommandComplete_t;
 #endif /* (gBLE51_PeriodicAdvSyncTransferSupport_d == TRUE) */
 #endif /* gBLE51_d */
 
@@ -2605,26 +2280,11 @@ typedef struct hciLeCsSetChannelClassification_tag
     uint16_t        connHandle;
 } hciLeCsSetChannelClassification_t;
 
-typedef struct hciLeCsCreateConfig_tag
-{
-    hciErrorCode_t  status;
-} hciLeCsCreateConfig_t;
-
-typedef struct hciLeCsRemoveConfig_tag
-{
-    hciErrorCode_t  status;
-} hciLeCsRemoveConfig_t;
-
 typedef struct hciLeCsSetProcedureParams_tag
 {
     hciErrorCode_t  status;
     uint16_t        connHandle;
 } hciLeCsSetProcedureParams_t;
-
-typedef struct hciLeCsProcedureEnable_tag
-{
-    hciErrorCode_t  status;
-} hciLeCsProcedureEnable_t;
 
 typedef struct hciLeCsTestCmd_tag
 {
@@ -2637,13 +2297,6 @@ typedef struct hciLeCsWriteCachedRemoteCapabilities_tag
     uint16_t        connHandle;
 } hciLeCsWriteCachedRemoteCapabilities_t;
 #endif
-
-#if (gBLE54_d && gLeBroadcasterSupported_d && gBLE54_AdvertisingCodingSelectionSupport_d) || (gBLE60_d && gBLE60_DecisionBasedAdvertisingFilteringSupport_d)
-typedef struct hciVendorSetExpmSupportedFeatures_tag
-{
-    hciErrorCode_t  status;
-} hciVendorSetExpmSupportedFeatures_t;
-#endif /* (gBLE54_d && gLeBroadcasterSupported_d && gBLE54_AdvertisingCodingSelectionSupport_d) || (gBLE60_d && gBLE60_DecisionBasedAdvertisingFilteringSupport_d) */
 
 /*! HCI_Vendor_Handover_Get_Time - Return Parameters */
 typedef struct hciVendorHandoverGetTimeCommandComplete_tag
@@ -2691,18 +2344,6 @@ typedef struct hciVendorHandoverAnchorSearchStopCommandComplete_tag
     hciErrorCode_t  status;
     uint16_t        connectionHandle;
 } hciVendorHandoverAnchorSearchStopCommandComplete_t;
-
-/*! HCI_Vendor_Handover_Time_Sync_Transmit - Return Parameters */
-typedef struct hciVendorHandoverTimeSyncTransmitCommandComplete_tag
-{
-    hciErrorCode_t  status;
-} hciVendorHandoverTimeSyncTransmitCommandComplete_t;
-
-/*! HCI_Vendor_Handover_Time_Sync_Receive - Return Parameters */
-typedef struct hciVendorHandoverTimeSyncReceiveCommandComplete_tag
-{
-    hciErrorCode_t  status;
-} hciVendorHandoverTimeSyncReceiveCommandComplete_t;
 
 /*! HCI_Vendor_Handover_Disconnect - Return Parameters */
 typedef struct hciVendorHandoverDisconnectCommandComplete_tag
@@ -2758,24 +2399,6 @@ typedef struct hciVendorHandoverApplyConnectionUpdateProcedureCommandComplete_ta
     hciErrorCode_t  status;
     uint16_t        connectionHandle;
 } hciVendorHandoverApplyConnectionUpdateProcedureCommandComplete_t;
-
-/*! HCI_Vendor_Set Encryption Session Key - Return Parameters */
-typedef struct hciVendorSetEncSessionKeyCommandComplete_tag
-{
-    hciErrorCode_t  status;
-} hciVendorSetEncSessionKeyCommandComplete_t;
-
-/*! HCI_LE_Channel_Override */
-typedef struct hciVendorLeChannelOverrideCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciVendorLeChannelOverrideCommandComplete_t;
-
-/*! HCI_LE_Set_Scheduler_Priority */
-typedef struct hciVendorLeSetSchedulerPriorityCommandComplete_tag
-{
-    hciErrorCode_t      status;
-} hciVendorLeSetSchedulerPriorityCommandComplete_t;
 
 /*! HCI_VENDOR_UNITARY_TEST */
 typedef struct hciVendorUnitaryTestCommandComplete_tag
@@ -2864,13 +2487,7 @@ typedef struct
     {
         hciErrorCode_t                                          status;
         /*! HCI OGF : 0x03 : Controller & Baseband Commands */
-        hciSetEventMaskCommandComplete_t                        hciSetEventMaskCommComplete;
-        hciResetCommandComplete_t                               hciResetCommComplete;
         hciReadTransmitPowerLevelCommandComplete_t              hciReadTransmitPowerLevelCommComplete;
-        hciSetControllerToHostFlowControlCommandComplete_t      hciSetControllerToHostFlowControlCommComplete;
-        hciHostBufferSizeCommandComplete_t                      hciHostBufferSizeCommComplete;
-        hciHostNumberOfCompletedPacketsCommandComplete_t        hciHostNumberOfCompletedPacketsCommComplete;
-        hciSetEventMaskPage2CommandComplete_t                   hciSetEventMaskPage2CommComplete;
         hciReadAuthenticatedPayloadTimeoutCommandComplete_t     hciReadAuthenticatedPayloadTimeoutCommComplete;
         hciWriteAuthenticatedPayloadTimeoutCommandComplete_t    hciWriteAuthenticatedPayloadTimeoutCommComplete;
         /*! HCI OGF : 0x04 : Informational Parameters */
@@ -2881,23 +2498,10 @@ typedef struct
         /*! HCI OGF : 0x05 : Status Parameters */
         hciReadRssiCommandComplete_t                            hciReadRssiCommComplete;
         /*! HCI OGF : 0x08 : LE Controller Commands */
-        hciLeSetEventMaskCommandComplete_t                      hciLeSetEventMaskCommComplete;
         hciLeReadBufferSizeCommandComplete_t                    hciLeReadBufferSizeCommComplete;
         hciLeReadLocalSupportedFeaturesCommandComplete_t        hciLeReadLocalSupportedFeaturesCommComplete;
-        hciLeSetRandomAddressCommandComplete_t                  hciLeSetRandomAddressCommComplete;
-        hciLeSetAdvertingParametersCommandComplete_t            hciLeSetAdvertingParametersCommComplete;
         hciLeReadAdvertisingChannelTxPowerCommandComplete_t     hciLeReadAdvertisingChannelTxPowerCommComplete;
-        hciLeSetAdvertisingDataCommandComplete_t                hciLeSetAdvertiseDataCommComplete;
-        hciLeSetScanResponseDataCommandComplete_t               hciLeSetScanResponseDataCommComplete;
-        hciLeSetAdvertisingEnableCommandComplete_t              hciLeSetAdvertisingEnableCommComplete;
-        hciLeSetScanParametersCommandComplete_t                 hciLeSetScanParametersCommComplete;
-        hciLeSetScanEnableCommandComplete_t                     hciLeSetScanEnableCommComplete;
-        hciLeCreateConnectionCancelCommandComplete_t            hciLeCreateConnectionCancelCommComplete;
         hciLeReadFilterAcceptListSizeCommandComplete_t                 hciLeReadFilterAcceptListSizeCommComplete;
-        hciLeClearFilterAcceptListCommandComplete_t                    hciLeClearFilterAcceptListCommComplete;
-        hciLeAddDeviceToFilterAcceptListCommandComplete_t              hciLeAddDeviceToFilterAcceptListCommComplete;
-        hciLeRemoveDeviceFromFilterAcceptListCommandComplete_t         hciLeRemoveDeviceFromFilterAcceptListCommComplete;
-        hciLeSetHostChannelClassificationCommandComplete_t      hciLeSetHostChannelClassificationCommComplete;
         hciLeReadChannelMapCommandComplete_t                    hciLeReadChannelMapCommComplete;
 #if defined(gHciLeEncryptSupport_d) && (gHciLeEncryptSupport_d == TRUE)
         hciLeEncryptCommandComplete_t                           hciLeEncryptCommComplete;
@@ -2908,59 +2512,26 @@ typedef struct
         hciLeLongTermKeyRequestReplyCommandComplete_t           hciLeLongTermKeyRequestReplyCommComplete;
         hciLeLongTermKeyRequestNegativeReplyCommandComplete_t   hciLeLongTermKeyRequestNegativeReplyCommComplete;
         hciLeReadSupportedStatesCommandComplete_t               hciLeReadSupportedStatesCommComplete;
-        hciLeReceiverTestCommandComplete_t                      hciLeReceiverTestCommComplete;
-        hciLeTransmitterTestCommandComplete_t                   hciLeTransmitterTestCommComplete;
         hciLeTestEndCommandComplete_t                           hciLeTestEndCommComplete;
         hciLeRemoteConnectionParameterRequestReplyCommandComplete_t             hciLeRemoteConnectionParameterRequestReplyCommComplete;
         hciLeRemoteConnectionParameterRequestNegativeReplyCommandComplete_t     hciLeRemoteConnectionParameterRequestNegativeReplyCommComplete;
-        hciLeWriteSuggestedDefaultDataLengthCommandComplete_t    hciLeWriteSuggestedDefaultDataLengthCommComplete;
         hciLeReadSuggestedDefaultDataLengthCommandComplete_t     hciLeReadSuggestedDefaultDataLengthCommComplete;
         hciLeSetDataLengthCommandComplete_t                      hciLeSetDataLengthCommComplete;
-        hciLeSetResolvablePrivateAddressTimeoutCommandComplete_t hciLeSetResolvablePrivateAddressTimeoutCommComplete;
-        hciLeSetAddressResolutionEnableCommandComplete_t         hciLeSetAddressResolutionEnableCommComplete;
-        hciLeClearResolvingListCommandComplete_t                 hciLeClearResolvingListCommComplete;
-        hciLeAddDeviceToResolvingListCommandComplete_t           hciLeAddDeviceToResolvingListCommComplete;
         hciLeReadPeerResolvableAddressCommandComplete_t          hciLeReadPeerResolvableAddressCommComplete;
         hciLeReadLocalResolvableAddressCommandComplete_t         hciLeReadLocalResolvableAddressCommComplete;
-        hciLeSetPrivacyModeCommandComplete_t                     hciLeSetPrivacyModeCommComplete;
         /* v5.0 */
         hciLeReadPhyCommandComplete_t                            hciLeReadPhyCommandComplete;
-        hciLeSetDefaultPhyCommandComplete_t                      hciLeSetDefaultPhyCommandComplete;
-        hciLeEnhancedReceieverTestCommandComplete_t              hciLeEnhancedReceieverTestCommandComplete;
-        hciLeEnhancedTransmitterTestCommandComplete_t            hciLeEnhancedTransmitterTestCommandComplete;
-        hciSetTxPowerCommandComplete_t                           hciSetTxPowerCommComplete;
-        hciVendorEnhancedNotificationCommandComplete_t           hciVendorEnhNotifCommComplete;
         hciVendorGetConnParamsCommandComplete_t                  hciVendorGetConnParamsComplete;
 #if defined(gBLE50_d) && (gBLE50_d == TRUE)
-        hciLeSetAdvSetRandomAddrCommandComplete_t                hciLeSetAdvSetRandomAddrCommComplete;
         hciLeSetExtAdvertingParamsCommandComplete_t              hciLeSetExtAdvertingParamsCommComplete;
-        hciLeSetExtAdvertingDataCommandComplete_t                hciLeSetExtAdvertingDataCommComplete;
-        hciLeSetExtScanRespDataCommandComplete_t                 hciLeSetExtScanRespDataCommComplete;
-        hciLeSetExtAdvEnableCommandComplete_t                    hciLeSetExtAdvEnableCommComplete;
         hciLeReadMaxAdvDataLenCommandComplete_t                  hciLeReadMaxAdvDataLenCommComplete;
         hciLeReadNumOfSupportedAdvSetsCommandComplete_t          hciLeReadNumOfSupportedAdvSetsCommComplete;
-        hciLeRemoveAdvSetCommandComplete_t                       hciLeRemoveAdvSetCommComplete;
-        hciLeClearAdvSetsCommandComplete_t                       hciLeClearAdvSetsCommComplete;
 #if defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE)
-        hciLeSetPeriodicAdvParamsCommandComplete_t               hciLeSetPeriodicAdvParamsCommComplete;
-        hciLeSetPeriodicAdvDataCommandComplete_t                 hciLeSetPeriodicAdvDataCommComplete;
-        hciLeSetPeriodicAdvEnableCommandComplete_t               hciLeSetPeriodicAdvEnableCommComplete;
-#endif /* defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE) */
-        hciLeSetExtScanParamsCommandComplete_t                   hciLeSetExtScanParamsCommComplete;
-        hciLeSetExtScanEnableCommandComplete_t                   hciLeSetExtScanEnableCommComplete;
-#if defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE)
-        hciLePeriodicAdvCreateSyncCancelCommandComplete_t        hciLePeriodicAdvCreateSyncCancelCommComplete;
-        hciLePeriodicAdvTerminateSyncCommandComplete_t           hciLePeriodicAdvTerminateSyncCommComplete;
-        hciLeAddDeviceToPeriodicAdvListCommandComplete_t         hciLeAddDeviceToPeriodicAdvListCommComplete;
-        hciLeRemoveDeviceFromPeriodicAdvListCommandComplete_t    hciLeRemoveDeviceFromPeriodicAdvListCommComplete;
-        hciLeClearPeriodicAdvListCommandComplete_t               hciLeClearPeriodicAdvListCommComplete;
         hciLeReadPeriodicAdvListSizeCommandComplete_t            hciLeReadPeriodicAdvListSizeCommComplete;
 #endif /* defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE) */
 #endif
 #if defined(gBLE51_d) && (gBLE51_d == TRUE)
 #if defined(gBLE51_ConnectionlessCTESupport_d) && (gBLE51_ConnectionlessCTESupport_d == TRUE)
-        hciLeSetConnectionlessCteTransmitParamsCommandComplete_t hciLeSetConnectionlessCteTransmitParamsCommComplete;
-        hciLeSetConnectionlessCteTransmitEnableCommandComplete_t hciLeSetConnectionlessCteTransmitEnableCommComplete;
         hciLeSetConnectionlessIqSamplingEnableCommandComplete_t  hciLeSetConnectionlessIqSamplingEnableCommComplete;
 #endif /* (gBLE51_ConnectionlessCTESupport_d == TRUE) */
 #if defined(gBLE51_ConnectionCTESupport_d) && (gBLE51_ConnectionCTESupport_d == TRUE)
@@ -2972,13 +2543,10 @@ typedef struct
 #if ((defined(gBLE51_ConnectionCTESupport_d) && (gBLE51_ConnectionCTESupport_d == TRUE)) || (defined(gBLE51_ConnectionlessCTESupport_d) && (gBLE51_ConnectionlessCTESupport_d == TRUE)))
         hciLeReadAntennaInformationCommandComplete_t             hciLeReadAntennaInformationCommComplete;
 #endif /* ((gBLE51_ConnectionCTESupport_d == TRUE) || (gBLE51_ConnectionlessCTESupport_d == TRUE)) */
-        hciLeGenerateDhKeyV2ParamsCommandComplete_t              hciLeGenerateDHKeyV2CommComplete;
-        hciLeModifySleepClockAccuracyParamsCommandComplete_t     hciLeModifySleepClockAccuracyCommComplete;
 #if defined(gBLE51_PeriodicAdvSyncTransferSupport_d) && (gBLE51_PeriodicAdvSyncTransferSupport_d == TRUE)
         hciLePeriodicAdvSetInfoTransferCommandComplete_t                hciLePeriodicAdvSetInfoTransferCommComplete;
         hciLePeriodicAdvSyncTransferCommandComplete_t                   hciLePeriodicAdvSyncTransferCommComplete;
         hciLeSetPeriodicAdvSyncTransferParamsCommandComplete_t          hciLeSetPeriodicAdvSyncTransferParamsCommComplete;
-        hciLeSetDefaultPeriodicAdvSyncTransferParamsCommandComplete_t   hciLeSetDefaultPeriodicAdvSyncTransferParamsCommComplete;
 #endif /* (gBLE51_PeriodicAdvSyncTransferSupport_d == TRUE) */
 #endif /* (gBLE51_d == TRUE) */
 #if defined(gBLE52_d) && (gBLE52_d == TRUE)
@@ -3009,34 +2577,21 @@ typedef struct
         hciVendorHandoverGetLlContextCommandComplete_t           hciVendorHandoverGetLlContextComplete;
         hciVendorHandoverSetLlContextCommandComplete_t           hciVendorHandoverSetLlContextComplete;
         hciVendorHandoverGetCsLlContextCommandComplete_t         hciVendorHandoverGetCsLlContextComplete;
-        hciVendorHandoverTimeSyncTransmitCommandComplete_t       hciVendorHandoverTimeSyncTransmitCommComplete;
-        hciVendorHandoverTimeSyncReceiveCommandComplete_t        hciVendorHandoverTimeSyncReceiveCommComplete;
         hciVendorHandoverUpdateConnParamsCommandComplete_t       hciVendorUpdateConnParamsCommComplete;
         hciVendorHandoverApplyConnectionUpdateProcedureCommandComplete_t    hciVendorHandoverApplyConnectionUpdateProcedureCommComplete;
 #endif /* (gHandoverSupport_d == TRUE) */
-#if defined(gHostSecureMode_d) && (gHostSecureMode_d == TRUE)
-        hciVendorSetEncSessionKeyCommandComplete_t               hciVendorSetEncSessionKeyCommandComplete;
-#endif /* defined(gHostSecureMode_d) && (gHostSecureMode_d == TRUE) */
 #if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d==TRUE)
         hciLeCsReadLocalSupportedCapabilities_t                   hciLeCsReadLocalSupportedCapabilities;
         hciLeCsSetDefaultSettings_t                               hciLeCsSetDefaultSettings;
         hciLeCsWriteRemoteFAETable_t                              hciLeCsWriteRemoteFAETable;
         hciLeCsSetChannelClassification_t                         hciLeCsSetChannelClassification;
-        hciLeCsCreateConfig_t                                     hciLeCsCreateConfig;
-        hciLeCsRemoveConfig_t                                     hciLeCsRemoveConfig;
-        hciLeCsProcedureEnable_t                                  hciLeCsProcedureEnable;
         hciLeCsSetProcedureParams_t                               hciLeCsSetProcedureParams;
         hciLeCsTestCmd_t                                          hciLeCsTestCmd;
         hciLeCsWriteCachedRemoteCapabilities_t                    hciLeCsWriteCachedRemoteCapabilities;
 #endif
-#if (gBLE54_d && gLeBroadcasterSupported_d && gBLE54_AdvertisingCodingSelectionSupport_d) || (gBLE60_d && gBLE60_DecisionBasedAdvertisingFilteringSupport_d)
-        hciVendorSetExpmSupportedFeatures_t              hciVendorSetExpmSupportedFeatures;
-#endif /* (gBLE54_d && gLeBroadcasterSupported_d && gBLE54_AdvertisingCodingSelectionSupport_d) || (gBLE60_d && gBLE60_DecisionBasedAdvertisingFilteringSupport_d) */
 #if (gBLE54_d && gLeBroadcasterSupported_d && gBLE54_AdvertisingCodingSelectionSupport_d)
         hciLeSetExtAdvertingParamsV2CommandComplete_t           hciLeSetExtAdvertingParamsV2CommComplete;
 #endif /* (gBLE54_d && gLeBroadcasterSupported_d && gBLE54_AdvertisingCodingSelectionSupport_d) */
-        hciVendorLeSetSchedulerPriorityCommandComplete_t         hciVendorLeSetSchedulerPriorityCommComplete;
-        hciVendorLeChannelOverrideCommandComplete_t              hciVendorLeChannelOverrideCommComplete;
         hciVendorUnitaryTestCommandComplete_t                    hciVendorUnitaryTestCommComplete;
     }commCompleteReturnParams;
 } hciCommandCompleteEvent_t;
