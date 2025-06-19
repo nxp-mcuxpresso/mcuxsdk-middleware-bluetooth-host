@@ -44,6 +44,11 @@
 #if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA))
 #include "fwk_platform.h"
 #endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA)) */
+
+#if (defined(gFsciBleUseHwParameter_c) && (gFsciBleUseHwParameter_c > 0U))
+#include "HWParameter.h"
+#endif
+
 #if gFsciIncluded_c && gFsciBleGapLayerEnabled_d
 
 
@@ -3932,9 +3937,8 @@ static bleResult_t fsciBleHciHostToControllerInterface(hciPacketType_t packetTyp
 static bleResult_t fsciWritePublicDeviceAddress(bleDeviceAddress_t bdAddress)
 {
     bleResult_t retStatus = gBleSuccess_c;
-#if (defined(SDK_COMPONENT_INTEGRATION) && (SDK_COMPONENT_INTEGRATION > 0))
-#else
-    hardwareParameters_t *pHWParams==NULL;
+#if (defined(gFsciBleUseHwParameter_c) && (gFsciBleUseHwParameter_c > 0))
+    hardwareParameters_t *pHWParams = NULL;
     uint8_t HWParam_status = 0U;
     HWParam_status = NV_ReadHWParameters(&pHWParams);
     if(HWParam_status != 0U)
@@ -3952,7 +3956,7 @@ static bleResult_t fsciWritePublicDeviceAddress(bleDeviceAddress_t bdAddress)
             }
         }
     }
-#endif /* defined(SDK_COMPONENT_INTEGRATION) && (SDK_COMPONENT_INTEGRATION > 0) */
+#endif /* defined(gFsciBleUseHwParameter_c) && (gFsciBleUseHwParameter_c > 0) */
     return retStatus;
 }
 

@@ -48,6 +48,9 @@
     #define gFsciBleHost_d                          0U
 #endif
 
+#ifndef gFsciBleUseHwParameter_c
+    #define gFsciBleUseHwParameter_c                0U
+#endif
 
 #if ((gFsciBleTest_d + gFsciBleBBox_d + gFsciBleHost_d) > 1U)
     #error "Select maximum one of gFsciBleTest_d, gFsciBleBBox_d and gFsciBleHost_d"
