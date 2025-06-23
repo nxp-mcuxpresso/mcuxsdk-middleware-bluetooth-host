@@ -238,11 +238,6 @@ void BluetoothLEHost_AppInit(void)
     (void)AppHandover_Init(BleApp_HandoverEventHandler, BleApp_ConnectionCallback, BleApp_HandoverCommHandler);
 #endif
 
-#if defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1)
-    /* Set coding scheme for passive entry */
-    (void)Controller_ConfigureAdvCodingScheme(mLongRangeAdvCodingScheme_c, gExtendedAdvSetHandle_c);
-#endif /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
-
     /* Set generic callback */
     BluetoothLEHost_SetGenericCallback(BleApp_GenericCallback);
 

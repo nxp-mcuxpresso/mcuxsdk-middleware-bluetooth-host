@@ -25,11 +25,12 @@ typedef struct appAdvertisingParams_tag
 
 typedef struct appExtAdvertisingParams_tag
 {
-#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
+#if ((defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)) || \
+    (defined gAppLeCodedAdvEnable_d)
     gapExtAdvertisingParametersV2_t *pGapExtAdvParams; /*!< Pointer to the GAP extended advertising parameters V2 */
-#else /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
+#else
     gapExtAdvertisingParameters_t *pGapExtAdvParams;   /*!< Pointer to the GAP extended advertising parameters */
-#endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
+#endif
     gapAdvertisingData_t *pGapAdvData;                /*!< Pointer to the GAP advertising data  */
     gapScanResponseData_t *pScanResponseData;         /*!< Pointer to the scan response data */
 #if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)

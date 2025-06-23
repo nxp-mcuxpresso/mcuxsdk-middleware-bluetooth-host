@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file app_config.c
 *
-* Copyright 2020-2024 NXP
+* Copyright 2020-2025 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -64,7 +64,7 @@ gapConnectionRequestParameters_t gConnReqParams =
 #endif
 
 /* Default Legacy Advertising Parameters */
-gapExtAdvertisingParameters_t gLegacyAdvParams =
+gapExtAdvertisingParametersV2_t gLegacyAdvParams =
 {
     /* SID */                       0xB, \
     /* handle */                    gLegacyAdvSetHandle_c, \
@@ -81,11 +81,13 @@ gapExtAdvertisingParameters_t gLegacyAdvParams =
     /* primaryPHY */                (gapLePhyMode_t)gLePhy1M_c, \
     /* secondaryPHY */              (gapLePhyMode_t)gLePhy1M_c, \
     /* secondaryAdvMaxSkip */       0, \
-    /* enableScanReqNotification*/  FALSE \
+    /* enableScanReqNotification*/  FALSE, \
+    /* primaryAdvPhyOptions */      gLeCodingNoPreference_c, \
+    /* secondaryAdvPhyOptions */    gLeCodingNoPreference_c \
 };
 
 /*Default Extended Advertising Parameters */
-gapExtAdvertisingParameters_t gExtAdvParams =
+gapExtAdvertisingParametersV2_t gExtAdvParams =
 {
     /* SID */                       0xB, \
     /* handle */                    gExtendedAdvSetHandle_c, \
@@ -102,8 +104,9 @@ gapExtAdvertisingParameters_t gExtAdvParams =
     /* primaryPHY */                (gapLePhyMode_t)gLePhyCoded_c, \
     /* secondaryPHY */              (gapLePhyMode_t)gLePhyCoded_c, \
     /* secondaryAdvMaxSkip */       0, \
-    /* enableScanReqNotification*/  FALSE \
-
+    /* enableScanReqNotification*/  FALSE, \
+    /* primaryAdvPhyOptions */      gLeCodingS2Req_c, \
+    /* secondaryAdvPhyOptions */    gLeCodingS2Req_c \
 };
 
 #if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)

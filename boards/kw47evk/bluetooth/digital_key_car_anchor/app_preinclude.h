@@ -114,10 +114,6 @@
 #else
 #define gA2ASerialInterface_d 0
 #endif /* (gHandoverDemo_d || gAppSecureMode_d) */
-
-/* Coding scheme for passive entry */
-#define mLongRangeAdvCodingScheme_c     gAdv_CodingScheme_S2_S2_c
-
 /*! *********************************************************************************
  *     Framework Configuration
  ********************************************************************************** */
