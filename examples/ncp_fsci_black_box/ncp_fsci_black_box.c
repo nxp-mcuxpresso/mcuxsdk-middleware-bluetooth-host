@@ -600,15 +600,15 @@ static void start_task(void *argument)
 ********************************************************************************** */
 static void idle_task(void* param)
 {
-    LL_API_PostKernelInit();
-    LL_API_IdleInit();
+    NB_API_PostKernelInit();
+    NB_API_IdleInit();
     NBU_Init();
     (void)OSA_TaskCreate((osa_task_handle_t)s_startTaskHandle, OSA_TASK(start_task), NULL);
 
     while(true)
     {
         NBU_Idle();
-        LL_API_Idle();
+        NB_API_Idle();
     }
 }
 
