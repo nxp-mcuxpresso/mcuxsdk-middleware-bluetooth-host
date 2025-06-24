@@ -633,10 +633,6 @@ static void BluetoothLEHost_ProcessIdleTask(void)
     if(NvIdle() == 0)
 #endif /* gAppUseNvm_d */
     {
-        if (RNG_IsReseedNeeded())
-        {
-            RNG_SetSeed();
-        }
     }
 }
 #endif /* defined(SDK_OS_FREE_RTOS) */

@@ -217,10 +217,6 @@ void BluetoothLEHost_ProcessIdleTask(void)
         if (OTA_TransactionResume() == 0)
 #endif
         {
-            if (RNG_IsReseedNeeded())
-            {
-                (void)RNG_SetSeed();
-            }
         }
     }
 }
