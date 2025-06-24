@@ -65,6 +65,8 @@ typedef struct appMonitorFilter_tag
 {
     uint16_t connHandle;
     uint32_t eventCount;
+    int32_t rssiRemoteSum;
+    int32_t rssiActiveSum;
 } appMonitorFilter_t;
 
 /***********************************************************************************************************************
@@ -136,9 +138,11 @@ static bleResult_t setConnHandleForAnchSearchStart(uint16_t connectionHandle);
 static void notifyRemoteDevice(uint8_t cmdId, uint16_t len, uint8_t *pData);
 static deviceId_t getMonitoredDeviceId(uint16_t monitorConnectionHandle);
 static uint16_t getMonitoredConnHandle(deviceId_t deviceId);
-static bool_t checkMonitorFilterCounter(uint16_t connHandle);
+static bool_t checkMonitorFilterCounter(uint16_t connHandle, int8_t rssiRemote, int8_t rssiActive);
 static void addMonitorFilter(uint16_t connHandle);
 static void removeMonitorFilter(uint16_t connHandle);
+static int8_t getMonitorFilterAverageActiveRssi(uint16_t connHandle);
+static int8_t getMonitorFilterAverageRemoteRssi(uint16_t connHandle);
 static bleResult_t anchorMonitorStop(uint16_t connHandle);
 /***********************************************************************************************************************
 ************************************************************************************************************************
@@ -541,6 +545,8 @@ void AppHandover_ProcessA2ACommand
             appAnchMntEvt.anchorMntEvt.chIdx = *pCmdData++;
             appAnchMntEvt.anchorMntEvt.ucNbReports = *pCmdData++;
             appAnchMntEvt.deviceId = getMonitoredDeviceId(appAnchMntEvt.anchorMntEvt.connectionHandle);
+            appAnchMntEvt.rssiActiveAverage = (int8_t)*pCmdData++;
+            appAnchMntEvt.rssiRemoteAverage = (int8_t)*pCmdData++;
             
             if (mpfAppEventCb != NULL)
             {
@@ -998,7 +1004,7 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
                 static uint32_t eventCount = 0U;
                 handoverAnchorMonitorEvent_t *pAnchMntEvt = &pGenericEvent->eventData.handoverAnchorMonitor;
                 
-                if (checkMonitorFilterCounter(pAnchMntEvt->connectionHandle))
+                if (checkMonitorFilterCounter(pAnchMntEvt->connectionHandle, pAnchMntEvt->rssiRemote, pAnchMntEvt->rssiActive))
                 {
                     uint8_t buf[gHandoverAnchorMonitorLen_c] = {0U};
                     Utils_PackTwoByteValue(pAnchMntEvt->connectionHandle, &buf[0]);
@@ -1013,6 +1019,8 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
                     Utils_PackTwoByteValue(pAnchMntEvt->anchorDelay, &buf[14]);
                     buf[16] = pAnchMntEvt->chIdx;
                     buf[17] = pAnchMntEvt->ucNbReports;
+                    buf[18] = (uint8_t)getMonitorFilterAverageActiveRssi(pAnchMntEvt->connectionHandle);
+                    buf[19] = (uint8_t)getMonitorFilterAverageRemoteRssi(pAnchMntEvt->connectionHandle);
                     /* Send data to remote anchor */
                     notifyRemoteDevice(gHandoverAnchorMonitorCommandOpCode_c, gHandoverAnchorMonitorLen_c, buf);
                 }
@@ -1037,7 +1045,7 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
             static uint32_t eventCount = 0U;
             handoverAnchorMonitorPacketEvent_t *pAnchMntPktEvt = &pGenericEvent->eventData.handoverAnchorMonitorPacket;
             
-            if (checkMonitorFilterCounter(pAnchMntPktEvt->connectionHandle))
+            if (checkMonitorFilterCounter(pAnchMntPktEvt->connectionHandle, 0, 0))
             {
                 uint8_t buf[gHandoverPacketMonitorMaxLen_c] = {0U};
                 buf[0] = pAnchMntPktEvt->packetCounter;
@@ -1806,10 +1814,12 @@ static uint16_t getMonitoredConnHandle(deviceId_t deviceId)
 *\brief         Get the number of Anchor/Packet monitoring events received
 *
 *\param  [in]   connHandle  Connection identifier.
+*\param  [in]   rssiRemote  RSSI of the packet from the remote device.
+*\param  [in]   rssiActive  RSSI of the packet from the active device.
 *
 *\return        bool_t      TRUE if event should be processed, FALSE otherwise.
 ********************************************************************************************************************* */
-static bool_t checkMonitorFilterCounter(uint16_t connHandle)
+static bool_t checkMonitorFilterCounter(uint16_t connHandle, int8_t rssiRemote, int8_t rssiActive)
 {
     bool_t result = FALSE;
     
@@ -1817,7 +1827,11 @@ static bool_t checkMonitorFilterCounter(uint16_t connHandle)
     {
         if (maAppMonitorFilter[i].connHandle == connHandle)
         {
-            if ((maAppMonitorFilter[i].eventCount % gHandoverMonitorPacketNumberFilter_c) == 0U)
+            maAppMonitorFilter[i].rssiActiveSum += rssiActive;
+            maAppMonitorFilter[i].rssiRemoteSum += rssiRemote;
+
+            if ((maAppMonitorFilter[i].eventCount != 0U) &&
+                ((maAppMonitorFilter[i].eventCount % gHandoverMonitorPacketNumberFilter_c) == 0U))
             {
                 result = TRUE;
             }
@@ -1864,6 +1878,8 @@ static void addMonitorFilter(uint16_t connHandle)
     {
         maAppMonitorFilter[firstFreeIdx].connHandle = connHandle;
         maAppMonitorFilter[firstFreeIdx].eventCount = 0U;
+        maAppMonitorFilter[firstFreeIdx].rssiActiveSum = 0;
+        maAppMonitorFilter[firstFreeIdx].rssiRemoteSum = 0;
     }
     
     return;
@@ -1889,6 +1905,56 @@ static void removeMonitorFilter(uint16_t connHandle)
     }
     
     return;
+}
+
+/*! ********************************************************************************************************************
+*\fn            static void getMonitorFilterAverageActiveRssi(uint16_t connHandle)
+*\brief         Return and reset the active average RSSI of received events
+*
+*\param  [in]   connHandle  Connection identifier.
+*
+*\return        Active average RSSI value
+********************************************************************************************************************* */
+static int8_t getMonitorFilterAverageActiveRssi(uint16_t connHandle)
+{
+    int averageRssi = 0;
+
+    for (uint8_t i = 0U; i < (uint8_t)gAppMaxConnections_c; i++)
+    {
+        if (maAppMonitorFilter[i].connHandle == connHandle)
+        {
+            averageRssi = (int8_t)(maAppMonitorFilter[i].rssiActiveSum / gHandoverMonitorPacketNumberFilter_c);
+            maAppMonitorFilter[i].rssiActiveSum = 0;
+            break;
+        }
+    }
+
+    return averageRssi;
+}
+
+/*! ********************************************************************************************************************
+*\fn            static void getMonitorFilterAverageRemoteRssi(uint16_t connHandle)
+*\brief         Return and reset the remote average RSSI of received events
+*
+*\param  [in]   connHandle  Connection identifier.
+*
+*\return        Active average RSSI value
+********************************************************************************************************************* */
+static int8_t getMonitorFilterAverageRemoteRssi(uint16_t connHandle)
+{
+    int averageRssi = 0;
+
+    for (uint8_t i = 0U; i < (uint8_t)gAppMaxConnections_c; i++)
+    {
+        if (maAppMonitorFilter[i].connHandle == connHandle)
+        {
+            averageRssi = (int8_t)(maAppMonitorFilter[i].rssiRemoteSum / gHandoverMonitorPacketNumberFilter_c);
+            maAppMonitorFilter[i].rssiRemoteSum = 0;
+            break;
+        }
+    }
+
+    return averageRssi;
 }
 
 /*! ********************************************************************************************************************

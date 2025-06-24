@@ -40,7 +40,9 @@
 #define HANDOVER_HTS_ADDR    {0xCC, 0xCC, 0xCC, 0xCC, 0xCC, 0xCC}
 /*! Default value for anchor search packet filtering. Send one application event
 out of gHandoverMonitorPacketNumberFilter_c events */
+#ifndef gHandoverMonitorPacketNumberFilter_c
 #define gHandoverMonitorPacketNumberFilter_c        30U
+#endif /* gHandoverMonitorPacketNumberFilter_c */
 
 #define gHandoverCommandsOpGroup_c                      0xDD
 
@@ -67,7 +69,7 @@ out of gHandoverMonitorPacketNumberFilter_c events */
 #define gHandoverAnchorStartSearchCommandLen_c          49U
 #define gHandoverSetSkdCommandLen_c                     17U
 #define gHandoverCsLlContextCommandLen_c                260U /* temporary value */
-#define gHandoverAnchorMonitorLen_c                     18U
+#define gHandoverAnchorMonitorLen_c                     20U
 #define gHandoverPacketMonitorMaxLen_c                  274U
 #define gHandoverPacketContinueMonitorMaxLen_c          259U
 #define gHandoverAnchMonStartedCommandLen_c             2U
@@ -86,6 +88,8 @@ typedef struct appHandoverAnchorMonitorEvent_tag
 {
     deviceId_t                      deviceId;           /*!< Peer device identifier */
     handoverAnchorMonitorEvent_t    anchorMntEvt;       /*!< Anchor monitor event data */
+    int8_t                          rssiActiveAverage;  /*!< Average Active RSSI for gHandoverMonitorPacketNumberFilter_c events */
+    int8_t                          rssiRemoteAverage;  /*!< Average Remote RSSI for gHandoverMonitorPacketNumberFilter_c events */
 } appHandoverAnchorMonitorEvent_t;
 
 typedef struct appHandoverAnchorMonitorPacketEvent_tag
