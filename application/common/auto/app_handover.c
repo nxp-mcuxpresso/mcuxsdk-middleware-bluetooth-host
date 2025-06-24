@@ -45,15 +45,19 @@ typedef struct appHandoverPeerDeviceData_tag
 typedef enum
 {
     gIdle_c                         = 0x00,
+    gContextTx_c                    = 0x01,
+    gContextRx_c                    = 0x02,
+    gAnchorSearch_c                 = 0x03,
+    gAnchorMonitorRemoteStarting_c  = 0x04,
+    gAnchorMonitorLocal_c           = 0x05,
+} appHandoverState_t;
+
+typedef enum
+{
+    gTimeSyncIdle_c                 = 0x00,
     gTimeSyncRx_c                   = 0x01,
     gTimeSyncTx_c                   = 0x02,
-    gContextTx_c                    = 0x03,
-    gContextRx_c                    = 0x04,
-    gAnchorSearch_c                 = 0x05,
-    gAnchorMonitorRemoteStarting_c  = 0x06,
-    gAnchorMonitorRemote_c          = 0x07,
-    gAnchorMonitorLocal_c           = 0x08,
-} appHandoverState_t;
+} appTimeSyncState_t;
 
 typedef struct appMonitoringState_tag
 {
@@ -109,6 +113,7 @@ static gapHandoverTimeSyncReceiveParams_t mHandoverTimeSyncReceiveParams = {
 static deviceId_t mHandoverCentralDeviceId = gInvalidDeviceId_c;
 static uint16_t mHandoverConnHandle = gInvalidConnectionHandle_c;
 static appHandoverState_t mAppHandoverState = gIdle_c;
+static appTimeSyncState_t mAppTimeSyncState = gTimeSyncIdle_c;
 static bool_t mContinuousAnchorMonitoring = FALSE;
 
 #if defined(gA2BEnabled_d) && (gA2BEnabled_d > 0U)
@@ -144,6 +149,7 @@ static void removeMonitorFilter(uint16_t connHandle);
 static int8_t getMonitorFilterAverageActiveRssi(uint16_t connHandle);
 static int8_t getMonitorFilterAverageRemoteRssi(uint16_t connHandle);
 static bleResult_t anchorMonitorStop(uint16_t connHandle);
+static void anchorMonitorRemoteStop(uint16_t connHandle);
 /***********************************************************************************************************************
 ************************************************************************************************************************
 * Public functions
@@ -848,14 +854,14 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
         case gHandoverTimeSyncReceiveComplete_c:
         {
             /* Regular flow */
-            if (mAppHandoverState == gIdle_c)
+            if (mAppTimeSyncState == gTimeSyncIdle_c)
             {
-                mAppHandoverState = gTimeSyncRx_c;
+                mAppTimeSyncState = gTimeSyncRx_c;
             }
             /* Handover was aborted while time sync was in progress */
-            else if (mAppHandoverState == gTimeSyncRx_c)
+            else if (mAppTimeSyncState == gTimeSyncRx_c)
             {
-                mAppHandoverState = gIdle_c;
+                mAppTimeSyncState = gTimeSyncIdle_c;
             }
             else
             {
@@ -868,31 +874,40 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
         
         case gHandoverTimeSyncTransmitStateChanged_c:
         {
-            if (mAppHandoverState == gIdle_c)
+            if (mAppTimeSyncState == gTimeSyncIdle_c)
             {
-                mAppHandoverState = gTimeSyncTx_c;
+                mAppTimeSyncState = gTimeSyncTx_c;
+            }
+            else
+            {
+                mAppTimeSyncState = gTimeSyncIdle_c;
             }
         }
         break;
         
         case gHandoverTimeSyncEvent_c:
         {
-            mSlotLocal = pGenericEvent->eventData.handoverTimeSync.rxClkSlot;
-            mOffsetLocal = pGenericEvent->eventData.handoverTimeSync.rxUs;
-            mSlotRemote = pGenericEvent->eventData.handoverTimeSync.txClkSlot;
-            mOffsetRemote = pGenericEvent->eventData.handoverTimeSync.txUs;
-            
-            /* Notify the other device to stop handover Time Sync. */
-            notifyRemoteDevice(gHandoverStopTimeSyncCommandOpCode_c, 0U, NULL);
+            if (mAppTimeSyncState == gTimeSyncRx_c)
+            {
+                mSlotLocal = pGenericEvent->eventData.handoverTimeSync.rxClkSlot;
+                mOffsetLocal = pGenericEvent->eventData.handoverTimeSync.rxUs;
+                mSlotRemote = pGenericEvent->eventData.handoverTimeSync.txClkSlot;
+                mOffsetRemote = pGenericEvent->eventData.handoverTimeSync.txUs;
+                
+                /* Notify the other device to stop handover Time Sync. */
+                notifyRemoteDevice(gHandoverStopTimeSyncCommandOpCode_c, 0U, NULL);
+                
+                if (gTimeSyncForHandover == TRUE)
+                {
+                    /* Suspend Tx before retrieving the Handover Data. */
+                    result = Gap_HandoverSuspendTransmit(mHandoverCentralDeviceId, gSafeStopLlTx_c, 0U, 0U);
+                }
+                else
+                {
+                    (void)AppHandover_AnchorMonitorStart(mHandoverCentralDeviceId);
+                }
 
-            if (gTimeSyncForHandover == TRUE)
-            {
-                /* Suspend Tx before retrieving the Handover Data. */
-                result = Gap_HandoverSuspendTransmit(mHandoverCentralDeviceId, gSafeStopLlTx_c, 0U, 0U);
-            }
-            else
-            {
-                (void)AppHandover_AnchorMonitorStart(mHandoverCentralDeviceId);
+                mAppTimeSyncState = gTimeSyncIdle_c;
             }
         }
         break;
@@ -1279,7 +1294,7 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
                         buf[48] = (uint8_t)(maAppMonitorData[deviceId].monitorMode);
                         maAppMonitorData[deviceId].monitorConnHandle = gMonitorConnectionHandlePending;
                     }
-                    mAppHandoverState = gAnchorMonitorRemote_c;
+                    mAppHandoverState = gIdle_c;
                 }
                 
                 notifyRemoteDevice(gHandoverAnchorStartSearchCommandOpCode_c, gHandoverAnchorStartSearchCommandLen_c, buf);
@@ -1504,7 +1519,7 @@ void AppHandover_Abort(bool_t notifyPeerAnch, appHandoverError_t error)
 {
     bleResult_t result = gBleSuccess_c;
     
-    switch (mAppHandoverState)
+    switch (mAppTimeSyncState)
     {
         case gTimeSyncRx_c:
         {
@@ -1512,14 +1527,23 @@ void AppHandover_Abort(bool_t notifyPeerAnch, appHandoverError_t error)
             (void)AppHandover_TimeSyncReceive(gTimeSyncDisable_c);
         }
         break;
-        
+
         case gTimeSyncTx_c:
         {
             /* Time Sync Tx active, disable it. */
             (void)AppHandover_TimeSyncTransmit(gTimeSyncDisable_c);
         }
         break;
-        
+
+        default:
+        {
+            ; /* No action required. */
+        }
+        break;
+    }
+    
+    switch (mAppHandoverState)
+    {
         case gContextTx_c:
         {
             (void)Gap_HandoverResumeTransmit(mHandoverCentralDeviceId);
@@ -1540,16 +1564,16 @@ void AppHandover_Abort(bool_t notifyPeerAnch, appHandoverError_t error)
             mHandoverConnHandle = gInvalidConnectionHandle_c;
         }
         break;
-        
+
         default:
         {
             ; /* No action required. */
         }
         break;
     }
-    
+
     result = Gap_HandoverFreeData();
-    
+
     if (result != gBleSuccess_c)
     {
         /* Handover data not set*/
@@ -1559,11 +1583,7 @@ void AppHandover_Abort(bool_t notifyPeerAnch, appHandoverError_t error)
     }
     mHandoverCentralDeviceId = gInvalidDeviceId_c;
 
-    /* If time sync rx is in progress we will reset the state to Idle when it finishes */
-    if (mAppHandoverState != gTimeSyncRx_c)
-    {
-        mAppHandoverState = gIdle_c;
-    }
+    mAppHandoverState = gIdle_c;
     
     while(MSG_QueueGetHead(&mSrcLlPendingDataQueue) != NULL)
     {
@@ -1599,7 +1619,7 @@ bleResult_t AppHandover_AnchorMonitorStart(deviceId_t deviceId)
     {
         status = gBleInvalidParameter_c;
     }
-    else if (mAppHandoverState != gTimeSyncRx_c)
+    else if (mAppHandoverState != gIdle_c)
     {
         status = gBleInvalidState_c;
     }
@@ -1627,7 +1647,7 @@ bleResult_t AppHandover_AnchorMonitorStop(deviceId_t deviceId)
     
     if (monitoredConnHandle != gInvalidConnectionHandle_c)
     {
-        status = anchorMonitorStop(monitoredConnHandle);
+        anchorMonitorRemoteStop(monitoredConnHandle);
     }
     else
     {
@@ -1969,34 +1989,31 @@ static bleResult_t anchorMonitorStop(uint16_t connHandle)
 {
     bleResult_t status = gBleSuccess_c;
     
-    if ((mAppHandoverState != gIdle_c) &&
-        (mAppHandoverState != gAnchorMonitorRemoteStarting_c) &&
-        (mAppHandoverState != gAnchorMonitorRemote_c))
-    {
-        status = gBleInvalidParameter_c;
-    }
-    else
-    {
-        if (mAppHandoverState == gAnchorMonitorRemote_c)
-        {
-            /* Stop anchor search on remote anchor */
-            uint8_t buf[gHandoverAnchMonStopCommandLen_c] = {0U};
-            
-            Utils_PackTwoByteValue(connHandle, &buf[0]);
-            notifyRemoteDevice(gHandoverStopAnchorMonitorCommandOpCode_c, gHandoverAnchMonStopCommandLen_c, buf);
-        }
-        else
-        {
-            /* Stop anchor search */
-            uint8_t buf[gHandoverAnchMonStopCommandLen_c] = {0U};
-            Utils_PackTwoByteValue(connHandle, &buf[0]);
-            status = Gap_HandoverAnchorSearchStop(connHandle);
-            mHandoverConnHandle = gInvalidConnectionHandle_c;
-            /* Notify remote anchor that anchor monitoring was stopped */
-            notifyRemoteDevice(gHandoverAnchMonStoppedCommandOpCode_c, gHandoverAnchMonStoppedCommandLen_c, buf);
-        }
-    }
+    /* Stop anchor search */
+    uint8_t buf[gHandoverAnchMonStopCommandLen_c] = {0U};
+    Utils_PackTwoByteValue(connHandle, &buf[0]);
+    status = Gap_HandoverAnchorSearchStop(connHandle);
+    mHandoverConnHandle = gInvalidConnectionHandle_c;
+    /* Notify remote anchor that anchor monitoring was stopped */
+    notifyRemoteDevice(gHandoverAnchMonStoppedCommandOpCode_c, gHandoverAnchMonStoppedCommandLen_c, buf);
     
     return status;
+}
+
+/*! ********************************************************************************************************************
+*\fn            static void anchorMonitorRemoteStop(uint16_t connHandle)
+*\brief         Stop Anchor Monitor on remote anchor
+*
+*\param  [in]   connHandle  Monitored connection identifier
+*
+*\return        none
+********************************************************************************************************************* */
+static void anchorMonitorRemoteStop(uint16_t connHandle)
+{
+    /* Stop anchor search on remote anchor */
+    uint8_t buf[gHandoverAnchMonStopCommandLen_c] = {0U};
+    
+    Utils_PackTwoByteValue(connHandle, &buf[0]);
+    notifyRemoteDevice(gHandoverStopAnchorMonitorCommandOpCode_c, gHandoverAnchMonStopCommandLen_c, buf);
 }
 #endif /* defined(gHandoverIncluded_d) && (gHandoverIncluded_d == 1) */
