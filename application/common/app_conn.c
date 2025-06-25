@@ -28,6 +28,7 @@
 #include "RNG_Interface.h"
 #include "SecLib.h"
 #include "board.h"
+#include "fwk_platform.h"
 #if !defined(gNcpApplication_d) || (gNcpApplication_d == 0)
 #include "board_platform.h"
 #include "controller_api.h"
@@ -72,9 +73,25 @@
 
 /************************************************************************************
 *************************************************************************************
+* Public macros
+*************************************************************************************
+************************************************************************************/
+
+/* Minimal time the Radio/link layer shall be in Idle state (no flash operation) to allow write/Erase operations into Flash 
+  for file system, over The Air firmware update, etc.. 
+  If the Radio/Link layer requires the access to the flash, Flash write/Erase will be forbidden */
+#ifndef gAppIdle_FlashWriteEraseMinimalTimeMs_c
+#define gAppIdle_FlashWriteEraseMinimalTimeMs_c     (5)
+#endif
+
+/************************************************************************************
+*************************************************************************************
 * Private macros
 *************************************************************************************
 ************************************************************************************/
+
+/* convert 32Khz ticks into milliseconds */
+#define CONVERT_MS_2_32Kticks(time_ms)    ((time_ms * 32768) / 1000 )
 
 /************************************************************************************
 *************************************************************************************
@@ -187,6 +204,11 @@ static idsCallback_t                        mpfAppIdsCallback         = NULL;
 
 /* Application input queues */
 static messaging_t mAppCbInputQueue;
+
+/* provide information whether a task is to be process in Idle loop task 
+ * Set in BluetoothLEHost_ProcessIdleTask(),  and check in BluetoothLEHost_IsConnectivityTaskToProcess()
+ * If the variable is TRUE, the idle loop will schedule once more , the variable shall be set to FALSE to go to WIFI/Lowpower */
+static bool isConnectivityTaskToProcess;
 
 /************************************************************************************
 *************************************************************************************
@@ -1377,16 +1399,49 @@ static void App_IdsHandler
 ********************************************************************************** */
 void BluetoothLEHost_ProcessIdleTask(void)
 {
-#if defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)
-    if(NvIdle() == 0)
-#endif /* gAppUseNvm_d */
+#if (defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)) || (defined(gAppOtaASyncFlashTransactions_c) && (gAppOtaASyncFlashTransactions_c > 0))
+    int RadioIdleDuration32Ktick;
+    
+    /* By default, run again the idle loop to execute any pending operations
+       The variable will be set to FALSE if no operation were performed this time */
+    isConnectivityTaskToProcess = TRUE;
+
+    RadioIdleDuration32Ktick = PLATFORM_GetRadioIdleDuration32K();
+
+    /* On some platforms (mcxw23) , make sure the Radio is in Idle state for minimal given time gAppIdle_FlashWriteEraseMinimalTimeMs_c 
+          to allow write/erase operation into flash. gAppIdle_FlashWriteEraseMinimalTimeMs_c can be adjusted in app_preinclude.h
+       Platforms which have a dedicated Radio core with dedicated Flash (kw45, kw47, mcxw71, mcxw72) will have RadioIdleDuration32Ktick 
+          to PLATFORM_RADIO_IDLE_FOREVER so the condition will will always be true
+    */
+    if (RadioIdleDuration32Ktick > CONVERT_MS_2_32Kticks(gAppIdle_FlashWriteEraseMinimalTimeMs_c))
     {
-#if defined (gAppOtaASyncFlashTransactions_c) && (gAppOtaASyncFlashTransactions_c > 0)
-        if (OTA_TransactionResume() == 0)
-#endif
+
+#if defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)
+        if(NvIdle() == 0)
+#endif /* gAppUseNvm_d */
         {
+#if defined (gAppOtaASyncFlashTransactions_c) && (gAppOtaASyncFlashTransactions_c > 0)
+            if (OTA_TransactionResume() == 0)
+#endif
+            {
+                /* no operation were carried on this time => no more task to process in Idle loop
+                 * Allow WFI/Low-power */
+                isConnectivityTaskToProcess = FALSE;
+            }
         }
     }
+    else
+    {
+        /* As radio is active, or will be active soon, there is no enough time to carry on any task 
+         * operation => go to lowpower and try next time */
+        isConnectivityTaskToProcess = FALSE;
+
+        /* operation could not be completed because of lack of time
+         * => can be optimized by starting a timer to retry later */
+    }
+#else
+    isConnectivityTaskToProcess = FALSE;
+#endif
 }
 
 /*! *********************************************************************************
@@ -1401,25 +1456,6 @@ void BluetoothLEHost_ProcessIdleTask(void)
 ********************************************************************************** */
 bool_t BluetoothLEHost_IsConnectivityTaskToProcess(void)
 {
-    bool_t isConnectivityTaskToProcess = FALSE;
-    do
-    {
-#if defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)
-        if(NvIsPendingOperation())
-        {
-            isConnectivityTaskToProcess = TRUE;
-            break;
-        }
-#endif /* gAppUseNvm_d */
-
-#if defined (gAppOtaASyncFlashTransactions_c) && (gAppOtaASyncFlashTransactions_c > 0)
-        if(OTA_IsTransactionPending())
-        {
-            isConnectivityTaskToProcess = TRUE;
-            break;
-        }
-#endif
-    }while(false);
-
+    /* Prevent from going to WIFI/Low-power if TRUE */
     return isConnectivityTaskToProcess;
 }

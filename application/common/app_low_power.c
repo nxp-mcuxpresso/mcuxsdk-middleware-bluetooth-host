@@ -67,10 +67,7 @@ void vApplicationIdleHook(void)
 
     OSA_DisableIRQGlobal();
 
-    if (PLATFORM_CheckNextBleConnectivityActivity() == true)
-    {
-        BluetoothLEHost_ProcessIdleTask();
-    }
+    BluetoothLEHost_ProcessIdleTask();
 
     OSA_EnableIRQGlobal();
 
@@ -113,11 +110,11 @@ void vPortSuppressTicksAndSleep(TickType_t xExpectedIdleTime)
 
         if (abortIdle == false)
         {
-                /* Enter low power with a maximal timeout */
-                actualIdleTimeUs = PWR_EnterLowPower(expectedIdleTimeUs);
+            /* Enter low power with a maximal timeout */
+            actualIdleTimeUs = PWR_EnterLowPower(expectedIdleTimeUs);
 
-                /* Re enable systicks and compensate systick timebase */
-                PWR_SysticksPostProcess(expectedIdleTimeUs, actualIdleTimeUs);
+            /* Re enable systicks and compensate systick timebase */
+            PWR_SysticksPostProcess(expectedIdleTimeUs, actualIdleTimeUs);
         }
 
         /* Exit from critical section */
