@@ -256,8 +256,9 @@ static void BleApp_HandlePeriodicSyncEstablished(gapSyncEstbEventData_t* pSyncEs
 static extAdvListElement_t * BleApp_GetExtAdvElement(uint16_t syncHandle);
 static void BleApp_PrintPeriodicDeviceScannedV2(gapPeriodicScannedDeviceV2_t* pPeriodicScannedDeviceV2);
 static void BleApp_HandlePAWRDeviceScanned(gapPeriodicScannedDeviceV2_t* pPeriodicScannedDevice);
-static void BleApp_HandlePeriodicDeviceScannedV2(gapScanningEvent_t* pScanningEvent);
 #endif /* (gAppPAWRSupport_d == TRUE) */
+static void BleApp_HandlePeriodicDeviceScannedV2(gapScanningEvent_t* pScanningEvent);
+
 static void BleApp_HandleIdleState(deviceId_t peerDeviceId, appEvent_t event);
 static void BleApp_HandleExchangeMtuState(deviceId_t peerDeviceId, appEvent_t event);
 static void BleApp_HandleServiceDiscState(deviceId_t peerDeviceId, appEvent_t event);
@@ -593,13 +594,11 @@ static void BleApp_ScanningCallback (gapScanningEvent_t* pScanningEvent)
             AppTerminatePeriodicAdvSync();
         }
         break;
-#if (gAppPAWRSupport_d == TRUE)
     case gPeriodicDeviceScannedV2_c:
         {
             BleApp_HandlePeriodicDeviceScannedV2(pScanningEvent);
         }
         break;
-#endif /* (gAppPAWRSupport_d == TRUE) */
     default:
         {
             ; /* No action required */
@@ -1490,7 +1489,8 @@ static void AppHandleExtAdvEvent( gapExtScannedDevice_t* pExtScannedDevice)
                     {
                         advDataChanged = TRUE;
                     }
-                    if(maAppExtAdvList[i].periodicAdvInterval != pExtScannedDevice->periodicAdvInterval)
+                    if ((maAppExtAdvList[i].periodicAdvInterval != pExtScannedDevice->periodicAdvInterval)
+                       &&((pExtScannedDevice->advEventProperties & ((bleAdvReportEventProperties_t)gAdvEventConnectable_c | (bleAdvReportEventProperties_t)gAdvEventScannable_c)) == 0U))
                     {
                         handlePriodicAdv = TRUE;
                     }
@@ -1521,7 +1521,8 @@ static void AppHandleExtAdvEvent( gapExtScannedDevice_t* pExtScannedDevice)
             maAppExtAdvList[mAppExtAdvListIndex].periodicAdvInterval = 0;
             maAppExtAdvList[mAppExtAdvListIndex].syncHandle = mBlePeriodicAdvInvalidSyncHandle_c;
             advIndex = mAppExtAdvListIndex++ ;
-            if(pExtScannedDevice->periodicAdvInterval != 0U)
+            if ((pExtScannedDevice->periodicAdvInterval != 0U)
+                &&((pExtScannedDevice->advEventProperties & ((bleAdvReportEventProperties_t)gAdvEventConnectable_c | (bleAdvReportEventProperties_t)gAdvEventScannable_c)) == 0U))
             {
                 handlePriodicAdv = TRUE;
             }
@@ -1539,9 +1540,7 @@ static void AppHandleExtAdvEvent( gapExtScannedDevice_t* pExtScannedDevice)
             maAppExtAdvList[advIndex].dataCRC = advCRC;
         }
         AppPrintExtAdvEvent(pExtScannedDevice);
-
     }
-
     if((handlePriodicAdv == TRUE) && (advIndex < mAppExtAdvListSize_c))
     {
         BleApp_HandlePeriodicAdv(pExtScannedDevice, advIndex);
@@ -1969,6 +1968,7 @@ static void BleApp_HandlePAWRDeviceScanned(gapPeriodicScannedDeviceV2_t* pPeriod
         }
     }
 }
+#endif /* (gAppPAWRSupport_d == TRUE) */
 /*! *********************************************************************************
 * \brief        Handles the gPeriodicDeviceScannedV2_c event received.
 *
@@ -1978,12 +1978,14 @@ static void BleApp_HandlePAWRDeviceScanned(gapPeriodicScannedDeviceV2_t* pPeriod
 ********************************************************************************** */
 static void BleApp_HandlePeriodicDeviceScannedV2(gapScanningEvent_t* pScanningEvent)
 {
+#if (gAppPAWRSupport_d == TRUE)
     extAdvListElement_t *pExtAdv = BleApp_GetExtAdvElement(pScanningEvent->eventData.periodicScannedDeviceV2.syncHandle);
     if (pExtAdv != NULL)
     {
         /*Check for PAWR */
         if (pExtAdv->numSubevents == 0U)
         {
+#endif /* (gAppPAWRSupport_d == TRUE) */
             /* No PAWR. Convert the gPeriodicDeviceScannedV2_c into gPeriodicDeviceScanned_c to handle regular periodic adv*/
             gapPeriodicScannedDevice_t gapPeriodicScannedDevice;
             gapPeriodicScannedDevice.syncHandle = pScanningEvent->eventData.periodicScannedDeviceV2.syncHandle;
@@ -1993,6 +1995,7 @@ static void BleApp_HandlePeriodicDeviceScannedV2(gapScanningEvent_t* pScanningEv
             gapPeriodicScannedDevice.dataLength = pScanningEvent->eventData.periodicScannedDeviceV2.dataLength;
             gapPeriodicScannedDevice.pData = pScanningEvent->eventData.periodicScannedDeviceV2.pData;
             AppHandlePeriodicDeviceScanEvent(&gapPeriodicScannedDevice);
+#if (gAppPAWRSupport_d == TRUE)
         }
         else
         {
@@ -2000,8 +2003,8 @@ static void BleApp_HandlePeriodicDeviceScannedV2(gapScanningEvent_t* pScanningEv
             BleApp_HandlePAWRDeviceScanned(&pScanningEvent->eventData.periodicScannedDeviceV2);
         }
     }
-}
 #endif /* (gAppPAWRSupport_d == TRUE) */
+}
 
 static void BleApp_HandleIdleState(deviceId_t peerDeviceId, appEvent_t event)
 {
