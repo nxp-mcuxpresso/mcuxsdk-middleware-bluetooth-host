@@ -4,6 +4,36 @@ All notable changes to NXP Bluetooth LE Host will be documented in this file.
 
 **NXP Bluetooth LE Host** is certified **Bluetooth 6.0**
 
+## [1.10.9] - mcux v2025-09-00-pvw1
+
+### Added
+- **IDS event** trigger when incoming ATT packets exceed agreed MTU
+- **IDS event** trigger when Unexpected SMP Messages received in idle states (before pairing starts)
+- Average RSSI reporting in Anchor Monitor event
+- Support for gAppDeferAlgoRun_d in btcs_client.c
+- **Multi-connection monitoring** in Handover/Monitor Mode
+
+### Improved
+
+- Updated **NBU channel sounding** applications to support **64MHz** clock speed
+- Cleanup of commComplete structures that only contain status from hci_interface.h
+
+### Fixed
+
+- CCC Application handover monitoring RSSI issue
+- Intrusion Detection System not reporting event type
+- Extended **NBU armgcc projects** stability
+- Advertising Extended Applications when Gap_PeriodicAdvCreateSync fails
+
+### Changed
+
+- Updated digital_key_car_anchor applications to configure coding scheme via Host API
+- Enhanced RAS handling of ACK Ranging Data in invalid conditions 
+
+### Supported Platforms
+
+- KW45, KW47, MCXW71, MCXW72, MCXW23
+
 ## [1.10.8] - mcux v2025-06-00
 
 ### Added
