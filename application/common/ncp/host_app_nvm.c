@@ -856,7 +856,7 @@ static bleResult_t App_NvmRead
                                 FLib_MemCpy(pRamData, *ppNvmData, mSize);
                                 pRamData = (void *)((uint8_t *)pRamData + mSize);
                                 *pDataSetBitmask |= nvmId_BondingDataDescriptorBit_c;
-                                *pDescriptorBitmask |= (1 << descIdx);
+                                *pDescriptorBitmask |= (1U << descIdx);
                             }
 
                             tempDescBitmask &= tempDescBitmask - 1;
@@ -1013,39 +1013,39 @@ static void App_NvmHostRead(void *pData)
     
     if (pNvmData != NULL)
     {
-        uint8_t *pData = pNvmData;
+        uint8_t *pDataIndex = pNvmData;
         
         if (result == gBleSuccess_c)
         {
             if (readDatasetBitmask & nvmId_BondingHeaderBit_c)
             {
-                FLib_MemCpy(pData, aBondHeader, (gBleBondIdentityHeaderSize_c));
-                pData += (gBleBondIdentityHeaderSize_c);
+                FLib_MemCpy(pDataIndex, aBondHeader, (gBleBondIdentityHeaderSize_c));
+                pDataIndex += (gBleBondIdentityHeaderSize_c);
             }
             if (readDatasetBitmask & nvmId_BondingDataDynamicBit_c)
             {
-                FLib_MemCpy(pData, aBondDataDynamic, gBleBondDataDynamicSize_c);
-                pData += gBleBondDataDynamicSize_c;
+                FLib_MemCpy(pDataIndex, aBondDataDynamic, gBleBondDataDynamicSize_c);
+                pDataIndex += gBleBondDataDynamicSize_c;
             }
             if (readDatasetBitmask & nvmId_BondingDataStaticBit_c)
             {
-                FLib_MemCpy(pData, aBondDataStatic, gBleBondDataStaticSize_c);
-                pData += gBleBondDataStaticSize_c;
+                FLib_MemCpy(pDataIndex, aBondDataStatic, gBleBondDataStaticSize_c);
+                pDataIndex += gBleBondDataStaticSize_c;
             }
             if (readDatasetBitmask & nvmId_BondingDataLegacyBit_c)
             {
-                FLib_MemCpy(pData, aBondDataLegacy, gBleBondDataLegacySize_c);
-                pData += gBleBondDataLegacySize_c;
+                FLib_MemCpy(pDataIndex, aBondDataLegacy, gBleBondDataLegacySize_c);
+                pDataIndex += gBleBondDataLegacySize_c;
             }
             if (readDatasetBitmask & nvmId_BondingDataDeviceInfoBit_c)
             {
-                FLib_MemCpy(pData, aBondDataDeviceInfo, gBleBondDataDeviceInfoSize_c);
-                pData += gBleBondDataDeviceInfoSize_c;
+                FLib_MemCpy(pDataIndex, aBondDataDeviceInfo, gBleBondDataDeviceInfoSize_c);
+                pDataIndex += gBleBondDataDeviceInfoSize_c;
             }
             if (readDatasetBitmask & nvmId_BondingDataDescriptorBit_c)
             {
-                FLib_MemCpy(pData, aBondDataDescriptor, gBleBondDataDescriptorSize_c * noOfReadDescriptors);
-                pData += gBleBondDataDescriptorSize_c * noOfReadDescriptors;
+                FLib_MemCpy(pDataIndex, aBondDataDescriptor, gBleBondDataDescriptorSize_c * noOfReadDescriptors);
+                pDataIndex += gBleBondDataDescriptorSize_c * noOfReadDescriptors;
             }
         }
 

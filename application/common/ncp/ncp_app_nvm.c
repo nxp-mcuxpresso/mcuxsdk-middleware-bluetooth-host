@@ -274,8 +274,8 @@ bleResult_t App_NvmWrite
                         gBleBondDataDescriptorSize_c);
             maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask |= nvmId_BondingDataDescriptorBit_c;
             maBondDataBlobs[mEntryIdx].bondDataSetValidHostBitmask &= ~nvmId_BondingDataDescriptorBit_c;
-            maBondDataBlobs[mEntryIdx].bondDescriptorSetValidBitmask |= 1 << mDescriptorIndex;
-            maBondDataBlobs[mEntryIdx].bondDescriptorSetValidHostBitmask &= ~(1 << mDescriptorIndex);
+            maBondDataBlobs[mEntryIdx].bondDescriptorSetValidBitmask |= 1U << mDescriptorIndex;
+            maBondDataBlobs[mEntryIdx].bondDescriptorSetValidHostBitmask &= ~(1U << mDescriptorIndex);
         }
         
         gAppNvmOperationPending = TRUE;
@@ -452,7 +452,7 @@ bleResult_t App_NvmRead
         if(pBondDataDescriptor != NULL && mDescriptorIndex < gcGapMaximumSavedCccds_c)
         {
             if ((maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask & nvmId_BondingDataDescriptorBit_c) &&
-                (maBondDataBlobs[mEntryIdx].bondDescriptorSetValidBitmask & (1 << mDescriptorIndex)))
+                (maBondDataBlobs[mEntryIdx].bondDescriptorSetValidBitmask & (1U << mDescriptorIndex)))
             {
                 FLib_MemCpy(pBondDataDescriptor,
                             (uint8_t*)&(maBondDataBlobs[mEntryIdx].bondDataDescriptors[mDescriptorIndex]),
@@ -734,7 +734,7 @@ bleResult_t App_NcpNvmInit(void)
                                          &maBondDataBlobs[i].bondDataBlobLegacy,
                                          &maBondDataBlobs[i].bondDataBlobDeviceInfo,
                                          &maBondDataBlobs[i].bondDataDescriptors,
-                                         (1 << gcGapMaximumSavedCccds_c) - 1,
+                                         (1U << gcGapMaximumSavedCccds_c) - 1U,
                                          &maBondDataBlobs[i].bondDataSetValidHostBitmask,
                                          &maBondDataBlobs[i].bondDescriptorSetValidHostBitmask);
                 
