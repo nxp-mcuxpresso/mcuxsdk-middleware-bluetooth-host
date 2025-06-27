@@ -197,6 +197,7 @@ static void BluetoothLEHost_Initialized(void);
 static void BluetoothLEHost_GenericCallback(gapGenericEvent_t *pGenericEvent);
 #if defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1)
 static void GenfskApp_EventHandler(const void *pGfskAppData);
+static void GenfskApp_EventHandler2(const gfskAppEventData_t *pAppData);
 #endif /* defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1) */
 
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
@@ -1950,6 +1951,62 @@ static void BluetoothLEHost_GenericCallback(gapGenericEvent_t *pGenericEvent)
 
 #if defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1)
 /*! *********************************************************************************
+* \brief        Handle events from Genfsk module. Helper function.
+*
+********************************************************************************** */
+static void GenfskApp_EventHandler2(const gfskAppEventData_t *pAppData)
+{
+    switch (pAppData->appEvent)
+    {
+        case gGfskEvt_CommandCompleteTransmit_c:
+        {
+            if (gHciSuccess_c != pAppData->eventData.cmdStatus)
+            {
+                Serial_Print("\n\rGFSK: Transmit Command Failed", gAllowToBlock_d);
+                /* After any Genfsk print, use newline for uart */
+                mAppUartNewLine = TRUE;
+            }
+        }
+        break;
+
+        case gGfskEvt_CommandCompleteReceive_c:
+        {
+            if (gHciSuccess_c != pAppData->eventData.cmdStatus)
+            {
+                Serial_Print("\n\rGFSK: Receive Command Failed", gAllowToBlock_d);
+                /* After any Genfsk print, use newline for uart */
+                mAppUartNewLine = TRUE;
+            }
+        }
+        break;
+
+        case gGfskEvt_CommandCompleteCancel_c:
+        {
+            if (gHciSuccess_c != pAppData->eventData.cmdStatus)
+            {
+                Serial_Print("\n\rGFSK: Cancel Command Failed", gAllowToBlock_d);
+                /* After any Genfsk print, use newline for uart */
+                mAppUartNewLine = TRUE;
+            }
+        }
+        break;
+
+        case gGfskEvt_AppEvtTransmitPending_c:
+        {
+            Serial_Print("\n\rGFSK: Transmit Command Canceled, previous packet pending", gAllowToBlock_d);
+            /* After any Genfsk print, use newline for uart */
+            mAppUartNewLine = TRUE;
+        }
+        break;
+
+        default:
+        {
+            ;
+        }
+        break;
+    }
+}
+/*! *********************************************************************************
 * \brief        Handle events from Genfsk module
 *
 ********************************************************************************** */
@@ -2052,50 +2109,9 @@ static void GenfskApp_EventHandler(const void *pGfskAppData)
             }
             break;
 
-            case gGfskEvt_CommandCompleteTransmit_c:
-            {
-                if (gHciSuccess_c != pAppData->eventData.cmdStatus)
-                {
-                    Serial_Print("\n\rGFSK: Transmit Command Failed", gAllowToBlock_d);
-                    /* After any Genfsk print, use newline for uart */
-                    mAppUartNewLine = TRUE;
-                }
-            }
-            break;
-
-            case gGfskEvt_CommandCompleteReceive_c:
-            {
-                if (gHciSuccess_c != pAppData->eventData.cmdStatus)
-                {
-                    Serial_Print("\n\rGFSK: Receive Command Failed", gAllowToBlock_d);
-                    /* After any Genfsk print, use newline for uart */
-                    mAppUartNewLine = TRUE;
-                }
-            }
-            break;
-
-            case gGfskEvt_CommandCompleteCancel_c:
-            {
-                if (gHciSuccess_c != pAppData->eventData.cmdStatus)
-                {
-                    Serial_Print("\n\rGFSK: Cancel Command Failed", gAllowToBlock_d);
-                    /* After any Genfsk print, use newline for uart */
-                    mAppUartNewLine = TRUE;
-                }
-            }
-            break;
-
-            case gGfskEvt_AppEvtTransmitPending_c:
-            {
-                Serial_Print("\n\rGFSK: Transmit Command Canceled, previous packet pending", gAllowToBlock_d);
-                /* After any Genfsk print, use newline for uart */
-                mAppUartNewLine = TRUE;
-            }
-            break;
-
             default:
             {
-                /* MISRA */
+                GenfskApp_EventHandler2(pAppData);
             }
             break;
         }

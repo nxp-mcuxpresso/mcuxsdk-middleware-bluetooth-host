@@ -155,6 +155,8 @@ static void BleApp_StoreServiceHandles
     gattService_t   *pService
 );
 
+static void BleApp_StoreServiceHandlesGenericAttributeProfile(gattService_t *pService);
+
 /* Application state machine */
 static bleResult_t BleApp_ConfigureNotifications(deviceId_t peerDeviceId, uint16_t handle);
 
@@ -706,6 +708,26 @@ static void BleApp_GattEnhancedNotificationCallback
 }
 
 /*! *********************************************************************************
+* \brief        Stores handles for the GAP service. Helper function.
+*
+* \param[in]    pService        Pointer to gattService_t.
+********************************************************************************** */
+static void BleApp_StoreServiceHandlesGenericAttributeProfile(gattService_t *pService)
+{
+    uint8_t i = 0U;
+
+    for (i = 0U; i < pService->cNumCharacteristics; i++)
+    {
+        if ((pService->aCharacteristics[i].value.uuidType == gBleUuidType16_c) &&
+            (pService->aCharacteristics[i].value.uuid.uuid16 == gBleSig_GattClientSupportedFeatures_d))
+        {
+            /* Save the handle for the Client Supported Features characteristic */
+            mClientSupportedFeaturesCharHandle = pService->aCharacteristics[i].value.handle;
+        }
+    }
+}
+
+/*! *********************************************************************************
 * \brief        Stores handles for the specified service.
 *
 * \param[in]    peerDeviceId    Peer identifier
@@ -774,15 +796,7 @@ static void BleApp_StoreServiceHandles
     if ((pService->uuidType == gBleUuidType16_c) &&
         (pService->uuid.uuid16 == gBleSig_GenericAttributeProfile_d))
     {
-        for (i = 0; i < pService->cNumCharacteristics; i++)
-        {
-            if ((pService->aCharacteristics[i].value.uuidType == gBleUuidType16_c) &&
-                (pService->aCharacteristics[i].value.uuid.uuid16 == gBleSig_GattClientSupportedFeatures_d))
-            {
-                /* Save the handle for the Client Supported Features characteristic */
-                mClientSupportedFeaturesCharHandle = pService->aCharacteristics[i].value.handle;
-            }
-        }
+        BleApp_StoreServiceHandlesGenericAttributeProfile(pService);
     }
 }
 

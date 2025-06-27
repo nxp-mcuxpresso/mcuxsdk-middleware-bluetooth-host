@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2018-2024 NXP
+* Copyright 2018-2025 NXP
 *
 * \file ancs_client.c
 *
@@ -548,6 +548,7 @@ static void BleApp_AttributeNotified
 static void BluetoothLEHost_Initialized(void);
 static void BluetoothLEHost_GenericCallback(gapGenericEvent_t *pGenericEvent);
 
+static bool_t BleApp_CheckIfReconnected(void);
 static void BleApp_StateMachineHandlerExchangeMtu(deviceId_t peerDeviceId, uint8_t event);
 static void BleApp_StateMachineHandlerPrimaryServiceDisc(deviceId_t peerDeviceId, uint8_t event);
 static void BleApp_StateMachineHandlerCharServiceDisc(deviceId_t peerDeviceId, uint8_t event);
@@ -2311,18 +2312,24 @@ static void BleApp_ServiceDiscoveryCompleted(void)
     }
 }
 
+static bool_t BleApp_CheckIfReconnected(void)
+{
+    return !((mPeerInformation.customInfo.ancsClientConfig.hNotificationSource == gGattDbInvalidHandle_d)       ||
+            (mPeerInformation.customInfo.ancsClientConfig.hNotificationSourceCccd == gGattDbInvalidHandle_d)    ||
+            (mPeerInformation.customInfo.ancsClientConfig.hControlPoint == gGattDbInvalidHandle_d)              ||
+            (mPeerInformation.customInfo.ancsClientConfig.hDataSource == gGattDbInvalidHandle_d)                ||
+            (mPeerInformation.customInfo.ancsClientConfig.hDataSourceCccd == gGattDbInvalidHandle_d)            ||
+            (mPeerInformation.customInfo.amsClientConfig.hRemoteCommand == gGattDbInvalidHandle_d)              ||
+            (mPeerInformation.customInfo.amsClientConfig.hRemoteCommandCccd == gGattDbInvalidHandle_d)          ||
+            (mPeerInformation.customInfo.amsClientConfig.hEntityUpdate == gGattDbInvalidHandle_d)               ||
+            (mPeerInformation.customInfo.amsClientConfig.hEntityUpdateCccd == gGattDbInvalidHandle_d)           ||
+            (mPeerInformation.customInfo.amsClientConfig.hEntityAttribute == gGattDbInvalidHandle_d) );
+}
+
 static void BleApp_StateMachineHandlerExchangeMtu(deviceId_t peerDeviceId, uint8_t event)
 {
-    bool_t reconnected = !((mPeerInformation.customInfo.ancsClientConfig.hNotificationSource == gGattDbInvalidHandle_d)        ||
-                           (mPeerInformation.customInfo.ancsClientConfig.hNotificationSourceCccd == gGattDbInvalidHandle_d)    ||
-                           (mPeerInformation.customInfo.ancsClientConfig.hControlPoint == gGattDbInvalidHandle_d)              ||
-                           (mPeerInformation.customInfo.ancsClientConfig.hDataSource == gGattDbInvalidHandle_d)                ||
-                           (mPeerInformation.customInfo.ancsClientConfig.hDataSourceCccd == gGattDbInvalidHandle_d)            ||
-                           (mPeerInformation.customInfo.amsClientConfig.hRemoteCommand == gGattDbInvalidHandle_d)              ||
-                           (mPeerInformation.customInfo.amsClientConfig.hRemoteCommandCccd == gGattDbInvalidHandle_d)          ||
-                           (mPeerInformation.customInfo.amsClientConfig.hEntityUpdate == gGattDbInvalidHandle_d)               ||
-                           (mPeerInformation.customInfo.amsClientConfig.hEntityUpdateCccd == gGattDbInvalidHandle_d)           ||
-                           (mPeerInformation.customInfo.amsClientConfig.hEntityAttribute == gGattDbInvalidHandle_d) );
+    bool_t reconnected = BleApp_CheckIfReconnected();
+
     if ((event == mAppEvt_PairingComplete_c && !reconnected) ||
         (event == mAppEvt_GattProcComplete_c && reconnected))
     {
@@ -2675,6 +2682,102 @@ static void BleApp_StateMachineHandlerRcDescriptorSetup(deviceId_t peerDeviceId,
     }
 }
 
+static void BleApp_StateMachineHandlerRunning(deviceId_t peerDeviceId, uint8_t event)
+{
+    if (event == mAppEvt_GattProcComplete_c)
+    {
+        if(mFirstRunningBeforeReconnect < mAncsMaxWriteCCCDProcedures_c)
+        {
+            mFirstRunningBeforeReconnect++;
+            /* After the unsubscribe there is the need to subscribe to the NS characteristic again */
+            uint16_t value = gCccdNotification_c;
+            if (NULL == mpDescProcBuffer)
+            {
+                panic(0, 0, 0, 0);
+            }
+            else
+            {
+                /* Enable notifications for the ANCS Notification Source characteristic. */
+                mpDescProcBuffer->handle = mPeerInformation.customInfo.ancsClientConfig.hNotificationSourceCccd;
+                mpDescProcBuffer->uuid.uuid16 = gBleSig_CCCD_d;
+               (void)GattClient_WriteCharacteristicDescriptor(peerDeviceId, mpDescProcBuffer, (uint16_t)sizeof(uint16_t), (uint8_t *)&value);
+            }
+
+            (void)TM_Stop((timer_handle_t)mAllowNotificationsTimerId);
+        }
+        else
+        {
+            /* Write data in NVM */
+            (void)Gap_SaveCustomPeerInformation(mPeerInformation.deviceId,
+                                               (void *) &mPeerInformation.customInfo, 0,
+                                                (uint16_t)sizeof(appCustomInfo_t));
+        }
+    }
+    else if (event == mAppEvt_AncsNsNotificationReceived_c)
+    {
+        if(mReceivedNotificationsAndNeedToPrint == 0U)
+        {
+            AncsClient_DisplayNotifications();
+        }
+    }
+    else if (event == mAppEvt_AncsDsNotificationReceived_c)
+    {
+        if(mReceivedNotificationsAndNeedToPrint == 0U)
+        {
+            AncsClient_DisplayNotifications();
+        }
+    }
+    else if (event == mAppEvt_AmsRcNotificationReceived_c)
+    {
+        if(mReceivedNotificationsAndNeedToPrint == 0U)
+        {
+            AncsClient_DisplayNotifications();
+        }
+    }
+    else if (event == mAppEvt_AmsEuNotificationReceived_c)
+    {
+        if(mReceivedNotificationsAndNeedToPrint == 0U)
+        {
+            AncsClient_DisplayNotifications();
+        }
+    }
+    else
+    {
+        ; /* Other events are not handled in this state */
+    }
+}
+
+static void BleApp_StateMachineHandlerEuConfigTrackSetup(deviceId_t peerDeviceId, uint8_t event)
+{
+    if (event == mAppEvt_GattProcComplete_c)
+    {
+        if (mPeerInformation.customInfo.amsClientConfig.hEntityUpdateCccd > 0U)
+        {
+            /* Moving to Running State*/
+            mPeerInformation.appState = mAppRunning_c;
+
+            shell_write("\r\nAMS Entity Update Track Subscription written successfully.\r\n");
+            mCanSendToServer = TRUE;
+
+            AncsClient_SendGetNotificationOrApplicationAttribute();
+            if(mFirstRunningBeforeReconnect == 0U)
+            {
+                mFirstRunningBeforeReconnect = 1U;
+                (void)TM_InstallCallback((timer_handle_t)mAllowNotificationsTimerId, AllowNotificationsTimerCallback, NULL);
+                (void)TM_Start((timer_handle_t)mAllowNotificationsTimerId, (uint16_t)kTimerModeLowPowerTimer | (uint16_t)kTimerModeSetSecondTimer, mPhoneAllowNotificationsInterval_c);
+            }
+        }
+    }
+    else if (event == mAppEvt_GattProcError_c)
+    {
+        shell_write("\r\nWarning: Could not write AMS Track Subscription CCCD.\r\n");
+    }
+    else
+    {
+        ; /* Other events are not handled in this state */
+    }
+}
+
 static void BleApp_StateMachineHandlerEuDescriptorSetup(deviceId_t peerDeviceId, uint8_t event)
 {
     if (event == mAppEvt_GattProcComplete_c)
@@ -2801,99 +2904,13 @@ void BleApp_StateMachineHandler(deviceId_t peerDeviceId, uint8_t event)
 
         case mAppEuConfigTrackSetup_c:
         {
-            if (event == mAppEvt_GattProcComplete_c)
-            {
-                if (mPeerInformation.customInfo.amsClientConfig.hEntityUpdateCccd > 0U)
-                {
-                    /* Moving to Running State*/
-                    mPeerInformation.appState = mAppRunning_c;
-
-                    shell_write("\r\nAMS Entity Update Track Subscription written successfully.\r\n");
-                    mCanSendToServer = TRUE;
-
-                    AncsClient_SendGetNotificationOrApplicationAttribute();
-                    if(mFirstRunningBeforeReconnect == 0U)
-                    {
-                        mFirstRunningBeforeReconnect = 1U;
-                        (void)TM_InstallCallback((timer_handle_t)mAllowNotificationsTimerId, AllowNotificationsTimerCallback, NULL);
-                        (void)TM_Start((timer_handle_t)mAllowNotificationsTimerId, (uint16_t)kTimerModeLowPowerTimer | (uint16_t)kTimerModeSetSecondTimer, mPhoneAllowNotificationsInterval_c);
-                    }
-                }
-            }
-            else if (event == mAppEvt_GattProcError_c)
-            {
-                shell_write("\r\nWarning: Could not write AMS Track Subscription CCCD.\r\n");
-            }
-            else
-            {
-                ; /* Other events are not handled in this state */
-            }
-            break;
+            BleApp_StateMachineHandlerEuConfigTrackSetup(peerDeviceId, event);
         }
+        break;
 
         case mAppRunning_c:
         {
-            if (event == mAppEvt_GattProcComplete_c)
-            {
-                if(mFirstRunningBeforeReconnect < mAncsMaxWriteCCCDProcedures_c)
-                {
-                    mFirstRunningBeforeReconnect++;
-                    /* After the unsubscribe there is the need to subscribe to the NS characteristic again */
-                    uint16_t value = gCccdNotification_c;
-                    if (NULL == mpDescProcBuffer)
-                    {
-                        panic(0, 0, 0, 0);
-                    }
-                    else
-                    {
-                        /* Enable notifications for the ANCS Notification Source characteristic. */
-                        mpDescProcBuffer->handle = mPeerInformation.customInfo.ancsClientConfig.hNotificationSourceCccd;
-                        mpDescProcBuffer->uuid.uuid16 = gBleSig_CCCD_d;
-                       (void)GattClient_WriteCharacteristicDescriptor(peerDeviceId, mpDescProcBuffer, (uint16_t)sizeof(uint16_t), (uint8_t *)&value);
-                    }
-
-                    (void)TM_Stop((timer_handle_t)mAllowNotificationsTimerId);
-                }
-                else
-                {
-                    /* Write data in NVM */
-                    (void)Gap_SaveCustomPeerInformation(mPeerInformation.deviceId,
-                                                       (void *) &mPeerInformation.customInfo, 0,
-                                                        (uint16_t)sizeof(appCustomInfo_t));
-                }
-            }
-            else if (event == mAppEvt_AncsNsNotificationReceived_c)
-            {
-                if(mReceivedNotificationsAndNeedToPrint == 0U)
-                {
-                    AncsClient_DisplayNotifications();
-                }
-            }
-            else if (event == mAppEvt_AncsDsNotificationReceived_c)
-            {
-                if(mReceivedNotificationsAndNeedToPrint == 0U)
-                {
-                    AncsClient_DisplayNotifications();
-                }
-            }
-            else if (event == mAppEvt_AmsRcNotificationReceived_c)
-            {
-                if(mReceivedNotificationsAndNeedToPrint == 0U)
-                {
-                    AncsClient_DisplayNotifications();
-                }
-            }
-            else if (event == mAppEvt_AmsEuNotificationReceived_c)
-            {
-                if(mReceivedNotificationsAndNeedToPrint == 0U)
-                {
-                    AncsClient_DisplayNotifications();
-                }
-            }
-            else
-            {
-                ; /* Other events are not handled in this state */
-            }
+            BleApp_StateMachineHandlerRunning(peerDeviceId, event);
         }
         break;
 

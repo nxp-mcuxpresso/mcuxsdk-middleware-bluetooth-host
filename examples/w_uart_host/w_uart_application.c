@@ -433,16 +433,173 @@ void Shell_Init
 }
 
 /*! *********************************************************************************
-* \brief        Handle BLE events
+* \brief        Handle BLE events. Helper function.
 *
 * \param[in]    pMsg              Pointer to the event revceived.
 ********************************************************************************** */
-void BleApp_EventCallback
+static void BleApp_EventCallback3
 (
     bleEvtContainer_t *pMsg
 )
 {
     deviceId_t deviceId = gInvalidDeviceId_c;
+
+    switch (pMsg->id)
+    {
+        case GATTServerAttributeWrittenWithoutResponseIndication_FSCI_ID:
+        {
+            /* Check for the wireless uart stream value handle */
+            if (pMsg->Data.GATTServerAttributeWrittenWithoutResponseIndication.AttributeWrittenEvent.Handle == mWUartServiceHandle_c + 2U)
+            {
+                BleApp_ReceivedUartStream(pMsg->Data.GATTServerAttributeWrittenWithoutResponseIndication.DeviceId,
+                                          pMsg->Data.GATTServerAttributeWrittenWithoutResponseIndication.AttributeWrittenEvent.Value,
+                                          pMsg->Data.GATTServerAttributeWrittenWithoutResponseIndication.AttributeWrittenEvent.ValueLength);
+            }
+        }
+        break;
+
+        case GATTClientProcedureDiscoverAllPrimaryServicesIndication_FSCI_ID:
+        case GATTClientProcedureDiscoverPrimaryServicesByUuidIndication_FSCI_ID:
+        case GATTClientProcedureFindIncludedServicesIndication_FSCI_ID:
+        case GATTClientProcedureDiscoverAllCharacteristicsIndication_FSCI_ID:
+        case GATTClientProcedureDiscoverCharacteristicByUuidIndication_FSCI_ID:
+        case GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication_FSCI_ID:
+        case GATTClientProcedureReadCharacteristicValueIndication_FSCI_ID:
+        {
+            /* deviceId is at the same position in the union */
+            deviceId = pMsg->Data.GATTClientProcedureDiscoverAllPrimaryServicesIndication.DeviceId;
+            BleApp_StateMachineHandler(deviceId, mAppEvt_GattProcComplete_c);
+        }
+        break;
+
+        case GATTClientProcedureWriteCharacteristicValueIndication_FSCI_ID:
+        {
+            /* deviceId is at the same position in the union */
+            deviceId = pMsg->Data.GATTClientProcedureWriteCharacteristicValueIndication.DeviceId;
+
+            if ((pMsg->Data.GATTClientProcedureWriteCharacteristicValueIndication.ProcedureResult == 
+                 GATTClientProcedureWriteCharacteristicValueIndication_ProcedureResult_gProcedureError_c) &&
+                (pMsg->Data.GATTClientProcedureWriteCharacteristicValueIndication.Error == 
+                 GATTClientProcedureWriteCharacteristicValueIndication_Error_gGattConnectionSecurityRequirementsNotMet_c)
+                )
+            {
+#if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
+                if (maPeerInformation[deviceId].gapRole == gGapCentral_c)
+                {
+                    /* Start Pairing Procedure in central role
+                     * local bond could be lost */
+                    GAPPairRequest_t req;
+                    req.DeviceId = deviceId;
+                    req.PairingParameters.WithBonding = gPairingParameters.withBonding;
+                    req.PairingParameters.SecurityModeAndLevel = GAPPairRequest_PairingParameters_SecurityModeAndLevel_gMode1Level3_c;
+                    req.PairingParameters.MaxEncryptionKeySize = mcEncryptionKeySize_c;
+                    req.PairingParameters.LocalIoCapabilities = GAPPairRequest_PairingParameters_LocalIoCapabilities_gIoKeyboardDisplay_c;
+                    req.PairingParameters.OobAvailable = gPairingParameters.oobAvailable;
+                    req.PairingParameters.CentralKeys = gPairingParameters.centralKeys;
+                    req.PairingParameters.PeripheralKeys = gPairingParameters.peripheralKeys;
+                    req.PairingParameters.LeSecureConnectionSupported = gPairingParameters.leSecureConnectionSupported;
+                    req.PairingParameters.UseKeypressNotifications = gPairingParameters.useKeypressNotifications;
+
+                    (void)GAPPairRequest(&req, gFsciInterface_c);
+                }
+                else if (maPeerInformation[deviceId].gapRole == gGapPeripheral_c)
+                {
+                    /* Send Security Request in peripheral role
+                     * peer bond could be lost */
+                    GAPSendPeripheralSecurityRequestRequest_t req;
+                    req.DeviceId = deviceId;
+                    req.PairingParameters.WithBonding = gPairingParameters.withBonding;
+                    req.PairingParameters.SecurityModeAndLevel = GAPSendPeripheralSecurityRequestRequest_PairingParameters_SecurityModeAndLevel_gMode1Level3_c;
+                    req.PairingParameters.MaxEncryptionKeySize = gPairingParameters.maxEncryptionKeySize;
+                    req.PairingParameters.LocalIoCapabilities =
+                      GAPSendPeripheralSecurityRequestRequest_PairingParameters_LocalIoCapabilities_gIoDisplayOnly_c;
+                    req.PairingParameters.OobAvailable = gPairingParameters.oobAvailable;
+                    req.PairingParameters.CentralKeys = gPairingParameters.centralKeys;
+                    req.PairingParameters.PeripheralKeys = gPairingParameters.peripheralKeys;
+                    req.PairingParameters.LeSecureConnectionSupported = FALSE;
+                    req.PairingParameters.UseKeypressNotifications = FALSE;
+
+                    (void)GAPSendPeripheralSecurityRequestRequest(&req, gFsciInterface_c);
+                }
+                else
+                {
+                    /* No action required */
+                }
+#endif /* gAppUsePairing_d */
+            }
+            else
+            {
+                BleApp_StateMachineHandler(deviceId, mAppEvt_GattProcError_c);
+            }
+        }
+        break;
+
+        case GATTServerErrorIndication_FSCI_ID:
+        {
+            BleApp_StateMachineHandler(pMsg->Data.GATTServerErrorIndication.DeviceId, mAppEvt_GattProcError_c);
+        }
+        break;
+
+        case GAPGenericEventInternalErrorIndication_FSCI_ID:
+        {
+            if((pMsg->Data.GAPGenericEventInternalErrorIndication.ErrorCode == GAPGenericEventInternalErrorIndication_ErrorCode_gBleOverflow_c) && 
+               (pMsg->Data.GAPGenericEventInternalErrorIndication.ErrorSource == GAPGenericEventInternalErrorIndication_ErrorSource_gAddNewConnection_c))
+            {
+                Serial_Print("Connection failed ", gAllowToBlock_d);
+#if gWuart_PeripheralRole_c == 1
+                if(mAdvState.advOn)
+                {
+                    mAdvState.advOn = FALSE;
+                    Serial_Print(" as peripheral.\n\r", gAllowToBlock_d);
+                }
+                else
+#endif /* gWuart_PeripheralRole_c == 1 */
+                {
+#if gWuart_CentralRole_c == 1
+                    Serial_Print(" as central.\n\r", gAllowToBlock_d);
+#endif /* gWuart_CentralRole_c == 1 */
+
+                }
+            }
+        }
+        break;
+
+#if defined(gUseControllerNotifications_c) && (gUseControllerNotifications_c)
+        case GAPControllerNotificationIndication_FSCI_ID:
+        {
+            BleApp_HandleControllerNotification(pMsg);
+        }
+        break;
+#endif
+        case GAPAdvertisingEventCommandFailedIndication_FSCI_ID:
+        {
+            panic(0, 0, 0, 0);
+        }
+        break;
+
+        case GAPScanningEventCommandFailedIndication_FSCI_ID:
+        {
+            panic(0, 0, 0, 0);
+        }
+        break;
+
+        default:
+        {
+            ;
+        }
+        break;
+    }
+}
+/*! *********************************************************************************
+* \brief        Handle BLE events. Helper function.
+*
+* \param[in]    pMsg              Pointer to the event revceived.
+********************************************************************************** */
+static void BleApp_EventCallback2
+(
+    bleEvtContainer_t *pMsg
+)
+{
     uint16_t tempMtu = 0;
     union
     {
@@ -454,182 +611,6 @@ void BleApp_EventCallback
 
     switch (pMsg->id)
     {
-        case GAPGenericEventInitializationCompleteIndication_FSCI_ID:
-        {
-            BleApp_GenericEvtInitCompleteHandler();
-        }
-        break;
-
-        case GAPAdvertisingEventStateChangedIndication_FSCI_ID:
-        {
-            BleApp_AdvertisingEvtStateChangedHandler();
-        }
-        break;
-
-        case GAPScanningEventStateChangedIndication_FSCI_ID:
-        {
-            mScanningOn = !mScanningOn;
-
-            /* Node starts scanning */
-            if (mScanningOn)
-            {
-                mAppUartNewLine = TRUE;
-                /* Start scanning timer */
-                (void)TM_InstallCallback((timer_handle_t)mAppTimerId, ScanningTimerCallback, NULL);
-                (void)TM_Start((timer_handle_t)mAppTimerId,
-                            (uint8_t)kTimerModeLowPowerTimer | (uint8_t)kTimerModeSetSecondTimer, gScanningTime_c);
-#if (defined(gAppLedCnt_c) && (gAppLedCnt_c == 1))
-                LedSetColor(0, kLED_Blue);
-#endif  /*gAppLedCnt_c == 1*/
-                Led1Flashing();
-                Serial_Print("\n\rScanning...\n\r", gAllowToBlock_d);
-            }
-            else
-            {
-                if (mInitiatingConnection == TRUE)
-                {
-                    GAPConnectRequest_t req;
-                    req.ScanInterval = gConnReqParams.scanInterval;
-                    req.ScanWindow = gConnReqParams.scanWindow;
-                    req.FilterPolicy = (GAPConnectRequest_FilterPolicy_t)gConnReqParams.filterPolicy;
-                    req.OwnAddressType = (GAPConnectRequest_OwnAddressType_t)gConnReqParams.ownAddressType;
-                    req.ConnIntervalMin = gConnReqParams.connIntervalMin;
-                    req.ConnIntervalMax = gConnReqParams.connIntervalMax;
-                    req.ConnLatency = gConnReqParams.connLatency;
-                    req.SupervisionTimeout = gConnReqParams.supervisionTimeout;
-                    req.ConnEventLengthMin = gConnReqParams.connEventLengthMin;
-                    req.ConnEventLengthMax = gConnReqParams.connEventLengthMax;
-                    req.Initiating_PHYs = gConnReqParams.initiatingPHYs;
-                    FLib_MemCpy(req.PeerAddress, gConnReqParams.peerAddress, gcBleDeviceAddressSize_c);
-                    req.PeerAddressType = (GAPConnectRequest_PeerAddressType_t)gConnReqParams.peerAddressType;
-                    req.usePeerIdentityAddress = gConnReqParams.usePeerIdentityAddress;
-                    GAPConnectRequest(&req, gFsciInterface_c);
-                }
-
-                /* Node is not scanning */
-                (void)TM_Stop((timer_handle_t)mAppTimerId);
-                LedStartFlashingAllLeds();
-                Serial_Print("\n\rStop Scanning...\n\r", gAllowToBlock_d);
-            }
-        }
-        break;
-
-        case GAPScanningEventDeviceScannedIndication_FSCI_ID:
-        {
-            /* Checks Scan data for a device to connect */
-            if (checkScanEvent((gapScannedDevice_t*)(&pMsg->Data.GAPScanningEventDeviceScannedIndication)) &&
-                (mcActiveConnNo < gAppMaxConnections_c))
-            {
-                /* Found device - stop scanning and initiate connection */
-                mInitiatingConnection = TRUE;
-                /* save peer address information for connection request */
-                FLib_MemCpy(gConnReqParams.peerAddress,
-                            &pMsg->Data.GAPScanningEventDeviceScannedIndication.Address,
-                            gcBleDeviceAddressSize_c);
-                gConnReqParams.peerAddressType = (GAPConnectRequest_PeerAddressType_t)pMsg->Data.GAPScanningEventDeviceScannedIndication.AddressType;
-#if gAppUsePrivacy_d
-                gConnReqParams.usePeerIdentityAddress = pMsg->Data.GAPScanningEventDeviceScannedIndication.advertisingAddressResolved;
-#endif
-                GAPStopScanningRequest(gFsciInterface_c);
-            }
-        }
-        break;
-
-        case GAPConnectionEventConnectedIndication_FSCI_ID:
-        {
-            deviceId = pMsg->Data.GAPConnectionEventConnectedIndication.DeviceId;
-
-            mcActiveConnNo++;
-
-            mInitiatingConnection = FALSE;
-
-            maPeerInformation[deviceId].deviceId = pMsg->Data.GAPConnectionEventConnectedIndication.DeviceId;
-            maPeerInformation[deviceId].gapRole = (gapRole_t)pMsg->Data.GAPConnectionEventConnectedIndication.connectionRole;
-            maPeerInformation[deviceId].addressType = (bleAddressType_t)pMsg->Data.GAPConnectionEventConnectedIndication.PeerAddressType;
-            FLib_MemCpy(maPeerInformation[deviceId].address,
-                        pMsg->Data.GAPConnectionEventConnectedIndication.PeerAddress,
-                        gcBleDeviceAddressSize_c);
-
-            /* Advertising stops when connected */
-#if gWuart_PeripheralRole_c == 1
-            if(pMsg->Data.GAPConnectionEventConnectedIndication.connectionRole ==
-               GAPConnectionEventConnectedIndication_connectionRole_gBleLlConnectionPeripheral_c)
-            {
-                mAdvState.advOn = FALSE;
-            }
-#endif
-
-            /* Subscribe client*/
-            (void)Bas_Subscribe(&mBasServiceConfig, deviceId);
-
-            /* UI */
-            LedStopFlashingAllLeds();
-#if (defined(gAppLedCnt_c) && (gAppLedCnt_c == 1))
-            LedSetColor(0, kLED_White);
-#endif /* gAppLedCnt_c == 1 */
-            Led1On();
-
-            if (TM_IsTimerActive((timer_handle_t)mBatteryMeasurementTimerId) == 0U)
-            {
-                /* Start battery measurements */
-                (void)TM_InstallCallback((timer_handle_t)mBatteryMeasurementTimerId, BatteryMeasurementTimerCallback, NULL);
-                (void)TM_Start((timer_handle_t)mBatteryMeasurementTimerId,
-                            (uint8_t)kTimerModeLowPowerTimer | (uint8_t)kTimerModeSetSecondTimer, mBatteryLevelReportInterval_c);
-            }
-
-            Serial_Print("Connected to device ", gAllowToBlock_d);
-            Serial_PrintDec(deviceId);
-
-            if (pMsg->Data.GAPConnectionEventConnectedIndication.connectionRole ==
-                GAPConnectionEventConnectedIndication_connectionRole_gBleLlConnectionCentral_c)
-            {
-                Serial_Print(" as central.\n\r", gAllowToBlock_d);
-            }
-            else
-            {
-                Serial_Print(" as peripheral.\n\r", gAllowToBlock_d);
-            }
-
-            mAppUartNewLine = TRUE;
-
-            BleServDisc_RegisterCallback(BleApp_ServiceDiscoveryCallback);
-
-#if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U) && \
-     defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
-            /* Check if the peer was previously bonded */
-            GAPCheckIfBondedRequest_t req;
-            req.DeviceId = pMsg->Data.GAPConnectionEventConnectedIndication.DeviceId;
-            mLastCheckIfBondedDeviceId = req.DeviceId;
-            (void)GAPCheckIfBondedRequest(&req, gFsciInterface_c);
-#else /* gAppUsePairing_d && gAppUseBonding_d*/
-            /* run the state machine */
-            BleApp_StateMachineHandler(deviceId, mAppEvt_PeerConnected_c);
-#endif /* gAppUsePairing_d && gAppUseBonding_d*/
-        }
-        break;
-
-        case GAPConnectionEventLeDataLengthChangedIndication_FSCI_ID:
-        {
-#if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
-#if (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
-            deviceId_t peerDeviceId = pMsg->Data.GAPConnectionEventLeDataLengthChangedIndication.DeviceId;
-
-            if ((maPeerInformation[peerDeviceId].gapRole == gGapPeripheral_c) &&
-                (mDataLengthChangeLocallyInitiated == TRUE))
-            {
-                /* Check if the peer was previously bonded */
-                mDataLengthChangeLocallyInitiated = FALSE;
-                GAPCheckIfBondedRequest_t req;
-                req.DeviceId = pMsg->Data.GAPConnectionEventLeDataLengthChangedIndication.DeviceId;
-                (void)GAPCheckIfBondedRequest(&req,  gFsciInterface_c);
-            }
-#else
-            BleApp_StateMachineHandler(pMsg->Data.GAPConnectionEventLeDataLengthChangedIndication.DeviceId, mAppEvt_PeerConnected_c);
-#endif /* gAppUseBonding_d* */
-#endif /* gAppUsePairing_d */
-        }
-        break;
-
         case GAPConnectionEventDisconnectedIndication_FSCI_ID:
         {
             deviceId_t peerDeviceId = pMsg->Data.GAPConnectionEventDisconnectedIndication.DeviceId;
@@ -837,146 +818,206 @@ void BleApp_EventCallback
         break;
 #endif
 #endif
-        case GATTServerAttributeWrittenWithoutResponseIndication_FSCI_ID:
+        default:
         {
-            /* Check for the wireless uart stream value handle */
-            if (pMsg->Data.GATTServerAttributeWrittenWithoutResponseIndication.AttributeWrittenEvent.Handle == mWUartServiceHandle_c + 2U)
-            {
-                BleApp_ReceivedUartStream(pMsg->Data.GATTServerAttributeWrittenWithoutResponseIndication.DeviceId,
-                                          pMsg->Data.GATTServerAttributeWrittenWithoutResponseIndication.AttributeWrittenEvent.Value,
-                                          pMsg->Data.GATTServerAttributeWrittenWithoutResponseIndication.AttributeWrittenEvent.ValueLength);
-            }
+            BleApp_EventCallback3(pMsg);
+        }
+        break;
+    }
+}
+/*! *********************************************************************************
+* \brief        Handle BLE events
+*
+* \param[in]    pMsg              Pointer to the event revceived.
+********************************************************************************** */
+void BleApp_EventCallback
+(
+    bleEvtContainer_t *pMsg
+)
+{
+    deviceId_t deviceId = gInvalidDeviceId_c;
+
+    switch (pMsg->id)
+    {
+        case GAPGenericEventInitializationCompleteIndication_FSCI_ID:
+        {
+            BleApp_GenericEvtInitCompleteHandler();
         }
         break;
 
-        case GATTClientProcedureDiscoverAllPrimaryServicesIndication_FSCI_ID:
-        case GATTClientProcedureDiscoverPrimaryServicesByUuidIndication_FSCI_ID:
-        case GATTClientProcedureFindIncludedServicesIndication_FSCI_ID:
-        case GATTClientProcedureDiscoverAllCharacteristicsIndication_FSCI_ID:
-        case GATTClientProcedureDiscoverCharacteristicByUuidIndication_FSCI_ID:
-        case GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication_FSCI_ID:
-        case GATTClientProcedureReadCharacteristicValueIndication_FSCI_ID:
+        case GAPAdvertisingEventStateChangedIndication_FSCI_ID:
         {
-            /* deviceId is at the same position in the union */
-            deviceId = pMsg->Data.GATTClientProcedureDiscoverAllPrimaryServicesIndication.DeviceId;
-            BleApp_StateMachineHandler(deviceId, mAppEvt_GattProcComplete_c);
+            BleApp_AdvertisingEvtStateChangedHandler();
         }
         break;
 
-        case GATTClientProcedureWriteCharacteristicValueIndication_FSCI_ID:
+        case GAPScanningEventStateChangedIndication_FSCI_ID:
         {
-            /* deviceId is at the same position in the union */
-            deviceId = pMsg->Data.GATTClientProcedureWriteCharacteristicValueIndication.DeviceId;
+            mScanningOn = !mScanningOn;
 
-            if ((pMsg->Data.GATTClientProcedureWriteCharacteristicValueIndication.ProcedureResult == 
-                 GATTClientProcedureWriteCharacteristicValueIndication_ProcedureResult_gProcedureError_c) &&
-                (pMsg->Data.GATTClientProcedureWriteCharacteristicValueIndication.Error == 
-                 GATTClientProcedureWriteCharacteristicValueIndication_Error_gGattConnectionSecurityRequirementsNotMet_c)
-                )
+            /* Node starts scanning */
+            if (mScanningOn)
             {
-#if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
-                if (maPeerInformation[deviceId].gapRole == gGapCentral_c)
-                {
-                    /* Start Pairing Procedure in central role
-                     * local bond could be lost */
-                    GAPPairRequest_t req;
-                    req.DeviceId = deviceId;
-                    req.PairingParameters.WithBonding = gPairingParameters.withBonding;
-                    req.PairingParameters.SecurityModeAndLevel = GAPPairRequest_PairingParameters_SecurityModeAndLevel_gMode1Level3_c;
-                    req.PairingParameters.MaxEncryptionKeySize = mcEncryptionKeySize_c;
-                    req.PairingParameters.LocalIoCapabilities = GAPPairRequest_PairingParameters_LocalIoCapabilities_gIoKeyboardDisplay_c;
-                    req.PairingParameters.OobAvailable = gPairingParameters.oobAvailable;
-                    req.PairingParameters.CentralKeys = gPairingParameters.centralKeys;
-                    req.PairingParameters.PeripheralKeys = gPairingParameters.peripheralKeys;
-                    req.PairingParameters.LeSecureConnectionSupported = gPairingParameters.leSecureConnectionSupported;
-                    req.PairingParameters.UseKeypressNotifications = gPairingParameters.useKeypressNotifications;
-
-                    (void)GAPPairRequest(&req, gFsciInterface_c);
-                }
-                else if (maPeerInformation[deviceId].gapRole == gGapPeripheral_c)
-                {
-                    /* Send Security Request in peripheral role
-                     * peer bond could be lost */
-                    GAPSendPeripheralSecurityRequestRequest_t req;
-                    req.DeviceId = deviceId;
-                    req.PairingParameters.WithBonding = gPairingParameters.withBonding;
-                    req.PairingParameters.SecurityModeAndLevel = GAPSendPeripheralSecurityRequestRequest_PairingParameters_SecurityModeAndLevel_gMode1Level3_c;
-                    req.PairingParameters.MaxEncryptionKeySize = gPairingParameters.maxEncryptionKeySize;
-                    req.PairingParameters.LocalIoCapabilities =
-                      GAPSendPeripheralSecurityRequestRequest_PairingParameters_LocalIoCapabilities_gIoDisplayOnly_c;
-                    req.PairingParameters.OobAvailable = gPairingParameters.oobAvailable;
-                    req.PairingParameters.CentralKeys = gPairingParameters.centralKeys;
-                    req.PairingParameters.PeripheralKeys = gPairingParameters.peripheralKeys;
-                    req.PairingParameters.LeSecureConnectionSupported = FALSE;
-                    req.PairingParameters.UseKeypressNotifications = FALSE;
-
-                    (void)GAPSendPeripheralSecurityRequestRequest(&req, gFsciInterface_c);
-                }
-                else
-                {
-                    /* No action required */
-                }
-#endif /* gAppUsePairing_d */
+                mAppUartNewLine = TRUE;
+                /* Start scanning timer */
+                (void)TM_InstallCallback((timer_handle_t)mAppTimerId, ScanningTimerCallback, NULL);
+                (void)TM_Start((timer_handle_t)mAppTimerId,
+                            (uint8_t)kTimerModeLowPowerTimer | (uint8_t)kTimerModeSetSecondTimer, gScanningTime_c);
+#if (defined(gAppLedCnt_c) && (gAppLedCnt_c == 1))
+                LedSetColor(0, kLED_Blue);
+#endif  /*gAppLedCnt_c == 1*/
+                Led1Flashing();
+                Serial_Print("\n\rScanning...\n\r", gAllowToBlock_d);
             }
             else
             {
-                BleApp_StateMachineHandler(deviceId, mAppEvt_GattProcError_c);
+                if (mInitiatingConnection == TRUE)
+                {
+                    GAPConnectRequest_t req;
+                    req.ScanInterval = gConnReqParams.scanInterval;
+                    req.ScanWindow = gConnReqParams.scanWindow;
+                    req.FilterPolicy = (GAPConnectRequest_FilterPolicy_t)gConnReqParams.filterPolicy;
+                    req.OwnAddressType = (GAPConnectRequest_OwnAddressType_t)gConnReqParams.ownAddressType;
+                    req.ConnIntervalMin = gConnReqParams.connIntervalMin;
+                    req.ConnIntervalMax = gConnReqParams.connIntervalMax;
+                    req.ConnLatency = gConnReqParams.connLatency;
+                    req.SupervisionTimeout = gConnReqParams.supervisionTimeout;
+                    req.ConnEventLengthMin = gConnReqParams.connEventLengthMin;
+                    req.ConnEventLengthMax = gConnReqParams.connEventLengthMax;
+                    req.Initiating_PHYs = gConnReqParams.initiatingPHYs;
+                    FLib_MemCpy(req.PeerAddress, gConnReqParams.peerAddress, gcBleDeviceAddressSize_c);
+                    req.PeerAddressType = (GAPConnectRequest_PeerAddressType_t)gConnReqParams.peerAddressType;
+                    req.usePeerIdentityAddress = gConnReqParams.usePeerIdentityAddress;
+                    GAPConnectRequest(&req, gFsciInterface_c);
+                }
+
+                /* Node is not scanning */
+                (void)TM_Stop((timer_handle_t)mAppTimerId);
+                LedStartFlashingAllLeds();
+                Serial_Print("\n\rStop Scanning...\n\r", gAllowToBlock_d);
             }
         }
         break;
 
-        case GATTServerErrorIndication_FSCI_ID:
+        case GAPScanningEventDeviceScannedIndication_FSCI_ID:
         {
-            BleApp_StateMachineHandler(pMsg->Data.GATTServerErrorIndication.DeviceId, mAppEvt_GattProcError_c);
-        }
-        break;
-
-        case GAPGenericEventInternalErrorIndication_FSCI_ID:
-        {
-            if((pMsg->Data.GAPGenericEventInternalErrorIndication.ErrorCode == GAPGenericEventInternalErrorIndication_ErrorCode_gBleOverflow_c) && 
-               (pMsg->Data.GAPGenericEventInternalErrorIndication.ErrorSource == GAPGenericEventInternalErrorIndication_ErrorSource_gAddNewConnection_c))
+            /* Checks Scan data for a device to connect */
+            if (checkScanEvent((gapScannedDevice_t*)(&pMsg->Data.GAPScanningEventDeviceScannedIndication)) &&
+                (mcActiveConnNo < gAppMaxConnections_c))
             {
-                Serial_Print("Connection failed ", gAllowToBlock_d);
-#if gWuart_PeripheralRole_c == 1
-                if(mAdvState.advOn)
-                {
-                    mAdvState.advOn = FALSE;
-                    Serial_Print(" as peripheral.\n\r", gAllowToBlock_d);
-                }
-                else
-#endif /* gWuart_PeripheralRole_c == 1 */
-                {
-#if gWuart_CentralRole_c == 1
-                    Serial_Print(" as central.\n\r", gAllowToBlock_d);
-#endif /* gWuart_CentralRole_c == 1 */
-
-                }
+                /* Found device - stop scanning and initiate connection */
+                mInitiatingConnection = TRUE;
+                /* save peer address information for connection request */
+                FLib_MemCpy(gConnReqParams.peerAddress,
+                            &pMsg->Data.GAPScanningEventDeviceScannedIndication.Address,
+                            gcBleDeviceAddressSize_c);
+                gConnReqParams.peerAddressType = (GAPConnectRequest_PeerAddressType_t)pMsg->Data.GAPScanningEventDeviceScannedIndication.AddressType;
+#if gAppUsePrivacy_d
+                gConnReqParams.usePeerIdentityAddress = pMsg->Data.GAPScanningEventDeviceScannedIndication.advertisingAddressResolved;
+#endif
+                GAPStopScanningRequest(gFsciInterface_c);
             }
         }
         break;
 
-#if defined(gUseControllerNotifications_c) && (gUseControllerNotifications_c)
-        case GAPControllerNotificationIndication_FSCI_ID:
+        case GAPConnectionEventConnectedIndication_FSCI_ID:
         {
-            BleApp_HandleControllerNotification(pMsg);
-        }
-        break;
+            deviceId = pMsg->Data.GAPConnectionEventConnectedIndication.DeviceId;
+
+            mcActiveConnNo++;
+
+            mInitiatingConnection = FALSE;
+
+            maPeerInformation[deviceId].deviceId = pMsg->Data.GAPConnectionEventConnectedIndication.DeviceId;
+            maPeerInformation[deviceId].gapRole = (gapRole_t)pMsg->Data.GAPConnectionEventConnectedIndication.connectionRole;
+            maPeerInformation[deviceId].addressType = (bleAddressType_t)pMsg->Data.GAPConnectionEventConnectedIndication.PeerAddressType;
+            FLib_MemCpy(maPeerInformation[deviceId].address,
+                        pMsg->Data.GAPConnectionEventConnectedIndication.PeerAddress,
+                        gcBleDeviceAddressSize_c);
+
+            /* Advertising stops when connected */
+#if gWuart_PeripheralRole_c == 1
+            if(pMsg->Data.GAPConnectionEventConnectedIndication.connectionRole ==
+               GAPConnectionEventConnectedIndication_connectionRole_gBleLlConnectionPeripheral_c)
+            {
+                mAdvState.advOn = FALSE;
+            }
 #endif
-        case GAPAdvertisingEventCommandFailedIndication_FSCI_ID:
-        {
-            panic(0, 0, 0, 0);
+
+            /* Subscribe client*/
+            (void)Bas_Subscribe(&mBasServiceConfig, deviceId);
+
+            /* UI */
+            LedStopFlashingAllLeds();
+#if (defined(gAppLedCnt_c) && (gAppLedCnt_c == 1))
+            LedSetColor(0, kLED_White);
+#endif /* gAppLedCnt_c == 1 */
+            Led1On();
+
+            if (TM_IsTimerActive((timer_handle_t)mBatteryMeasurementTimerId) == 0U)
+            {
+                /* Start battery measurements */
+                (void)TM_InstallCallback((timer_handle_t)mBatteryMeasurementTimerId, BatteryMeasurementTimerCallback, NULL);
+                (void)TM_Start((timer_handle_t)mBatteryMeasurementTimerId,
+                            (uint8_t)kTimerModeLowPowerTimer | (uint8_t)kTimerModeSetSecondTimer, mBatteryLevelReportInterval_c);
+            }
+
+            Serial_Print("Connected to device ", gAllowToBlock_d);
+            Serial_PrintDec(deviceId);
+
+            if (pMsg->Data.GAPConnectionEventConnectedIndication.connectionRole ==
+                GAPConnectionEventConnectedIndication_connectionRole_gBleLlConnectionCentral_c)
+            {
+                Serial_Print(" as central.\n\r", gAllowToBlock_d);
+            }
+            else
+            {
+                Serial_Print(" as peripheral.\n\r", gAllowToBlock_d);
+            }
+
+            mAppUartNewLine = TRUE;
+
+            BleServDisc_RegisterCallback(BleApp_ServiceDiscoveryCallback);
+
+#if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U) && \
+     defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
+            /* Check if the peer was previously bonded */
+            GAPCheckIfBondedRequest_t req;
+            req.DeviceId = pMsg->Data.GAPConnectionEventConnectedIndication.DeviceId;
+            mLastCheckIfBondedDeviceId = req.DeviceId;
+            (void)GAPCheckIfBondedRequest(&req, gFsciInterface_c);
+#else /* gAppUsePairing_d && gAppUseBonding_d*/
+            /* run the state machine */
+            BleApp_StateMachineHandler(deviceId, mAppEvt_PeerConnected_c);
+#endif /* gAppUsePairing_d && gAppUseBonding_d*/
         }
         break;
 
-        case GAPScanningEventCommandFailedIndication_FSCI_ID:
+        case GAPConnectionEventLeDataLengthChangedIndication_FSCI_ID:
         {
-            panic(0, 0, 0, 0);
+#if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
+#if (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
+            deviceId_t peerDeviceId = pMsg->Data.GAPConnectionEventLeDataLengthChangedIndication.DeviceId;
+
+            if ((maPeerInformation[peerDeviceId].gapRole == gGapPeripheral_c) &&
+                (mDataLengthChangeLocallyInitiated == TRUE))
+            {
+                /* Check if the peer was previously bonded */
+                mDataLengthChangeLocallyInitiated = FALSE;
+                GAPCheckIfBondedRequest_t req;
+                req.DeviceId = pMsg->Data.GAPConnectionEventLeDataLengthChangedIndication.DeviceId;
+                (void)GAPCheckIfBondedRequest(&req,  gFsciInterface_c);
+            }
+#else
+            BleApp_StateMachineHandler(pMsg->Data.GAPConnectionEventLeDataLengthChangedIndication.DeviceId, mAppEvt_PeerConnected_c);
+#endif /* gAppUseBonding_d* */
+#endif /* gAppUsePairing_d */
         }
         break;
 
         default:
         {
-            ;
+            BleApp_EventCallback2(pMsg);
         }
         break;
     }

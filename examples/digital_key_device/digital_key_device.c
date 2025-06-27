@@ -143,6 +143,7 @@ static void BleApp_StoreServiceHandles
 );
 
 static void BleApp_GenericCallback_HandlePrivacyEvents(gapGenericEvent_t* pGenericEvent);
+static void BleApp_GenericCallback_HandlePhyEvent(gapGenericEvent_t* pGenericEvent);
 #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
 static void ScanningTimeoutTimerCallback(void* pParam);
 #endif
@@ -315,20 +316,7 @@ void BleApp_GenericCallback (gapGenericEvent_t* pGenericEvent)
     {
         case gLePhyEvent_c:
             {
-                if(mpfBleEventHandler != NULL)
-                {
-                    appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(gapPhyEvent_t));
-                    if(pEventData != NULL)
-                    {
-                        pEventData->appEvent = mAppEvt_GenericCallback_LePhyEvent_c;
-                        pEventData->eventData.pData = pEventData + 1;
-                        FLib_MemCpy(pEventData->eventData.pData, &pGenericEvent->eventData.phyEvent, sizeof(gapPhyEvent_t));
-                        if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
-                        {
-                            (void)MEM_BufferFree(pEventData);
-                        }
-                    }
-                }
+                BleApp_GenericCallback_HandlePhyEvent(pGenericEvent);
             }
             break;
         case gLeScLocalOobData_c:
@@ -461,6 +449,29 @@ void BleApp_FactoryReset(void)
 * Private functions
 *************************************************************************************
 ************************************************************************************/
+
+/*! *********************************************************************************
+* \brief        Handler of gLePhyEvent_c from BleApp_GenericCallback.
+*
+* \param[in]    pGenericEvent    Pointer to gapGenericEvent_t.
+********************************************************************************** */
+static void BleApp_GenericCallback_HandlePhyEvent(gapGenericEvent_t* pGenericEvent)
+{
+    if(mpfBleEventHandler != NULL)
+    {
+        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(gapPhyEvent_t));
+        if(pEventData != NULL)
+        {
+            pEventData->appEvent = mAppEvt_GenericCallback_LePhyEvent_c;
+            pEventData->eventData.pData = pEventData + 1;
+            FLib_MemCpy(pEventData->eventData.pData, &pGenericEvent->eventData.phyEvent, sizeof(gapPhyEvent_t));
+            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
+            {
+                (void)MEM_BufferFree(pEventData);
+            }
+        }
+    }
+}
 
 /*! *********************************************************************************
 * \brief        Handler of gHostPrivacyStateChanged_c and 
