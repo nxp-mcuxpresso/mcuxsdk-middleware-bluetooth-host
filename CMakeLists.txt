@@ -71,7 +71,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_OPT_component_lib)
         LIBS host/lib/lib_ble_OPT_host_cm33_gcc.a
         DSP DSP
         FPU SP_FPU
-        TOOLCHAINS mcux armgcc
+        TOOLCHAINS mcux armgcc mdk
     )
     mcux_add_library(
         LIBS host/lib/core1/lib_ble_OPT_host_cm33_nofp_nodsp_iar.a
@@ -83,7 +83,12 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_OPT_component_lib)
         LIBS host/lib/core1/lib_ble_OPT_host_cm33_nofp_nodsp_gcc.a
         DSP NO_DSP
         FPU NO_FPU
-        TOOLCHAINS armgcc
+        TOOLCHAINS armgcc mdk
+    )
+    # this is needed to avoid wchart-16 clashing with wchart-32 at link time
+    mcux_remove_mdk_configuration(
+        CC "-fshort-wchar"
+        CX "-fshort-wchar"
     )
 endif()
 
@@ -98,7 +103,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_OPT_central_component_lib)
         LIBS host/lib/lib_ble_OPT_host_central_cm33_gcc.a
         DSP DSP
         FPU SP_FPU
-        TOOLCHAINS mcux armgcc
+        TOOLCHAINS mcux armgcc mdk
     )
     mcux_add_library(
         LIBS host/lib/core1/lib_ble_OPT_host_central_cm33_nofp_nodsp_iar.a
@@ -110,7 +115,12 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_OPT_central_component_lib)
         LIBS host/lib/core1/lib_ble_OPT_host_central_cm33_nofp_nodsp_gcc.a
         DSP NO_DSP
         FPU NO_FPU
-        TOOLCHAINS armgcc
+        TOOLCHAINS armgcc mdk
+    )
+    # this is needed to avoid wchart-16 clashing with wchart-32 at link time
+    mcux_remove_mdk_configuration(
+        CC "-fshort-wchar"
+        CX "-fshort-wchar"
     )
 endif()
 
@@ -125,7 +135,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_OPT_peripheral_component_l
         LIBS host/lib/lib_ble_OPT_host_peripheral_cm33_gcc.a
         DSP DSP
         FPU SP_FPU
-        TOOLCHAINS mcux armgcc
+        TOOLCHAINS mcux armgcc mdk
     )
     mcux_add_library(
         LIBS host/lib/core1/lib_ble_OPT_host_peripheral_cm33_nofp_nodsp_iar.a
@@ -137,7 +147,12 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_OPT_peripheral_component_l
         LIBS host/lib/core1/lib_ble_OPT_host_peripheral_cm33_nofp_nodsp_gcc.a
         DSP NO_DSP
         FPU NO_FPU
-        TOOLCHAINS armgcc
+        TOOLCHAINS armgcc mdk
+    )
+    # this is needed to avoid wchart-16 clashing with wchart-32 at link time
+    mcux_remove_mdk_configuration(
+        CC "-fshort-wchar"
+        CX "-fshort-wchar"
     )
 endif()
 
@@ -152,7 +167,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_component_lib)
         LIBS host/lib/lib_ble_host_cm33_gcc.a
         DSP DSP
         FPU SP_FPU
-        TOOLCHAINS mcux armgcc
+        TOOLCHAINS mcux armgcc mdk
     )
     mcux_add_library(
         LIBS host/lib/core1/lib_ble_host_cm33_nofp_nodsp_iar.a
@@ -164,7 +179,12 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_component_lib)
         LIBS host/lib/core1/lib_ble_host_cm33_nofp_nodsp_gcc.a
         DSP NO_DSP
         FPU NO_FPU
-        TOOLCHAINS armgcc
+        TOOLCHAINS armgcc mdk
+    )
+    # this is needed to avoid wchart-16 clashing with wchart-32 at link time
+    mcux_remove_mdk_configuration(
+        CC "-fshort-wchar"
+        CX "-fshort-wchar"
     )
 endif()
 
@@ -179,7 +199,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_central_component_lib)
         LIBS host/lib/lib_ble_host_central_cm33_gcc.a
         DSP DSP
         FPU SP_FPU
-        TOOLCHAINS mcux armgcc
+        TOOLCHAINS mcux armgcc mdk
     )
     mcux_add_library(
         LIBS host/lib/core1/lib_ble_host_central_cm33_nofp_nodsp_iar.a
@@ -191,7 +211,12 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_central_component_lib)
         LIBS host/lib/core1/lib_ble_host_central_cm33_nofp_nodsp_gcc.a
         DSP NO_DSP
         FPU NO_FPU
-        TOOLCHAINS armgcc
+        TOOLCHAINS armgcc mdk
+    )
+    # this is needed to avoid wchart-16 clashing with wchart-32 at link time
+    mcux_remove_mdk_configuration(
+        CC "-fshort-wchar"
+        CX "-fshort-wchar"
     )
 endif()
 
@@ -206,7 +231,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_peripheral_component_lib)
         LIBS host/lib/lib_ble_host_peripheral_cm33_gcc.a
         DSP DSP
         FPU SP_FPU
-        TOOLCHAINS mcux armgcc
+        TOOLCHAINS mcux armgcc mdk
     )
     mcux_add_library(
         LIBS host/lib/core1/lib_ble_host_peripheral_cm33_nofp_nodsp_iar.a
@@ -218,7 +243,12 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_peripheral_component_lib)
         LIBS host/lib/core1/lib_ble_host_peripheral_cm33_nofp_nodsp_gcc.a
         DSP NO_DSP
         FPU NO_FPU
-        TOOLCHAINS armgcc
+        TOOLCHAINS armgcc mdk
+    )
+    # this is needed to avoid wchart-16 clashing with wchart-32 at link time
+    mcux_remove_mdk_configuration(
+        CC "-fshort-wchar"
+        CX "-fshort-wchar"
     )
 endif()
 
