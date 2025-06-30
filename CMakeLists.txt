@@ -279,45 +279,6 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_matter_component_lib)
     )
 endif()
 
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_component_lib)
-    mcux_add_library(
-        LIBS host/lib_exp/lib_ble_OPT_host_cm33_iar.a
-        TOOLCHAINS iar
-    )
-    mcux_add_library(
-        LIBS host/lib_exp/lib_ble_OPT_host_cm33_gcc.a
-        DSP DSP
-        FPU SP_FPU
-        TOOLCHAINS mcux armgcc
-    )
-endif()
-
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_central_component_lib)
-    mcux_add_library(
-        LIBS host/lib_exp/lib_ble_OPT_host_central_cm33_iar.a
-        TOOLCHAINS iar
-    )
-    mcux_add_library(
-        LIBS host/lib_exp/lib_ble_OPT_host_central_cm33_gcc.a
-        DSP DSP
-        FPU SP_FPU
-        TOOLCHAINS mcux armgcc
-    )
-endif()
-
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_peripheral_component_lib)
-    mcux_add_library(
-        LIBS host/lib_exp/lib_ble_OPT_host_peripheral_cm33_iar.a
-        TOOLCHAINS iar
-    )
-    mcux_add_library(
-        LIBS host/lib_exp/lib_ble_OPT_host_peripheral_cm33_gcc.a
-        DSP DSP
-        FPU SP_FPU
-        TOOLCHAINS mcux armgcc
-    )
-endif()
-
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_interface)
     mcux_add_source(
         SOURCES host/interface/att_callbacks.h

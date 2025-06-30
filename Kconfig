@@ -18,12 +18,6 @@ menu "bluetooth"
         bool "host_peripheral_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_matter_component_lib
         bool "host_matter_lib"
-    config MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_component_lib
-        bool "host_exp_opt_lib"
-    config MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_central_component_lib
-        bool "host_exp_opt_central_lib"
-    config MCUX_COMPONENT_middleware.wireless.ble_host_exp_OPT_peripheral_component_lib
-        bool "host_exp_opt_peripheral_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_interface
         bool "host_interface"
     config MCUX_COMPONENT_middleware.wireless.ble_host_xml
