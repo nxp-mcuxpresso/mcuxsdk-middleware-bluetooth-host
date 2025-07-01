@@ -856,7 +856,9 @@ gapConnectionEvent_t* pConnectionEvent
         case gConnEvtDisconnected_c:
         {
             CLEAR_CONN(peerDeviceId);
-            shell_write("\r\n-->  GAP Event: Disconnected\r\n");
+            shell_write("\r\n-->  GAP Event: Disconnected with reason ");
+            shell_writeDec((uint32_t)pConnectionEvent->eventData.disconnectedEvent.reason);
+            shell_write("\r\n");
         }
         break;
 

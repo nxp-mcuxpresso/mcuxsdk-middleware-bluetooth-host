@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -3835,6 +3835,8 @@ void ShellGap_ConnectionCallback
             CLEAR_CONN(peerDeviceId);
             shell_write("\r\n-->  GAP Event: Disconnected from peer ");
             shell_writeDec(peerDeviceId);
+            shell_write(" with reason ");
+            shell_writeDec((uint32_t)pConnectionEvent->eventData.disconnectedEvent.reason);
             shell_cmd_finished();
             if (mRSSIMonitor)
             {

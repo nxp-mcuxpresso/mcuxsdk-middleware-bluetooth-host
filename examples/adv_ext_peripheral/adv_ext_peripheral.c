@@ -904,7 +904,11 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
             Remove_PeerDevice(peerDeviceId);
             (void)Bas_Unsubscribe(&basServiceConfig, peerDeviceId);
             (void)Tms_Unsubscribe();
-            (void)Serial_Print(gAppSerMgrIf, "\n\rDisconnected!\n\r", gAllowToBlock_d);
+
+            AppPrintString("\r\nDisconnected with reason ");
+            AppPrintDec((uint32_t)pConnectionEvent->eventData.disconnectedEvent.reason);
+            AppPrintString("!\r\n");
+
             if(NumberOf_PeerDevices() == 0U)
             {
                 /* UI */

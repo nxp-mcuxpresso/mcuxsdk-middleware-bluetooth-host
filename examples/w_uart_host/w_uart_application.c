@@ -616,6 +616,8 @@ static void BleApp_EventCallback2
             deviceId_t peerDeviceId = pMsg->Data.GAPConnectionEventDisconnectedIndication.DeviceId;
             Serial_Print("Disconnected from device ", gAllowToBlock_d);
             Serial_PrintDec(peerDeviceId);
+            Serial_Print(" with reason ", gAllowToBlock_d);
+            Serial_PrintDec((uint32_t)pMsg->Data.GAPConnectionEventDisconnectedIndication.Reason);
             Serial_Print(".\n\r", gAllowToBlock_d);
 
             maPeerInformation[peerDeviceId].appState = mAppIdle_c;

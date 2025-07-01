@@ -680,7 +680,10 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
             }
 
             /* Update UI */
-            AppPrintString("\r\nDisconnected!\r\n");
+            AppPrintString("\r\nDisconnected with reason ");
+            AppPrintDec((uint32_t)pConnectionEvent->eventData.disconnectedEvent.reason);
+            AppPrintString("!\r\n");
+
             /* UI */
 #if (defined(gAppLedCnt_c) && (gAppLedCnt_c == 1))
             LedSetColor(0, kLED_White);

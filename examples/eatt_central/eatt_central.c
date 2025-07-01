@@ -500,6 +500,8 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
 #endif /*gAppLedCnt_c > 0*/
             (void)shell_write("\r\nDisconnected from device ");
             (void)shell_writeDec(peerDeviceId);
+            (void)shell_write(" with reason ");
+            (void)shell_writeDec((uint32_t)pConnectionEvent->eventData.disconnectedEvent.reason);
             (void)shell_write("!\r\n");
 
             /* Restart scanning */

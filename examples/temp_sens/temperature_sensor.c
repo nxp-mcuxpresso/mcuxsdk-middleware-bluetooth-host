@@ -28,6 +28,7 @@
 #include "fsl_component_mem_manager.h"
 #include "fsl_component_panic.h"
 #include "fsl_component_serial_manager.h"
+#include "fsl_format.h"
 #include "FunctionLib.h"
 #if defined(gAppUseSensors_d) && (gAppUseSensors_d > 0U)
 #include "sensors.h"
@@ -121,6 +122,7 @@ static void BleApp_Advertise(void);
 static void BleApp_SendTemperature(void);
 
 static void AppPrintString( const char* pBuff);
+static void AppPrintDec(uint32_t dec);
 #if defined(gAppPrintLePhyEvent_c) && (gAppPrintLePhyEvent_c)
 static void AppPrintLePhyEvent(gapPhyEvent_t* pPhyEvent);
 #endif
@@ -374,7 +376,10 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
             (void)Bas_Unsubscribe(&basServiceConfig, peerDeviceId);
             (void)Tms_Unsubscribe();
 
-            AppPrintString("Disconnected!\r\n");
+            AppPrintString("Disconnected with reason ");
+            AppPrintDec((uint32_t)pConnectionEvent->eventData.disconnectedEvent.reason);
+            AppPrintString("!\r\n");
+
 
 #if !defined(gAppLowpowerEnabled_d) || (gAppLowpowerEnabled_d == 0U)
             /* restart advertising*/
@@ -486,6 +491,18 @@ static void AppPrintString( const char* pBuff)
     buff.pcBuff = pBuff;
     (void)SerialManager_WriteBlocking((serial_write_handle_t)s_writeHandle, buff.pBuff, buffLength );
 }
+
+/*! *********************************************************************************
+* \brief        Prints a number in decimal.
+*
+********************************************************************************** */
+static void AppPrintDec(uint32_t dec)
+{
+    uint8_t *pDec;
+    pDec = FORMAT_Dec2Str(dec);
+    (void)SerialManager_WriteBlocking((serial_write_handle_t)s_writeHandle, pDec, strlen((char const *)pDec));
+}
+
 /*! *********************************************************************************
 * \brief        Prints phy event.
 *

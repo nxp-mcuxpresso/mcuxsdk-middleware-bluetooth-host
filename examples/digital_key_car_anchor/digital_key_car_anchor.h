@@ -180,14 +180,15 @@ typedef enum appState_tag{
 
 typedef struct appPeerInfo_tag
 {
-    deviceId_t          deviceId;
-    gapRole_t           gapRole;
-    appCustomInfo_t     customInfo;
-    bool_t              isBonded;
-    bool_t              isLinkEncrypted;
-    appState_t          appState;
-    gapLeScOobData_t    oobData;
-    gapLeScOobData_t    peerOobData;
+    deviceId_t                  deviceId;
+    gapRole_t                   gapRole;
+    appCustomInfo_t             customInfo;
+    bool_t                      isBonded;
+    bool_t                      isLinkEncrypted;
+    appState_t                  appState;
+    gapLeScOobData_t            oobData;
+    gapLeScOobData_t            peerOobData;
+    gapDisconnectionReason_t    disconReason;
 }appPeerInfo_t;
 
 /* APP -  pointer to function for BLE events*/

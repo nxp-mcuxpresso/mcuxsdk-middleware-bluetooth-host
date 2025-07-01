@@ -805,6 +805,8 @@ static void BleApp_ConnectionCallback
         {
             Serial_Print("\n\rDisconnected from device ", gAllowToBlock_d);
             Serial_PrintDec(peerDeviceId);
+            Serial_Print(" with reason ", gAllowToBlock_d);
+            Serial_PrintDec((uint32_t)pConnectionEvent->eventData.disconnectedEvent.reason);
             Serial_Print(".\n\r", gAllowToBlock_d);
 
             maPeerInformation[peerDeviceId].appState = mAppIdle_c;

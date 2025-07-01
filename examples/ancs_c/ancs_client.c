@@ -1451,7 +1451,9 @@ static void BleApp_ConnectionCallback(deviceId_t peerDeviceId, gapConnectionEven
             LedSetColor(0, kLED_White);    
 #endif /* gAppLedCnt_c == 1 */ 
             LedStartFlashingAllLeds();
-            shell_write("\r\nDisconnected!\r\n");
+            shell_write("\r\nDisconnected with reason ");
+            shell_writeDec((uint32_t)pConnectionEvent->eventData.disconnectedEvent.reason);
+            shell_write("!\r\n");
 
             /* Unsubscribe client*/
             (void)Bas_Unsubscribe(&basServiceConfig, peerDeviceId);

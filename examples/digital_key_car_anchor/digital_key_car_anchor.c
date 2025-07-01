@@ -527,6 +527,8 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
 
         case gConnEvtDisconnected_c:
         {
+            maPeerInformation[peerDeviceId].disconReason = pConnectionEvent->eventData.disconnectedEvent.reason;
+
             BleApp_StateMachineHandler(peerDeviceId, mAppEvt_PeerDisconnected_c);
 
 #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
@@ -797,6 +799,7 @@ void BleApp_StateMachineHandler(deviceId_t peerDeviceId, appEvent_t event)
          if(pEventData != NULL)
          {
              pEventData->appEvent = event;
+             pEventData->eventData.peerDeviceId = peerDeviceId;
              if (gBleSuccess_c != App_PostCallbackMessage(mpfBleUserInterfaceEventHandler, pEventData))
              {
                 (void)MEM_BufferFree(pEventData);

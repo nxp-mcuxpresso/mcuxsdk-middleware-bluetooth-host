@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -516,6 +516,8 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
             LedStartFlashingAllLeds();
             (void)shell_write("\r\nDisconnected from device ");
             (void)shell_writeDec(peerDeviceId);
+            (void)shell_write(" with reason ");
+            (void)shell_writeDec((uint32_t)pConnectionEvent->eventData.disconnectedEvent.reason);
             (void)shell_write("!\r\n");
 
             /* If peer device disconnects the link during Service Discovery, free the allocated buffer */

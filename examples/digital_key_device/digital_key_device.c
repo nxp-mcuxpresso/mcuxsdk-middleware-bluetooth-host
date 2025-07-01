@@ -699,6 +699,7 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
 
         case gConnEvtDisconnected_c:
         {
+            maPeerInformation[peerDeviceId].disconReason = pConnectionEvent->eventData.disconnectedEvent.reason;
             BleApp_ConnectionCallback_SignalSimpleEvents(peerDeviceId, mAppEvt_ConnectionCallback_ConnEvtDisconnected_c);
         }
         break;

@@ -569,7 +569,9 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
             /* Reset Service Discovery to be sure*/
             BleServDisc_Stop(peerDeviceId);
 
-            AppPrintString("Disconnected!\r\n");
+            AppPrintString("Disconnected with reason ");
+            AppPrintDec((uint32_t)pConnectionEvent->eventData.disconnectedEvent.reason);
+            AppPrintString("!\r\n");
 
             /* If peer device disconnects the link during Service Discovery, free the allocated buffer */
             if(mpCharProcBuffer != NULL)

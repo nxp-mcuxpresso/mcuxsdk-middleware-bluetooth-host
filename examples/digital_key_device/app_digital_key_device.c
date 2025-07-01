@@ -1028,7 +1028,9 @@ static void App_HandleConnectionCallback(appEventData_t *pEventData)
             /* Reset Service Discovery to be sure*/
             BleServDisc_Stop(pEventData->eventData.peerDeviceId);
 
-            shell_write("Disconnected!\r\n");
+            shell_write("Disconnected with reason ");
+            shell_writeDec((uint32_t)maPeerInformation[pEventData->eventData.peerDeviceId].disconReason);
+            shell_write("!\r\n");
 
 #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
             /* Go to sleep */

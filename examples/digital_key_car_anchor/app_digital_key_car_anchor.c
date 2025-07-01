@@ -406,7 +406,9 @@ void APP_UserInterfaceEventHandler(void *pData)
           
         case mAppEvt_PeerDisconnected_c:
         {
-            shell_write("Disconnected!\r\n");
+            shell_write("Disconnected with reason ");
+            shell_writeDec((uint32_t)maPeerInformation[pEventData->eventData.peerDeviceId].disconReason);
+            shell_write("!\r\n");
             shell_cmd_finished();
         }
         break;

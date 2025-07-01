@@ -71,12 +71,13 @@ typedef struct appCustomInfo_tag
 
 typedef struct appPeerInfo_tag
 {
-    deviceId_t          deviceId;
-    appCustomInfo_t     customInfo;
-    bool_t              isBonded;
-    appState_t          appState;
-    gapLeScOobData_t    oobData;
-    gapLeScOobData_t    peerOobData;
+    deviceId_t                  deviceId;
+    appCustomInfo_t             customInfo;
+    bool_t                      isBonded;
+    appState_t                  appState;
+    gapLeScOobData_t            oobData;
+    gapLeScOobData_t            peerOobData;
+    gapDisconnectionReason_t    disconReason;
 }appPeerInfo_t;
 
 /************************************************************************************
