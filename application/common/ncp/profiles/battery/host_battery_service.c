@@ -382,8 +382,13 @@ static void gapCheckNotificationStatusHandler
             GATTServerSendNotificationRequest_t req = {};
 
             /* Populate request */
-            req.DeviceId = mClientId++;
+            req.DeviceId = mClientId;
             req.Handle = mLastSendNotificationsHandle;
+
+            if (mClientId < (uint8_t)UINT8_MAX)
+            {
+                mClientId++;
+            }
 
             if (TRUE == isNotifActive)
             {
