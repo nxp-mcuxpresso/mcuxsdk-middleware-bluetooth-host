@@ -116,7 +116,7 @@ extern "C" {
 #endif
 
 /*!*************************************************************************************************
- * \fn           bleResult_t Gap_SetDataRelatedAddressChanges(uint_8 advertisingHandle, uint8_t changeReasons)
+ * \fn           bleResult_t Gap_SetDataRelatedAddressChanges(uint8_t advertisingHandle, uint8_t changeReasons)
  *
  * \brief        Command specifies circumstances when the Controller shall refresh any Resolvable Private Address used by the
  *               advertising set identified by the Advertising_Handle parameter.
@@ -2825,7 +2825,7 @@ bleResult_t Gap_ReadRemoteVersionInformation
 );
 
 /*!*************************************************************************************************
-* \fn           bleResult_t Gap_GetConnParams(deviceId_t deviceId)
+* \def          Gap_GetConnParams(deviceId)
 *
 * \brief        Get the Connection parameters for the given deviceId.
 *
@@ -2838,7 +2838,7 @@ bleResult_t Gap_ReadRemoteVersionInformation
 *
 ***************************************************************************************************/
 #define Gap_GetConnParams(deviceId) \
-	Gap_GetConnParamsMonitoring(deviceId, 0U)
+    Gap_GetConnParamsMonitoring(deviceId, 0U)
 
 /*!*************************************************************************************************
 * \fn           bleResult_t Gap_GetConnParamsMonitoring(deviceId_t deviceId, uint8_t mode)
@@ -2866,7 +2866,7 @@ bleResult_t Gap_GetConnParamsMonitoring
 );
 
 /*!*************************************************************************************************
-*\fn    bleResult_t Gap_LeChannelOverride(uint8_t mode, uint8_t channelListLength, uint8_t *pChannelList)
+*\fn    bleResult_t Gap_LeChannelOverride(bleChannelOverrideMode_t mode, uint8_t channelListLength, uint8_t *pChannelList)
 *
 *\brief This function sets the channels to be used for advertising, scanning or initiation.
 *
@@ -2877,24 +2877,22 @@ bleResult_t Gap_GetConnParamsMonitoring
 *\retval  gBleSuccess_c
 *\retval  gBleInvalidParameter_c       One or more parameters are invalid.
 *\retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
-
-*\remarks
-*
-* In the channel list, the MSB of each byte indicates if the channel is BLE channel index or generic channel
+*\remarks In the channel list, the MSB of each byte indicates if the channel is BLE channel index or generic channel
 * index:
 * - BLE channel index: 0 to 39
 * - Generic channel index: 0x80+0 to 0x80+127
+*
 * If the mode is 0x00 (advertising), the specified channels are used by the following
 * advertising commands. The channels used by the ongoing advertising will not change until
 * the advertising is disabled, even if a new channel override command with mode 0x00 is
 * received. This allows different advertising channels for different advertising sets.
 * The mode 0x00 (advertising) can be issued when an advertising is ongoing.
 * The setting will be used by the next advertising enable command.
-
+*
 * If the mode is 0x01 or 0x02 (scan or initiation), the specified channels are used by the
 * following scan and initiation. The command with mode 0x01 or 0x02 should be issued when
 * the scan or initiation is not ongoing.
-
+*
 * When a generic channel is used, the whitening is initialized by the lower 6 bits
 * of the generic channel index. When a BLE channel is used, the whitening is initialized
 * by the BLE channel index. So the BLE channel 37/38/39 are not strictly the same as the
@@ -2909,7 +2907,7 @@ bleResult_t Gap_LeChannelOverride
 );
 
 /*!*************************************************************************************************
-*\fn    void InternalGap_LeSetSchedulerPriority(uint16_t  priorityHandle)
+*\fn    bleResult_t Gap_LeSetSchedulerPriority(uint16_t priorityHandle)
 *
 *\brief This function sets the priority for one connection in case of several connections by calling
 *       the corresponding HCI command.
@@ -2943,8 +2941,8 @@ bleResult_t Gap_LeSetHostFeature
 );
 
 /*!*************************************************************************************************
-*\fn    bleResult_t Gap_EncryptAdvertisingData(gapAdvertisingData_t *pAdvertisingData, uint8_t *pKey,
-*                                              uint8_t *pIV, uint8_t *pOutput)
+*\fn    bleResult_t Gap_EncryptAdvertisingData(const gapAdvertisingData_t *pAdvertisingData, const uint8_t *pKey,
+*                                              const uint8_t *pIV, uint8_t *pOutput)
 *
 *\brief This function is used to encrypt a series of AD structures into an encrypted AD structure.
 *
@@ -2952,7 +2950,7 @@ bleResult_t Gap_LeSetHostFeature
 *\param [in]    pKey               Pointer to 16-byte key to be used for encryption (must be big endian).
 *\param [in]    pIV                Pointer to 8-byte initialization vector (must be little endian).
 *\param [out]   pOutput            Pointer for location of output encrypted data. Must be large enough
-*                                  to accomodate the size of the total data to be encrypted
+*                                  to accommodate the size of the total data to be encrypted
 *                                  plus the size of the Randomizer and MIC fields.
 *
 *\retval  gBleSuccess_c
@@ -2970,8 +2968,8 @@ bleResult_t Gap_EncryptAdvertisingData
 );
 
 /*!*************************************************************************************************
-*\fn    bleResult_t Gap_DecryptAdvertisingData(uint8_t *pData, uint16_t dataLength, uint8_t *pKey,
-*                                              uint8_t *pIV, uint8_t *pOutput)
+*\fn    bleResult_t Gap_DecryptAdvertisingData(uint8_t *pData, uint16_t dataLength, const uint8_t *pKey,
+*                                              const uint8_t *pIV, uint8_t *pOutput)
 *
 *\brief This function is used to decrypt advertising data.
 *

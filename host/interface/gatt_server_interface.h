@@ -146,7 +146,7 @@ extern "C" {
 ********************************************************************************** */
 bleResult_t GattServer_Init(void);
 
-/************************************************************************************
+/*! *********************************************************************************
 * \brief If the GAP module is present, this function is called internally by Ble_HostInitialize().
 * Signals support for EATT and Robust Caching, when appropriate, by setting the corresponding BIT
 * for each feature in the value of the Server Supported Features characteristic of the database.
