@@ -672,7 +672,7 @@ bleResult_t App_HostNvmRead
                 }
             }
             
-            (void)MEM_BufferFree(pAppBleNvmReadData);
+            (void)MSG_Free(pAppBleNvmReadData);
         }
         else
         {
@@ -860,7 +860,7 @@ static void App_FsciBleNvmCbHandler
         break;
         case gAppBleNvmCbCmdReadIndOpCode_c:
         {
-            appNvmHostReadNotif_t *pAppBleNvmReadData = MEM_BufferAlloc(pClientPacket->structured.header.len);
+            appNvmHostReadNotif_t *pAppBleNvmReadData = MSG_Alloc(pClientPacket->structured.header.len);
             
             if (pAppBleNvmReadData != NULL)
             {
