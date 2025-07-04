@@ -234,20 +234,26 @@ static void App_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent)
 
     pMsgIn = MSG_Alloc(GetRelAddr(appMsgFromHost_t,msgData) + sizeof(gapAdvertisingEvent_t));
 
-    if (pMsgIn == NULL)
+    if (pMsgIn != NULL)
     {
-        return;
+        pMsgIn->msgType = (uint32_t)gAppGapAdvertisementMsg_c;
+        pMsgIn->msgData.advMsg.eventType = pAdvertisingEvent->eventType;
+        pMsgIn->msgData.advMsg.eventData = pAdvertisingEvent->eventData;
+
+        /* Put message in the Host Stack to App queue */
+        if (MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn) == kMSG_Success)
+        {
+            /* Signal application */
+            (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+        }
+        else
+        {
+            /* Free the message if queueing failed */
+            (void)MSG_Free(pMsgIn);
+        }
     }
 
-    pMsgIn->msgType = (uint32_t)gAppGapAdvertisementMsg_c;
-    pMsgIn->msgData.advMsg.eventType = pAdvertisingEvent->eventType;
-    pMsgIn->msgData.advMsg.eventData = pAdvertisingEvent->eventData;
-
-    /* Put message in the Host Stack to App queue */
-    (void)MSG_Queue(&mHostAppInputQueue, pMsgIn);
-
-    /* Signal application */
-    (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+    return;
 }
 
 /*! *********************************************************************************

@@ -202,6 +202,8 @@ static button_status_t BleApp_HandleKeys0(void *pButtonHandle, button_callback_m
 static button_status_t BleApp_HandleKeys1(void *pButtonHandle, button_callback_message_t *pMessage, void *pCallbackParam);
 #endif
 #endif
+static void BleApp_HandleConnectedEvent(deviceId_t peerDeviceId, gapConnectionEvent_t *pConnectionEvent);
+static void BleApp_HandleDisconnectedEvent(deviceId_t peerDeviceId, gapConnectionEvent_t *pConnectionEvent);
 /************************************************************************************
  *************************************************************************************
  * Private memory declarations
@@ -597,6 +599,168 @@ static void BleApp_AdvertisingCallback
 }
 
 #endif
+
+/*! *********************************************************************************
+* \brief        Handles connected event in connection callback.
+*
+* \param[in]    peerDeviceId        Peer device ID.
+* \param[in]    pConnectionEvent    Pointer to gapConnectionEvent_t.
+********************************************************************************** */
+static void BleApp_HandleConnectedEvent(deviceId_t peerDeviceId, gapConnectionEvent_t *pConnectionEvent)
+{
+    if (mcActiveConnNo < gAppMaxConnections_c)
+    {
+        /* Save peer device ID */
+        maPeerInformation[peerDeviceId].deviceId = peerDeviceId;
+        mcActiveConnNo++;
+        /* Advertising stops when connected */
+#if gWuart_PeripheralRole_c == 1
+        if(pConnectionEvent->eventData.connectedEvent.connectionRole == gBleLlConnectionPeripheral_c)
+        {
+            mAdvState.advOn = FALSE;
+        }
+#endif
+
+        /* Subscribe client*/
+        (void)Wus_Subscribe(peerDeviceId);
+        (void)Bas_Subscribe(&mBasServiceConfig, peerDeviceId);
+
+        /* UI */
+        LedStopFlashingAllLeds();
+#if (defined(gAppLedCnt_c) && (gAppLedCnt_c == 1))
+        LedSetColor(0, kLED_White);
+#endif /* gAppLedCnt_c == 1 */
+        Led1On();
+
+        if (TM_IsTimerActive((timer_handle_t)mBatteryMeasurementTimerId) == 0U)
+        {
+            /* Start battery measurements */
+            (void)TM_InstallCallback((timer_handle_t)mBatteryMeasurementTimerId, BatteryMeasurementTimerCallback, NULL);
+            (void)TM_Start((timer_handle_t)mBatteryMeasurementTimerId,
+                        (uint8_t)kTimerModeLowPowerTimer | (uint8_t)kTimerModeSetSecondTimer, mBatteryLevelReportInterval_c);
+        }
+
+#if gAppUsePairing_d
+#if gAppUseBonding_d
+
+        if (mGapRole == gGapCentral_c)
+        {
+            union
+            {
+                uint32_t u32;
+                uint16_t u16;
+            } tempCast;
+
+            tempCast.u32 = sizeof(wucConfig_t);
+            (void)Gap_CheckIfBonded(peerDeviceId, &maPeerInformation[peerDeviceId].isBonded, NULL);
+
+            if ((maPeerInformation[peerDeviceId].isBonded) &&
+                (gBleSuccess_c == Gap_LoadCustomPeerInformation(peerDeviceId,
+                        (uint8_t *) &maPeerInformation[peerDeviceId].clientInfo, 0, tempCast.u16)))
+            {
+                /* Restored custom connection information. Encrypt link */
+                (void)Gap_EncryptLink(peerDeviceId);
+            }
+        }
+
+#endif /* gAppUseBonding_d*/
+#endif /* gAppUsePairing_d */
+
+        Serial_Print("Connected to device ", gAllowToBlock_d);
+        Serial_PrintDec(peerDeviceId);
+
+        if (pConnectionEvent->eventData.connectedEvent.connectionRole == gBleLlConnectionCentral_c)
+        {
+            Serial_Print(" as central.\n\r", gAllowToBlock_d);
+            maPeerInformation[peerDeviceId].gapRole = gGapCentral_c;
+        }
+        else
+        {
+            Serial_Print(" as peripheral.\n\r", gAllowToBlock_d);
+            maPeerInformation[peerDeviceId].gapRole = gGapPeripheral_c;
+        }
+
+        mAppUartNewLine = TRUE;
+
+#if defined(gUseControllerNotifications_c) && (gUseControllerNotifications_c)
+        (void)Gap_ControllerEnhancedNotification((uint16_t)gNotifConnRxPdu_c, peerDeviceId);
+#endif
+
+        /* run the state machine */
+        BleApp_StateMachineHandler(peerDeviceId, mAppEvt_PeerConnected_c);
+    }
+
+    return;
+}
+
+/*! *********************************************************************************
+* \brief        Handles disconnected event in connection callback.
+*
+* \param[in]    peerDeviceId        Peer device ID.
+* \param[in]    pConnectionEvent    Pointer to gapConnectionEvent_t.
+********************************************************************************** */
+static void BleApp_HandleDisconnectedEvent(deviceId_t peerDeviceId, gapConnectionEvent_t *pConnectionEvent)
+{
+    Serial_Print("Disconnected from device ", gAllowToBlock_d);
+    Serial_PrintDec(peerDeviceId);
+    Serial_Print(".\n\r", gAllowToBlock_d);
+    
+    if (mcActiveConnNo >= 1U)
+    {
+        maPeerInformation[peerDeviceId].appState = mAppIdle_c;
+        maPeerInformation[peerDeviceId].clientInfo.hService = gGattDbInvalidHandleIndex_d;
+        maPeerInformation[peerDeviceId].clientInfo.hUartStream = gGattDbInvalidHandleIndex_d;
+
+        /* Unsubscribe client */
+        (void)Wus_Unsubscribe();
+        (void)Bas_Unsubscribe(&mBasServiceConfig, peerDeviceId);
+
+        /* Reset Service Discovery to be sure*/
+        BleServDisc_Stop(peerDeviceId);
+
+        /* UI */
+        LedStartFlashingAllLeds();
+
+        /* mark device id as invalid */
+        maPeerInformation[peerDeviceId].deviceId = gInvalidDeviceId_c;
+        mcActiveConnNo--;
+        if(mcActiveConnNo == 0U)
+        {
+            (void)TM_Stop((timer_handle_t)mBatteryMeasurementTimerId);
+        }
+        /* recalculate minimum of maximum MTU's of all connected devices */
+        mAppUartBufferSize = mAppUartBufferSize_c;
+
+        for (uint8_t mPeerId = 0U; mPeerId < (uint8_t)gAppMaxConnections_c; mPeerId++)
+        {
+            if (gInvalidDeviceId_c != maPeerInformation[mPeerId].deviceId)
+            {
+                bleResult_t result = gBleSuccess_c;
+                uint16_t tempMtu = 0U;
+
+                result = Gatt_GetMtu(mPeerId, &tempMtu);
+
+                if (result == gBleSuccess_c)
+                {
+                    tempMtu = gAttMaxWriteDataSize_d(tempMtu);
+                }
+
+                if (tempMtu < mAppUartBufferSize)
+                {
+                    mAppUartBufferSize = tempMtu;
+                }
+            }
+        }
+
+        if (mGapRole == gGapPeripheral_c)
+        {
+            BleApp_Start(mGapRole);
+        }
+    }
+
+    return;
+}
+
 /*! *********************************************************************************
 * \brief        Handles BLE Connection callback from host stack.
 *
@@ -613,157 +777,13 @@ static void BleApp_ConnectionCallback
     {
         case gConnEvtConnected_c:
         {
-            /* Return here to avoid CCM issues */
-            if (mcActiveConnNo >= gAppMaxConnections_c)
-            {
-                return;
-            }
-            /* Save peer device ID */
-            maPeerInformation[peerDeviceId].deviceId = peerDeviceId;
-            mcActiveConnNo++;
-            /* Advertising stops when connected */
-#if gWuart_PeripheralRole_c == 1
-            if(pConnectionEvent->eventData.connectedEvent.connectionRole == gBleLlConnectionPeripheral_c)
-            {
-                mAdvState.advOn = FALSE;
-            }
-
-#endif
-
-            /* Subscribe client*/
-            (void)Wus_Subscribe(peerDeviceId);
-            (void)Bas_Subscribe(&mBasServiceConfig, peerDeviceId);
-
-            /* UI */
-            LedStopFlashingAllLeds();
-#if (defined(gAppLedCnt_c) && (gAppLedCnt_c == 1))
-            LedSetColor(0, kLED_White);
-#endif /* gAppLedCnt_c == 1 */
-            Led1On();
-
-            if (TM_IsTimerActive((timer_handle_t)mBatteryMeasurementTimerId) == 0U)
-            {
-                /* Start battery measurements */
-                (void)TM_InstallCallback((timer_handle_t)mBatteryMeasurementTimerId, BatteryMeasurementTimerCallback, NULL);
-                (void)TM_Start((timer_handle_t)mBatteryMeasurementTimerId,
-                            (uint8_t)kTimerModeLowPowerTimer | (uint8_t)kTimerModeSetSecondTimer, mBatteryLevelReportInterval_c);
-            }
-
-#if gAppUsePairing_d
-#if gAppUseBonding_d
-
-            if (mGapRole == gGapCentral_c)
-            {
-                union
-                {
-                    uint32_t u32;
-                    uint16_t u16;
-                } tempCast;
-
-                tempCast.u32 = sizeof(wucConfig_t);
-                (void)Gap_CheckIfBonded(peerDeviceId, &maPeerInformation[peerDeviceId].isBonded, NULL);
-
-                if ((maPeerInformation[peerDeviceId].isBonded) &&
-                    (gBleSuccess_c == Gap_LoadCustomPeerInformation(peerDeviceId,
-                            (uint8_t *) &maPeerInformation[peerDeviceId].clientInfo, 0, tempCast.u16)))
-                {
-                    /* Restored custom connection information. Encrypt link */
-                    (void)Gap_EncryptLink(peerDeviceId);
-                }
-            }
-
-#endif /* gAppUseBonding_d*/
-#endif /* gAppUsePairing_d */
-
-            Serial_Print("Connected to device ", gAllowToBlock_d);
-            Serial_PrintDec(peerDeviceId);
-
-            if (pConnectionEvent->eventData.connectedEvent.connectionRole == gBleLlConnectionCentral_c)
-            {
-                Serial_Print(" as central.\n\r", gAllowToBlock_d);
-            }
-            else
-            {
-                Serial_Print(" as peripheral.\n\r", gAllowToBlock_d);
-            }
-
-            mAppUartNewLine = TRUE;
-
-#if defined(gUseControllerNotifications_c) && (gUseControllerNotifications_c)
-            (void)Gap_ControllerEnhancedNotification((uint16_t)gNotifConnRxPdu_c, peerDeviceId);
-#endif
-
-            if  (pConnectionEvent->eventData.connectedEvent.connectionRole == gBleLlConnectionPeripheral_c)
-            {
-                maPeerInformation[peerDeviceId].gapRole = gGapPeripheral_c;
-            }
-            else
-            {
-                maPeerInformation[peerDeviceId].gapRole = gGapCentral_c;
-            }
-
-            /* run the state machine */
-            BleApp_StateMachineHandler(peerDeviceId, mAppEvt_PeerConnected_c);
+            BleApp_HandleConnectedEvent(peerDeviceId, pConnectionEvent);
         }
         break;
 
         case gConnEvtDisconnected_c:
         {
-            Serial_Print("Disconnected from device ", gAllowToBlock_d);
-            Serial_PrintDec(peerDeviceId);
-            Serial_Print(" with reason ", gAllowToBlock_d);
-            Serial_PrintDec((uint32_t)pConnectionEvent->eventData.disconnectedEvent.reason);
-            Serial_Print(".\n\r", gAllowToBlock_d);
-
-            /* Return here to avoid CCM issues */
-            if (mcActiveConnNo < 1U)
-            {
-                return;
-            }
-            maPeerInformation[peerDeviceId].appState = mAppIdle_c;
-            maPeerInformation[peerDeviceId].clientInfo.hService = gGattDbInvalidHandleIndex_d;
-            maPeerInformation[peerDeviceId].clientInfo.hUartStream = gGattDbInvalidHandleIndex_d;
-
-            /* Unsubscribe client */
-            (void)Wus_Unsubscribe();
-            (void)Bas_Unsubscribe(&mBasServiceConfig, peerDeviceId);
-
-            /* Reset Service Discovery to be sure*/
-            BleServDisc_Stop(peerDeviceId);
-
-            /* UI */
-            LedStartFlashingAllLeds();
-
-            /* mark device id as invalid */
-            maPeerInformation[peerDeviceId].deviceId = gInvalidDeviceId_c;
-            mcActiveConnNo--;
-            if(mcActiveConnNo == 0U)
-            {
-                (void)TM_Stop((timer_handle_t)mBatteryMeasurementTimerId);
-            }
-            /* recalculate minimum of maximum MTU's of all connected devices */
-            mAppUartBufferSize                       = mAppUartBufferSize_c;
-
-            for (uint8_t mPeerId = 0U; mPeerId < (uint8_t)gAppMaxConnections_c; mPeerId++)
-            {
-                if (gInvalidDeviceId_c != maPeerInformation[mPeerId].deviceId)
-                {
-                    uint16_t tempMtu = 0U;
-
-                    (void)Gatt_GetMtu(mPeerId, &tempMtu);
-                    tempMtu = gAttMaxWriteDataSize_d(tempMtu);
-
-                    if (tempMtu < mAppUartBufferSize)
-                    {
-                        mAppUartBufferSize = tempMtu;
-                    }
-                }
-            }
-
-            if (mGapRole == gGapPeripheral_c)
-            {
-                BleApp_Start(mGapRole);
-            }
+            BleApp_HandleDisconnectedEvent(peerDeviceId, pConnectionEvent);
         }
         break;
 

@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2021, 2023 NXP
+* Copyright 2016-2021, 2023, 2025 NXP
 *
 *
 * \file
@@ -63,27 +63,27 @@ static OSA_TASK_DEFINE(Host_Task, gHost_TaskPriority_c, 1, gHost_TaskStackSize_c
 ********************************************************************************** */
 osa_status_t Ble_HostTaskInit(void)
 {
-    osa_status_t status;
+    osa_status_t status = KOSA_StatusSuccess;
 
     /* Initialization of task related */
-    if (KOSA_StatusSuccess != OSA_EventCreate((osa_event_handle_t)gHost_TaskEvent,
-                                              1U))
+    if (KOSA_StatusSuccess != OSA_EventCreate((osa_event_handle_t)gHost_TaskEvent, 1U))
     {
-        return KOSA_StatusError;
+        status = KOSA_StatusError;
+    }
+    else
+    {
+        /* Initialization of task message queue */
+        MSG_QueueInit(&gApp2Host_TaskQueue);
+        MSG_QueueInit(&gHci2Host_TaskQueue);
+
+        /* Task creation */
+        status = OSA_TaskCreate((osa_task_handle_t)mHost_TaskId,
+                                OSA_TASK(Host_Task),
+                                NULL);
+        assert(KOSA_StatusSuccess == status);
     }
 
-    /* Initialization of task message queue */
-    MSG_QueueInit(&gApp2Host_TaskQueue);
-    MSG_QueueInit(&gHci2Host_TaskQueue);
-
-    /* Task creation */
-    status = OSA_TaskCreate((osa_task_handle_t)mHost_TaskId,
-                            OSA_TASK(Host_Task),
-                            NULL);
-    (void)status;
-    assert(KOSA_StatusSuccess == status);
-
-    return KOSA_StatusSuccess;
+    return status;
 }
 
 /*! *********************************************************************************

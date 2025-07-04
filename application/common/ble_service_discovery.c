@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************* */
 /*! *********************************************************************************
-* Copyright 2016-2021, 2023-2024 NXP
+* Copyright 2016-2021, 2023-2025 NXP
 *
 *
 * \file
@@ -258,6 +258,8 @@ void BleServDisc_SignalGattClientEvent
 )
 {
     servDiscInfo_t  *pInfo = &maServDiscInfo[peerDeviceId];
+    bool_t earlyReturn = FALSE;
+    
     if (pInfo->mServDiscInProgress)
     {
         if (procedureResult == gGattProcError_c)
@@ -375,7 +377,9 @@ void BleServDisc_SignalGattClientEvent
                                                         (pCurrentChar + 1)->value.handle,
                                                         (uint8_t)(gMaxCharDescriptorsCount_d -
                                                         pInfo->mCurrentDescInDiscoveryIndex));
-                                    return;
+                                    /* Skip remaining processing */
+                                    earlyReturn = TRUE;
+                                    break;
                                 }
                             }
 
@@ -400,49 +404,53 @@ void BleServDisc_SignalGattClientEvent
                                                         pCurrentService->endHandle,
                                                         (uint8_t)(gMaxCharDescriptorsCount_d -
                                                         pInfo->mCurrentDescInDiscoveryIndex));
-                                return;
+                                /* Skip remaining processing */
+                                earlyReturn = TRUE;
                             }
 
                         }
                     }
 
-                    /* Signal Discovery of Service */
-                    BleServDisc_NewService(peerDeviceId, pCurrentService);
-
-                    /* Move on to the next service */
-                    pInfo->mCurrentServiceInDiscoveryIndex++;
-
-                    /* Reset characteristic discovery */
-                    pInfo->mCurrentCharInDiscoveryIndex = 0;
-                    pInfo->mCurrentDescInDiscoveryIndex = 0;
-                    FLib_MemSet(pInfo->mpCharDescriptorBuffer,
-                                0,
-                                sizeof(gattAttribute_t) * (uint32_t)gMaxCharDescriptorsCount_d);
-                    FLib_MemSet(pInfo->mpCharDiscoveryBuffer,
-                                0,
-                                sizeof(gattCharacteristic_t) * (uint32_t)gMaxServiceCharCount_d);
-
-                    if (pInfo->mCurrentServiceInDiscoveryIndex < pInfo->mcPrimaryServices)
+                    if (earlyReturn == FALSE)
                     {
-                        /* Allocate memory for Char Discovery */
-                        (pInfo->mpServiceDiscoveryBuffer + pInfo->mCurrentServiceInDiscoveryIndex)->aCharacteristics =
-                                                               pInfo->mpCharDiscoveryBuffer;
+                        /* Signal Discovery of Service */
+                        BleServDisc_NewService(peerDeviceId, pCurrentService);
 
-                         /* Start Characteristic Discovery for current service */
-                        (void)GattClient_DiscoverAllCharacteristicsOfService(
-                                peerDeviceId,
-                                pInfo->mpServiceDiscoveryBuffer + pInfo->mCurrentServiceInDiscoveryIndex,
-                                gMaxServiceCharCount_d);
-                    }
-                    else
-                    {
+                        /* Move on to the next service */
+                        pInfo->mCurrentServiceInDiscoveryIndex++;
+
+                        /* Reset characteristic discovery */
+                        pInfo->mCurrentCharInDiscoveryIndex = 0;
+                        pInfo->mCurrentDescInDiscoveryIndex = 0;
+                        FLib_MemSet(pInfo->mpCharDescriptorBuffer,
+                                    0,
+                                    sizeof(gattAttribute_t) * (uint32_t)gMaxCharDescriptorsCount_d);
+                        FLib_MemSet(pInfo->mpCharDiscoveryBuffer,
+                                    0,
+                                    sizeof(gattCharacteristic_t) * (uint32_t)gMaxServiceCharCount_d);
+
+                        if (pInfo->mCurrentServiceInDiscoveryIndex < pInfo->mcPrimaryServices)
+                        {
+                            /* Allocate memory for Char Discovery */
+                            (pInfo->mpServiceDiscoveryBuffer + pInfo->mCurrentServiceInDiscoveryIndex)->aCharacteristics =
+                                                                   pInfo->mpCharDiscoveryBuffer;
+
+                             /* Start Characteristic Discovery for current service */
+                            (void)GattClient_DiscoverAllCharacteristicsOfService(
+                                    peerDeviceId,
+                                    pInfo->mpServiceDiscoveryBuffer + pInfo->mCurrentServiceInDiscoveryIndex,
+                                    gMaxServiceCharCount_d);
+                        }
+                        else
+                        {
 #if defined(gBLE51_d) && (gBLE51_d == 1U) && defined(gGattCaching_d) && (gGattCaching_d == 1U) \
     && defined(gGattAutomaticRobustCachingSupport_d) && (gGattAutomaticRobustCachingSupport_d == 1U)
-                        /* use a dummy nvm index to know when the function is called at the end of service discovery */
-                        (void)GattClient_GetDatabaseHash(peerDeviceId, gInvalidNvmIndex_c);
+                            /* use a dummy nvm index to know when the function is called at the end of service discovery */
+                            (void)GattClient_GetDatabaseHash(peerDeviceId, gInvalidNvmIndex_c);
 #else
-                        BleServDisc_Finished(peerDeviceId, TRUE);
+                            BleServDisc_Finished(peerDeviceId, TRUE);
 #endif /* gGattCaching_d && gBLE51_d */
+                        }
                     }
                 }
                 break;
@@ -455,6 +463,8 @@ void BleServDisc_SignalGattClientEvent
             }
         }
     }
+
+    return;
 }
 
 /*! *********************************************************************************

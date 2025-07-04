@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2021-2023 NXP
+* Copyright 2016-2019, 2021-2023, 2025 NXP
 *
 *
 * \file
@@ -108,24 +108,29 @@ extern uint32_t mServerClientSupportedFeatureIndex;
 ********************************************************************************** */
 bleResult_t GattDb_Init(void)
 {
+    bleResult_t result = gBleSuccess_c;
+
 #if !gGattDbDynamic_d
     static bool_t mAlreadyInit = FALSE;
     if (mAlreadyInit)
     {
-        return gBleAlreadyInitialized_c;
+        result = gBleAlreadyInitialized_c;
     }
-    mAlreadyInit = TRUE;
+    else
+    {
+        mAlreadyInit = TRUE;
 
-    /*! Assign the database size to the global */
-    gGattDbAttributeCount_c = localGattDbAttributeCount_d;
+        /*! Assign the database size to the global */
+        gGattDbAttributeCount_c = localGattDbAttributeCount_d;
 
-    /*! Attribute-specific initialization by X-Macro expansion */
+        /*! Attribute-specific initialization by X-Macro expansion */
 #include "gatt_init_x.h"
-
-    return gBleSuccess_c;
+    }
 #else /* gGattDbDynamic_d */
-    return GattDbDynamic_Init();
+    result = GattDbDynamic_Init();
 #endif /* gGattDbDynamic_d */
+
+    return result;
 }
 
 /*! *********************************************************************************
@@ -160,16 +165,20 @@ bleResult_t GattDb_Deinit(void)
 ********************************************************************************** */
 uint16_t GattDb_GetIndexOfHandle(uint16_t handle)
 {
+    uint16_t result = gGattDbInvalidHandleIndex_d;
     uint16_t init = (handle >= gGattDbAttributeCount_c) ?
                     (gGattDbAttributeCount_c - 1U) : handle;
+
     for (uint16_t j = init; j != 0xFFFFU && gattDatabase[j].handle >= handle; j--)
     {
         if (gattDatabase[j].handle == handle)
         {
-            return j;
+            result = j;
+            break;
         }
     }
-    return gGattDbInvalidHandleIndex_d;
+    
+    return result;
 }
 
 /*! *********************************************************************************

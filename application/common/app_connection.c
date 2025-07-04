@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2021 - 2024 NXP
+* Copyright 2021 - 2025 NXP
 *
 * \file
 *
@@ -177,109 +177,119 @@ void App_ConnectionCallback
 
     pMsgIn = MSG_Alloc(msgLen);
 
-    if (pMsgIn == NULL)
+    if (pMsgIn != NULL)
     {
-        return;
-    }
+        messaging_status_t queueStatus = kMSG_Success;
 
-    pMsgIn->msgType = (uint32_t)gAppGapConnectionMsg_c;
-    pMsgIn->msgData.connMsg.deviceId = peerDeviceId;
+        pMsgIn->msgType = (uint32_t)gAppGapConnectionMsg_c;
+        pMsgIn->msgData.connMsg.deviceId = peerDeviceId;
 
-    if(pConnectionEvent->eventType == gConnEvtKeysReceived_c)
-    {
-        union
+        if(pConnectionEvent->eventType == gConnEvtKeysReceived_c)
         {
-            uint8_t      *pu8;
-            gapSmpKeys_t *pObject;
-        } temp = {0}; /* MISRA rule 11.3 */
+            union
+            {
+                uint8_t      *pu8;
+                gapSmpKeys_t *pObject;
+            } temp = {0}; /* MISRA rule 11.3 */
 
-        gapSmpKeys_t    *pKeys = pConnectionEvent->eventData.keysReceivedEvent.pKeys;
-        uint8_t         *pCursor =
-            (uint8_t*)&pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys;
+            gapSmpKeys_t    *pKeys = pConnectionEvent->eventData.keysReceivedEvent.pKeys;
+            uint8_t         *pCursor =
+                (uint8_t*)&pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys;
 
-        pMsgIn->msgData.connMsg.connEvent.eventType = gConnEvtKeysReceived_c;
-        pCursor += sizeof(void*); /* skip pKeys pointer */
+            pMsgIn->msgData.connMsg.connEvent.eventType = gConnEvtKeysReceived_c;
+            pCursor += sizeof(void*); /* skip pKeys pointer */
 
-        temp.pu8 = pCursor;
-        pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys =
-                   temp.pObject;
+            temp.pu8 = pCursor;
+            pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys =
+                       temp.pObject;
 
-        /* Copy SMP Keys structure */
-        FLib_MemCpy(pCursor,
-                    pConnectionEvent->eventData.keysReceivedEvent.pKeys,
-                    sizeof(gapSmpKeys_t));
-        pCursor += sizeof(gapSmpKeys_t);
+            /* Copy SMP Keys structure */
+            FLib_MemCpy(pCursor,
+                        pConnectionEvent->eventData.keysReceivedEvent.pKeys,
+                        sizeof(gapSmpKeys_t));
+            pCursor += sizeof(gapSmpKeys_t);
 
-        if (pKeys->aLtk != NULL)
+            if (pKeys->aLtk != NULL)
+            {
+                /* Copy LTK */
+                pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->cLtkSize =
+                                    pKeys->cLtkSize;
+                pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->aLtk =
+                                    pCursor;
+                FLib_MemCpy(pCursor, pKeys->aLtk, pKeys->cLtkSize);
+                pCursor += pKeys->cLtkSize;
+
+                /* Copy RAND */
+                pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->cRandSize =
+                                    pKeys->cRandSize;
+                pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->aRand =
+                                    pCursor;
+                FLib_MemCpy(pCursor, pKeys->aRand, pKeys->cRandSize);
+                pCursor += pKeys->cRandSize;
+            }
+
+            if (pKeys->aIrk != NULL)
+            {
+                /* Copy IRK */
+                pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->aIrk =
+                                    pCursor;
+                FLib_MemCpy(pCursor, pKeys->aIrk, gcSmpIrkSize_c);
+                pCursor += gcSmpIrkSize_c;
+
+                /* Copy Address*/
+                pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->addressType =
+                                    pKeys->addressType;
+                pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->aAddress =
+                                    pCursor;
+                FLib_MemCpy(pCursor, pKeys->aAddress, gcBleDeviceAddressSize_c);
+                pCursor += gcBleDeviceAddressSize_c;
+            }
+
+            if (pKeys->aCsrk != NULL)
+            {
+                /* Copy CSRK */
+                pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->aCsrk =
+                                    pCursor;
+                FLib_MemCpy(pCursor, pKeys->aCsrk, gcSmpCsrkSize_c);
+            }
+        }
+        else if (pConnectionEvent->eventType == gConnEvtIqReportReceived_c)
         {
-            /* Copy LTK */
-            pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->cLtkSize =
-                                pKeys->cLtkSize;
-            pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->aLtk =
-                                pCursor;
-            FLib_MemCpy(pCursor, pKeys->aLtk, pKeys->cLtkSize);
-            pCursor += pKeys->cLtkSize;
-
-            /* Copy RAND */
-            pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->cRandSize =
-                                pKeys->cRandSize;
-            pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->aRand =
-                                pCursor;
-            FLib_MemCpy(pCursor, pKeys->aRand, pKeys->cRandSize);
-            pCursor += pKeys->cRandSize;
+            FLib_MemCpy(&pMsgIn->msgData.connMsg.connEvent.eventData.connIqReport,
+                        &pConnectionEvent->eventData.connIqReport,
+                        sizeof(pConnectionEvent->eventData.connIqReport));
+            pMsgIn->msgData.connMsg.connEvent.eventData.connIqReport.aI_samples = (int8_t*)&pMsgIn->msgData + sizeof(connectionMsg_t);
+            FLib_MemCpy(pMsgIn->msgData.connMsg.connEvent.eventData.connIqReport.aI_samples,
+                        pConnectionEvent->eventData.connIqReport.aI_samples,
+                        pConnectionEvent->eventData.connIqReport.sampleCount);
+            pMsgIn->msgData.connMsg.connEvent.eventData.connIqReport.aQ_samples = (int8_t*)&pMsgIn->msgData + sizeof(connectionMsg_t) + pConnectionEvent->eventData.connIqReport.sampleCount;
+            FLib_MemCpy(pMsgIn->msgData.connMsg.connEvent.eventData.connIqReport.aQ_samples,
+                        pConnectionEvent->eventData.connIqReport.aQ_samples,
+                        pConnectionEvent->eventData.connIqReport.sampleCount);
+        }
+        else
+        {
+            FLib_MemCpy(&pMsgIn->msgData.connMsg.connEvent,
+                        pConnectionEvent,
+                        sizeof(gapConnectionEvent_t));
         }
 
-        if (pKeys->aIrk != NULL)
+        /* Put message in the Host Stack to App queue and check status */
+        queueStatus = MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
+        
+        if (queueStatus == kMSG_Success)
         {
-            /* Copy IRK */
-            pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->aIrk =
-                                pCursor;
-            FLib_MemCpy(pCursor, pKeys->aIrk, gcSmpIrkSize_c);
-            pCursor += gcSmpIrkSize_c;
-
-            /* Copy Address*/
-            pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->addressType =
-                                pKeys->addressType;
-            pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->aAddress =
-                                pCursor;
-            FLib_MemCpy(pCursor, pKeys->aAddress, gcBleDeviceAddressSize_c);
-            pCursor += gcBleDeviceAddressSize_c;
+            /* Signal application */
+            (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
         }
-
-        if (pKeys->aCsrk != NULL)
+        else
         {
-            /* Copy CSRK */
-            pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->aCsrk =
-                                pCursor;
-            FLib_MemCpy(pCursor, pKeys->aCsrk, gcSmpCsrkSize_c);
+            /* Free the message if queue operation failed */
+            MSG_Free(pMsgIn);
         }
     }
-    else if (pConnectionEvent->eventType == gConnEvtIqReportReceived_c)
-    {
-        FLib_MemCpy(&pMsgIn->msgData.connMsg.connEvent.eventData.connIqReport,
-                    &pConnectionEvent->eventData.connIqReport,
-                    sizeof(pConnectionEvent->eventData.connIqReport));
-        pMsgIn->msgData.connMsg.connEvent.eventData.connIqReport.aI_samples = (int8_t*)&pMsgIn->msgData + sizeof(connectionMsg_t);
-        FLib_MemCpy(pMsgIn->msgData.connMsg.connEvent.eventData.connIqReport.aI_samples,
-                    pConnectionEvent->eventData.connIqReport.aI_samples,
-                    pConnectionEvent->eventData.connIqReport.sampleCount);
-        pMsgIn->msgData.connMsg.connEvent.eventData.connIqReport.aQ_samples = (int8_t*)&pMsgIn->msgData + sizeof(connectionMsg_t) + pConnectionEvent->eventData.connIqReport.sampleCount;
-        FLib_MemCpy(pMsgIn->msgData.connMsg.connEvent.eventData.connIqReport.aQ_samples,
-                    pConnectionEvent->eventData.connIqReport.aQ_samples,
-                    pConnectionEvent->eventData.connIqReport.sampleCount);
-    }
-    else
-    {
-        FLib_MemCpy(&pMsgIn->msgData.connMsg.connEvent,
-                    pConnectionEvent,
-                    sizeof(gapConnectionEvent_t));
-    }
 
-    /* Put message in the Host Stack to App queue */
-    (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
-
-    /* Signal application */
-    (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+    return;
 }
 
 /************************************************************************************
