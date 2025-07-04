@@ -709,7 +709,7 @@ static bleResult_t App_HostNvmRead
                 }
             }
 
-            (void)MEM_BufferFree(pAppBleNvmReadData);
+            (void)MSG_Free(pAppBleNvmReadData);
             (void)MEM_BufferFree(pBuffer);
         }
         else
@@ -916,7 +916,7 @@ static void nvmCmdWriteHandler
 ********************************************************************************** */
 static void nvmCmdReadHandler(uint8_t opc, uint8_t len, void *pData)
 {
-    appNvmHostReadNotif_t *pAppBleNvmReadData = MEM_BufferAlloc(len);
+    appNvmHostReadNotif_t *pAppBleNvmReadData = MSG_Alloc(len);
     uint8_t *pBuffer = (uint8_t*)pData;
 
     if (pAppBleNvmReadData != NULL)
