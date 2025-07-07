@@ -208,7 +208,7 @@ static messaging_t mAppCbInputQueue;
 /* provide information whether a task is to be process in Idle loop task 
  * Set in BluetoothLEHost_ProcessIdleTask(),  and check in BluetoothLEHost_IsConnectivityTaskToProcess()
  * If the variable is TRUE, the idle loop will schedule once more , the variable shall be set to FALSE to go to WIFI/Lowpower */
-static bool isConnectivityTaskToProcess;
+static bool_t isConnectivityTaskToProcess;
 
 /************************************************************************************
 *************************************************************************************
