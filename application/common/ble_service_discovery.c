@@ -391,23 +391,25 @@ void BleServDisc_SignalGattClientEvent
                             }
                         }
 
-                        /* Made it to the last characteristic. Check against service end handle*/
-                        if (pCurrentChar->value.handle < pCurrentService->endHandle)
+                        if (earlyReturn == FALSE)
                         {
-                            if (pInfo->mCurrentDescInDiscoveryIndex < gMaxCharDescriptorsCount_d)
+                            /* Made it to the last characteristic. Check against service end handle*/
+                            if (pCurrentChar->value.handle < pCurrentService->endHandle)
                             {
-                                pCurrentChar->aDescriptors = pInfo->mpCharDescriptorBuffer +
-                                                             pInfo->mCurrentDescInDiscoveryIndex;
-                                (void)GattClient_DiscoverAllCharacteristicDescriptors(
-                                                        peerDeviceId,
-                                                        pCurrentChar,
-                                                        pCurrentService->endHandle,
-                                                        (uint8_t)(gMaxCharDescriptorsCount_d -
-                                                        pInfo->mCurrentDescInDiscoveryIndex));
-                                /* Skip remaining processing */
-                                earlyReturn = TRUE;
+                                if (pInfo->mCurrentDescInDiscoveryIndex < gMaxCharDescriptorsCount_d)
+                                {
+                                    pCurrentChar->aDescriptors = pInfo->mpCharDescriptorBuffer +
+                                                                 pInfo->mCurrentDescInDiscoveryIndex;
+                                    (void)GattClient_DiscoverAllCharacteristicDescriptors(
+                                                            peerDeviceId,
+                                                            pCurrentChar,
+                                                            pCurrentService->endHandle,
+                                                            (uint8_t)(gMaxCharDescriptorsCount_d -
+                                                            pInfo->mCurrentDescInDiscoveryIndex));
+                                    /* Skip remaining processing */
+                                    earlyReturn = TRUE;
+                                }
                             }
-
                         }
                     }
 
