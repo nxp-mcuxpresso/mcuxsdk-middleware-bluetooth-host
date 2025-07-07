@@ -510,23 +510,26 @@ static bool_t hciGenfskEventHook
 
                     case (uint8_t)mHciVendorLeGenfskReceiveCompleteEvent_c:
                     {
-                        gfskAppEventData_t *pAppData = MEM_BufferAlloc(sizeof(gfskAppEventData_t) + ((uint32_t)parLength - 3U));
-
-                        if (pAppData != NULL)
+                        if (parLength >= 3U)
                         {
-                            pAppData->appEvent = gGfskEvt_MetaEventReceiveComplete_c;
+                            gfskAppEventData_t *pAppData = MEM_BufferAlloc(sizeof(gfskAppEventData_t) + ((uint32_t)parLength - 3U));
 
-                            pAppData->eventData.receiveCompleteData.status = *pPacket;
-                            pPacket++;
-                            pAppData->eventData.receiveCompleteData.RSSI = *pPacket;
-                            pPacket++;
-                            pAppData->eventData.receiveCompleteData.payloadLength = 
+                            if (pAppData != NULL)
+                            {
+                                pAppData->appEvent = gGfskEvt_MetaEventReceiveComplete_c;
+
+                                pAppData->eventData.receiveCompleteData.status = *pPacket;
+                                pPacket++;
+                                pAppData->eventData.receiveCompleteData.RSSI = *pPacket;
+                                pPacket++;
+                                pAppData->eventData.receiveCompleteData.payloadLength = 
                                 parLength - 3U; /* Substract Event Code; Param total Length; Subevent Code */
 
-                            FLib_MemCpy(pAppData->eventData.receiveCompleteData.payload, pPacket, (uint32_t)parLength - 3U);
-                        }
+                                FLib_MemCpy(pAppData->eventData.receiveCompleteData.payload, pPacket, (uint32_t)parLength - 3U);
+                             }
 
-                        (void)App_PostCallbackMessage(GfskApp_EventHandler, (void*)pAppData);
+                                (void)App_PostCallbackMessage(GfskApp_EventHandler, (void*)pAppData);
+                        }
                     }
                     break;
 
@@ -596,8 +599,11 @@ static void GfskApp_EventHandler(void *pGfskAppData)
 
                 if (mbAppGenfskPeriodicTxOn)
                 {
-                    /* Increase the counter at the end to monitor the packet number at rx */
-                    mpGfskTransmitPacket->payload[mpGfskTransmitPacket->payloadLength - 1U] += 1U;
+                    if (mpGfskTransmitPacket->payloadLength > 0U)
+                    {
+                        /* Increase the counter at the end to monitor the packet number at rx */
+                        mpGfskTransmitPacket->payload[mpGfskTransmitPacket->payloadLength - 1U] += 1U;
+                    }
                 }
             }
             break;
