@@ -63,6 +63,10 @@
 #define nvmId_BondingDataLegacyBit_c     BIT3
 #define nvmId_BondingDataDeviceInfoBit_c BIT4
 #define nvmId_BondingDataDescriptorBit_c BIT5
+
+#if (defined(gAppSecureMode_d) && (gAppSecureMode_d == 1U))
+    #error "Advanced Secure Mode is not available for Extended NBU"
+#endif
 /************************************************************************************
 *************************************************************************************
 * Private type definitions
