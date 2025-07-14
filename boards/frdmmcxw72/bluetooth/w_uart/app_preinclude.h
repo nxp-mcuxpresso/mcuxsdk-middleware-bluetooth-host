@@ -51,6 +51,9 @@
 /* Use a Random Static address as identity address, instead of a Public address */
 #define gRandomStaticAddress_d          1
 
+/* Use a Random Static address as identity address, instead of a Public address */
+#define gRandomStaticAddress_d          1
+
 #define gPasskeyValue_c                 999999
 
 #define gWuart_AutoStart_c              0

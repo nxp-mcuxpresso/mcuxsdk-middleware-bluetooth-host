@@ -52,7 +52,11 @@ gapAdvertisingParameters_t gAdvParams =
     /* minInterval */         gGapAdvertisingInterval_050ms_c,
     /* maxInterval */         gGapAdvertisingInterval_100ms_c,
     /* advertisingType */     gAdvConnectableUndirected_c, 
-    /* addressType */         gBleAddrTypePublic_c, 
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* addressType */         gBleAddrTypeRandom_c,
+#else
+    /* addressType */         gBleAddrTypePublic_c,
+#endif
     /* directedAddressType */ gBleAddrTypePublic_c, 
     /* directedAddress */     {0, 0, 0, 0, 0, 0}, 
     /* channelMap */          (gapAdvertisingChannelMapFlags_t) (gGapAdvertisingChannelMapDefault_c), 

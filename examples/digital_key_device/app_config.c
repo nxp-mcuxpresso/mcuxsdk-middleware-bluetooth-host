@@ -39,7 +39,11 @@ gapScanningParameters_t gScanParams =
     /* type */              gScanTypePassive_c,
     /* interval */          gcScanIntervalCCC_c,
     /* window */            gcScanWindowCCC_c,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* ownAddressType */    gBleAddrTypeRandom_c,
+#else
     /* ownAddressType */    gBleAddrTypePublic_c,
+#endif
     /* filterPolicy */      (uint8_t)gScanAll_c,
     /* scanning PHY */      (uint8_t)( gLePhy1MFlag_c | gLePhyCodedFlag_c )
 };
@@ -50,7 +54,11 @@ gapConnectionRequestParameters_t gConnReqParams =
     .scanInterval = gcScanIntervalCCC_c,
     .scanWindow = gcScanWindowCCC_c,
     .filterPolicy = (uint8_t)gUseDeviceAddress_c,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    .ownAddressType = gBleAddrTypeRandom_c,
+#else
     .ownAddressType = gBleAddrTypePublic_c,
+#endif
     .connIntervalMin = gcConnectionIntervalCCC_c,
     .connIntervalMax = gcConnectionIntervalCCC_c,
     .connLatency = 0,

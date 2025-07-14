@@ -70,7 +70,11 @@ gapAdvertisingParameters_t gAdvParams = {
     /* minInterval */         0x12C0,
     /* maxInterval */         0x1900,
     /* advertisingType */     gAdvConnectableUndirected_c,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* addressType */         gBleAddrTypeRandom_c,
+#else
     /* addressType */         gBleAddrTypePublic_c,
+#endif
     /* directedAddressType */ gBleAddrTypePublic_c,
     /* directedAddress */     {0, 0, 0, 0, 0, 0},
     /* channelMap */          (gapAdvertisingChannelMapFlags_t) (gGapAdvertisingChannelMapDefault_c),
@@ -83,8 +87,12 @@ gapExtAdvertisingParameters_t gExtAdvParamsLegacy =
     /* SID */                       (uint8_t)mLegacyAdvSetId_c, \
     /* handle */                    0xff, \
     /* minInterval */               800 /* 500 ms */, \
-    /* maxInterval */               1600 /* 1 s */, \
-    /* ownAddrType */               gBleAddrTypePublic_c,\
+    /* maxInterval */               1600 /* 1 s */,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* ownAddressType */            gBleAddrTypeRandom_c,
+#else
+    /* ownAddressType */            gBleAddrTypePublic_c,
+#endif
     /* ownAddress */                {0, 0, 0, 0, 0, 0}, \
     /* peerAddrType */              gBleAddrTypePublic_c,\
     /* peerAddress */               {0, 0, 0, 0, 0, 0}, \
@@ -136,8 +144,12 @@ gapExtAdvertisingParameters_t gExtAdvParamsScannable =
     /* SID */                       (uint8_t)mExtAdvScannableSetId_c, \
     /* handle */                    0xff, \
     /* minInterval */               1600 /* 1 s */, \
-    /* maxInterval */               3200 /* 2 s */, \
-    /* ownAddrType */               gBleAddrTypePublic_c,\
+    /* maxInterval */               3200 /* 2 s */,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* ownAddressType */            gBleAddrTypeRandom_c,
+#else
+    /* ownAddressType */            gBleAddrTypePublic_c,
+#endif
     /* ownAddress */                {0, 0, 0, 0, 0, 0}, \
     /* peerAddrType */              gBleAddrTypePublic_c,\
     /* peerAddress */               {0, 0, 0, 0, 0, 0}, \
@@ -215,8 +227,12 @@ gapExtAdvertisingParameters_t gExtAdvParamsConnectable =
     /* SID */                       (uint8_t)mExtAdvConnectableSetId_c, \
     /* handle */                    0xff, \
     /* minInterval */               1600 /* 1 s */, \
-    /* maxInterval */               3200 /* 2 s */, \
-    /* ownAddrType */               gBleAddrTypePublic_c,\
+    /* maxInterval */               3200 /* 2 s */,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* ownAddressType */            gBleAddrTypeRandom_c,
+#else
+    /* ownAddressType */            gBleAddrTypePublic_c,
+#endif
     /* ownAddress */                {0, 0, 0, 0, 0, 0}, \
     /* peerAddrType */              gBleAddrTypePublic_c,\
     /* peerAddress */               {0, 0, 0, 0, 0, 0}, \
@@ -266,8 +282,12 @@ gapExtAdvertisingParameters_t gExtAdvParamsNonConnNonScann =
     /* SID */                       (uint8_t)mExtAdvNonConnNonScannSetId_c, \
     /* handle */                    0xff, \
     /* minInterval */               1600 /* 41.875 ms */, \
-    /* maxInterval */               3200 /* 42.5 ms */, \
-    /* ownAddrType */               gBleAddrTypePublic_c,\
+    /* maxInterval */               3200 /* 42.5 ms */,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* ownAddressType */            gBleAddrTypeRandom_c,
+#else
+    /* ownAddressType */            gBleAddrTypePublic_c,
+#endif
     /* ownAddress */                {0, 0, 0, 0, 0, 0}, \
     /* peerAddrType */              gBleAddrTypePublic_c,\
     /* peerAddress */               {0, 0, 0, 0, 0, 0}, \
@@ -288,8 +308,12 @@ gapExtAdvertisingParameters_t gDbafParamsScannable =
     /* SID */                       (uint8_t)mExtAdvScannableSetId_c, \
     /* handle */                    0xff, \
     /* minInterval */               1600 /* 1 s */, \
-    /* maxInterval */               3200 /* 2 s */, \
-    /* ownAddrType */               gBleAddrTypePublic_c,\
+    /* maxInterval */               3200 /* 2 s */,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* ownAddressType */            gBleAddrTypeRandom_c,
+#else
+    /* ownAddressType */            gBleAddrTypePublic_c,
+#endif
     /* ownAddress */                {0, 0, 0, 0, 0, 0}, \
     /* peerAddrType */              gBleAddrTypePublic_c,\
     /* peerAddress */               {0, 0, 0, 0, 0, 0}, \
@@ -309,8 +333,12 @@ gapExtAdvertisingParameters_t gDbafParamsConnectable =
     /* SID */                       (uint8_t)mExtAdvConnectableSetId_c, \
     /* handle */                    0xff, \
     /* minInterval */               1600 /* 1 s */, \
-    /* maxInterval */               3200 /* 2 s */, \
-    /* ownAddrType */               gBleAddrTypePublic_c,\
+    /* maxInterval */               3200 /* 2 s */,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* ownAddressType */            gBleAddrTypeRandom_c,
+#else
+    /* ownAddressType */            gBleAddrTypePublic_c,
+#endif
     /* ownAddress */                {0, 0, 0, 0, 0, 0}, \
     /* peerAddrType */              gBleAddrTypePublic_c,\
     /* peerAddress */               {0, 0, 0, 0, 0, 0}, \
@@ -330,8 +358,12 @@ gapExtAdvertisingParameters_t gDbafParamsNonConnNonScann =
     /* SID */                       (uint8_t)mExtAdvNonConnNonScannSetId_c, \
     /* handle */                    0xff, \
     /* minInterval */               1600 /* 41.875 ms */, \
-    /* maxInterval */               3200 /* 42.5 ms */, \
-    /* ownAddrType */               gBleAddrTypePublic_c,\
+    /* maxInterval */               3200 /* 42.5 ms */,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* ownAddressType */            gBleAddrTypeRandom_c,
+#else
+    /* ownAddressType */            gBleAddrTypePublic_c,
+#endif
     /* ownAddress */                {0, 0, 0, 0, 0, 0}, \
     /* peerAddrType */              gBleAddrTypePublic_c,\
     /* peerAddress */               {0, 0, 0, 0, 0, 0}, \
@@ -561,7 +593,11 @@ gapPeriodicAdvertisingSubeventData_t gAppPAWRSubeventsData =
 /* Default Connection Request Parameters */
 gapConnectionFromPawrParameters_t gConnFromPAWRReqParams =
 {
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    .ownAddressType = gBleAddrTypeRandom_c,
+#else
     .ownAddressType = gBleAddrTypePublic_c,
+#endif
     .connIntervalMin = gcConnectionIntervalMinDefault_c,
     .connIntervalMax = gcConnectionIntervalMinDefault_c,
     .connLatency = 0,

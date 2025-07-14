@@ -47,11 +47,10 @@ gapAdvertisingParameters_t gAdvParams = {
     /* advertisingType */     gAdvConnectableUndirected_c,
 #if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
     /* addressType */         gBleAddrTypeRandom_c,
-    /* directedAddressType */ gBleAddrTypeRandom_c,
 #else
     /* addressType */         gBleAddrTypePublic_c,
-    /* directedAddressType */ gBleAddrTypePublic_c,
 #endif
+    /* directedAddressType */ gBleAddrTypePublic_c,
     /* directedAddress */     {0, 0, 0, 0, 0, 0},
     /* channelMap */          (gapAdvertisingChannelMapFlags_t) (gGapAdvertisingChannelMapDefault_c),
     /* filterPolicy */        gProcessAll_c

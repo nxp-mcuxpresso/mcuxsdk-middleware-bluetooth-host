@@ -44,7 +44,11 @@ gapAdvertisingParameters_t gAdvParams = {
     /* minInterval */         gGapAdvertisingIntervalRangeMinimum_c,
     /* maxInterval */         gGapAdvertisingIntervalRangeMinimum_c,
     /* advertisingType */     gAdvConnectableUndirected_c,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* addressType */         gBleAddrTypeRandom_c,
+#else
     /* addressType */         gBleAddrTypePublic_c,
+#endif
     /* directedAddressType */ gBleAddrTypePublic_c,
     /* directedAddress */     {0, 0, 0, 0, 0, 0},
     /* channelMap */          (gapAdvertisingChannelMapFlags_t) (gGapAdvertisingChannelMapDefault_c),
@@ -88,7 +92,11 @@ gapScanningParameters_t gScanParams =
     /* type */              gScanTypeActive_c,
     /* interval */          gGapScanIntervalDefault_d,
     /* window */            gGapScanWindowDefault_d,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* ownAddressType */    gBleAddrTypeRandom_c,
+#else
     /* ownAddressType */    gBleAddrTypePublic_c,
+#endif
     /* filterPolicy */      gScanAll_c,
     /* scanning PHY */      gLePhy1MFlag_c
 };
@@ -99,7 +107,11 @@ gapConnectionRequestParameters_t gConnReqParams =
     .scanInterval = 36,
     .scanWindow = 18,
     .filterPolicy = gUseDeviceAddress_c,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    .ownAddressType = gBleAddrTypeRandom_c,
+#else
     .ownAddressType = gBleAddrTypePublic_c,
+#endif
     .connIntervalMin = 16,
     .connIntervalMax = 16,
     .connLatency = 0,

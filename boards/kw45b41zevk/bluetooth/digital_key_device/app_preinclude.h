@@ -42,6 +42,9 @@
 /*! Enable/disable use of privacy */
 #define gAppUsePrivacy_d                1
 
+/* Use a Random Static address as identity address, instead of a Public address */
+#define gRandomStaticAddress_d          1
+
 /*! Repeated Attempts - Mitigation for pairing attacks */
 #define gRepeatedAttempts_d             0
 
