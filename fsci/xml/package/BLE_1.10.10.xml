@@ -14782,6 +14782,47 @@
         </CmdParms>
       </Cmd>
       <Cmd>
+        <CmdName>GAP-SetBondedDeviceName.Request</CmdName>
+        <CmdDesc>Saves the name of a bonded device</CmdDesc>
+        <CmdHeader>4C 15</CmdHeader>
+        <CmdParms>
+          <Parm>
+            <ParmName>NvmIndex</ParmName>
+            <ParmDesc>Index of the device in NVM bonding area</ParmDesc>
+            <ParmSize>1</ParmSize>
+            <ParmType>tInt</ParmType>
+            <ParmLastValue>00</ParmLastValue>
+            <ParmDefaultValue>00</ParmDefaultValue>
+          </Parm>
+          <Parm>
+            <ParmName>NameSize</ParmName>
+            <ParmDesc>Number of characters to be saved</ParmDesc>
+            <ParmSize>1</ParmSize>
+            <ParmType>tInt</ParmType>
+            <ParmLastValue>01</ParmLastValue>
+            <ParmDefaultValue>01</ParmDefaultValue>
+            <ParmTypeSpecifics>
+              <ParmRange>0x01-0xFF</ParmRange>
+            </ParmTypeSpecifics>
+          </Parm>
+          <Parm>
+            <ParmName>Name</ParmName>
+            <ParmDesc>Array of characters holding the name</ParmDesc>
+            <ParmSize>1</ParmSize>
+            <ParmType>tArray</ParmType>
+            <ParmLastValue>00</ParmLastValue>
+            <ParmDefaultValue>00</ParmDefaultValue>
+            <ParmTypeSpecifics>
+              <Depend>
+                <DependName>NameSize</DependName>
+                <DependMask>0xFF</DependMask>
+                <DependShift>0x00</DependShift>
+              </Depend>
+            </ParmTypeSpecifics>
+          </Parm>
+        </CmdParms>
+      </Cmd>
+      <Cmd>
         <CmdName>GAP-RemoveBond.Request</CmdName>
         <CmdDesc>Removes the bond with a device</CmdDesc>
         <CmdHeader>48 2A</CmdHeader>
