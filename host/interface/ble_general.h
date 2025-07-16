@@ -33,7 +33,7 @@
 *************************************************************************************
 ************************************************************************************/
 /* Maximum number of Advertising sets handled by the Host tables. */
-#define gMaxAdvSets_c                           2U
+#define gMaxAdvSets_c                               4U
 
 #define gInvalidDeviceId_c                          (0xFFU)
 #define gInvalidNvmIndex_c                          (0xFFU)
