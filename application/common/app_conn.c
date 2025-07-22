@@ -1409,27 +1409,35 @@ void BluetoothLEHost_ProcessIdleTask(void)
     RadioIdleDuration32Ktick = PLATFORM_GetRadioIdleDuration32K();
 
     /* On some platforms (mcxw23) , make sure the Radio is in Idle state for minimal given time gAppIdle_FlashWriteEraseMinimalTimeMs_c 
-          to allow write/erase operation into flash. gAppIdle_FlashWriteEraseMinimalTimeMs_c can be adjusted in app_preinclude.h
-       Platforms which have a dedicated Radio core with dedicated Flash (kw45, kw47, mcxw71, mcxw72) will have RadioIdleDuration32Ktick 
-          to PLATFORM_RADIO_IDLE_FOREVER so the condition will will always be true
-    */
+     * to allow write/erase operation into flash. gAppIdle_FlashWriteEraseMinimalTimeMs_c can be adjusted in app_preinclude.h
+     * Platforms which have a dedicated Radio core with dedicated Flash (kw45, kw47, mcxw71, mcxw72) will have RadioIdleDuration32Ktick
+     * to PLATFORM_RADIO_IDLE_FOREVER so the condition will always be true
+     */
+
     if (RadioIdleDuration32Ktick > CONVERT_MS_2_32Kticks(gAppIdle_FlashWriteEraseMinimalTimeMs_c))
     {
-
-#if defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)
-        if(NvIdle() == 0)
-#endif /* gAppUseNvm_d */
+        do
         {
-#if defined (gAppOtaASyncFlashTransactions_c) && (gAppOtaASyncFlashTransactions_c > 0)
-            if (OTA_TransactionResume() == 0)
-#endif
+#if defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)
+            if(NvIsPendingOperation())
             {
-                /* no operation were carried on this time => no more task to process in Idle loop
-                 * Allow WFI/Low-power */
-                isConnectivityTaskToProcess = FALSE;
+                (void)NvIdle();
+                break;
             }
-        }
+#endif
+#if defined (gAppOtaASyncFlashTransactions_c) && (gAppOtaASyncFlashTransactions_c > 0)
+            if (OTA_IsTransactionPending())
+            {
+                (void)OTA_TransactionResume();
+                break;
+            }
+#endif
+            /* no operation was carried on this time and no more task to process in Idle loop
+             * Allow WFI/Low-power */
+            isConnectivityTaskToProcess = FALSE;
+        } while(false);
     }
+
     else
     {
         /* As radio is active, or will be active soon, there is no enough time to carry on any task 
