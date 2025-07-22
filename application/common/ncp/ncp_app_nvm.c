@@ -1192,6 +1192,7 @@ static bleResult_t App_HostNvmWrite
             
             /* Send request to Host */
             status = App_FsciBleNvmDataReq(gAppBleNvmCbCmdWriteOpCode_c, mEntryIdx, datasetBitmask, descriptorBitmask, nvmDataSize, pNvmData);
+            (void)MEM_BufferFree(pNvmData);
         }
         else
         {
