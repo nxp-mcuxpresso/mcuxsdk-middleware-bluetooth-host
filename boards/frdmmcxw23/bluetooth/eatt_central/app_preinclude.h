@@ -111,7 +111,7 @@
 /* The size used for the Idle task, in dwords. */
 #define configMINIMAL_STACK_SIZE        100
 
-#define SHELL_TASK_STACK_SIZE           300
+#define SHELL_TASK_STACK_SIZE           500
 
 #endif
 /*! *********************************************************************************
