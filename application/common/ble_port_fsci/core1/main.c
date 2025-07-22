@@ -387,6 +387,21 @@ int __main(void)
     return 0;
 }
 
+/*! *********************************************************************************
+*\fn           void SystemInitHook (void)
+*\brief        Used for application specific system initialization options.
+*
+*\param  [in]  none
+*
+*\retval       void.
+********************************************************************************** */
+void SystemInitHook (void)
+{
+    /* Update SMU/DMEM split to 64KB/96KB from the default configuration of 80KB/80KB */
+    RF_CMC1->RAM_MUX_CTRL = RF_CMC1_RAM_MUX_CTRL_UNLOCK(0x5);
+    RF_CMC1->RAM_MUX_CTRL = RF_CMC1_RAM_MUX_CTRL_SMU_MEM_SEL(0x3F0);
+}
+
 /************************************************************************************
 *************************************************************************************
 * Private functions
