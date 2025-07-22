@@ -4,6 +4,27 @@ All notable changes to NXP Bluetooth LE Host will be documented in this file.
 
 **NXP Bluetooth LE Host** is certified **Bluetooth 6.0**
 
+## [1.10.10] - mcux v2025-09-00-pvw2
+
+### Improved
+
+- **CS Event Handling**: CS (Channel Sounding) events are now sent to the application task for processing, 
+	rather than being handled directly in the Host task
+- Various sample applications have been updated
+
+### Fixed
+
+- Bluetooth Advertising Sets: Now supports **4 advertising** sets in the Bluetooth host libraries
+- Various sample applications bug fixes applied
+
+### Changed
+
+- Bluetooth Address Type: The default address type has been changed from **Public to Random Static**
+
+### Supported Platforms
+
+- KW45, KW47, MCXW71, MCXW72, MCXW23
+
 ## [1.10.9] - mcux v2025-09-00-pvw1
 
 ### Added
