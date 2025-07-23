@@ -15,4 +15,5 @@ NXP Bluetooth LE Host and Sample Applications
   Bluetooth Low Energy Demo Applications User Guide <doc/Bluetooth Low Energy Demo Applications Users Guide/Bluetooth Low Energy Demo Applications Users Guide.md>
   Bluetooth Low Energy CCC Digital Key R3 Application Note <doc/Bluetooth Low Energy CCC Digital Key Application Note/Bluetooth Low Energy CCC Digital Key Application Note.md>
   Bluetooth Low Energy Host Stack FSCI Application Programming <doc/Bluetooth Low Energy Host Stack FSCI Application Programming/Bluetooth Low Energy Host Stack FSCI Application Programming.md>
+  Bluetooth Low Energy Connection Handover <doc/Bluetooth Low Energy Connection Handover/Bluetooth Low Energy Connection Handover.md>
   doc/Bluetooth Low Energy Host Stack API Reference Manual/doxy.rst
