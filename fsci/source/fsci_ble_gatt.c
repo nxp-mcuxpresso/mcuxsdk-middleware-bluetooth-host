@@ -2714,6 +2714,14 @@ static void HandleGattCmdClientDiscoverAllCharacteristicDescriptorsOpCode(uint8_
             /* Allocate buffer for the descriptors */
             pOutDescriptors = fsciBleGattClientAllocOutOrIoAttributes(maxDescriptorCount, deviceId, gUnenhancedBearerId_c);
         }
+        else
+        {
+            /* Invalid maxDescriptorCount */
+            /* Free memory allocated for GATT service */
+            fsciBleGattClientEraseTmpInfo(TRUE, deviceId, gUnenhancedBearerId_c);
+            /* Send error status */
+            fsciBleGattStatusMonitor(gBleInvalidParameter_c);
+        }
 
         if(NULL != pOutDescriptors)
         {
@@ -3785,6 +3793,14 @@ static void HandleGattCmdClientEnhancedFindIncludedServicesOpCode(uint8_t *pBuff
             /* Allocate buffer for the included services */
             pOutIncludedServices = fsciBleGattClientAllocOutOrIoIncludedServices(maxIncludedServiceCount, deviceId, bearerId);
         }
+        else
+        {
+            /* Invalid maxIncludedServiceCount */
+            /* Free memory allocated for GATT service */
+            fsciBleGattClientEraseTmpInfo(TRUE, deviceId, bearerId);
+            /* Send error status */
+            fsciBleGattStatusMonitor(gBleInvalidParameter_c);
+        }
 
         if(NULL != pOutIncludedServices)
         {
@@ -3960,6 +3976,14 @@ static void HandleGattCmdClientEnhancedDiscoverAllCharacteristicDescriptorsOpCod
         {
             /* Allocate buffer for the descriptors */
             pOutDescriptors = fsciBleGattClientAllocOutOrIoAttributes(maxDescriptorCount, deviceId, bearerId);
+        }
+        else
+        {
+            /* Invalid maxDescriptorCount */
+            /* Free memory allocated for GATT service */
+            fsciBleGattClientEraseTmpInfo(TRUE, deviceId, bearerId);
+            /* Send error status */
+            fsciBleGattStatusMonitor(gBleInvalidParameter_c);
         }
 
         if(NULL != pOutDescriptors)
