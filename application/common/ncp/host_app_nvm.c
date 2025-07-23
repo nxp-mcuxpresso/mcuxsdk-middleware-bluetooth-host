@@ -34,6 +34,24 @@
 * Public macros
 *************************************************************************************
 ********************************************************************************** */
+/*!
+ * Enable/disable use NV flash procedures for operations triggered by the host stack
+ * Do not modify directly. Redefine it in the app_preinclude.h file
+ */
+#ifndef gAppUseNvm_d
+#define gAppUseNvm_d                    (FALSE)
+#endif /* gAppUseNvm_d */
+
+/*!
+ * When Advanced Secure Mode is not used, write into NVM only the 16 bytes of the
+ * plaintext IRK.
+ */
+#if (defined(gAppSecureMode_d) && (gAppSecureMode_d == FALSE))
+#define gIdentityHeaderOverhead_c      24U
+#else
+#define gIdentityHeaderOverhead_c       0U
+#endif /* gAppSecureMode_d */
+
 #if gAppUseNvm_d
 /* Host BLE NVM command/event ids */
 /* FSCI requests */
@@ -130,7 +148,7 @@ static bleBondDataDescriptorBlob_t*  aBondingDataDescriptor[gMaxBondedDevices_c 
 
 NVM_RegisterDataSet(aBondingHeader,
                     gMaxBondedDevices_c,
-                    (gBleBondIdentityHeaderSize_c),
+                    (gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c),
                     nvmId_BondingHeaderId_c,
                     (uint16_t)gNVM_NotMirroredInRamAutoRestore_c);
 NVM_RegisterDataSet(aBondingDataDynamic,
@@ -573,7 +591,7 @@ static bleResult_t App_NvmWrite
                     {
                         ppNvmData = (void**)&aBondingHeader[mEntryIdx];
                         pRamData  = pBondHeader;
-                        mSize     = gBleBondIdentityHeaderSize_c;
+                        mSize     = gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c;
                     }
                 }
                 break;
@@ -770,7 +788,7 @@ static bleResult_t App_NvmRead
                     {
                         ppNvmData = (void**)&aBondingHeader[mEntryIdx];
                         pRamData  = pBondHeader;
-                        mSize     = gBleBondIdentityHeaderSize_c;
+                        mSize     = gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c;
 
                         if((NULL != ppNvmData) && (NULL != *ppNvmData))
                         {
@@ -931,7 +949,7 @@ static void App_NvmHostRead(void *pData)
     uint32_t descriptorBitmask = pNvmReq->descriptorBitmask;
 
     /* Buffers for requested data sets */
-    uint8_t aBondHeader[gBleBondIdentityHeaderSize_c] = {0U};
+    uint8_t aBondHeader[gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c] = {0U};
     uint8_t aBondDataDynamic[gBleBondDataDynamicSize_c] = {0U};
     uint8_t aBondDataStatic[gBleBondDataStaticSize_c] = {0U};
     uint8_t aBondDataLegacy[gBleBondDataLegacySize_c] = {0U};
@@ -980,7 +998,7 @@ static void App_NvmHostRead(void *pData)
     /* Calculate the size of the NVM data */
     if (readDatasetBitmask & nvmId_BondingHeaderBit_c)
     {
-        nvmDataSize += (gBleBondIdentityHeaderSize_c);
+        nvmDataSize += (gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
     }
     if (readDatasetBitmask & nvmId_BondingDataDynamicBit_c)
     {
@@ -1023,8 +1041,8 @@ static void App_NvmHostRead(void *pData)
         {
             if (readDatasetBitmask & nvmId_BondingHeaderBit_c)
             {
-                FLib_MemCpy(pDataIndex, aBondHeader, (gBleBondIdentityHeaderSize_c));
-                pDataIndex += (gBleBondIdentityHeaderSize_c);
+                FLib_MemCpy(pDataIndex, aBondHeader, (gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c));
+                pDataIndex += (gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
             }
             if (readDatasetBitmask & nvmId_BondingDataDynamicBit_c)
             {
@@ -1086,7 +1104,7 @@ static void App_NvmHostWrite(void *pData)
     if (datasetBitmask & nvmId_BondingHeaderBit_c)
     {
         pBondHeader = pNvmData;
-        pNvmData += (gBleBondIdentityHeaderSize_c);
+        pNvmData += (gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
     }
     if (datasetBitmask & nvmId_BondingDataDynamicBit_c)
     {

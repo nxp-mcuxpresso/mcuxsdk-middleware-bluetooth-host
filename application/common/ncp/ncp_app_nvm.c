@@ -24,6 +24,24 @@
 * Public macros
 *************************************************************************************
 ********************************************************************************** */
+/*!
+ * Enable/disable use NV flash procedures for operations triggered by the host stack
+ * Do not modify directly. Redefine it in the app_preinclude.h file
+ */
+#ifndef gAppUseNvm_d
+#define gAppUseNvm_d                    (FALSE)
+#endif /* gAppUseNvm_d */
+
+/*!
+ * When Advanced Secure Mode is not used, write into NVM only the 16 bytes of the
+ * plaintext IRK.
+ */
+#if (defined(gAppSecureMode_d) && (gAppSecureMode_d == FALSE))
+#define gIdentityHeaderOverhead_c      24U
+#else
+#define gIdentityHeaderOverhead_c       0U
+#endif /* gAppSecureMode_d */
+
 /* NCP BLE NVM command/event ids */
 /* FSCI group */
 #define gFsciAppBleNvmCbOpcodeGroup_c   0x4D
@@ -85,7 +103,7 @@ typedef struct appNvmHostReadNotif_tag
 ************************************************************************************/
 #if (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U))
 static bleNcpBondDataBlob_t          maBondDataBlobs[gMaxBondedDevices_c] = {{{{0}}}};
-#define gNcpBondDataEntrySize_c ((gBleBondIdentityHeaderSize_c + 3U) / sizeof(uint32_t) +\
+#define gNcpBondDataEntrySize_c ((gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c + 3U) / sizeof(uint32_t) +\
                                 (gBleBondDataDynamicSize_c + 3U) / sizeof(uint32_t) +\
                                 (gBleBondDataStaticSize_c + 3U) / sizeof(uint32_t) +\
                                 (gBleBondDataLegacySize_c + 3U) / sizeof(uint32_t) +\
@@ -229,7 +247,7 @@ bleResult_t App_NvmWrite
 #if (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U))
         if(pBondHeader != NULL)
         {
-            FLib_MemCpy(&maBondDataBlobs[mEntryIdx].bondHeader, pBondHeader, gBleBondIdentityHeaderSize_c );
+            FLib_MemCpy(&maBondDataBlobs[mEntryIdx].bondHeader, pBondHeader, gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
             maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask |= nvmId_BondingHeaderBit_c;
             maBondDataBlobs[mEntryIdx].bondDataSetValidHostBitmask &= ~nvmId_BondingHeaderBit_c;
         }
@@ -285,7 +303,7 @@ bleResult_t App_NvmWrite
 #else /* (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U)) */
         if(pBondHeader != NULL)
         {
-            FLib_MemCpy(&maBondDataBlobs[mEntryIdx].bondHeader, pBondHeader, gBleBondIdentityHeaderSize_c);
+            FLib_MemCpy(&maBondDataBlobs[mEntryIdx].bondHeader, pBondHeader, gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
         }
         
         if(pBondDataDynamic != NULL)
@@ -388,7 +406,7 @@ bleResult_t App_NvmRead
         {
             if (maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask & nvmId_BondingHeaderBit_c)
             {
-                FLib_MemCpy(pBondHeader, &maBondDataBlobs[mEntryIdx].bondHeader, gBleBondIdentityHeaderSize_c);
+                FLib_MemCpy(pBondHeader, &maBondDataBlobs[mEntryIdx].bondHeader, gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
             }
             else
             {
@@ -469,7 +487,7 @@ bleResult_t App_NvmRead
 #else /* (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U)) */
         if(pBondHeader != NULL)
         {
-            FLib_MemCpy(pBondHeader, &maBondDataBlobs[mEntryIdx].bondHeader, gBleBondIdentityHeaderSize_c);
+            FLib_MemCpy(pBondHeader, &maBondDataBlobs[mEntryIdx].bondHeader, gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
         }
         
         if(pBondDataDynamic != NULL)
@@ -637,8 +655,8 @@ bleResult_t App_HostNvmRead
             {
                 if (*pDataSetBitmask & nvmId_BondingHeaderBit_c)
                 {
-                    FLib_MemCpy(pBondHeader, pNvmData, (gBleBondIdentityHeaderSize_c));
-                    pNvmData += (gBleBondIdentityHeaderSize_c);
+                    FLib_MemCpy(pBondHeader, pNvmData, (gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c));
+                    pNvmData += (gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
                 }
                 if (*pDataSetBitmask & nvmId_BondingDataDynamicBit_c)
                 {
@@ -1102,7 +1120,7 @@ static bleResult_t App_HostNvmWrite
         if(pBondHeader != NULL)
         {
             datasetBitmask |= nvmId_BondingHeaderBit_c;
-            nvmDataSize += (gBleBondIdentityHeaderSize_c);
+            nvmDataSize += (gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
         }
         
         if(pBondDataDynamic != NULL)
@@ -1153,8 +1171,8 @@ static bleResult_t App_HostNvmWrite
             
             if (datasetBitmask & nvmId_BondingHeaderBit_c)
             {
-                FLib_MemCpy(pData, pBondHeader, (gBleBondIdentityHeaderSize_c));
-                pData += (gBleBondIdentityHeaderSize_c);
+                FLib_MemCpy(pData, pBondHeader, (gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c));
+                pData += (gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
             }
             if (datasetBitmask & nvmId_BondingDataDynamicBit_c)
             {
