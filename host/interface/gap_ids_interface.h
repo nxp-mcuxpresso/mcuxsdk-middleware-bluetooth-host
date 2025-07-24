@@ -112,9 +112,8 @@ typedef void(*idsCallback_t)(idsEventData_t *pEventData);
 * Public memory declarations
 *************************************************************************************
 ************************************************************************************/
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
 extern uint32_t gIdsMask;
-#endif
+
 /************************************************************************************
 *************************************************************************************
 * Public prototypes
@@ -126,17 +125,16 @@ extern "C" {
 #endif
 
 /*!*************************************************************************************************
-*\fn     bleResult_t IDS_RegisterCallback(idsCallback_t pfCallback, uint32_t bitmask)
+*\fn     void IDS_RegisterCallback(idsCallback_t pfCallback, uint32_t bitmask)
 
 *\brief  Enable/disable the IDS events reporting.
 *
 *\param [in] pfCallback     The callback used to report events
 *\param [in] bitMask        Mask of bits, specifying which events will be reported.
 *
-*\retval gBleSuccess_c             Callback successfully registered.
-*\retval gBleFeatureNotSupported_c Feature is not supported at Host level.
+*\return                    None
 ***************************************************************************************************/
-bleResult_t IDS_RegisterCallback(idsCallback_t pfCallback, uint32_t bitMask);
+void IDS_RegisterCallback(idsCallback_t pfCallback, uint32_t bitMask);
 
 /*!*************************************************************************************************
 *\fn     void IDS_TriggerCallback(deviceId_t deviceId, idsEventType_t eventType)
