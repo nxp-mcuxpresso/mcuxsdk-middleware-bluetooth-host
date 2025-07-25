@@ -44,7 +44,7 @@
 * Public memory declarations
 *************************************************************************************
 ************************************************************************************/
-
+bleDeviceAddress_t gaBleDeviceAddress;
 #if defined(__CC_ARM)
 /* These  definitions are used only by the demo applications which do not have
  * advertisement capabilities in order to fix Keil compilation errors.
@@ -126,7 +126,6 @@ STATIC void BleConnManager_GapCentralEventEvtKeyExchangeRequest
 * Private memory declarations
 *************************************************************************************
 ************************************************************************************/
-static bleDeviceAddress_t   maBleDeviceAddress;
 STATIC leSupportedFeatures_t             mSupportedFeatures;
 
 #if (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
@@ -227,12 +226,12 @@ void BleConnManager_GenericEvent(gapGenericEvent_t* pGenericEvent)
         case gPublicAddressRead_c:
         {
             /* Use address read from the controller */
-            FLib_MemCpy(maBleDeviceAddress,
+            FLib_MemCpy(gaBleDeviceAddress,
                         pGenericEvent->eventData.aAddress,
                         sizeof(bleDeviceAddress_t));
 #if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
             gSmpKeys.addressType = gBleAddrTypePublic_c;
-            gSmpKeys.aAddress = maBleDeviceAddress;
+            gSmpKeys.aAddress = gaBleDeviceAddress;
 #endif /* gAppUsePairing_d */
         }
         break;
@@ -1096,10 +1095,10 @@ bleResult_t BleConnManager_DisablePrivacy(void)
 void BleConnManager_GapCommonConfig(void)
 {
 #if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
-    /* maBleDeviceAddress already created in BleConnManager_MCUInfoToRandomStaticAddress - set it */
-    (void)Gap_SetRandomAddress(maBleDeviceAddress);
+    /* gaBleDeviceAddress already created in BleConnManager_MCUInfoToRandomStaticAddress - set it */
+    (void)Gap_SetRandomAddress(gaBleDeviceAddress);
 #else
-    /* Read public address from controller - maBleDeviceAddress will be populated on event */
+    /* Read public address from controller - gaBleDeviceAddress will be populated on event */
     (void)Gap_ReadPublicDeviceAddress();
 #endif /* gRandomStaticAddress_d */
 
@@ -1183,13 +1182,13 @@ STATIC void BleConnManager_MCUInfoToRandomStaticAddress(void)
        to avoid collision with other keys generated from this hash */
     PLATFORM_GetMCUUid (uid, &len);
     SHA256_Hash (uid, len, sha256Output);
-    FLib_MemCpy(maBleDeviceAddress, &(sha256Output[SHA256_HASH_SIZE - gcBleDeviceAddressSize_c]), gcBleDeviceAddressSize_c);
+    FLib_MemCpy(gaBleDeviceAddress, &(sha256Output[SHA256_HASH_SIZE - gcBleDeviceAddressSize_c]), gcBleDeviceAddressSize_c);
 
     /* Most significant two bits of a Random Static Address must be 11 */
-    maBleDeviceAddress[gcBleDeviceAddressSize_c - 1U] |= (BIT7 | BIT6);
+    gaBleDeviceAddress[gcBleDeviceAddressSize_c - 1U] |= (BIT7 | BIT6);
 
     /* Set the Random Static address into gSmpKeys */
-    gSmpKeys.aAddress = maBleDeviceAddress;
+    gSmpKeys.aAddress = gaBleDeviceAddress;
     gSmpKeys.addressType = gBleAddrTypeRandom_c;
 }
 #endif

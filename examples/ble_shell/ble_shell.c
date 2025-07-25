@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -554,6 +554,13 @@ static void BluetoothLEHost_Initialized(void)
     (void)App_RegisterGattClientIndicationCallback(ShellGatt_IndicationCallback);
     (void)App_RegisterGattClientNotificationCallback(ShellGatt_NotificationCallback);
 
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* gaBleDeviceAddress already created in BleConnManager_MCUInfoToRandomStaticAddress - set it */
+    (void)Gap_SetRandomAddress(gaBleDeviceAddress);
+#else
+    (void)Gap_ReadPublicDeviceAddress();
+#endif
+
     /* Configure GAP */
 #if defined(BLE_SHELL_AE_SUPPORT) && (BLE_SHELL_AE_SUPPORT)
 #if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
@@ -563,7 +570,7 @@ static void BluetoothLEHost_Initialized(void)
 #endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
     mSupressEvents += 1U;
 #endif /* BLE_SHELL_AE_SUPPORT */
-    (void)Gap_ReadPublicDeviceAddress();
+
     (void)Gap_SetDefaultPairingParameters(&gPairingParameters);
     mSupressEvents += 1U;
 
