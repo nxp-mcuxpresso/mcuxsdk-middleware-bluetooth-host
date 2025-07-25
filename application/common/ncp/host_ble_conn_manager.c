@@ -334,7 +334,7 @@ static bool_t App_HandleHSDKMessageInputGAP(bleEvtContainer_t* pMsg)
 
             (void)GAPSetAdvertisingDataRequest(&req, gFsciInterface_c);
 
-            if (gAppAdvertisingData.cNumAdStructures > 0U)
+            if ((gAppAdvertisingData.cNumAdStructures > 0U) && (NULL != req.AdvertisingData.AdStructures))
             {
                 for(uint32_t i = 0; i < gAppAdvertisingData.cNumAdStructures; i++)
                 {

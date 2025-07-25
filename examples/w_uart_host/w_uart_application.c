@@ -1734,9 +1734,18 @@ static void BleApp_Start
                 }
                 else
                 {
-                    GAPSetAdvertisingParametersRequest_t *req = (GAPSetAdvertisingParametersRequest_t*)(&gAdvParams);
+                    GAPSetAdvertisingParametersRequest_t req;
+                    /* Copy values from gAdvParams to packed structure req */
+                    req.MinInterval = gAdvParams.minInterval;
+                    req.MaxInterval = gAdvParams.maxInterval;
+                    req.AdvertisingType = (GAPSetAdvertisingParametersRequest_AdvertisingType_t)gAdvParams.advertisingType;
+                    req.OwnAddressType = (GAPSetAdvertisingParametersRequest_OwnAddressType_t)gAdvParams.ownAddressType;
+                    req.PeerAddressType = (GAPSetAdvertisingParametersRequest_PeerAddressType_t)gAdvParams.peerAddressType;
+                    FLib_MemCpy(req.PeerAddress, gAdvParams.peerAddress, sizeof(req.PeerAddress));
+                    req.ChannelMap = (uint8_t)gAdvParams.channelMap;
+                    req.FilterPolicy = (GAPSetAdvertisingParametersRequest_FilterPolicy_t)gAdvParams.filterPolicy;
                     /* Set advertising parameters, data and start Advertising */
-                    GAPSetAdvertisingParametersRequest(req, gFsciInterface_c);
+                    GAPSetAdvertisingParametersRequest(&req, gFsciInterface_c);
                 }
             }
             break;
@@ -2173,9 +2182,18 @@ static void hsdkObserverGATTServerRegisterCallbackRequest
         req.EventType = gNotifAdvEventOver_c | gNotifAdvTx_c | gNotifAdvScanReqRx_c | gNotifAdvConnReqRx_c;
         GAPControllerEnhancedNotificationRequest(&req, gFsciInterface_c);
 #else
-        GAPSetAdvertisingParametersRequest_t *req = (GAPSetAdvertisingParametersRequest_t*)(&gAdvParams);
+        GAPSetAdvertisingParametersRequest_t req;
+        /* Copy values from gAdvParams to packed structure req */
+        req.MinInterval = gAdvParams.minInterval;
+        req.MaxInterval = gAdvParams.maxInterval;
+        req.AdvertisingType = (GAPSetAdvertisingParametersRequest_AdvertisingType_t)gAdvParams.advertisingType;
+        req.OwnAddressType = (GAPSetAdvertisingParametersRequest_OwnAddressType_t)gAdvParams.ownAddressType;
+        req.PeerAddressType = (GAPSetAdvertisingParametersRequest_PeerAddressType_t)gAdvParams.peerAddressType;
+        FLib_MemCpy(req.PeerAddress, gAdvParams.peerAddress, sizeof(req.PeerAddress));
+        req.ChannelMap = (uint8_t)gAdvParams.channelMap;
+        req.FilterPolicy = (GAPSetAdvertisingParametersRequest_FilterPolicy_t)gAdvParams.filterPolicy;
         /* Set advertising parameters and data and start Advertising */
-        GAPSetAdvertisingParametersRequest(req, gFsciInterface_c);
+        GAPSetAdvertisingParametersRequest(&req, gFsciInterface_c);
 #endif
     }
     else
@@ -2207,9 +2225,19 @@ static void hsdkObserverGAPControllerEnhancedNotificationRequest
 {
     if (mGapRole == gGapPeripheral_c)
     {
-        GAPSetAdvertisingParametersRequest_t *req = (GAPSetAdvertisingParametersRequest_t*)(&gAdvParams);
+        
+        GAPSetAdvertisingParametersRequest_t req;
+        /* Copy values from gAdvParams to packed structure req */
+        req.MinInterval = gAdvParams.minInterval;
+        req.MaxInterval = gAdvParams.maxInterval;
+        req.AdvertisingType = (GAPSetAdvertisingParametersRequest_AdvertisingType_t)gAdvParams.advertisingType;
+        req.OwnAddressType = (GAPSetAdvertisingParametersRequest_OwnAddressType_t)gAdvParams.ownAddressType;
+        req.PeerAddressType = (GAPSetAdvertisingParametersRequest_PeerAddressType_t)gAdvParams.peerAddressType;
+        FLib_MemCpy(req.PeerAddress, gAdvParams.peerAddress, sizeof(req.PeerAddress));
+        req.ChannelMap = (uint8_t)gAdvParams.channelMap;
+        req.FilterPolicy = (GAPSetAdvertisingParametersRequest_FilterPolicy_t)gAdvParams.filterPolicy;
         /* Set advertising parameters and data and start Advertising */
-        GAPSetAdvertisingParametersRequest(req, gFsciInterface_c);
+        GAPSetAdvertisingParametersRequest(&req, gFsciInterface_c);
     }
     else
     {
