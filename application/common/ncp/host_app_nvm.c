@@ -444,6 +444,7 @@ static bleResult_t App_FsciBleNvmDataReq
             break;
         }
         APP_FscitransmitPayload(gFsciAppBleNvmCbOpcodeGroup_c, cmdId, (void*)pClientPacket, fsciDataSize);
+        (void)MEM_BufferFree(pClientPacket);
     }
     else
     {
@@ -1075,6 +1076,8 @@ static void App_NvmHostRead(void *pData)
         (void)App_FsciBleNvmDataReq(gAppBleNvmCbCmdReadIndOpCode_c, result, 0U, readDatasetBitmask, readDescriptorBitmask, nvmDataSize, pNvmData);
         (void)MEM_BufferFree(pNvmData);
     }
+
+    (void)MEM_BufferFree(pData);
 }
 
 /*! *********************************************************************************
@@ -1134,6 +1137,7 @@ static void App_NvmHostWrite(void *pData)
     result = App_NvmWrite(entryIdx, pBondHeader, pBondDataDynamic, pBondDataStatic, pBondDataLegacy, pBondDataDeviceInfo, pBondDataDescriptor, descriptorBitmask);
 
     (void)App_FsciBleNvmDataReq(gAppBleNvmCbCmdWriteIndOpCode_c, result, entryIdx, datasetBitmask, descriptorBitmask, 0U, NULL);
+    (void)MEM_BufferFree(pData);
 }
 
 #endif /* gAppUseNvm_d */

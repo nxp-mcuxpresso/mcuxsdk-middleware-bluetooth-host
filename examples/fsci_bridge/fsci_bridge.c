@@ -404,6 +404,7 @@ void App_SetBDAddr(void)
         fsciBleGetBufferFromArray(aBdAddr, pBuffer, gcBleDeviceAddressSize_c);
         /* Send request. Group GAP,command WritePublicDeviceAddress */
         APP_FscitransmitPayload(gFsciBleGapOpcodeGroup_c, gBleCtrlWritePublicDeviceAddressOpCode_c, (void *)pClientPacket, fsciDataSize);
+        (void)MEM_BufferFree(pClientPacket);
     }
 }
 
@@ -456,6 +457,7 @@ void APP_FscitransmitPayload(uint8_t OG, uint8_t OC, const uint8_t *pMsg, uint16
 
         /* send message to Serial Manager */
         (void)PLATFORM_SendHciMessage(buffer_ptr, index);
+        (void)MEM_BufferFree(buffer_ptr);
     }
 }
 /************************************************************************************
