@@ -221,6 +221,25 @@ static bleResult_t App_FsciBleNvmDataReq
     uint32_t nvmDataSize,
     uint8_t *pNvmData
 );
+static uint16_t getNvmDataSize
+(
+    uint8_t dataSetBitmask,
+    uint32_t descriptorBitmask
+);
+static NVM_Status_t nvmWriteCCCDs
+(
+    uint8_t nvmEntryIdx,
+    void *pRamBondDataDescriptor,
+    uint32_t descriptorBitmask
+);
+static void nvmReadCCCDs
+(
+    uint8_t     nvmEntryIdx,
+    void        *pRamBondDataDescriptor,
+    uint32_t    descriptorBitmask,
+    uint8_t     *pDataSetBitmask,
+    uint32_t    *pDescriptorBitmask
+);
 
 /************************************************************************************
 *************************************************************************************
@@ -638,46 +657,8 @@ static bleResult_t App_NvmWrite
                 break;
                 case 5:
                 {
-                    if(pBondDataDescriptor != NULL)
-                    {
-                        uint32_t tempDescBitmask = descriptorBitmask;
-                        uint8_t descIdx = 0U;
-                        pRamData  = pBondDataDescriptor;
-                        mSize     = gBleBondDataDescriptorSize_c;
-                    
-                        while(tempDescBitmask != 0U)
-                        {
-                            descIdx = HAL_CTZ(tempDescBitmask);
-                            
-                            ppNvmData = (void**)&aBondingDataDescriptor[mEntryIdx *
-                                    gcGapMaximumSavedCccds_c + descIdx];
-                            
-                            if(ppNvmData != NULL)
-                            {
-                                if(gNVM_OK_c == NvMoveToRam(ppNvmData))
-                                {
-                                    FLib_MemCpy(*ppNvmData, pRamData, mSize);
-                                    nvmStatus = NvSaveOnIdle(ppNvmData, FALSE);
-                                }
-                                else
-                                {
-                                    *ppNvmData = pRamData;
-                                    nvmStatus = NvSyncSave(ppNvmData, FALSE);
-                                }
-                            }
-                            
-                            pRamData = (void *)((uint8_t *)pRamData + mSize);
-                            
-                            if (nvmStatus != gNVM_OK_c)
-                            {
-                                break;
-                            }
-
-                            tempDescBitmask &= tempDescBitmask - 1;
-                        }
-                        
-                        ppNvmData = NULL;
-                    }
+                    /* Write all CCCDs in NVM */
+                    nvmStatus = nvmWriteCCCDs(mEntryIdx, pBondDataDescriptor, descriptorBitmask);
                 }
                 break;
                 default:
@@ -772,137 +753,78 @@ static bleResult_t App_NvmRead
     }
     else
     {
-        uint8_t  idx = 0;
 #if gUnmirroredFeatureSet_d == TRUE
         uint32_t mSize = 0;
         void**   ppNvmData = NULL;
         void*    pRamData = NULL;
 
-        for(idx = 0U; idx < 6U; idx++)
+        if(pBondHeader != NULL)
         {
-            ppNvmData = NULL;
-            switch(*(uint8_t*)&idx)
-            {
-                case 0:
-                {
-                    if(pBondHeader != NULL)
-                    {
-                        ppNvmData = (void**)&aBondingHeader[mEntryIdx];
-                        pRamData  = pBondHeader;
-                        mSize     = gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c;
-
-                        if((NULL != ppNvmData) && (NULL != *ppNvmData))
-                        {
-                            *pDataSetBitmask |= nvmId_BondingHeaderBit_c;
-                        }
-                    }
-                }
-                break;
-                case 1:
-                {
-                    if(pBondDataDynamic != NULL)
-                    {
-                        ppNvmData = (void**)&aBondingDataDynamic[mEntryIdx];
-                        pRamData  = pBondDataDynamic;
-                        mSize     = gBleBondDataDynamicSize_c;
-
-                        if((NULL != ppNvmData) && (NULL != *ppNvmData))
-                        {
-                            *pDataSetBitmask |= nvmId_BondingDataDynamicBit_c;
-                        }
-                    }
-                }
-                break;
-                case 2:
-                {
-                    if(pBondDataStatic != NULL)
-                    {
-                        ppNvmData = (void**)&aBondingDataStatic[mEntryIdx];
-                        pRamData  = pBondDataStatic;
-                        mSize     = gBleBondDataStaticSize_c;
-
-                        if((NULL != ppNvmData) && (NULL != *ppNvmData))
-                        {
-                            *pDataSetBitmask |= nvmId_BondingDataStaticBit_c;
-                        }
-                    }
-                }
-                break;
-                case 3:
-                {
-                    if(pBondDataLegacy != NULL)
-                    {
-                        ppNvmData = (void**)&aBondingDataLegacy[mEntryIdx];
-                        pRamData  = pBondDataLegacy;
-                        mSize     = gBleBondDataLegacySize_c;
-
-                        if((NULL != ppNvmData) && (NULL != *ppNvmData))
-                        {
-                            *pDataSetBitmask |= nvmId_BondingDataLegacyBit_c;
-                        }
-                    }
-                }
-                break;
-                case 4:
-                {
-                    if(pBondDataDeviceInfo != NULL)
-                    {
-                        ppNvmData = (void**)&aBondingDataDeviceInfo[mEntryIdx];
-                        pRamData  = pBondDataDeviceInfo;
-                        mSize     = gBleBondDataDeviceInfoSize_c;
-
-                        if((NULL != ppNvmData) && (NULL != *ppNvmData))
-                        {
-                            *pDataSetBitmask |= nvmId_BondingDataDeviceInfoBit_c;
-                        }
-                    }
-                }
-                break;
-                case 5:
-                {
-                    if(pBondDataDescriptor != NULL)
-                    {
-                        uint32_t tempDescBitmask = descriptorBitmask;
-                        uint8_t descIdx = 0U;
-                        pRamData  = pBondDataDescriptor;
-                        mSize     = gBleBondDataDescriptorSize_c;
-
-                        while(tempDescBitmask != 0U)
-                        {
-                            descIdx = HAL_CTZ(tempDescBitmask);
-                            
-                            ppNvmData = (void**)&aBondingDataDescriptor[mEntryIdx *
-                                gcGapMaximumSavedCccds_c + descIdx];
-                                
-                            if((NULL != ppNvmData) && (NULL != *ppNvmData))
-                            {
-                                FLib_MemCpy(pRamData, *ppNvmData, mSize);
-                                pRamData = (void *)((uint8_t *)pRamData + mSize);
-                                *pDataSetBitmask |= nvmId_BondingDataDescriptorBit_c;
-                                *pDescriptorBitmask |= (1U << descIdx);
-                            }
-
-                            tempDescBitmask &= tempDescBitmask - 1;
-                        }
-                    }
-                }
-                break;
-                default:
-                {
-                    ; /* No action required */
-                }
-                break;
-            }
+            ppNvmData = (void**)&aBondingHeader[mEntryIdx];
+            pRamData  = pBondHeader;
+            mSize     = gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c;
             
-            /* if ppNvmData is not NULL the same holds for pRamData */
             if((NULL != ppNvmData) && (NULL != *ppNvmData))
             {
+                *pDataSetBitmask |= nvmId_BondingHeaderBit_c;
                 FLib_MemCpy(pRamData, *ppNvmData, mSize);
             }
         }
+        if(pBondDataDynamic != NULL)
+        {
+            ppNvmData = (void**)&aBondingDataDynamic[mEntryIdx];
+            pRamData  = pBondDataDynamic;
+            mSize     = gBleBondDataDynamicSize_c;
+            
+            if((NULL != ppNvmData) && (NULL != *ppNvmData))
+            {
+                *pDataSetBitmask |= nvmId_BondingDataDynamicBit_c;
+                FLib_MemCpy(pRamData, *ppNvmData, mSize);
+            }
+        }
+        if(pBondDataStatic != NULL)
+        {
+            ppNvmData = (void**)&aBondingDataStatic[mEntryIdx];
+            pRamData  = pBondDataStatic;
+            mSize     = gBleBondDataStaticSize_c;
+            
+            if((NULL != ppNvmData) && (NULL != *ppNvmData))
+            {
+                *pDataSetBitmask |= nvmId_BondingDataStaticBit_c;
+                FLib_MemCpy(pRamData, *ppNvmData, mSize);
+            }
+        }
+        if(pBondDataLegacy != NULL)
+        {
+            ppNvmData = (void**)&aBondingDataLegacy[mEntryIdx];
+            pRamData  = pBondDataLegacy;
+            mSize     = gBleBondDataLegacySize_c;
+
+            if((NULL != ppNvmData) && (NULL != *ppNvmData))
+            {
+                *pDataSetBitmask |= nvmId_BondingDataLegacyBit_c;
+                FLib_MemCpy(pRamData, *ppNvmData, mSize);
+            }
+        }
+        if(pBondDataDeviceInfo != NULL)
+        {
+            ppNvmData = (void**)&aBondingDataDeviceInfo[mEntryIdx];
+            pRamData  = pBondDataDeviceInfo;
+            mSize     = gBleBondDataDeviceInfoSize_c;
+
+            if((NULL != ppNvmData) && (NULL != *ppNvmData))
+            {
+                *pDataSetBitmask |= nvmId_BondingDataDeviceInfoBit_c;
+                FLib_MemCpy(pRamData, *ppNvmData, mSize);
+            }
+        }
+        if(pBondDataDescriptor != NULL)
+        {
+            nvmReadCCCDs(mEntryIdx, pBondDataDescriptor, descriptorBitmask, pDataSetBitmask, pDescriptorBitmask);
+        }
 #endif /* gUnmirroredFeatureSet_d == TRUE */
     }
-    
+
     return status;
 }
 
@@ -968,27 +890,27 @@ static void App_NvmHostRead(void *pData)
     uint8_t *pBondDataDescriptor = NULL;
 
     /* Identify requested data sets */
-    if (requestedDatasetBitmask & nvmId_BondingHeaderBit_c)
+    if ((requestedDatasetBitmask & nvmId_BondingHeaderBit_c) != 0U)
     {
         pBondHeader = aBondHeader;
     }
-    if (requestedDatasetBitmask & nvmId_BondingDataDynamicBit_c)
+    if ((requestedDatasetBitmask & nvmId_BondingDataDynamicBit_c) != 0U)
     {
         pBondDataDynamic = aBondDataDynamic;
     }
-    if (requestedDatasetBitmask & nvmId_BondingDataStaticBit_c)
+    if ((requestedDatasetBitmask & nvmId_BondingDataStaticBit_c) != 0U)
     {
         pBondDataStatic = aBondDataStatic;
     }
-    if (requestedDatasetBitmask & nvmId_BondingDataLegacyBit_c)
+    if ((requestedDatasetBitmask & nvmId_BondingDataLegacyBit_c) != 0U)
     {
         pBondDataLegacy = aBondDataLegacy;
     }
-    if (requestedDatasetBitmask & nvmId_BondingDataDeviceInfoBit_c)
+    if ((requestedDatasetBitmask & nvmId_BondingDataDeviceInfoBit_c) != 0U)
     {
         pBondDataDeviceInfo = aBondDataDeviceInfo;
     }
-    if (requestedDatasetBitmask & nvmId_BondingDataDescriptorBit_c)
+    if ((requestedDatasetBitmask & nvmId_BondingDataDescriptorBit_c) != 0U)
     {
         pBondDataDescriptor = aBondDataDescriptor;
     }
@@ -996,40 +918,7 @@ static void App_NvmHostRead(void *pData)
     /* Read requested data sets */
     result = App_NvmRead(entryIdx, pBondHeader, pBondDataDynamic, pBondDataStatic, pBondDataLegacy, pBondDataDeviceInfo, pBondDataDescriptor, descriptorBitmask, &readDatasetBitmask, &readDescriptorBitmask);
 
-    /* Calculate the size of the NVM data */
-    if (readDatasetBitmask & nvmId_BondingHeaderBit_c)
-    {
-        nvmDataSize += (gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
-    }
-    if (readDatasetBitmask & nvmId_BondingDataDynamicBit_c)
-    {
-        nvmDataSize += gBleBondDataDynamicSize_c;
-    }
-    if (readDatasetBitmask & nvmId_BondingDataStaticBit_c)
-    {
-        nvmDataSize += gBleBondDataStaticSize_c;
-    }
-    if (readDatasetBitmask & nvmId_BondingDataLegacyBit_c)
-    {
-        nvmDataSize += gBleBondDataLegacySize_c;
-    }
-    if (readDatasetBitmask & nvmId_BondingDataDeviceInfoBit_c)
-    {
-        nvmDataSize += gBleBondDataDeviceInfoSize_c;
-    }
-    if (readDatasetBitmask & nvmId_BondingDataDescriptorBit_c)
-    {
-        /* Count the number of bits set in readDescriptorBitmask */
-        uint32_t tempDescBitmask = readDescriptorBitmask;
-        
-        for (noOfReadDescriptors = 0U; tempDescBitmask > 0U; noOfReadDescriptors++)
-        {
-            tempDescBitmask &= tempDescBitmask - 1;
-        }
-        
-        /* Compute required size for the number of CCCDs read */
-        nvmDataSize += noOfReadDescriptors * gBleBondDataDescriptorSize_c;
-    }
+    nvmDataSize = getNvmDataSize(readDatasetBitmask, readDescriptorBitmask);
 
     /* Allocate memory and build response */
     pNvmData = MEM_BufferAlloc(nvmDataSize);
@@ -1040,32 +929,32 @@ static void App_NvmHostRead(void *pData)
         
         if (result == gBleSuccess_c)
         {
-            if (readDatasetBitmask & nvmId_BondingHeaderBit_c)
+            if ((readDatasetBitmask & nvmId_BondingHeaderBit_c) != 0U)
             {
                 FLib_MemCpy(pDataIndex, aBondHeader, (gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c));
                 pDataIndex += (gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
             }
-            if (readDatasetBitmask & nvmId_BondingDataDynamicBit_c)
+            if ((readDatasetBitmask & nvmId_BondingDataDynamicBit_c) != 0U)
             {
                 FLib_MemCpy(pDataIndex, aBondDataDynamic, gBleBondDataDynamicSize_c);
                 pDataIndex += gBleBondDataDynamicSize_c;
             }
-            if (readDatasetBitmask & nvmId_BondingDataStaticBit_c)
+            if ((readDatasetBitmask & nvmId_BondingDataStaticBit_c) != 0U)
             {
                 FLib_MemCpy(pDataIndex, aBondDataStatic, gBleBondDataStaticSize_c);
                 pDataIndex += gBleBondDataStaticSize_c;
             }
-            if (readDatasetBitmask & nvmId_BondingDataLegacyBit_c)
+            if ((readDatasetBitmask & nvmId_BondingDataLegacyBit_c) != 0U)
             {
                 FLib_MemCpy(pDataIndex, aBondDataLegacy, gBleBondDataLegacySize_c);
                 pDataIndex += gBleBondDataLegacySize_c;
             }
-            if (readDatasetBitmask & nvmId_BondingDataDeviceInfoBit_c)
+            if ((readDatasetBitmask & nvmId_BondingDataDeviceInfoBit_c) != 0U)
             {
                 FLib_MemCpy(pDataIndex, aBondDataDeviceInfo, gBleBondDataDeviceInfoSize_c);
                 pDataIndex += gBleBondDataDeviceInfoSize_c;
             }
-            if (readDatasetBitmask & nvmId_BondingDataDescriptorBit_c)
+            if ((readDatasetBitmask & nvmId_BondingDataDescriptorBit_c) != 0U)
             {
                 FLib_MemCpy(pDataIndex, aBondDataDescriptor, gBleBondDataDescriptorSize_c * noOfReadDescriptors);
                 pDataIndex += gBleBondDataDescriptorSize_c * noOfReadDescriptors;
@@ -1104,32 +993,32 @@ static void App_NvmHostWrite(void *pData)
     uint8_t *pBondDataDeviceInfo = NULL;
     uint8_t *pBondDataDescriptor = NULL;
     
-    if (datasetBitmask & nvmId_BondingHeaderBit_c)
+    if ((datasetBitmask & nvmId_BondingHeaderBit_c) != 0U)
     {
         pBondHeader = pNvmData;
         pNvmData += (gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
     }
-    if (datasetBitmask & nvmId_BondingDataDynamicBit_c)
+    if ((datasetBitmask & nvmId_BondingDataDynamicBit_c) != 0U)
     {
         pBondDataDynamic = pNvmData;
         pNvmData += gBleBondDataDynamicSize_c;
     }
-    if (datasetBitmask & nvmId_BondingDataStaticBit_c)
+    if ((datasetBitmask & nvmId_BondingDataStaticBit_c) != 0U)
     {
         pBondDataStatic = pNvmData;
         pNvmData += gBleBondDataStaticSize_c;
     }
-    if (datasetBitmask & nvmId_BondingDataLegacyBit_c)
+    if ((datasetBitmask & nvmId_BondingDataLegacyBit_c) != 0U)
     {
         pBondDataLegacy = pNvmData;
         pNvmData += gBleBondDataLegacySize_c;
     }
-    if (datasetBitmask & nvmId_BondingDataDeviceInfoBit_c)
+    if ((datasetBitmask & nvmId_BondingDataDeviceInfoBit_c) != 0U)
     {
         pBondDataDeviceInfo = pNvmData;
         pNvmData += gBleBondDataDeviceInfoSize_c;
     }
-    if (datasetBitmask & nvmId_BondingDataDescriptorBit_c)
+    if ((datasetBitmask & nvmId_BondingDataDescriptorBit_c) != 0U)
     {
         pBondDataDescriptor = pNvmData;
     }
@@ -1138,6 +1027,175 @@ static void App_NvmHostWrite(void *pData)
 
     (void)App_FsciBleNvmDataReq(gAppBleNvmCbCmdWriteIndOpCode_c, result, entryIdx, datasetBitmask, descriptorBitmask, 0U, NULL);
     (void)MEM_BufferFree(pData);
+}
+
+/*! *********************************************************************************
+*\private
+*\fn            static uint16_t getNvmDataSize(uint8_t dataSetBitmask, uint32_t descriptorBitmask)
+*\brief         Get the nvm data size for all the data sets specified in the bitmask.
+*
+*\param[in]     dataSetBitmask      NNVM data sets bitmask
+*\param[in]     descriptorBitmask   CCCD data set bitmask
+*
+*\return        uint16_t            NVM data sets size in octets.
+********************************************************************************** */
+static uint16_t getNvmDataSize(uint8_t dataSetBitmask, uint32_t descriptorBitmask)
+{
+    uint16_t nvmDataSize = 0U;
+    uint8_t noOfReadDescriptors = 0U;
+
+    /* Calculate the size of the NVM data */
+    if ((dataSetBitmask & nvmId_BondingHeaderBit_c) != 0U)
+    {
+        nvmDataSize += (gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c);
+    }
+    if ((dataSetBitmask & nvmId_BondingDataDynamicBit_c) != 0U)
+    {
+        nvmDataSize += gBleBondDataDynamicSize_c;
+    }
+    if ((dataSetBitmask & nvmId_BondingDataStaticBit_c) != 0U)
+    {
+        nvmDataSize += gBleBondDataStaticSize_c;
+    }
+    if ((dataSetBitmask & nvmId_BondingDataLegacyBit_c) != 0U)
+    {
+        nvmDataSize += gBleBondDataLegacySize_c;
+    }
+    if ((dataSetBitmask & nvmId_BondingDataDeviceInfoBit_c) != 0U)
+    {
+        nvmDataSize += gBleBondDataDeviceInfoSize_c;
+    }
+    if ((dataSetBitmask & nvmId_BondingDataDescriptorBit_c) != 0U)
+    {
+        /* Count the number of bits set in descriptorBitmask */
+        uint32_t tempDescBitmask = descriptorBitmask;
+        
+        //for (noOfReadDescriptors = 0U; tempDescBitmask > 0U; noOfReadDescriptors++)
+        while(tempDescBitmask != 0U)
+        {
+            noOfReadDescriptors++;
+            tempDescBitmask &= tempDescBitmask - 1U;
+        }
+        
+        /* Compute required size for the number of CCCDs read */
+        nvmDataSize += (uint16_t)noOfReadDescriptors * gBleBondDataDescriptorSize_c;
+    }
+
+    return nvmDataSize;
+}
+
+/*! *********************************************************************************
+*\private
+*\fn            static NVM_Status_t nvmWriteCCCDs(uint8_t nvmEntryIdx,
+*                                               void *pRamBondDataDescriptor,
+                                                uint32_t descriptorBitmask)
+*\brief         Write CCCDs in NVM for the given NVM entry index.
+*
+*\param[in]     nvmEntryIdx             NVM entry index for which the CCCDs are to be written
+*\param[in]     pRamBondDataDescriptor  CCCD data in RAM
+*\param[in]     descriptorBitmask   CCCD data set bitmask
+*
+*\return        NVM_Status_t    Status of NVM operation.
+********************************************************************************** */
+static NVM_Status_t nvmWriteCCCDs(uint8_t nvmEntryIdx, void *pRamBondDataDescriptor, uint32_t descriptorBitmask)
+{
+    NVM_Status_t nvmStatus = gNVM_OK_c;
+    void** ppNvmData = NULL;
+
+    if(pRamBondDataDescriptor != NULL)
+    {
+        uint32_t tempDescBitmask = descriptorBitmask;
+        uint8_t descIdx = 0U;
+        
+        while(tempDescBitmask != 0U)
+        {
+            descIdx = HAL_CTZ(tempDescBitmask);
+            
+            ppNvmData = (void**)&aBondingDataDescriptor[nvmEntryIdx *
+                gcGapMaximumSavedCccds_c + descIdx];
+            
+            if(ppNvmData != NULL)
+            {
+                if(gNVM_OK_c == NvMoveToRam(ppNvmData))
+                {
+                    FLib_MemCpy(*ppNvmData, pRamBondDataDescriptor, gBleBondDataDescriptorSize_c);
+                    nvmStatus = NvSaveOnIdle(ppNvmData, FALSE);
+                }
+                else
+                {
+                    *ppNvmData = pRamBondDataDescriptor;
+                    nvmStatus = NvSyncSave(ppNvmData, FALSE);
+                }
+            }
+            
+            pRamBondDataDescriptor = (void *)((uint8_t *)pRamBondDataDescriptor + gBleBondDataDescriptorSize_c);
+            
+            if (nvmStatus != gNVM_OK_c)
+            {
+                break;
+            }
+            
+            tempDescBitmask &= tempDescBitmask - 1U;
+        }
+    }
+
+    return nvmStatus;
+}
+
+/*! *********************************************************************************
+*\private
+*\fn            static void nvmReadCCCDs(uint8_t     nvmEntryIdx,
+*                           void        *pRamBondDataDescriptor,
+*                           uint32_t    descriptorBitmask,
+*                           uint8_t     *pDataSetBitmask,
+*                           uint32_t    *pDescriptorBitmask)
+*\brief         Read CCCDs from NVM for the given NVM entry index.
+*
+*\param[in]     nvmEntryIdx             NVM entry index for which the CCCDs are to be read
+*\param[out]    pRamBondDataDescriptor  Pointer to RAM location where NVM CCCDs information
+*                                       will be copied
+*\param[in]     descriptorBitmask       CCCD data set bitmask
+*\param[out]    pDataSetBitmask         Pointer to data set bitmask specifying the data sets
+*                                       that have been successfully read.
+*\param[out]    pDescriptorBitmask      Pointer to data set bitmask specifying the CCCDs
+*                                       that have been successfully read.
+*
+*\retval    void
+********************************************************************************** */
+static void nvmReadCCCDs
+(
+    uint8_t     nvmEntryIdx,
+    void        *pRamBondDataDescriptor,
+    uint32_t    descriptorBitmask,
+    uint8_t     *pDataSetBitmask,
+    uint32_t    *pDescriptorBitmask
+)
+{
+    void** ppNvmData = NULL;
+
+    if(pRamBondDataDescriptor != NULL)
+    {
+        uint32_t tempDescBitmask = descriptorBitmask;
+        uint8_t descIdx = 0U;
+        
+        while(tempDescBitmask != 0U)
+        {
+            descIdx = HAL_CTZ(tempDescBitmask);
+            
+            ppNvmData = (void**)&aBondingDataDescriptor[nvmEntryIdx *
+                gcGapMaximumSavedCccds_c + descIdx];
+
+            if((NULL != ppNvmData) && (NULL != *ppNvmData))
+            {
+                FLib_MemCpy(pRamBondDataDescriptor, *ppNvmData, gBleBondDataDescriptorSize_c);
+                pRamBondDataDescriptor = (void *)((uint8_t *)pRamBondDataDescriptor + gBleBondDataDescriptorSize_c);
+                *pDataSetBitmask |= nvmId_BondingDataDescriptorBit_c;
+                *pDescriptorBitmask |= (1U << descIdx);
+            }
+
+            tempDescBitmask &= tempDescBitmask - 1U;
+        }
+    }
 }
 
 #endif /* gAppUseNvm_d */
