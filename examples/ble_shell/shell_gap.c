@@ -463,8 +463,19 @@ static shell_status_t ShellGap_DeviceAddress(uint8_t argc, char **argv)
 
     if (argc == 0U)
     {
-        /* If no address value was given, print the current public address */
+        /* If no address value was given, print the current Public (or Random Static) address */
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+        shell_write(mGapEventHeader);
+        shell_write("Random Static Address:");
+
+        for(uint32_t i = sizeof(bleDeviceAddress_t); i > 0U; i-- )
+        {
+            shell_writeHex(gaBleDeviceAddress[i - 1U]);
+        }
+        SHELL_NEWLINE();
+#else
         (void)Gap_ReadPublicDeviceAddress();
+#endif
         result = kStatus_SHELL_Success;
     }
 #if defined(BLE_SHELL_AE_SUPPORT) && (BLE_SHELL_AE_SUPPORT)
