@@ -45,6 +45,8 @@
 *************************************************************************************
 ************************************************************************************/
 bleDeviceAddress_t gaBleDeviceAddress;
+bool_t gSettingRandomStaticAddress = FALSE;
+
 #if defined(__CC_ARM)
 /* These  definitions are used only by the demo applications which do not have
  * advertisement capabilities in order to fix Keil compilation errors.
@@ -141,7 +143,7 @@ STATIC uint8_t mcDevicesInResolvingList = 0; /*
                                               */
 STATIC bool_t  mbPrivacyEnabled = FALSE;
 STATIC bool_t  mHaveRandomAddress = FALSE;
-STATIC bool_t  mSettingRandomAddressFromApplication = FALSE;
+STATIC bool_t  mSettingRPAFromApplication = FALSE;
 #endif /* gAppUsePrivacy_d */
 #endif /* gAppUseBonding_d */
 
@@ -205,16 +207,29 @@ void BleConnManager_GenericEvent(gapGenericEvent_t* pGenericEvent)
 
         case gRandomAddressSet_c:
         {
-            mHaveRandomAddress = TRUE;
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+            /* The Random Static Address does not count as RPA/NRPA -
+               mHaveRandomAddress is set to TRUE on the else branch */
+            if (gSettingRandomStaticAddress == TRUE)
+            {
+                gSettingRandomStaticAddress = FALSE;
+            }
+            else
+            {
+#endif
+                mHaveRandomAddress = TRUE;
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+            }
+#endif
         }
         break;
 
         case gRandomAddressReady_c:
         {
             if ((FALSE == mHaveRandomAddress) &&
-                (TRUE == mSettingRandomAddressFromApplication))
+                (TRUE == mSettingRPAFromApplication))
             {
-                mSettingRandomAddressFromApplication = FALSE;
+                mSettingRPAFromApplication = FALSE;
                 (void)Gap_SetRandomAddress(
                         pGenericEvent->eventData.addrReady.aAddress);
             }
@@ -1096,6 +1111,7 @@ void BleConnManager_GapCommonConfig(void)
 {
 #if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
     /* gaBleDeviceAddress already created in BleConnManager_MCUInfoToRandomStaticAddress - set it */
+    gSettingRandomStaticAddress = TRUE;
     (void)Gap_SetRandomAddress(gaBleDeviceAddress);
 #else
     /* Read public address from controller - gaBleDeviceAddress will be populated on event */
@@ -1410,9 +1426,13 @@ STATIC bleResult_t BleConnManager_ManagePrivacyInternal(bool_t bCheckNewBond)
                     mcDevicesInResolvingList = gMaxResolvingListSize_c;
                 }
 
+                /* If Controller Privacy is enabled, the Host requires an RPA/NRPA
+                   in order for a central device to be able to maintain privacy
+                   when connecting with a new unbonded peripheral - if no RPA/NRPA
+                   has been set - create and set it now */
                 if (FALSE == mHaveRandomAddress)
                 {
-                    mSettingRandomAddressFromApplication = TRUE;
+                    mSettingRPAFromApplication = TRUE;
                     (void)Gap_CreateRandomDeviceAddress(pLocalIrk, NULL);
                 }
 #if defined(gBleEnableControllerPrivacy_d) && (gBleEnableControllerPrivacy_d > 0)

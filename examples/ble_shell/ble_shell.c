@@ -556,6 +556,7 @@ static void BluetoothLEHost_Initialized(void)
 
 #if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
     /* gaBleDeviceAddress already created in BleConnManager_MCUInfoToRandomStaticAddress - set it */
+    gSettingRandomStaticAddress = TRUE;
     (void)Gap_SetRandomAddress(gaBleDeviceAddress);
 #else
     (void)Gap_ReadPublicDeviceAddress();

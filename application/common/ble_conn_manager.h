@@ -124,6 +124,7 @@ LE Coded PHY*/
 ********************************************************************************** */
 extern gapSmpKeys_t                     gSmpKeys;
 extern bleDeviceAddress_t               gaBleDeviceAddress;
+extern bool_t                           gSettingRandomStaticAddress;
 
 #if (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
 extern uint8_t gcBondedDevices;
