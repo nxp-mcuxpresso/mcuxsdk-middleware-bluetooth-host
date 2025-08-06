@@ -704,6 +704,16 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_hci_transport_rpmsg)
     )
 endif()
 
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_hci_transport_ipm)
+    mcux_add_source(
+        SOURCES hci_transport/interface/hci_transport.h
+                hci_transport/source/hcit_ipm_adapter_interface.c
+    )
+    mcux_add_include(
+        INCLUDES hci_transport/interface
+    )
+endif()
+
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_hci_transport_adapter)
     mcux_add_source(
         SOURCES hci_transport/interface/hci_transport.h

@@ -54,6 +54,8 @@ menu "bluetooth"
         bool "hci_transport_serial"
     config MCUX_COMPONENT_middleware.wireless.ble_hci_transport_rpmsg
         bool "hci_transport_rpmsg"
+    config MCUX_COMPONENT_middleware.wireless.ble_hci_transport_ipm
+        bool "hci_transport_ipm"
     config MCUX_COMPONENT_middleware.wireless.ble_hci_transport_adapter
         bool "hci_transport_adapter"
     config MCUX_COMPONENT_middleware.wireless.ble_hci_transport_interface

@@ -210,7 +210,7 @@
 #define gTmrStackTimers_c (3U + (gAppMaxConnections_c * 2U) + gL2caMaxLeCbChannels_c + gGapSimultaneousEAChainedReports_c)
 
 /* Specify if the Bluetooth address is set using vendor specific command or using Controller API */
-#define gBleSetMacAddrFromVendorCommand_d   (1)
+#define gBleSetMacAddrFromVendorCommand_d   (0)
 
 #if defined(MBEDTLS_USED)
 /* The stack size of the Host task needs to be rise when using mbedTLS as mbedTLS structures are bigger */
