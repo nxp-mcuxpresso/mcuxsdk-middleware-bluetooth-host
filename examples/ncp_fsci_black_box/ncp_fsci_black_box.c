@@ -138,8 +138,8 @@ static const nbuIntf_t nbuInterface = {
     .nbuChannelSwitchIntf = NULL,
     .nbuDbgIoSet = NULL,
     .nbuPhySwitchIntf = NULL,
-    .nbuEnterCritical = OSA_InterruptDisable,
-    .nbuExitCritical = OSA_InterruptEnable
+    .nbuEnterCritical = OSA_DisableIRQGlobal,
+    .nbuExitCritical = OSA_EnableIRQGlobal
 };
 /* Set fsci handler */
 static serial_handle_t g_fsciHandleList[gFsciIncluded_c];
@@ -334,11 +334,9 @@ void NBU_Idle(void)
     OSA_DisableIRQGlobal();
 
     BOARD_DBGLPIOSET(0U, 0U);
-#if !defined(gNbuJtagCapability) || (gNbuJtagCapability==0)
+#if (!defined(gNbuDisableLowpower_d) || (gNbuDisableLowpower_d == 0))
     /* Try to go to low power (Deep Sleep), if that's not possible, it will
-     * go to WFI only.
-     * To keep full debug capability, set gNbuJtagCapability to 1 to avoid
-     * Deep Sleep or WFI. */
+     * go to WFI only. */
     PLATFORM_EnterLowPower();
 #endif
     BOARD_DBGLPIOSET(0U, 1U);
@@ -377,10 +375,13 @@ int main(void)
 #endif
 
 #if !defined(FPGA_TARGET) || (FPGA_TARGET == 0)
-    /* By default the NBU runs to 32MHz, set the constraint in the init to
+    /* By default the NBU runs to 48MHz, set the constraint in the init to
      * prevent the app core to set a slower speed for the NBU on its side */
-    PLATFORM_SetFrequencyConstraintFromController(2U);
+    PLATFORM_SetFrequencyConstraintFromController(3);
 #endif
+
+    /* Inform LL about the clock update */
+    LL_API_ClockUpdated();
 
 #define TICK_RATE_HZ 1000U
     SysTick->LOAD |= (BOARD_GetSystemCoreClockFreq() / TICK_RATE_HZ) - 1U;
@@ -542,9 +543,9 @@ static void  NBU_HADM_CopyConfig(void)
         remaining -= sz;
         no++;
         /* do the copy */
-        OSA_InterruptDisable();
+        OSA_DisableIRQGlobal();
         PLATFORM_SendHciMessage((uint8_t*)&sHciConfig, 1+2+2+sHciConfig.dataLength);
-        OSA_InterruptEnable();
+        OSA_EnableIRQGlobal();
     }
 
 #if CS_HANDOFF_ENABLED==2
@@ -566,9 +567,9 @@ static void  NBU_HADM_CopyConfig(void)
         remaining -= sz;
         no++;
         /* do the copy */
-        OSA_InterruptDisable();
+        OSA_DisableIRQGlobal();
         PLATFORM_SendHciMessage((uint8_t*)&sHciConfig, 1+2+2+sHciConfig.dataLength);
-        OSA_InterruptEnable();
+        OSA_EnableIRQGlobal();
     }
 #endif
 }

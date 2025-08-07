@@ -98,8 +98,8 @@ const nbuIntf_t nbuInterface = {
     .nbuChannelSwitchIntf = NULL,
     .nbuDbgIoSet = NULL,
     .nbuPhySwitchIntf = NULL,
-    .nbuEnterCritical = OSA_InterruptDisable,
-    .nbuExitCritical = OSA_InterruptEnable
+    .nbuEnterCritical = OSA_DisableIRQGlobal,
+    .nbuExitCritical = OSA_EnableIRQGlobal
 };
 
 /* Set task handle for application task */
@@ -180,11 +180,9 @@ void NBU_Idle(void)
     BOARD_DBGLPIOSET(0u, 0u);
 
 #if !defined (SDK_OS_FREE_RTOS)
-#if !defined(gNbuJtagCapability)    || (gNbuJtagCapability==0)
+#if (!defined(gNbuDisableLowpower_d) || (gNbuDisableLowpower_d == 0))
     /* Try to go to low power (Deep Sleep), if that's not possible, it will
-     * go to WFI only.
-     * To keep full debug capability, set gNbuJtagCapability to 1 to avoid
-     * Deep Sleep or WFI. */
+     * go to WFI only. */
     PLATFORM_EnterLowPower();
 #endif
 #endif
@@ -337,10 +335,13 @@ int main(void)
 #endif
 
 #if !defined(FPGA_TARGET) || (FPGA_TARGET == 0)
-    /* By default the NBU runs to 32MHz, set the constraint in the init to
+    /* By default the NBU runs to 48MHz, set the constraint in the init to
      * prevent the app core to set a slower speed for the NBU on its side */
-    PLATFORM_SetFrequencyConstraintFromController(2);
+    PLATFORM_SetFrequencyConstraintFromController(3);
 #endif
+
+    /* Inform LL about the clock update */
+    LL_API_ClockUpdated();
 
 #define TICK_RATE_HZ 1000U
     SysTick->LOAD |= (BOARD_GetSystemCoreClockFreq() / TICK_RATE_HZ) - 1U;
