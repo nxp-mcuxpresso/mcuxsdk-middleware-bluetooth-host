@@ -162,7 +162,7 @@ typedef enum dkSubEventHeadUnitType_tag {
 typedef enum btcsMsgId_tag {
     gRangingProcResStart_c          = 0x01,
     gRangingProcResCont_c           = 0x02,
-    gRangingProcSessionCfg_c        = 0x03,
+    gRangingProcResCfg_c            = 0x03,
 } btcsMsgId_t;
 
 /* CSProcedureData Message Fragment Definitions */
@@ -178,7 +178,6 @@ typedef enum btcsProcDataMsgFragm_tag {
 typedef PACKED_STRUCT gCsProcHeaderData_tag {
     uint8_t    seqNo;
     uint8_t    configId;
-    uint8_t    antennaPathMask;
     uint8_t    moduleId;
 } gCsProcHeaderData_t;
 
@@ -197,10 +196,6 @@ typedef PACKED_STRUCT gCsSubEvtHeaderInitData_tag {
     int8_t      referencePowerLevel;
     uint8_t     totalSubEvtSteps;
     uint8_t     numStepsReported;
-    uint8_t     agc;
-    uint8_t     XTALTrim;
-    uint16_t    uncompensatedDelay;
-    uint8_t     numTimeAdj;
 } gCsSubEvtHeaderInitData_t;
 
 /* CSSubEventHeader Message Fragment - Reflector Data */
@@ -212,10 +207,6 @@ typedef PACKED_STRUCT gCsSubEvtHeaderReflData_tag {
     int8_t      referencePowerLevel;
     uint8_t     totalSubEvtSteps;
     uint8_t     numStepsReported;
-    uint8_t     agc;
-    uint8_t     XTALTrim;
-    uint16_t    uncompensatedDelay;
-    uint8_t     numTimeAdj;
 } gCsSubEvtHeaderReflData_t;
 
 /* CSSubEventContinueHeader Message Fragment */
@@ -223,12 +214,6 @@ typedef PACKED_STRUCT gCsSubEvtContHeaderData_tag {
     uint16_t    startACLConnEvt;
     uint8_t     numStepsReported;
 } gCsSubEvtContHeaderData_t;
-
-/* BTCS_Ranging_Session_Config message parameters */
-typedef PACKED_STRUCT gRangingSessionCfg_tag {
-    bool_t    enableProcResTransfer;
-    uint8_t   desiredAntennaPaths;
-} gRangingSessionCfg_t;
 #endif
 
 /************************************************************************************
