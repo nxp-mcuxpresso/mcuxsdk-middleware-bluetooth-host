@@ -873,6 +873,8 @@ static void App_NvmHostRead(void *pData)
 
         (void)MEM_BufferFree(pNvmData);
     }
+
+    (void)MEM_BufferFree(pData);
 }
 
 /*! *********************************************************************************
@@ -952,6 +954,8 @@ static void App_NvmHostWrite(void *pData)
         (void)MEM_BufferFree(pBuffer);
 
     }
+
+    (void)MEM_BufferFree(pData);
 }
 
 /*! *********************************************************************************
