@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2021-2023 NXP
+* Copyright 2021-2023, 2025 NXP
 *
 * \file
 *
@@ -24,6 +24,9 @@
 
 #include "fwk_platform_ble.h"
 #include "fwk_freertos_utils.h"
+#if defined(BOARD_DBG_NBU_ENABLE)
+#include "board_debug_nbu.h"
+#endif
 
 /************************************************************************************
 *************************************************************************************
@@ -72,6 +75,9 @@ void vApplicationIdleHook(void)
     OSA_EnableIRQGlobal();
 
     FWK_PostIdleHookTickCompensation();
+#endif
+#if defined(BOARD_DBG_NBU_ENABLE)
+    BOARD_DbgNbuProcess();
 #endif
 }
 
