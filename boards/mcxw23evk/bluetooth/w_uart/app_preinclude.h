@@ -70,10 +70,8 @@
  *     RTOS Configuration
  ********************************************************************************** */
 #if defined(SDK_OS_FREE_RTOS)
-/* The following stack sizes have been chosen based on a worst case scenario. 
+/* The following stack sizes have been chosen based on a worst case scenario.
  * For different compilers and optimization levels they can be reduced. */
-
-#define gHost_TaskStackSize_c           2000
 
 #define BUTTON_TASK_STACK_SIZE          700
 
