@@ -662,17 +662,21 @@ static void BleApp_EventCallback2
         case GATTGetMtuIndication_FSCI_ID:
         {
             tempMtu = pMsg->Data.GATTGetMtuIndication.Mtu;
-            tempMtu = gAttMaxWriteDataSize_d(tempMtu);
 
-            mAppUartBufferSize = mAppUartBufferSize <= tempMtu ? mAppUartBufferSize : tempMtu;
+            if (tempMtu >= gAttDefaultMtu_c)
+            {
+                tempMtu = gAttMaxWriteDataSize_d(tempMtu);
 
-            /* Moving to Service Discovery State*/
-            maPeerInformation[mLastGetMtuDeviceId].appState = mAppServiceDisc_c;
+                mAppUartBufferSize = mAppUartBufferSize <= tempMtu ? mAppUartBufferSize : tempMtu;
 
-            /* Start Service Discovery*/
-            (void)BleServDisc_FindService(mLastGetMtuDeviceId,
-                                          gBleUuidType128_c,
-                                          temp.pUuidObj);
+                /* Moving to Service Discovery State*/
+                maPeerInformation[mLastGetMtuDeviceId].appState = mAppServiceDisc_c;
+
+                /* Start Service Discovery*/
+                (void)BleServDisc_FindService(mLastGetMtuDeviceId,
+                                            gBleUuidType128_c,
+                                            temp.pUuidObj);
+            }
         }
         break;
 

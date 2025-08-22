@@ -511,7 +511,7 @@ void ShellGatt_ClientCallback
                 /* Print characteristic value as hex stream */
                 shell_write("\r\n-->  GATT Event: Characteristic Value Read ");
                 shell_write("\r\n     Value: ");
-                for(uint8_t i = (uint8_t)mpCharBuffer->value.valueLength; i > 0U; i-- )
+                for(uint16_t i = mpCharBuffer->value.valueLength; i > 0U; i-- )
                 {
                     shell_writeHex(mpCharBuffer->value.paValue[i - 1U]);
                 }
@@ -545,7 +545,12 @@ void ShellGatt_ClientCallback
         uint8_t attError = (uint8_t)error;
         attError &= 0xFFU;
         shell_write("\r\n-->  GATT Event: Procedure Error ");
-        shell_write(mGattStatus[attError]);
+
+        if (attError < NumberOfElements(mGattStatus))
+        {
+            shell_write(mGattStatus[attError]);
+        }
+
         SHELL_NEWLINE();
 
         /* Free memory buffers and reset pointers */
@@ -601,7 +606,7 @@ void ShellGatt_NotificationCallback
         shell_write("\r\n     Handle: ");
         shell_writeDec(characteristicValueHandle);
         shell_write("\r\n     Value: ");
-        for(uint8_t i = (uint8_t)valueLength; i > 0U; i-- )
+        for(uint16_t i = valueLength; i > 0U; i-- )
         {
             shell_writeHex(aValue[i - 1U]);
         }
@@ -631,7 +636,7 @@ void ShellGatt_IndicationCallback
     shell_write("\r\n     Handle: ");
     shell_writeDec(characteristicValueHandle);
     shell_write("\r\n     Value: ");
-    for(uint8_t i = (uint8_t)valueLength; i > 0U; i-- )
+    for(uint16_t i = valueLength; i > 0U; i-- )
     {
         shell_writeHex(aValue[i - 1U]);
     }

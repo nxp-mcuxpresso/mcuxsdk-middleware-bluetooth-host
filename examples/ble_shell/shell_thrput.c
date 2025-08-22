@@ -373,7 +373,7 @@ static shell_status_t ShellThr_SetParams(uint8_t argc, char * argv[], deviceId_t
                trigger a new MTU Exchange */
             if ((peerId != gInvalidDeviceId_c) && (peerId < gAppMaxConnections_c))
             {
-                uint16_t maxMtu = 0;
+                uint16_t maxMtu = gAttDefaultMtu_c;
 
                 (void)Gatt_GetMtu(peerId, &maxMtu);
                 if ((newBufferSize > gAttMaxNotifIndDataSize_d(maxMtu)) &&
@@ -978,6 +978,7 @@ static bool_t ShellThr_CheckScanEvent(gapScannedDevice_t* pData)
     uint8_t name[10];
     uint8_t nameLength = 0;
     bool_t foundMatch = FALSE;
+    bool_t foundNameAd = FALSE;
 
     while (index < pData->dataLength)
     {
@@ -997,6 +998,7 @@ static bool_t ShellThr_CheckScanEvent(gapScannedDevice_t* pData)
         if ((adElement.adType == gAdShortenedLocalName_c) ||
             (adElement.adType == gAdCompleteLocalName_c))
         {
+            foundNameAd = TRUE;
             nameLength = MIN(adElement.length, 10U);
             FLib_MemCpy(name, adElement.aData, nameLength);
         }
@@ -1009,7 +1011,12 @@ static bool_t ShellThr_CheckScanEvent(gapScannedDevice_t* pData)
     {
         /* UI */
         shell_write("\r\nFound device: \r\n");
-        shell_writeN((char*)name, (uint32_t)nameLength-1U);
+
+        if (foundNameAd == TRUE)
+        {
+            shell_writeN((char*)name, (uint32_t)nameLength-1U);
+        }
+
         SHELL_NEWLINE();
 
         for(uint8_t i = 0; i < gcBleDeviceAddressSize_c; i++)
@@ -1040,13 +1047,16 @@ static bool_t ShellThr_MatchDataInAdvElementList(gapAdStructure_t *pElement,
     bool_t status = FALSE;
 
     /* Check if a data subset is present in an advertising structure */
-    for (i = 0; i < (pElement->length - 1U); i += iDataLen)
+    if (pElement->length > 0U)
     {
-        if (FLib_MemCmp(pData, &pElement->aData[i], iDataLen))
+        for (i = 0; i < (pElement->length - 1U); i += iDataLen)
         {
-            /* Data found */
-            status = TRUE;
-            break;
+            if (FLib_MemCmp(pData, &pElement->aData[i], iDataLen))
+            {
+                /* Data found */
+                status = TRUE;
+                break;
+            }
         }
     }
     return status;
@@ -1105,7 +1115,7 @@ static void ShellThr_StartThroughputTest(thrGapRoles_t role, deviceId_t peerId)
     else /* GAP Peripheral */
     {
         /* If the initial payload size is higher than the default MTU, exchange MTU */
-        uint16_t maxMtu = 0;
+        uint16_t maxMtu = gAttDefaultMtu_c;
         (void)Gatt_GetMtu(peerId, &maxMtu);
         if ((maxMtu < gThroughputConfig[peerId].buffSz) && (mThrWaitMtuExchange == FALSE))
         {

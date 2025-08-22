@@ -6008,7 +6008,7 @@ static void HandleGattProcDiscoverAllPrimaryServices
     {
         /* Consider also the size of the kept services */
         dataSize += sizeof(uint8_t);
-        for(uint32_t iCount = 0; iCount < (uint8_t)*pArraySize; iCount++)
+        for(uint16_t iCount = 0U; iCount < *pArraySize; iCount++)
         {
             dataSize += fsciBleGattClientGetServiceBufferSize(&pServices[iCount]);
         }
@@ -6040,7 +6040,7 @@ static void HandleGattProcDiscoverAllPrimaryServices
         /* Set services array size parameter in the buffer */
         fsciBleGetBufferFromUint8Value((uint8_t)*pArraySize, pBuffer);
         /* Set services array parameter in the buffer */
-        for(uint32_t iCount = 0; iCount < (uint8_t)*pArraySize; iCount++)
+        for(uint16_t iCount = 0U; iCount < *pArraySize; iCount++)
         {
             fsciBleGattClientGetBufferFromService(&pServices[iCount], &pBuffer);
         }
@@ -6108,7 +6108,7 @@ static void HandleGattProcDiscoverPrimaryServicesByUuid
     {
         /* Consider also the size of the kept services */
         dataSize += sizeof(uint8_t);
-        for(uint32_t iCount = 0; iCount < (uint8_t)*pArraySize; iCount++)
+        for(uint16_t iCount = 0U; iCount < *pArraySize; iCount++)
         {
             dataSize += fsciBleGattClientGetServiceBufferSize(&pServices[iCount]);
         }
@@ -6140,7 +6140,7 @@ static void HandleGattProcDiscoverPrimaryServicesByUuid
         /* Set services array size parameter in the buffer */
         fsciBleGetBufferFromUint8Value((uint8_t)*pArraySize, pBuffer);
         /* Set services array parameter in the buffer */
-        for(uint32_t iCount = 0; iCount < (uint8_t)*pArraySize; iCount++)
+        for(uint16_t iCount = 0U; iCount < *pArraySize; iCount++)
         {
             fsciBleGattClientGetBufferFromService(&pServices[iCount], &pBuffer);
         }
@@ -6388,7 +6388,7 @@ static void HandleGattProcDiscoverCharacteristicByUuid
     {
         /* Consider also the size of the kept characteristics */
         dataSize += sizeof(uint8_t);
-        for(uint32_t iCount = 0; iCount < (uint8_t)*pArraySize; iCount++)
+        for(uint16_t iCount = 0U; iCount < *pArraySize; iCount++)
         {
             dataSize += fsciBleGattClientGetCharacteristicBufferSize(&pCharacteristics[iCount]);
         }
@@ -6420,7 +6420,7 @@ static void HandleGattProcDiscoverCharacteristicByUuid
         /* Set characteristics array size parameter in the buffer */
         fsciBleGetBufferFromUint8Value((uint8_t)*pArraySize, pBuffer);
         /* Set characteristics array parameter in the buffer */
-        for(uint32_t iCount = 0; iCount < (uint8_t)*pArraySize; iCount++)
+        for(uint16_t iCount = 0U; iCount < *pArraySize; iCount++)
         {
             fsciBleGattClientGetBufferFromCharacteristic(&pCharacteristics[iCount], &pBuffer);
         }

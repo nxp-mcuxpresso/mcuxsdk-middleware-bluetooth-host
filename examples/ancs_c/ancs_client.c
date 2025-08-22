@@ -1663,7 +1663,7 @@ static void BleApp_HandleAttMtuChange
     deviceId_t peerDeviceId
 )
 {
-    uint16_t negotiatedAttMtu = 0U;
+    uint16_t negotiatedAttMtu = gAttDefaultMtu_c;
 
     /* Get the new negotiated ATT MTU */
     (void)Gatt_GetMtu(peerDeviceId, &negotiatedAttMtu);
@@ -3514,53 +3514,56 @@ static void AmsClient_ProcessEuTrackInfo(
     uint8_t     *pEuData,
     uint16_t     euDataLength)
 {
-    switch ((amsTrackAttributeId_t)pEuData[1])
+    if (euDataLength >= 3U)
     {
-        case gAmsTrackAttributeIdArtist_c:
+        switch ((amsTrackAttributeId_t)pEuData[1])
         {
-            FLib_MemCpy((uint8_t *)(amsClientData.euTrackArtist),
-                        &(pEuData[3]),
-                        ((uint32_t)euDataLength - 0x0003U));
-            amsClientData.euTrackArtist[euDataLength - 0x03U] = 0; /* add null terminator */
-        }
-        break;
+            case gAmsTrackAttributeIdArtist_c:
+            {
+                FLib_MemCpy((uint8_t *)(amsClientData.euTrackArtist),
+                            &(pEuData[3]),
+                            ((uint32_t)euDataLength - 0x0003U));
+                amsClientData.euTrackArtist[euDataLength - 0x03U] = 0; /* add null terminator */
+            }
+            break;
 
-        case gAmsTrackAttributeIdAlbum_c:
-        {
-            FLib_MemCpy((uint8_t *)(amsClientData.euTrackAlbum),
-                        &(pEuData[3]),
-                        ((uint32_t)euDataLength - 0x0003U));
-            amsClientData.euTrackAlbum[euDataLength - 0x03U] = 0; /* add null terminator */
-        }
-        break;
+            case gAmsTrackAttributeIdAlbum_c:
+            {
+                FLib_MemCpy((uint8_t *)(amsClientData.euTrackAlbum),
+                            &(pEuData[3]),
+                            ((uint32_t)euDataLength - 0x0003U));
+                amsClientData.euTrackAlbum[euDataLength - 0x03U] = 0; /* add null terminator */
+            }
+            break;
 
-        case gAmsTrackAttributeIdTitle_c:
-        {
-            FLib_MemCpy((uint8_t *)(amsClientData.euTrackTitle),
-                        &(pEuData[3]),
-                        ((uint32_t)euDataLength - 0x0003U));
-            amsClientData.euTrackTitle[euDataLength - 0x03U] = 0; /* add null terminator */
-        }
-        break;
+            case gAmsTrackAttributeIdTitle_c:
+            {
+                FLib_MemCpy((uint8_t *)(amsClientData.euTrackTitle),
+                            &(pEuData[3]),
+                            ((uint32_t)euDataLength - 0x0003U));
+                amsClientData.euTrackTitle[euDataLength - 0x03U] = 0; /* add null terminator */
+            }
+            break;
 
-        case gAmsTrackAttributeIdDuration_c:
-        {
-            FLib_MemCpy((uint8_t *)(amsClientData.euTrackDuration),
-                        &(pEuData[3]),
-                        ((uint32_t)euDataLength - 0x0003U));
-            amsClientData.euTrackDuration[euDataLength - 0x03U] = 0; /* add null terminator */
-        }
-        break;
+            case gAmsTrackAttributeIdDuration_c:
+            {
+                FLib_MemCpy((uint8_t *)(amsClientData.euTrackDuration),
+                            &(pEuData[3]),
+                            ((uint32_t)euDataLength - 0x0003U));
+                amsClientData.euTrackDuration[euDataLength - 0x03U] = 0; /* add null terminator */
+            }
+            break;
 
-        default:
-        {
-            shell_write("\r\nWarning: Unhandled AMS Entity Update Track Attribute Id:");
-            shell_write(" 0x");
-            shell_writeHex(pEuData[1]);
-            shell_write("\r\n");
+            default:
+            {
+                shell_write("\r\nWarning: Unhandled AMS Entity Update Track Attribute Id:");
+                shell_write(" 0x");
+                shell_writeHex(pEuData[1]);
+                shell_write("\r\n");
+            }
+            break;
         }
-        break;
-    }
+}
 
     /* Use flag in ancs to have the same consistent print */
     ancsClientData.notificationDataChanged = TRUE;

@@ -837,7 +837,7 @@ static void BleApp_ConnectionCallback
             {
                 if (gInvalidDeviceId_c != maPeerInformation[mPeerId].deviceId)
                 {
-                    uint16_t tempMtu = 0U;
+                    uint16_t tempMtu = gAttDefaultMtu_c;
 
                     (void)Gatt_GetMtu(mPeerId, &tempMtu);
                     tempMtu = gAttMaxWriteDataSize_d(tempMtu);
@@ -1036,7 +1036,7 @@ static void BleApp_GattServerCallback
     gattServerEvent_t *pServerEvent
 )
 {
-    uint16_t tempMtu = 0;
+    uint16_t tempMtu = gAttDefaultMtu_c;
 
     switch (pServerEvent->eventType)
     {
@@ -1174,7 +1174,7 @@ static void BleApp_StateMachineHandler
     appEvent_t event
 )
 {
-    uint16_t tempMtu = 0;
+    uint16_t tempMtu = gAttDefaultMtu_c;
     union
     {
         uint8_t     *pUuidArray;

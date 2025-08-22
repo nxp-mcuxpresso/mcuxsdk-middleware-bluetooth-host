@@ -1318,7 +1318,7 @@ STATIC void BleConnManager_MCUInfoToSmpKeys(void)
 
     PLATFORM_GetMCUUid (uid, &len);
 
-    if(len > 0U)
+    if((len > 0U) && (len <= 16U))
     {
         /* generate LTK. LTK size always smaller than SHA1 hash size */
         uid[len - 1U]++;

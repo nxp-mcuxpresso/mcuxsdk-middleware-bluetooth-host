@@ -93,6 +93,8 @@ static uint8_t mSupressEvents = 0;
 #define DEFAULT_TRIM_VALUE      0x4B
 #endif
 #endif /* (defined(CPU_MKW37A512VFT4) || defined(CPU_MKW38A512VFT4)) */
+#define MAX_INT32 (0x7FFFFFFF)
+
 /************************************************************************************
 *************************************************************************************
 * Private type definitions
@@ -428,7 +430,7 @@ int32_t BleApp_atoi
         pStr++;
     }
 
-    while ((*pStr != '\0') && (*pStr != ' ') && (*pStr >= '0') && (*pStr <= '9'))
+    while ((*pStr != '\0') && (*pStr != ' ') && (*pStr >= '0') && (*pStr <= '9') && ((res < MAX_INT32/10U) || ((res == MAX_INT32 / 10U) && ((*pStr - '0') <= MAX_INT32 % 10U))))
     {
         res = res * 10 + *pStr - '0';
         pStr++;

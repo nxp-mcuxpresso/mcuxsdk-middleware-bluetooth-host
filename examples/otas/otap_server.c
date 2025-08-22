@@ -787,7 +787,7 @@ static void BleApp_HandleAttMtuChange
     deviceId_t peerDeviceId
 )
 {
-    uint16_t negotiatedAttMtu = 0U;
+    uint16_t negotiatedAttMtu = gAttDefaultMtu_c;
 
     /* Get the new negotiated ATT MTU and compute the maximum ATT data chunk length an store
      * it in the application data structure. */

@@ -294,11 +294,19 @@ void fsciBleL2capCbHandler(void* pData, void* param, uint32_t fsciInterface)
                         fsciBleGetUint16ValueFromBuffer(newMps, pBuffer);
                         /* Get number of channels and list of channels to reconfigure */
                         fsciBleGetUint8ValueFromBuffer(noOfChannels, pBuffer);
-                        for (iCount = 0; iCount < noOfChannels; iCount++)
+                        if (noOfChannels <= gL2capEnhancedMaxChannels_c)
                         {
-                            fsciBleGetUint16ValueFromBuffer(aCids[iCount], pBuffer);
+                            for (iCount = 0; iCount < noOfChannels; iCount++)
+                            {
+                                fsciBleGetUint16ValueFromBuffer(aCids[iCount], pBuffer);
+                            }
+                            fsciBleL2capCbCallApiFunction(L2ca_EnhancedChannelReconfigure(deviceId, newMtu, newMps, noOfChannels, aCids));
                         }
-                        fsciBleL2capCbCallApiFunction(L2ca_EnhancedChannelReconfigure(deviceId, newMtu, newMps, noOfChannels, aCids));
+                        else
+                        {
+                            /* Invalid number of channels, trigger error handling */
+                            fsciBleL2capCbStatusMonitor(gBleInvalidParameter_c);
+                        }
                     }
                     break;
 
@@ -326,6 +334,11 @@ void fsciBleL2capCbHandler(void* pData, void* param, uint32_t fsciInterface)
                                 fsciBleGetUint16ValueFromBuffer(aCids[iCount], pBuffer);
                             }
                             fsciBleL2capCbCallApiFunction(L2ca_EnhancedCancelConnection(lePsm, deviceId, refuseReason, noOfChannels, aCids));
+                        }
+                        else
+                        {
+                            /* Invalid number of channels, trigger error handling */
+                            fsciBleL2capCbStatusMonitor(gBleInvalidParameter_c);
                         }
                     }
                     break;

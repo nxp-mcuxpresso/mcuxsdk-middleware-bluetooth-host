@@ -457,8 +457,9 @@ static bleResult_t App_FsciBleNvmDataReq
                 fsciBleGetBufferFromArray(pNvmData, pBuffer, nvmDataSize);
             }
             break;
+            default:
             {
-                /* Ignore */
+                ;/* Ignore */
             }
             break;
         }

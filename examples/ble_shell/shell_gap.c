@@ -777,7 +777,7 @@ static bool_t ShellGap_AppendAdvData
 )
 {
     uint8_t advIdx = 0;
-    uint8_t advCursor = 0;
+    uint16_t advCursor = 0U;
     uint8_t length;
     uint8_t *pAdvArrayData;
 
@@ -1765,6 +1765,10 @@ static shell_status_t ShellGap_Bonds(uint8_t argc, char * argv[])
                 {
                     if (Gap_RemoveAllBonds() == gBleSuccess_c)
                     {
+
+#if (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
+                        gcBondedDevices = 0U;
+#endif /* (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U)) */
                         shell_write("\r\n-->  Bonds removed!\r\n");
                         result = kStatus_SHELL_Success;
                     }
@@ -1800,6 +1804,9 @@ static shell_status_t ShellGap_Bonds(uint8_t argc, char * argv[])
                     if ((count > 0U) && (index < count) &&
                         (Gap_RemoveBond(index) == gBleSuccess_c))
                     {
+#if (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
+                        gcBondedDevices--;
+#endif /* (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U)) */
                         shell_write("\r\n-->  Bond removed!\r\n");
                         result = kStatus_SHELL_Success;
                     }

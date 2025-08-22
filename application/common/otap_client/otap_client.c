@@ -963,7 +963,7 @@ static void OtapClient_HandleDataChunk (deviceId_t deviceId, uint16_t length, ui
 
     otapCommandVars.pDataTemp = pData;
     otapCmdImgChunkCoc_t* pDataChunk = &(otapCommandVars.otapCommandTemp->cmd.imgChunkCoc); //use the CoC Data Chunk type but observe the length
-    uint16_t dataLen = length - gOtap_CmdIdFieldSize_c - gOtap_ChunkSeqNumberSize_c; // len
+    uint16_t dataLen = (length >= (gOtap_CmdIdFieldSize_c + gOtap_ChunkSeqNumberSize_c)) ? (length - gOtap_CmdIdFieldSize_c - gOtap_ChunkSeqNumberSize_c) : 0U;
 
     /* Variables for the local image file parsing state machine. */
     static uint32_t currentImgElemRcvdLen = 0; /*!< Contains the number of received bytes for the current image element (header or other sub element).

@@ -114,6 +114,10 @@ uint16_t* fsciBleGattClientAllocOutOrIoArraySize
     {
         fsciBleGattClientHandleNoMemoryStatus();
     }
+    else
+    {
+        *fsciBleGattClientTmpAllocatedManagementInfo[idx].pArraySize = 0U;
+    }
 
     /* Return the allocated kept array size */
     return fsciBleGattClientTmpAllocatedManagementInfo[idx].pArraySize;
@@ -495,7 +499,7 @@ void fsciBleGattClientGetServiceFromBuffer(gattService_t* pService, uint8_t** pp
 
     fsciBleGattClientGetServiceFromBufferIterative(pService, ppBuffer);
 
-    if(0U != pService->cNumIncludedServices)
+    if((0U != pService->cNumIncludedServices) && (pService->cNumIncludedServices <= gMaxServicesCount_d))
     {
         /* Verify if aIncludedServices is NULL (this situation is not allowed) */
         if(NULL == pService->aIncludedServices)
