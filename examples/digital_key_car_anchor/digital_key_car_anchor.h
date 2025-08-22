@@ -201,8 +201,8 @@ typedef void (*pfBleCallback_t)(void* pData);
 extern gapAdvertisingData_t             gAppAdvertisingData;
 extern gapAdvertisingData_t             gAppAdvertisingDataEmpty;
 extern gapScanResponseData_t            gAppScanRspData;
-extern gapExtAdvertisingParametersV2_t  gExtAdvParams;
-extern gapExtAdvertisingParametersV2_t  gLegacyAdvParams;
+extern gapExtAdvertisingParameters_t  gExtAdvParams;
+extern gapExtAdvertisingParameters_t  gLegacyAdvParams;
 extern appExtAdvertisingParams_t        gAppAdvParams;
 /* This global will be TRUE if the user adds or removes a bond */
 extern bool_t                           gPrivacyStateChangedByUser;

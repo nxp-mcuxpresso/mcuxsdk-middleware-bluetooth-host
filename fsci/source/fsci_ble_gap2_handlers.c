@@ -1808,7 +1808,7 @@ void HandleGapCmdSetDecisionInstructionsOpCode(uint8_t *pBuffer, uint32_t fsciIn
 ********************************************************************************** */
 void HandleGapCmdSetExtAdvertisingParametersV2OpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
-    gapExtAdvertisingParametersV2_t advertisingParameters = {0};
+    gapExtAdvertisingParameters_t advertisingParameters = {0};
     union
     {
         uint8_t fsciPhyOption;
@@ -1816,7 +1816,7 @@ void HandleGapCmdSetExtAdvertisingParametersV2OpCode(uint8_t *pBuffer, uint32_t 
     }advPhyOptions = {0U};
 
     /* Get advertising parameters from buffer */
-    /* Read gapExtAdvertisingParametersV2_t fields from buffer */
+    /* Read gapExtAdvertisingParameters_t fields from buffer */
     fsciBleGetUint8ValueFromBuffer( advertisingParameters.SID,                       pBuffer);
     fsciBleGetUint8ValueFromBuffer( advertisingParameters.handle,                    pBuffer);
     fsciBleGetUint32ValueFromBuffer(advertisingParameters.minInterval,               pBuffer);
@@ -1838,7 +1838,7 @@ void HandleGapCmdSetExtAdvertisingParametersV2OpCode(uint8_t *pBuffer, uint32_t 
     fsciBleGetUint8ValueFromBuffer( advPhyOptions.fsciPhyOption,                     pBuffer);
     advertisingParameters.secondaryAdvPhyOptions = advPhyOptions.gapPhyOption;
 
-    fsciBleGap2CallApiFunction(Gap_SetExtAdvertisingParametersV2(&advertisingParameters));
+    fsciBleGap2CallApiFunction(Gap_SetExtAdvertisingParameters(&advertisingParameters));
 }
 #if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
 /*! *********************************************************************************

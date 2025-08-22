@@ -125,12 +125,7 @@ bleResult_t BluetoothLEHost_StartExtAdvertising(
 
     pfAdvertiserHandler = App_AdvertiserHandler;
     mpExtAdvParams = pExtAdvParams;
-#if ((defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)) || \
-    (defined gAppLeCodedAdvEnable_d)
-    return Gap_SetExtAdvertisingParametersV2(pExtAdvParams->pGapExtAdvParams);
-#else
     return Gap_SetExtAdvertisingParameters(pExtAdvParams->pGapExtAdvParams);
-#endif
 }
 
 #if defined(gReencryptAdvDataOnRpaChange_d) && (gReencryptAdvDataOnRpaChange_d == 1U)

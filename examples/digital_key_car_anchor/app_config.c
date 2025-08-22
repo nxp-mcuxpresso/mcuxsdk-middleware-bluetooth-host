@@ -64,7 +64,7 @@ gapConnectionRequestParameters_t gConnReqParams =
 #endif
 
 /* Default Legacy Advertising Parameters */
-gapExtAdvertisingParametersV2_t gLegacyAdvParams =
+gapExtAdvertisingParameters_t gLegacyAdvParams =
 {
     /* SID */                       0xB, \
     /* handle */                    gLegacyAdvSetHandle_c, \
@@ -87,7 +87,7 @@ gapExtAdvertisingParametersV2_t gLegacyAdvParams =
 };
 
 /*Default Extended Advertising Parameters */
-gapExtAdvertisingParametersV2_t gExtAdvParams =
+gapExtAdvertisingParameters_t gExtAdvParams =
 {
     /* SID */                       0xB, \
     /* handle */                    gExtendedAdvSetHandle_c, \

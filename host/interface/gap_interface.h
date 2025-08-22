@@ -1841,27 +1841,6 @@ bleResult_t Gap_SetExtAdvertisingParameters
 );
 
 /*! *********************************************************************************
-* \brief  Sets up the Extended Advertising Parameters. V2 of the command.
-*
-* \param[in] pAdvertisingParametersV2   Pointer to gapExtAdvertisingParametersV2_t structure.
-*
-* \retval  gBleSuccess_c
-* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
-*                                       stack version.
-* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
-*                                       outside the accepted range.
-* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
-* \retval  gGapAnotherProcedureInProgress_c Another set extended advertising parameters
-*                                           command is in progress.
-* \remarks GAP Peripheral-only API function.
-*
-********************************************************************************** */
-bleResult_t Gap_SetExtAdvertisingParametersV2
-(
-    gapExtAdvertisingParametersV2_t*   pAdvertisingParameters
-);
-
-/*! *********************************************************************************
 * \brief  Sets up the Extended Advertising and Extended Scan Response Data.
 *
 * \param[in] handle             The ID of the advertising set

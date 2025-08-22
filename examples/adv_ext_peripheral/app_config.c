@@ -103,7 +103,9 @@ gapExtAdvertisingParameters_t gExtAdvParamsLegacy =
     /* primaryPHY */                (gapLePhyMode_t)gLePhy1M_c, \
     /* secondaryPHY */              (gapLePhyMode_t)gLePhy1M_c, \
     /* secondaryAdvMaxSkip */       0, \
-    /* enableScanReqNotification*/  FALSE \
+    /* enableScanReqNotification*/  FALSE, \
+    /* primaryAdvPhyOptions */      gLeCodingNoPreference_c, \
+    /* secondaryAdvPhyOptions */    gLeCodingNoPreference_c \
 };
 /* Scanning and Advertising Data */
 static uint8_t adData0[1] =  { (uint8_t)gLeGeneralDiscoverableMode_c | (uint8_t)gBrEdrNotSupported_c };
@@ -160,7 +162,9 @@ gapExtAdvertisingParameters_t gExtAdvParamsScannable =
     /* primaryPHY  */               (gapLePhyMode_t)gLePhyCoded_c,\
     /* secondaryPHY */              (gapLePhyMode_t)gLePhyCoded_c,\
     /* secondaryAdvMaxSkip */       0, \
-    /* enableScanReqNotification*/  TRUE \
+    /* enableScanReqNotification*/  TRUE, \
+    /* primaryAdvPhyOptions */      gLeCodingNoPreference_c, \
+    /* secondaryAdvPhyOptions */    gLeCodingNoPreference_c \
 };
 #define extScannableData0 "\
 \n\rEA Scan Response Data 01 EA Scan Response Data 02 EA Scan Response Data 03\
@@ -243,7 +247,9 @@ gapExtAdvertisingParameters_t gExtAdvParamsConnectable =
     /* primaryPHY */                (gapLePhyMode_t)gLePhyCoded_c,\
     /* secondaryPHY */              (gapLePhyMode_t)gLePhyCoded_c,\
     /* secondaryAdvMaxSkip */       0, \
-    /* enableScanReqNotification*/  FALSE \
+    /* enableScanReqNotification*/  FALSE, \
+    /* primaryAdvPhyOptions */      gLeCodingNoPreference_c, \
+    /* secondaryAdvPhyOptions */    gLeCodingNoPreference_c \
 };
 #define extConnectableData0 "\
 \n\rEA Connectable Data 01 EA Connectable Data 02 EA Connectable Data 03\
@@ -298,7 +304,9 @@ gapExtAdvertisingParameters_t gExtAdvParamsNonConnNonScann =
     /* primaryPHY  */               (gapLePhyMode_t)gLePhyCoded_c,\
     /* secondaryPHY */              (gapLePhyMode_t)gLePhyCoded_c,\
     /* secondaryAdvMaxSkip */       0, \
-    /* enableScanReqNotification*/  FALSE \
+    /* enableScanReqNotification*/  FALSE, \
+    /* primaryAdvPhyOptions */      gLeCodingNoPreference_c, \
+    /* secondaryAdvPhyOptions */    gLeCodingNoPreference_c \
 };
 
 #if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)
@@ -324,7 +332,9 @@ gapExtAdvertisingParameters_t gDbafParamsScannable =
     /* primaryPHY  */               (gapLePhyMode_t)gLePhyCoded_c,\
     /* secondaryPHY */              (gapLePhyMode_t)gLePhyCoded_c,\
     /* secondaryAdvMaxSkip */       0, \
-    /* enableScanReqNotification*/  TRUE \
+    /* enableScanReqNotification*/  TRUE, \
+    /* primaryAdvPhyOptions */      gLeCodingNoPreference_c, \
+    /* secondaryAdvPhyOptions */    gLeCodingNoPreference_c \
 };
 
 /* DBAF Connectable Advertising Parameters */
@@ -349,7 +359,9 @@ gapExtAdvertisingParameters_t gDbafParamsConnectable =
     /* primaryPHY */                (gapLePhyMode_t)gLePhyCoded_c,\
     /* secondaryPHY */              (gapLePhyMode_t)gLePhyCoded_c,\
     /* secondaryAdvMaxSkip */       0, \
-    /* enableScanReqNotification*/  FALSE \
+    /* enableScanReqNotification*/  FALSE, \
+    /* primaryAdvPhyOptions */      gLeCodingNoPreference_c, \
+    /* secondaryAdvPhyOptions */    gLeCodingNoPreference_c \
 };
 
 /* DBAF Non Connectable Non Scannable Advertising Parameters */
@@ -374,7 +386,9 @@ gapExtAdvertisingParameters_t gDbafParamsNonConnNonScann =
     /* primaryPHY  */               (gapLePhyMode_t)gLePhyCoded_c,\
     /* secondaryPHY */              (gapLePhyMode_t)gLePhyCoded_c,\
     /* secondaryAdvMaxSkip */       0, \
-    /* enableScanReqNotification*/  FALSE \
+    /* enableScanReqNotification*/  FALSE, \
+    /* primaryAdvPhyOptions */      gLeCodingNoPreference_c, \
+    /* secondaryAdvPhyOptions */    gLeCodingNoPreference_c \
 };
 #endif /* defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE) */
 

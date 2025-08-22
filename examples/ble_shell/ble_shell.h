@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -71,11 +71,7 @@ extern gapAdvertisingParameters_t       gAdvParams;
 extern gapScanningParameters_t          gAppScanParams;
 extern gapConnectionRequestParameters_t gConnReqParams;
 extern gapPairingParameters_t           gPairingParameters;
-#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
-extern gapExtAdvertisingParametersV2_t  gExtAdvParams;
-#else /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 extern gapExtAdvertisingParameters_t    gExtAdvParams;
-#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 extern gapScanResponseData_t            gAppExtScanRspData;
 extern gapAdvertisingData_t             gAppExtAdvertisingData;
 #if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)

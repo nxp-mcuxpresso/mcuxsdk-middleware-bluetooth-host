@@ -637,6 +637,8 @@ void fsciBleGapGetExtAdvertisingParametersFromBuffer(gapExtAdvertisingParameters
     fsciBleGetEnumValueFromBuffer(  pAdvertisingParameters->secondaryPHY,              *ppBuffer, gapLePhyMode_t);
     fsciBleGetUint8ValueFromBuffer( pAdvertisingParameters->secondaryAdvMaxSkip,       *ppBuffer);
     fsciBleGetBoolValueFromBuffer(  pAdvertisingParameters->enableScanReqNotification, *ppBuffer);
+    pAdvertisingParameters->primaryAdvPhyOptions = gLeCodingNoPreference_c;
+    pAdvertisingParameters->secondaryAdvPhyOptions = gLeCodingNoPreference_c;
 }
 
 void fsciBleGapGetPeriodicAdvSyncReqFromBuffer(gapPeriodicAdvSyncReq_t* pReq, uint8_t** ppBuffer)

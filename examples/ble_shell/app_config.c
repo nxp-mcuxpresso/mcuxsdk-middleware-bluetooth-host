@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2022-2024 NXP
+* Copyright 2016-2019, 2022-2025 NXP
 *
 *
 * \file
@@ -147,11 +147,7 @@ gapAdvertisingParameters_t gAdvParams =
 };
 
 /*Default Extended Advertising Parameters */
-#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
-gapExtAdvertisingParametersV2_t gExtAdvParams =
-#else /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 gapExtAdvertisingParameters_t gExtAdvParams =
-#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 {
     /* SID */                       1, \
     /* handle */                    1, \
@@ -173,10 +169,8 @@ gapExtAdvertisingParameters_t gExtAdvParams =
     /* secondaryPHY */              (gapLePhyMode_t)gLePhy1M_c, \
     /* secondaryAdvMaxSkip */       0, \
     /* enableScanReqNotification*/  FALSE,
-#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
     /* primaryAdvertisingPhyOptions */      gLeCodingNoPreference_c, \
     /* secondaryAdvertisingPhyOptions */    gLeCodingNoPreference_c,
-#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 
 };
 

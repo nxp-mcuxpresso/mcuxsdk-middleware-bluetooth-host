@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -566,34 +566,9 @@ typedef struct gapExtAdvertisingParameters_tag {
     gapLePhyMode_t                      secondaryPHY;           /*!< The PHY used for sending AUX_ADV_IND PDU. Used only for Extended Advertising Events */
     uint8_t                             secondaryAdvMaxSkip;    /*!< Maximum number of advertising events that can be skipped before the AUX_ADV_IND can be sent*/
     bool_t                              enableScanReqNotification; /*!< Indicates whether the Controller shall send notifications upon the receipt of a scan request PDU */
-} gapExtAdvertisingParameters_t;
-
-
-/*! Extended Advertising Parameters V2; for defaults see gGapDefaultExtAdvertisingParametersV2_d. */
-typedef struct gapExtAdvertisingParametersV2_tag {
-    uint8_t                             SID;                    /*!< ID of the advertising set chosen by application. Shall be lower than gBleExtAdvMaxSetId_c */
-    uint8_t                             handle;                 /*!< ID of the advertising set handled by controller. Shall be lower than gMaxAdvSets_c */
-    uint32_t                            minInterval;            /*!< Minimum desired advertising interval. Shall be at least equal or higher than gGapExtAdvertisingIntervalRangeMinimum_c */
-    uint32_t                            maxInterval;            /*!< Maximum desired advertising interval. Shall be higher than gGapExtAdvertisingIntervalRangeMinimum_c and higher than minInterval */
-    bleAddressType_t                    ownAddressType;         /*!< Indicates whether the advertising address is the public address (BD_ADDR) or the random address (set by Gap_SetRandomAddress). Default: public address.
-                                                                     If Controller Privacy is enabled, this parameter is irrelevant as Private Resolvable Addresses are always used. */
-    bleDeviceAddress_t                  ownRandomAddr;          /*!< The random address used for advertising on the current handle */
-    bleAddressType_t                    peerAddressType;        /*!< Address type of the peer; only used in directed advertising and Enhanced Privacy. */
-    bleDeviceAddress_t                  peerAddress;            /*!< Address of the peer; same as above. */
-    gapAdvertisingChannelMapFlags_t     channelMap;             /*!< Bit mask indicating which of the three advertising channels are used for primary advertising */
-    gapAdvertisingFilterPolicy_t        filterPolicy;           /*!< Indicates whether the connect and scan requests are filtered using the Filter Accept List */
-
-    bleAdvRequestProperties_t           extAdvProperties;       /*!< Type of advertising event */
-    int8_t                              txPower;                /*!< The maximum power level at which the adv packets are to be transmitted.
-                                                                     The Controller shall choose a power level lower than or equal to the one specified by the Host.
-                                                                     Valid range: -127 to 20 */
-    gapLePhyMode_t                      primaryPHY;             /*!< The PHY on which the advertising packets are transmitted (1M or Coded PHY). Used for sending ADV_EXT_IND */
-    gapLePhyMode_t                      secondaryPHY;           /*!< The PHY used for sending AUX_ADV_IND PDU. Used only for Extended Advertising Events */
-    uint8_t                             secondaryAdvMaxSkip;    /*!< Maximum number of advertising events that can be skipped before the AUX_ADV_IND can be sent*/
-    bool_t                              enableScanReqNotification; /*!< Indicates whether the Controller shall send notifications upon the receipt of a scan request PDU */
     gapLePhyOptionsFlags_t              primaryAdvPhyOptions;   /*!< Preferred or required coding when transmitting on the primary LE Coded PHY */
     gapLePhyOptionsFlags_t              secondaryAdvPhyOptions; /*!< Preferred or required coding when transmitting on the secondary LE Coded PHY */
-} gapExtAdvertisingParametersV2_t;
+} gapExtAdvertisingParameters_t;
 
 /*! Periodic Advertising Parameters; for defaults see gGapDefaultPeriodicAdvParameters_d. */
 typedef struct gapPeriodicAdvParameters_tag {
