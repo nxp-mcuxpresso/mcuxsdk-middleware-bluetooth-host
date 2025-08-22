@@ -2,13 +2,13 @@
   "SPDXID": "SPDXRef-DOCUMENT",
   "spdxVersion": "SPDX-2.3",
   "creationInfo": {
-    "created": "2025-07-22T07:49:49Z",
+    "created": "2025-08-21T12:53:34Z",
     "creators": [
       "Organization: NXP"
     ],
     "licenseListVersion": "3.20"
   },
-  "name": "Bluetooth_LE_Host_Stack-1.10.10",
+  "name": "Bluetooth_LE_Host_Stack-1.10.11",
   "dataLicense": "CC0-1.0",
   "hasExtractedLicensingInfos": [
     {
@@ -17,12 +17,12 @@
       "name": "LA_OPT_Online Code Hosting NXP_Software_License - v1.4 May 2025"
     }
   ],
-  "documentNamespace": "https://nxp.com/spdx/b5e596b7-1524-4117-9cdc-403b11f5a878",
+  "documentNamespace": "https://nxp.com/spdx/3cc2e2be-f4d5-42bd-9c2d-3e5a695556f7",
   "packages": [
     {
-      "SPDXID": "SPDXRef-package-b5e596b7-1524-4117-9cdc-403b11f5a878",
+      "SPDXID": "SPDXRef-package-3cc2e2be-f4d5-42bd-9c2d-3e5a695556f7",
       "name": "Bluetooth_LE_Host_Stack",
-      "versionInfo": "1.10.10",
+      "versionInfo": "1.10.11",
       "licenseConcluded": "(LicenseRef-babf777f-042b-42df-a5bf-638993427038)",
       "licenseDeclared": "(LicenseRef-babf777f-042b-42df-a5bf-638993427038)",
       "downloadLocation": "NOASSERTION",
@@ -60,10 +60,10 @@
     {
       "spdxElementId": "SPDXRef-DOCUMENT",
       "relationshipType": "DESCRIBES",
-      "relatedSpdxElement": "SPDXRef-package-b5e596b7-1524-4117-9cdc-403b11f5a878"
+      "relatedSpdxElement": "SPDXRef-package-3cc2e2be-f4d5-42bd-9c2d-3e5a695556f7"
     },
     {
-      "spdxElementId": "SPDXRef-package-b5e596b7-1524-4117-9cdc-403b11f5a878",
+      "spdxElementId": "SPDXRef-package-3cc2e2be-f4d5-42bd-9c2d-3e5a695556f7",
       "relationshipType": "CONTAINS",
       "relatedSpdxElement": "SPDXRef-package-8c422e54-f505-433c-ace8-ad3e8df30c4b"
     }
