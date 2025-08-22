@@ -20,6 +20,7 @@
 ************************************************************************************/
 #include "EmbeddedTypes.h"
 #include "fwk_platform.h"
+#include "fwk_platform_ble.h"
 #include "fsci_ble_gap.h"
 #include "fsci_ble_gap_types.h"
 #include "fsci_ble_gap2_handlers.h"
@@ -266,6 +267,25 @@ static void HandleCtrlCmdGetTimestampExOpCode
     uint32_t fsciInterfaceId
 );
 
+#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0))
+/*! *********************************************************************************
+*\private
+*\fn           void HandleCtrlCmdPlatformGetDeltaTimeStampOpCode(uint8_t *pBuffer,
+*                                                     uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleCtrlCmdPlatformGetDeltaTimeStampOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */   
+static void HandleCtrlCmdPlatformGetDeltaTimeStampOpCode
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */
+
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -322,6 +342,11 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
     HandleCtrlCmdGetTimestampExOpCode,                                          /* = 0x13, gBleCtrlCmdGetTimestampExOpCode_c */
     HandleGapCmdSetDataRelatedAddressChanges,                                   /* = 0x14, gBleGapCmdSetDataRelatedAddressChanges_c */
     HandleGapCmdSetBondedDeviceNameOpCode,                                      /* = 0x15, gBleGapCmdSetBondedDeviceNameOpCode_c */
+#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0))    
+    HandleCtrlCmdPlatformGetDeltaTimeStampOpCode,                               /* = 0x16, gBleCtrlCmdPlatformGetDeltaTimeStampOpCode_c */
+#else /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */
+    NULL,
+#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */
 };
 
 #if gFsciBleTest_d
@@ -1551,6 +1576,59 @@ void fsciBleCtrlGetTimestampExCmdMonitor
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
+#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) 
+/*! *********************************************************************************
+*\fn           void fsciBleCtrlGetTimestampExCmdMonitor(
+*                                           uint32_t    ll_timing_slot,
+*                                           uint16_t    ll_timing_us,
+*                                           uint64_t    tstmr)
+*
+*\brief        Constructs the FSCI packet by serializing the input parameters
+*              executes FSCI transmit.
+*
+*\param[in]    ll_timing_slot   Link layer timing slot
+*\param[in]    ll_timing_us     Link layer timing micro second offset inside the slot
+*\param[in]    tstmr            TSTMR value in us when capturing the link layer timing
+*
+*\retval       void.
+********************************************************************************** */
+void fsciBleCtrlPlatformGetDeltaTimeStampCmdMonitor
+(
+    uint64_t    deltaTimestamp
+)
+{
+    clientPacketStructured_t   *pClientPacket;
+    uint8_t                    *pBuffer;
+    bool_t                     continueExecution = TRUE;
+
+#if gFsciBleTest_d
+    /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
+    if(FALSE == bFsciBleGap2Enabled)
+    {
+        continueExecution = FALSE;
+    }
+#endif /* gFsciBleTest_d */
+
+    if (continueExecution)
+    {
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlEvtPlatformGetDeltaTimeStampOpCode_c,
+                                                   sizeof(uint64_t));
+
+        if (NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint64Value(deltaTimestamp, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
+    }
+}
+#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */ 
+
 #if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)
 /*! *********************************************************************************
 *\private
@@ -2045,6 +2123,33 @@ static void HandleCtrlCmdGetTimestampExOpCode(uint8_t *pBuffer, uint32_t fsciInt
         fsciBleCtrlGetTimestampExCmdMonitor(ll_timing_slot, ll_timing_us, tstmr);
     }
 }
+
+#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0))
+/*! *********************************************************************************
+*\private
+*\fn           void HandleCtrlCmdPlatformGetDeltaTimeStampOpCode(uint8_t *pBuffer,
+*                                                     uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleCtrlCmdGetTimestampExOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */   
+static void HandleCtrlCmdPlatformGetDeltaTimeStampOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
+{
+    uint32_t receivedTimestamp;
+    uint64_t deltaTimestamp = 0;
+    
+    fsciBleGetUint32ValueFromBuffer(receivedTimestamp, pBuffer);
+    
+    deltaTimestamp = PLATFORM_GetDeltaTimeStamp(receivedTimestamp);
+
+    fsciBleGap2StatusMonitor(gBleSuccess_c);
+    
+    fsciBleCtrlPlatformGetDeltaTimeStampCmdMonitor(deltaTimestamp);
+}
+#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */
 
 /*! *********************************************************************************
 *\private
