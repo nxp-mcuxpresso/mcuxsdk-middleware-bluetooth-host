@@ -566,11 +566,7 @@ static void BluetoothLEHost_Initialized(void)
 
     /* Configure GAP */
 #if defined(BLE_SHELL_AE_SUPPORT) && (BLE_SHELL_AE_SUPPORT)
-#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
-    (void)Gap_SetExtAdvertisingParametersV2(&gExtAdvParams);
-#else /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
     (void)Gap_SetExtAdvertisingParameters(&gExtAdvParams);
-#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
     mSupressEvents += 1U;
 #endif /* BLE_SHELL_AE_SUPPORT */
 
