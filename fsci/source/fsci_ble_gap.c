@@ -943,16 +943,20 @@ void fsciBleGapHandler(void* pData, void* param, uint32_t fsciInterfaceId)
 
 void fsciBleGapStatusMonitor(bleResult_t result)
 {
+    bool_t bContinueExecution = TRUE;
 #if gFsciBleTest_d
     /* If GAP is disabled the status must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Send status over UART */
-    fsciBleStatusMonitor(gFsciBleGapOpcodeGroup_c, (uint8_t)gBleGapStatusOpCode_c, result);
+    if (bContinueExecution)
+    {
+       /* Send status over UART */
+       fsciBleStatusMonitor(gFsciBleGapOpcodeGroup_c, (uint8_t)gBleGapStatusOpCode_c, result);
+    }
 }
 
 #endif /* gFsciBleBBox_d || gFsciBleTest_d */
@@ -962,122 +966,129 @@ void fsciBleGapStatusMonitor(bleResult_t result)
 
 void fsciBleGapNoParamCmdMonitor(fsciBleGapOpCode_t opCode)
 {
+    bool_t bContinueExecution = TRUE;
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-     /* Call the generic FSCI BLE monitor for commands or events that have no parameters */
-    fsciBleNoParamCmdOrEvtMonitor((uint8_t)gFsciBleGapOpcodeGroup_c, (uint8_t)opCode);
+    if (bContinueExecution)
+    {
+        /* Call the generic FSCI BLE monitor for commands or events that have no parameters */
+        fsciBleNoParamCmdOrEvtMonitor((uint8_t)gFsciBleGapOpcodeGroup_c, (uint8_t)opCode);
+    }
 }
-
 
 void fsciBleGapUint8ParamCmdMonitor(fsciBleGapOpCode_t opCode, uint8_t param)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode, sizeof(uint8_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode, sizeof(uint8_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint8Value(param, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint8Value(param, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapDeviceIdParamCmdMonitor(fsciBleGapOpCode_t opCode, deviceId_t deviceId)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode,
-                                              fsciBleGetDeviceIdBufferSize(&deviceId));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode,
+                                                  fsciBleGetDeviceIdBufferSize(&deviceId));
+
+        if(NULL != pClientPacket)
+        {
+             pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapCheckNotificationsAndIndicationsCmdMonitor(fsciBleGapOpCode_t opCode, deviceId_t deviceId, uint16_t handle, bool_t* pOutIsActive)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode,
-                                              fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                              sizeof(uint16_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
-    }
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode,
+                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                  sizeof(uint16_t));
 
-    pBuffer = &pClientPacket->payload[0];
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
 
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint16Value(handle, pBuffer);
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromUint16Value(handle, pBuffer);
 
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 
 #if gFsciBleHost_d
-    /* Save out parameters pointers */
-    fsciBleGapSaveOutParams(pOutIsActive, NULL);
+        /* Save out parameters pointers */
+        fsciBleGapSaveOutParams(pOutIsActive, NULL);
 #endif /* gFsciBleHost_d */
+        }
+    }
 }
 
 
@@ -1085,34 +1096,36 @@ void fsciBleGapAddressParamsCmdMonitor(fsciBleGapOpCode_t opCode, bleAddressType
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode,
-                                              sizeof(bleAddressType_t) +
-                                              gcBleDeviceAddressSize_c);
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode,
+                                                  sizeof(bleAddressType_t) +
+                                                  gcBleDeviceAddressSize_c);
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromEnumValue(addressType, pBuffer, bleAddressType_t);
+            fsciBleGetBufferFromAddress(address, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromEnumValue(addressType, pBuffer, bleAddressType_t);
-    fsciBleGetBufferFromAddress(address, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 
@@ -1135,109 +1148,112 @@ void fsciBleGapRegisterDeviceSecurityRequirementsCmdMonitor(const gapDeviceSecur
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
     bool_t                      bDeviceSecurityRequirementsIncluded = ((NULL != pSecurity) ? TRUE : FALSE);
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdRegisterDeviceSecurityRequirementsOpCode_c,
-                                              sizeof(bool_t) +
-                                              ((TRUE == bDeviceSecurityRequirementsIncluded) ?
-                                               fsciBleGapGetDeviceSecurityRequirementsBufferSize(pSecurity) :
-                                               0U));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdRegisterDeviceSecurityRequirementsOpCode_c,
+                                                  sizeof(bool_t) +
+                                                  ((TRUE == bDeviceSecurityRequirementsIncluded) ?
+                                                   fsciBleGapGetDeviceSecurityRequirementsBufferSize(pSecurity) :
+                                                   0U));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromBoolValue(bDeviceSecurityRequirementsIncluded, pBuffer);
+            if(TRUE == bDeviceSecurityRequirementsIncluded)
+            {
+                fsciBleGapGetBufferFromDeviceSecurityRequirements(pSecurity, &pBuffer);
+            }
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromBoolValue(bDeviceSecurityRequirementsIncluded, pBuffer);
-    if(TRUE == bDeviceSecurityRequirementsIncluded)
-    {
-        fsciBleGapGetBufferFromDeviceSecurityRequirements(pSecurity, &pBuffer);
-    }
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapSetAdvertisingParametersCmdMonitor(const gapAdvertisingParameters_t* pAdvertisingParameters)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetAdvertisingParametersOpCode_c,
-                                              fsciBleGapGetAdvertisingParametersBufferSize(pAdvertisingParameters));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetAdvertisingParametersOpCode_c,
+                                                  fsciBleGapGetAdvertisingParametersBufferSize(pAdvertisingParameters));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGapGetBuffFromAdvParameters(pAdvertisingParameters, &pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGapGetBuffFromAdvParameters(pAdvertisingParameters, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 #if defined(gBLE50_d) && (gBLE50_d == 1U)
 void fsciBleGapSetExtAdvertisingParametersCmdMonitor(gapExtAdvertisingParameters_t* pAdvertisingParameters)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetExtAdvertisingParametersOpCode_c,
-                                              fsciBleGapGetExtAdvertisingParametersBufferSize(pAdvertisingParameters));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetExtAdvertisingParametersOpCode_c,
+                                                  fsciBleGapGetExtAdvertisingParametersBufferSize(pAdvertisingParameters));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGapGetBufferFromExtAdvertisingParameters(pAdvertisingParameters, &pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGapGetBufferFromExtAdvertisingParameters(pAdvertisingParameters, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 #endif /* gBLE50_d */
-
 
 void fsciBleGapSetAdvertisingDataCmdMonitor(gapAdvertisingData_t* pAdvertisingData, gapScanResponseData_t* pScanResponseData)
 {
@@ -1245,65 +1261,67 @@ void fsciBleGapSetAdvertisingDataCmdMonitor(gapAdvertisingData_t* pAdvertisingDa
     uint8_t*                    pBuffer = NULL;
     bool_t                      bAdvertisingDataIncluded = FALSE;
     bool_t                      bScanResponseDataIncluded = FALSE;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = TRUE;
     }
 #endif /* gFsciBleTest_d */
-
-    if( NULL != pAdvertisingData )
+    
+    if (bContinueExecution)
     {
-        if( pAdvertisingData->cNumAdStructures )
+        if( NULL != pAdvertisingData )
         {
-            bAdvertisingDataIncluded = TRUE;
+            if( pAdvertisingData->cNumAdStructures )
+            {
+                bAdvertisingDataIncluded = TRUE;
+            }
+        }
+
+        if( NULL != pScanResponseData )
+        {
+            if( pScanResponseData->cNumAdStructures )
+            {
+                bScanResponseDataIncluded = TRUE;
+            }
+        }
+
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetAdvertisingDataOpCode_c,
+                                                  sizeof(bool_t) +
+                                                  ((TRUE == bAdvertisingDataIncluded) ?
+                                                   fsciBleGapGetAdvertisingDataBufferSize(pAdvertisingData) :
+                                                   0U) +
+                                                  sizeof(bool_t) +
+                                                  ((TRUE == bScanResponseDataIncluded) ?
+                                                  fsciBleGapGetScanResponseDataBufferSize(pScanResponseData) :
+                                                  0U));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromBoolValue(bAdvertisingDataIncluded, pBuffer);
+            if(TRUE == bAdvertisingDataIncluded)
+            {
+                fsciBleGapGetBufferFromAdvertisingData(pAdvertisingData, &pBuffer);
+            }
+
+            fsciBleGetBufferFromBoolValue(bScanResponseDataIncluded, pBuffer);
+            if(TRUE == bScanResponseDataIncluded)
+            {
+                fsciBleGapGetBufferFromScanResponseData(pScanResponseData, &pBuffer);
+            }
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
         }
     }
-
-    if( NULL != pScanResponseData )
-    {
-        if( pScanResponseData->cNumAdStructures )
-        {
-            bScanResponseDataIncluded = TRUE;
-        }
-    }
-
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetAdvertisingDataOpCode_c,
-                                              sizeof(bool_t) +
-                                              ((TRUE == bAdvertisingDataIncluded) ?
-                                               fsciBleGapGetAdvertisingDataBufferSize(pAdvertisingData) :
-                                               0U) +
-                                              sizeof(bool_t) +
-                                              ((TRUE == bScanResponseDataIncluded) ?
-                                              fsciBleGapGetScanResponseDataBufferSize(pScanResponseData) :
-                                              0U));
-
-    if(NULL == pClientPacket)
-    {
-        return;
-    }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromBoolValue(bAdvertisingDataIncluded, pBuffer);
-    if(TRUE == bAdvertisingDataIncluded)
-    {
-        fsciBleGapGetBufferFromAdvertisingData(pAdvertisingData, &pBuffer);
-    }
-
-    fsciBleGetBufferFromBoolValue(bScanResponseDataIncluded, pBuffer);
-    if(TRUE == bScanResponseDataIncluded)
-    {
-        fsciBleGapGetBufferFromScanResponseData(pScanResponseData, &pBuffer);
-    }
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 #if defined(gBLE50_d) && (gBLE50_d == 1U)
@@ -1313,66 +1331,68 @@ void fsciBleGapSetExtAdvertisingDataCmdMonitor(uint8_t handle, gapAdvertisingDat
     uint8_t*                    pBuffer = NULL;
     bool_t                      bAdvertisingDataIncluded = FALSE;
     bool_t                      bScanResponseDataIncluded = FALSE;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    if( NULL != pAdvertisingData )
+    if (bContinueExecution)
     {
-        if( pAdvertisingData->cNumAdStructures )
+        if( NULL != pAdvertisingData )
         {
-            bAdvertisingDataIncluded = TRUE;
+            if( pAdvertisingData->cNumAdStructures )
+            {
+                bAdvertisingDataIncluded = TRUE;
+            }
+        }
+
+        if( NULL != pScanResponseData )
+        {
+            if( pScanResponseData->cNumAdStructures )
+            {
+                bScanResponseDataIncluded = TRUE;
+            }
+        }
+
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetAdvertisingDataOpCode_c,
+                                                  sizeof(uint8_t) + sizeof(bool_t) +
+                                                  ((TRUE == bAdvertisingDataIncluded) ?
+                                                   fsciBleGapGetAdvertisingDataBufferSize(pAdvertisingData) :
+                                                   0U) +
+                                                  sizeof(bool_t) +
+                                                  ((TRUE == bScanResponseDataIncluded) ?
+                                                   fsciBleGapGetScanResponseDataBufferSize(pScanResponseData) :
+                                                   0U));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint8Value(handle, pBuffer);
+            fsciBleGetBufferFromBoolValue(bAdvertisingDataIncluded, pBuffer);
+            if(TRUE == bAdvertisingDataIncluded)
+            {
+                fsciBleGapGetBufferFromAdvertisingData(pAdvertisingData, &pBuffer);
+            }
+
+            fsciBleGetBufferFromBoolValue(bScanResponseDataIncluded, pBuffer);
+            if(TRUE == bScanResponseDataIncluded)
+            {
+                fsciBleGapGetBufferFromScanResponseData(pScanResponseData, &pBuffer);
+            }
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
         }
     }
-
-    if( NULL != pScanResponseData )
-    {
-        if( pScanResponseData->cNumAdStructures )
-        {
-            bScanResponseDataIncluded = TRUE;
-        }
-    }
-
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetAdvertisingDataOpCode_c,
-                                              sizeof(uint8_t) + sizeof(bool_t) +
-                                              ((TRUE == bAdvertisingDataIncluded) ?
-                                               fsciBleGapGetAdvertisingDataBufferSize(pAdvertisingData) :
-                                               0U) +
-                                              sizeof(bool_t) +
-                                              ((TRUE == bScanResponseDataIncluded) ?
-                                               fsciBleGapGetScanResponseDataBufferSize(pScanResponseData) :
-                                               0U));
-
-    if(NULL == pClientPacket)
-    {
-        return;
-    }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint8Value(handle, pBuffer);
-    fsciBleGetBufferFromBoolValue(bAdvertisingDataIncluded, pBuffer);
-    if(TRUE == bAdvertisingDataIncluded)
-    {
-        fsciBleGapGetBufferFromAdvertisingData(pAdvertisingData, &pBuffer);
-    }
-
-    fsciBleGetBufferFromBoolValue(bScanResponseDataIncluded, pBuffer);
-    if(TRUE == bScanResponseDataIncluded)
-    {
-        fsciBleGapGetBufferFromScanResponseData(pScanResponseData, &pBuffer);
-    }
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 #endif
 
@@ -1391,39 +1411,41 @@ void fsciBleGapStartExtAdvertisingCmdMonitor(gapAdvertisingCallback_t advertisin
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
+    if (bContinueExecution)
+    {
 #if gFsciBleHost_d
-    fsciBleGapCallbacks.advertisingCallback = advertisingCallback;
-    fsciBleGapCallbacks.connectionCallback  = connectionCallback;
+        fsciBleGapCallbacks.advertisingCallback = advertisingCallback;
+        fsciBleGapCallbacks.connectionCallback  = connectionCallback;
 #endif /* gFsciBleHost_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdStartExtAdvertisingOpCode_c,
-                                              sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint8_t));
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdStartExtAdvertisingOpCode_c,
+                                                  sizeof(uint8_t) + sizeof(uint16_t) + sizeof(uint8_t));
 
-    if(NULL == pClientPacket)
-    {
-        return;
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint8Value(handle, pBuffer);
+            fsciBleGetBufferFromUint16Value(duration, pBuffer);
+            fsciBleGetBufferFromUint8Value(maxExtAdvEvents, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint8Value(handle, pBuffer);
-    fsciBleGetBufferFromUint16Value(duration, pBuffer);
-    fsciBleGetBufferFromUint8Value(maxExtAdvEvents, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 #endif
 
@@ -1431,71 +1453,74 @@ void fsciBleGapAuthorizeCmdMonitor(deviceId_t deviceId, uint16_t handle, gattDbA
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdAuthorizeOpCode_c, fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                                           sizeof(uint16_t) +
-                                                                           sizeof(gattDbAccessType_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdAuthorizeOpCode_c, fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                                               sizeof(uint16_t) +
+                                                                               sizeof(gattDbAccessType_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromUint16Value(handle, pBuffer);
+            fsciBleGetBufferFromEnumValue(access, pBuffer, gattDbAccessType_t);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint16Value(handle, pBuffer);
-    fsciBleGetBufferFromEnumValue(access, pBuffer, gattDbAccessType_t);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapSaveCccdCmdMonitor(deviceId_t deviceId, uint16_t handle, gattCccdFlags_t cccd)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSaveCccdOpCode_c, fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                                          sizeof(uint16_t) +
-                                                                          sizeof(gattCccdFlags_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+         /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSaveCccdOpCode_c, fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                                              sizeof(uint16_t) +
+                                                                              sizeof(gattCccdFlags_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromUint16Value(handle, pBuffer);
+            fsciBleGetBufferFromEnumValue(cccd, pBuffer, gattCccdFlags_t);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint16Value(handle, pBuffer);
-    fsciBleGetBufferFromEnumValue(cccd, pBuffer, gattCccdFlags_t);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 void fsciBleGapGetBondedDevicesIdentityInformationCmdMonitor(const gapIdentityInformation_t* aOutIdentityAddresses, uint8_t maxDevices, const uint8_t* pOutActualCount)
@@ -1512,280 +1537,288 @@ void fsciBleGapPairCmdMonitor(deviceId_t deviceId, const gapPairingParameters_t*
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdPairOpCode_c, fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                                      fsciBleGapGetPairingParametersBufferSize(pPairingParameters));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdPairOpCode_c, fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                                          fsciBleGapGetPairingParametersBufferSize(pPairingParameters));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGapGetBufferFromPairingParameters(pPairingParameters, &pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGapGetBufferFromPairingParameters(pPairingParameters, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapSendPeripheralSecurityRequestCmdMonitor(deviceId_t deviceId, const gapPairingParameters_t* pPairingParameters)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSendPeripheralSecurityRequestOpCode_c, fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                                                          fsciBleGapGetPairingParametersBufferSize(pPairingParameters));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+         /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSendPeripheralSecurityRequestOpCode_c, fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                                                              fsciBleGapGetPairingParametersBufferSize(pPairingParameters));
+
+        if(NULL != pClientPacket)
+        {
+                    pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGapGetBufferFromPairingParameters(pPairingParameters, &pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGapGetBufferFromPairingParameters(pPairingParameters, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapAcceptPairingRequestCmdMonitor(deviceId_t deviceId, const gapPairingParameters_t* pPairingParameters)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdAcceptPairingRequestOpCode_c,
-                                              fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                              fsciBleGapGetPairingParametersBufferSize(pPairingParameters));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdAcceptPairingRequestOpCode_c,
+                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                  fsciBleGapGetPairingParametersBufferSize(pPairingParameters));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGapGetBufferFromPairingParameters(pPairingParameters, &pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGapGetBufferFromPairingParameters(pPairingParameters, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapRejectPairingCmdMonitor(deviceId_t deviceId, gapAuthenticationRejectReason_t reason)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdRejectPairingOpCode_c,
-                                              fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                              sizeof(gapAuthenticationRejectReason_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdRejectPairingOpCode_c,
+                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                  sizeof(gapAuthenticationRejectReason_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromEnumValue(reason, pBuffer, gapAuthenticationRejectReason_t);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromEnumValue(reason, pBuffer, gapAuthenticationRejectReason_t);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapEnterPasskeyCmdMonitor(deviceId_t deviceId, uint32_t passkey)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdEnterPasskeyOpCode_c,
-                                              fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                              sizeof(uint32_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdEnterPasskeyOpCode_c,
+                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                  sizeof(uint32_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromUint32Value(passkey, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint32Value(passkey, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapProvideOobCmdMonitor(deviceId_t deviceId, const uint8_t* aOob)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
    /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdProvideOobOpCode_c,
-                                              fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                              gcSmpOobSize_c);
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdProvideOobOpCode_c,
+                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                  gcSmpOobSize_c);
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromOob(aOob, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromOob(aOob, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapSendSmpKeysCmdMonitor(deviceId_t deviceId, const gapSmpKeys_t* pKeys)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSendSmpKeysOpCode_c,
-                                              fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                              fsciBleGapGetSmpKeysBufferSize(pKeys));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSendSmpKeysOpCode_c,
+                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                  fsciBleGapGetSmpKeysBufferSize(pKeys));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGapGetBufferFromSmpKeys(pKeys, &pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGapGetBufferFromSmpKeys(pKeys, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapProvideLongTermKeyCmdMonitor(deviceId_t deviceId, const uint8_t* aLtk, uint8_t ltkSize)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
    /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdProvideLongTermKeyOpCode_c,
-                                              fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                              sizeof(uint8_t) + ltkSize);
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdProvideLongTermKeyOpCode_c,
+                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                  sizeof(uint8_t) + ltkSize);
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromUint8Value(ltkSize, pBuffer);
+            fsciBleGetBufferFromArray(aLtk, pBuffer, ltkSize);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint8Value(ltkSize, pBuffer);
-    fsciBleGetBufferFromArray(aLtk, pBuffer, ltkSize);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapLoadEncryptionInformationCmdMonitor(deviceId_t deviceId, const uint8_t* aOutLtk, const uint8_t* pOutLtkSize)
 {
@@ -1803,34 +1836,35 @@ void fsciBleGapSetLocalPasskeyCmdMonitor(uint32_t passkey)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetLocalPasskeyOpCode_c,
-                                              sizeof(uint32_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetLocalPasskeyOpCode_c,
+                                                  sizeof(uint32_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint32Value(passkey, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint32Value(passkey, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapStartScanningCmdMonitor(const gapScanningParameters_t* pScanningParameters,
                                        gapScanningCallback_t scanningCallback,
@@ -1842,13 +1876,14 @@ void fsciBleGapStartScanningCmdMonitor(const gapScanningParameters_t* pScanningP
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
     bool_t                      bScanningParametersIncluded = ((NULL != pScanningParameters) ? TRUE : FALSE);
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
@@ -1856,155 +1891,158 @@ void fsciBleGapStartScanningCmdMonitor(const gapScanningParameters_t* pScanningP
     fsciBleGapCallbacks.scanningCallback = scanningCallback;
 #endif /* gFsciBleHost_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdStartScanningOpCode_c,
-                                              sizeof(bool_t) +
-                                              ((TRUE == bScanningParametersIncluded) ?
-                                               fsciBleGapGetScanningParametersBufferSize(pScanningParameters) :
-                                               0U) + sizeof(gapFilterDuplicates_t) + sizeof(uint16_t) + sizeof(uint16_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+         /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdStartScanningOpCode_c,
+                                                  sizeof(bool_t) +
+                                                  ((TRUE == bScanningParametersIncluded) ?
+                                                   fsciBleGapGetScanningParametersBufferSize(pScanningParameters) :
+                                                   0U) + sizeof(gapFilterDuplicates_t) + sizeof(uint16_t) + sizeof(uint16_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromBoolValue(bScanningParametersIncluded, pBuffer);
+            if(TRUE == bScanningParametersIncluded)
+            {
+                fsciBleGapGetBuffFromScanParameters(pScanningParameters, &pBuffer);
+            }
+            /* Set the enable filter duplicates field */
+            fsciBleGetBufferFromEnumValue(enableFilterDuplicates, pBuffer, gapFilterDuplicates_t);
+
+            /* Set the scanning PHYs */
+            fsciBleGetBufferFromEnumValue(pScanningParameters->scanningPHYs, pBuffer, gapLePhyFlags_t);
+
+            /* Set scan duration and period */
+            fsciBleGetBufferFromUint16Value(duration, pBuffer);
+            fsciBleGetBufferFromUint16Value(period, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromBoolValue(bScanningParametersIncluded, pBuffer);
-    if(TRUE == bScanningParametersIncluded)
-    {
-        fsciBleGapGetBuffFromScanParameters(pScanningParameters, &pBuffer);
-    }
-    /* Set the enable filter duplicates field */
-    fsciBleGetBufferFromEnumValue(enableFilterDuplicates, pBuffer, gapFilterDuplicates_t);
-
-    /* Set the scanning PHYs */
-    fsciBleGetBufferFromEnumValue(pScanningParameters->scanningPHYs, pBuffer, gapLePhyFlags_t);
-
-    /* Set scan duration and period */
-    fsciBleGetBufferFromUint16Value(duration, pBuffer);
-    fsciBleGetBufferFromUint16Value(period, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapConnectCmdMonitor(const gapConnectionRequestParameters_t* pParameters, gapConnectionCallback_t connCallback)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
+    if (bContinueExecution)
+    {
 #if gFsciBleHost_d
-    fsciBleGapCallbacks.connectionCallback = connCallback;
+        fsciBleGapCallbacks.connectionCallback = connCallback;
 #endif /* gFsciBleHost_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdConnectOpCode_c,
-                                              fsciBleGapGetConnectionRequestParametersBufferSize(pParameters));
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdConnectOpCode_c,
+                                                  fsciBleGapGetConnectionRequestParametersBufferSize(pParameters));
 
-    if(NULL == pClientPacket)
-    {
-        return;
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGapGetBuffFromConnReqParameters(pParameters, &pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGapGetBuffFromConnReqParameters(pParameters, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapSaveCustomPeerInformationCmdMonitor(deviceId_t deviceId, const uint8_t* aInfo, uint16_t offset, uint16_t infoSize)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSaveCustomPeerInformationOpCode_c,
-                                              fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                              sizeof(uint16_t) + sizeof(uint16_t) + infoSize);
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSaveCustomPeerInformationOpCode_c,
+                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                  sizeof(uint16_t) + sizeof(uint16_t) + infoSize);
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromUint16Value(offset, pBuffer);
+            fsciBleGetBufferFromUint16Value(infoSize, pBuffer);
+            fsciBleGetBufferFromArray(aInfo, pBuffer, infoSize);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint16Value(offset, pBuffer);
-    fsciBleGetBufferFromUint16Value(infoSize, pBuffer);
-    fsciBleGetBufferFromArray(aInfo, pBuffer, infoSize);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapLoadCustomPeerInformationCmdMonitor(deviceId_t deviceId, const uint8_t* aOutInfo, uint16_t offset, uint16_t infoSize)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdLoadCustomPeerInformationOpCode_c,
-                                              fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                              sizeof(uint16_t) + sizeof(uint16_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
-    }
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdLoadCustomPeerInformationOpCode_c,
+                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                  sizeof(uint16_t) + sizeof(uint16_t));
 
-    pBuffer = &pClientPacket->payload[0];
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
 
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint16Value(offset, pBuffer);
-    fsciBleGetBufferFromUint16Value(infoSize, pBuffer);
+        /* Set command parameters in the buffer */
+        fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+        fsciBleGetBufferFromUint16Value(offset, pBuffer);
+        fsciBleGetBufferFromUint16Value(infoSize, pBuffer);
 
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        /* Transmit the packet over UART */
+        fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 
 #if gFsciBleHost_d
-    /* Save out parameters pointers */
-    fsciBleGapSaveOutParams(aOutInfo, NULL);
+        /* Save out parameters pointers */
+        fsciBleGapSaveOutParams(aOutInfo, NULL);
 #endif /* gFsciBleHost_d */
+        }
+    }
 }
-
 
 void fsciBleGapCheckIfBondedCmdMonitor(deviceId_t deviceId, bool_t* pOutIsBonded)
 {
@@ -2046,18 +2084,16 @@ void fsciBleGapGetConnectionHandleFromDeviceIdCmdMonitor
     pClientPacket = fsciBleGapAllocFsciPacket(gBleGapCmdGetConnectionHandleFromDeviceIdOpCode_c,
                                               sizeof(uint8_t));
 
-    if(NULL == pClientPacket)
+    if(NULL != pClientPacket)
     {
-        return;
+        pBuffer = &pClientPacket->payload[0];
+
+        /* Set command parameters in the buffer */
+        fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+
+        /* Transmit the packet over UART */
+        fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 /*! *********************************************************************************
@@ -2078,18 +2114,16 @@ void fsciBleGapGetDeviceIdFromConnHandleCmdMonitor
     pClientPacket = fsciBleGapAllocFsciPacket(gBleGapCmdGetDeviceIdFromConnHandleOpCode_c,
                                               sizeof(uint16_t));
 
-    if(NULL == pClientPacket)
+    if(NULL != pClientPacket)
     {
-        return;
+        pBuffer = &pClientPacket->payload[0];
+
+        /* Set command parameters in the buffer */
+        fsciBleGetBufferFromUint16Value(connHandle, pBuffer);
+
+        /* Transmit the packet over UART */
+        fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(connHandle, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 void fsciBleGapCreateRandomDeviceAddressCmdMonitor(const uint8_t* aIrk, const uint8_t* aRandomPart)
@@ -2098,79 +2132,81 @@ void fsciBleGapCreateRandomDeviceAddressCmdMonitor(const uint8_t* aIrk, const ui
     uint8_t*                    pBuffer = NULL;
     bool_t                      bIrkIncluded        = ((NULL != aIrk) ? TRUE : FALSE);
     bool_t                      bRandomPartIncluded = ((NULL != aRandomPart) ? TRUE : FALSE);
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdCreateRandomDeviceAddressOpCode_c,
-                                              sizeof(bool_t) +
-                                              ((TRUE == bIrkIncluded) ?
-                                               (gcSmpIrkSize_c +
-                                                sizeof(bool_t) +
-                                                ((TRUE == bRandomPartIncluded) ? 3U : 0U))
-                                               : 0U));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdCreateRandomDeviceAddressOpCode_c,
+                                                  sizeof(bool_t) +
+                                                  ((TRUE == bIrkIncluded) ?
+                                                   (gcSmpIrkSize_c +
+                                                    sizeof(bool_t) +
+                                                    ((TRUE == bRandomPartIncluded) ? 3U : 0U))
+                                                   : 0U));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromBoolValue(bIrkIncluded, pBuffer);
+            if(TRUE == bIrkIncluded)
+            {
+                fsciBleGetBufferFromIrk(aIrk, pBuffer);
+            }
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromBoolValue(bIrkIncluded, pBuffer);
-    if(TRUE == bIrkIncluded)
-    {
-        fsciBleGetBufferFromIrk(aIrk, pBuffer);
-    }
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapSaveDeviceNameCmdMonitor(deviceId_t deviceId, const uchar_t* aName, uint8_t cNameSize)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSaveDeviceNameOpCode_c,
-                                              fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                              sizeof(uint8_t) + cNameSize);
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSaveDeviceNameOpCode_c,
+                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                  sizeof(uint8_t) + cNameSize);
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromUint8Value(cNameSize, pBuffer);
+            fsciBleGetBufferFromArray(aName, pBuffer, cNameSize);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint8Value(cNameSize, pBuffer);
-    fsciBleGetBufferFromArray(aName, pBuffer, cNameSize);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapGetBondedDevicesCountCmdMonitor(const uint8_t* pOutBondedDevicesCount)
 {
@@ -2187,367 +2223,377 @@ void fsciBleGapGetBondedDeviceNameCmdMonitor(uint8_t nvmIndex, uchar_t* aOutName
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdGetBondedDeviceNameOpCode_c,
-                                              sizeof(uint8_t) + sizeof(uint8_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
-    }
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdGetBondedDeviceNameOpCode_c,
+                                                  sizeof(uint8_t) + sizeof(uint8_t));
 
-    pBuffer = &pClientPacket->payload[0];
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
 
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint8Value(nvmIndex, pBuffer);
-    fsciBleGetBufferFromUint8Value(maxNameSize, pBuffer);
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint8Value(nvmIndex, pBuffer);
+            fsciBleGetBufferFromUint8Value(maxNameSize, pBuffer);
 
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 
 #if gFsciBleHost_d
-    /* Save out parameters pointers */
-    fsciBleGapSaveOutParams(aOutName, NULL);
+            /* Save out parameters pointers */
+            fsciBleGapSaveOutParams(aOutName, NULL);
 #endif /* gFsciBleHost_d */
+        }
+    }
 }
-
 
 void fsciBleGapReadRadioPowerLevelCmdMonitor(gapRadioPowerLevelReadType_t txReadType, deviceId_t deviceId)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdReadRadioPowerLevelOpCode_c,
-                                              sizeof(gapRadioPowerLevelReadType_t) + fsciBleGetDeviceIdBufferSize(&deviceId));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdReadRadioPowerLevelOpCode_c,
+                                                  sizeof(gapRadioPowerLevelReadType_t) + fsciBleGetDeviceIdBufferSize(&deviceId));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromEnumValue(txReadType, pBuffer, gapRadioPowerLevelReadType_t);
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromEnumValue(txReadType, pBuffer, gapRadioPowerLevelReadType_t);
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapVerifyPrivateResolvableAddressCmdMonitor(uint8_t nvmIndex, const bleDeviceAddress_t aAddress)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdVerifyPrivateResolvableAddressOpCode_c,
-                                              sizeof(uint8_t) + gcBleDeviceAddressSize_c);
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdVerifyPrivateResolvableAddressOpCode_c,
+                                                  sizeof(uint8_t) + gcBleDeviceAddressSize_c);
+
+        if(NULL != pClientPacket)
+        {
+                    pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint8Value(nvmIndex, pBuffer);
+            fsciBleGetBufferFromAddress(aAddress, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint8Value(nvmIndex, pBuffer);
-    fsciBleGetBufferFromAddress(aAddress, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapSetRandomAddressCmdMonitor(const bleDeviceAddress_t aAddress)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetRandomAddressOpCode_c,
-                                              gcBleDeviceAddressSize_c);
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetRandomAddressOpCode_c,
+                                                  gcBleDeviceAddressSize_c);
+
+        if(NULL != pClientPacket)
+        {
+                pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromAddress(aAddress, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromAddress(aAddress, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapSetScanModeCmdMonitor(gapScanMode_t scanMode, gapAutoConnectParams_t* pAutoConnectParams)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetScanModeOpCode_c,
-                                              sizeof(gapScanMode_t) +
-                                              ((gAutoConnect_c == scanMode) ?
-                                                fsciBleGapGetAutoConnectParamsBufferSize(pAutoConnectParams) : 0U));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetScanModeOpCode_c,
+                                                  sizeof(gapScanMode_t) +
+                                                  ((gAutoConnect_c == scanMode) ?
+                                                    fsciBleGapGetAutoConnectParamsBufferSize(pAutoConnectParams) : 0U));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromEnumValue(scanMode, pBuffer, gapScanMode_t);
+            fsciBleGapGetBufferFromAutoConnectParams(pAutoConnectParams, &pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromEnumValue(scanMode, pBuffer, gapScanMode_t);
-    fsciBleGapGetBufferFromAutoConnectParams(pAutoConnectParams, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapSetDefaultPairingParametersCmdMonitor(const gapPairingParameters_t* pPairingParameters)
 {
     bool_t                      bPairingParametersIncluded = (NULL == pPairingParameters) ? FALSE : TRUE;
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetDefaultPairingParameters_c,
-                                              sizeof(bool_t) +
-                                              ((TRUE == bPairingParametersIncluded) ?
-                                               fsciBleGapGetPairingParametersBufferSize(pPairingParameters) : 0U));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetDefaultPairingParameters_c,
+                                                  sizeof(bool_t) +
+                                                  ((TRUE == bPairingParametersIncluded) ?
+                                                   fsciBleGapGetPairingParametersBufferSize(pPairingParameters) : 0U));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromBoolValue(bPairingParametersIncluded, pBuffer);
+
+            if(TRUE == bPairingParametersIncluded)
+            {
+                fsciBleGapGetBufferFromPairingParameters(pPairingParameters, &pBuffer);
+            }
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromBoolValue(bPairingParametersIncluded, pBuffer);
-
-    if(TRUE == bPairingParametersIncluded)
-    {
-        fsciBleGapGetBufferFromPairingParameters(pPairingParameters, &pBuffer);
-    }
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapUpdateConnectionParametersCmdMonitor(deviceId_t deviceId, uint16_t intervalMin, uint16_t intervalMax, uint16_t peripheralLatency, uint16_t timeoutMultiplier, uint16_t minCeLength, uint16_t maxCeLength)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If Gap is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdUpdateConnectionParametersOpCode_c,
-                                                fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                sizeof(uint16_t) + sizeof(uint16_t) +
-                                                sizeof(uint16_t) + sizeof(uint16_t) +
-                                                sizeof(uint16_t) + sizeof(uint16_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdUpdateConnectionParametersOpCode_c,
+                                                    fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                    sizeof(uint16_t) + sizeof(uint16_t) +
+                                                    sizeof(uint16_t) + sizeof(uint16_t) +
+                                                    sizeof(uint16_t) + sizeof(uint16_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromUint16Value(intervalMin, pBuffer);
+            fsciBleGetBufferFromUint16Value(intervalMax, pBuffer);
+            fsciBleGetBufferFromUint16Value(peripheralLatency, pBuffer);
+            fsciBleGetBufferFromUint16Value(timeoutMultiplier, pBuffer);
+            fsciBleGetBufferFromUint16Value(minCeLength, pBuffer);
+            fsciBleGetBufferFromUint16Value(maxCeLength, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint16Value(intervalMin, pBuffer);
-    fsciBleGetBufferFromUint16Value(intervalMax, pBuffer);
-    fsciBleGetBufferFromUint16Value(peripheralLatency, pBuffer);
-    fsciBleGetBufferFromUint16Value(timeoutMultiplier, pBuffer);
-    fsciBleGetBufferFromUint16Value(minCeLength, pBuffer);
-    fsciBleGetBufferFromUint16Value(maxCeLength, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapEnableUpdateConnectionParametersCmdMonitor(deviceId_t deviceId, bool_t enable)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If Gap is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdEnableUpdateConnectionParametersOpCode_c,
-                                                fsciBleGetDeviceIdBufferSize(&deviceId) + sizeof(bool_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdEnableUpdateConnectionParametersOpCode_c,
+                                                    fsciBleGetDeviceIdBufferSize(&deviceId) + sizeof(bool_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromBoolValue(enable, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromBoolValue(enable, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapUpdateLeDataLengthCmdMonitor(deviceId_t deviceId, uint16_t txOctets, uint16_t txTime)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdUpdateLeDataLengthOpCode_c,
-                                              2U * sizeof(uint16_t) + fsciBleGetDeviceIdBufferSize(&deviceId));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdUpdateLeDataLengthOpCode_c,
+                                                  2U * sizeof(uint16_t) + fsciBleGetDeviceIdBufferSize(&deviceId));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromUint16Value(txOctets, pBuffer);
+            fsciBleGetBufferFromUint16Value(txTime, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint16Value(txOctets, pBuffer);
-    fsciBleGetBufferFromUint16Value(txTime, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapEnableHostPrivacyCmdMonitor(bool_t enable, const uint8_t* aIrk)
 {
     clientPacketStructured_t* pClientPacket = NULL;
     uint8_t*                  pBuffer = NULL;
+    bool_t                    bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdEnableHostPrivacyOpCode_c,
-                                              sizeof(bool_t) +
-                                              ((TRUE == enable) ? gcSmpIrkSize_c : 0U));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdEnableHostPrivacyOpCode_c,
+                                                  sizeof(bool_t) +
+                                                  ((TRUE == enable) ? gcSmpIrkSize_c : 0U));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromBoolValue(enable, pBuffer);
+            if(TRUE == enable)
+            {
+                fsciBleGetBufferFromIrk(aIrk, pBuffer);
+            }
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromBoolValue(enable, pBuffer);
-    if(TRUE == enable)
-    {
-        fsciBleGetBufferFromIrk(aIrk, pBuffer);
-    }
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapEnableControllerPrivacyCmdMonitor(bool_t enable, const uint8_t* aOwnIrk, uint8_t peerIdCount, const gapIdentityInformation_t* aPeerIdentities)
 {
@@ -2555,253 +2601,262 @@ void fsciBleGapEnableControllerPrivacyCmdMonitor(bool_t enable, const uint8_t* a
     uint8_t*                  pBuffer = NULL;
     uint32_t                  i = 0U;
     uint8_t                   size = sizeof(bool_t);
+    bool_t                    bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
-
-    if( TRUE == enable )
+    
+    if (bContinueExecution)
     {
-        size += gcSmpIrkSize_c + peerIdCount * (sizeof(bleAddressType_t) +
-                                                gcBleDeviceAddressSize_c +
-                                                gcSmpIrkSize_c +
-                                                sizeof(blePrivacyMode_t));
-    }
-
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdEnableControllerPrivacyOpCode_c, size);
-    if(NULL == pClientPacket)
-    {
-        return;
-    }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromBoolValue(enable, pBuffer);
-    if(TRUE == enable)
-    {
-        fsciBleGetBufferFromIrk(aOwnIrk, pBuffer);
-        fsciBleGetBufferFromUint8Value(peerIdCount, pBuffer);
-
-        for( i=0; i<peerIdCount; i++ )
+        if( TRUE == enable )
         {
-            fsciBleGapGetBufferFromIdentityInformation(&aPeerIdentities[i], &pBuffer);
+            size += gcSmpIrkSize_c + peerIdCount * (sizeof(bleAddressType_t) +
+                                                    gcBleDeviceAddressSize_c +
+                                                    gcSmpIrkSize_c +
+                                                    sizeof(blePrivacyMode_t));
+        }
+
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdEnableControllerPrivacyOpCode_c, size);
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromBoolValue(enable, pBuffer);
+            if(TRUE == enable)
+            {
+                fsciBleGetBufferFromIrk(aOwnIrk, pBuffer);
+                fsciBleGetBufferFromUint8Value(peerIdCount, pBuffer);
+
+                for( i=0; i<peerIdCount; i++ )
+                {
+                    fsciBleGapGetBufferFromIdentityInformation(&aPeerIdentities[i], &pBuffer);
+                }
+            }
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
         }
     }
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapSetPrivacyModeCmdMonitor(uint8_t nvmIndex, blePrivacyMode_t privacyMode)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetPrivacyModeOpCode_c,
-                                              sizeof(uint8_t) + sizeof(blePrivacyMode_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetPrivacyModeOpCode_c,
+                                                  sizeof(uint8_t) + sizeof(blePrivacyMode_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint8Value(nvmIndex, pBuffer);
+            fsciBleGetBufferFromEnumValue(privacyMode, pBuffer, blePrivacyMode_t);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint8Value(nvmIndex, pBuffer);
-    fsciBleGetBufferFromEnumValue(privacyMode, pBuffer, blePrivacyMode_t);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapLeScValidateNumericValueCmdMonitor(deviceId_t deviceId, bool_t valid)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdLeScValidateNumericValueOpCode_c,
-                                              sizeof(bool_t) + fsciBleGetDeviceIdBufferSize(&deviceId));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdLeScValidateNumericValueOpCode_c,
+                                                  sizeof(bool_t) + fsciBleGetDeviceIdBufferSize(&deviceId));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromBoolValue(valid, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromBoolValue(valid, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapLeScSetPeerOobDataCmdMonitor(deviceId_t deviceId, const gapLeScOobData_t* pPeerOobData)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdLeScSetPeerOobDataOpCode_c,
-                                              gSmpLeScRandomValueSize_c +
-                                              gSmpLeScRandomConfirmValueSize_c +
-                                              fsciBleGetDeviceIdBufferSize(&deviceId));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdLeScSetPeerOobDataOpCode_c,
+                                                  gSmpLeScRandomValueSize_c +
+                                                  gSmpLeScRandomConfirmValueSize_c +
+                                                  fsciBleGetDeviceIdBufferSize(&deviceId));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromArray(pPeerOobData->randomValue, pBuffer, ((uint32_t)gSmpLeScRandomValueSize_c));
+            fsciBleGetBufferFromArray(pPeerOobData->confirmValue, pBuffer, ((uint32_t)gSmpLeScRandomConfirmValueSize_c));
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromArray(pPeerOobData->randomValue, pBuffer, ((uint32_t)gSmpLeScRandomValueSize_c));
-    fsciBleGetBufferFromArray(pPeerOobData->confirmValue, pBuffer, ((uint32_t)gSmpLeScRandomConfirmValueSize_c));
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapLeScSendKeypressNotificationCmdMonitor(deviceId_t deviceId, gapKeypressNotification_t keypressNotification)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdLeScSendKeypressNotificationPrivacyOpCode_c,
-                                              sizeof(gapKeypressNotification_t) + fsciBleGetDeviceIdBufferSize(&deviceId));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdLeScSendKeypressNotificationPrivacyOpCode_c,
+                                                  sizeof(gapKeypressNotification_t) + fsciBleGetDeviceIdBufferSize(&deviceId));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromEnumValue(keypressNotification, pBuffer, gapKeypressNotification_t);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromEnumValue(keypressNotification, pBuffer, gapKeypressNotification_t);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapSetTxPowerLevelCmdMonitor(uint8_t powerLevel, bleTransmitPowerChannelType_t channelType)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetTxPowerLevelOpCode_c,
-                                              sizeof(uint8_t) + sizeof(bleTransmitPowerChannelType_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetTxPowerLevelOpCode_c,
+                                                  sizeof(uint8_t) + sizeof(bleTransmitPowerChannelType_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint8Value(powerLevel, pBuffer);
+            fsciBleGetBufferFromEnumValue(channelType, pBuffer, bleTransmitPowerChannelType_t);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint8Value(powerLevel, pBuffer);
-    fsciBleGetBufferFromEnumValue(channelType, pBuffer, bleTransmitPowerChannelType_t);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 void fsciBleGapLeReadPhyCmdMonitor(deviceId_t deviceId)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdLeReadPhyOpCode_c,
-                                              fsciBleGetDeviceIdBufferSize(&deviceId));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdLeReadPhyOpCode_c,
+                                                  fsciBleGetDeviceIdBufferSize(&deviceId));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 void fsciBleGapLeSetPhyCmdMonitor(bool_t defaultMode, deviceId_t deviceId, uint8_t allPhys,
@@ -2809,71 +2864,75 @@ void fsciBleGapLeSetPhyCmdMonitor(bool_t defaultMode, deviceId_t deviceId, uint8
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdLeSetPhyOpCode_c,
-                                              sizeof(bool_t) + fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                              3U * sizeof(uint8_t) + sizeof(uint16_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdLeSetPhyOpCode_c,
+                                                  sizeof(bool_t) + fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                  3U * sizeof(uint8_t) + sizeof(uint16_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromBoolValue(defaultMode, pBuffer);
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromUint8Value(allPhys, pBuffer);
+            fsciBleGetBufferFromUint8Value(txPhys, pBuffer);
+            fsciBleGetBufferFromUint8Value(rxPhys, pBuffer);
+            fsciBleGetBufferFromUint16Value(phyOptions, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromBoolValue(defaultMode, pBuffer);
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint8Value(allPhys, pBuffer);
-    fsciBleGetBufferFromUint8Value(txPhys, pBuffer);
-    fsciBleGetBufferFromUint8Value(rxPhys, pBuffer);
-    fsciBleGetBufferFromUint16Value(phyOptions, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 void fsciBleGapControllerEnhancedNotificationCmdMonitor(uint16_t eventType, deviceId_t deviceId)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdControllerNotificationOpCode_c,
-                                              sizeof(uint16_t) + fsciBleGetDeviceIdBufferSize(&deviceId));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdControllerNotificationOpCode_c,
+                                                  sizeof(uint16_t) + fsciBleGetDeviceIdBufferSize(&deviceId));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(eventType, pBuffer);
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(eventType, pBuffer);
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 void fsciBleGapLoadKeysCmdMonitor
@@ -2887,69 +2946,72 @@ void fsciBleGapLoadKeysCmdMonitor
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdLoadKeysOpCode_c,
-                                              sizeof(uint8_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdLoadKeysOpCode_c,
+                                                  sizeof(uint8_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint8Value(nvmIndex, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint8Value(nvmIndex, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapSaveKeysCmdMonitor(uint8_t nvmIndex, gapSmpKeys_t* pKeys, bool_t leSc, bool_t auth)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSaveKeysOpCode_c,
-                                              sizeof(uint8_t) + 2U * sizeof(bool_t) +
-                                              fsciBleGapGetSmpKeysBufferSize(pKeys));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSaveKeysOpCode_c,
+                                                  sizeof(uint8_t) + 2U * sizeof(bool_t) +
+                                                  fsciBleGapGetSmpKeysBufferSize(pKeys));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint8Value(nvmIndex, pBuffer);
+            fsciBleGapGetBufferFromSmpKeys(pKeys, &pBuffer);
+            fsciBleGetBufferFromBoolValue(leSc, pBuffer);
+            fsciBleGetBufferFromBoolValue(auth, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint8Value(nvmIndex, pBuffer);
-    fsciBleGapGetBufferFromSmpKeys(pKeys, &pBuffer);
-    fsciBleGetBufferFromBoolValue(leSc, pBuffer);
-    fsciBleGetBufferFromBoolValue(auth, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 void fsciBleGapSetChannelMapCmdMonitor
@@ -2959,32 +3021,34 @@ void fsciBleGapSetChannelMapCmdMonitor
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetChannelMapOpCode_c,
-                                              gcBleChannelMapSize_c);
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetChannelMapOpCode_c,
+                                                  gcBleChannelMapSize_c);
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromArray(channelMap, pBuffer, ((uint32_t)gcBleChannelMapSize_c));
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromArray(channelMap, pBuffer, ((uint32_t)gcBleChannelMapSize_c));
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 #if defined(gBLE50_d) && (gBLE50_d == 1U)
@@ -2992,66 +3056,70 @@ void fsciBleGapSetPeriodicAdvParametersCmdMonitor(gapPeriodicAdvParameters_t* pA
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetPeriodicAdvParametersOpCode_c,
-                                              sizeof(uint8_t) + sizeof(bool_t) +  2U * sizeof(uint16_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetPeriodicAdvParametersOpCode_c,
+                                                  sizeof(uint8_t) + sizeof(bool_t) +  2U * sizeof(uint16_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGapGetBufferFromPerAdvParameters(pAdvertisingParameters, &pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGapGetBufferFromPerAdvParameters(pAdvertisingParameters, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 void fsciBleGapSetPeriodicAdvertisingDataCmdMonitor(uint8_t handle, gapAdvertisingData_t* pAdvertisingData)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetPeriodicAdvDataOpCode_c,
-                                              sizeof(uint8_t) +
-                                              fsciBleGapGetAdvertisingDataBufferSize(pAdvertisingData));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetPeriodicAdvDataOpCode_c,
+                                                  sizeof(uint8_t) +
+                                                  fsciBleGapGetAdvertisingDataBufferSize(pAdvertisingData));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint8Value(handle, pBuffer);
+            fsciBleGapGetBufferFromAdvertisingData(pAdvertisingData, &pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint8Value(handle, pBuffer);
-    fsciBleGapGetBufferFromAdvertisingData(pAdvertisingData, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 #endif /* gBLE50_d */
 
@@ -3064,67 +3132,70 @@ void fsciBleGapBoolParamEvtMonitor(fsciBleGapOpCode_t opCode, bool_t bParam)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode, sizeof(bool_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode, sizeof(bool_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set event parameters in the buffer */
+            fsciBleGetBufferFromBoolValue(bParam, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set event parameters in the buffer */
-    fsciBleGetBufferFromBoolValue(bParam, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapArrayAndSizeParamEvtMonitor(fsciBleGapOpCode_t opCode, const uint8_t* aArray, uint8_t arraySize)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode, (sizeof(uint8_t) +
-                                                      ((NULL == aArray) ? 0U : (uint16_t)arraySize)));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode, (sizeof(uint8_t) +
+                                                          ((NULL == aArray) ? 0U : (uint16_t)arraySize)));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set event parameters in the buffer */
+            fsciBleGetBufferFromUint8Value(arraySize, pBuffer);
+
+            if(NULL != aArray)
+            {
+                fsciBleGetBufferFromArray(aArray, pBuffer, arraySize);
+            }
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set event parameters in the buffer */
-    fsciBleGetBufferFromUint8Value(arraySize, pBuffer);
-
-    if(NULL != aArray)
-    {
-        fsciBleGetBufferFromArray(aArray, pBuffer, arraySize);
-    }
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 void fsciBleGapGetBondedDevIdentityInfoEvtMonitor(const gapIdentityInformation_t* aOutIdentityAddresses, const uint8_t* pOutActualCount)
@@ -3132,75 +3203,77 @@ void fsciBleGapGetBondedDevIdentityInfoEvtMonitor(const gapIdentityInformation_t
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
     uint32_t                    iCount = 0U;
+    bool_t                      bContinueExecution = TRUE;
 
  #if gFsciBleTest_d
    /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtGetBondedDevicesIdentityInformationOpCode_c,
-                                              sizeof(uint8_t) +
-                                              (uint32_t)(*pOutActualCount) * (sizeof(bleAddressType_t) +
-                                                                             gcBleDeviceAddressSize_c +
-                                                                             gcSmpIrkSize_c +
-                                                                             sizeof(blePrivacyMode_t)));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtGetBondedDevicesIdentityInformationOpCode_c,
+                                                  sizeof(uint8_t) +
+                                                  (uint32_t)(*pOutActualCount) * (sizeof(bleAddressType_t) +
+                                                                                 gcBleDeviceAddressSize_c +
+                                                                                 gcSmpIrkSize_c +
+                                                                                 sizeof(blePrivacyMode_t)));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set event parameters in the buffer */
+            fsciBleGetBufferFromUint8Value(*pOutActualCount, pBuffer);
+
+            for(iCount = 0; iCount < *pOutActualCount; iCount++)
+            {
+                fsciBleGapGetBufferFromIdentityInformation(&aOutIdentityAddresses[iCount], &pBuffer);
+            }
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set event parameters in the buffer */
-    fsciBleGetBufferFromUint8Value(*pOutActualCount, pBuffer);
-
-    for(iCount = 0; iCount < *pOutActualCount; iCount++)
-    {
-        fsciBleGapGetBufferFromIdentityInformation(&aOutIdentityAddresses[iCount], &pBuffer);
-    }
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapLoadCustomPeerInfoEvtMonitor(const uint8_t* aOutInfo, uint16_t infoSize)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtLoadCustomPeerInformationOpCode_c,
-                                              sizeof(uint16_t) + infoSize);
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+         /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtLoadCustomPeerInformationOpCode_c,
+                                                  sizeof(uint16_t) + infoSize);
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set event parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(infoSize, pBuffer);
+            fsciBleGetBufferFromArray(aOutInfo, pBuffer, infoSize);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set event parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(infoSize, pBuffer);
-    fsciBleGetBufferFromArray(aOutInfo, pBuffer, infoSize);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGapCheckIfBondedEvtMonitor
 (
@@ -3210,31 +3283,33 @@ void fsciBleGapCheckIfBondedEvtMonitor
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtCheckIfBondedOpCode_c, sizeof(bool_t) + sizeof(uint8_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtCheckIfBondedOpCode_c, sizeof(bool_t) + sizeof(uint8_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set event parameters in the buffer */
+            fsciBleGetBufferFromBoolValue(*pOutIsBonded, pBuffer);
+            fsciBleGetBufferFromUint8Value(*pOutNvmIndex, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set event parameters in the buffer */
-    fsciBleGetBufferFromBoolValue(*pOutIsBonded, pBuffer);
-    fsciBleGetBufferFromUint8Value(*pOutNvmIndex, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 void fsciBleGapCheckNvmIndexEvtMonitor
@@ -3244,30 +3319,32 @@ void fsciBleGapCheckNvmIndexEvtMonitor
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtCheckNvmIndexOpCode_c, sizeof(bool_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtCheckNvmIndexOpCode_c, sizeof(bool_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set event parameters in the buffer */
+            fsciBleGetBufferFromBoolValue(*pOutIsFree, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set event parameters in the buffer */
-    fsciBleGetBufferFromBoolValue(*pOutIsFree, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 void fsciBleGapGetHostVersionEvtMonitor
@@ -3277,31 +3354,33 @@ void fsciBleGapGetHostVersionEvtMonitor
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtGetHostVersionOpCode_c, 
-                                              sizeof(gapHostVersion_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtGetHostVersionOpCode_c, 
+                                                  sizeof(gapHostVersion_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set event parameters in the buffer */
+            fsciBleGapGetBufferFromHostVersion(pOutHostVersion, &pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set event parameters in the buffer */
-    fsciBleGapGetBufferFromHostVersion(pOutHostVersion, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 void fsciBleGapGetDeviceIdFromConnHandleEvtMonitor
@@ -3311,30 +3390,32 @@ void fsciBleGapGetDeviceIdFromConnHandleEvtMonitor
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtGetDeviceIdFromConnHandleOpCode_c, sizeof(deviceId_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtGetDeviceIdFromConnHandleOpCode_c, sizeof(deviceId_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set event parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set event parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 void fsciBleGapGetConnectionHandleFromDeviceIdEvtMonitor
@@ -3344,30 +3425,32 @@ void fsciBleGapGetConnectionHandleFromDeviceIdEvtMonitor
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtGetConnectionHandleFromDeviceIdOpCode_c, sizeof(uint16_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+         /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtGetConnectionHandleFromDeviceIdOpCode_c, sizeof(uint16_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set event parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(connHandle, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set event parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(connHandle, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 void fsciBleGapLoadKeysEvtMonitor
@@ -3380,37 +3463,39 @@ void fsciBleGapLoadKeysEvtMonitor
 {
     clientPacketStructured_t   *pClientPacket = NULL;
     uint8_t                    *pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
 
     /* If GAP is disabled the event must be not monitored */
     if (FALSE == bFsciBleGapEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtLoadKeysOpCode_c,
-                                              fsciBleGapGetSmpKeysBufferSize(pOutKeys) +
-                                              sizeof(gapSmpKeyFlags_t) + 2U * sizeof(bool_t));
-
-    if (NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtLoadKeysOpCode_c,
+                                                  fsciBleGapGetSmpKeysBufferSize(pOutKeys) +
+                                                  sizeof(gapSmpKeyFlags_t) + 2U * sizeof(bool_t));
+
+        if (NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set event parameters in the buffer */
+            fsciBleGapGetBufferFromSmpKeys(pOutKeys, &pBuffer);
+            fsciBleGetBufferFromEnumValue(*pOutKeyFlags, pBuffer, gapSmpKeyFlags_t);
+            fsciBleGetBufferFromBoolValue(*pOutLeSc, pBuffer);
+            fsciBleGetBufferFromBoolValue(*pOutAuth, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set event parameters in the buffer */
-    fsciBleGapGetBufferFromSmpKeys(pOutKeys, &pBuffer);
-    fsciBleGetBufferFromEnumValue(*pOutKeyFlags, pBuffer, gapSmpKeyFlags_t);
-    fsciBleGetBufferFromBoolValue(*pOutLeSc, pBuffer);
-    fsciBleGetBufferFromBoolValue(*pOutAuth, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 #if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
@@ -3433,22 +3518,20 @@ void fsciBleIdsEvtMonitor
     /* Allocate the packet to be sent over UART */
     pClientPacket =  fsciBleAllocFsciPacket(opGroup, opCode, (sizeof(uint32_t) + gcBleDeviceAddressSize_c + 3U * sizeof(uint16_t)));
 
-    if(NULL == pClientPacket)
+    if(NULL != pClientPacket)
     {
-        return;
+        pBuffer = &pClientPacket->payload[0];
+
+        /* Set event parameters in the buffer */
+        fsciBleGetBufferFromUint32Value((uint32_t)pEventData->type, pBuffer);
+        fsciBleGetBufferFromAddress(pEventData->aAddr, pBuffer);
+        fsciBleGetBufferFromUint16Value(pEventData->connInterval, pBuffer);
+        fsciBleGetBufferFromUint16Value(pEventData->peripheralLatency, pBuffer);
+        fsciBleGetBufferFromUint16Value(pEventData->supervisionTimeout, pBuffer);
+
+        /* Transmit the packet over UART */
+        fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set event parameters in the buffer */
-    fsciBleGetBufferFromUint32Value((uint32_t)pEventData->type, pBuffer);
-    fsciBleGetBufferFromAddress(pEventData->aAddr, pBuffer);
-    fsciBleGetBufferFromUint16Value(pEventData->connInterval, pBuffer);
-    fsciBleGetBufferFromUint16Value(pEventData->peripheralLatency, pBuffer);
-    fsciBleGetBufferFromUint16Value(pEventData->supervisionTimeout, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 #endif
 
@@ -3459,69 +3542,71 @@ void fsciBleGapGenericEvtMonitor(gapGenericEvent_t* pGenericEvent)
     int16_t                     tempOpCode = 0;
     fsciBleGapOpCode_t          opCode = gBleGapModeSelectOpCode_c;
     opGroup_t                   opGroup = gFsciBleGapOpcodeGroup_c;
-    bool_t earlyReturn = FALSE;
+    bool_t                      earlyReturn = FALSE;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled the event must be not monitored */
     if ((FALSE == bFsciBleGapEnabled) &&
         (gInitializationComplete_c != pGenericEvent->eventType))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
-    
-    /* Get FSCI opCode */
-    tempOpCode = maGenericEventToOpcode[pGenericEvent->eventType];
-    
-    if ((tempOpCode == -1) && ((uint16_t)pGenericEvent->eventType > gLastGapGenericEventOpCode_c))
-    {
-        /* Use GAP2 opgroup */
-        opGroup = gFsciBleGap2OpcodeGroup_c;
-        tempOpCode = maGenericEvent2ToOpcode[(uint16_t)pGenericEvent->eventType - ((uint16_t)gLastGapGenericEventOpCode_c + 1U)];
-    }
-    
-    if(tempOpCode == -1)
-    {
-#if gFsciBleGapHandoverLayerEnabled_d
-        fsciBleGapHandoverGenericEvtMonitor(pGenericEvent);
-#else /* gFsciBleGapHandoverLayerEnabled_d */
-        /* Unknown event type */
-        fsciBleError(gFsciError_c, fsciBleInterfaceId);
-#endif /* gFsciBleGapHandoverLayerEnabled_d */
-        earlyReturn = TRUE;
-    }
-    else
-    {
-        opCode = (fsciBleGapOpCode_t)tempOpCode;
-    }
 
-    if(!earlyReturn)
+    if (bContinueExecution)
     {
-        /* Allocate the packet to be sent over UART */
-        pClientPacket =  fsciBleAllocFsciPacket(opGroup, (uint8_t)opCode, fsciBleGapGetGenericEventBufferSize(pGenericEvent));
-
-        if(NULL == pClientPacket)
+        /* Get FSCI opCode */
+        tempOpCode = maGenericEventToOpcode[pGenericEvent->eventType];
+        
+        if ((tempOpCode == -1) && ((uint16_t)pGenericEvent->eventType > gLastGapGenericEventOpCode_c))
         {
-            return;
+            /* Use GAP2 opgroup */
+            opGroup = gFsciBleGap2OpcodeGroup_c;
+            tempOpCode = maGenericEvent2ToOpcode[(uint16_t)pGenericEvent->eventType - ((uint16_t)gLastGapGenericEventOpCode_c + 1U)];
+        }
+        
+        if(tempOpCode == -1)
+        {
+#if gFsciBleGapHandoverLayerEnabled_d
+            fsciBleGapHandoverGenericEvtMonitor(pGenericEvent);
+#else /* gFsciBleGapHandoverLayerEnabled_d */
+            /* Unknown event type */
+            fsciBleError(gFsciError_c, fsciBleInterfaceId);
+#endif /* gFsciBleGapHandoverLayerEnabled_d */
+            earlyReturn = TRUE;
+        }
+        else
+        {
+            opCode = (fsciBleGapOpCode_t)tempOpCode;
         }
 
-        pBuffer = &pClientPacket->payload[0];
+        if(!earlyReturn)
+        {
+            /* Allocate the packet to be sent over UART */
+            pClientPacket =  fsciBleAllocFsciPacket(opGroup, (uint8_t)opCode, fsciBleGapGetGenericEventBufferSize(pGenericEvent));
 
-        /* Set event parameters in the buffer */
-        fsciBleGapGetBufferFromGenericEvent(pGenericEvent, &pBuffer);
+            if(NULL != pClientPacket)
+            {
+                pBuffer = &pClientPacket->payload[0];
 
-        /* Transmit the packet over UART */
-        fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+                /* Set event parameters in the buffer */
+                fsciBleGapGetBufferFromGenericEvent(pGenericEvent, &pBuffer);
+
+                /* Transmit the packet over UART */
+                fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            }
+        }
     }
 }
-
 
 void fsciBleGapAdvertisingEvtMonitor(gapAdvertisingEvent_t* pAdvertisingEvent)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
     opGroup_t                   opGroup = gFsciBleGapOpcodeGroup_c;
-    bool_t earlyReturn = FALSE;
+    bool_t                      earlyReturn = FALSE;
+    bool_t                      bContinueExecution = TRUE;
     union {
         fsciBleGapOpCode_t      gap1Code;
         fsciBleGap2OpCode_t     gap2Code;
@@ -3533,95 +3618,96 @@ void fsciBleGapAdvertisingEvtMonitor(gapAdvertisingEvent_t* pAdvertisingEvent)
    /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Get FSCI opCode */
-    switch(pAdvertisingEvent->eventType)
+    if (bContinueExecution)
     {
-        case gAdvertisingStateChanged_c:
-            {
-                opCode.gap1Code = gBleGapEvtAdvertisingEventAdvertisingStateChangedOpCode_c;
-            }
-            break;
+        /* Get FSCI opCode */
+        switch(pAdvertisingEvent->eventType)
+        {
+            case gAdvertisingStateChanged_c:
+                {
+                    opCode.gap1Code = gBleGapEvtAdvertisingEventAdvertisingStateChangedOpCode_c;
+                }
+                break;
 
-        case gAdvertisingCommandFailed_c:
-            {
-                opCode.gap1Code = gBleGapEvtAdvertisingEventAdvertisingCommandFailedOpCode_c;
-            }
-            break;
+            case gAdvertisingCommandFailed_c:
+                {
+                    opCode.gap1Code = gBleGapEvtAdvertisingEventAdvertisingCommandFailedOpCode_c;
+                }
+                break;
 #if defined(gBLE50_d) && (gBLE50_d == 1U)
-        case gExtAdvertisingStateChanged_c:
-            {
-                opCode.gap1Code = gBleGapEvtAdvertisingEventExtAdvertisingStateChangedOpCode_c;
-            }
-            break;
+            case gExtAdvertisingStateChanged_c:
+                {
+                    opCode.gap1Code = gBleGapEvtAdvertisingEventExtAdvertisingStateChangedOpCode_c;
+                }
+                break;
 
-        case gAdvertisingSetTerminated_c:
-            {
-                opCode.gap1Code = gBleGapEvtAdvertisingEventAdvertisingSetTerminatedOpCode_c;
-            }
-            break;
+            case gAdvertisingSetTerminated_c:
+                {
+                    opCode.gap1Code = gBleGapEvtAdvertisingEventAdvertisingSetTerminatedOpCode_c;
+                }
+                break;
 
-        case gExtScanNotification_c:
-            {
-                opCode.gap1Code = gBleGapEvtAdvertisingEventExtScanReqReceivedOpCode_c;
-            }
-            break;
+            case gExtScanNotification_c:
+                {
+                    opCode.gap1Code = gBleGapEvtAdvertisingEventExtScanReqReceivedOpCode_c;
+                }
+                break;
 
 #if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
-        /* Following this case GAP2 opgroup and opcode should be used */
-        case gPerAdvSubeventDataRequest_c:
-            {
-                opGroup = gFsciBleGap2OpcodeGroup_c;
-                opCode.gap2Code = gBleGapEvtAdvertisingEventPerAdvSubeventDataRequestOpCode_c;
-            }
-            break;
-        case gPerAdvResponse_c:
-            {
-                opGroup = gFsciBleGap2OpcodeGroup_c;
-                opCode.gap2Code = gBleGapEvtAdvertisingEventPerAdvResponseOpCode_c;
-            }
-            break;
+            /* Following this case GAP2 opgroup and opcode should be used */
+            case gPerAdvSubeventDataRequest_c:
+                {
+                    opGroup = gFsciBleGap2OpcodeGroup_c;
+                    opCode.gap2Code = gBleGapEvtAdvertisingEventPerAdvSubeventDataRequestOpCode_c;
+                }
+                break;
+            case gPerAdvResponse_c:
+                {
+                    opGroup = gFsciBleGap2OpcodeGroup_c;
+                    opCode.gap2Code = gBleGapEvtAdvertisingEventPerAdvResponseOpCode_c;
+                }
+                break;
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif
-        default:
+            default:
+                {
+                    /* Unknown event type */
+                    fsciBleError(gFsciError_c, fsciBleInterfaceId);
+                    earlyReturn = TRUE;
+                    break;
+                }
+        }
+
+        if (!earlyReturn)
+        {
+            if (gFsciBleGapOpcodeGroup_c == opGroup)
             {
-                /* Unknown event type */
-                fsciBleError(gFsciError_c, fsciBleInterfaceId);
-                earlyReturn = TRUE;
-                break;
+                /* Allocate the packet to be sent over UART */
+                pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode.gap1Code,
+                                                          fsciBleGapGetAdvertisingEventBufferSize(pAdvertisingEvent));
             }
-    }
+            else /* gFsciBleGap2OpcodeGroup_c == opGroup */
+            {
+                /* Allocate the packet to be sent over UART */
+                pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)opCode.gap2Code,
+                                                           fsciBleGapGetAdvertisingEventBufferSize(pAdvertisingEvent));
+            }
 
-    if (!earlyReturn)
-    {
-        if (gFsciBleGapOpcodeGroup_c == opGroup)
-        {
-            /* Allocate the packet to be sent over UART */
-            pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode.gap1Code,
-                                                      fsciBleGapGetAdvertisingEventBufferSize(pAdvertisingEvent));
+            if(NULL != pClientPacket)
+            {
+                pBuffer = &pClientPacket->payload[0];
+
+                /* Set event parameters in the buffer */
+                fsciBleGapGetBuffFromAdvEvent(pAdvertisingEvent, &pBuffer);
+
+                /* Transmit the packet over UART */
+                fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            }
         }
-        else /* gFsciBleGap2OpcodeGroup_c == opGroup */
-        {
-            /* Allocate the packet to be sent over UART */
-            pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)opCode.gap2Code,
-                                                       fsciBleGapGetAdvertisingEventBufferSize(pAdvertisingEvent));
-        }
-
-        if(NULL == pClientPacket)
-        {
-            return;
-        }
-
-        pBuffer = &pClientPacket->payload[0];
-
-        /* Set event parameters in the buffer */
-        fsciBleGapGetBuffFromAdvEvent(pAdvertisingEvent, &pBuffer);
-
-        /* Transmit the packet over UART */
-        fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
     }
 }
 
@@ -3631,7 +3717,8 @@ void fsciBleGapScanningEvtMonitor(gapScanningEvent_t* pScanningEvent)
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
     opGroup_t                   opGroup = gFsciBleGapOpcodeGroup_c;
-    bool_t earlyReturn = FALSE;
+    bool_t                      earlyReturn = FALSE;
+    bool_t                      bContinueExecution = TRUE;
     union {
         fsciBleGapOpCode_t      gap1Code;
         fsciBleGap2OpCode_t     gap2Code;
@@ -3643,115 +3730,116 @@ void fsciBleGapScanningEvtMonitor(gapScanningEvent_t* pScanningEvent)
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Get FSCI opCode */
-    switch(pScanningEvent->eventType)
+    if (bContinueExecution)
     {
-        case gScanStateChanged_c:
-            {
-                opCode.gap1Code = gBleGapEvtScanningEventScanStateChangedOpCode_c;
-            }
-            break;
+        /* Get FSCI opCode */
+        switch(pScanningEvent->eventType)
+        {
+            case gScanStateChanged_c:
+                {
+                    opCode.gap1Code = gBleGapEvtScanningEventScanStateChangedOpCode_c;
+                }
+                break;
 
-        case gScanCommandFailed_c:
-            {
-                opCode.gap1Code = gBleGapEvtScanningEventScanCommandFailedOpCode_c;
-            }
-            break;
+            case gScanCommandFailed_c:
+                {
+                    opCode.gap1Code = gBleGapEvtScanningEventScanCommandFailedOpCode_c;
+                }
+                break;
 
-        case gDeviceScanned_c:
-            {
-                opCode.gap1Code = gBleGapEvtScanningEventDeviceScannedOpCode_c;
-            }
-            break;
+            case gDeviceScanned_c:
+                {
+                    opCode.gap1Code = gBleGapEvtScanningEventDeviceScannedOpCode_c;
+                }
+                break;
 
 #if defined(gBLE50_d) && (gBLE50_d == 1U)
-        case gExtDeviceScanned_c:
-            {
-                opCode.gap1Code = gBleGapEvtScanningEventExtDeviceScannedOpCode_c;
-            }
-            break;
+            case gExtDeviceScanned_c:
+                {
+                    opCode.gap1Code = gBleGapEvtScanningEventExtDeviceScannedOpCode_c;
+                }
+                break;
 
-        case gPeriodicDeviceScanned_c:
-            {
-                opCode.gap1Code = gBleGapEvtScanningEventPeriodicDeviceScannedOpCode_c;
-            }
-            break;
+            case gPeriodicDeviceScanned_c:
+                {
+                    opCode.gap1Code = gBleGapEvtScanningEventPeriodicDeviceScannedOpCode_c;
+                }
+                break;
 
-        case gPeriodicAdvSyncEstablished_c:
-            {
-                opCode.gap1Code = gBleGapEvtScanningEventPeriodicAdvSyncEstablishedOpCode_c;
-            }
-            break;
+            case gPeriodicAdvSyncEstablished_c:
+                {
+                    opCode.gap1Code = gBleGapEvtScanningEventPeriodicAdvSyncEstablishedOpCode_c;
+                }
+                break;
 
-        case gPeriodicAdvSyncTerminated_c:
-            {
-                opCode.gap1Code = gBleGapEvtScanningEventPeriodicAdvSyncTerminatedOpCode_c;
-            }
-            break;
+            case gPeriodicAdvSyncTerminated_c:
+                {
+                    opCode.gap1Code = gBleGapEvtScanningEventPeriodicAdvSyncTerminatedOpCode_c;
+                }
+                break;
 
-        case gPeriodicAdvSyncLost_c:
-            {
-                opCode.gap1Code = gBleGapEvtScanningEventPeriodicAdvSyncLostOpCode_c;
-            }
-            break;
+            case gPeriodicAdvSyncLost_c:
+                {
+                    opCode.gap1Code = gBleGapEvtScanningEventPeriodicAdvSyncLostOpCode_c;
+                }
+                break;
 #endif
 #if defined(gBLE51_d) && (gBLE51_d == 1U)
-        case gConnectionlessIqReportReceived_c:
-            {
-                opCode.gap1Code = gBleGapEvtScanningEventConnectionlessIqReportReceivedOpCode_c;
-            }
-            break;
+            case gConnectionlessIqReportReceived_c:
+                {
+                    opCode.gap1Code = gBleGapEvtScanningEventConnectionlessIqReportReceivedOpCode_c;
+                }
+                break;
 
 #if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
-        /* Following this case GAP2 opgroup and opcode should be used */
-        case gPeriodicDeviceScannedV2_c:
-            {
-                opGroup = gFsciBleGap2OpcodeGroup_c;
-                opCode.gap2Code = gBleGapEvtScanningEventPeriodicDeviceScannedV2OpCode_c;
-            }
-            break;
+            /* Following this case GAP2 opgroup and opcode should be used */
+            case gPeriodicDeviceScannedV2_c:
+                {
+                    opGroup = gFsciBleGap2OpcodeGroup_c;
+                    opCode.gap2Code = gBleGapEvtScanningEventPeriodicDeviceScannedV2OpCode_c;
+                }
+                break;
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif
-        default:
+            default:
+                {
+                    /* Unknown event type */
+                    fsciBleError(gFsciError_c, fsciBleInterfaceId);
+                    earlyReturn = TRUE;
+                    break;
+                }
+        }
+
+        if (!earlyReturn)
+        {
+            if (gFsciBleGapOpcodeGroup_c == opGroup)
             {
-                /* Unknown event type */
-                fsciBleError(gFsciError_c, fsciBleInterfaceId);
-                earlyReturn = TRUE;
-                break;
+                /* Allocate the packet to be sent over UART */
+                pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode.gap1Code,
+                                                          fsciBleGapGetScanningEventBufferSize(pScanningEvent));
             }
-    }
+            else /* gFsciBleGap2OpcodeGroup_c == opGroup */
+            {
+                /* Allocate the packet to be sent over UART */
+                pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)opCode.gap2Code,
+                                                           fsciBleGapGetScanningEventBufferSize(pScanningEvent));
+            }
 
-    if (!earlyReturn)
-    {
-        if (gFsciBleGapOpcodeGroup_c == opGroup)
-        {
-            /* Allocate the packet to be sent over UART */
-            pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode.gap1Code,
-                                                      fsciBleGapGetScanningEventBufferSize(pScanningEvent));
+            if(NULL != pClientPacket)
+            {
+                pBuffer = &pClientPacket->payload[0];
+
+                /* Set event parameters in the buffer */
+                fsciBleGapGetBufferFromScanningEvent(pScanningEvent, &pBuffer);
+
+                /* Transmit the packet over UART */
+                fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            }
         }
-        else /* gFsciBleGap2OpcodeGroup_c == opGroup */
-        {
-            /* Allocate the packet to be sent over UART */
-            pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)opCode.gap2Code,
-                                                       fsciBleGapGetScanningEventBufferSize(pScanningEvent));
-        }
-
-        if(NULL == pClientPacket)
-        {
-            return;
-        }
-
-        pBuffer = &pClientPacket->payload[0];
-
-        /* Set event parameters in the buffer */
-        fsciBleGapGetBufferFromScanningEvent(pScanningEvent, &pBuffer);
-
-        /* Transmit the packet over UART */
-        fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
     }
 }
 
@@ -3761,48 +3849,50 @@ void fsciBleGapConnectionEvtMonitor(deviceId_t deviceId, gapConnectionEvent_t* p
     uint8_t*                    pBuffer = NULL;
     int16_t                     tempOpCode = 0;
     fsciBleGapOpCode_t          opCode = gBleGapModeSelectOpCode_c;
-    bool_t earlyReturn = FALSE;
+    bool_t                      earlyReturn = FALSE;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Get FSCI opCode */
-    tempOpCode = maConnectionEventToOpcode[pConnectionEvent->eventType];
-    if(tempOpCode == -1)
+    if (bContinueExecution)
     {
-        /* Unknown event type */
-        earlyReturn= TRUE;
-    }
-    else
-    {  
-        opCode = (fsciBleGapOpCode_t)tempOpCode;
-    }
-
-    if(!earlyReturn)
-    {
-        /* Allocate the packet to be sent over UART */
-        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode,
-                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                  fsciBleGapGetConnectionEventBufferSize(pConnectionEvent));
-
-        if(NULL == pClientPacket)
+        /* Get FSCI opCode */
+        tempOpCode = maConnectionEventToOpcode[pConnectionEvent->eventType];
+        if(tempOpCode == -1)
         {
-            return;
+            /* Unknown event type */
+            earlyReturn= TRUE;
+        }
+        else
+        {  
+            opCode = (fsciBleGapOpCode_t)tempOpCode;
         }
 
-        pBuffer = &pClientPacket->payload[0];
+        if(!earlyReturn)
+        {
+            /* Allocate the packet to be sent over UART */
+            pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode,
+                                                      fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                      fsciBleGapGetConnectionEventBufferSize(pConnectionEvent));
 
-        /* Set event parameters in the buffer */
-        fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-        fsciBleGapGetBufferFromConnectionEvent(pConnectionEvent, &pBuffer);
+            if(NULL != pClientPacket)
+            {
+                pBuffer = &pClientPacket->payload[0];
 
-        /* Transmit the packet over UART */
-        fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+                /* Set event parameters in the buffer */
+                fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+                fsciBleGapGetBufferFromConnectionEvent(pConnectionEvent, &pBuffer);
+
+                /* Transmit the packet over UART */
+                fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            }
+        }
     }
 }
 
@@ -3834,46 +3924,48 @@ void fsciBleGapUpdatePeriodicAdvListCmdMonitor(gapPeriodicAdvListOperation_t ope
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleGapEnabled) ||
        (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    if (operation != gRemoveAllDevices_c)
+    if (bContinueExecution)
     {
-        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdUpdatePeriodicAdvListOpCode_c,
-                                                     sizeof(gapPeriodicAdvListOperation_t) + sizeof(bleAddressType_t) + gcBleDeviceAddressSize_c + sizeof(uint8_t));
-    }
-    else
-    {
-        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdUpdatePeriodicAdvListOpCode_c, sizeof(gapPeriodicAdvListOperation_t));
-    }
+        /* Allocate the packet to be sent over UART */
+        if (operation != gRemoveAllDevices_c)
+        {
+            pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdUpdatePeriodicAdvListOpCode_c,
+                                                         sizeof(gapPeriodicAdvListOperation_t) + sizeof(bleAddressType_t) + gcBleDeviceAddressSize_c + sizeof(uint8_t));
+        }
+        else
+        {
+            pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdUpdatePeriodicAdvListOpCode_c, sizeof(gapPeriodicAdvListOperation_t));
+        }
 
-    if(NULL == pClientPacket)
-    {
-        return;
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromEnumValue(operation, pBuffer, gapPeriodicAdvListOperation_t);
+            /* the clear operation does not require parameters */
+            if (operation != gRemoveAllDevices_c)
+            {
+                fsciBleGetBufferFromEnumValue(addrType, pBuffer, bleAddressType_t);
+                fsciBleGetBufferFromAddress(pAddr, pBuffer);
+                fsciBleGetBufferFromUint8Value(SID, pBuffer);
+            }
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromEnumValue(operation, pBuffer, gapPeriodicAdvListOperation_t);
-    /* the clear operation does not require parameters */
-    if (operation != gRemoveAllDevices_c)
-    {
-        fsciBleGetBufferFromEnumValue(addrType, pBuffer, bleAddressType_t);
-        fsciBleGetBufferFromAddress(pAddr, pBuffer);
-        fsciBleGetBufferFromUint8Value(SID, pBuffer);
-    }
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 void fsciBleGapPeriodicAdvCreateSyncCmdMonitor
@@ -3883,32 +3975,34 @@ void fsciBleGapPeriodicAdvCreateSyncCmdMonitor
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
         /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
         if((FALSE == bFsciBleGapEnabled) ||
            (TRUE == bFsciBleGapCmdInitiatedByFsci))
         {
-            return;
+            bContinueExecution = FALSE;
         }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdPeriodicAdvCreateSyncOpCode_c,
-                                              fsciBleGapGetPeriodicAdvSyncReqParametersBufferSize(pReq));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+          /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdPeriodicAdvCreateSyncOpCode_c,
+                                                  fsciBleGapGetPeriodicAdvSyncReqParametersBufferSize(pReq));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGapGetBufferFromPerAdvSyncReq(pReq, &pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGapGetBufferFromPerAdvSyncReq(pReq, &pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 #endif /* gFsciBleHost_d || gFsciBleTest_d */
 #endif /* gBLE50_d */
@@ -3987,31 +4081,33 @@ static void fsciPlatformErrorCallback(uint32_t id, int32_t error_status)
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
     
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if ((FALSE == bFsciBleGapEnabled) ||
         (TRUE == bFsciBleGapCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtPlatformError_c,
-                                              (sizeof(id) + sizeof(error_status)));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtPlatformError_c,
+                                                  (sizeof(id) + sizeof(error_status)));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint8Value((uint8_t)id, pBuffer);
+            fsciBleGetBufferFromUint32Value(error_status, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint8Value((uint8_t)id, pBuffer);
-    fsciBleGetBufferFromUint32Value(error_status, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 #endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA)) */
 

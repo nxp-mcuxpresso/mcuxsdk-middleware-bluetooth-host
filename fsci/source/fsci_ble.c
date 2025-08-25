@@ -176,18 +176,16 @@ void fsciBleStatusMonitor(opGroup_t opCodeGroup, uint8_t opCode, bleResult_t res
                                            opCode,
                                            sizeof(bleResult_t));
 
-    if(NULL == pClientPacket)
+    if(NULL != pClientPacket)
     {
-        return;
+        pBuffer = &pClientPacket->payload[0];
+
+        /* Set status in the buffer */
+        fsciBleGetBufferFromEnumValue(result, pBuffer, bleResult_t);
+
+        /* Transmit the packet over UART */
+        fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);;
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set status in the buffer */
-    fsciBleGetBufferFromEnumValue(result, pBuffer, bleResult_t);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 #endif /* gFsciBleBBox_d || gFsciBleTest_d */
 
@@ -199,17 +197,18 @@ clientPacketStructured_t* fsciBleAllocFsciPacket(opGroup_t opCodeGroup, uint8_t 
                                                                                          (uint32_t)dataSize +
                                                                                          2U * sizeof(uint8_t));
 
-    if(NULL == pClientPacket)
+    if(NULL != pClientPacket)
+    {
+        /* Create FSCI packet header */
+        pClientPacket->header.opGroup   = opCodeGroup;
+        pClientPacket->header.opCode    = opCode;
+        pClientPacket->header.len       = (uint16_t)dataSize;
+    }
+    else
     {
         /* Buffer can not be allocated */
         fsciBleError(gFsciOutOfMessages_c, (uint8_t)fsciBleInterfaceId);
-        return NULL;
     }
-
-    /* Create FSCI packet header */
-    pClientPacket->header.opGroup   = opCodeGroup;
-    pClientPacket->header.opCode    = opCode;
-    pClientPacket->header.len       = (uint16_t)dataSize;
 
     /* Return the allocated FSCI packet */
     return pClientPacket;
@@ -223,14 +222,11 @@ void fsciBleNoParamCmdOrEvtMonitor(opGroup_t opCodeGroup, uint8_t opCode)
     /* Allocate the FSCI packet to be transmitted over UART (with FSCI header added) */
     pClientPacket = fsciBleAllocFsciPacket(opCodeGroup, opCode, 0);
 
-    if(NULL == pClientPacket)
+    if(NULL != pClientPacket)
     {
-        /* FSCI packet can not be allocated */
-        return;
+        /* Transmit FSCI packet over UART */
+        fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
     }
-
-    /* Transmit FSCI packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 /************************************************************************************

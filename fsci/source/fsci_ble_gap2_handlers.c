@@ -1462,16 +1462,20 @@ void HandleGapEvtAdvertisingEventPerAdvResponseOpCode(uint8_t *pBuffer, uint32_t
 
 void fsciBleGap2StatusMonitor(bleResult_t result)
 {
+    bool_t bContinueExecution = TRUE;
 #if gFsciBleTest_d
     /* If GAP is disabled the status must be not monitored */
     if(FALSE == bFsciBleGap2Enabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Send status over UART */
-    fsciBleStatusMonitor(gFsciBleGap2OpcodeGroup_c, (uint8_t)gBleGap2StatusOpCode_c, result);
+    if (bContinueExecution)
+    {
+        /* Send status over UART */
+        fsciBleStatusMonitor(gFsciBleGap2OpcodeGroup_c, (uint8_t)gBleGap2StatusOpCode_c, result);
+    }
 }
 
 /*! *********************************************************************************
@@ -1495,32 +1499,34 @@ void fsciBleCtrlDebugInfoCmdMonitor
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if(FALSE == bFsciBleGap2Enabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlDebugInfoOpCode_c, sizeof(debugInfoSize) + debugInfoSize); /* sizeof debugInfoSize + 
-                                                                                                                            * actual debugInfo */
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+         /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlDebugInfoOpCode_c, sizeof(debugInfoSize) + debugInfoSize); /* sizeof debugInfoSize + 
+                                                                                                                                * actual debugInfo */
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint32Value(debugInfoSize, pBuffer);
+            fsciBleGetBufferFromArray(pDebugInfo, pBuffer, debugInfoSize);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint32Value(debugInfoSize, pBuffer);
-    fsciBleGetBufferFromArray(pDebugInfo, pBuffer, debugInfoSize);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 /*! *********************************************************************************
@@ -1547,33 +1553,35 @@ void fsciBleCtrlGetTimestampExCmdMonitor
 {
     clientPacketStructured_t   *pClientPacket;
     uint8_t                    *pBuffer;
+    bool_t                     bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if(FALSE == bFsciBleGap2Enabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlEvtGetTimestampExOpCode_c,
-                                               sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint64_t));
-
-    if (NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlEvtGetTimestampExOpCode_c,
+                                                   sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint64_t));
+
+        if (NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint32Value(ll_timing_slot, pBuffer);
+            fsciBleGetBufferFromUint16Value(ll_timing_us, pBuffer);
+            fsciBleGetBufferFromUint64Value(tstmr, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint32Value(ll_timing_slot, pBuffer);
-    fsciBleGetBufferFromUint16Value(ll_timing_us, pBuffer);
-    fsciBleGetBufferFromUint64Value(tstmr, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 #if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) 

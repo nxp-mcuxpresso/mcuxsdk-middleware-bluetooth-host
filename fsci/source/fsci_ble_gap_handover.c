@@ -393,16 +393,20 @@ void fsciBleGapHandoverHandler(void* pData, void* param, uint32_t fsciInterfaceI
 ********************************************************************************** */
 void fsciBleGapHandoverStatusMonitor(bleResult_t result)
 {
+    bool_t bContinueExecution = TRUE;
 #if gFsciBleTest_d
     /* If GAP Handover is disabled the status must be not monitored */
     if(FALSE == bFsciBleGapHandoverEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Send status over UART */
-    fsciBleStatusMonitor(gFsciBleGapHandoverOpcodeGroup_c, (uint8_t)gBleGapHandoverStatusOpCode_c, result);
+    if (bContinueExecution)
+    {
+            /* Send status over UART */
+        fsciBleStatusMonitor(gFsciBleGapHandoverOpcodeGroup_c, (uint8_t)gBleGapHandoverStatusOpCode_c, result);
+    }
 }
 
 /*! *********************************************************************************
@@ -418,30 +422,32 @@ void fsciBleGapHandoverGetDataSizeEvtMonitor
 {
     clientPacketStructured_t *pClientPacket;
     uint8_t                  *pBuffer;
+    bool_t                    bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapHandoverEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapHandoverAllocFsciPacket((uint8_t)gBleGapHandoverEvtGetDataSizeOpCode_c, sizeof(uint32_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+         /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGapHandoverAllocFsciPacket((uint8_t)gBleGapHandoverEvtGetDataSizeOpCode_c, sizeof(uint32_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set event parameters in the buffer */
+            fsciBleGetBufferFromUint32Value(*pDataSize, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set event parameters in the buffer */
-    fsciBleGetBufferFromUint32Value(*pDataSize, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 /*! *********************************************************************************
@@ -456,172 +462,174 @@ void fsciBleGapHandoverGenericEvtMonitor(gapGenericEvent_t* pGenericEvent)
     uint8_t*                    pBuffer;
     fsciBleGapHandoverOpCode_t  opCode;
     bool_t                      earlyReturn = FALSE;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled the event must be not monitored */
     if ((FALSE == bFsciBleGapHandoverEnabled) &&
         (gInitializationComplete_c != pGenericEvent->eventType))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Get FSCI opCode */
-    switch(pGenericEvent->eventType)
+    if (bContinueExecution)
     {
-        case gHandoverGetComplete_c:
-            {
-                opCode = gBleGapHandoverEvtGetCompleteOpCode_c;
-            }
-            break;
-
-        case gHandoverSetComplete_c:
-            {
-                opCode = gBleGapHandoverEvtSetCompleteOpCode_c;
-            }
-            break;
-
-        case gHandoverGetCsLlContextComplete_c:
-            {
-                opCode = gBleGapHandoverEvtGetCsLlContextCompleteOpCode_c;
-            }
-            break;
-
-        case gHandoverSetCsLlContextComplete_c:
-            {
-                opCode = gBleGapHandoverEvtSetCsLlContextCompleteOpCode_c;
-            }
-            break;
-
-        case gHandoverGetTime_c:
-            {
-                opCode = gBleGapHandoverEvtGetTimeOpCode_c;
-            }
-            break;
-
-        case gHandoverSuspendTransmitComplete_c:
-            {
-                opCode = gBleGapHandoverEvtSuspendTransmitCompleteOpCode_c;
-            }
-            break;
-
-        case gHandoverResumeTransmitComplete_c:
-            {
-                opCode = gBleGapHandoverEvtResumeTransmitCompleteOpCode_c;
-            }
-            break;
-
-        case gHandoverAnchorNotificationStateChanged_c:
-            {
-                opCode = gBleGapHandoverEvtAnchorNotificationStateChangedOpCode_c;
-            }
-            break;
-
-        case gHandoverAnchorSearchStarted_c:
-            {
-                opCode = gBleGapHandoverEvtAnchorSearchStartedOpCode_c;
-            }
-            break;
-
-        case gHandoverAnchorSearchStopped_c:
-            {
-                opCode = gBleGapHandoverEvtAnchorSearchStoppedOpCode_c;
-            }
-            break;
-
-        case gHandoverAnchorMonitorEvent_c:
-            {
-                opCode = gBleGapHandoverEvtAnchorMonitorOpCode_c;
-            }
-            break;
-
-        case gHandoverAnchorMonitorPacketEvent_c:
-            {
-                opCode = gBleGapHandoverEvtAnchorMonitorPacketOpCode_c;
-            }
-            break;
-
-        case gHandoverAnchorMonitorPacketContinueEvent_c:
-            {
-                opCode = gBleGapHandoverEvtAnchorMonitorPacketContinueOpCode_c;
-            }
-            break;
-
-        case gHandoverTimeSyncTransmitStateChanged_c:
-            {
-                opCode = gBleGapHandoverTimeSyncTransmitStateChangedOpCode_c;
-            }
-            break;
-
-        case gHandoverTimeSyncReceiveComplete_c:
-            {
-                opCode = gBleGapHandoverTimeSyncReceiveCompleteOpCode_c;
-            }
-            break;
-
-        case gHandoverTimeSyncEvent_c:
-            {
-                opCode = gBleGapHandoverEvtTimeSyncEventOpCode_c;
-            }
-            break;
-
-        case gHandoverConnParamUpdateEvent_c:
-            {
-                opCode = gBleGapHandoverEvtConnParamUpdateOpCode_c;
-            }
-            break;
-
-        case gHandoverUpdateConnParamsComplete_c:
-            {
-                opCode = gBleGapHandoverEvtUpdateConnParamsCompleteOpCode_c;
-            }
-            break;
-            
-        case gHandoverLlPendingData_c:
-            {
-                opCode = gBleGapHandoverEvtLlPendingDataOpCode_c;
-            }
-            break;
-            
-        case gHandoverConnectionUpdateProcedureEvent_c:
-            {
-                opCode = gBleGapHandoverEvtConnectionUpdateProcedureOpCode_c;
-            }
-            break;
-            
-        case gHandoverApplyConnectionUpdateProcedureComplete_c:
-            {
-                opCode = gBleGapHandoverEvtApplyConnectionUpdateProcedureCompleteOpCode_c;
-            }
-            break;
-
-        default:
-            {
-                /* Unknown event type */
-                fsciBleError(gFsciError_c, fsciBleInterfaceId);
-                earlyReturn = TRUE;
-                break;
-            }
-    }
-
-    if(!earlyReturn)
-    {
-        /* Allocate the packet to be sent over UART */
-        pClientPacket = fsciBleGapHandoverAllocFsciPacket((uint8_t)opCode,
-                                                  fsciBleGapHandoverGetGenericEventBufferSize(pGenericEvent));
-
-        if(NULL == pClientPacket)
+        /* Get FSCI opCode */
+        switch(pGenericEvent->eventType)
         {
-            return;
+            case gHandoverGetComplete_c:
+                {
+                    opCode = gBleGapHandoverEvtGetCompleteOpCode_c;
+                }
+                break;
+
+            case gHandoverSetComplete_c:
+                {
+                    opCode = gBleGapHandoverEvtSetCompleteOpCode_c;
+                }
+                break;
+
+            case gHandoverGetCsLlContextComplete_c:
+                {
+                    opCode = gBleGapHandoverEvtGetCsLlContextCompleteOpCode_c;
+                }
+                break;
+
+            case gHandoverSetCsLlContextComplete_c:
+                {
+                    opCode = gBleGapHandoverEvtSetCsLlContextCompleteOpCode_c;
+                }
+                break;
+
+            case gHandoverGetTime_c:
+                {
+                    opCode = gBleGapHandoverEvtGetTimeOpCode_c;
+                }
+                break;
+
+            case gHandoverSuspendTransmitComplete_c:
+                {
+                    opCode = gBleGapHandoverEvtSuspendTransmitCompleteOpCode_c;
+                }
+                break;
+
+            case gHandoverResumeTransmitComplete_c:
+                {
+                    opCode = gBleGapHandoverEvtResumeTransmitCompleteOpCode_c;
+                }
+                break;
+
+            case gHandoverAnchorNotificationStateChanged_c:
+                {
+                    opCode = gBleGapHandoverEvtAnchorNotificationStateChangedOpCode_c;
+                }
+                break;
+
+            case gHandoverAnchorSearchStarted_c:
+                {
+                    opCode = gBleGapHandoverEvtAnchorSearchStartedOpCode_c;
+                }
+                break;
+
+            case gHandoverAnchorSearchStopped_c:
+                {
+                    opCode = gBleGapHandoverEvtAnchorSearchStoppedOpCode_c;
+                }
+                break;
+
+            case gHandoverAnchorMonitorEvent_c:
+                {
+                    opCode = gBleGapHandoverEvtAnchorMonitorOpCode_c;
+                }
+                break;
+
+            case gHandoverAnchorMonitorPacketEvent_c:
+                {
+                    opCode = gBleGapHandoverEvtAnchorMonitorPacketOpCode_c;
+                }
+                break;
+
+            case gHandoverAnchorMonitorPacketContinueEvent_c:
+                {
+                    opCode = gBleGapHandoverEvtAnchorMonitorPacketContinueOpCode_c;
+                }
+                break;
+
+            case gHandoverTimeSyncTransmitStateChanged_c:
+                {
+                    opCode = gBleGapHandoverTimeSyncTransmitStateChangedOpCode_c;
+                }
+                break;
+
+            case gHandoverTimeSyncReceiveComplete_c:
+                {
+                    opCode = gBleGapHandoverTimeSyncReceiveCompleteOpCode_c;
+                }
+                break;
+
+            case gHandoverTimeSyncEvent_c:
+                {
+                    opCode = gBleGapHandoverEvtTimeSyncEventOpCode_c;
+                }
+                break;
+
+            case gHandoverConnParamUpdateEvent_c:
+                {
+                    opCode = gBleGapHandoverEvtConnParamUpdateOpCode_c;
+                }
+                break;
+
+            case gHandoverUpdateConnParamsComplete_c:
+                {
+                    opCode = gBleGapHandoverEvtUpdateConnParamsCompleteOpCode_c;
+                }
+                break;
+                
+            case gHandoverLlPendingData_c:
+                {
+                    opCode = gBleGapHandoverEvtLlPendingDataOpCode_c;
+                }
+                break;
+                
+            case gHandoverConnectionUpdateProcedureEvent_c:
+                {
+                    opCode = gBleGapHandoverEvtConnectionUpdateProcedureOpCode_c;
+                }
+                break;
+                
+            case gHandoverApplyConnectionUpdateProcedureComplete_c:
+                {
+                    opCode = gBleGapHandoverEvtApplyConnectionUpdateProcedureCompleteOpCode_c;
+                }
+                break;
+
+            default:
+                {
+                    /* Unknown event type */
+                    fsciBleError(gFsciError_c, fsciBleInterfaceId);
+                    earlyReturn = TRUE;
+                    break;
+                }
         }
 
-        pBuffer = &pClientPacket->payload[0];
+        if(!earlyReturn)
+        {
+            /* Allocate the packet to be sent over UART */
+            pClientPacket = fsciBleGapHandoverAllocFsciPacket((uint8_t)opCode,
+                                                      fsciBleGapHandoverGetGenericEventBufferSize(pGenericEvent));
 
-        /* Set event parameters in the buffer */
-        fsciBleGapHandoverGetBufferFromGenericEvent(pGenericEvent, &pBuffer);
+            if(NULL != pClientPacket)
+            {
+                pBuffer = &pClientPacket->payload[0];
 
-        /* Transmit the packet over UART */
-        fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+                /* Set event parameters in the buffer */
+                fsciBleGapHandoverGetBufferFromGenericEvent(pGenericEvent, &pBuffer);
+
+                /* Transmit the packet over UART */
+                fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            }
+        }
     }
 }
 
@@ -638,58 +646,60 @@ void fsciBleGapHandoverConnectionEvtMonitor(deviceId_t deviceId, gapConnectionEv
     uint8_t                     *pBuffer;
     fsciBleGapHandoverOpCode_t  opCode;
     bool_t                      earlyReturn = FALSE;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapHandoverEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Get FSCI opCode */
-    switch(pConnectionEvent->eventType)
+    if (bContinueExecution)
     {
-        case gConnEvtHandoverConnected_c:
-            {
-                opCode = gBleGapHandoverEvtConnectedOpCode_c;
-            }
-            break;
-            
-        case gHandoverDisconnected_c:
-            {
-                opCode = gBleGapHandoverEvtDisconnectedOpCode_c;
-            }
-            break;
-      
-        default:
-            {
-                /* Unknown event type */
-                earlyReturn = TRUE;
-            }
-            break;
-    }
-
-    if(!earlyReturn)
-    {
-        /* Allocate the packet to be sent over UART */
-        pClientPacket = fsciBleGapHandoverAllocFsciPacket((uint8_t)opCode,
-                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                  fsciBleGapHandoverGetConnectionEventBufferSize(pConnectionEvent));
-
-        if(NULL == pClientPacket)
+        /* Get FSCI opCode */
+        switch(pConnectionEvent->eventType)
         {
-            return;
+            case gConnEvtHandoverConnected_c:
+                {
+                    opCode = gBleGapHandoverEvtConnectedOpCode_c;
+                }
+                break;
+                
+            case gHandoverDisconnected_c:
+                {
+                    opCode = gBleGapHandoverEvtDisconnectedOpCode_c;
+                }
+                break;
+          
+            default:
+                {
+                    /* Unknown event type */
+                    earlyReturn = TRUE;
+                }
+                break;
         }
 
-        pBuffer = &pClientPacket->payload[0];
+        if(!earlyReturn)
+        {
+            /* Allocate the packet to be sent over UART */
+            pClientPacket = fsciBleGapHandoverAllocFsciPacket((uint8_t)opCode,
+                                                      fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                      fsciBleGapHandoverGetConnectionEventBufferSize(pConnectionEvent));
 
-        /* Set event parameters in the buffer */
-        fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-        fsciBleGapHandoverGetBufferFromConnectionEvent(pConnectionEvent, &pBuffer);
+            if(NULL != pClientPacket)
+            {
+                pBuffer = &pClientPacket->payload[0];
 
-        /* Transmit the packet over UART */
-        fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+                /* Set event parameters in the buffer */
+                fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+                fsciBleGapHandoverGetBufferFromConnectionEvent(pConnectionEvent, &pBuffer);
+
+                /* Transmit the packet over UART */
+                fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            }
+        }
     }
 }
 #endif /* gFsciBleBBox_d || gFsciBleTest_d */

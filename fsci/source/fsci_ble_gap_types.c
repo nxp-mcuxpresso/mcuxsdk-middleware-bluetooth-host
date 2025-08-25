@@ -145,49 +145,46 @@ gapSmpKeys_t* fsciBleGapAllocSmpKeysForBuffer(uint8_t* pBuffer)
     /* Allocate buffer for SMP keys */
     pSmpKeys = (gapSmpKeys_t*)MEM_BufferAlloc(sizeof(gapSmpKeys_t) + (uint32_t)ltkSize + irkSize + csrkSize + randSize + addressSize);
 
-    if(NULL == pSmpKeys)
+    if(NULL != pSmpKeys)
     {
-        /* No memory */
-        return NULL;
-    }
+        /* Set pointers in gapSmpKeys_t structure */
+        pSmpKeys->aLtk      = (uint8_t*)pSmpKeys + sizeof(gapSmpKeys_t);
+        pSmpKeys->aIrk      = pSmpKeys->aLtk + ltkSize;
+        pSmpKeys->aCsrk     = pSmpKeys->aIrk + irkSize;
+        pSmpKeys->aRand     = pSmpKeys->aCsrk + csrkSize;
+        pSmpKeys->aAddress  = pSmpKeys->aRand + randSize;
 
-    /* Set pointers in gapSmpKeys_t structure */
-    pSmpKeys->aLtk      = (uint8_t*)pSmpKeys + sizeof(gapSmpKeys_t);
-    pSmpKeys->aIrk      = pSmpKeys->aLtk + ltkSize;
-    pSmpKeys->aCsrk     = pSmpKeys->aIrk + irkSize;
-    pSmpKeys->aRand     = pSmpKeys->aCsrk + csrkSize;
-    pSmpKeys->aAddress  = pSmpKeys->aRand + randSize;
+        if(FALSE == bLtkIncluded)
+        {
+            /* No LTK */
+            pSmpKeys->aLtk  = NULL;
+            /* No random value */
+            pSmpKeys->aRand = NULL;
+        }
 
-    if(FALSE == bLtkIncluded)
-    {
-        /* No LTK */
-        pSmpKeys->aLtk  = NULL;
-        /* No random value */
-        pSmpKeys->aRand = NULL;
-    }
+        if(FALSE == bIrkIncluded)
+        {
+            /* No IRK */
+            pSmpKeys->aIrk  = NULL;
+        }
 
-    if(FALSE == bIrkIncluded)
-    {
-        /* No IRK */
-        pSmpKeys->aIrk  = NULL;
-    }
+        if(FALSE == bCsrkIncluded)
+        {
+            /* No CSRK */
+            pSmpKeys->aCsrk = NULL;
+        }
 
-    if(FALSE == bCsrkIncluded)
-    {
-        /* No CSRK */
-        pSmpKeys->aCsrk = NULL;
-    }
+        if(0U == randSize)
+        {
+            /* No random value */
+            pSmpKeys->aRand = NULL;
+        }
 
-    if(0U == randSize)
-    {
-        /* No random value */
-        pSmpKeys->aRand = NULL;
-    }
-
-    if(FALSE == bAddressIncluded)
-    {
-        /* No address */
-        pSmpKeys->aAddress = NULL;
+        if(FALSE == bAddressIncluded)
+        {
+            /* No address */
+            pSmpKeys->aAddress = NULL;
+        }
     }
 
     /* Return the allocated buffer for SMP keys */
@@ -471,17 +468,14 @@ gapDeviceSecurityRequirements_t* fsciBleGapAllocDeviceSecurityRequirementsForBuf
                                                                                     sizeof(gapSecurityRequirements_t) +
                                                                                     (uint32_t)nbOfServices * sizeof(gapServiceSecurityRequirements_t));
 
-    if(NULL == pDeviceSecurityRequirements)
+    if(NULL != pDeviceSecurityRequirements)
     {
-        /* No memory */
-        return NULL;
+        /* Set pointers in gapDeviceSecurityRequirements_t structure */
+        securityRequirementsVars.pSecurityRequirementsTemp = (uint8_t*)pDeviceSecurityRequirements + sizeof(gapDeviceSecurityRequirements_t);
+        pDeviceSecurityRequirements->pSecurityRequirements    = securityRequirementsVars.pDeviceSecurityRequirementsTemp;
+        securityRequirementsVars.pSecurityRequirementsTemp = (uint8_t*)pDeviceSecurityRequirements->pSecurityRequirements + sizeof(gapSecurityRequirements_t);
+        pDeviceSecurityRequirements->aServiceSecurityRequirements   = securityRequirementsVars.aServiceSecurityRequirementsTemp;
     }
-
-    /* Set pointers in gapDeviceSecurityRequirements_t structure */
-    securityRequirementsVars.pSecurityRequirementsTemp = (uint8_t*)pDeviceSecurityRequirements + sizeof(gapDeviceSecurityRequirements_t);
-    pDeviceSecurityRequirements->pSecurityRequirements    = securityRequirementsVars.pDeviceSecurityRequirementsTemp;
-    securityRequirementsVars.pSecurityRequirementsTemp = (uint8_t*)pDeviceSecurityRequirements->pSecurityRequirements + sizeof(gapSecurityRequirements_t);
-    pDeviceSecurityRequirements->aServiceSecurityRequirements   = securityRequirementsVars.aServiceSecurityRequirementsTemp;
 
     /* Return the allocated buffer for the device security requirements */
     return pDeviceSecurityRequirements;
@@ -954,54 +948,51 @@ gapAdvertisingData_t* fsciBleGapAllocAdvertisingDataForBuffer(uint8_t* pBuffer)
         /* Allocate buffer to keep each AdStructure length */
         aDataSizeArray = MEM_BufferAlloc(nbOfAdStructures);
 
-        if(NULL == aDataSizeArray)
+        if(NULL != aDataSizeArray)
         {
-            /* No memory */
-            return NULL;
-        }
+            /* Read from buffer each AdStructure length */
+            for(iCount = 0U; iCount < nbOfAdStructures; iCount++)
+            {
+                /* Get from buffer the AdStructure data length */
+                fsciBleGetUint8ValueFromBuffer(aDataSizeArray[iCount], pBuffer);
 
-        /* Read from buffer each AdStructure length */
-        for(iCount = 0U; iCount < nbOfAdStructures; iCount++)
-        {
-            /* Get from buffer the AdStructure data length */
-            fsciBleGetUint8ValueFromBuffer(aDataSizeArray[iCount], pBuffer);
+                /* Go in buffer to the next AdStructure */
+                pBuffer += sizeof(uint8_t) + aDataSizeArray[iCount];
 
-            /* Go in buffer to the next AdStructure */
-            pBuffer += sizeof(uint8_t) + aDataSizeArray[iCount];
-
-            /* Add this AdStructure size to the total length needed for the allocated buffer */
-            advertisingDataSize += (sizeof(gapAdStructure_t) + (uint16_t)aDataSizeArray[iCount]);
+                /* Add this AdStructure size to the total length needed for the allocated buffer */
+                advertisingDataSize += (sizeof(gapAdStructure_t) + (uint16_t)aDataSizeArray[iCount]);
+            }
         }
     }
 
     /* Allocate buffer for the advertising data */
     pAdvertisingData = (gapAdvertisingData_t*)MEM_BufferAlloc(advertisingDataSize);
 
-    if(NULL == pAdvertisingData)
+    if(NULL != pAdvertisingData)
     {
-        /* No memory */
-        /* Free the buffer used to keep the AdStructures lengths */
-        (void)MEM_BufferFree(aDataSizeArray);
-        return NULL;
-    }
+         /* Set pointers in gapAdvertisingData_t structure */
+        advertisingVars.pAdvertisingDataTemp = (uint8_t*)pAdvertisingData + sizeof(gapAdvertisingData_t);
+        pAdvertisingData->aAdStructures = advertisingVars.aAdStructuresTemp;
+        pData                           = (uint8_t*)pAdvertisingData->aAdStructures + nbOfAdStructures * sizeof(gapAdStructure_t);
 
-    /* Set pointers in gapAdvertisingData_t structure */
-    advertisingVars.pAdvertisingDataTemp = (uint8_t*)pAdvertisingData + sizeof(gapAdvertisingData_t);
-    pAdvertisingData->aAdStructures = advertisingVars.aAdStructuresTemp;
-    pData                           = (uint8_t*)pAdvertisingData->aAdStructures + nbOfAdStructures * sizeof(gapAdStructure_t);
-
-    if(nbOfAdStructures > 0U)
-    {
-        /* Set data pointer in each AdStructure */
-        for(iCount = 0U; iCount < nbOfAdStructures; iCount++)
+        if(nbOfAdStructures > 0U)
         {
-            pAdvertisingData->aAdStructures[iCount].aData = pData;
+            /* Set data pointer in each AdStructure */
+            for(iCount = 0U; iCount < nbOfAdStructures; iCount++)
+            {
+                pAdvertisingData->aAdStructures[iCount].aData = pData;
 
-            pData += aDataSizeArray[iCount];
+                pData += aDataSizeArray[iCount];
+            }
+
+            /* Free the buffer used to keep the AdStructures lengths */
+            (void)MEM_BufferFree(aDataSizeArray);
         }
-
-        /* Free the buffer used to keep the AdStructures lengths */
-        (void)MEM_BufferFree(aDataSizeArray);
+    }
+    else
+    {
+         /* Free the buffer used to keep the AdStructures lengths */
+         (void)MEM_BufferFree(aDataSizeArray);
     }
 
     /* Return the buffer allocated for gapAdvertisingData_t structure */
