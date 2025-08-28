@@ -16,6 +16,11 @@
 * Public prototypes
 *************************************************************************************
 ************************************************************************************/
+
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+
 /*! *********************************************************************************
 *\brief  Initialize reset command handler
 *
@@ -24,6 +29,10 @@
 *\retval    none
 ********************************************************************************** */
 void Reset_InitCore0Handlers(void);
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
 
 #endif /* __ADAPTER_RESET_CORE0_H__ */
 #endif /* gFsciComponentResetCore0_d */

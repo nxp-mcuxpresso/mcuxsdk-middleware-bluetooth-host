@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2021, 2023 NXP
+* Copyright 2016-2021, 2023, 2025 NXP
 *
 *
 * \file
@@ -58,6 +58,10 @@ typedef void (*pfAttToUpperLayerCallback_t)(deviceId_t deviceId, bearerId_t bear
  *************************************************************************************
  ************************************************************************************/
 
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+
 /*! *********************************************************************************
  * \brief Register ATT's upper layer callback function
  *
@@ -80,6 +84,10 @@ bleResult_t Att_RegisterCallback
 *\return       void
 ***************************************************************************************************/
 void attToUpperLayerCallback(deviceId_t deviceId, bearerId_t bearerId, attOpcode_t opcode, void* pParam);
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
 
 #endif /* ATT_CALLBACKS_H */
 

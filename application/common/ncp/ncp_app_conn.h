@@ -168,6 +168,11 @@ extern messaging_t mHostAppInputQueue;
 * Public prototypes
 *************************************************************************************
 ********************************************************************************** */
+
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+
 #if defined(gUseHciTransportUpward_d) && (gUseHciTransportUpward_d)
 #define App_GenericCallback(param)
 #else /* gUseHciTransportUpward_d */
@@ -572,5 +577,9 @@ void BluetoothLEHost_ProcessIdleTask(void);
 void vApplicationIdleHook(void);
 
 #endif /* defined(SDK_OS_FREE_RTOS) */
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
 
 #endif /* APP_CONN_H */

@@ -20,6 +20,11 @@
 * Public prototypes
 *************************************************************************************
 ************************************************************************************/
+
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+
 /*! *********************************************************************************
 *\fn        bleResult_t App_NcpNvmInit(void)
 *\brief     NCP NVM initialization function.
@@ -38,5 +43,9 @@ bleResult_t App_NcpNvmInit(void);
 *\retval    void
 ********************************************************************************** */
 void App_NvmIdle(void);
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
 
 #endif /* APP_NVM_H */

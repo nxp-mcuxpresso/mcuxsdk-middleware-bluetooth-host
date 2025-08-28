@@ -46,6 +46,10 @@
 *************************************************************************************
 ********************************************************************************** */
 
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+
 /*! *********************************************************************************
 *\fn        bleResult_t App_HostNvmInit(void)
 *\brief     Host NVM initialization function.
@@ -74,4 +78,9 @@ void App_FsciBleNvmCbHandler
     void*       param,
     uint32_t    fsciInterface
 );
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
+
 #endif /* HOST_APP_NVM_H */

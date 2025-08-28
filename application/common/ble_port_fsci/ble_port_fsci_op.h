@@ -71,6 +71,11 @@ typedef void (*pfFsciPortOpHandler_t)(uint8_t opc, uint8_t len, void *pData);
 * Public prototypes
 *************************************************************************************
 ********************************************************************************** */
+
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+
 /*! *********************************************************************************
 *\fn            void (uint8_t op, pfFsciPortOpHandler_t pfHandler)
 *\brief         Ftunction to register a callback for the given opcode
@@ -85,5 +90,9 @@ void BLE_PortFsciRegisterOpHandler
     uint8_t op,
     pfFsciPortOpHandler_t pfHandler
 );
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
 
 #endif

@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2023-2024 NXP
+* Copyright 2023-2025 NXP
 *
 *
 * \file app_a2b.h
@@ -76,6 +76,10 @@ extern bool_t gA2ALocalIrkSet;
 *************************************************************************************
 ************************************************************************************/
 
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+
 /*! *********************************************************************************
 *\fn           bleResult_t A2B_Init(appA2BEventCb_t pfAppEventCb,
 *                                   appA2BA2ACommInterfaceCb_t pfAppA2AInterfaceCb)
@@ -112,5 +116,9 @@ void A2B_ProcessA2ACommand(uint8_t cmdId, uint32_t cmdLen, uint8_t *pCmdData);
 *\return       bleResult_t    Result of the operation.
 ********************************************************************************** */
 bleResult_t A2B_FreeE2EKey(void);
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
 
 #endif /* APP_A2B_H */

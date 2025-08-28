@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2024 NXP
+* Copyright 2024-2025 NXP
 *
 *
 *
@@ -34,6 +34,10 @@ extern gapScanningCallback_t pfScanCallback;
 * Public prototypes
 *************************************************************************************
 ********************************************************************************** */
+
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
 
 /*! *********************************************************************************
 *\fn           bleResult_t BluetoothLEHost_StartScanning(
@@ -77,5 +81,9 @@ bool_t BluetoothLEHost_MatchDataInAdvElementList
     void             *pData,
     uint8_t          iDataLen
 );
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
 
 #endif /* APP_SCANNER_H */

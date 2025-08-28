@@ -34,6 +34,11 @@ typedef struct appMsgCallback_tag
 * Public functions
 *************************************************************************************
 ************************************************************************************/
+
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+
 /*! *********************************************************************************
 *\fn           void BLE_PortFsciInit(void)
 *\brief        Initializes application specific functionality before the BLE stack init.
@@ -89,5 +94,9 @@ bleResult_t App_PostCallbackMessage
 *\retval       TRUE if pending messages.
 ********************************************************************************** */
 bool_t App_IsMessagePending(void);
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
 
 #endif /* _BLE_PORT_FSCI_H_*/

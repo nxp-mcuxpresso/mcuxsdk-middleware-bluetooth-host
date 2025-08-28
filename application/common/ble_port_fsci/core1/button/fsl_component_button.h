@@ -117,6 +117,11 @@ extern BUTTON_HANDLE_ARRAY_DEFINE(g_buttonHandle, gAppButtonCnt_c);
 * Public functions
 *************************************************************************************
 ************************************************************************************/
+
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+
 /*! *********************************************************************************
 *\brief        Installs a button callback and callback parameter.
 *
@@ -133,4 +138,8 @@ button_status_t BUTTON_InstallCallback
     void *callbackParam
 );
 
-#endif
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
+
+#endif /* __BUTTON_H__ */

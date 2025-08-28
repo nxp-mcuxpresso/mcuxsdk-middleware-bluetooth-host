@@ -57,6 +57,10 @@ extern appAdvertiserHandler_t pfAdvertiserHandler;
 *************************************************************************************
 ********************************************************************************** */
 
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+
 /*! *********************************************************************************
 *\fn           bleResult_t BluetoothLEHost_StartAdvertising(
 *                  appAdvertisingParams_t   *pAdvParams,
@@ -142,5 +146,9 @@ bleResult_t BluetoothLEHost_ReencryptAdvertisingData
     const gapAdvertisingData_t *pAdvData
 );
 #endif /* gReencryptAdvDataOnRpaChange_d */
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
 
 #endif /* APP_ADVERTISER_H */

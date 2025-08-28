@@ -44,6 +44,10 @@
 *************************************************************************************
 ********************************************************************************** */
 
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+
 /*! *********************************************************************************
 *\fn        bleResult_t AppNvm_InitCore0Handlers(void)
 *\brief     Host NVM initialization function.
@@ -51,5 +55,9 @@
 *\retval    none
 ********************************************************************************** */
 void AppNvm_InitCore0Handlers(void);
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
 
 #endif /* HOST_APP_NVM_H */

@@ -17,6 +17,10 @@
 *************************************************************************************
 ********************************************************************************** */
 
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+
 /*! *********************************************************************************
 *\brief  Initialize all button handlers
 *
@@ -25,5 +29,10 @@
 *\retval    none
 ********************************************************************************** */
 void Button_InitCore0Handlers(void);
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
+
 #endif /* #if defined (gFsciComponentButtonCore0_d) && (gFsciComponentButtonCore0_d > 0) */
 #endif

@@ -42,6 +42,11 @@
 * Public prototypes
 *************************************************************************************
 ************************************************************************************/
+
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+
 /*! *********************************************************************************
 *\brief        Setup debug GPIOs and antenna switching IOs for BLE localization apps
 *
@@ -59,5 +64,9 @@ void PLATFORM_InitLcl(void);
 *\retval       none
 ********************************************************************************** */
 void PLATFORM_InitLclGpioDebug(bool_t debug);
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
 
 #endif /* __LCL_CORE1_H__ */

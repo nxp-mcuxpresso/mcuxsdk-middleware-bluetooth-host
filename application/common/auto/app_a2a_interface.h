@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2022-2024 NXP
+* Copyright 2022-2025 NXP
 *
 *
 * \file app_serial_interface.h
@@ -108,6 +108,11 @@ typedef void (*appA2ADataIndicationCb_t)(void *pMsg);
 * Public prototypes
 *************************************************************************************
 ************************************************************************************/
+
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+
 /*! *********************************************************************************
 *\fn           bleResult_t A2A_Init(serial_handle_t pSerialHandle,
 *                                   appA2ADataIndicationCb_t pfDataIndCb)
@@ -142,5 +147,9 @@ void A2A_SendCommand
     uint8_t *pPayload,
     uint16_t len
 );
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
 
 #endif /* APP_A2A_INTERFACE_H */

@@ -23,6 +23,11 @@
 * Public functions
 *************************************************************************************
 ************************************************************************************/
+
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+
 /*! *********************************************************************************
 *\brief        Request Core 0 application to send the Public Device Address.
 *
@@ -50,4 +55,8 @@ bleResult_t Hcit_PktReceived
     uint16_t size
 );
 
-#endif
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
+
+#endif /* __PLATFORM_H__ */

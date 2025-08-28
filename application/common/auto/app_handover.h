@@ -140,6 +140,11 @@ typedef void (*appHandoverA2AInterfaceCb_t)(uint8_t opGroup, uint8_t cmdId, uint
 * Public prototypes
 ************************************************************************************************************************
 ***********************************************************************************************************************/
+
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+
 /*! ********************************************************************************************************************
 *\fn           bleResult_t AppHandover_Init(appHandoverEventCb_t pfAppEventCb,
 *                                           gapConnectionCallback_t pfConnectionCallback
@@ -364,5 +369,9 @@ bleResult_t AppHandover_SetMonitorMode
     deviceId_t deviceId,
     bleHandoverAnchorSearchMode_t mode
 );
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
 
 #endif /* APP_HANDOVER_H */

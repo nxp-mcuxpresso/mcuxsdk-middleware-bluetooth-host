@@ -36,6 +36,10 @@ extern uint32_t mFsciInterfaceId;
 *************************************************************************************
 ************************************************************************************/
 
+#if defined(__cplusplus)
+extern "C" {
+#endif /* __cplusplus */
+
 /*! *********************************************************************************
 *\fn           void BLE_PortFsciInit(void)
 *\brief        Initializes application specific functionality before the BLE stack init.
@@ -89,4 +93,8 @@ uint8_t BLE_PortFsciRegisterBlockingEvent (void);
 ********************************************************************************** */
 void AppFSCI_RxCallBack(uint8_t packetType, uint8_t *data, uint16_t len);
 
-#endif
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
+
+#endif /* _BLE_PORT_FSCI_H_ */
