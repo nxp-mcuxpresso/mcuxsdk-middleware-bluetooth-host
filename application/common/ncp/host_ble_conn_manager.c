@@ -73,6 +73,126 @@ pfAppCallback_t mpfAppCallback = NULL;
 * Private prototypes
 *************************************************************************************
 ************************************************************************************/
+
+/*!*************************************************************************************************
+*\fn            static void App_DiscoverAllPrimaryServicesIndHandler(uint8_t deviceId, 
+*                               GATTClientProcedureDiscoverAllPrimaryServicesIndication_t *pIndication)
+*
+*\brief         Helper function to update service discovery buffer.
+*
+* \param[in]    deviceId    Identifier of the connected peer.
+* \param[in]    pIndication GATT Client Procedure Discover All Primary Services Indication.
+*
+*\return        None
+***************************************************************************************************/
+static void App_DiscoverAllPrimaryServicesIndHandler
+(
+    uint8_t deviceId, 
+    GATTClientProcedureDiscoverAllPrimaryServicesIndication_t *pIndication
+);
+
+/*!*************************************************************************************************
+*\fn            static void App_DiscoverPrimaryServicesByUuidIndHandler(uint8_t deviceId, 
+*                               GATTClientProcedureDiscoverPrimaryServicesByUuidIndication_t *pIndication)
+*
+*\brief         Helper function to update service discovery buffer.
+*
+* \param[in]    deviceId    Identifier of the connected peer.
+* \param[in]    pIndication GATT Client Procedure Discover Primary Services By Uuid Indication.
+*
+*\return        None
+***************************************************************************************************/
+static void App_DiscoverPrimaryServicesByUuidIndHandler
+(
+    uint8_t deviceId, 
+    GATTClientProcedureDiscoverPrimaryServicesByUuidIndication_t *pIndication
+);
+
+/*!*************************************************************************************************
+*\fn            static void App_FindIncludedServicesIndHandler(uint8_t deviceId, 
+*                               GATTClientProcedureFindIncludedServicesIndication_t *pIndication)
+*
+*\brief         Helper function to update service discovery buffer.
+*
+* \param[in]    deviceId    Identifier of the connected peer.
+* \param[in]    pIndication GATT Client Procedure Find Included Services Indication.
+*
+*\return        None
+***************************************************************************************************/
+static void App_FindIncludedServicesIndHandler
+(
+    uint8_t deviceId, 
+    GATTClientProcedureFindIncludedServicesIndication_t *pIndication
+);
+
+/*!*************************************************************************************************
+*\fn            static void App_DiscoverAllCharacteristicsIndHandler(uint8_t deviceId, 
+*                               GATTClientProcedureDiscoverAllCharacteristicsIndication_t *pIndication)
+*
+*\brief         Helper function to update characteristics discovery buffer.
+*
+* \param[in]    deviceId    Identifier of the connected peer.
+* \param[in]    pIndication GATT Client Procedure Discover All Characteristics Indication.
+*
+*\return        None
+***************************************************************************************************/
+static void App_DiscoverAllCharacteristicsIndHandler
+(
+    uint8_t deviceId, 
+    GATTClientProcedureDiscoverAllCharacteristicsIndication_t *pIndication
+);
+
+/*!*************************************************************************************************
+*\fn            static void App_DiscoverCharacteristicByUuidIndHandler(uint8_t deviceId, 
+*                               GATTClientProcedureDiscoverCharacteristicByUuidIndication_t *pIndication)
+*
+*\brief         Helper function to update characteristics discovery buffer.
+*
+* \param[in]    deviceId    Identifier of the connected peer.
+* \param[in]    pIndication GATT Client Procedure Discover Characteristic By Uuid Indication.
+*
+*\return        None
+***************************************************************************************************/
+static void App_DiscoverCharacteristicByUuidIndHandler
+(
+    uint8_t deviceId, 
+    GATTClientProcedureDiscoverCharacteristicByUuidIndication_t *pIndication
+);
+
+/*!*************************************************************************************************
+*\fn            static void App_DiscoverAllCharacteristicDescriptorsIndHandler(uint8_t deviceId, 
+*                               GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication_t *pIndication)
+*
+*\brief         Helper function to update the descriptor discovery buffer.
+*
+* \param[in]    deviceId    Identifier of the connected peer.
+* \param[in]    pIndication GATT Client Procedure Discover All Characteristic Descriptors Indication.
+*
+*\return        None
+***************************************************************************************************/
+static void App_DiscoverAllCharacteristicDescriptorsIndHandler
+(
+    uint8_t deviceId, 
+    GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication_t *pIndication
+);
+
+/*!*************************************************************************************************
+*\fn            static void App_ReadCharacteristicValueIndHandler(uint8_t deviceId, 
+*                               GATTClientProcedureReadCharacteristicValueIndication_t *pIndication)
+*
+*\brief         Helper function to update characteristics discovery buffer.
+*
+* \param[in]    deviceId    Identifier of the connected peer.
+* \param[in]    pIndication GATT Client Procedure Read Characteristic Value Indication.
+*
+*\return        None
+***************************************************************************************************/
+static void App_ReadCharacteristicValueIndHandler
+(
+    uint8_t deviceId, 
+    GATTClientProcedureReadCharacteristicValueIndication_t *pIndication
+);
+
 static bool_t App_HandleHSDKMessageInputGAP(bleEvtContainer_t* pMsg);
 static bool_t App_HandleHSDKMessageInputGATT(bleEvtContainer_t* pMsg);
 static void gapSmpHandler(bleEvtContainer_t* pMsg);
@@ -639,6 +759,475 @@ static void gapSmpHandler(bleEvtContainer_t* pMsg)
 }
 
 /*!*************************************************************************************************
+*\fn            static void App_DiscoverAllPrimaryServicesIndHandler(uint8_t deviceId, 
+*                               GATTClientProcedureDiscoverAllPrimaryServicesIndication_t *pIndication)
+*
+*\brief         Helper function to update service discovery buffer.
+*
+* \param[in]    deviceId    Identifier of the connected peer.
+* \param[in]    pIndication GATT Client Procedure Discover All Primary Services Indication.
+*
+*\return        None
+***************************************************************************************************/
+static void App_DiscoverAllPrimaryServicesIndHandler
+(
+    uint8_t deviceId, 
+    GATTClientProcedureDiscoverAllPrimaryServicesIndication_t *pIndication
+)
+{
+    maServDiscInfo[deviceId].mcPrimaryServices = pIndication->NbOfDiscoveredServices;
+
+    for (uint8_t i = 0U; i < maServDiscInfo[deviceId].mcPrimaryServices; i++)
+    {
+        maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].startHandle = pIndication->DiscoveredServices[i].StartHandle;
+        maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].endHandle = pIndication->DiscoveredServices[i].EndHandle;
+        maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuidType = pIndication->DiscoveredServices[i].UuidType;
+        
+        if(maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuidType == gBleUuidType16_c)
+        {
+            FLib_MemCpy(&maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuid.uuid16,
+                        pIndication->DiscoveredServices[i].Uuid.Uuid16Bits,
+                        2U);
+        }
+        else if(maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuidType == gBleUuidType32_c)
+        {
+            FLib_MemCpy(&maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuid.uuid32,
+                        pIndication->DiscoveredServices[i].Uuid.Uuid32Bits,
+                        4U);
+        }
+        else if(maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuidType == gBleUuidType128_c)
+        {
+            FLib_MemCpy(&maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuid.uuid128,
+                        pIndication->DiscoveredServices[i].Uuid.Uuid128Bits,
+                        16U);
+        }
+        else
+        {
+            ; /* For MISRA compliance */
+        }
+    }
+}
+
+/*!*************************************************************************************************
+*\fn            static void App_DiscoverPrimaryServicesByUuidIndHandler(uint8_t deviceId, 
+*                               GATTClientProcedureDiscoverPrimaryServicesByUuidIndication_t *pIndication)
+*
+*\brief         Helper function to update service discovery buffer.
+*
+* \param[in]    deviceId    Identifier of the connected peer.
+* \param[in]    pIndication GATT Client Procedure Discover Primary Services By Uuid Indication.
+*
+*\return        None
+***************************************************************************************************/
+static void App_DiscoverPrimaryServicesByUuidIndHandler
+(
+    uint8_t deviceId, 
+    GATTClientProcedureDiscoverPrimaryServicesByUuidIndication_t *pIndication
+)
+{
+    maServDiscInfo[deviceId].mcPrimaryServices = pIndication->NbOfDiscoveredServices;
+    maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->startHandle = pIndication->DiscoveredServices->StartHandle;
+    maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->endHandle = pIndication->DiscoveredServices->EndHandle;
+
+    if (pIndication->DiscoveredServices->UuidType == Uuid16Bits)
+    {
+        maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->uuidType = gBleUuidType16_c;
+        FLib_MemCpy(&maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->uuid.uuid16,
+                    pIndication->DiscoveredServices->Uuid.Uuid16Bits,
+                    2U);
+    }
+    else if (pIndication->DiscoveredServices->UuidType == Uuid32Bits)
+    {
+        maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->uuidType = gBleUuidType32_c;
+        FLib_MemCpy(&maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->uuid.uuid32,
+                    pIndication->DiscoveredServices->Uuid.Uuid32Bits,
+                    4U);
+    }
+    else if (pIndication->DiscoveredServices->UuidType == Uuid128Bits)
+    {
+        maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->uuidType = gBleUuidType128_c;
+        FLib_MemCpy(&maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->uuid.uuid128,
+                    pIndication->DiscoveredServices->Uuid.Uuid128Bits,
+                    16U);
+    }
+    else
+    {
+        ; /* For MISRA compliance */
+    }
+
+    maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->cNumCharacteristics = pIndication->DiscoveredServices->NbOfCharacteristics;
+    maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->cNumIncludedServices = pIndication->DiscoveredServices->NbOfIncludedServices;
+
+    for (uint8_t i = 0U; i < maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->cNumIncludedServices; i++)
+    {
+        maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].startHandle = pIndication->DiscoveredServices->IncludedServices[i].StartHandle;
+        maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].endHandle = pIndication->DiscoveredServices->IncludedServices[i].EndHandle;
+        maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuidType = pIndication->DiscoveredServices->IncludedServices[i].UuidType;
+        
+        if(maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuidType == gBleUuidType16_c)
+        {
+            FLib_MemCpy(&maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuid.uuid16,
+                        pIndication->DiscoveredServices->IncludedServices[i].Uuid.Uuid16Bits,
+                        2U);
+        }
+        else if(maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuidType == gBleUuidType32_c)
+        {
+            FLib_MemCpy(&maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuid.uuid32,
+                        pIndication->DiscoveredServices->IncludedServices[i].Uuid.Uuid32Bits,
+                        4U);
+        }
+        else if(maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuidType == gBleUuidType128_c)
+        {
+            FLib_MemCpy(&maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuid.uuid128,
+                        pIndication->DiscoveredServices->IncludedServices[i].Uuid.Uuid128Bits,
+                        16U);
+        }
+        else
+        {
+            ; /* For MISRA compliance */
+        }
+        
+        maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].cNumCharacteristics = pIndication->DiscoveredServices->IncludedServices[i].NbOfCharacteristics;
+        maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].cNumIncludedServices = pIndication->DiscoveredServices->IncludedServices[i].NbOfIncludedServices;
+    }
+}
+
+/*!*************************************************************************************************
+*\fn            static void App_FindIncludedServicesIndHandler(uint8_t deviceId, 
+*                               GATTClientProcedureFindIncludedServicesIndication_t *pIndication)
+*
+*\brief         Helper function to update service discovery buffer.
+*
+* \param[in]    deviceId    Identifier of the connected peer.
+* \param[in]    pIndication GATT Client Procedure Find Included Services Indication.
+*
+*\return        None
+***************************************************************************************************/
+static void App_FindIncludedServicesIndHandler
+(
+    uint8_t deviceId, 
+    GATTClientProcedureFindIncludedServicesIndication_t *pIndication
+)
+{
+    maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->startHandle = pIndication->Service.StartHandle;
+    maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->endHandle = pIndication->Service.EndHandle;
+    maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->uuidType = pIndication->Service.UuidType;
+    
+    if(maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->uuidType == gBleUuidType16_c)
+    {
+        FLib_MemCpy(&maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->uuid.uuid16,
+                    pIndication->Service.Uuid.Uuid16Bits,
+                    2U);
+    }
+    else if(maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->uuidType == gBleUuidType32_c)
+    {
+        FLib_MemCpy(&maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->uuid.uuid32,
+                    pIndication->Service.Uuid.Uuid32Bits,
+                    4U);
+    }
+    else if(maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->uuidType == gBleUuidType128_c)
+    {
+        FLib_MemCpy(&maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->uuid.uuid128,
+                    pIndication->Service.Uuid.Uuid128Bits,
+                    16U);
+    }
+    else
+    {
+        ; /* For MISRA compliance */
+    }
+
+    maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->cNumIncludedServices = pIndication->Service.NbOfIncludedServices;
+
+    for (uint8_t i = 0U; i < maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->cNumIncludedServices; i++)
+    {
+        maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].startHandle = pIndication->Service.IncludedServices[i].StartHandle;
+        maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].endHandle = pIndication->Service.IncludedServices[i].EndHandle;
+        maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuidType = pIndication->Service.IncludedServices[i].UuidType;
+        
+        if(maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuidType == gBleUuidType16_c)
+        {
+            FLib_MemCpy(&maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuid.uuid16,
+                        pIndication->Service.IncludedServices[i].Uuid.Uuid16Bits,
+                        2U);
+        }
+        else if(maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuidType == gBleUuidType32_c)
+        {
+            FLib_MemCpy(&maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuid.uuid32,
+                        pIndication->Service.IncludedServices[i].Uuid.Uuid32Bits,
+                        4U);
+        }
+        else if(maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuidType == gBleUuidType128_c)
+        {
+            FLib_MemCpy(&maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[i].uuid.uuid128,
+                        pIndication->Service.IncludedServices[i].Uuid.Uuid128Bits,
+                        16U);
+        }
+        else
+        {
+            ; /* For MISRA compliance */
+        }
+    }
+}
+
+/*!*************************************************************************************************
+*\fn            static void App_DiscoverAllCharacteristicsIndHandler(uint8_t deviceId, 
+*                               GATTClientProcedureDiscoverAllCharacteristicsIndication_t *pIndication)
+*
+*\brief         Helper function to update characteristics discovery buffer.
+*
+* \param[in]    deviceId    Identifier of the connected peer.
+* \param[in]    pIndication GATT Client Procedure Discover All Characteristics Indication.
+*
+*\return        None
+***************************************************************************************************/
+static void App_DiscoverAllCharacteristicsIndHandler
+(
+    uint8_t deviceId, 
+    GATTClientProcedureDiscoverAllCharacteristicsIndication_t *pIndication
+)
+{
+    uint8_t serviceDiscoveryIdx = maServDiscInfo[deviceId].mCurrentServiceInDiscoveryIndex;
+    gattCharacteristic_t* paCharacteristics = maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[serviceDiscoveryIdx].aCharacteristics;
+    
+    maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->cNumCharacteristics = pIndication->Service.NbOfCharacteristics;
+
+    if (paCharacteristics)
+    {
+        for (uint8_t i = 0U; i < maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->cNumCharacteristics; i++)
+        {
+            paCharacteristics[i].properties = (gattCharacteristicPropertiesBitFields_t)pIndication->Service.Characteristics[i].Properties;
+            paCharacteristics[i].value.handle = pIndication->Service.Characteristics[i].Value.Handle;
+            paCharacteristics[i].value.uuidType = pIndication->Service.Characteristics[i].Value.UuidType;
+
+            if (paCharacteristics[i].value.uuidType == gBleUuidType16_c)
+            {
+                FLib_MemCpy(&paCharacteristics[i].value.uuid.uuid16,
+                            pIndication->Service.Characteristics[i].Value.Uuid.Uuid16Bits,
+                            2U);
+            }
+            else if (paCharacteristics[i].value.uuidType == gBleUuidType32_c)
+            {
+                FLib_MemCpy(&paCharacteristics[i].value.uuid.uuid32,
+                            pIndication->Service.Characteristics[i].Value.Uuid.Uuid32Bits,
+                            4U);
+            }
+            else if (paCharacteristics[i].value.uuidType == gBleUuidType128_c)
+            {
+                FLib_MemCpy(paCharacteristics[i].value.uuid.uuid128,
+                            pIndication->Service.Characteristics[i].Value.Uuid.Uuid128Bits,
+                            16U);
+            }
+            else
+            {
+                ; /* For MISRA compliance */
+            }
+
+            paCharacteristics[i].value.valueLength = pIndication->Service.Characteristics[i].Value.ValueLength;
+            paCharacteristics[i].value.maxValueLength = pIndication->Service.Characteristics[i].Value.MaxValueLength;
+            paCharacteristics[i].value.paValue = pIndication->Service.Characteristics[i].Value.Value;
+        }
+    }
+    else
+    {
+        /* No buffer available, reset number of characteristics */
+        maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->cNumCharacteristics = 0U;
+    }
+}
+
+/*!*************************************************************************************************
+*\fn            static void App_DiscoverCharacteristicByUuidIndHandler(uint8_t deviceId, 
+*                               GATTClientProcedureDiscoverCharacteristicByUuidIndication_t *pIndication)
+*
+*\brief         Helper function to update characteristics discovery buffer.
+*
+* \param[in]    deviceId    Identifier of the connected peer.
+* \param[in]    pIndication GATT Client Procedure Discover Characteristic By Uuid Indication.
+*
+*\return        None
+***************************************************************************************************/
+static void App_DiscoverCharacteristicByUuidIndHandler
+(
+    uint8_t deviceId, 
+    GATTClientProcedureDiscoverCharacteristicByUuidIndication_t *pIndication
+)
+{
+    uint8_t serviceDiscoveryIdx = maServDiscInfo[deviceId].mCurrentServiceInDiscoveryIndex;
+    gattCharacteristic_t* paCharacteristics = maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[serviceDiscoveryIdx].aCharacteristics;
+    
+    maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->cNumCharacteristics = pIndication->NbOfCharacteristics;
+
+    if (paCharacteristics)
+    {
+        for (uint8_t i = 0U; i < maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->cNumCharacteristics; i++)
+        {
+            paCharacteristics[i].properties = (gattCharacteristicPropertiesBitFields_t)pIndication->Characteristics->Properties;
+            paCharacteristics[i].value.handle = pIndication->Characteristics[i].Value.Handle;
+            paCharacteristics[i].value.uuidType = pIndication->Characteristics[i].Value.UuidType;
+
+            if (paCharacteristics[i].value.uuidType == gBleUuidType16_c)
+            {
+                FLib_MemCpy(&paCharacteristics[i].value.uuid.uuid16,
+                            pIndication->Characteristics[i].Value.Uuid.Uuid16Bits,
+                            2U);
+            }
+            else if (paCharacteristics[i].value.uuidType == gBleUuidType32_c)
+            {
+                FLib_MemCpy(&paCharacteristics[i].value.uuid.uuid32,
+                            pIndication->Characteristics[i].Value.Uuid.Uuid32Bits,
+                            4U);
+            }
+            else if (paCharacteristics[i].value.uuidType == gBleUuidType128_c)
+            {
+                FLib_MemCpy(paCharacteristics[i].value.uuid.uuid128,
+                            pIndication->Characteristics[i].Value.Uuid.Uuid128Bits,
+                            16U);
+            }
+            else
+            {
+                ; /* For MISRA compliance */
+            }
+
+            paCharacteristics[i].value.valueLength = pIndication->Characteristics[i].Value.ValueLength;
+            paCharacteristics[i].value.maxValueLength = pIndication->Characteristics[i].Value.MaxValueLength;
+            paCharacteristics[i].value.paValue = pIndication->Characteristics[i].Value.Value;
+        }
+    }
+    else
+    {
+        /* No buffer available, reset number of characteristics */
+        maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->cNumCharacteristics = 0U;
+    }
+}
+
+/*!*************************************************************************************************
+*\fn            static void App_DiscoverAllCharacteristicDescriptorsIndHandler(uint8_t deviceId, 
+*                               GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication_t *pIndication)
+*
+*\brief         Helper function to update the descriptor discovery buffer.
+*
+* \param[in]    deviceId    Identifier of the connected peer.
+* \param[in]    pIndication GATT Client Procedure Discover All Characteristic Descriptors Indication.
+*
+*\return        None
+***************************************************************************************************/
+static void App_DiscoverAllCharacteristicDescriptorsIndHandler
+(
+    uint8_t deviceId, 
+    GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication_t *pIndication
+)
+{
+    uint8_t serviceDiscoveryIdx = maServDiscInfo[deviceId].mCurrentServiceInDiscoveryIndex;
+    uint8_t charDiscoveryIdx = maServDiscInfo[deviceId].mCurrentCharInDiscoveryIndex;
+    
+    gattCharacteristic_t* paCharacteristics = (gattCharacteristic_t*)&maServDiscInfo[deviceId].mpServiceDiscoveryBuffer[serviceDiscoveryIdx].aCharacteristics[charDiscoveryIdx];
+    
+    if(paCharacteristics)
+    {
+        paCharacteristics->cNumDescriptors = pIndication->Characteristic.NbOfDescriptors;
+
+        if(paCharacteristics->aDescriptors)
+        {
+            for(uint8_t i = 0U; i < paCharacteristics->cNumDescriptors; i++)
+            {
+                paCharacteristics->aDescriptors[i].handle = pIndication->Characteristic.Descriptors[i].Handle;
+                paCharacteristics->aDescriptors[i].uuidType = pIndication->Characteristic.Descriptors[i].UuidType;
+
+                if(paCharacteristics->aDescriptors[i].uuidType == gBleUuidType16_c)
+                {
+                    FLib_MemCpy(&paCharacteristics->aDescriptors[i].uuid.uuid16, 
+                                pIndication->Characteristic.Descriptors[i].Uuid.Uuid16Bits, 
+                                2U);
+                }
+                else if(paCharacteristics->aDescriptors[i].uuidType == gBleUuidType32_c)
+                {
+                    FLib_MemCpy(&paCharacteristics->aDescriptors[i].uuid.uuid32, 
+                                pIndication->Characteristic.Descriptors[i].Uuid.Uuid32Bits, 
+                                4U);
+                }
+                else if(paCharacteristics->aDescriptors[i].uuidType == gBleUuidType128_c)
+                {
+                    FLib_MemCpy(&paCharacteristics->aDescriptors[i].uuid.uuid128,
+                                pIndication->Characteristic.Descriptors[i].Uuid.Uuid128Bits,
+                                16U);
+                }
+                else
+                {
+                    ; /* For MISRA compliance */
+                }
+
+                paCharacteristics->aDescriptors[i].valueLength = pIndication->Characteristic.Descriptors[i].ValueLength;
+                paCharacteristics->aDescriptors[i].maxValueLength = pIndication->Characteristic.Descriptors[i].MaxValueLength;
+                paCharacteristics->aDescriptors[i].paValue = pIndication->Characteristic.Descriptors[i].Value;
+            }
+        }
+        else
+        {
+            /* No buffer available, reset number of descriptors */
+            paCharacteristics->cNumDescriptors = 0U;
+        }
+    }
+}
+
+/*!*************************************************************************************************
+*\fn            static void App_ReadCharacteristicValueIndHandler(uint8_t deviceId, 
+*                               GATTClientProcedureReadCharacteristicValueIndication_t *pIndication)
+*
+*\brief         Helper function to update characteristics discovery buffer.
+*
+* \param[in]    deviceId    Identifier of the connected peer.
+* \param[in]    pIndication GATT Client Procedure Read Characteristic Value Indication.
+*
+*\return        None
+***************************************************************************************************/
+static void App_ReadCharacteristicValueIndHandler
+(
+    uint8_t deviceId, 
+    GATTClientProcedureReadCharacteristicValueIndication_t *pIndication
+)
+{
+    uint8_t characteristicIdx = maServDiscInfo[deviceId].mCurrentCharInDiscoveryIndex;
+    gattCharacteristic_t* pCharacteristics = &maServDiscInfo[deviceId].mpCharDiscoveryBuffer[characteristicIdx];
+    
+    if(pCharacteristics)
+    {
+        pCharacteristics->properties = pIndication->Characteristic.Properties;
+        pCharacteristics->value.handle = pIndication->Characteristic.Value.Handle;
+        pCharacteristics->value.uuidType = pIndication->Characteristic.Value.UuidType;
+
+        if(pCharacteristics->value.uuidType == gBleUuidType16_c)
+        {
+            FLib_MemCpy(&pCharacteristics->value.uuid.uuid16, 
+                        pIndication->Characteristic.Value.Uuid.Uuid16Bits, 
+                        2U);
+        }
+        else if(pCharacteristics->value.uuidType == gBleUuidType32_c)
+        {
+            FLib_MemCpy(&pCharacteristics->value.uuid.uuid32, 
+                        pIndication->Characteristic.Value.Uuid.Uuid32Bits, 
+                        4U);
+        }
+        else if(pCharacteristics->value.uuidType == gBleUuidType128_c)
+        {
+            FLib_MemCpy(&pCharacteristics->value.uuid.uuid128,
+                        pIndication->Characteristic.Value.Uuid.Uuid128Bits,
+                        16U);
+        }
+        else
+        {
+            ; /* For MISRA compliance */
+        }
+
+        pCharacteristics->value.valueLength = pIndication->Characteristic.Value.ValueLength;
+        pCharacteristics->value.maxValueLength = pIndication->Characteristic.Value.MaxValueLength;
+        pCharacteristics->value.paValue = pIndication->Characteristic.Value.Value;
+    }
+    else
+    {
+        ; /* For MISRA compliance */
+    }
+}
+
+/*!*************************************************************************************************
 *\fn    static void App_HandleHSDKMessageInputGATT(bleEvtContainer_t *pMsg)
 *
 *\brief Handles GATT specific events
@@ -650,15 +1239,15 @@ static void gapSmpHandler(bleEvtContainer_t* pMsg)
 static bool_t App_HandleHSDKMessageInputGATT(bleEvtContainer_t* pMsg)
 {
     bool_t matchFound = TRUE;
+    deviceId_t deviceId = gInvalidDeviceId_c;
 
     switch (pMsg->id)
     {
         case GATTClientProcedureDiscoverAllPrimaryServicesIndication_FSCI_ID:
         {
-            deviceId_t deviceId = pMsg->Data.GATTClientProcedureDiscoverAllPrimaryServicesIndication.DeviceId;
-            maServDiscInfo[deviceId].mcPrimaryServices = pMsg->Data.GATTClientProcedureDiscoverAllPrimaryServicesIndication.NbOfDiscoveredServices;
-            maServDiscInfo[deviceId].mpServiceDiscoveryBuffer =
-                (gattService_t*)pMsg->Data.GATTClientProcedureDiscoverAllPrimaryServicesIndication.DiscoveredServices;
+            deviceId = pMsg->Data.GATTClientProcedureDiscoverAllPrimaryServicesIndication.DeviceId;
+
+            App_DiscoverAllPrimaryServicesIndHandler(deviceId, &pMsg->Data.GATTClientProcedureDiscoverAllPrimaryServicesIndication);
 
             BleServDisc_SignalGattClientEvent(deviceId,
                                               gGattProcDiscoverAllPrimaryServices_c,
@@ -669,33 +1258,11 @@ static bool_t App_HandleHSDKMessageInputGATT(bleEvtContainer_t* pMsg)
 
         case GATTClientProcedureDiscoverPrimaryServicesByUuidIndication_FSCI_ID:
         {
-            deviceId_t deviceId = pMsg->Data.GATTClientProcedureDiscoverPrimaryServicesByUuidIndication.DeviceId;
-            maServDiscInfo[deviceId].mcPrimaryServices = pMsg->Data.GATTClientProcedureDiscoverPrimaryServicesByUuidIndication.NbOfDiscoveredServices;
-            maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->startHandle =
-                pMsg->Data.GATTClientProcedureDiscoverPrimaryServicesByUuidIndication.DiscoveredServices->StartHandle;
-            maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->endHandle =
-                pMsg->Data.GATTClientProcedureDiscoverPrimaryServicesByUuidIndication.DiscoveredServices->EndHandle;
+            deviceId = pMsg->Data.GATTClientProcedureDiscoverPrimaryServicesByUuidIndication.DeviceId;
 
-            if (pMsg->Data.GATTClientProcedureDiscoverPrimaryServicesByUuidIndication.DiscoveredServices->UuidType == Uuid16Bits)
-            {
-                maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->uuidType = gBleUuidType16_c;
-                FLib_MemCpy(&maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->uuid.uuid16,
-                            pMsg->Data.GATTClientProcedureDiscoverPrimaryServicesByUuidIndication.DiscoveredServices->Uuid.Uuid16Bits,
-                            sizeof(uint16_t));
-            }
-            else
-            {
-                maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->uuidType = gBleUuidType128_c;
-                FLib_MemCpy(maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->uuid.uuid128,
-                            pMsg->Data.GATTClientProcedureDiscoverPrimaryServicesByUuidIndication.DiscoveredServices->Uuid.Uuid16Bits,
-                            16);
-            }
-            maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->cNumCharacteristics =
-                pMsg->Data.GATTClientProcedureDiscoverPrimaryServicesByUuidIndication.DiscoveredServices->NbOfCharacteristics;
-            maServDiscInfo[deviceId].mpServiceDiscoveryBuffer->cNumIncludedServices =
-                pMsg->Data.GATTClientProcedureDiscoverPrimaryServicesByUuidIndication.DiscoveredServices->NbOfIncludedServices;
+            App_DiscoverPrimaryServicesByUuidIndHandler(deviceId, &pMsg->Data.GATTClientProcedureDiscoverPrimaryServicesByUuidIndication);
 
-            BleServDisc_SignalGattClientEvent(pMsg->Data.GATTClientProcedureDiscoverPrimaryServicesByUuidIndication.DeviceId,
+            BleServDisc_SignalGattClientEvent(deviceId,
                                               gGattProcDiscoverPrimaryServicesByUuid_c,
                                               (gattProcedureResult_t)pMsg->Data.GATTClientProcedureDiscoverPrimaryServicesByUuidIndication.ProcedureResult,
                                               (bleResult_t)pMsg->Data.GATTClientProcedureDiscoverPrimaryServicesByUuidIndication.Error);
@@ -704,7 +1271,11 @@ static bool_t App_HandleHSDKMessageInputGATT(bleEvtContainer_t* pMsg)
 
         case GATTClientProcedureFindIncludedServicesIndication_FSCI_ID:
         {
-            BleServDisc_SignalGattClientEvent(pMsg->Data.GATTClientProcedureFindIncludedServicesIndication.DeviceId,
+            deviceId = pMsg->Data.GATTClientProcedureFindIncludedServicesIndication.DeviceId;
+
+            App_FindIncludedServicesIndHandler(deviceId, &pMsg->Data.GATTClientProcedureFindIncludedServicesIndication);
+
+            BleServDisc_SignalGattClientEvent(deviceId,
                                               gGattProcFindIncludedServices_c,
                                               (gattProcedureResult_t)pMsg->Data.GATTClientProcedureFindIncludedServicesIndication.ProcedureResult,
                                               (bleResult_t)pMsg->Data.GATTClientProcedureFindIncludedServicesIndication.Error);
@@ -713,11 +1284,11 @@ static bool_t App_HandleHSDKMessageInputGATT(bleEvtContainer_t* pMsg)
 
         case GATTClientProcedureDiscoverAllCharacteristicsIndication_FSCI_ID:
         {
-            maServDiscInfo[pMsg->Data.GATTClientProcedureDiscoverAllCharacteristicsIndication.DeviceId].mpServiceDiscoveryBuffer->cNumCharacteristics =
-                pMsg->Data.GATTClientProcedureDiscoverAllCharacteristicsIndication.Service.NbOfCharacteristics;
-            maServDiscInfo[pMsg->Data.GATTClientProcedureDiscoverAllCharacteristicsIndication.DeviceId].mpServiceDiscoveryBuffer->aCharacteristics =
-                (gattCharacteristic_t*)pMsg->Data.GATTClientProcedureDiscoverAllCharacteristicsIndication.Service.Characteristics;
-            BleServDisc_SignalGattClientEvent(pMsg->Data.GATTClientProcedureDiscoverAllCharacteristicsIndication.DeviceId,
+            deviceId = pMsg->Data.GATTClientProcedureDiscoverAllCharacteristicsIndication.DeviceId;
+
+            App_DiscoverAllCharacteristicsIndHandler(deviceId, &pMsg->Data.GATTClientProcedureDiscoverAllCharacteristicsIndication);
+
+            BleServDisc_SignalGattClientEvent(deviceId,
                                               gGattProcDiscoverAllCharacteristics_c,
                                               (gattProcedureResult_t)pMsg->Data.GATTClientProcedureDiscoverAllCharacteristicsIndication.ProcedureResult,
                                               (bleResult_t)pMsg->Data.GATTClientProcedureDiscoverAllCharacteristicsIndication.Error);
@@ -726,7 +1297,11 @@ static bool_t App_HandleHSDKMessageInputGATT(bleEvtContainer_t* pMsg)
 
         case GATTClientProcedureDiscoverCharacteristicByUuidIndication_FSCI_ID:
         {
-            BleServDisc_SignalGattClientEvent(pMsg->Data.GATTClientProcedureDiscoverCharacteristicByUuidIndication.DeviceId,
+            deviceId = pMsg->Data.GATTClientProcedureDiscoverCharacteristicByUuidIndication.DeviceId;
+
+            App_DiscoverCharacteristicByUuidIndHandler(deviceId, &pMsg->Data.GATTClientProcedureDiscoverCharacteristicByUuidIndication);
+
+            BleServDisc_SignalGattClientEvent(deviceId,
                                               gGattProcDiscoverCharacteristicByUuid_c,
                                               (gattProcedureResult_t)pMsg->Data.GATTClientProcedureDiscoverCharacteristicByUuidIndication.ProcedureResult,
                                               (bleResult_t)pMsg->Data.GATTClientProcedureDiscoverCharacteristicByUuidIndication.Error);
@@ -735,7 +1310,11 @@ static bool_t App_HandleHSDKMessageInputGATT(bleEvtContainer_t* pMsg)
 
         case GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication_FSCI_ID:
         {
-            BleServDisc_SignalGattClientEvent(pMsg->Data.GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication.DeviceId,
+            deviceId = pMsg->Data.GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication.DeviceId;
+
+            App_DiscoverAllCharacteristicDescriptorsIndHandler(deviceId, &pMsg->Data.GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication);
+
+            BleServDisc_SignalGattClientEvent(deviceId,
                                               gGattProcDiscoverAllCharacteristicDescriptors_c,
                                               (gattProcedureResult_t)pMsg->Data.GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication.ProcedureResult,
                                               (bleResult_t)pMsg->Data.GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication.Error);
@@ -744,10 +1323,14 @@ static bool_t App_HandleHSDKMessageInputGATT(bleEvtContainer_t* pMsg)
 
         case GATTClientProcedureReadCharacteristicValueIndication_FSCI_ID:
         {
-            BleServDisc_SignalGattClientEvent(pMsg->Data.GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication.DeviceId,
-                                              gGattProcDiscoverAllCharacteristicDescriptors_c,
-                                              (gattProcedureResult_t)pMsg->Data.GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication.ProcedureResult,
-                                              (bleResult_t)pMsg->Data.GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication.Error);
+            deviceId = pMsg->Data.GATTClientProcedureReadCharacteristicValueIndication.DeviceId;
+
+            App_ReadCharacteristicValueIndHandler(deviceId, &pMsg->Data.GATTClientProcedureReadCharacteristicValueIndication);
+
+            BleServDisc_SignalGattClientEvent(deviceId,
+                                              gGattProcReadCharacteristicValue_c,
+                                              (gattProcedureResult_t)pMsg->Data.GATTClientProcedureReadCharacteristicValueIndication.ProcedureResult,
+                                              (bleResult_t)pMsg->Data.GATTClientProcedureReadCharacteristicValueIndication.Error);
         }
         break;
 
