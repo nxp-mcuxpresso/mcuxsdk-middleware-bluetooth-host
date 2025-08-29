@@ -17,7 +17,16 @@ if(CONFIG_MCUX_PRJSEG_module.wireless.ble.app_common)
         app_scanner.c
         app_scanner.h
         app_nvm.c
-        ../../boards/${board}/app_preinclude_common.h
+    )
+
+    mcux_add_source(
+    BASE_PATH ${SdkRootDirPath}
+    SOURCES middleware/wireless/${bluetooth_root}/boards/${board}/app_preinclude_common.h
+    )
+
+    mcux_add_include(
+        BASE_PATH ${SdkRootDirPath}
+        INCLUDES middleware/wireless/${bluetooth_root}/boards/${board}
     )
 
     mcux_add_configuration(
