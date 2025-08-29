@@ -1020,6 +1020,39 @@ bleResult_t Gap_LoadCustomPeerInformation
 );
 
 /*! *********************************************************************************
+* \brief  Loads the custom bonded device information in raw data format.
+*         Unlike Gap_LoadCustomPeerInformation, it does not require an active connection.
+*
+* \param[in] nvmIndex           Index of the device in NVM bonding area.
+* \param[out] pOutInfo          Pointer to the beginning of the allocated memory.
+* \param[in] offset             Offset from the beginning of the reserved memory area.
+* \param[in] infoSize           Data size (maximum equal to gcReservedFlashSizeForCustomInformation_d).
+*
+* \retval  gBleSuccess_c
+* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
+*                                       stack version.
+* \retval  gBleUnavailable_c            The bond data entry for this device is
+*                                       corrupted.
+* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
+*                                       outside the accepted range.
+* \retval  gBleOutOfMemory_c            The nvm index of the deviceId is bigger than
+*                                       the number of allowed bonded devices, or the
+*                                       nvm saving operation did not have enough memory.
+* \remarks This function can be called by the application to load custom information about the
+* bonded device.
+*
+* \remarks This function executes synchronously.
+*
+********************************************************************************** */
+bleResult_t Gap_LoadCustomBondedDeviceInformation
+(
+    uint8_t     nvmIndex,
+    uint8_t*    pOutInfo,
+    uint16_t    offset,
+    uint16_t    infoSize
+);
+
+/*! *********************************************************************************
 * \brief  Returns whether or not a connected peer device is bonded and the NVM index.
 *
 * \param[in] deviceId           Device ID of the GAP peer.

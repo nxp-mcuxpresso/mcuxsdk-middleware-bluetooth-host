@@ -117,6 +117,13 @@ static void fsciBleGapDecryptAdvertisingDataEvtMonitor
     uint8_t *pOutput,
     uint16_t outputSize
 );
+
+static void fsciBleGapLoadCustomBondedDeviceInformationEvtMonitor
+(
+    const uint8_t *pOutInfo,
+    uint16_t      infoSize
+);
+
 #if defined(gA2BSupportEnabled_d) && (gA2BSupportEnabled_d == TRUE)
 static void HandleGapCmdEcdhP256ComputeA2BKey
 (
@@ -250,6 +257,12 @@ void HandleGapCmdSetBondedDeviceNameOpCode
     uint8_t *pBuffer,
     uint32_t fsciInterfaceId
 );
+
+void HandleGapCmdLoadCustomBondedDeviceInformationOpCode
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
 /*! *********************************************************************************
 *\private
 *\fn           void HandleCtrlCmdGetTimestampExOpCode(uint8_t *pBuffer,
@@ -347,6 +360,7 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
 #else /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */
     NULL,
 #endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */
+    HandleGapCmdLoadCustomBondedDeviceInformationOpCode,                        /* = 0x17, gBleGapCmdLoadCustomBondedDeviceInformationOpCode_c */
 };
 
 #if gFsciBleTest_d
@@ -927,6 +941,45 @@ static void HandleGapCmdDecryptAdvertisingData
     {
         fsciBleError(gFsciError_c, fsciBleInterfaceId);
     }
+}
+
+/*! *********************************************************************************
+* \brief  fsciBleGapLoadCustomBondedDeviceInformationEvtMonitor out parameter monitoring macro.
+*
+* \param[in]    pOutput     Encrypted output.
+* \param[in]    pOutputSize Encrypted output size.
+*
+********************************************************************************** */
+static void fsciBleGapLoadCustomBondedDeviceInformationEvtMonitor
+(
+    const uint8_t *pOutInfo,
+    uint16_t      infoSize
+)
+{
+    clientPacketStructured_t *pClientPacket;
+    uint8_t *pBuffer;
+
+#if gFsciBleTest_d
+    /* If GAP is disabled the event must be not monitored */
+    if (TRUE == bFsciBleGap2Enabled)
+    {
+#endif /* gFsciBleTest_d */
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleGapEvtLoadCustomBondedDeviceInformationOpCode_c,
+                                                   infoSize + sizeof(uint16_t));
+
+        if (NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+            /* Set event parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(infoSize, pBuffer);
+            fsciBleGetBufferFromArray(pOutInfo, pBuffer, infoSize);
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
+#if gFsciBleTest_d
+    }
+#endif /* gFsciBleTest_d */
 }
 
 /*! *********************************************************************************
@@ -2198,6 +2251,52 @@ void HandleGapCmdSetBondedDeviceNameOpCode(uint8_t *pBuffer, uint32_t fsciInterf
 
         /* Free buffer allocated for name */
         (void)MEM_BufferFree(pName);
+    }
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdLoadCustomBondedDeviceInformationOpCode(
+*                                                       uint8_t *pBuffer,
+*                                                       uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleGapCmdLoadCustomBondedDeviceInformationOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */   
+void HandleGapCmdLoadCustomBondedDeviceInformationOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
+{
+    uint8_t     nvmIndex = gInvalidNvmIndex_c;
+    uint16_t    offset = 0U;
+    uint16_t    infoSize = 0U;
+    uint8_t*    pOutInfo = NULL;
+
+    /* Get command parameters from buffer */
+    fsciBleGetUint8ValueFromBuffer(nvmIndex, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(offset, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(infoSize, pBuffer);
+
+    /* Allocate buffer for info (consider that infoSize is
+    bigger than 0) */
+    if (infoSize <= gcReservedFlashSizeForCustomInformation_c)
+    {
+        pOutInfo = MEM_BufferAlloc(infoSize);
+    }
+
+    if(NULL == pOutInfo)
+    {
+        /* No memory => the GAP command can not be executed */
+        fsciBleError(gFsciOutOfMessages_c, fsciInterfaceId);
+    }
+    else
+    {
+        fsciBleGap2CallApiFunction(Gap_LoadCustomBondedDeviceInformation(nvmIndex, pOutInfo, offset, infoSize));
+        fsciBleGap2MonitorOutParams(LoadCustomBondedDeviceInformation, pOutInfo, infoSize);
+
+        /* Free the buffer allocated for info */
+        (void)MEM_BufferFree(pOutInfo);
     }
 }
 #endif /* gFsciBleGap2LayerEnabled_d */
