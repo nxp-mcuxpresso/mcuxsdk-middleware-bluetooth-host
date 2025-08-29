@@ -224,7 +224,8 @@ static bleResult_t App_FsciBleNvmDataReq
 static uint16_t getNvmDataSize
 (
     uint8_t dataSetBitmask,
-    uint32_t descriptorBitmask
+    uint32_t descriptorBitmask,
+    uint8_t *pOutNoOfReadDescriptors
 );
 static NVM_Status_t nvmWriteCCCDs
 (
@@ -919,7 +920,7 @@ static void App_NvmHostRead(void *pData)
     /* Read requested data sets */
     result = App_NvmRead(entryIdx, pBondHeader, pBondDataDynamic, pBondDataStatic, pBondDataLegacy, pBondDataDeviceInfo, pBondDataDescriptor, descriptorBitmask, &readDatasetBitmask, &readDescriptorBitmask);
 
-    nvmDataSize = getNvmDataSize(readDatasetBitmask, readDescriptorBitmask);
+    nvmDataSize = getNvmDataSize(readDatasetBitmask, readDescriptorBitmask, &noOfReadDescriptors);
 
     /* Allocate memory and build response */
     pNvmData = MEM_BufferAlloc(nvmDataSize);
@@ -1032,18 +1033,21 @@ static void App_NvmHostWrite(void *pData)
 
 /*! *********************************************************************************
 *\private
-*\fn            static uint16_t getNvmDataSize(uint8_t dataSetBitmask, uint32_t descriptorBitmask)
+*\fn            static uint16_t getNvmDataSize(uint8_t dataSetBitmask,
+*                                              uint32_t descriptorBitmask,
+*                                              uint8_t *pOutNoOfReadDescriptors)
 *\brief         Get the nvm data size for all the data sets specified in the bitmask.
 *
-*\param[in]     dataSetBitmask      NNVM data sets bitmask
-*\param[in]     descriptorBitmask   CCCD data set bitmask
+*\param[in]     dataSetBitmask              NNVM data sets bitmask
+*\param[in]     descriptorBitmask           CCCD data set bitmask
+*\param[out]    pOutNoOfReadDescriptors     Number of descriptors in descriptorBitmask
 *
 *\return        uint16_t            NVM data sets size in octets.
 ********************************************************************************** */
-static uint16_t getNvmDataSize(uint8_t dataSetBitmask, uint32_t descriptorBitmask)
+static uint16_t getNvmDataSize(uint8_t dataSetBitmask, uint32_t descriptorBitmask, uint8_t *pOutNoOfReadDescriptors)
 {
     uint16_t nvmDataSize = 0U;
-    uint8_t noOfReadDescriptors = 0U;
+    *pOutNoOfReadDescriptors = 0U;
 
     /* Calculate the size of the NVM data */
     if ((dataSetBitmask & nvmId_BondingHeaderBit_c) != 0U)
@@ -1074,12 +1078,12 @@ static uint16_t getNvmDataSize(uint8_t dataSetBitmask, uint32_t descriptorBitmas
         //for (noOfReadDescriptors = 0U; tempDescBitmask > 0U; noOfReadDescriptors++)
         while(tempDescBitmask != 0U)
         {
-            noOfReadDescriptors++;
+            (*pOutNoOfReadDescriptors)++;
             tempDescBitmask &= tempDescBitmask - 1U;
         }
         
         /* Compute required size for the number of CCCDs read */
-        nvmDataSize += (uint16_t)noOfReadDescriptors * gBleBondDataDescriptorSize_c;
+        nvmDataSize += (uint16_t)*pOutNoOfReadDescriptors * gBleBondDataDescriptorSize_c;
     }
 
     return nvmDataSize;
