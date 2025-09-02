@@ -58,7 +58,7 @@ typedef struct fsciBleGattClientManagementInfo_tag
     gattCharacteristic_t*   pCharacteristics;
     gattAttribute_t*        pDescriptors;
     uint8_t*                pValue;
-    uint16_t                arraySize;
+    uint16_t*               pArraySize;
 }fsciBleGattClientManagementInfo_t;
 
 /************************************************************************************
@@ -98,12 +98,29 @@ uint16_t* fsciBleGattClientAllocOutOrIoArraySize
     bearerId_t      bearerId
 )
 {
+    /* Verify if an array size is already allocated (only one kept array size can
+    be allocated at a time) */
     uint8_t idx = getIndexFromDeviceIdBearerId(deviceId, bearerId);
+    if(NULL != fsciBleGattClientTmpAllocatedManagementInfo[idx].pArraySize)
+    {
+        fsciBleGattClientHandleInternalErrorStatus();
+        return NULL;
+    }
 
-    fsciBleGattClientTmpAllocatedManagementInfo[idx].arraySize = 0U;
+    /* Allocate buffer for the array size */
+    fsciBleGattClientTmpAllocatedManagementInfo[idx].pArraySize = MEM_BufferAlloc(sizeof(uint16_t));
+
+    if(NULL == fsciBleGattClientTmpAllocatedManagementInfo[idx].pArraySize)
+    {
+        fsciBleGattClientHandleNoMemoryStatus();
+    }
+    else
+    {
+        *fsciBleGattClientTmpAllocatedManagementInfo[idx].pArraySize = 0U;
+    }
 
     /* Return the allocated kept array size */
-    return &fsciBleGattClientTmpAllocatedManagementInfo[idx].arraySize;
+    return fsciBleGattClientTmpAllocatedManagementInfo[idx].pArraySize;
 }
 
 
@@ -577,7 +594,7 @@ void fsciBleGattClientSaveArraySizeInfo(deviceId_t deviceId, bearerId_t bearerId
 {
     /* Keep (only save) the array size pointer */
     uint8_t idx = getIndexFromDeviceIdBearerId(deviceId, bearerId);
-    fsciBleGattClientSavedManagementInfo[idx].arraySize = *pArraySize;
+    fsciBleGattClientSavedManagementInfo[idx].pArraySize = pArraySize;
 }
 
 
@@ -625,8 +642,8 @@ uint16_t* fsciBleGattClientGetArraySizeInfo(deviceId_t deviceId, bearerId_t bear
 {
     /* Return the kept (allocated or saved) array size pointer */
     uint8_t idx = getIndexFromDeviceIdBearerId(deviceId, bearerId);
-    return (TRUE == bAllocated) ? &fsciBleGattClientAllocatedManagementInfo[idx].arraySize : &fsciBleGattClientSavedManagementInfo[idx].arraySize;
-} 
+    return (TRUE == bAllocated) ? fsciBleGattClientAllocatedManagementInfo[idx].pArraySize : fsciBleGattClientSavedManagementInfo[idx].pArraySize;
+}
 
 
 void fsciBleGattClientKeepInfo
@@ -668,7 +685,8 @@ void fsciBleGattClientErasePermanentOrTmpInfo
         (void)MEM_BufferFree(pFsciBleGattClientAllocatedManagementInfo->pCharacteristics);
         (void)MEM_BufferFree(pFsciBleGattClientAllocatedManagementInfo->pDescriptors);
         (void)MEM_BufferFree(pFsciBleGattClientAllocatedManagementInfo->pValue);
-
+        (void)MEM_BufferFree(pFsciBleGattClientAllocatedManagementInfo->pArraySize);
+        
         FLib_MemSet(pFsciBleGattClientAllocatedManagementInfo, 0x00, sizeof(fsciBleGattClientManagementInfo_t));
     }
     else
@@ -1122,7 +1140,8 @@ static bool_t checkAllocatedClientManagementInfo
         || (fsciBleGattClientAllocatedManagementInfo[idx].pIncludedServices != NULL)
         || (fsciBleGattClientAllocatedManagementInfo[idx].pCharacteristics != NULL)
         || (fsciBleGattClientAllocatedManagementInfo[idx].pDescriptors != NULL)
-        || (fsciBleGattClientAllocatedManagementInfo[idx].pValue != NULL))
+        || (fsciBleGattClientAllocatedManagementInfo[idx].pValue != NULL)
+        || (fsciBleGattClientAllocatedManagementInfo[idx].pArraySize != NULL))
     {
         result = TRUE;
     }
