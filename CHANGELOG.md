@@ -2,7 +2,46 @@
 
 All notable changes to NXP Bluetooth LE Host will be documented in this file.
 
-**NXP Bluetooth LE Host** is certified **Bluetooth 6.0**
+**NXP Bluetooth LE Host Stack** is certified **Bluetooth 6.0**
+
+## [1.10.11] - mcux v2025-09-00
+
+### Added
+
+- CCC sample applications updated to **CCC Digital Key v4.0.0** Specification
+- **RAS/RAP PTS** 8.7.4 test support added in Localization Sample applications
+- Support for CS start procedure while the previous procedure is not completed; old procedure replaced with the new one
+- Support for arm gcc for ncp_loc_reader__cm33_core1
+
+### Improved
+
+- Localization Sample Applications Ram partition
+- **RAS/RAP** profile and service
+- Various sample applications have been updated
+
+
+### Fixed
+
+- Privacy setting issue on ncp_loc_reader
+- Extended NBU FSCI message handling issue
+- Ble_shell updated to set the Random Static Address properly
+- Always set the Advertising Legacy Set handle if the legacy API was used
+- fsci_bridge and w_uart_host memory leak
+- PAWR parameters in PeriodicSyncTransferReceived are now parsed correctly
+- Ensure an RPA/NRPA is properly set from the application to enable a central using Controller Privacy to connect to unbonded peripherals
+- CS algorithm buffer overwrite issue during Connection Handover application
+- Various sample applications bug fixes applied
+- Pass correct Codded PHY (S2) to Channel Sounding Set Procedure Parameters
+
+### Changed
+
+- Merged Gap_SetExtAdvertisingParameters and Gap_SetExtAdvertisingParametersV2 into **Gap_SetExtAdvertisingParameters**
+- ce_status_buffer type changed to int32_t
+- BLE_Shell prints Random Static address as identity address instead of the Public Device Address
+
+### Supported Platforms
+
+- KW45, KW47, MCXW71, MCXW72, MCXW23
 
 ## [1.10.10] - mcux v2025-09-00-pvw2
 
@@ -28,6 +67,7 @@ All notable changes to NXP Bluetooth LE Host will be documented in this file.
 ## [1.10.9] - mcux v2025-09-00-pvw1
 
 ### Added
+
 - **IDS event** trigger when incoming ATT packets exceed agreed MTU
 - **IDS event** trigger when Unexpected SMP Messages received in idle states (before pairing starts)
 - Average RSSI reporting in Anchor Monitor event
