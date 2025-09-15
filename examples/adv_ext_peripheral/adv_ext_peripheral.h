@@ -84,7 +84,7 @@ extern gapScanResponseData_t         gAppScanRspData;
 extern gapPeriodicAdvParameters_t    gPeriodicAdvParams;
 #if (gAppPAWRSupport_d == TRUE)
 /* PAWR Parameters */
-extern gapPeriodicAdvParametersV2_t         gPAWRParams;
+extern gapPeriodicAdvParameters_t         gPAWRParams;
 extern gapPeriodicAdvertisingSubeventData_t gAppPAWRSubeventsData;
 extern gapConnectionFromPawrParameters_t gConnFromPAWRReqParams;
 #endif /* (gAppPAWRSupport_d == TRUE) */

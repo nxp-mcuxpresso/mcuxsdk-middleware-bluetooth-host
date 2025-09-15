@@ -75,14 +75,12 @@ extern gapExtAdvertisingParameters_t    gExtAdvParams;
 extern gapScanResponseData_t            gAppExtScanRspData;
 extern gapAdvertisingData_t             gAppExtAdvertisingData;
 #if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
-extern gapPeriodicAdvParametersV2_t             gPeriodicAdvParams;
 extern gapAdvertisingData_t                     gaAdvSubeventDataStruct[];
 extern gapSubeventDataStructure_t               gaSubeventDataStruct[];
 extern gapPeriodicAdvertisingSubeventData_t     gAppPerAdvSubeventData;
 extern gapPeriodicAdvertisingResponseData_t     gaAppPerAdvResponseData[];
-#else /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
-extern gapPeriodicAdvParameters_t       gPeriodicAdvParams;
 #endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
+extern gapPeriodicAdvParameters_t       gPeriodicAdvParams;
 extern gapAdvertisingData_t             gAppPeriodicAdvData;
 
 #if defined(BLE_SHELL_DBAF_SUPPORT) && (BLE_SHELL_DBAF_SUPPORT)

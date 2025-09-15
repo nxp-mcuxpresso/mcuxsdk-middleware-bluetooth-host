@@ -2148,12 +2148,12 @@ void HandleGapCmdConnectV2OpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 ********************************************************************************** */
 void HandleGapCmdSetPeriodicAdvParametersV2OpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
-    gapPeriodicAdvParametersV2_t advertisingParameters = {0};
+    gapPeriodicAdvParameters_t advertisingParameters = {0};
 
     /* Get advertising parameters from buffer */
     fsciBleGapGetPeriodicAdvParametersV2FromBuffer(&advertisingParameters, &pBuffer);
 
-    fsciBleGap2CallApiFunction(Gap_SetPeriodicAdvParametersV2(&advertisingParameters));
+    fsciBleGap2CallApiFunction(Gap_SetPeriodicAdvParameters(&advertisingParameters));
 }
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif /* defined(gBLE54_d) && (gBLE54_d == 1U) */

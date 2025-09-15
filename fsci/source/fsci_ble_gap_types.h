@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -923,7 +923,7 @@ void fsciBleGapGetPeriodicAdvParametersFromBuffer
 #if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
 void fsciBleGapGetPeriodicAdvParametersV2FromBuffer
 (
-    gapPeriodicAdvParametersV2_t*   pAdvertisingParameters,
+    gapPeriodicAdvParameters_t*   pAdvertisingParameters,
     uint8_t**                       ppBuffer
 );
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */

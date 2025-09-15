@@ -2318,12 +2318,17 @@ void fsciBleGapGetPeriodicAdvParametersFromBuffer(gapPeriodicAdvParameters_t* pA
     fsciBleGetBoolValueFromBuffer(  pAdvertisingParameters->addTxPowerInAdv, *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pAdvertisingParameters->minInterval,     *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pAdvertisingParameters->maxInterval,     *ppBuffer);
+    pAdvertisingParameters->numSubevents = 0U;
+    pAdvertisingParameters->subeventInterval = 0U;
+    pAdvertisingParameters->responseSlotDelay = 0U;
+    pAdvertisingParameters->responseSlotSpacing = 0U;
+    pAdvertisingParameters->numResponseSlots = 0U;
 }
 
 #if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
-void fsciBleGapGetPeriodicAdvParametersV2FromBuffer(gapPeriodicAdvParametersV2_t* pAdvertisingParameters, uint8_t** ppBuffer)
+void fsciBleGapGetPeriodicAdvParametersV2FromBuffer(gapPeriodicAdvParameters_t* pAdvertisingParameters, uint8_t** ppBuffer)
 {
-    /* Read gapPeriodicAdvParametersV2_t fields from buffer */
+    /* Read gapPeriodicAdvParameters_t fields from buffer */
     fsciBleGetUint8ValueFromBuffer( pAdvertisingParameters->handle,             *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pAdvertisingParameters->minInterval,        *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pAdvertisingParameters->maxInterval,        *ppBuffer);

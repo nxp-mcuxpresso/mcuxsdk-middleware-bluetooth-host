@@ -1541,13 +1541,13 @@ static void BleApp_HandlePAWRMode(uint8_t mode)
             if ((maAdvStatus[mode] ==  mAdvStatus_Off_c) && (maAdvStatus[mPeriodicAdvIndex_c] ==  mAdvStatus_Off_c))
             {
                 gPAWRParams.handle = gExtAdvParamsNonConnNonScann.handle;
-                if (Gap_SetPeriodicAdvParametersV2(&gPAWRParams) == gBleSuccess_c )
+                if (Gap_SetPeriodicAdvParameters(&gPAWRParams) == gBleSuccess_c )
                 {
                     mExtAdvSequence = mExtAdvSeq_Start_c;
                 }
                 else
                 {
-                    AppPrintString("\n\rGap_SetPeriodicAdvParametersV2 failed");
+                    AppPrintString("\n\rGap_SetPeriodicAdvParameters failed");
                     FreeExtAdvAPI();
                 }
             }

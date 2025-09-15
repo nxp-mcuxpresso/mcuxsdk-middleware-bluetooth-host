@@ -524,11 +524,16 @@ gapPeriodicAdvParameters_t gPeriodicAdvParams =
     /* addTxPowerInAdv*/            TRUE, \
     /* minInterval */               1600 /* 2 s */, \
     /* maxInterval */               3200 /* 4 s */, \
+    /* numSubevents */              0U, \
+    /* subeventInterval */          0U, \
+    /* responseSlotDelay */         0U, \
+    /* responseSlotSpacing */       0U, \
+    /* numResponseSlots */          0U \
 };
 #if (gAppPAWRSupport_d == TRUE)
 /*Default PAWR Parameters */
 
-gapPeriodicAdvParametersV2_t gPAWRParams =
+gapPeriodicAdvParameters_t gPAWRParams =
 {
     .handle = 0xffU,
     .addTxPowerInAdv = TRUE,

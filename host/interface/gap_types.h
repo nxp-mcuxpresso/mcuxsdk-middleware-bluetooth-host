@@ -169,7 +169,12 @@
     /* handle */                    gBlePeriodicAdvDefaultHandle_c, \
     /* addTxPowerInAdv */           TRUE, \
     /* minInterval */               gGapPeriodicAdvIntervalRangeMinimum_c, \
-    /* maxInterval */               gGapPeriodicAdvIntervalDefault_c \
+    /* maxInterval */               gGapPeriodicAdvIntervalDefault_c, \
+    /* numSubevents */              0U, \
+    /* subeventInterval */          0U, \
+    /* responseSlotDelay */         0U, \
+    /* responseSlotSpacing */       0U, \
+    /* numResponseSlots */          0U \
 }
 
 /*
@@ -570,16 +575,8 @@ typedef struct gapExtAdvertisingParameters_tag {
     gapLePhyOptionsFlags_t              secondaryAdvPhyOptions; /*!< Preferred or required coding when transmitting on the secondary LE Coded PHY */
 } gapExtAdvertisingParameters_t;
 
-/*! Periodic Advertising Parameters; for defaults see gGapDefaultPeriodicAdvParameters_d. */
+/*! Periodic Advertising Parameters [v2]; for defaults see gGapDefaultPeriodicAdvParameters_d. */
 typedef struct gapPeriodicAdvParameters_tag {
-    uint8_t                             handle;             /*!< ID of the advertising set handled by controller. Shall be lower than gMaxAdvSets_c */
-    bool_t                              addTxPowerInAdv;    /*!< Set this option to include the Tx power in advertising packet. */
-    uint16_t                            minInterval;        /*!< Minimum advertising interval for periodic advertising. */
-    uint16_t                            maxInterval;        /*!< Maximum advertising interval for periodic advertising. Should be different and higher than minInterval. */
-} gapPeriodicAdvParameters_t;
-
-/*! Periodic Advertising Parameters [v2] */
-typedef struct gapPeriodicAdvParametersV2_tag {
     uint8_t                             handle;             /*!< ID of the advertising set handled by controller. Shall be lower than gMaxAdvSets_c */
     bool_t                              addTxPowerInAdv;    /*!< Set this option to include the Tx power in advertising packet. */
     uint16_t                            minInterval;        /*!< Minimum advertising interval for periodic advertising. */
@@ -589,7 +586,7 @@ typedef struct gapPeriodicAdvParametersV2_tag {
     uint8_t                             responseSlotDelay;  /*!< Time between the advertising packet in a subevent and the first response slot. */
     uint8_t                             responseSlotSpacing;/*!< Time between response slots. */
     uint8_t                             numResponseSlots;   /*!< Number of response slots. */
-} gapPeriodicAdvParametersV2_t;
+} gapPeriodicAdvParameters_t;
 
 /*! Periodic Advertisement Sync Transfer parameters */
 typedef enum gapPeriodicAdvSyncMode_tag

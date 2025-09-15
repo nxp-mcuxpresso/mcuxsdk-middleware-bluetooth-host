@@ -250,6 +250,10 @@ gapPeriodicAdvParameters_t gPeriodicAdvParams =
     /* addTxPowerInAdv*/            TRUE, \
     /* minInterval */               1600 /* 1 s */, \
     /* maxInterval */               3200 /* 2 s */, \
-
+    /* numSubevents */              0U, \
+    /* subeventInterval */          0U, \
+    /* responseSlotDelay */         0U, \
+    /* responseSlotSpacing */       0U, \
+    /* numResponseSlots */          0U \
 };
 #endif /* gBeaconAE_c */

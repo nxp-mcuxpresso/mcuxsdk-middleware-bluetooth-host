@@ -2034,26 +2034,6 @@ bleResult_t Gap_SetPeriodicAdvParameters
 );
 
 /*! *********************************************************************************
-* \brief  Sets up the Periodic Advertising Parameters - v2 of the command.
-*
-* \param[in] pAdvertisingParameters   Pointer to gapPeriodicAdvParametersV2_t structure.
-*
-* \retval  gBleSuccess_c
-* \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
-*                                       stack version.
-* \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
-*                                       outside the accepted range.
-* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
-*
-* \remarks GAP Peripheral-only API function.
-*
-********************************************************************************** */
-bleResult_t Gap_SetPeriodicAdvParametersV2
-(
-    gapPeriodicAdvParametersV2_t*   pAdvertisingParameters
-);
-
-/*! *********************************************************************************
 * \brief  Sets up the Periodic Advertising Subevent Data.
 *
 * \param[in] advHandle                             Advertising handle.

@@ -175,11 +175,7 @@ gapExtAdvertisingParameters_t gExtAdvParams =
 };
 
 /*Default Periodic Advertising Parameters */
-#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
-gapPeriodicAdvParametersV2_t gPeriodicAdvParams =
-#else /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 gapPeriodicAdvParameters_t gPeriodicAdvParams =
-#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 {
     /* handle */                    1, \
     /* addTxPowerInAdv*/            TRUE, \
@@ -191,8 +187,13 @@ gapPeriodicAdvParameters_t gPeriodicAdvParams =
     /* responseSlotDelay */         100 /* 125 ms */, \
     /* responseSlotSpacing */       10 /* 2.5 ms */, \
     /* numResponseSlots */          4,
+#else /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
+    /* numSubevents */              0U, \
+    /* subeventInterval */          0U /* 156.25 ms */, \
+    /* responseSlotDelay */         0U /* 125 ms */, \
+    /* responseSlotSpacing */       0U /* 2.5 ms */, \
+    /* numResponseSlots */          0U,
 #endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
-
 };
 
 /* Default Connection Request Parameters */

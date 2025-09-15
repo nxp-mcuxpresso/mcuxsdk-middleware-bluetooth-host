@@ -2571,11 +2571,7 @@ static shell_status_t ShellGap_SetPeriodicAdvParameters(uint8_t argc, char * arg
 
     if (result == kStatus_SHELL_Success)
     {
-#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
-        if (gBleSuccess_c != Gap_SetPeriodicAdvParametersV2(&gPeriodicAdvParams))
-#else /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
         if (gBleSuccess_c != Gap_SetPeriodicAdvParameters(&gPeriodicAdvParams))
-#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
         {
             /* If an error occurred, print error message */
             shell_write(mShellErrorStatus);
