@@ -390,60 +390,68 @@ void fsciBleGattDbAppHandler(void* pData, void* pParam, uint32_t fsciInterfaceId
 
 void fsciBleGattDbAppStatusMonitor(bleResult_t result)
 {
+    bool_t bContinueExecution  = TRUE;
 #if gFsciBleTest_d
     /* If GATT Database (application) is disabled the status must be not monitored */
     if(bFsciBleGattDbAppEnabled == FALSE)
     {
-        return;
+        bContinueExecution  = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    fsciBleStatusMonitor(gFsciBleGattDbAppOpcodeGroup_c, (uint8_t)gBleGattDbAppStatusOpCode_c, result);
+    if (bContinueExecution)
+    {
+        fsciBleStatusMonitor(gFsciBleGattDbAppOpcodeGroup_c, (uint8_t)gBleGattDbAppStatusOpCode_c, result);
+    }
 }
-
 #endif /* gFsciBleBBox_d || gFsciBleTest_d */
 
-
 #if gFsciBleHost_d || gFsciBleTest_d
-
 void fsciBleGattDbAppNoParamCmdMonitor(fsciBleGattDbAppOpCode_t opCode)
 {
+    bool_t bContinueExecution  = TRUE;
 #if gFsciBleTest_d
     /* If GATT Database (application) is disabled or if the command was initiated by FSCI it
     must be not monitored */
     if((FALSE == bFsciBleGattDbAppEnabled) ||
        (TRUE == bFsciBleGattDbAppCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution  = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Call the generic FSCI BLE monitor for commands or events that have no parameters */
-    fsciBleNoParamCmdOrEvtMonitor(gFsciBleGattDbAppOpcodeGroup_c, (uint8_t)opCode);
+    if (bContinueExecution)
+    {
+        /* Call the generic FSCI BLE monitor for commands or events that have no parameters */
+        fsciBleNoParamCmdOrEvtMonitor(gFsciBleGattDbAppOpcodeGroup_c, (uint8_t)opCode);
+    }
 }
-
 
 void fsciBleGattDbAppUint16ParamCmdMonitor(fsciBleGattDbAppOpCode_t opCode, uint16_t value)
 {
+    bool_t bContinueExecution  = TRUE;
 #if gFsciBleTest_d
     /* If GATT Database (application) is disabled or if the command was initiated by FSCI it
     must be not monitored */
     if((FALSE == bFsciBleGattDbAppEnabled) ||
        (TRUE == bFsciBleGattDbAppCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution  = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Call the generic FSCI BLE monitor for commands or events that have an uint16_t parameters */
-    fsciBleGattDbAppUint16ParamEvtMonitor(opCode, &value);
+    if (bContinueExecution)
+    {
+        /* Call the generic FSCI BLE monitor for commands or events that have an uint16_t parameters */
+        fsciBleGattDbAppUint16ParamEvtMonitor(opCode, &value);
+    }
 }
-
 
 void fsciBleGattDbAppUuidTypeAndUuidParamCmdMonitor(fsciBleGattDbAppOpCode_t opCode, uint16_t desiredHandle, bleUuidType_t uuidType, const bleUuid_t* pUuid, uint16_t* pOutHandle)
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution  = TRUE;
 
 #if gFsciBleTest_d
     /* If Application GATT Database is disabled or if the command was initiated by
@@ -451,42 +459,43 @@ void fsciBleGattDbAppUuidTypeAndUuidParamCmdMonitor(fsciBleGattDbAppOpCode_t opC
     if((FALSE == bFsciBleGattDbAppEnabled) ||
        (TRUE == bFsciBleGattDbAppCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution  = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)opCode,
-                                                    sizeof(uint16_t) +
-                                                    sizeof(bleUuidType_t) +
-                                                    fsciBleGetUuidBufferSize(uuidType));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
-    }
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)opCode,
+                                                        sizeof(uint16_t) +
+                                                        sizeof(bleUuidType_t) +
+                                                        fsciBleGetUuidBufferSize(uuidType));
 
-    pBuffer = &pClientPacket->payload[0];
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
 
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(desiredHandle, pBuffer);
-    fsciBleGetBufferFromEnumValue(uuidType, pBuffer, bleUuidType_t);
-    fsciBleGetBufferFromUuid(pUuid, &pBuffer, uuidType);
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(desiredHandle, pBuffer);
+            fsciBleGetBufferFromEnumValue(uuidType, pBuffer, bleUuidType_t);
+            fsciBleGetBufferFromUuid(pUuid, &pBuffer, uuidType);
 
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 
 #if gFsciBleHost_d
-    /* Save out parameters pointers */
-    fsciBleGattDbAppSaveOutParams(pOutHandle, NULL);
+            /* Save out parameters pointers */
+            fsciBleGattDbAppSaveOutParams(pOutHandle, NULL);
 #endif /* gFsciBleHost_d */
+        }
+    }
 }
-
 
 void fsciBleGattDbAppWriteAttributeCmdMonitor(uint16_t handle, uint16_t valueLength, const uint8_t* aValue)
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution  = TRUE;
 
 #if gFsciBleTest_d
     /* If GATT Database (application) is disabled or if the command was initiated by FSCI it
@@ -494,34 +503,35 @@ void fsciBleGattDbAppWriteAttributeCmdMonitor(uint16_t handle, uint16_t valueLen
     if((FALSE == bFsciBleGattDbAppEnabled) ||
        (TRUE == bFsciBleGattDbAppCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution  = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdWriteAttributeOpCode_c, sizeof(uint16_t) + sizeof(uint16_t) + valueLength);
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdWriteAttributeOpCode_c, sizeof(uint16_t) + sizeof(uint16_t) + valueLength);
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(handle, pBuffer);
+            fsciBleGetBufferFromUint16Value(valueLength, pBuffer);
+            fsciBleGetBufferFromArray(aValue, pBuffer, valueLength);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(handle, pBuffer);
-    fsciBleGetBufferFromUint16Value(valueLength, pBuffer);
-    fsciBleGetBufferFromArray(aValue, pBuffer, valueLength);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGattDbAppReadAttributeCmdMonitor(uint16_t handle, uint16_t maxBytes, uint8_t* aOutValue, uint16_t*pOutValueLength)
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution  = TRUE;
 
 #if gFsciBleTest_d
     /* If GATT Database (application) is disabled or if the command was initiated by FSCI it
@@ -529,38 +539,39 @@ void fsciBleGattDbAppReadAttributeCmdMonitor(uint16_t handle, uint16_t maxBytes,
     if((FALSE == bFsciBleGattDbAppEnabled) ||
        (TRUE == bFsciBleGattDbAppCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution  = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdReadAttributeOpCode_c, sizeof(uint16_t) + sizeof(uint16_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
-    }
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdReadAttributeOpCode_c, sizeof(uint16_t) + sizeof(uint16_t));
 
-    pBuffer = &pClientPacket->payload[0];
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
 
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(handle, pBuffer);
-    fsciBleGetBufferFromUint16Value(maxBytes, pBuffer);
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(handle, pBuffer);
+            fsciBleGetBufferFromUint16Value(maxBytes, pBuffer);
 
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 
 #if gFsciBleHost_d
-    /* Save out parameters pointers */
-    fsciBleGattDbAppSaveOutParams(aOutValue, pOutValueLength);
+            /* Save out parameters pointers */
+            fsciBleGattDbAppSaveOutParams(aOutValue, pOutValueLength);
 #endif /* gFsciBleHost_d */
+        }
+    }
 }
-
 
 void fsciBleGattDbAppFindCccdHandleForCharValueHandleCmdMonitor(uint16_t charValueHandle, uint16_t* pOutCccdHandle)
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution  = TRUE;
 
 #if gFsciBleTest_d
     /* If GATT Database (application) is disabled or if the command was initiated by FSCI it
@@ -568,37 +579,38 @@ void fsciBleGattDbAppFindCccdHandleForCharValueHandleCmdMonitor(uint16_t charVal
     if((FALSE == bFsciBleGattDbAppEnabled) ||
        (TRUE == bFsciBleGattDbAppCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution  = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdFindCccdHandleForCharValueHandleOpCode_c, sizeof(uint16_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
-    }
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdFindCccdHandleForCharValueHandleOpCode_c, sizeof(uint16_t));
 
-    pBuffer = &pClientPacket->payload[0];
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
 
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(charValueHandle, pBuffer);
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(charValueHandle, pBuffer);
 
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 
 #if gFsciBleHost_d
-    /* Save out parameters pointers */
-    fsciBleGattDbAppSaveOutParams(pOutCccdHandle, NULL);
+            /* Save out parameters pointers */
+            fsciBleGattDbAppSaveOutParams(pOutCccdHandle, NULL);
 #endif /* gFsciBleHost_d */
+        }
+    }
 }
-
 
 void fsciBleGattDbAppFindServiceCharValueOrDescriptorHandleCmdMonitor(fsciBleGattDbAppOpCode_t opCode, uint16_t handle, bleUuidType_t uuidType, const bleUuid_t* pUuid, uint16_t* pOutHandle)
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution  = TRUE;
 
 #if gFsciBleTest_d
     /* If GATT Database (application) is disabled or if the command was initiated by FSCI it
@@ -606,41 +618,42 @@ void fsciBleGattDbAppFindServiceCharValueOrDescriptorHandleCmdMonitor(fsciBleGat
     if((FALSE == bFsciBleGattDbAppEnabled) ||
        (TRUE == bFsciBleGattDbAppCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution  = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)opCode,
-                                                 sizeof(uint16_t) + sizeof(bleUuidType_t) +
-                                                 fsciBleGetUuidBufferSize(uuidType));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
-    }
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)opCode,
+                                                     sizeof(uint16_t) + sizeof(bleUuidType_t) +
+                                                     fsciBleGetUuidBufferSize(uuidType));
 
-    pBuffer = &pClientPacket->payload[0];
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
 
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(handle, pBuffer);
-    fsciBleGetBufferFromEnumValue(uuidType, pBuffer, bleUuidType_t);
-    fsciBleGetBufferFromUuid(pUuid, &pBuffer, uuidType);
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(handle, pBuffer);
+            fsciBleGetBufferFromEnumValue(uuidType, pBuffer, bleUuidType_t);
+            fsciBleGetBufferFromUuid(pUuid, &pBuffer, uuidType);
 
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 
 #if gFsciBleHost_d
-    /* Save out parameters pointers */
-    fsciBleGattDbAppSaveOutParams(pOutHandle, NULL);
+            /* Save out parameters pointers */
+            fsciBleGattDbAppSaveOutParams(pOutHandle, NULL);
 #endif /* gFsciBleHost_d */
+        }
+    }
 }
-
 
 void fsciBleGattDbAppAddIncludeDeclarationCmdMonitor(uint16_t includedServiceHandle, uint16_t endGroupHandle, bleUuidType_t serviceUuidType, const bleUuid_t* pServiceUuid, uint16_t* pOutHandle)
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution  = TRUE;
 
 #if gFsciBleTest_d
     /* If Application GATT Database is disabled or if the command was initiated by
@@ -648,43 +661,44 @@ void fsciBleGattDbAppAddIncludeDeclarationCmdMonitor(uint16_t includedServiceHan
     if((FALSE == bFsciBleGattDbAppEnabled) ||
        (TRUE == bFsciBleGattDbAppCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution  = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdAddIncludeDeclarationOpCode_c,
-                                                    sizeof(uint16_t) + sizeof(uint16_t) +
-                                                    sizeof(bleUuidType_t) +
-                                                    fsciBleGetUuidBufferSize(serviceUuidType));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
-    }
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdAddIncludeDeclarationOpCode_c,
+                                                        sizeof(uint16_t) + sizeof(uint16_t) +
+                                                        sizeof(bleUuidType_t) +
+                                                        fsciBleGetUuidBufferSize(serviceUuidType));
 
-    pBuffer = &pClientPacket->payload[0];
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
 
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(includedServiceHandle, pBuffer);
-    fsciBleGetBufferFromUint16Value(endGroupHandle, pBuffer);
-    fsciBleGetBufferFromEnumValue(serviceUuidType, pBuffer, bleUuidType_t);
-    fsciBleGetBufferFromUuid(pServiceUuid, &pBuffer, serviceUuidType);
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(includedServiceHandle, pBuffer);
+            fsciBleGetBufferFromUint16Value(endGroupHandle, pBuffer);
+            fsciBleGetBufferFromEnumValue(serviceUuidType, pBuffer, bleUuidType_t);
+            fsciBleGetBufferFromUuid(pServiceUuid, &pBuffer, serviceUuidType);
 
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 
 #if gFsciBleHost_d
-    /* Save out parameters pointers */
-    fsciBleGattDbAppSaveOutParams(pOutHandle, NULL);
+            /* Save out parameters pointers */
+            fsciBleGattDbAppSaveOutParams(pOutHandle, NULL);
 #endif /* gFsciBleHost_d */
+        }
+    }
 }
-
 
 void fsciBleGattDbAppAddCharacteristicDeclarationAndValueCmdMonitor(bleUuidType_t characteristicUuidType, const bleUuid_t* pCharacteristicUuid, gattCharacteristicPropertiesBitFields_t characteristicProperties, uint16_t maxValueLength, uint16_t initialValueLength, const uint8_t* aInitialValue, gattAttributePermissionsBitFields_t valueAccessPermissions, uint16_t* pOutHandle)
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If Application GATT Database is disabled or if the command was initiated by
@@ -692,48 +706,49 @@ void fsciBleGattDbAppAddCharacteristicDeclarationAndValueCmdMonitor(bleUuidType_
     if((FALSE == bFsciBleGattDbAppEnabled) ||
        (TRUE == bFsciBleGattDbAppCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdAddCharacteristicDeclarationAndValueOpCode_c,
-                                                    sizeof(bleUuidType_t) +
-                                                    fsciBleGetUuidBufferSize(characteristicUuidType) +
-                                                    sizeof(gattCharacteristicPropertiesBitFields_t) +
-                                                    sizeof(uint16_t) + sizeof(uint16_t) + initialValueLength +
-                                                    sizeof(gattAttributePermissionsBitFields_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
-    }
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdAddCharacteristicDeclarationAndValueOpCode_c,
+                                                        sizeof(bleUuidType_t) +
+                                                        fsciBleGetUuidBufferSize(characteristicUuidType) +
+                                                        sizeof(gattCharacteristicPropertiesBitFields_t) +
+                                                        sizeof(uint16_t) + sizeof(uint16_t) + initialValueLength +
+                                                        sizeof(gattAttributePermissionsBitFields_t));
 
-    pBuffer = &pClientPacket->payload[0];
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
 
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromEnumValue(characteristicUuidType, pBuffer, bleUuidType_t);
-    fsciBleGetBufferFromUuid(pCharacteristicUuid, &pBuffer, characteristicUuidType);
-    fsciBleGetBufferFromEnumValue(characteristicProperties, pBuffer, gattCharacteristicPropertiesBitFields_t);
-    fsciBleGetBufferFromUint16Value(maxValueLength, pBuffer);
-    fsciBleGetBufferFromUint16Value(initialValueLength, pBuffer);
-    fsciBleGetBufferFromArray(aInitialValue, pBuffer, initialValueLength);
-    fsciBleGetBufferFromEnumValue(valueAccessPermissions, pBuffer, gattAttributePermissionsBitFields_t);
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromEnumValue(characteristicUuidType, pBuffer, bleUuidType_t);
+            fsciBleGetBufferFromUuid(pCharacteristicUuid, &pBuffer, characteristicUuidType);
+            fsciBleGetBufferFromEnumValue(characteristicProperties, pBuffer, gattCharacteristicPropertiesBitFields_t);
+            fsciBleGetBufferFromUint16Value(maxValueLength, pBuffer);
+            fsciBleGetBufferFromUint16Value(initialValueLength, pBuffer);
+            fsciBleGetBufferFromArray(aInitialValue, pBuffer, initialValueLength);
+            fsciBleGetBufferFromEnumValue(valueAccessPermissions, pBuffer, gattAttributePermissionsBitFields_t);
 
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 
 #if gFsciBleHost_d
-    /* Save out parameters pointers */
-    fsciBleGattDbAppSaveOutParams(pOutHandle, NULL);
+            /* Save out parameters pointers */
+            fsciBleGattDbAppSaveOutParams(pOutHandle, NULL);
 #endif /* gFsciBleHost_d */
+        }
+    }
 }
-
 
 void fsciBleGattDbAppAddCharDeclWithUniqueValCmdMonitor(bleUuidType_t characteristicUuidType, const bleUuid_t* pCharacteristicUuid, gattCharacteristicPropertiesBitFields_t characteristicProperties, gattAttributePermissionsBitFields_t valueAccessPermissions, uint16_t* pOutHandle)
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If Application GATT Database is disabled or if the command was initiated by
@@ -741,44 +756,45 @@ void fsciBleGattDbAppAddCharDeclWithUniqueValCmdMonitor(bleUuidType_t characteri
     if((FALSE == bFsciBleGattDbAppEnabled) ||
        (TRUE == bFsciBleGattDbAppCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdAddCharacteristicDeclarationWithUniqueValueOpCode_c,
-                                                    sizeof(bleUuidType_t) +
-                                                    fsciBleGetUuidBufferSize(characteristicUuidType) +
-                                                    sizeof(gattCharacteristicPropertiesBitFields_t) +
-                                                    sizeof(gattAttributePermissionsBitFields_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdAddCharacteristicDeclarationWithUniqueValueOpCode_c,
+                                                        sizeof(bleUuidType_t) +
+                                                        fsciBleGetUuidBufferSize(characteristicUuidType) +
+                                                        sizeof(gattCharacteristicPropertiesBitFields_t) +
+                                                        sizeof(gattAttributePermissionsBitFields_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromEnumValue(characteristicUuidType, pBuffer, bleUuidType_t);
+            fsciBleGetBufferFromUuid(pCharacteristicUuid, &pBuffer, characteristicUuidType);
+            fsciBleGetBufferFromEnumValue(characteristicProperties, pBuffer, gattCharacteristicPropertiesBitFields_t);
+            fsciBleGetBufferFromEnumValue(valueAccessPermissions, pBuffer, gattAttributePermissionsBitFields_t);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+
+        #if gFsciBleHost_d
+            /* Save out parameters pointers */
+            fsciBleGattDbAppSaveOutParams(pOutHandle, NULL);
+        #endif /* gFsciBleHost_d */
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromEnumValue(characteristicUuidType, pBuffer, bleUuidType_t);
-    fsciBleGetBufferFromUuid(pCharacteristicUuid, &pBuffer, characteristicUuidType);
-    fsciBleGetBufferFromEnumValue(characteristicProperties, pBuffer, gattCharacteristicPropertiesBitFields_t);
-    fsciBleGetBufferFromEnumValue(valueAccessPermissions, pBuffer, gattAttributePermissionsBitFields_t);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
-
-#if gFsciBleHost_d
-    /* Save out parameters pointers */
-    fsciBleGattDbAppSaveOutParams(pOutHandle, NULL);
-#endif /* gFsciBleHost_d */
 }
-
 
 void fsciBleGattDbAppAddCharDescrCmdMonitor( bleUuidType_t descriptorUuidType, const bleUuid_t* pDescriptorUuid, uint16_t descriptorValueLength, const uint8_t* aInitialValue, gattAttributePermissionsBitFields_t descriptorAccessPermissions, uint16_t* pOutHandle)
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If Application GATT Database is disabled or if the command was initiated by
@@ -786,40 +802,40 @@ void fsciBleGattDbAppAddCharDescrCmdMonitor( bleUuidType_t descriptorUuidType, c
     if((FALSE == bFsciBleGattDbAppEnabled) ||
        (TRUE == bFsciBleGattDbAppCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdAddCharacteristicDescriptorOpCode_c,
-                                                    sizeof(bleUuidType_t) +
-                                                    fsciBleGetUuidBufferSize(descriptorUuidType) +
-                                                    sizeof(uint16_t) + descriptorValueLength +
-                                                    sizeof(gattAttributePermissionsBitFields_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
-    }
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdAddCharacteristicDescriptorOpCode_c,
+                                                        sizeof(bleUuidType_t) +
+                                                        fsciBleGetUuidBufferSize(descriptorUuidType) +
+                                                        sizeof(uint16_t) + descriptorValueLength +
+                                                        sizeof(gattAttributePermissionsBitFields_t));
 
-    pBuffer = &pClientPacket->payload[0];
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
 
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromEnumValue(descriptorUuidType, pBuffer, bleUuidType_t);
-    fsciBleGetBufferFromUuid(pDescriptorUuid, &pBuffer, descriptorUuidType);
-    fsciBleGetBufferFromUint16Value(descriptorValueLength, pBuffer);
-    fsciBleGetBufferFromArray(aInitialValue, pBuffer, descriptorValueLength);
-    fsciBleGetBufferFromEnumValue(descriptorAccessPermissions, pBuffer, gattAttributePermissionsBitFields_t);
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromEnumValue(descriptorUuidType, pBuffer, bleUuidType_t);
+            fsciBleGetBufferFromUuid(pDescriptorUuid, &pBuffer, descriptorUuidType);
+            fsciBleGetBufferFromUint16Value(descriptorValueLength, pBuffer);
+            fsciBleGetBufferFromArray(aInitialValue, pBuffer, descriptorValueLength);
+            fsciBleGetBufferFromEnumValue(descriptorAccessPermissions, pBuffer, gattAttributePermissionsBitFields_t);
 
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 
 #if gFsciBleHost_d
-    /* Save out parameters pointers */
-    fsciBleGattDbAppSaveOutParams(pOutHandle, NULL);
+            /* Save out parameters pointers */
+            fsciBleGattDbAppSaveOutParams(pOutHandle, NULL);
 #endif /* gFsciBleHost_d */
+        }
+    }
 }
-
 
 void fsciBleGattDbAppAddCccdCmdMonitor(uint16_t* pOutHandle)
 {
@@ -836,6 +852,7 @@ void fsciBleGattDbAppAddCharAggrFormatCmdMonitor(uint16_t descriptorValueLength,
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If Application GATT Database is disabled or if the command was initiated by
@@ -843,32 +860,33 @@ void fsciBleGattDbAppAddCharAggrFormatCmdMonitor(uint16_t descriptorValueLength,
     if((FALSE == bFsciBleGattDbAppEnabled) ||
        (TRUE == bFsciBleGattDbAppCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdAddCharAggregateFormatOpCode_c,
-                                                    sizeof(uint16_t) + descriptorValueLength);
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
-    }
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdAddCharAggregateFormatOpCode_c,
+                                                        sizeof(uint16_t) + descriptorValueLength);
 
-    pBuffer = &pClientPacket->payload[0];
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
 
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(descriptorValueLength, pBuffer);
-    fsciBleGetBufferFromArray(aInitialValue, pBuffer, descriptorValueLength);
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(descriptorValueLength, pBuffer);
+            fsciBleGetBufferFromArray(aInitialValue, pBuffer, descriptorValueLength);
 
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 
 #if gFsciBleHost_d
-    /* Save out parameters pointers */
-    fsciBleGattDbAppSaveOutParams(pOutHandle, NULL);
+            /* Save out parameters pointers */
+            fsciBleGattDbAppSaveOutParams(pOutHandle, NULL);
 #endif /* gFsciBleHost_d */
+        }
+    }
 }
 #endif
 
@@ -879,6 +897,7 @@ void fsciBleGattDbAppAddCharDescriptorWithUniqueValueCmdMonitor( bleUuidType_t d
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If Application GATT Database is disabled or if the command was initiated by
@@ -886,35 +905,36 @@ void fsciBleGattDbAppAddCharDescriptorWithUniqueValueCmdMonitor( bleUuidType_t d
     if((FALSE == bFsciBleGattDbAppEnabled) ||
        (TRUE == bFsciBleGattDbAppCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdAddCharDescriptorWithUniqueValueOpCode_c,
-                                                    sizeof(bleUuidType_t) +
-                                                    fsciBleGetUuidBufferSize(descriptorUuidType) +
-                                                    sizeof(gattAttributePermissionsBitFields_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
-    }
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppCmdAddCharDescriptorWithUniqueValueOpCode_c,
+                                                        sizeof(bleUuidType_t) +
+                                                        fsciBleGetUuidBufferSize(descriptorUuidType) +
+                                                        sizeof(gattAttributePermissionsBitFields_t));
 
-    pBuffer = &pClientPacket->payload[0];
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
 
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromEnumValue(descriptorUuidType, pBuffer, bleUuidType_t);
-    fsciBleGetBufferFromUuid(pDescriptorUuid, &pBuffer, descriptorUuidType);
-    fsciBleGetBufferFromEnumValue(descriptorAccessPermissions, pBuffer, gattAttributePermissionsBitFields_t);
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromEnumValue(descriptorUuidType, pBuffer, bleUuidType_t);
+            fsciBleGetBufferFromUuid(pDescriptorUuid, &pBuffer, descriptorUuidType);
+            fsciBleGetBufferFromEnumValue(descriptorAccessPermissions, pBuffer, gattAttributePermissionsBitFields_t);
 
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 
 #if gFsciBleHost_d
-    /* Save out parameters pointers */
-    fsciBleGattDbAppSaveOutParams(pOutHandle, NULL);
+            /* Save out parameters pointers */
+            fsciBleGattDbAppSaveOutParams(pOutHandle, NULL);
 #endif /* gFsciBleHost_d */
+        }
+    }
 }
 
 #endif /* gFsciBleHost_d || gFsciBleTest_d */
@@ -927,63 +947,66 @@ void fsciBleGattDbAppReadAttributeEvtMonitor(uint8_t* aOutValue, uint16_t* pOutV
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GATT Database (application) is disabled the event must be not monitored */
     if(bFsciBleGattDbAppEnabled == FALSE)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppEvtReadAttributeValueOpCode_c,
-                                                 sizeof(uint16_t) + *pOutValueLength);
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+         /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppEvtReadAttributeValueOpCode_c,
+                                                     sizeof(uint16_t) + *pOutValueLength);
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set event parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(*pOutValueLength, pBuffer);
+            fsciBleGetBufferFromArray(aOutValue, pBuffer, *pOutValueLength);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set event parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(*pOutValueLength, pBuffer);
-    fsciBleGetBufferFromArray(aOutValue, pBuffer, *pOutValueLength);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
-
 
 void fsciBleGattDbAppUint16ParamEvtMonitor(fsciBleGattDbAppOpCode_t opCode, const uint16_t* pValue)
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GATT Database (application) is disabled the event must be not monitored */
     if(bFsciBleGattDbAppEnabled == FALSE)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)opCode, sizeof(uint16_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)opCode, sizeof(uint16_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set event parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(*pValue, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set event parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(*pValue, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 #endif /* gFsciBleBBox_d || gFsciBleTest_d */

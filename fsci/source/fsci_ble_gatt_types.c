@@ -134,18 +134,19 @@ uint8_t* fsciBleGattClientAllocOutOrIoValue
     /* Verify if a value is already allocated (only one kept value can be allocated
     at a time) */
     uint8_t idx = getIndexFromDeviceIdBearerId(deviceId, bearerId);
-    if(NULL != fsciBleGattClientTmpAllocatedManagementInfo[idx].pValue)
-    {
-        fsciBleGattClientHandleInternalErrorStatus();
-        return NULL;
-    }
-
-    /* Allocate buffer for the value */
-    fsciBleGattClientTmpAllocatedManagementInfo[idx].pValue = MEM_BufferAlloc(maxValueLength);
-
     if(NULL == fsciBleGattClientTmpAllocatedManagementInfo[idx].pValue)
     {
-        fsciBleGattClientHandleNoMemoryStatus();
+        /* Allocate buffer for the value */
+        fsciBleGattClientTmpAllocatedManagementInfo[idx].pValue = MEM_BufferAlloc(maxValueLength);
+
+        if(NULL == fsciBleGattClientTmpAllocatedManagementInfo[idx].pValue)
+        {
+            fsciBleGattClientHandleNoMemoryStatus();
+        }
+    }
+    else
+    {
+        fsciBleGattClientHandleInternalErrorStatus();
     }
 
     /* Return the allocated kept value */
@@ -161,35 +162,40 @@ gattAttribute_t* fsciBleGattClientAllocOutOrIoAttributes
 )
 {
     uint32_t iCount;
+    gattAttribute_t* pResult = NULL;
 
     /* Verify if a descriptors array is already allocated (only one kept descriptors array
     can be allocated at a time) */
     uint8_t idx = getIndexFromDeviceIdBearerId(deviceId, bearerId);
-    if(NULL != fsciBleGattClientTmpAllocatedManagementInfo[idx].pDescriptors)
-    {
-        fsciBleGattClientHandleInternalErrorStatus();
-        return NULL;
-    }
-
-    /* Allocate buffer for the descriptors array */
-    fsciBleGattClientTmpAllocatedManagementInfo[idx].pDescriptors = MEM_BufferAlloc((uint32_t)maxNbOfAtributes * sizeof(gattAttribute_t));
-
     if(NULL == fsciBleGattClientTmpAllocatedManagementInfo[idx].pDescriptors)
     {
-        fsciBleGattClientHandleNoMemoryStatus();
-        return NULL;
-    }
+        /* Allocate buffer for the descriptors array */
+        fsciBleGattClientTmpAllocatedManagementInfo[idx].pDescriptors = MEM_BufferAlloc((uint32_t)maxNbOfAtributes * sizeof(gattAttribute_t));
 
-    /* For every descriptor in the array, set the paValue field to NULL (if paValue is not NULL,
-    a different buffer must be separately allocated for it using fsciBleGattClientAllocOutOrIoValue function) */
-    for(iCount = 0; iCount < maxNbOfAtributes; iCount++)
+        if(NULL != fsciBleGattClientTmpAllocatedManagementInfo[idx].pDescriptors)
+        {
+            /* For every descriptor in the array, set the paValue field to NULL (if paValue is not NULL,
+            a different buffer must be separately allocated for it using fsciBleGattClientAllocOutOrIoValue function) */
+            for(iCount = 0; iCount < maxNbOfAtributes; iCount++)
+            {
+                fsciBleGattClientTmpAllocatedManagementInfo[idx].pDescriptors[iCount].valueLength    = 0;
+                fsciBleGattClientTmpAllocatedManagementInfo[idx].pDescriptors[iCount].paValue        = NULL;
+            }
+            
+            pResult = fsciBleGattClientTmpAllocatedManagementInfo[idx].pDescriptors;
+        }
+        else
+        {
+            fsciBleGattClientHandleNoMemoryStatus();
+        }
+    }
+    else
     {
-        fsciBleGattClientTmpAllocatedManagementInfo[idx].pDescriptors[iCount].valueLength    = 0;
-        fsciBleGattClientTmpAllocatedManagementInfo[idx].pDescriptors[iCount].paValue        = NULL;
+        fsciBleGattClientHandleInternalErrorStatus();
     }
 
     /* Return the allocated kept descriptors array */
-    return fsciBleGattClientTmpAllocatedManagementInfo[idx].pDescriptors;
+    return pResult;
 }
 
 
@@ -206,13 +212,14 @@ void fsciBleGattClientGetAttributeFromBuffer(gattAttribute_t* pAttribute, uint8_
     if(0U != pAttribute->valueLength)
     {
         /* Verify if paValue is NULL (this situation is not allowed) */
-        if(NULL == pAttribute->paValue)
+        if(NULL != pAttribute->paValue)
+        {
+            fsciBleGetArrayFromBuffer(pAttribute->paValue, *ppBuffer, pAttribute->valueLength);
+        }
+        else
         {
             panic(0, (uint32_t)fsciBleGattClientGetAttributeFromBuffer, 0, 0);
-            return;
         }
-
-        fsciBleGetArrayFromBuffer(pAttribute->paValue, *ppBuffer, pAttribute->valueLength);
     }
 }
 
@@ -243,38 +250,43 @@ gattCharacteristic_t* fsciBleGattClientAllocOutOrIoCharacteristics
 {
     uint32_t iCount;
     uint8_t idx = getIndexFromDeviceIdBearerId(deviceId, bearerId);
+    gattCharacteristic_t* pResult = NULL;
 
     /* Verify if a characteristics array is already allocated (only one kept characteristics array
     can be allocated at a time) */
-    if(NULL != fsciBleGattClientTmpAllocatedManagementInfo[idx].pCharacteristics)
-    {
-        fsciBleGattClientHandleInternalErrorStatus();
-        return NULL;
-    }
-
-    /* Allocate buffer for the characteristics array */
-    fsciBleGattClientTmpAllocatedManagementInfo[idx].pCharacteristics = MEM_BufferAlloc((uint32_t)maxNbOfCharacteristics * sizeof(gattCharacteristic_t));
-
     if(NULL == fsciBleGattClientTmpAllocatedManagementInfo[idx].pCharacteristics)
     {
-        fsciBleGattClientHandleNoMemoryStatus();
-        return NULL;
-    }
+        /* Allocate buffer for the characteristics array */
+        fsciBleGattClientTmpAllocatedManagementInfo[idx].pCharacteristics = MEM_BufferAlloc((uint32_t)maxNbOfCharacteristics * sizeof(gattCharacteristic_t));
 
-    /* For every characteristic in the array, set the paValue field and aDescriptors array to NULL
-    (if paValue is not NULL, a different buffer must be separately allocated for it using fsciBleGattClientAllocOutOrIoValue
-    function; if aDescriptors is not NULL, a different buffer must be separately allocated for it using
-    fsciBleGattClientAllocOutOrIoAttributes function) */
-    for(iCount = 0; iCount < maxNbOfCharacteristics; iCount++)
+        if(NULL != fsciBleGattClientTmpAllocatedManagementInfo[idx].pCharacteristics)
+        {
+                /* For every characteristic in the array, set the paValue field and aDescriptors array to NULL
+            (if paValue is not NULL, a different buffer must be separately allocated for it using fsciBleGattClientAllocOutOrIoValue
+            function; if aDescriptors is not NULL, a different buffer must be separately allocated for it using
+            fsciBleGattClientAllocOutOrIoAttributes function) */
+            for(iCount = 0; iCount < maxNbOfCharacteristics; iCount++)
+            {
+                fsciBleGattClientTmpAllocatedManagementInfo[idx].pCharacteristics[iCount].value.valueLength  = 0;
+                fsciBleGattClientTmpAllocatedManagementInfo[idx].pCharacteristics[iCount].value.paValue      = NULL;
+                fsciBleGattClientTmpAllocatedManagementInfo[idx].pCharacteristics[iCount].cNumDescriptors    = 0;
+                fsciBleGattClientTmpAllocatedManagementInfo[idx].pCharacteristics[iCount].aDescriptors       = NULL;
+            }
+
+            pResult = fsciBleGattClientTmpAllocatedManagementInfo[idx].pCharacteristics;
+        }
+        else
+        {
+            fsciBleGattClientHandleNoMemoryStatus();
+        }
+    }
+    else
     {
-        fsciBleGattClientTmpAllocatedManagementInfo[idx].pCharacteristics[iCount].value.valueLength  = 0;
-        fsciBleGattClientTmpAllocatedManagementInfo[idx].pCharacteristics[iCount].value.paValue      = NULL;
-        fsciBleGattClientTmpAllocatedManagementInfo[idx].pCharacteristics[iCount].cNumDescriptors    = 0;
-        fsciBleGattClientTmpAllocatedManagementInfo[idx].pCharacteristics[iCount].aDescriptors       = NULL;
+        fsciBleGattClientHandleInternalErrorStatus();
     }
 
     /* Return the allocated kept characteristics array */
-    return fsciBleGattClientTmpAllocatedManagementInfo[idx].pCharacteristics;
+    return pResult;
 }
 
 
@@ -310,15 +322,16 @@ void fsciBleGattClientGetCharFromBuffer(gattCharacteristic_t* pCharacteristic, u
         uint32_t iCount;
 
         /* Verify if aDescriptors is NULL (this situation is not allowed) */
-        if(NULL == pCharacteristic->aDescriptors)
+        if(NULL != pCharacteristic->aDescriptors)
+        {
+            for(iCount = 0; iCount < pCharacteristic->cNumDescriptors; iCount++)
+            {
+                fsciBleGattClientGetAttributeFromBuffer(&pCharacteristic->aDescriptors[iCount], ppBuffer);
+            }
+        }
+        else
         {
             panic(0, (uint32_t)fsciBleGattClientGetCharFromBuffer, 0, 0);
-            return;
-        }
-
-        for(iCount = 0; iCount < pCharacteristic->cNumDescriptors; iCount++)
-        {
-            fsciBleGattClientGetAttributeFromBuffer(&pCharacteristic->aDescriptors[iCount], ppBuffer);
         }
     }
 }
@@ -350,35 +363,41 @@ gattService_t* fsciBleGattClientAllocOutOrIoIncludedServices
 {
     uint32_t iCount;
     uint8_t idx = getIndexFromDeviceIdBearerId(deviceId, bearerId);
+    gattService_t* pResult = NULL;
+
 
     /* Verify if an includedServices array is already allocated (only one kept includedServices
     array can be allocated at a time) */
-    if(NULL != fsciBleGattClientTmpAllocatedManagementInfo[idx].pIncludedServices)
-    {
-        fsciBleGattClientHandleInternalErrorStatus();
-        return NULL;
-    }
-
-    /* Allocate buffer for the includedServices array */
-    fsciBleGattClientTmpAllocatedManagementInfo[idx].pIncludedServices = MEM_BufferAlloc((uint32_t)maxNbOfIncludedServices * sizeof(gattService_t));
-
     if(NULL == fsciBleGattClientTmpAllocatedManagementInfo[idx].pIncludedServices)
     {
-        fsciBleGattClientHandleNoMemoryStatus();
-        return NULL;
-    }
+        /* Allocate buffer for the includedServices array */
+        fsciBleGattClientTmpAllocatedManagementInfo[idx].pIncludedServices = MEM_BufferAlloc((uint32_t)maxNbOfIncludedServices * sizeof(gattService_t));
 
-    /* For every includedService in the array, set the aCharacteristics and aIncludedServices arrays to NULL */
-    for(iCount = 0; iCount < maxNbOfIncludedServices; iCount++)
+        if(NULL != fsciBleGattClientTmpAllocatedManagementInfo[idx].pIncludedServices)
+        {
+            /* For every includedService in the array, set the aCharacteristics and aIncludedServices arrays to NULL */
+            for(iCount = 0; iCount < maxNbOfIncludedServices; iCount++)
+            {
+                fsciBleGattClientTmpAllocatedManagementInfo[idx].pIncludedServices[iCount].cNumCharacteristics   = 0;
+                fsciBleGattClientTmpAllocatedManagementInfo[idx].pIncludedServices[iCount].aCharacteristics      = NULL;
+                fsciBleGattClientTmpAllocatedManagementInfo[idx].pIncludedServices[iCount].cNumIncludedServices  = 0;
+                fsciBleGattClientTmpAllocatedManagementInfo[idx].pIncludedServices[iCount].aIncludedServices     = NULL;
+            }
+
+            pResult = fsciBleGattClientTmpAllocatedManagementInfo[idx].pIncludedServices;
+        }
+        else
+        {
+            fsciBleGattClientHandleNoMemoryStatus();
+        }
+    }
+    else
     {
-        fsciBleGattClientTmpAllocatedManagementInfo[idx].pIncludedServices[iCount].cNumCharacteristics   = 0;
-        fsciBleGattClientTmpAllocatedManagementInfo[idx].pIncludedServices[iCount].aCharacteristics      = NULL;
-        fsciBleGattClientTmpAllocatedManagementInfo[idx].pIncludedServices[iCount].cNumIncludedServices  = 0;
-        fsciBleGattClientTmpAllocatedManagementInfo[idx].pIncludedServices[iCount].aIncludedServices     = NULL;
+        fsciBleGattClientHandleInternalErrorStatus();
     }
 
     /* Return the allocated kept includedServices array */
-    return fsciBleGattClientTmpAllocatedManagementInfo[idx].pIncludedServices;
+    return pResult;
 }
 
 
@@ -391,38 +410,43 @@ gattService_t* fsciBleGattClientAllocOutOrIoServices
 {
     uint32_t iCount;
     uint8_t idx = getIndexFromDeviceIdBearerId(deviceId, bearerId);
+    gattService_t* pResult = NULL;
 
     /* Verify if a services array is already allocated (only one kept services
     array can be allocated at a time) */
-    if(NULL != fsciBleGattClientTmpAllocatedManagementInfo[idx].pServices)
-    {
-        fsciBleGattClientHandleInternalErrorStatus();
-        return NULL;
-    }
-
-    /* Allocate buffer for the services array */
-    fsciBleGattClientTmpAllocatedManagementInfo[idx].pServices = MEM_BufferAlloc((uint32_t)maxNbOfServices * sizeof(gattService_t));
-
     if(NULL == fsciBleGattClientTmpAllocatedManagementInfo[idx].pServices)
     {
-        fsciBleGattClientHandleNoMemoryStatus();
-        return NULL;
-    }
+        /* Allocate buffer for the services array */
+        fsciBleGattClientTmpAllocatedManagementInfo[idx].pServices = MEM_BufferAlloc((uint32_t)maxNbOfServices * sizeof(gattService_t));
 
-    /* For every includedService in the array, set the aCharacteristics and aIncludedServices arrays to NULL
-    (if aCharacteristics is not NULL, a different buffer must be separately allocated for it using
-    fsciBleGattClientAllocOutOrIoCharacteristics function; if aIncludedServices is not NULL, a different buffer must
-    be separately allocated for it using fsciBleGattClientAllocOutOrIoIncludedServices function */
-    for(iCount = 0; iCount < maxNbOfServices; iCount++)
+        if(NULL != fsciBleGattClientTmpAllocatedManagementInfo[idx].pServices)
+        {
+            /* For every includedService in the array, set the aCharacteristics and aIncludedServices arrays to NULL
+            (if aCharacteristics is not NULL, a different buffer must be separately allocated for it using
+            fsciBleGattClientAllocOutOrIoCharacteristics function; if aIncludedServices is not NULL, a different buffer must
+            be separately allocated for it using fsciBleGattClientAllocOutOrIoIncludedServices function */
+            for(iCount = 0; iCount < maxNbOfServices; iCount++)
+            {
+                fsciBleGattClientTmpAllocatedManagementInfo[idx].pServices[iCount].cNumCharacteristics   = 0;
+                fsciBleGattClientTmpAllocatedManagementInfo[idx].pServices[iCount].aCharacteristics      = NULL;
+                fsciBleGattClientTmpAllocatedManagementInfo[idx].pServices[iCount].cNumIncludedServices  = 0;
+                fsciBleGattClientTmpAllocatedManagementInfo[idx].pServices[iCount].aIncludedServices     = NULL;
+            }
+            
+            pResult = fsciBleGattClientTmpAllocatedManagementInfo[idx].pServices;
+        }
+        else
+        {
+            fsciBleGattClientHandleNoMemoryStatus();
+        }
+    }
+    else
     {
-        fsciBleGattClientTmpAllocatedManagementInfo[idx].pServices[iCount].cNumCharacteristics   = 0;
-        fsciBleGattClientTmpAllocatedManagementInfo[idx].pServices[iCount].aCharacteristics      = NULL;
-        fsciBleGattClientTmpAllocatedManagementInfo[idx].pServices[iCount].cNumIncludedServices  = 0;
-        fsciBleGattClientTmpAllocatedManagementInfo[idx].pServices[iCount].aIncludedServices     = NULL;
+        fsciBleGattClientHandleInternalErrorStatus();
     }
 
     /* Return the allocated kept services array */
-    return fsciBleGattClientTmpAllocatedManagementInfo[idx].pServices;
+    return pResult;
 }
 
 static uint32_t fsciBleGattClientGetServiceBufferSizeIterative(const gattService_t* pService)
@@ -477,15 +501,16 @@ static void fsciBleGattClientGetServiceFromBufferIterative(gattService_t* pServi
     if((0U != pService->cNumCharacteristics) && (pService->cNumCharacteristics <= gMaxServiceCharCount_d))
     {
         /* Verify if aCharacteristics is NULL (this situation is not allowed) */
-        if(NULL == pService->aCharacteristics)
+        if(NULL != pService->aCharacteristics)
+        {
+            for(iCount = 0; iCount < pService->cNumCharacteristics; iCount++)
+            {
+                fsciBleGattClientGetCharFromBuffer(&pService->aCharacteristics[iCount], ppBuffer);
+            }
+        }
+        else
         {
             panic(0, (uint32_t)fsciBleGattClientGetServiceFromBuffer, 0, 0);
-            return;
-        }
-
-        for(iCount = 0; iCount < pService->cNumCharacteristics; iCount++)
-        {
-            fsciBleGattClientGetCharFromBuffer(&pService->aCharacteristics[iCount], ppBuffer);
         }
     }
 
@@ -499,18 +524,19 @@ void fsciBleGattClientGetServiceFromBuffer(gattService_t* pService, uint8_t** pp
 
     fsciBleGattClientGetServiceFromBufferIterative(pService, ppBuffer);
 
-    if((0U != pService->cNumIncludedServices) && (pService->cNumIncludedServices <= gMaxServicesCount_d))
+    if(0U != pService->cNumIncludedServices)
     {
         /* Verify if aIncludedServices is NULL (this situation is not allowed) */
-        if(NULL == pService->aIncludedServices)
+        if(NULL != pService->aIncludedServices)
+        {
+            for(iCount = 0U; iCount < pService->cNumIncludedServices; iCount++)
+            {
+                fsciBleGattClientGetServiceFromBufferIterative(&pService->aIncludedServices[iCount], ppBuffer);
+            }
+        }
+        else
         {
             panic(0, (uint32_t)fsciBleGattClientGetServiceFromBuffer, 0, 0);
-            return;
-        }
-
-        for(iCount = 0U; iCount < pService->cNumIncludedServices; iCount++)
-        {
-            fsciBleGattClientGetServiceFromBufferIterative(&pService->aIncludedServices[iCount], ppBuffer);
         }
      }
 }
@@ -730,88 +756,90 @@ void fsciBleGattServerAllocCharacteristicForBuffer(uint8_t* pBuffer)
     /* Allocate buffer for the characteristic and its value */
     pCharacteristics = (gattCharacteristic_t*)MEM_BufferAlloc(sizeof(gattCharacteristic_t) + maxValueLength);
 
-    if(NULL == pCharacteristics)
+    if(NULL != pCharacteristics)
     {
-        fsciBleError(gFsciOutOfMessages_c, fsciInterfaceId);
+        /* Set paValue field in value field */
+        pCharacteristics->value.paValue = (uint8_t*)pCharacteristics + sizeof(gattCharacteristic_t);
 
-        return NULL;
-    }
+        /* Get the cNumDescriptors field */
+        fsciBleGetUint8ValueFromBuffer(nbOfDescriptors, pBuffer);
 
-    /* Set paValue field in value field */
-    pCharacteristics->value.paValue = (uint8_t*)pCharacteristics + sizeof(gattCharacteristic_t);
-
-    /* Get the cNumDescriptors field */
-    fsciBleGetUint8ValueFromBuffer(nbOfDescriptors, pBuffer);
-
-    if(0 != nbOfDescriptors)
-    {
-        /* Allocate a buffer to keep descriptors maximum value lengths */
-        pMaxDescriptorsValueLengthList = (uint16_t*)MEM_BufferAlloc(nbOfDescriptors * sizeof(uint16_t));
-
-        if(NULL == pMaxDescriptorsValueLengthList)
+        if(0 != nbOfDescriptors)
         {
-            fsciBleError(gFsciOutOfMessages_c, fsciInterfaceId);
+            /* Allocate a buffer to keep descriptors maximum value lengths */
+            pMaxDescriptorsValueLengthList = (uint16_t*)MEM_BufferAlloc(nbOfDescriptors * sizeof(uint16_t));
 
-            (void)MEM_BufferFree(pCharacteristics);
+            if(NULL != pMaxDescriptorsValueLengthList)
+            {
+                /* Get the descriptors maximum value lengths */
+                for(iCount = 0; iCount < nbOfDescriptors; iCount ++)
+                {
+                    /* Go to uuidType field, in aDescriptors[iCount] field */
+                    pBuffer += sizeof(uint16_t);
+                    /* Get the uuidType field, in aDescriptors[iCount] field */
+                    fsciBleGetEnumValueFromBuffer(uuidType, pBuffer, bleUuidType_t);
+                    /* Go to valueLength field, in aDescriptors[iCount] field */
+                    pBuffer += fsciBleGetUuidSizeForBuffer(uuidType);
+                    /* Get the valueLength and maxValueLength fields, in aDescriptors[iCount] field */
+                    fsciBleGetUint16ValueFromBuffer(valueLength, pBuffer);
+                    fsciBleGetUint16ValueFromBuffer(maxValueLength, pBuffer);
+                    /* Go to next descriptor field */
+                    pBufer += valueLength;
 
-            return NULL;
+                    /* Compute all descriptors maximum value length */
+                    maxDescriptorsValueLength              += maxValueLength;
+                    /* Save this descriptor maximum value length */
+                    pMaxDescriptorsValueLengthList[iCount]  = maxValueLength;
+                }
+
+                /* Allocate buffer for the descriptors and their values */
+                pDescriptors = (gattAttribute_t*)MEM_BufferAlloc(nbOfDescriptors * sizeof(gattAttribute_t) + maxDescriptorsValueLength)
+
+                if(NULL != pDescriptors)
+                {
+                    /* Get the pointer of the first descriptor value */
+                    pDescriptorsValue               = (uint8_t*)pDescriptors + nbOfDescriptors * sizeof(gattAttribute_t);
+                    /* Set descriptors in the characteristic */
+                    pCharacteristics->aDescriptors  = pDescriptors;
+
+                    /* Set the value pointers in all the descriptors */
+                    for(iCount = 0; iCount < nbOfDescriptors; iCount++)
+                    {
+                        pDescriptors->paValue   = pDescriptorsValue;
+                        pDescriptors ++;
+                        pDescriptorsValue      += pMaxDescriptorsValueLengthList[iCount];
+                    }
+
+                    /* Free the buffer used to keep descriptors maximum value lengths */
+                    (void)MEM_BufferFree(pMaxDescriptorsValueLengthList);
+                }
+                else
+                {
+                    fsciBleError(gFsciOutOfMessages_c, fsciInterfaceId);
+
+                    (void)MEM_BufferFree(pCharacteristics);
+                    (void)MEM_BufferFree(pMaxDescriptorsValueLengthList);
+                    pCharacteristics = NULL;
+                }
+            }
+            else
+            {
+                fsciBleError(gFsciOutOfMessages_c, fsciInterfaceId);
+
+                (void)MEM_BufferFree(pCharacteristics);
+                pCharacteristics = NULL;
+            }
         }
-
-        /* Get the descriptors maximum value lengths */
-        for(iCount = 0; iCount < nbOfDescriptors; iCount ++)
+        else
         {
-            /* Go to uuidType field, in aDescriptors[iCount] field */
-            pBuffer += sizeof(uint16_t);
-            /* Get the uuidType field, in aDescriptors[iCount] field */
-            fsciBleGetEnumValueFromBuffer(uuidType, pBuffer, bleUuidType_t);
-            /* Go to valueLength field, in aDescriptors[iCount] field */
-            pBuffer += fsciBleGetUuidSizeForBuffer(uuidType);
-            /* Get the valueLength and maxValueLength fields, in aDescriptors[iCount] field */
-            fsciBleGetUint16ValueFromBuffer(valueLength, pBuffer);
-            fsciBleGetUint16ValueFromBuffer(maxValueLength, pBuffer);
-            /* Go to next descriptor field */
-            pBufer += valueLength;
-
-            /* Compute all descriptors maximum value length */
-            maxDescriptorsValueLength              += maxValueLength;
-            /* Save this descriptor maximum value length */
-            pMaxDescriptorsValueLengthList[iCount]  = maxValueLength;
+            /* No descriptors for this characteristic */
+            pCharacteristics->cNumDescriptors   = 0;
+            pCharacteristics->aDescriptors     = NULL;
         }
-
-        /* Allocate buffer for the descriptors and their values */
-        pDescriptors = (gattAttribute_t*)MEM_BufferAlloc(nbOfDescriptors * sizeof(gattAttribute_t) + maxDescriptorsValueLength)
-
-        if(NULL == pDescriptors)
-        {
-            fsciBleError(gFsciOutOfMessages_c, fsciInterfaceId);
-
-            (void)MEM_BufferFree(pCharacteristics);
-            (void)MEM_BufferFree(pMaxDescriptorsValueLengthList);
-
-            return NULL;
-        }
-
-        /* Get the pointer of the first descriptor value */
-        pDescriptorsValue               = (uint8_t*)pDescriptors + nbOfDescriptors * sizeof(gattAttribute_t);
-        /* Set descriptors in the characteristic */
-        pCharacteristics->aDescriptors  = pDescriptors;
-
-        /* Set the value pointers in all the descriptors */
-        for(iCount = 0; iCount < nbOfDescriptors; iCount++)
-        {
-            pDescriptors->paValue   = pDescriptorsValue;
-            pDescriptors ++;
-            pDescriptorsValue      += pMaxDescriptorsValueLengthList[iCount];
-        }
-
-        /* Free the buffer used to keep descriptors maximum value lengths */
-        (void)MEM_BufferFree(pMaxDescriptorsValueLengthList);
     }
     else
     {
-        /* No descriptors for this characteristic */
-        pCharacteristics->cNumDescriptors   = 0;
-         pCharacteristics->aDescriptors     = NULL;
+        fsciBleError(gFsciOutOfMessages_c, fsciInterfaceId);
     }
 
     /* Return the characteristic buffer */

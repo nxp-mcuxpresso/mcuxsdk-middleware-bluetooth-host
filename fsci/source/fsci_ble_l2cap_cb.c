@@ -688,51 +688,53 @@ void fsciBleL2capCbEnhancedConnectLePsmCmdMonitor
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
     uint8_t                     aCidsLength = 0, iCount = 0;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If L2CAP CB is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleL2capCbEnabled) ||
        (TRUE == bFsciBleL2capCbCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    if (aCids != NULL)
+    if (bContinueExecution)
     {
-        aCidsLength = sizeof(uint16_t) * noOfChannels;
-    }
-
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdEnhancedConnectLePsmOpCode_c,
-                                                  sizeof(uint16_t) +
-                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                  sizeof(uint16_t) +
-                                                  sizeof(uint8_t) +
-                                                  aCidsLength);
-
-    if(NULL == pClientPacket)
-    {
-        return;
-    }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(lePsm, pBuffer);
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint16Value(initialCredits, pBuffer);
-    fsciBleGetBufferFromUint8Value(noOfChannels, pBuffer);
-    if (aCidsLength != 0)
-    {
-        for (iCount = 0; iCount < noOfChannels; iCount++)
+        if (aCids != NULL)
         {
-            fsciBleGetBufferFromUint16Value(aCids[iCount], pBuffer);
+            aCidsLength = sizeof(uint16_t) * noOfChannels;
+        }
+
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdEnhancedConnectLePsmOpCode_c,
+                                                      sizeof(uint16_t) +
+                                                      fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                      sizeof(uint16_t) +
+                                                      sizeof(uint8_t) +
+                                                      aCidsLength);
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(lePsm, pBuffer);
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromUint16Value(initialCredits, pBuffer);
+            fsciBleGetBufferFromUint8Value(noOfChannels, pBuffer);
+            if (aCidsLength != 0)
+            {
+                for (iCount = 0; iCount < noOfChannels; iCount++)
+                {
+                    fsciBleGetBufferFromUint16Value(aCids[iCount], pBuffer);
+                }
+            }
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
         }
     }
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 
@@ -748,43 +750,45 @@ void fsciBleL2capCbEnhancedChannelReconfigureCmdMonitor
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
     uint8_t                     iCount = 0;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If L2CAP CB is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleL2capCbEnabled) ||
        (TRUE == bFsciBleL2capCbCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdEnhancedChannelReconfigureOpCode_c,
-                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                  sizeof(uint16_t) +
-                                                  sizeof(uint16_t) +
-                                                  sizeof(uint8_t) +
-                                                  noOfChannnels * sizeof(uint16_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdEnhancedChannelReconfigureOpCode_c,
+                                                      fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                      sizeof(uint16_t) +
+                                                      sizeof(uint16_t) +
+                                                      sizeof(uint8_t) +
+                                                      noOfChannnels * sizeof(uint16_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(lePsm, pBuffer);
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromUint16Value(initialCredits, pBuffer);
+            fsciBleGetBufferFromUint8Value(noOfChannels, pBuffer);
+            for (iCount = 0; iCount < noOfChannels; iCount++)
+            {
+                fsciBleGetBufferFromUint16Value(aCids[iCount], pBuffer);
+            }
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(lePsm, pBuffer);
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint16Value(initialCredits, pBuffer);
-    fsciBleGetBufferFromUint8Value(noOfChannels, pBuffer);
-    for (iCount = 0; iCount < noOfChannels; iCount++)
-    {
-        fsciBleGetBufferFromUint16Value(aCids[iCount], pBuffer);
-    }
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 void fsciBleL2capCbEnhancedCancelConnectionCmdMonitor
@@ -799,43 +803,45 @@ void fsciBleL2capCbEnhancedCancelConnectionCmdMonitor
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
     uint8_t                     iCount = 0;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If L2CAP CB is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleL2capCbEnabled) ||
        (TRUE == bFsciBleL2capCbCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdEnhancedCancelConnectionOpCode_c,
-                                                  sizeof(uint16_t) +
-                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                  sizeof(l2caLeCbConnectionRequestResult_t) +
-                                                  sizeof(uint8_t) +
-                                                  noOfChannnels * sizeof(uint16_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdEnhancedCancelConnectionOpCode_c,
+                                                      sizeof(uint16_t) +
+                                                      fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                      sizeof(l2caLeCbConnectionRequestResult_t) +
+                                                      sizeof(uint8_t) +
+                                                      noOfChannnels * sizeof(uint16_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(lePsm, pBuffer);
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromEnumValue(refuseReason, pBuffer, l2caLeCbConnectionRequestResult_t);
+            fsciBleGetBufferFromUint8Value(noOfChannels, pBuffer);
+            for (iCount = 0; iCount < noOfChannels; iCount++)
+            {
+                fsciBleGetBufferFromUint16Value(aCids[iCount], pBuffer);
+            }
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(lePsm, pBuffer);
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromEnumValue(refuseReason, pBuffer, l2caLeCbConnectionRequestResult_t);
-    fsciBleGetBufferFromUint8Value(noOfChannels, pBuffer);
-    for (iCount = 0; iCount < noOfChannels; iCount++)
-    {
-        fsciBleGetBufferFromUint16Value(aCids[iCount], pBuffer);
-    }
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 #endif /* gBLE52_d */
 
@@ -843,36 +849,38 @@ void fsciBleL2capCbConnectLePsmCmdMonitor(uint16_t lePsm, deviceId_t deviceId, u
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If L2CAP CB is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleL2capCbEnabled) ||
        (TRUE == bFsciBleL2capCbCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdConnectLePsmOpCode_c,
-                                                  sizeof(uint16_t) +
-                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                  sizeof(uint16_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+         /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdConnectLePsmOpCode_c,
+                                                      sizeof(uint16_t) +
+                                                      fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                      sizeof(uint16_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(lePsm, pBuffer);
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromUint16Value(credits, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(lePsm, pBuffer);
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint16Value(credits, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 
@@ -880,36 +888,38 @@ void fsciBleL2capCbSendLeCreditCmdMonitor(deviceId_t deviceId, uint16_t channelI
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If L2CAP CB is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleL2capCbEnabled) ||
        (TRUE == bFsciBleL2capCbCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdSendLeCreditOpCode_c,
-                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                  sizeof(uint16_t) +
-                                                  sizeof(uint16_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdSendLeCreditOpCode_c,
+                                                      fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                      sizeof(uint16_t) +
+                                                      sizeof(uint16_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromUint16Value(channelId, pBuffer);
+            fsciBleGetBufferFromUint16Value(credits, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint16Value(channelId, pBuffer);
-    fsciBleGetBufferFromUint16Value(credits, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 
@@ -917,33 +927,35 @@ void fsciBleL2capCbRegisterLePsmCmdMonitor(uint16_t lePsm, uint16_t lePsmMtu)
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If L2CAP CB is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleL2capCbEnabled) ||
        (TRUE == bFsciBleL2capCbCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdRegisterLePsmOpCode_c,
-                                                  sizeof(uint16_t) + sizeof(uint16_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdRegisterLePsmOpCode_c,
+                                                      sizeof(uint16_t) + sizeof(uint16_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(lePsm, pBuffer);
+            fsciBleGetBufferFromUint16Value(lePsmMtu, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(lePsm, pBuffer);
-    fsciBleGetBufferFromUint16Value(lePsmMtu, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 
@@ -951,35 +963,37 @@ void fsciBleL2capCbDeregisterLePsmCmdMonitor(uint16_t lePsm)
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If L2CAP CB is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleL2capCbEnabled) ||
        (TRUE == bFsciBleL2capCbCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #else /* gFsciBleHost_d  */
     l2capCbLeCbDataCallback     = fsciBleL2capCbLeCbDataCallback;
     l2capCbLeCbControlCallback  = fsciBleL2capCbLeCbControlCallback;
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdDeregisterLePsmOpCode_c,
-                                                  sizeof(uint16_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdDeregisterLePsmOpCode_c,
+                                                      sizeof(uint16_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(lePsm, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(lePsm, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 
@@ -987,34 +1001,36 @@ void fsciBleL2capCbDisconnectLeCbChannelCmdMonitor(deviceId_t deviceId, uint16_t
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If L2CAP CB is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleL2capCbEnabled) ||
        (TRUE == bFsciBleL2capCbCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdDisconnectLeCbChannelOpCode_c,
-                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                  sizeof(uint16_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdDisconnectLeCbChannelOpCode_c,
+                                                      fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                      sizeof(uint16_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromUint16Value(channelId, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint16Value(channelId, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 
@@ -1022,36 +1038,38 @@ void fsciBleL2capCbCancelConnectionCmdMonitor(uint16_t lePsm, deviceId_t deviceI
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If L2CAP CB is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleL2capCbEnabled) ||
        (TRUE == bFsciBleL2capCbCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdCancelConnectionOpCode_c,
-                                                  sizeof(uint16_t) +
-                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                  sizeof(l2caLeCbConnectionRequestResult_t));
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleL2capCbAllocFsciPacket(gBleL2capCbCmdCancelConnectionOpCode_c,
+                                                      sizeof(uint16_t) +
+                                                      fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                      sizeof(l2caLeCbConnectionRequestResult_t));
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(lePsm, pBuffer);
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromEnumValue(refuseReason, pBuffer, l2caLeCbConnectionRequestResult_t);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint16Value(lePsm, pBuffer);
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromEnumValue(refuseReason, pBuffer, l2caLeCbConnectionRequestResult_t);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 #endif /* gFsciBleHost_d */
@@ -1060,37 +1078,39 @@ void fsciBleL2capCbSendLeCbDataCmdMonitor(deviceId_t deviceId, uint16_t channelI
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If L2CAP CB is disabled or if the command was initiated by FSCI it must be not monitored */
     if((FALSE == bFsciBleL2capCbEnabled) ||
        (TRUE == bFsciBleL2capCbCmdInitiatedByFsci))
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleL2capCbAllocFsciPacket((uint8_t)gBleL2capCbCmdSendLeCbDataOpCode_c,
-                                                  sizeof(uint16_t) +
-                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                  sizeof(uint16_t) + (uint32_t)packetLength);
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleL2capCbAllocFsciPacket((uint8_t)gBleL2capCbCmdSendLeCbDataOpCode_c,
+                                                      sizeof(uint16_t) +
+                                                      fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                      sizeof(uint16_t) + (uint32_t)packetLength);
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromUint16Value(channelId, pBuffer);
+            fsciBleGetBufferFromUint16Value(packetLength, pBuffer);
+            fsciBleGetBufferFromArray(pPacket, pBuffer, packetLength);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint16Value(channelId, pBuffer);
-    fsciBleGetBufferFromUint16Value(packetLength, pBuffer);
-    fsciBleGetBufferFromArray(pPacket, pBuffer, packetLength);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 #if gFsciBleBBox_d || gFsciBleTest_d
@@ -1099,42 +1119,44 @@ void fsciBleL2capCbLeCbDataEvtMonitor(deviceId_t deviceId, uint16_t srcCid, uint
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If L2CAP CB is disabled the event must be not monitored */
     if(FALSE == bFsciBleL2capCbEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    union
+    if (bContinueExecution)
     {
-        uint32_t dataLenTemp;
-        uint16_t dataLen;
-    }dataLength = {0};
+        union
+        {
+            uint32_t dataLenTemp;
+            uint16_t dataLen;
+        }dataLength = {0};
 
-    dataLength.dataLen = packetLength;
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleL2capCbAllocFsciPacket((uint8_t)gBleL2capCbEvtLeCbDataOpCode_c,
-                                                  fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                  sizeof(uint16_t) + sizeof(uint16_t) + dataLength.dataLenTemp);
+        dataLength.dataLen = packetLength;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleL2capCbAllocFsciPacket((uint8_t)gBleL2capCbEvtLeCbDataOpCode_c,
+                                                      fsciBleGetDeviceIdBufferSize(&deviceId) +
+                                                      sizeof(uint16_t) + sizeof(uint16_t) + dataLength.dataLenTemp);
 
-    if(NULL == pClientPacket)
-    {
-        return;
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set event parameters in the buffer */
+            fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
+            fsciBleGetBufferFromUint16Value(srcCid, pBuffer);
+            fsciBleGetBufferFromUint16Value(packetLength, pBuffer);
+            fsciBleGetBufferFromArray(pPacket, pBuffer, packetLength);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set event parameters in the buffer */
-    fsciBleGetBufferFromDeviceId(&deviceId, &pBuffer);
-    fsciBleGetBufferFromUint16Value(srcCid, pBuffer);
-    fsciBleGetBufferFromUint16Value(packetLength, pBuffer);
-    fsciBleGetBufferFromArray(pPacket, pBuffer, packetLength);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 
@@ -1145,212 +1167,214 @@ void fsciBleL2capCbLeCbControlEvtMonitor(l2capControlMessage_t* pMessage)
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
     bool_t                      earlyReturn = FALSE;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If L2CAP CB is disabled the event must be not monitored */
     if(FALSE == bFsciBleL2capCbEnabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    if (pMessage != NULL)
+    if (bContinueExecution)
     {
-        /* Get FSCI opCode and update size needed for buffer */
-        switch(pMessage->messageType)
+         if (pMessage != NULL)
         {
-#if defined(gBLE52_d) && (gBLE52_d == 1)
-            case gL2ca_LePsmEnhancedConnectRequest_c:
-                {
-                    opCode      = gBleL2capCbEvtLePsmEnhancedConnectRequestOpCode_c;
-                    dataSize   += fsciBleL2capCbGetEnhancedConnectionRequestBufferSize(pMessage->messageData.enhancedConnRequest);
-                }
-                break;
-
-            case gL2ca_LePsmEnhancedConnectionComplete_c:
-                {
-                    opCode      = gBleL2capCbEvtLePsmEnhancedConnectionCompleteOpCode_c;
-                    dataSize   += fsciBleL2capCbGetEnhancedConnectionCompleteBufferSize(pMessage->messageData.enhancedConnComplete);
-                }
-                break;
-
-            case gL2ca_EnhancedReconfigureRequest_c:
-                {
-                    opCode      = gBleL2capCbEvtEnhancedReconfigureRequestOpCode_c;
-                    dataSize   += fsciBleL2capCbGetEnhancedReconfigureRequestBufferSize(pMessage->messageData.reconfigureRequest);
-                }
-                break;
-
-            case gL2ca_EnhancedReconfigureResponse_c:
-                {
-                    opCode      = gBleL2capCbEvtEnhancedReconfigureResponseOpCode_c;
-                    dataSize   += fsciBleL2capCbGetEnhancedReconfigureResponseBufferSize(pMessage->messageData.reconfigureResponse);
-                }
-                break;
-#endif /* gBLE52_d */
-            case gL2ca_LePsmConnectRequest_c:
-                {
-                    opCode      = gBleL2capCbEvtLePsmConnectRequestOpCode_c;
-                    dataSize   += fsciBleL2capCbGetLeCbConnectionRequestBufferSize(pMessage->messageData.connectionRequest);
-                }
-                break;
-
-            case gL2ca_LePsmConnectionComplete_c:
-                {
-                    opCode      = gBleL2capCbEvtLePsmConnectionCompleteOpCode_c;
-                    dataSize   += fsciBleL2capCbGetLeCbConnectionCompleteBufferSize(pMessage->messageData.connectionComplete);
-                }
-                break;
-
-            case gL2ca_LePsmDisconnectNotification_c:
-                {
-                    opCode      = gBleL2capCbEvtLePsmDisconnectNotificationOpCode_c;
-                    dataSize   += fsciBleL2capCbGetLeCbDisconnectionBufferSize(pMessage->messageData.disconnection);
-                }
-                break;
-
-            case gL2ca_NoPeerCredits_c:
-                {
-                    opCode      = gBleL2capCbEvtNoPeerCreditsOpCode_c;
-                    dataSize   += fsciBleL2capCbGetLeCbNoPeerCreditsBufferSize(pMessage->messageData.noPeerCredits);
-                }
-                break;
-
-            case gL2ca_LocalCreditsNotification_c:
-                {
-                    opCode      = gBleL2capCbEvtLocalCreditsNotificationOpCode_c;
-                    dataSize   += fsciBleL2capCbGetLeCbLocalCreditsNotificationBufferSize(pMessage->messageData.localCreditsNotification);
-                }
-                break;
-
-            case gL2ca_Error_c:
-                {
-                    opCode      = gBleL2capCbEvtErrorOpCode_c;
-                    dataSize   += fsciBleL2capCbGetLeCbErrorBufferSize((l2caLeCbError_t*)pMessage->messageData);
-                }
-                break;
-
-            case gL2ca_ChannelStatusNotification_c:
-                {
-                    opCode      = gBleL2capCbEvtChannelStatusNotificationOpCode_c;
-                    dataSize   += fsciBleL2capCbGetLeCbChannelStatusNotificationBufferSize(pMessage->messageData.channelStatusNotification);
-                }
-                break;
-
-            case gL2ca_LowPeerCredits_c:
-                {
-                    opCode      = gBleL2capCbEvtLowPeerCreditsOpCode_c;
-                    dataSize   += fsciBleL2capCbGetLeCbLowPeerCreditsBufferSize(pMessage->messageData.lowPeerCredits);
-                }
-                break;
-
-            default:
-                {
-                    /* Unknown message type */
-                    fsciBleError(gFsciError_c, fsciBleInterfaceId);
-                    earlyReturn = TRUE;
-                    break;
-                }
-        }
-
-        if(!earlyReturn)
-        {
-            /* Allocate the packet to be sent over UART */
-            pClientPacket = fsciBleL2capCbAllocFsciPacket((uint8_t)opCode, dataSize);
-
-            if(NULL == pClientPacket)
-            {
-                return;
-            }
-
-            pBuffer = &pClientPacket->payload[0];
-
-            /* Set event parameters in the buffer */
-            fsciBleGetBufferFromBoolValue(!earlyReturn, pBuffer);
-
-            /* pMessage is not NULL and must be monitored */
+            /* Get FSCI opCode and update size needed for buffer */
             switch(pMessage->messageType)
             {
 #if defined(gBLE52_d) && (gBLE52_d == 1)
                 case gL2ca_LePsmEnhancedConnectRequest_c:
                     {
-                        fsciBleL2capCbGetBuffFromEnhancedConnReq(&pMessage->messageData.enhancedConnRequest, &pBuffer);
+                        opCode      = gBleL2capCbEvtLePsmEnhancedConnectRequestOpCode_c;
+                        dataSize   += fsciBleL2capCbGetEnhancedConnectionRequestBufferSize(pMessage->messageData.enhancedConnRequest);
                     }
                     break;
 
                 case gL2ca_LePsmEnhancedConnectionComplete_c:
                     {
-                        fsciBleL2capCbGetBuffFromEnhancedConnComplete(&pMessage->messageData.enhancedConnComplete, &pBuffer);
+                        opCode      = gBleL2capCbEvtLePsmEnhancedConnectionCompleteOpCode_c;
+                        dataSize   += fsciBleL2capCbGetEnhancedConnectionCompleteBufferSize(pMessage->messageData.enhancedConnComplete);
                     }
                     break;
 
                 case gL2ca_EnhancedReconfigureRequest_c:
                     {
-                        fsciBleL2capCbGetBuffFromEnhancedReconfigureReq(&pMessage->messageData.reconfigureRequest, &pBuffer);
+                        opCode      = gBleL2capCbEvtEnhancedReconfigureRequestOpCode_c;
+                        dataSize   += fsciBleL2capCbGetEnhancedReconfigureRequestBufferSize(pMessage->messageData.reconfigureRequest);
                     }
                     break;
 
                 case gL2ca_EnhancedReconfigureResponse_c:
                     {
-                        fsciBleL2capCbGetBuffFromEnhancedReconfigureRsp(&pMessage->messageData.reconfigureResponse, &pBuffer);
+                        opCode      = gBleL2capCbEvtEnhancedReconfigureResponseOpCode_c;
+                        dataSize   += fsciBleL2capCbGetEnhancedReconfigureResponseBufferSize(pMessage->messageData.reconfigureResponse);
                     }
                     break;
 #endif /* gBLE52_d */
                 case gL2ca_LePsmConnectRequest_c:
                     {
-                        fsciBleL2capCbGetBuffFromLeCbConnRequest(&pMessage->messageData.connectionRequest, &pBuffer);
+                        opCode      = gBleL2capCbEvtLePsmConnectRequestOpCode_c;
+                        dataSize   += fsciBleL2capCbGetLeCbConnectionRequestBufferSize(pMessage->messageData.connectionRequest);
                     }
                     break;
 
                 case gL2ca_LePsmConnectionComplete_c:
                     {
-                        fsciBleL2capCbGetBufferFromLeCbConnectionComplete(&pMessage->messageData.connectionComplete, &pBuffer);
+                        opCode      = gBleL2capCbEvtLePsmConnectionCompleteOpCode_c;
+                        dataSize   += fsciBleL2capCbGetLeCbConnectionCompleteBufferSize(pMessage->messageData.connectionComplete);
                     }
                     break;
 
                 case gL2ca_LePsmDisconnectNotification_c:
                     {
-                        fsciBleL2capCbGetBuffFromLeCbDisconnection(&pMessage->messageData.disconnection, &pBuffer);
+                        opCode      = gBleL2capCbEvtLePsmDisconnectNotificationOpCode_c;
+                        dataSize   += fsciBleL2capCbGetLeCbDisconnectionBufferSize(pMessage->messageData.disconnection);
                     }
                     break;
 
                 case gL2ca_NoPeerCredits_c:
                     {
-                        fsciBleL2capCbGetBuffFromLeCbNoPeerCredits(&pMessage->messageData.noPeerCredits, &pBuffer);
+                        opCode      = gBleL2capCbEvtNoPeerCreditsOpCode_c;
+                        dataSize   += fsciBleL2capCbGetLeCbNoPeerCreditsBufferSize(pMessage->messageData.noPeerCredits);
                     }
                     break;
 
                 case gL2ca_LocalCreditsNotification_c:
                     {
-                        fsciBleL2capCbGetBuffFromLeCbLocalCreditsNotification(&pMessage->messageData.localCreditsNotification, &pBuffer);
+                        opCode      = gBleL2capCbEvtLocalCreditsNotificationOpCode_c;
+                        dataSize   += fsciBleL2capCbGetLeCbLocalCreditsNotificationBufferSize(pMessage->messageData.localCreditsNotification);
                     }
                     break;
 
                 case gL2ca_Error_c:
                     {
-                        fsciBleL2capCbGetBuffFromLeCbError(&pMessage->messageData.error, &pBuffer);
+                        opCode      = gBleL2capCbEvtErrorOpCode_c;
+                        dataSize   += fsciBleL2capCbGetLeCbErrorBufferSize((l2caLeCbError_t*)pMessage->messageData);
                     }
                     break;
 
                 case gL2ca_ChannelStatusNotification_c:
                     {
-                        fsciBleL2capCbGetBuffFromLeCbChannelStatusNotification(&pMessage->messageData.channelStatusNotification, &pBuffer);
+                        opCode      = gBleL2capCbEvtChannelStatusNotificationOpCode_c;
+                        dataSize   += fsciBleL2capCbGetLeCbChannelStatusNotificationBufferSize(pMessage->messageData.channelStatusNotification);
                     }
                     break;
 
                 case gL2ca_LowPeerCredits_c:
                     {
-                        fsciBleL2capCbGetBuffFromLeCbLowPeerCredits(&pMessage->messageData.lowPeerCredits, &pBuffer);
+                        opCode      = gBleL2capCbEvtLowPeerCreditsOpCode_c;
+                        dataSize   += fsciBleL2capCbGetLeCbLowPeerCreditsBufferSize(pMessage->messageData.lowPeerCredits);
                     }
                     break;
 
                 default:
-                    ; /* For MISRA compliance */
-                    break;
+                    {
+                        /* Unknown message type */
+                        fsciBleError(gFsciError_c, fsciBleInterfaceId);
+                        earlyReturn = TRUE;
+                        break;
+                    }
             }
 
-            /* Transmit the packet over UART */
-            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+            if(!earlyReturn)
+            {
+                /* Allocate the packet to be sent over UART */
+                pClientPacket = fsciBleL2capCbAllocFsciPacket((uint8_t)opCode, dataSize);
+
+                if(NULL != pClientPacket)
+                {
+                    pBuffer = &pClientPacket->payload[0];
+
+                    /* Set event parameters in the buffer */
+                    fsciBleGetBufferFromBoolValue(!earlyReturn, pBuffer);
+
+                    /* pMessage is not NULL and must be monitored */
+                    switch(pMessage->messageType)
+                    {
+#if defined(gBLE52_d) && (gBLE52_d == 1)
+                        case gL2ca_LePsmEnhancedConnectRequest_c:
+                            {
+                                fsciBleL2capCbGetBuffFromEnhancedConnReq(&pMessage->messageData.enhancedConnRequest, &pBuffer);
+                            }
+                            break;
+
+                        case gL2ca_LePsmEnhancedConnectionComplete_c:
+                            {
+                                fsciBleL2capCbGetBuffFromEnhancedConnComplete(&pMessage->messageData.enhancedConnComplete, &pBuffer);
+                            }
+                            break;
+
+                        case gL2ca_EnhancedReconfigureRequest_c:
+                            {
+                                fsciBleL2capCbGetBuffFromEnhancedReconfigureReq(&pMessage->messageData.reconfigureRequest, &pBuffer);
+                            }
+                            break;
+
+                        case gL2ca_EnhancedReconfigureResponse_c:
+                            {
+                                fsciBleL2capCbGetBuffFromEnhancedReconfigureRsp(&pMessage->messageData.reconfigureResponse, &pBuffer);
+                            }
+                            break;
+#endif /* gBLE52_d */
+                        case gL2ca_LePsmConnectRequest_c:
+                            {
+                                fsciBleL2capCbGetBuffFromLeCbConnRequest(&pMessage->messageData.connectionRequest, &pBuffer);
+                            }
+                            break;
+
+                        case gL2ca_LePsmConnectionComplete_c:
+                            {
+                                fsciBleL2capCbGetBufferFromLeCbConnectionComplete(&pMessage->messageData.connectionComplete, &pBuffer);
+                            }
+                            break;
+
+                        case gL2ca_LePsmDisconnectNotification_c:
+                            {
+                                fsciBleL2capCbGetBuffFromLeCbDisconnection(&pMessage->messageData.disconnection, &pBuffer);
+                            }
+                            break;
+
+                        case gL2ca_NoPeerCredits_c:
+                            {
+                                fsciBleL2capCbGetBuffFromLeCbNoPeerCredits(&pMessage->messageData.noPeerCredits, &pBuffer);
+                            }
+                            break;
+
+                        case gL2ca_LocalCreditsNotification_c:
+                            {
+                                fsciBleL2capCbGetBuffFromLeCbLocalCreditsNotification(&pMessage->messageData.localCreditsNotification, &pBuffer);
+                            }
+                            break;
+
+                        case gL2ca_Error_c:
+                            {
+                                fsciBleL2capCbGetBuffFromLeCbError(&pMessage->messageData.error, &pBuffer);
+                            }
+                            break;
+
+                        case gL2ca_ChannelStatusNotification_c:
+                            {
+                                fsciBleL2capCbGetBuffFromLeCbChannelStatusNotification(&pMessage->messageData.channelStatusNotification, &pBuffer);
+                            }
+                            break;
+
+                        case gL2ca_LowPeerCredits_c:
+                            {
+                                fsciBleL2capCbGetBuffFromLeCbLowPeerCredits(&pMessage->messageData.lowPeerCredits, &pBuffer);
+                            }
+                            break;
+
+                        default:
+                            ; /* For MISRA compliance */
+                            break;
+                    }
+
+                    /* Transmit the packet over UART */
+                    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+                }
+            }
         }
     }
 }

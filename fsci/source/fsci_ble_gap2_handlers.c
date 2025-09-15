@@ -1660,17 +1660,17 @@ void fsciBleCtrlPlatformGetDeltaTimeStampCmdMonitor
 {
     clientPacketStructured_t   *pClientPacket;
     uint8_t                    *pBuffer;
-    bool_t                     continueExecution = TRUE;
+    bool_t                     bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if(FALSE == bFsciBleGap2Enabled)
     {
-        continueExecution = FALSE;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    if (continueExecution)
+    if (bContinueExecution)
     {
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlEvtPlatformGetDeltaTimeStampOpCode_c,
