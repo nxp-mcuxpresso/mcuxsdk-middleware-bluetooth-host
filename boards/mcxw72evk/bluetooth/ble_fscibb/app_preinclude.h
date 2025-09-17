@@ -48,8 +48,6 @@
 /*! *********************************************************************************
  *     HKB Definition
  ********************************************************************************** */
-#define SERIAL_MANAGER_NON_BLOCKING_DUAL_MODE   0
-
 /*! The minimum heap size needed (measured with MEM_STATISTICS) */
 #define MinimalHeapSize_c               17000
 
@@ -124,8 +122,6 @@
 
 /* Enable Serial Manager interface */
 #define gAppUseSerialManager_c              1
-
-#define gUseHciTransport_d                  0
 
 /* Enable/Disable Dynamic GattDb functionality */
 #define gGattDbDynamic_d                    1

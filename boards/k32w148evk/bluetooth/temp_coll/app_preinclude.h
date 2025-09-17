@@ -80,9 +80,6 @@
   #define gAppLedCnt_c                0
 #endif
 
-/* Enables / Disables MWS coexistence */
-#define gMWS_UseCoexistence_d               0
-
 /*! Enable the SWD pins to be managed into low-power */
 #define gBoard_ManageSwdPinsInLowPower_d    0
 

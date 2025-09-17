@@ -6,7 +6,6 @@ The security capabilities are enabled at application, Host and Controller level 
 
 ```
 #if (gAppSecureMode_d == 1U)
-#define gSecLibSssUseEncryptedKeys_d     (1U)
 #define gHostSecureMode_d                (1U)
 #else
 #define gHostSecureMode_d                (0U)

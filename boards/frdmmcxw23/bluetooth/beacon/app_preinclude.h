@@ -105,11 +105,6 @@
 #define gAppExtAdvEnable_d              1
 #define gLlMaxUsedAdvSet_c              2
 #define gLlUsePeriodicAdvertising_d     0
-#if gBeaconLargeExtAdvData_c
-#define gLlMaxExtAdvDataLength_c        1650U
-#else
-#define gLlMaxExtAdvDataLength_c        250U
-#endif /* gBeaconLargeExtAdvData_c */
 
 /*
  * Specific configuration of LL pools by block size and number of blocks for this application.

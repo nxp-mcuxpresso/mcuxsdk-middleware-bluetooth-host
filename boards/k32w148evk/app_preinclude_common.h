@@ -104,7 +104,6 @@
 #endif
 
 #if (gAppSecureMode_d == 1U)
-#define gSecLibSssUseEncryptedKeys_d     (1U)
 #define gHostSecureMode_d                (1U)
 #else
 #define gHostSecureMode_d                (0U)
@@ -129,10 +128,6 @@
 /* Sensors module is required for Battery measurement (BLE battery service profile) and temperature measurement */
 #if !defined(gAppUseSensors_d)
 #define gAppUseSensors_d               1
-#endif
-
-#if defined(gDebugConsoleEnable_d)
-#define SERIAL_MANAGER_NON_BLOCKING_DUAL_MODE gDebugConsoleEnable_d
 #endif
 
 /* Enable Memory manager light heap extention for All BLE Applications

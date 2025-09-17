@@ -60,9 +60,6 @@
 /*! Define as 1 to place OTA storage in external flash */
 #define gAppOtaExternalStorage_c        (0U)
 
-/*! Define the offset where to place the OTA partition storage in external flash */
-#define gAppOtaStoragePartitionKbSize_c   (512U)
-
 /*! Define to 1 to post OTA transactions to a queue. The queue will be processed
  * in the idle task. This avoids blocking the system for too long in critical tasks
  * as the write to flash operations will be done during idle period. */
@@ -92,23 +89,6 @@
 /*! The minimum heap size needed (measured with MEM_STATISTICS) */
 #define MinimalHeapSize_c               13000
 
-/* Enable/Disable FSCI */
-#define gFsciIncluded_c                 0
-
-/* Enable/Disable FSCI 2 byte command length */
-#define gFsciLenHas2Bytes_c             1
-
-/* Enable/Disable the FSCI BLE OTAP module */
-#define gFsciBleOtapEnabled_d           1
-
-/* FSCI payload - set his high enough for long frames support */
-#define gFsciMaxPayloadLen_c            520
-
-
-/* Use Misra Compliant version of FSCI module */
-#define gFsciUseDedicatedTask_c         1
-
-
 /*! *********************************************************************************
  *     RTOS Configuration
  ********************************************************************************** */
@@ -119,8 +99,6 @@
 #define gHost_TaskStackSize_c           1916
 
 #define BUTTON_TASK_STACK_SIZE          680
-
-#define gFsciTaskStackSize_c            1400
 
 #define SERIAL_MANAGER_TASK_STACK_SIZE  328
 

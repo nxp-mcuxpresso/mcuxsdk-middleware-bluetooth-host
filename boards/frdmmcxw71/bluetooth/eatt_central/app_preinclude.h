@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*
- * Copyright 2024 NXP
+ * Copyright 2024-2025 NXP
  *
  *
  *
@@ -36,9 +36,6 @@
 /*! *********************************************************************************
  *     App Configuration
  ********************************************************************************** */
-/*! Enable/disable printing debug information*/
-#define mAE_CentralDebug_c                          0
-
 /*! Enable/disable use of bonding capability */
 #define gAppUseBonding_d                            1
 

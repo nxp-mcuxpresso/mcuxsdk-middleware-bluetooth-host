@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*
- * Copyright 2021 - 2024 NXP
+ * Copyright 2021 - 2025 NXP
  *
  *
  *
@@ -61,9 +61,6 @@
 
 /*! Define as 1 to place OTA storage in external flash */
 #define gAppOtaExternalStorage_c        (0U)
-
-/*! Define the offset where to place the OTA partition storage in external flash */
-#define gAppOtaStoragePartitionKbSize_c   (512U)
 
 /*! Define to 1 to post OTA transactions to a queue. The queue will be processed
  * in the idle task. This avoids blocking the system for too long in critical tasks

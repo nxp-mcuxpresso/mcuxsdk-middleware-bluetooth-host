@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*!
- * Copyright 2019-2024 NXP
+ * Copyright 2019-2025 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -73,20 +73,6 @@
   #define gAppLedCnt_c                0
 #endif
 
-/* Number of slots(625us) before the wake up instant before which the hardware needs to exit from deep sleep mode. */
-#if (gBeaconAE_c && gBeaconLargeExtAdvData_c)
-/* need 3 more slots to reload large extended advertising data */
-#define cPWR_BLE_LL_OffsetToWakeupInstant 6
-#else
-#define cPWR_BLE_LL_OffsetToWakeupInstant 3
-#endif
-
-/* Enables / Disables MWS coexistence */
-#define gMWS_UseCoexistence_d           0
-
-/*! Enable XCVR calibration storage in Flash */
-#define gControllerPreserveXcvrDacTrimValue_d     1
-
 /*! Enable the SWD pins to be managed into low-power */
 #define gBoard_ManageSwdPinsInLowPower_d    0
 
@@ -124,11 +110,6 @@
 /*  ble_ll_config.h file lists the parameters with their default values. User can override
  *    the parameter here by defining the parameter to a user defined value. */
 #define gLlUsePeriodicAdvertising_d     0
-#if gBeaconLargeExtAdvData_c
-#define gLlMaxExtAdvDataLength_c        1650U
-#else
-#define gLlMaxExtAdvDataLength_c        250U
-#endif /* gBeaconLargeExtAdvData_c */
 
 /* Include common configuration file and board configuration file */
 #include "app_preinclude_common.h"

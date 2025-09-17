@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*
- * Copyright 2021 - 2024 NXP
+ * Copyright 2021 - 2025 NXP
  *
  *
  *
@@ -36,12 +36,6 @@
 /*! *********************************************************************************
  *     App Configuration
  ********************************************************************************** */
-/*! Enable Extended Advertising*/
-#define gAppExtAdvEnable_d                          1
-
-/*! Enable/disable printing debug information*/
-#define mAE_CentralDebug_c                          0
-
 /*! Enable/disable use of bonding capability */
 #define gAppUseBonding_d                            1
 

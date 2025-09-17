@@ -78,13 +78,7 @@
 #if (defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0))
   #undef gAppLedCnt_c
   #define gAppLedCnt_c                0
-#endif        
-
-/* Enables / Disables MWS coexistence */
-#define gMWS_UseCoexistence_d           0
-
-/*! Enable XCVR calibration storage in Flash */
-#define gControllerPreserveXcvrDacTrimValue_d     1
+#endif
 
 /*! Enable the SWD pins to be managed into low-power */
 #define gBoard_ManageSwdPinsInLowPower_d    0
@@ -119,12 +113,6 @@
 
 /* Enable Serial Manager interface */
 #define gAppUseSerialManager_c            1
-
-/* Time between the beginning of two consecutive advertising PDU's */
-#define mcAdvertisingPacketInterval_c     0x02    /* 1.25 msec */
-
-/* Offset to the first instant register. */
-#define mcOffsetToFirstInstant_c          0x00      /* 625usec */
 
 /*! *********************************************************************************
  *     BLE LL Configuration

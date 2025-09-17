@@ -52,11 +52,6 @@
 
 #define gcGapMaximumActiveConnections_c 8
 
-#define gFsciBleEnabledLayersMask_d     0x0964
-
-/* Enable or disable Handover feature */
-#define gHandoverSupportEnabled_d       0
-
 /* Enable Channel Sounding feature */
 #define gBLE_ChannelSounding_d          0
 
@@ -86,7 +81,6 @@
 
 /* Enable Serial Manager interface */
 #define gAppUseSerialManager_c          1
-#define SERIAL_MANAGER_NON_BLOCKING_DUAL_MODE   0
 
 /*! The minimum heap size needed:
     6 blocks of 32
@@ -191,14 +185,6 @@
 #define gSendEattPsmToEattLayer_c        TRUE
 
 #define gGapSimultaneousEAChainedReports_c  (2U)
-
-/*If enable the gUseHciTransportDownward_d macro, Two serial interfaces are required.
- *One serial port(LPUART0) prints the log and the other serial port(LPUART1) sends HCI packets */
-#if (defined(gUseHciTransportDownward_d) &&(gUseHciTransportDownward_d))
-#define gHcitInterfaceType_d            gSerialMgrLpuart_c
-#define gHcitInterfaceNumber_d          BOARD_DEBUG_UART_INSTANCE
-#define gHcitInterfaceSpeed_d           BOARD_DEBUG_UART_BAUDRATE
-#endif
 
 /*! *********************************************************************************
  *     BLE LL Configuration

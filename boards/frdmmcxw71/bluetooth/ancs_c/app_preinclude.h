@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*
- * Copyright 2024 NXP
+ * Copyright 2024-2025 NXP
  *
  *
  *
@@ -72,15 +72,6 @@
 #if ((defined gAppUseNvm_d) && (gAppUseNvm_d != 0)) && defined(__GNUC__)
 #define gNvmErasePartitionWhenFlashing_c 1U
 #endif
-
-/* Defines Rx Buffer Size for Serial Manager */
-#define gSerialMgrRxBufSize_c           32
-
-/* Defines Tx Queue Size for Serial Manager */
-#define gSerialMgrTxQueueSize_c         5
-
-/* Defines Size for Serial Manager Task*/
-#define gSerialTaskStackSize_c          700
 
 /*! The minimum heap size needed (measured with MEM_STATISTICS) */
 #define MinimalHeapSize_c               17000

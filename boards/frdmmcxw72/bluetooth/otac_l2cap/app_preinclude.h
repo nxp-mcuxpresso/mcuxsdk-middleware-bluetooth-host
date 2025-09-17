@@ -62,9 +62,6 @@
 /*! Define as 1 to place OTA storage in external flash */
 #define gAppOtaExternalStorage_c        (0U)
 
-/*! Define the offset where to place the OTA partition storage in external flash */
-#define gAppOtaStoragePartitionKbSize_c   (512U)
-
 /*! Define to 1 to post OTA transactions to a queue. The queue will be processed
  * in the idle task. This avoids blocking the system for too long in critical tasks
  * as the write to flash operations will be done during idle period. */
