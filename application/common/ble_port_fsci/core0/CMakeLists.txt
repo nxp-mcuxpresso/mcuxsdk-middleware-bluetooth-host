@@ -63,3 +63,15 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_port_fsci_component_platform_co
         INCLUDES platform
     )
 endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_port_fsci_component_sensors_core0)
+    mcux_add_source(
+        SOURCES sensors/sensors_core0.c
+            sensors/sensors_core0.h
+    )
+    mcux_add_macro(gFsciComponentSensorsCore0_d=1)
+    mcux_add_include(
+        INCLUDES sensors
+    )
+endif()
+

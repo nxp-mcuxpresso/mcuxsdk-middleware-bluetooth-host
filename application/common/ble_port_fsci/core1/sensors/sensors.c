@@ -11,6 +11,8 @@
 ************************************************************************************/
 #include "EmbeddedTypes.h"
 #include "sensors.h"
+#include "ble_port_fsci_op.h"
+#include "FsciInterface.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -27,5 +29,35 @@
 ********************************************************************************** */
 uint8_t SENSORS_GetBatteryLevel(void)
 {
+    return 0;
+}
+
+/*! *********************************************************************************
+*\brief        Sends message to core0 to trigger temperature measurement.
+*
+*\param[in]    none
+*
+*\retval       void.
+********************************************************************************** */
+void SENSORS_TriggerTemperatureMeasurement(void)
+{
+    /* Send message */
+    FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_SensorsTriggerTemperatureMeasurement_c,
+                         NULL, 0, gFsciInterface_c);
+}
+
+/*! *********************************************************************************
+*\brief        Sends message to core0 to refresh temperature value in RAM.
+*
+*\param[in]    none
+*
+*\retval       void.
+********************************************************************************** */
+int32_t SENSORS_RefreshTemperatureValue(void)
+{
+    /* Send message */
+    FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_SensorsRefreshTemperatureValue_c,
+                         NULL, 0, gFsciInterface_c);
+
     return 0;
 }

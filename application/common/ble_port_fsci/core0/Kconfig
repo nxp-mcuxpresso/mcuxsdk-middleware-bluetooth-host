@@ -10,3 +10,5 @@ config MCUX_COMPONENT_middleware.wireless.ble_port_fsci_component_nvm_core0
     bool "ble_port_fsci_component_nvm_core0"
 config MCUX_COMPONENT_middleware.wireless.ble_port_fsci_component_platform_core0
     bool "ble_port_fsci_component_platform_core0"
+config MCUX_COMPONENT_middleware.wireless.ble_port_fsci_component_sensors_core0
+    bool "ble_port_fsci_component_sensors_core0"

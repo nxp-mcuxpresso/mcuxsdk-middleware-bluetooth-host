@@ -32,6 +32,24 @@ extern "C" {
 ********************************************************************************** */
 uint8_t SENSORS_GetBatteryLevel(void);
 
+/*! *********************************************************************************
+*\brief        Sends message to core0 to trigger temperature measurement.
+*
+*\param[in]    none
+*
+*\retval       void.
+********************************************************************************** */
+void SENSORS_TriggerTemperatureMeasurement(void);
+
+/*! *********************************************************************************
+*\brief        Sends message to core0 to refresh temperature value in RAM.
+*
+*\param[in]    none
+*
+*\retval       void.
+********************************************************************************** */
+int32_t SENSORS_RefreshTemperatureValue(void);
+
 #if defined(__cplusplus)
 }
 #endif /* __cplusplus */

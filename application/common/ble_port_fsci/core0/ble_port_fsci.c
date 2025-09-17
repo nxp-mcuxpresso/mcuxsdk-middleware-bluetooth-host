@@ -27,6 +27,7 @@
 #include "fsl_component_button_core0.h"
 #include "fsl_shell_core0.h"
 #include "fsl_adapter_reset_core0.h"
+#include "sensors_core0.h"
 
 #include "fsci_ble_interface.h"
 
@@ -137,6 +138,9 @@ void BLE_PortFsciInit(void)
 #if defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)
     (void)AppNvm_InitCore0Handlers();
 #endif /* gAppUseNvm_d */
+#if defined (gFsciComponentSensorsCore0_d) && (gFsciComponentSensorsCore0_d > 0)
+    SENSORS_InitCore0Handlers();
+#endif
 }
 
 void BLE_PortFsciRegisterOpHandler(uint8_t op, pfFsciPortOpHandler_t pfHandler)

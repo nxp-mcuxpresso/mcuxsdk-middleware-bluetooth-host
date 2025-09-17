@@ -61,6 +61,9 @@ typedef enum
     g_AppBleNvmCbCmdReadInd_c,                  /* Indication from host processor that the read operation was performed */
     /* NvFormat */
     g_AppBleNvFormatCommand_c,                  /* NvFormat() command */
+    /* Sensors */
+    g_SensorsTriggerTemperatureMeasurement_c,   /* SENSORS_TriggerTemperatureMeasurement command */
+    g_SensorsRefreshTemperatureValue_c,         /* SENSORS_RefreshTemperatureValue command */
 } blePortFsciOpCodes_t;
 
 /* FSCI callback handler prototype */
