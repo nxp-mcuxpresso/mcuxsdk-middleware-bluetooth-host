@@ -3627,7 +3627,6 @@ void fsciBleGapScanningEvtMonitor(gapScanningEvent_t* pScanningEvent)
             }
             break;
 
-#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
         /* Following this case GAP2 opgroup and opcode should be used */
         case gPeriodicDeviceScannedV2_c:
             {
@@ -3635,7 +3634,6 @@ void fsciBleGapScanningEvtMonitor(gapScanningEvent_t* pScanningEvent)
                 opCode.gap2Code = gBleGapEvtScanningEventPeriodicDeviceScannedV2OpCode_c;
             }
             break;
-#endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif
         default:
             {

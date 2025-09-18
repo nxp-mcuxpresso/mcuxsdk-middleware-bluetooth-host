@@ -641,7 +641,6 @@ void fsciBleGapGetBufferFromPerScannedDevice
     uint8_t**                   ppBuffer
 );
 
-#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
 void fsciBleGapGetPeriodicScannedDeviceV2FromBuffer
 (
     gapPeriodicScannedDeviceV2_t* pScannedDevice,
@@ -653,7 +652,6 @@ void fsciBleGapGetBufferFromPerScannedDeviceV2
     gapPeriodicScannedDeviceV2_t* pScannedDevice,
     uint8_t**                     ppBuffer
 );
-#endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif
 
 void fsciBleGapGetConnectedEventFromBuffer

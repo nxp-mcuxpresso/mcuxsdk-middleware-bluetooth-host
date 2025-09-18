@@ -178,12 +178,12 @@ static void HandleGap2StatusOpCode
     uint8_t *pBuffer,
     uint32_t fsciInterfaceId
 );
-#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
 static void HandleGapEvtScanningEventPeriodicDeviceScannedV2OpCode
 (
     uint8_t *pBuffer,
     uint32_t fsciInterfaceId
 );
+#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
 static void HandleGapEvtAdvertisingEventPerAdvSubeventDataRequestOpCode
 (
     uint8_t *pBuffer,
@@ -342,12 +342,11 @@ const pfGap2OpCodeHandler_t maGap2EvtOpCodeHandlers[]=
     NULL,                                                                       /* reserved: 0x8A */
     NULL,                                                                       /* reserved: 0x8B */
     NULL,                                                                       /* reserved: 0x8C */
-#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
     HandleGapEvtScanningEventPeriodicDeviceScannedV2OpCode,                     /* = 0x8D, gBleGapEvtScanningEventPeriodicDeviceScannedV2OpCode_c */
+#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
     HandleGapEvtAdvertisingEventPerAdvSubeventDataRequestOpCode,                /* = 0x8E, gBleGapEvtAdvertisingEventPerAdvSubeventDataRequestOpCode_c */
     HandleGapEvtAdvertisingEventPerAdvResponseOpCode,                           /* = 0x8F, gBleGapEvtAdvertisingEventPerAdvResponseOpCode_c */
 #else /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
-    NULL,                                                                       /* reserved: 0x8D */
     NULL,                                                                       /* reserved: 0x8E */
     NULL,                                                                       /* reserved: 0x8F */
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
@@ -1353,7 +1352,6 @@ static void HandleGap2StatusOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
     }
 }
 
-#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
 /*! *********************************************************************************
 *\private
 *\fn           void HandleGapEvtScanningEventPeriodicDeviceScannedV2OpCode(
@@ -1386,7 +1384,7 @@ void HandleGapEvtScanningEventPeriodicDeviceScannedV2OpCode(uint8_t *pBuffer, ui
         fsciBleGapFreeScanningEvent(pScanningEvent);
     }
 }
-
+#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
 /*! *********************************************************************************
 *\private
 *\fn           void HandleGapEvtAdvertisingEventPerAdvSubeventDataRequestOpCode(

@@ -1143,7 +1143,6 @@ void fsciBleGapGetBufferFromPerScannedDevice(gapPeriodicScannedDevice_t* pScanne
 }
 #endif  /* gBLE50_d */
 
-#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
 void fsciBleGapGetPeriodicScannedDeviceV2FromBuffer(gapPeriodicScannedDeviceV2_t* pScannedDevice, uint8_t** ppBuffer)
 {
     /* Read gapPeriodicScannedDeviceV2_t fields from buffer */
@@ -1169,7 +1168,6 @@ void fsciBleGapGetBufferFromPerScannedDeviceV2(gapPeriodicScannedDeviceV2_t* pSc
     fsciBleGetBufferFromUint16Value(pScannedDevice->dataLength, *ppBuffer);
     fsciBleGetBufferFromArray(pScannedDevice->pData, *ppBuffer, pScannedDevice->dataLength);
 }
-#endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 
 #if defined(gBLE51_d) && (gBLE51_d == 1U)
 void fsciBleGapGetBufferFromConnectionlessIqReportReceived(gapConnectionlessIqReport_t* pIqReport, uint8_t** ppBuffer)
@@ -1873,7 +1871,6 @@ gapScanningEvent_t* fsciBleGapAllocScanningEventForBuffer(gapScanningEventType_t
         /* Get dataLength field from buffer */
         fsciBleGetUint16ValueFromBuffer(variableLength, pBuffer);
     }
-#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
     else if (gPeriodicDeviceScannedV2_c == eventType)
     {
         /* Go to dataLength field in gapPeriodicScannedDeviceV2_t structure */
@@ -1887,7 +1884,6 @@ gapScanningEvent_t* fsciBleGapAllocScanningEventForBuffer(gapScanningEventType_t
         /* Get dataLength field from buffer */
         fsciBleGetUint16ValueFromBuffer(variableLength, pBuffer);
     }
-#endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif
     else
     {
@@ -1918,13 +1914,11 @@ gapScanningEvent_t* fsciBleGapAllocScanningEventForBuffer(gapScanningEventType_t
             /* Set pointer for the variable length data */
             pScanningEvent->eventData.periodicScannedDevice.pData = (uint8_t*)pScanningEvent + sizeof(gapScanningEvent_t);
         }
-#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
         else if (gPeriodicDeviceScannedV2_c == eventType)
         {
             /* Set pointer for the variable length data */
             pScanningEvent->eventData.periodicScannedDeviceV2.pData = (uint8_t*)pScanningEvent + sizeof(gapScanningEvent_t);
         }
-#endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif
         else
         {
@@ -2004,13 +1998,11 @@ uint32_t fsciBleGapGetScanningEventBufferSize(gapScanningEvent_t* pScanningEvent
             }
             break;
 
-#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
         case gPeriodicDeviceScannedV2_c:
             {
                 bufferSize += fsciBleGapGetPeriodicScannedDeviceV2BufferSize(&pScanningEvent->eventData.periodicScannedDeviceV2);
             }
             break;
-#endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif
 
         default:
@@ -2065,13 +2057,11 @@ void fsciBleGapGetScanningEventFromBuffer(gapScanningEvent_t* pScanningEvent, ui
             }
             break;
 
-#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
         case gPeriodicDeviceScannedV2_c:
             {
                 fsciBleGapGetPeriodicScannedDeviceV2FromBuffer(&pScanningEvent->eventData.periodicScannedDeviceV2, ppBuffer);
             }
             break;
-#endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif
         default:
             ; /* For MISRA compliance */
@@ -2140,13 +2130,11 @@ void fsciBleGapGetBufferFromScanningEvent(gapScanningEvent_t* pScanningEvent, ui
             }
             break;
 
-#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
         case gPeriodicDeviceScannedV2_c:
             {
                 fsciBleGapGetBufferFromPerScannedDeviceV2(&pScanningEvent->eventData.periodicScannedDeviceV2, ppBuffer);
             }
             break;
-#endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif
         default:
             ; /* For MISRA compliance */
