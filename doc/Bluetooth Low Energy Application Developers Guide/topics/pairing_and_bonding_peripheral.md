@@ -19,7 +19,7 @@ bleResult_t Gap_RegisterDeviceSecurityRequirements
 
 The parameter is a pointer to a structure which contains a “device security setting” and service-specific security settings. All these security requirements are pointers to `gapSecurityRequirements_t` structures. The pointers that are to be ignored should be set to `NULL`.
 
-Although the Peripheral does not initiate any kind of security procedure, it can inform the Central about its security requirements. This is usually done immediately after the connection to avoid exchanging useless packets for requests that might be denied because of insufficient security.
+Although the Peripheral does not initiate any kind of security procedure, it can inform the Central about its security requirements.
 
 The informing is performed through the Peripheral Security Request packet at SMP level. To use it, the following GAP API is provided:
 

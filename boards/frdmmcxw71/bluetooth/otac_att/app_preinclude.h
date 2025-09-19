@@ -121,6 +121,9 @@
 #define gMaxServiceCharCount_d          3U
 #define gMaxCharDescriptorsCount_d      2U
 
+/* Do not send any Peripheral Security Requests */
+#define gCentralInitiatedPairing_d
+
 /*! *********************************************************************************
  *     BLE LL Configuration
  ***********************************************************************************/

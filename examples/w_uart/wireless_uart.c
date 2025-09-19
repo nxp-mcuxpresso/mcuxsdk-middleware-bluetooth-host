@@ -115,7 +115,8 @@ typedef enum appEvent_tag
     mAppEvt_ServiceDiscoveryNotFound_c,
     mAppEvt_ServiceDiscoveryFailed_c,
     mAppEvt_GattProcComplete_c,
-    mAppEvt_GattProcError_c
+    mAppEvt_GattProcError_c,
+    mAppEvt_EncryptionChanged_c
 } appEvent_t;
 
 typedef enum appState_tag
@@ -209,6 +210,10 @@ static void BleApp_HandleDisconnectedEvent(deviceId_t peerDeviceId, gapConnectio
  * Private memory declarations
  *************************************************************************************
  ************************************************************************************/
+#if gAppUseBonding_d
+static bool_t mRestoringBondedLink[gAppMaxConnections_c] = {};
+#endif /* gAppUseBonding_d */
+
 static appPeerInfo_t maPeerInformation[gAppMaxConnections_c];
 static gapRole_t mGapRole;
 static deviceId_t mcActiveConnNo;
@@ -658,8 +663,13 @@ static void BleApp_HandleConnectedEvent(deviceId_t peerDeviceId, gapConnectionEv
                 (gBleSuccess_c == Gap_LoadCustomPeerInformation(peerDeviceId,
                         (uint8_t *) &maPeerInformation[peerDeviceId].clientInfo, 0, tempCast.u16)))
             {
+                mRestoringBondedLink[peerDeviceId] = TRUE;
                 /* Restored custom connection information. Encrypt link */
                 (void)Gap_EncryptLink(peerDeviceId);
+            }
+            else
+            {
+                mRestoringBondedLink[peerDeviceId] = FALSE;
             }
         }
 
@@ -686,8 +696,13 @@ static void BleApp_HandleConnectedEvent(deviceId_t peerDeviceId, gapConnectionEv
         (void)Gap_ControllerEnhancedNotification((uint16_t)gNotifConnRxPdu_c, peerDeviceId);
 #endif
 
-        /* run the state machine */
-        BleApp_StateMachineHandler(peerDeviceId, mAppEvt_PeerConnected_c);
+#if gAppUseBonding_d
+        if (mRestoringBondedLink[peerDeviceId] == FALSE)
+#endif /* gAppUseBonding_d */
+        {
+            /* run the state machine */
+            BleApp_StateMachineHandler(peerDeviceId, mAppEvt_PeerConnected_c);
+        }
     }
 
     return;
@@ -788,16 +803,21 @@ static void BleApp_ConnectionCallback
         break;
 
 #if gAppUsePairing_d
-
+#if gAppUseBonding_d
         case gConnEvtPairingComplete_c:
         {
             if (pConnectionEvent->eventData.pairingCompleteEvent.pairingSuccessful)
             {
-                BleApp_StateMachineHandler(peerDeviceId,
-                                           mAppEvt_PairingComplete_c);
+                if (mRestoringBondedLink[peerDeviceId] == TRUE)
+                {
+                    mRestoringBondedLink[peerDeviceId] = FALSE;
+                    BleApp_StateMachineHandler(peerDeviceId,
+                                               mAppEvt_PairingComplete_c);
+                }
             }
         }
         break;
+#endif /* gAppUseBonding_d */
 
         case gConnEvtAuthenticationRejected_c:
         {
@@ -809,6 +829,21 @@ static void BleApp_ConnectionCallback
             }
         }
         break;
+
+#if gAppUseBonding_d
+        case gConnEvtEncryptionChanged_c:
+        {
+            if (pConnectionEvent->eventData.encryptionChangedEvent.newEncryptionState)
+            {
+                if (mRestoringBondedLink[peerDeviceId] == TRUE)
+                {
+                    mRestoringBondedLink[peerDeviceId] = FALSE;
+                    BleApp_StateMachineHandler(peerDeviceId,
+                                               mAppEvt_EncryptionChanged_c);
+                }
+            }
+        }
+#endif /* gAppUseBonding_d */
 #endif /* gAppUsePairing_d */
 
         default:
@@ -1121,7 +1156,9 @@ static void BleApp_StateMachineHandler
         {
         case mAppIdle_c:
         {
-            if (event == mAppEvt_PeerConnected_c)
+            if ((event == mAppEvt_PeerConnected_c) ||
+                (event == mAppEvt_PairingComplete_c) ||
+                (event == mAppEvt_EncryptionChanged_c))
             {
                 /* Let the central device initiate the Exchange MTU procedure*/
                 if (mGapRole == gGapCentral_c)

@@ -122,6 +122,9 @@
 /* Enable Serial Manager interface */
 #define gAppUseSerialManager_c          1
 
+/* Do not send any Peripheral Security Requests */
+#define gCentralInitiatedPairing_d
+
 /*! *********************************************************************************
  *     BLE LL Configuration
  ***********************************************************************************/

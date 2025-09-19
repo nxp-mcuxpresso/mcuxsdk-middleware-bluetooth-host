@@ -70,6 +70,7 @@
 #define mAppEvt_CbConnectionComplete_c          0x05U
 #define mAppEvt_CbConnectionFailed_c            0x06U
 #define mAppEvt_CbDisconnected_c                0x07U
+#define mAppEvt_EncryptionChanged_c             0x08U
 
 
 /************************************************************************************
@@ -134,6 +135,10 @@ typedef struct otapServerAppData_tag
 * Private memory declarations
 *************************************************************************************
 ************************************************************************************/
+#if gAppUseBonding_d
+static bool_t mRestoringBondedLink = FALSE;
+static bool_t mAuthRejected = FALSE;
+#endif /* gAppUseBonding_d */
 
 /*! OTAP Protocol Command Id to Command Length table.
  *  The length includes the Command Id and the Command Payload. */
@@ -279,6 +284,16 @@ void BleApp_StateMachineHandler_ServiceDiscovery
 (
     deviceId_t peerDeviceId,
     uint8_t event
+);
+
+/*! *********************************************************************************
+* \brief        Handler of the mAppIdle_c state for BleApp_StateMachineHandler.
+*
+* \param[in]    peerDeviceId        Peer device ID.
+************************************************************************************/
+static void BleApp_HandleIdleState
+(
+    deviceId_t peerDeviceId
 );
 
 void BleApp_StateMachineHandler_AppRunning
@@ -699,15 +714,21 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
 
 #if gAppUseBonding_d
             (void)Gap_CheckIfBonded(peerDeviceId, &mPeerInformation.isBonded, NULL);
+            mAuthRejected = FALSE;
 
             if ((mPeerInformation.isBonded) &&
                 (gBleSuccess_c == Gap_LoadCustomPeerInformation(peerDeviceId,
                     (void*) &mPeerInformation.customInfo, 0, (uint16_t)(sizeof (appCustomInfo_t)))))
             {
+                mRestoringBondedLink = TRUE;
                 /* Restored custom connection information. Encrypt link */
                 (void)Gap_EncryptLink(peerDeviceId);
             }
-#endif
+            else
+            {
+                mRestoringBondedLink = FALSE;
+            }
+#endif /* gAppUseBonding_d */
             BleApp_StateMachineHandler(mPeerInformation.deviceId, mAppEvt_PeerConnected_c);
         }
         break;
@@ -745,6 +766,10 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
         {
             if (pConnectionEvent->eventData.pairingCompleteEvent.pairingSuccessful)
             {
+#if gAppUseBonding_d
+                mRestoringBondedLink = FALSE;
+#endif /* gAppUseBonding_d */
+
                 BleApp_StateMachineHandler(peerDeviceId, mAppEvt_PairingComplete_c);
             }
         }
@@ -752,6 +777,15 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
 
         case gConnEvtAuthenticationRejected_c:
         {
+            /* Peer needs repairing, invalidate handles to perform discovery */
+            mPeerInformation.customInfo.otapServerConfig.hControlPoint = gGattDbInvalidHandle_d;
+            mPeerInformation.customInfo.otapServerConfig.hControlPointCccd = gGattDbInvalidHandle_d;
+            mPeerInformation.customInfo.otapServerConfig.hData = gGattDbInvalidHandle_d;
+
+#if gAppUseBonding_d
+            mAuthRejected = TRUE;
+#endif /* gAppUseBonding_d */
+
             /* Start Pairing Procedure */
             (void)Gap_Pair (peerDeviceId, &gPairingParameters);
         }
@@ -759,13 +793,32 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
 
         case gConnEvtEncryptionChanged_c:
         {
-              if( pConnectionEvent->eventData.encryptionChangedEvent.newEncryptionState )
-              {
-                    /* After reset the exchanged MTU is lost */
-                    (void)GattClient_ExchangeMtu(peerDeviceId, gAttMaxMtu_c);
-                    mPeerInformation.appState = mAppRunning_c;
-              }
+            if (pConnectionEvent->eventData.encryptionChangedEvent.newEncryptionState)
+            {
+#if gAppUseBonding_d
+                if (mRestoringBondedLink == TRUE)
+                {
+                    if (mAuthRejected == TRUE)
+                    {
+                        /* Peripheral lost bond and Enable Encryption failed, this flow will generate gatt read and pairing */
+                        mRestoringBondedLink = FALSE;
+                        mAuthRejected = FALSE;
+                        BleApp_StateMachineHandler(peerDeviceId, mAppEvt_EncryptionChanged_c);
+                    }
+                    else
+                    {
+                        /* Enable Encryption was successful */
+                        mRestoringBondedLink = FALSE;
+#endif /* gAppUseBonding_d */
 
+                        /* After reset the exchanged MTU is lost */
+                        (void)GattClient_ExchangeMtu(peerDeviceId, gAttMaxMtu_c);
+                        mPeerInformation.appState = mAppDescriptorSetup_c;
+#if gAppUseBonding_d
+                    }
+                }
+#endif /* gAppUseBonding_d */
+            }
         }
         break;
 
@@ -1588,8 +1641,12 @@ void BleApp_StateMachineHandler_ServiceDiscovery(deviceId_t peerDeviceId, uint8_
 
                     if (mpDescProcBuffer == NULL)
                     {
-                        panic(0,0,0,0);
-                        return;
+                        mpDescProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + 23U);
+                        if (mpDescProcBuffer == NULL)
+                        {
+                            panic(0,0,0,0);
+                            return;
+                        }
                     }
 
                     /* Moving to Running State*/
@@ -1623,6 +1680,65 @@ void BleApp_StateMachineHandler_ServiceDiscovery(deviceId_t peerDeviceId, uint8_
 }
 
 /*! *********************************************************************************
+* \brief        Handler of the mAppIdle_c state for BleApp_StateMachineHandler.
+*
+* \param[in]    peerDeviceId        Peer device ID.
+************************************************************************************/
+static void BleApp_HandleIdleState(deviceId_t peerDeviceId)
+{
+    /* Check if required service characteristic discoveries by the client app have been done
+     * and change the client application state accordingly. */
+    if ((mPeerInformation.customInfo.otapServerConfig.hControlPoint == gGattDbInvalidHandle_d) ||
+        (mPeerInformation.customInfo.otapServerConfig.hControlPointCccd == gGattDbInvalidHandle_d) ||
+        (mPeerInformation.customInfo.otapServerConfig.hData == gGattDbInvalidHandle_d))
+    {
+        otapCommand_t   otaCmd;
+
+        /* Moving to Exchange MTU State */
+        mPeerInformation.appState = mAppExchangeMtu_c;
+        (void)GattClient_ExchangeMtu(peerDeviceId, gAttMaxMtu_c);
+
+        /*! When a new unknown peer connects send a New Image Info request via FSCI
+         *  with the image version set to request info about all available images. */
+        otaCmd.cmdId = gOtapCmdIdNewImageInfoRequest_c;
+        /* Set the image ID to all zeroes representing current running image ID. */
+        FLib_MemSet (otaCmd.cmd.newImgInfoReq.currentImageId,
+                     0x00,
+                     sizeof(otaCmd.cmd.newImgInfoReq.currentImageId));\
+        /* Set the image version to all 0x00 representing a request for all available images. */
+        FLib_MemSet (otaCmd.cmd.newImgInfoReq.currentImageVersion,
+                     0x00,
+                     sizeof(otaCmd.cmd.newImgInfoReq.currentImageVersion));
+        FsciBleOtap_SendPkt (&otaCmd.cmdId,
+                             (uint8_t*)(&otaCmd.cmd.newImgInfoReq),
+                             (uint16_t)(sizeof(otapCmdNewImgInfoReq_t)));
+    }
+    else
+    {
+        /* Set indication bit for a CCCD descriptor.  */
+        uint16_t value = gCccdIndication_c;
+
+        if (mpDescProcBuffer == NULL)
+        {
+            mpDescProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + 23U);
+            if (mpDescProcBuffer == NULL)
+            {
+                panic(0,0,0,0);
+                return;
+            }
+        }
+
+        /* Moving to Running State */
+        mPeerInformation.appState = mAppRunning_c;
+        /* Enable indications for the OTAP Control point characteristic. */
+        mpDescProcBuffer->handle = mPeerInformation.customInfo.otapServerConfig.hControlPointCccd;
+        mpDescProcBuffer->uuid.uuid16 = gBleSig_CCCD_d;
+        (void)GattClient_WriteCharacteristicDescriptor(peerDeviceId, mpDescProcBuffer, (uint16_t)(sizeof(uint16_t)),
+                                                 (uint8_t*)&value);
+    }
+}
+
+/*! *********************************************************************************
 * \brief       Main state machine handler function.
 *
 * \param[in]   peerDeviceId     Peer device ID.
@@ -1636,57 +1752,23 @@ void BleApp_StateMachineHandler(deviceId_t peerDeviceId, uint8_t event)
         {
             if (event == mAppEvt_PeerConnected_c)
             {
-                /* Check if required service characteristic discoveries by the client app have been done
-                 * and change the client application state accordingly. */
-                if ((mPeerInformation.customInfo.otapServerConfig.hControlPoint == gGattDbInvalidHandle_d) ||
-                    (mPeerInformation.customInfo.otapServerConfig.hControlPointCccd == gGattDbInvalidHandle_d) ||
-                    (mPeerInformation.customInfo.otapServerConfig.hData == gGattDbInvalidHandle_d))
+#if gAppUseBonding_d
+                if (mRestoringBondedLink == FALSE)
+#endif /* gAppUseBonding_d */
                 {
-                    otapCommand_t   otaCmd;
-
-                    /* Moving to Exchange MTU State */
-                    mPeerInformation.appState = mAppExchangeMtu_c;
-                    (void)GattClient_ExchangeMtu(peerDeviceId, gAttMaxMtu_c);
-
-                    /*! When a new unknown peer connects send a New Image Info request via FSCI
-                     *  with the image version set to request info about all available images. */
-                    otaCmd.cmdId = gOtapCmdIdNewImageInfoRequest_c;
-                    /* Set the image ID to all zeroes representing current running image ID. */
-                    FLib_MemSet (otaCmd.cmd.newImgInfoReq.currentImageId,
-                                 0x00,
-                                 sizeof(otaCmd.cmd.newImgInfoReq.currentImageId));\
-                    /* Set the image version to all 0x00 representing a request for all available images. */
-                    FLib_MemSet (otaCmd.cmd.newImgInfoReq.currentImageVersion,
-                                 0x00,
-                                 sizeof(otaCmd.cmd.newImgInfoReq.currentImageVersion));
-                    FsciBleOtap_SendPkt (&otaCmd.cmdId,
-                                         (uint8_t*)(&otaCmd.cmd.newImgInfoReq),
-                                         (uint16_t)(sizeof(otapCmdNewImgInfoReq_t)));
-                }
-                else
-                {
-                    /* Set indication bit for a CCCD descriptor.  */
-                    uint16_t value = gCccdIndication_c;
-
-                    if (mpDescProcBuffer == NULL)
-                    {
-                        mpDescProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + 23U);
-                        if (mpDescProcBuffer == NULL)
-                        {
-                            panic(0,0,0,0);
-                            break;
-                        }
-                    }
-
-                    /* Moving to Running State */
-                    mPeerInformation.appState = mAppRunning_c;
-                    /* Enable indications for the OTAP Control point characteristic. */
-                    mpDescProcBuffer->handle = mPeerInformation.customInfo.otapServerConfig.hControlPointCccd;
-                    mpDescProcBuffer->uuid.uuid16 = gBleSig_CCCD_d;
-                    (void)GattClient_WriteCharacteristicDescriptor(peerDeviceId, mpDescProcBuffer, (uint16_t)(sizeof(uint16_t)),
-                                                             (uint8_t*)&value);
+                    BleApp_HandleIdleState(peerDeviceId);
                 }
             }
+#if gAppUseBonding_d
+            else if (event == mAppEvt_EncryptionChanged_c)
+            {
+                BleApp_HandleIdleState(peerDeviceId);
+            }
+            else
+            {
+                /* For MISRA compliance */
+            }
+#endif /* gAppUseBonding_d */
         }
         break;
 

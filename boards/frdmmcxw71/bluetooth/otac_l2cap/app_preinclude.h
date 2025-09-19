@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*
- * Copyright 2021 - 2024 NXP
+ * Copyright 2021 - 2025 NXP
  *
  *
  *
@@ -121,6 +121,9 @@
 
 /* Enable Serial Manager interface */
 #define gAppUseSerialManager_c          1
+
+/* Do not send any Peripheral Security Requests */
+#define gCentralInitiatedPairing_d
 
 /*! *********************************************************************************
  *     BLE LL Configuration
