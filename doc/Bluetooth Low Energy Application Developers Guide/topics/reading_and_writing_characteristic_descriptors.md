@@ -37,10 +37,10 @@ In the following example, a Characteristic’s descriptors are discovered and it
 
 ```
 static gattCharacteristic_t myChar;
-myChar. value . handle = 0x00A0; /* Or maybe it was previously discovered? */
+myChar.value.handle = 0x00A0; /* Or maybe it was previously discovered? */
 #define mcMaxDescriptors_c 5
 static gattAttribute_t aDescriptors[mcMaxDescriptors_c];
-myChar. aDescriptors = aDescriptors;
+myChar.aDescriptors = aDescriptors;
 /* ... */
 {
     bleResult_t result = GattClient_DiscoverAllCharacteristicDescriptors
@@ -71,9 +71,10 @@ void gattClientProcedureCallback
          if (gGattProcSuccess_c == procedureResult)
           {
            /* Find CCCD */
-            for ( uint8_t j = 0; j < myChar. cNumDescriptors ; j++)
+            for ( uint8_t j = 0; j < myChar.cNumDescriptors; j++)
                {
-                if (aDescriptors[j].uuidType && gBleSig_CCCD_d ==myChar.aDescriptors[j].uuid.uuid16) )
+                if ((myChar.aDescriptors[j].uuidType == gBleUuidType16_c) && 
+                    (gBleSig_CCCD_d == myChar.aDescriptors[j].uuid.uuid16))
                  {
                     uint8_t cccdValue[2];
                     packTwoByteValue(gCccdNotification_c, cccdValue);
@@ -82,7 +83,7 @@ void gattClientProcedureCallback
                        deviceId,
                        &myChar. aDescriptors [j],
                        2,
-                       cccdValue
+                       (uint8_t*)&cccdValue
                      );
                     if (gBleSuccess_c != result)
                        {

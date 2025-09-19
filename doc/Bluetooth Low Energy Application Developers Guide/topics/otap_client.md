@@ -228,7 +228,7 @@ For the two possible image transfer methods \(ATT and L2CAP\) there are two sepa
 ```
 /* Register OTAP L2CAP PSM */
 L2ca_RegisterLePsm (gOtap_L2capLePsm_c,
-gOtapCmdImageChunkCocLength_c); /*!< The negotiated MTU must be higher than the biggest data chunk that is sent fragmented */
+gOtapCmdImageChunkCocMaxLength_c); /*!< The negotiated MTU must be higher than the biggest data chunk that is sent fragmented */
 ...
 App_RegisterLeCbCallbacks(BleApp_L2capPsmDataCallback, BleApp_L2capPsmControlCallback);
 ```
@@ -236,55 +236,56 @@ App_RegisterLeCbCallbacks(BleApp_L2capPsmDataCallback, BleApp_L2capPsmControlCal
 The control callback is used to handle L2CAP LE PSM-related events: PSM disconnections, PSM Connection Complete, No peer credits, and so on.
 
 ```
-static void BleApp_L2capPsmControlCallback
-             (l2capControlMessageType_t   messageType,
-              void*   pMessage)
+static void BleApp_L2capPsmControlCallback(l2capControlMessage_t* pMessage)
 {
-    switch (messageType)
+    switch (pMessage->messageType)
     {
         case gL2ca_LePsmConnectRequest_c:
         {
-            l2caLeCbConnectionRequest_t *pConnReq =
-                            (l2caLeCbConnectionRequest_t *)pMessage;
-            /* This message is unexpected on the OTAP Client, the OTAP Client sends L2CAP
-             * PSM connection requests and expects L2CAP PSM connection responses.
+            l2caLeCbConnectionRequest_t *pConnReq = &pMessage->messageData.connectionRequest;
+
+            /* This message is unexpected on the OTAP Client, the OTAP Client sends L2CAP PSM connection
+             * requests and expects L2CAP PSM connection responses.
              * Disconnect the peer. */
-            Gap_Disconnect (pConnReq->deviceId);
+            (void)Gap_Disconnect (pConnReq->deviceId);
+
             break;
         }
         case gL2ca_LePsmConnectionComplete_c:
         {
-            l2caLeCbConnectionComplete_t *pConnComplete =
-                             (l2caLeCbConnectionComplete_t *)pMessage;
+            l2caLeCbConnectionComplete_t *pConnComplete = &pMessage->messageData.connectionComplete;
+
             /* Call the application PSM connection complete handler. */
             OtapClient_HandlePsmConnectionComplete (pConnComplete);
-        break;
-    }
-    case gL2ca_LePsmDisconnectNotification_c:
-    {
-        l2caLeCbDisconnection_t *pCbDisconnect = (l2caLeCbDisconnection_t *)pMessage;
-        /* Call the application PSM disconnection handler. */
-        OtapClient_HandlePsmDisconnection (pCbDisconnect);
-        break;
-    }
-    case gL2ca_NoPeerCredits_c:
-    {
-        l2caLeCbNoPeerCredits_t *pCbNoPeerCredits =
-                        (l2caLeCbNoPeerCredits_t *)pMessage;
-        L2ca_SendLeCredit (pCbNoPeerCredits->deviceId,
-                           otapClientData.l2capPsmChannelId,
-                           mAppLeCbInitialCredits_c);
-        break;
-    }
-   /* ... Missing code here ... */
-    case gL2ca_Error_c:
+
+            break;
+        }
+        case gL2ca_LePsmDisconnectNotification_c:
+        {
+            l2caLeCbDisconnection_t *pCbDisconnect = &pMessage->messageData.disconnection;
+
+            /* Call the application PSM disconnection handler. */
+            OtapClient_HandlePsmDisconnection (pCbDisconnect);
+
+            break;
+        }
+        case gL2ca_NoPeerCredits_c:
+        {
+            l2caLeCbNoPeerCredits_t *pCbNoPeerCredits = &pMessage->messageData.noPeerCredits;
+            (void)L2ca_SendLeCredit (pCbNoPeerCredits->deviceId,
+                               otapClientData.l2capPsmChannelId,
+                               mAppLeCbInitialCredits_c);
+            break;
+        }
+        case gL2ca_Error_c:
         {
             /* Handle error */
             break;
         }
         default:
             ; /* For MISRA compliance */
-       break;
+            break;
+    }
 }
 ```
 
@@ -310,14 +311,14 @@ static void OtapClient_ContinueImageDownload (deviceId_t deviceId)
 The PSM data callback *BleApp\_L2capPsmDataCallback\(\)* is used by the OTAP Client to handle incoming image file parts from the OTAP Server.
 
 ```
-static void BleApp_L2capPsmDataCallback (deviceId_t  deviceId,
-                                         uint8_t*    pPacket,
-                                         uint16_t    uint16_t lePsm,
-                                         uint16_t    packetLength)
+static void BleApp_L2capPsmDataCallback (deviceId_t     deviceId,
+                                         uint16_t       lePsm,
+                                         uint8_t*       pPacket,
+                                         uint16_t       packetLength)
 {
-   OtapClient_HandleDataChunk (deviceId,
-                               packetLength,
-                               pPacket);
+    OtapClient_HandleDataChunk (deviceId,
+                                packetLength,
+                                pPacket);
 }
 ```
 

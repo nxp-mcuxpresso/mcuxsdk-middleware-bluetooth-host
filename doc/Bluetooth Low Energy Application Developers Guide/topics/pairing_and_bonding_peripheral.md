@@ -43,7 +43,7 @@ When the devices have been previously pairing without using LE Secure Connection
 bleResult_t Gap_ProvideLongTermKey
 (
     deviceId_t         deviceId,
-    const uint8_t      aLtk,
+    const uint8_t*     aLtk,
     uint8_t            ltkSize
 );
 ```

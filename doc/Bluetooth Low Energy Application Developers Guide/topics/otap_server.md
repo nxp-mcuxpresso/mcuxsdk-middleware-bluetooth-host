@@ -161,7 +161,7 @@ To be able to use the L2CAP transfer method, the OTAP Server application must re
 ```
 /* Register OTAP L2CAP PSM */
   L2ca_RegisterLePsm (gOtap_L2capLePsm_c,
-                      gOtapCmdImageChunkCocLength_c); /*!< The negotiated MTU must be higher than the biggest data chunk that is sent fragmented */
+                      gOtapCmdImageChunkCocMaxLength_c); /*!< The negotiated MTU must be higher than the biggest data chunk that is sent fragmented */
 ...
   App_RegisterLeCbCallbacks(BleApp_L2capPsmDataCallback, BleApp_L2capPsmControlCallback);
 ```
@@ -171,54 +171,63 @@ The data callback *BleApp\_L2capPsmDataCallback\(\)* is not used by the OTAP Ser
 The control callback is used to handle L2CAP LE PSM connection requests from the OTAP Client and other events: PSM disconnections, No peer credits, and so on. The OTAP Client must initiate the L2CAP PSM connection if it wants to use the L2CAP transfer method.
 
 ```
-static void BleApp_L2capPsmControlCallback(l2capControlMessageType_t messageType,
-                                                                          void              pMessage)
+static void BleApp_L2capPsmControlCallback(l2capControlMessage_t* pMessage)
 {
-    switch (messageType)
+    switch (pMessage->messageType)
     {
         case gL2ca_LePsmConnectRequest_c:
         {
-            l2caLeCbConnectionRequest_t *pConnReq = ( l2caLeCbConnectionRequest_t *)pMessage;
+            l2caLeCbConnectionRequest_t *pConnReq = &pMessage->messageData.connectionRequest;
+
             /* Respond to the peer L2CAP CB Connection request - send a connection response. */
-            L2ca_ConnectLePsm (gOtap_L2capLePsm_c,
-                               pConnReq-> deviceId,
+            (void)L2ca_ConnectLePsm (gOtap_L2capLePsm_c,
+                               pConnReq->deviceId,
                                mAppLeCbInitialCredits_c);
             break;
         }
         case gL2ca_LePsmConnectionComplete_c:
         {
-            l2caLeCbConnectionComplete_t *pConnComplete = ( l2caLeCbConnectionComplete_t *)pMessage;
-            if (pConnComplete->result == *gSuccessful_c)
+            l2caLeCbConnectionComplete_t *pConnComplete = &pMessage->messageData.connectionComplete;
+
+            if (pConnComplete->result == gSuccessful_c)
             {
                 /* Set the application L2CAP PSM Connection flag to TRUE because there is no gL2ca_LePsmConnectionComplete_c
                  * event on the responder of the PSM connection. */
-                otapServerData. l2capPsmConnected = TRUE;
-                otapServerData. l2capPsmChannelId = pConnComplete->cId;
+                otapServerData.l2capPsmConnected = TRUE;
+                otapServerData.l2capPsmChannelId = pConnComplete->cId;
+
+                if (pConnComplete->peerMtu > gOtap_l2capCmdMtuDataChunkOverhead_c)
+                {
+                    otapServerData.negotiatedMaxL2CapChunkSize = pConnComplete->peerMtu - gOtap_l2capCmdMtuDataChunkOverhead_c;
+                }
             }
             break;
         }
         case gL2ca_LePsmDisconnectNotification_c:
         {
-            l2caLeCbDisconnection_t *pCbDisconnect = ( l2caLeCbDisconnection_t *)pMessage;
+            l2caLeCbDisconnection_t *pCbDisconnect = &pMessage->messageData.disconnection;
+
             /* Call App State Machine */
-            BleApp_StateMachineHandler (pCbDisconnect-> deviceId, mAppEv_CbDisconnected_c);
-            otapServerData. l2capPsmConnected = FALSE;
+            BleApp_StateMachineHandler (pCbDisconnect->deviceId, mAppEvt_CbDisconnected_c);
+
+            otapServerData.l2capPsmConnected = FALSE;
             break;
         }
         case gL2ca_NoPeerCredits_c:
         {
-            l2caLeCbNoPeerCredits_t *pCbNoPeerCredits = ( l2caLeCbNoPeerCredits_t *)pMessage;
-            L2ca_SendLeCredit (pCbNoPeerCredits-> deviceId,
-                               otapServerData. l2capPsmChannelId,
+            l2caLeCbNoPeerCredits_t *pCbNoPeerCredits = &pMessage->messageData.noPeerCredits;
+            (void)L2ca_SendLeCredit (pCbNoPeerCredits->deviceId,
+                               otapServerData.l2capPsmChannelId,
                                mAppLeCbInitialCredits_c);
             break;
         }
-        case gL2ca_LocalCreditsNotification_c*:
+        case gL2ca_Error_c:
         {
-            l2caLeCbLocalCreditsNotification_t *pMsg = ( l2caLeCbLocalCreditsNotification_t *)pMessage;
+            /* Handle error */
             break;
         }
         default:
+            ; /* For MISRA compliance */
             break;
     }
 }

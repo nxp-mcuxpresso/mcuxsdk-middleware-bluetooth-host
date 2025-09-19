@@ -14,15 +14,13 @@ bleResult_t Ble_Initialize
     {
         return gHciTransportError_c;
     }
-#if defined(KW45B41Z83_SERIES) || \
-    defined(KW45B41Z82_SERIES) || \
-    defined(K32W1480_SERIES)
+
     /*
      * Set BD Address in Controller. Must be done after HCI init
      * and before Host init.
      */
       Ble_SetBDAddr();
-#endif /* KW45B41Z83_SERIES */
+
     /* Check for available memory storage */
     if (!Ble_CheckMemoryStorage())
     {

@@ -18,12 +18,12 @@ If the *pScanningParameters* pointer is NULL, the currently set parameters are u
 ```
 #define gGapDefaultScanningParameters_d \
 { \
-    /* type */             gGapScanTypePassive_c, \
+    /* type */             gScanTypePassive_c, \
     /* interval */         gGapScanIntervalDefault_d, \
     /* window */           gGapScanWindowDefault_d, \
     /* ownAddressType */   gBleAddrTypePublic_c, \
     /* filterPolicy */     gScanAll_c \
-    /* scanning PHY */     gLePhylMFlag_c\
+    /* scanning PHY */     gLePhy1MFlag_c\
 }
 ```
 
@@ -33,7 +33,7 @@ For example, to perform active scanning and only scan for devices in the Filter 
 
 ```
 gapScanningParameters_t scanningParameters = gGapDefaultScanningParameters_d;
-scanningParameters.type = gGapScanTypeActive_c;
+scanningParameters.type = gScanTypeActive_c;
 scanningParameters.filterPolicy = gScanWithFilterAcceptList_c;
 Gap_StartScanning(&scanningParamters, scanningCallback, enableFilterDuplicates, duration, period);
 ```

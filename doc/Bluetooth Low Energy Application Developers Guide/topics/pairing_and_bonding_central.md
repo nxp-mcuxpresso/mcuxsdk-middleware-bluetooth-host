@@ -6,7 +6,7 @@ After the user has connected to a Peripheral, use the following function to chec
 bleResult_t Gap_CheckIfBonded
 (
     deviceId_t   deviceId,
-    bool_t *     pOutIsBonded
+    bool_t *     pOutIsBonded,
     uint8_t*    pOutNvmIndex
 );
 ```

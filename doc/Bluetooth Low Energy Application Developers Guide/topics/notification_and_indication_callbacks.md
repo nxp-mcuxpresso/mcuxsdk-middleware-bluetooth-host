@@ -56,7 +56,7 @@ typedef void (*gattClientMultipleValueNotificationCallback_t)
     /*!< Device ID identifying the active connection. */   
     uint8_t* aHandleLenValue, 
     /*!< The array of handle, value length, value tuples. */
-    uint16_t totalLength      
+    uint32_t totalLength      
     /*!< Value array size. */
 );
 ```
@@ -78,9 +78,9 @@ typedef void (*gattClientEnhancedMultipleValueNotificationCallback_t)
     /*!< Device ID identifying the active connection. */   
   bearerId_t bearerId,    
    /*!< Bearer ID identifing the Enhanced ATT bearer used. */    
- uint8_t* aHandleLenValue,   
+  uint8_t* aHandleLenValue,   
    /*!< The array of handle, value length, value tuples. */ 
-uint16_t totalLength     /*!< Value array size. */
+  uint32_t totalLength     /*!< Value array size. */
  );
 ```
 

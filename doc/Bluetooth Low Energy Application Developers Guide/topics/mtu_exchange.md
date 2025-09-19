@@ -38,7 +38,7 @@ void gattClientProcedureCallback
     switch (procedureType)
     {
         /* ... */
-        case gGattProcExchangeMtu_c*:
+        case gGattProcExchangeMtu_c:
             if (gGattProcSuccess_c == procedureResult)
             {
                 /* To obtain the new MTU */

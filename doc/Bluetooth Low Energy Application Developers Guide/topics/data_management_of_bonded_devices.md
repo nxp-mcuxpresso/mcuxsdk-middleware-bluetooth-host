@@ -42,7 +42,7 @@ However, there may be some cases when an application wants to manage this data t
         gapSmpKeys_t*      pOutKeys,
         gapSmpKeyFlags_t*  pOutKeyFlags,
         bool_t*            pOutLeSc,
-        bool_t*            pOutAuth);
+        bool_t*            pOutAuth
     );
     ```
 
@@ -88,10 +88,10 @@ The structure for the GAP SMP Key Flags is the following:
     ```
     bleResult_t Gap_SaveKeys
     (
-        uint8_t         nvmIndex,
-        gapSmpKeys_t*   pKeys,
-        bool_t          leSc,
-        bool_t          auth
+        uint8_t                 nvmIndex,
+        const gapSmpKeys_t*     pKeys,
+        bool_t                  leSc,
+        bool_t                  auth
     );
     ```
 

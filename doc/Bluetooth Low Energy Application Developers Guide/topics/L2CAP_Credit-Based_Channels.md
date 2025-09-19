@@ -65,7 +65,7 @@ bleResult_t  L2ca_EnhancedConnectLePsm
   deviceId_t   deviceId,
   uint16_t     mtu,
   uint16_t     initialCredits,
-  uint16_t     initialCredits,
+  uint8_t      noOfChannels,
   uint16_t     *aCids
 );
 

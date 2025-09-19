@@ -1537,7 +1537,7 @@ bleResult_t Gap_EnableUpdateConnectionParameters
 *
 * \pre          A connection must be in place
 *
-* \remarks      The response is contained in the gConnEvtLeDataLengthUpdated_c connection event.
+* \remarks      The response is contained in the gConnEvtLeDataLengthChanged_c connection event.
 *
 ********************************************************************************** */
 bleResult_t Gap_UpdateLeDataLength

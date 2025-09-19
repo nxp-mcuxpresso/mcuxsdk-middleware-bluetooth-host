@@ -8,11 +8,13 @@ Continuing the example from [Discover primary services by UUID](discover_primary
 gattService_t * pService = &heartRateService;
 static gattCharacteristic_t hrcpCharacteristic;
 static uint8_t mcHrcpChar;
+bleUuid_t hrcpUuid;
+hrcpUuid.uuid16 = gBleSig_HrControlPoint_d;
 bleResult_t result = GattClient_DiscoverCharacteristicOfServiceByUuid
 (
     deviceId,
     gBleUuidType16_c,
-    gBleSig_HrControlPoint_d,
+    &hrcpUuid,
     pService,
     &hrcpCharacteristic,
     1,

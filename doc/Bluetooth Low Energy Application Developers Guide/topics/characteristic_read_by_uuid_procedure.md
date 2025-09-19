@@ -26,7 +26,7 @@ Instead, the Characteristic Read by UUID Procedure allows reading a Characterist
 The described example is implemented as follows:
 
 ```
-#define mcMaxValueLength_c
+#define mcMaxValueLength_c 10 /* Sample value length , adjust as needed */
 /* First byte is for handle-value pair length. Next 2 bytes are the handle */
 static uint8_t aValue[1 + 2 + mcMaxValueLength_c];
 static uint16_t deviceNameLength;
@@ -41,7 +41,7 @@ bleResult_t result = GattClient_ReadUsingCharacteristicUuid
     &pHandleRange,
     aValue,
     1 + 2 + mcMaxValueLength_c,
-    deviceNameLength
+    &deviceNameLength
 );
 if (gBleSuccess_c != result)
 {
