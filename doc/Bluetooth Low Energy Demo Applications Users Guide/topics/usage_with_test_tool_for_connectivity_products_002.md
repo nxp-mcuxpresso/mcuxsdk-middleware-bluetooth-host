@@ -14,7 +14,9 @@ To run the application, follow the steps below:
 1.  Flash the OTAP Server onto a supported platform and the OTAP Client to another supported platform. Make sure the board running the OTAP Server is connected to your PC and your PC has appropriate drivers for the USB to serial device on that board.
 2.  Create the application to send over the air. The executable must be provided in the `.srec` or `.bin` format. The `.srec` format executable can be obtained by using the IAR Output Converter and setting the output format to Motorola as shown in in the figure below. <br>
 
-    When compiling an image for the Over-the-Air update, the `gEraseNVMLink_d` linker symbol must be set to `0`.
+    When compiling an image for the Over-the-Air update, the following changes are required:
+    - The `gEraseNVMLink_d` linker symbol must be set to `0`. For GitHub ARMGCC this may be changed in the application `reconfig.cmake` file.
+    - For ARMGCC, `gNvmErasePartitionWhenFlashing_c` must be set to `0` in `app_preinclude.h`
 
     ![](../images/outout_converter_dialog.jpg "IAR Output Converter Dialog - .srec output")
 
