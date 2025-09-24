@@ -4,6 +4,28 @@ All notable changes to NXP Bluetooth LE Host will be documented in this file.
 
 **NXP Bluetooth LE Host Stack** is certified **Bluetooth 6.0**
 
+## [1.10.12] - mcux v2025-12-00-pvw1
+
+### Added
+
+- **Gap_LoadCustomBondedDeviceInformation API** to retrieve custom peer information using NVM index
+
+### Improved
+
+- Miscellaneous application updates
+
+### Fixed
+
+- **Updated privacy timeout** mechanism affected by LE Set Extended Advertising Enable Command
+
+### Changed
+
+- Merged **Gap_SetPeriodicAdvParameters** and Gap_SetPeriodicAdvParametersV2 into Gap_SetPeriodicAdvParameters
+
+### Supported Platforms
+
+- KW45, KW47, MCXW71, MCXW72, MCXW23
+
 ## [1.10.11] - mcux v2025-09-00
 
 ### Added
