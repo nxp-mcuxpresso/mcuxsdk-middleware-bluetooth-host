@@ -164,7 +164,7 @@
  *     BLE LL Configuration
  ***********************************************************************************/
 /* Define the max tx power setting in dBm. Allowed values 0, 7 or 10 */
-#define gAppMaxTxPowerDbm_c     10
+#define gAppMaxTxPowerDbm_c     0
 
 /* Include common configuration file and board configuration file */
 #include "app_preinclude_common.h"
