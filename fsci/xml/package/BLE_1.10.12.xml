@@ -14823,6 +14823,42 @@
         </CmdParms>
       </Cmd>
       <Cmd>
+        <CmdName>Controller-PlatformGetDeltaTimeStamp.Request</CmdName>
+        <CmdDesc>Get number of microseconds elapsed between current value and the argument of this function</CmdDesc>
+        <CmdHeader>4C 16</CmdHeader>
+      </Cmd>
+      <Cmd>
+        <CmdName>GAP-LoadCustomBondedDeviceInformation.Request</CmdName>
+        <CmdDesc>Loads the custom bonded device information in raw data format</CmdDesc>
+        <CmdHeader>4C 17</CmdHeader>
+        <CmdParms>
+          <Parm>
+            <ParmName>NvmIndex</ParmName>
+            <ParmDesc>Index of the device in NVM bonding area</ParmDesc>
+            <ParmSize>1</ParmSize>
+            <ParmType>tInt</ParmType>
+            <ParmLastValue>00</ParmLastValue>
+            <ParmDefaultValue>00</ParmDefaultValue>
+          </Parm>
+          <Parm>
+            <ParmName>Offset</ParmName>
+            <ParmDesc>Data offset (offset from the beginning)</ParmDesc>
+            <ParmSize>2</ParmSize>
+            <ParmType>tInt</ParmType>
+            <ParmLastValue>0000</ParmLastValue>
+            <ParmDefaultValue>0000</ParmDefaultValue>
+          </Parm>
+          <Parm>
+            <ParmName>InfoSize</ParmName>
+            <ParmDesc>Data size</ParmDesc>
+            <ParmSize>2</ParmSize>
+            <ParmType>tInt</ParmType>
+            <ParmLastValue>0000</ParmLastValue>
+            <ParmDefaultValue>0000</ParmDefaultValue>
+          </Parm>
+        </CmdParms>
+      </Cmd>
+      <Cmd>
         <CmdName>GAP-RemoveBond.Request</CmdName>
         <CmdDesc>Removes the bond with a device</CmdDesc>
         <CmdHeader>48 2A</CmdHeader>
@@ -99794,6 +99830,49 @@
         <CmdName>GAP2-SetDataRelatedAddressChangesComplete.Indication</CmdName>
         <CmdDesc>Set Data Related Address Changes command successfully completed.</CmdDesc>
         <CmdHeader>4C 95</CmdHeader>
+      </Cmd>
+      <Cmd>
+        <CmdName>GAP2-CtrlPlatformGetDeltaTimeStamp.Indication</CmdName>
+        <CmdDesc>
+        </CmdDesc>
+        <CmdHeader>4C 96</CmdHeader>
+        <CmdParms>
+          <Parm>
+            <ParmName>DeltaTimestamp</ParmName>s
+                        <ParmDesc>The difference from the current time</ParmDesc><ParmSize>8</ParmSize><ParmType>tInt</ParmType></Parm>
+        </CmdParms>
+      </Cmd>
+      <Cmd>
+        <CmdName>GAP-LoadCustomBondedDeviceInformation.Indication</CmdName>
+        <CmdDesc>Returns the custom bonded device information in raw data format</CmdDesc>
+        <CmdHeader>4C 97</CmdHeader>
+        <CmdParms>
+          <Parm>
+            <ParmName>PayloadLength</ParmName>
+            <ParmDesc>Length of the payload</ParmDesc>
+            <ParmSize>2</ParmSize>
+            <ParmType>tInt</ParmType>
+          </Parm>
+          <Parm>
+            <ParmName>InfoSize</ParmName>
+            <ParmDesc>Data size</ParmDesc>
+            <ParmSize>2</ParmSize>
+            <ParmType>tInt</ParmType>
+          </Parm>
+          <Parm>
+            <ParmName>Info</ParmName>
+            <ParmDesc>Data value</ParmDesc>
+            <ParmSize>1</ParmSize>
+            <ParmType>tArray</ParmType>
+            <ParmTypeSpecifics>
+              <Depend>
+                <DependName>InfoSize</DependName>
+                <DependMask>0xFFFF</DependMask>
+                <DependShift>0x0000</DependShift>
+              </Depend>
+            </ParmTypeSpecifics>
+          </Parm>
+        </CmdParms>
       </Cmd>
     </GAP2>
   </Events>
