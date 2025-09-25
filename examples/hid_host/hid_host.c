@@ -606,6 +606,12 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles service discovery callback from BLE service discovery module.
+*
+* \param[in]    deviceId    Device ID for which service discovery is performed.
+* \param[in]    pEvent      Pointer to service discovery event structure.
+********************************************************************************** */
 static void BleApp_ServiceDiscoveryCallback(deviceId_t deviceId, servDiscEvent_t* pEvent)
 {
     switch(pEvent->eventType)
@@ -786,6 +792,15 @@ static void BleApp_StoreServiceHandles
     }
 }
 
+/*! *********************************************************************************
+* \brief        Matches data in advertising element list.
+*
+* \param[in]    pElement    Pointer to advertising element structure.
+* \param[in]    pData       Pointer to data to match.
+* \param[in]    iDataLen    Length of data to match.
+*
+* \return       bool_t      TRUE if data matches, FALSE otherwise.
+********************************************************************************** */
 static bool_t MatchDataInAdvElementList(gapAdStructure_t *pElement, void *pData, uint8_t iDataLen)
 {
     uint8_t i;
@@ -802,6 +817,13 @@ static bool_t MatchDataInAdvElementList(gapAdStructure_t *pElement, void *pData,
     return status;
 }
 
+/*! *********************************************************************************
+* \brief        Checks if scanned device matches HID service criteria.
+*
+* \param[in]    pData    Pointer to scanned device data.
+*
+* \return       bool_t   TRUE if device matches criteria, FALSE otherwise.
+********************************************************************************** */
 static bool_t BleApp_CheckScanEvent(gapScannedDevice_t* pData)
 {
     uint32_t index = 0;
@@ -849,6 +871,12 @@ static bool_t BleApp_CheckScanEvent(gapScannedDevice_t* pData)
     return foundMatch;
 }
 
+/*! *********************************************************************************
+* \brief        Main state machine handler for HID host application.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           State machine event.
+********************************************************************************** */
 static void BleApp_StateMachineHandler(deviceId_t peerDeviceId, uint8_t event)
 {
     switch (mPeerInformation[peerDeviceId].appState)
@@ -894,6 +922,14 @@ static void BleApp_StateMachineHandler(deviceId_t peerDeviceId, uint8_t event)
     }
 }
 
+/*! *********************************************************************************
+* \brief        Configures notifications for specified characteristic handle.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    handle          Handle of characteristic to configure notifications for.
+*
+* \return       bleResult_t     Result of the configuration operation.
+********************************************************************************** */
 static bleResult_t BleApp_ConfigureNotifications(deviceId_t peerDeviceId, uint16_t handle)
 {
     bleResult_t result = gBleSuccess_c;
@@ -921,6 +957,10 @@ static bleResult_t BleApp_ConfigureNotifications(deviceId_t peerDeviceId, uint16
     return result;
 }
 
+/*! *********************************************************************************
+* \brief        Configures BLE Stack after initialization.
+*
+********************************************************************************** */
 static void BluetoothLEHost_Initialized(void)
 {
     char initStr[] = "BLE HID Host>";
@@ -947,6 +987,12 @@ static void BluetoothLEHost_Initialized(void)
     (void)shell_write("\r\nPress SCANSW to connect to a HID Device!\r\n");
 }
 
+/*! *********************************************************************************
+* \brief        Handles state machine events during idle state.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           State machine event.
+********************************************************************************** */
 static void BleApp_StateMachineHandler_IdleState(deviceId_t peerDeviceId, uint8_t event)
 {
     if (event == mAppEvt_PeerConnected_c)
@@ -968,6 +1014,12 @@ static void BleApp_StateMachineHandler_IdleState(deviceId_t peerDeviceId, uint8_
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles state machine events during MTU exchange state.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           State machine event.
+********************************************************************************** */
 static void BleApp_StateMachineHandler_ExchangeMtuState(deviceId_t peerDeviceId, uint8_t event)
 {
     if (event == mAppEvt_GattProcComplete_c)
@@ -991,6 +1043,12 @@ static void BleApp_StateMachineHandler_ExchangeMtuState(deviceId_t peerDeviceId,
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles state machine events during service discovery state.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           State machine event.
+********************************************************************************** */
 static void BleApp_StateMachineHandler_ServiceDiscState(deviceId_t peerDeviceId, uint8_t event)
 {
     if (event == mAppEvt_ServiceDiscoveryComplete_c)
@@ -1023,6 +1081,12 @@ static void BleApp_StateMachineHandler_ServiceDiscState(deviceId_t peerDeviceId,
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles state machine events during descriptor A read state.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           State machine event.
+********************************************************************************** */
 static void BleApp_StateMachineHandler_ReadDescriptorAState(deviceId_t peerDeviceId, uint8_t event)
 {
     if (event == mAppEvt_GattProcComplete_c)
@@ -1051,6 +1115,12 @@ static void BleApp_StateMachineHandler_ReadDescriptorAState(deviceId_t peerDevic
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles state machine events during descriptor B read state.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           State machine event.
+********************************************************************************** */
 static void BleApp_StateMachineHandler_ReadDescriptorBState(deviceId_t peerDeviceId, uint8_t event)
 {
     if (event == mAppEvt_GattProcComplete_c)
@@ -1079,6 +1149,12 @@ static void BleApp_StateMachineHandler_ReadDescriptorBState(deviceId_t peerDevic
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles state machine events during running state.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           State machine event.
+********************************************************************************** */
 static void BleApp_StateMachineHandler_RunningState(deviceId_t peerDeviceId, uint8_t event)
 {
     if (event == mAppEvt_GattProcComplete_c)

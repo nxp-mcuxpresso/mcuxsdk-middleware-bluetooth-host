@@ -1658,6 +1658,11 @@ static void BleApp_ConnectionCallback(deviceId_t peerDeviceId, gapConnectionEven
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles ATT MTU change events.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+********************************************************************************** */
 static void BleApp_HandleAttMtuChange
 (
     deviceId_t peerDeviceId
@@ -1672,6 +1677,11 @@ static void BleApp_HandleAttMtuChange
     shell_write("\r\n");
 }
 
+/*! *********************************************************************************
+* \brief        Stores service handles after service discovery.
+*
+* \param[in]    pService    Pointer to discovered service structure.
+********************************************************************************** */
 static void BleApp_StoreServiceHandles
 (
     gattService_t   *pService
@@ -1771,6 +1781,11 @@ static void BleApp_StoreServiceHandles
     }
 }
 
+/*! *********************************************************************************
+* \brief        Stores characteristic handles after characteristic discovery.
+*
+* \param[in]    pChar    Pointer to discovered characteristic structure.
+********************************************************************************** */
 static void BleApp_StoreCharHandles
 (
     gattCharacteristic_t   *pChar
@@ -1931,6 +1946,11 @@ static void BleApp_GattServerCallback(deviceId_t deviceId, gattServerEvent_t *pS
     }
 }
 
+/*! *********************************************************************************
+* \brief        Stores descriptor values after descriptor discovery.
+*
+* \param[in]    pDesc    Pointer to discovered descriptor structure.
+********************************************************************************** */
 static void BleApp_StoreDescValues
 (
     gattAttribute_t     *pDesc
@@ -2095,6 +2115,11 @@ static void BleApp_GattClientCallback(
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles value write confirmations from GATT server.
+*
+* \param[in]    deviceId    Device ID that sent the confirmation.
+********************************************************************************** */
 static void BleApp_HandleValueWriteConfirmations(deviceId_t  deviceId)
 {
     /* Handle all command confirmations here - only for commands written
@@ -2111,6 +2136,15 @@ static void BleApp_HandleValueWriteConfirmations(deviceId_t  deviceId)
     };
 }
 
+/*! *********************************************************************************
+* \brief        Handles GATT client notification callback from host stack.
+*
+* \param[in]    serverDeviceId              GATT Server device ID.
+* \param[in]    characteristicValueHandle   Handle of the characteristic that sent 
+*                                           the notification.
+* \param[in]    aValue                      Pointer to the notification value.
+* \param[in]    valueLength                 Length of the notification value.
+********************************************************************************** */
 static void BleApp_GattNotificationCallback
 (
     deviceId_t  serverDeviceId,
@@ -2132,6 +2166,14 @@ static void BleApp_GattNotificationCallback
 #endif
 }
 
+/*! *********************************************************************************
+* \brief        Processes attribute notifications from GATT server.
+*
+* \param[in]    deviceId    Device ID that sent the notification.
+* \param[in]    handle      Handle of the attribute that was notified.
+* \param[in]    pValue      Pointer to the notification value.
+* \param[in]    length      Length of the notification value.
+********************************************************************************** */
 static void BleApp_AttributeNotified
 (
     deviceId_t  deviceId,
@@ -2193,6 +2235,10 @@ static void BleApp_AttributeNotified
     }
 }
 
+/*! *********************************************************************************
+* \brief        Resets service discovery buffers and frees allocated memory.
+*
+********************************************************************************** */
 static void BleApp_ServiceDiscoveryReset(void)
 {
     if (mpServiceDiscoveryBuffer != NULL)
@@ -2214,12 +2260,20 @@ static void BleApp_ServiceDiscoveryReset(void)
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles service discovery errors and performs cleanup.
+*
+********************************************************************************** */
 static void BleApp_ServiceDiscoveryErrorHandler(void)
 {
     mPeerInformation.appState = mAppIdle_c;
     BleApp_ServiceDiscoveryReset();
 }
 
+/*! *********************************************************************************
+* \brief        Handles completion of service discovery process.
+*
+********************************************************************************** */
 static void BleApp_ServiceDiscoveryCompleted(void)
 {
     BleApp_ServiceDiscoveryReset();
@@ -2314,6 +2368,11 @@ static void BleApp_ServiceDiscoveryCompleted(void)
     }
 }
 
+/*! *********************************************************************************
+* \brief        Checks if the device has reconnected to a previously bonded peer.
+*
+* \return       bool_t    TRUE if reconnected to bonded device, FALSE otherwise.
+********************************************************************************** */
 static bool_t BleApp_CheckIfReconnected(void)
 {
     return !((mPeerInformation.customInfo.ancsClientConfig.hNotificationSource == gGattDbInvalidHandle_d)       ||
@@ -2328,6 +2387,12 @@ static bool_t BleApp_CheckIfReconnected(void)
             (mPeerInformation.customInfo.amsClientConfig.hEntityAttribute == gGattDbInvalidHandle_d) );
 }
 
+/*! *********************************************************************************
+* \brief        Handles state machine events during MTU exchange state.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           State machine event.
+********************************************************************************** */
 static void BleApp_StateMachineHandlerExchangeMtu(deviceId_t peerDeviceId, uint8_t event)
 {
     bool_t reconnected = BleApp_CheckIfReconnected();
@@ -2394,6 +2459,12 @@ static void BleApp_StateMachineHandlerExchangeMtu(deviceId_t peerDeviceId, uint8
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles state machine events during characteristic service discovery state.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           State machine event.
+********************************************************************************** */
 static void BleApp_StateMachineHandlerCharServiceDisc(deviceId_t peerDeviceId, uint8_t event)
 {
     if (event == mAppEvt_GattProcComplete_c)
@@ -2475,6 +2546,12 @@ static void BleApp_StateMachineHandlerCharServiceDisc(deviceId_t peerDeviceId, u
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles state machine events during primary service discovery state.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           State machine event.
+********************************************************************************** */
 static void BleApp_StateMachineHandlerPrimaryServiceDisc(deviceId_t peerDeviceId, uint8_t event)
 {
     if (event == mAppEvt_GattProcComplete_c)
@@ -2507,6 +2584,13 @@ static void BleApp_StateMachineHandlerPrimaryServiceDisc(deviceId_t peerDeviceId
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles state machine events during ANCS Notification Source descriptor 
+*               setup state.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           State machine event.
+********************************************************************************** */
 static void BleApp_StateMachineHandlerNsDescriptorSetup(deviceId_t peerDeviceId, uint8_t event)
 {
     if (event == mAppEvt_GattProcComplete_c)
@@ -2566,6 +2650,12 @@ static void BleApp_StateMachineHandlerNsDescriptorSetup(deviceId_t peerDeviceId,
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles state machine events during ANCS Data Source descriptor setup state.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           State machine event.
+********************************************************************************** */
 static void BleApp_StateMachineHandlerDsDescriptorSetup(deviceId_t peerDeviceId, uint8_t event)
 {
     if (event == mAppEvt_GattProcComplete_c)
@@ -2625,6 +2715,12 @@ static void BleApp_StateMachineHandlerDsDescriptorSetup(deviceId_t peerDeviceId,
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles state machine events during AMS Remote Command descriptor setup state.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           State machine event.
+********************************************************************************** */
 static void BleApp_StateMachineHandlerRcDescriptorSetup(deviceId_t peerDeviceId, uint8_t event)
 {
     if (event == mAppEvt_GattProcComplete_c)
@@ -2684,6 +2780,12 @@ static void BleApp_StateMachineHandlerRcDescriptorSetup(deviceId_t peerDeviceId,
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles state machine events during running state.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           State machine event.
+********************************************************************************** */
 static void BleApp_StateMachineHandlerRunning(deviceId_t peerDeviceId, uint8_t event)
 {
     if (event == mAppEvt_GattProcComplete_c)
@@ -2749,6 +2851,12 @@ static void BleApp_StateMachineHandlerRunning(deviceId_t peerDeviceId, uint8_t e
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles state machine events during AMS Entity Update track setup state.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           State machine event.
+********************************************************************************** */
 static void BleApp_StateMachineHandlerEuConfigTrackSetup(deviceId_t peerDeviceId, uint8_t event)
 {
     if (event == mAppEvt_GattProcComplete_c)
@@ -2780,6 +2888,12 @@ static void BleApp_StateMachineHandlerEuConfigTrackSetup(deviceId_t peerDeviceId
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles state machine events during AMS Entity Update descriptor setup state.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           State machine event.
+********************************************************************************** */
 static void BleApp_StateMachineHandlerEuDescriptorSetup(deviceId_t peerDeviceId, uint8_t event)
 {
     if (event == mAppEvt_GattProcComplete_c)
@@ -2846,6 +2960,12 @@ static void BleApp_StateMachineHandlerEuDescriptorSetup(deviceId_t peerDeviceId,
     }
 }
 
+/*! *********************************************************************************
+* \brief        Main state machine handler for ANCS/AMS client application.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           State machine event.
+********************************************************************************** */
 void BleApp_StateMachineHandler(deviceId_t peerDeviceId, uint8_t event)
 {
     switch (mPeerInformation.appState)
@@ -3990,6 +4110,11 @@ static void AncsClient_SendGetNotificationOrApplicationAttribute(void)
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles new BLE connection establishment.
+*
+* \param[in]    peerDeviceId    Peer device ID of the connected device.
+********************************************************************************** */
 static void BleApp_HandleConnection(deviceId_t peerDeviceId)
 {
     /* UI */

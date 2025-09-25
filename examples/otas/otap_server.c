@@ -1185,7 +1185,11 @@ static void BleApp_L2capPsmDataCallback (deviceId_t     deviceId,
     /* Do nothing here. No L2CAP PSM packets are expected by the OTAP server demo application. */
 }
 
-
+/*! *********************************************************************************
+* \brief        Handles L2CAP PSM control callback from host stack.
+*
+* \param[in]    pMessage    Pointer to l2capControlMessage_t.
+********************************************************************************** */
 static void BleApp_L2capPsmControlCallback(l2capControlMessage_t* pMessage)
 {
     switch (pMessage->messageType)

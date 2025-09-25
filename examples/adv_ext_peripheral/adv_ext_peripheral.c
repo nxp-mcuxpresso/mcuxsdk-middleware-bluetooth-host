@@ -1337,6 +1337,10 @@ static uint8_t NumberOf_PeerDevices(void)
  return peerNo;
 }
 
+/*! *********************************************************************************
+* \brief        Initializes the serial manager interface for UART communication.
+*
+********************************************************************************** */
 static void BleApp_SerialInit(void)
 {
     serial_manager_status_t status;
@@ -1353,6 +1357,12 @@ static void BleApp_SerialInit(void)
     assert(kStatus_SerialManager_Success == status);
 }
 
+/*! *********************************************************************************
+* \brief        Handles extended advertising modes including legacy, scannable, 
+*               connectable and non-connectable non-scannable advertising.
+*
+* \param[in]    mode    Advertising mode index from advIndex_t enumeration.
+********************************************************************************** */
 static void BleApp_HandleExtAdvNonConnNonScannMode(uint8_t mode)
 {
     mAppExtAdvParams.duration = gBleExtAdvNoDuration_c;
@@ -1454,6 +1464,11 @@ static void BleApp_HandleExtAdvNonConnNonScannMode(uint8_t mode)
     } while(FALSE);
 }
 
+/*! *********************************************************************************
+* \brief        Handles periodic advertising mode start/stop operations.
+*
+* \param[in]    mode    Advertising mode index (mPeriodicAdvIndex_c).
+********************************************************************************** */
 static void BleApp_HandlePeriodicAdvMode(uint8_t mode)
 {
     if(maAdvStatus[mExtAdvNonConnNonScanIndex_c] !=  mAdvStatus_On_c)
@@ -1773,6 +1788,11 @@ static void BleApp_HandlePerAdvSubeventDataRequest(gapPerAdvSubeventDataRequest_
 }
 #endif /* (gAppPAWRSupport_d == TRUE) */
 
+/*! *********************************************************************************
+* \brief        Handles periodic advertising data change operations by cycling
+*               between different data sets.
+*
+********************************************************************************** */
 static void BleApp_HandleChangePerAdvDataMode(void)
 {
     if(ExtAdvAPIRequest(mPeriodicAdvIndex_c) == gApiReq_Denied_c)
@@ -1795,6 +1815,11 @@ static void BleApp_HandleChangePerAdvDataMode(void)
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles non-connectable non-scannable advertising data change
+*               operations by cycling between different data sets.
+*
+********************************************************************************** */
 static void BleApp_HandleChangeNonConnNonScannAdvDataMode(void)
 {
     if(ExtAdvAPIRequest(mExtAdvNonConnNonScanIndex_c) == gApiReq_Denied_c)
@@ -1820,6 +1845,12 @@ static void BleApp_HandleChangeNonConnNonScannAdvDataMode(void)
     }
 }
 #if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)
+
+/*! *********************************************************************************
+* \brief        Handles DBAF  non-connectable non-scannable advertising data change 
+*               operations by cycling between different data sets.
+*
+********************************************************************************** */
 static void BleApp_HandleChangeDbafNonConnNonScannAdvDataMode(void)
 {
     if(ExtAdvAPIRequest(mDbafAdvNonConnNonScanIndex_c) == gApiReq_Denied_c)

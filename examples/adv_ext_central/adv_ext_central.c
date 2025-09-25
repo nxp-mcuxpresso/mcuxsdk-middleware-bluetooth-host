@@ -1636,6 +1636,10 @@ void AppTerminatePeriodicAdvSync(void)
     }
 }
 
+/*! *********************************************************************************
+* \brief        Initializes the serial manager interface for UART communication.
+*
+********************************************************************************** */
 static void BleApp_SerialInit(void)
 {
     serial_manager_status_t status;
@@ -1652,6 +1656,10 @@ static void BleApp_SerialInit(void)
     assert(kStatus_SerialManager_Success == status);
 }
 
+/*! *********************************************************************************
+* \brief        Handles scan state changes and manages scanning timers and LEDs.
+*
+********************************************************************************** */
 static void BleApp_HandleScanStateChanged(void)
 {
     mScanningOn = !mScanningOn;
@@ -1697,6 +1705,12 @@ static void BleApp_HandleScanStateChanged(void)
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles legacy device scanned events and checks for AE peripheral 
+*               devices.
+*
+* \param[in]    pScanningEvent    Pointer to gapScanningEvent_t.
+********************************************************************************** */
 static void BleApp_HandleDeviceScanned(gapScanningEvent_t* pScanningEvent)
 {
     bool_t AE_peripheral = CheckForAEPeripheralDevice(pScanningEvent->eventData.scannedDevice.data, pScanningEvent->eventData.scannedDevice.dataLength);
@@ -1723,6 +1737,12 @@ static void BleApp_HandleDeviceScanned(gapScanningEvent_t* pScanningEvent)
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles extended device scanned events and processes extended 
+*               advertising.
+*
+* \param[in]    pScanningEvent    Pointer to gapScanningEvent_t.
+********************************************************************************** */
 static void BleApp_HandleExtDeviceScanned(gapScanningEvent_t* pScanningEvent)
 {
     bool_t AE_peripheral = CheckForAEPeripheralDevice(pScanningEvent->eventData.extScannedDevice.pData, pScanningEvent->eventData.extScannedDevice.dataLength);
@@ -2009,6 +2029,12 @@ static void BleApp_HandlePeriodicDeviceScannedV2(gapScanningEvent_t* pScanningEv
 #endif /* (gAppPAWRSupport_d == TRUE) */
 }
 
+/*! *********************************************************************************
+* \brief        Handles application idle state events and transitions to next state.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           Application event type.
+********************************************************************************** */
 static void BleApp_HandleIdleState(deviceId_t peerDeviceId, appEvent_t event)
 {
     if (event == mAppEvt_PeerConnected_c)
@@ -2029,6 +2055,12 @@ static void BleApp_HandleIdleState(deviceId_t peerDeviceId, appEvent_t event)
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles MTU exchange state events and starts service discovery.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           Application event type.
+********************************************************************************** */
 static void BleApp_HandleExchangeMtuState(deviceId_t peerDeviceId, appEvent_t event)
 {
     if (event == mAppEvt_GattProcComplete_c)
@@ -2048,6 +2080,12 @@ static void BleApp_HandleExchangeMtuState(deviceId_t peerDeviceId, appEvent_t ev
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles service discovery state events and reads descriptors.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           Application event type.
+********************************************************************************** */
 static void BleApp_HandleServiceDiscState(deviceId_t peerDeviceId, appEvent_t event)
 {
     if (event == mAppEvt_ServiceDiscoveryComplete_c)
@@ -2079,6 +2117,12 @@ static void BleApp_HandleServiceDiscState(deviceId_t peerDeviceId, appEvent_t ev
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles descriptor read state events and configures notifications.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           Application event type.
+********************************************************************************** */
 static void BleApp_HandleReadDescriptorState(deviceId_t peerDeviceId, appEvent_t event)
 {
     if (event == mAppEvt_GattProcComplete_c)
@@ -2107,6 +2151,12 @@ static void BleApp_HandleReadDescriptorState(deviceId_t peerDeviceId, appEvent_t
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles running state events and manages data reception timer.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    event           Application event type.
+********************************************************************************** */
 static void BleApp_HandleRunningState(deviceId_t peerDeviceId, appEvent_t event)
 {
     if (event == mAppEvt_GattProcComplete_c)
@@ -2140,6 +2190,12 @@ static void BleApp_HandleRunningState(deviceId_t peerDeviceId, appEvent_t event)
     }
 }
 
+/*! *********************************************************************************
+* \brief        Handles periodic advertising synchronization for extended advertising.
+*
+* \param[in]    pExtScannedDevice    Pointer to gapExtScannedDevice_t.
+* \param[in]    advIndex             Index in the extended advertising list.
+********************************************************************************** */
 static void BleApp_HandlePeriodicAdv( gapExtScannedDevice_t* pExtScannedDevice, uint8_t advIndex)
 {
     if(pExtScannedDevice->periodicAdvInterval != 0U)

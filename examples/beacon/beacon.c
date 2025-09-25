@@ -514,6 +514,12 @@ static void BleApp_HandleKeys(key_event_t events)
 }
 
 #else /* defined(gBeaconAE_c) && (gBeaconAE_c) */
+
+/*! *********************************************************************************
+* \brief        Handles keyboard events.
+*
+* \param[in]    events    Key event structure.
+********************************************************************************** */
 static void BleApp_HandleKeys(key_event_t events)
 {
     switch (events)

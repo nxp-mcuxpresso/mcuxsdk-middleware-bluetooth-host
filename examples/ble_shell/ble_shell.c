@@ -545,6 +545,10 @@ static shell_status_t ShellReset_Command(shell_handle_t shellHandle, int32_t arg
     return kStatus_SHELL_Success;
 }
 
+/*! *********************************************************************************
+* \brief        Configures BLE Stack after initialization.
+*
+********************************************************************************** */
 static void BluetoothLEHost_Initialized(void)
 {
     /* Adding GAP and GATT services in the database */

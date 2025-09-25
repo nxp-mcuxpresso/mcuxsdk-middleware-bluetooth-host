@@ -739,6 +739,11 @@ static void SendReport(mouseHidReport_t *pReport)
     }
 }
 
+/*! *********************************************************************************
+* \brief        Moves mouse cursor left by specified number of pixels.
+*
+* \param[in]    pixels    Number of pixels to move left.
+********************************************************************************** */
 static void MoveMouseLeft(int8_t pixels)
 {
     mouseHidReport_t mouseReport = {0,0,0};
@@ -746,6 +751,11 @@ static void MoveMouseLeft(int8_t pixels)
     SendReport(&mouseReport);
 }
 
+/*! *********************************************************************************
+* \brief        Moves mouse cursor right by specified number of pixels.
+*
+* \param[in]    pixels    Number of pixels to move right.
+********************************************************************************** */
 static void MoveMouseRight(int8_t pixels)
 {
     mouseHidReport_t mouseReport = {0,0,0};
@@ -753,6 +763,11 @@ static void MoveMouseRight(int8_t pixels)
     SendReport(&mouseReport);
 }
 
+/*! *********************************************************************************
+* \brief        Moves mouse cursor up by specified number of pixels.
+*
+* \param[in]    pixels    Number of pixels to move up.
+********************************************************************************** */
 static void MoveMouseUp(int8_t pixels)
 {
     mouseHidReport_t mouseReport = {0,0,0};
@@ -760,6 +775,11 @@ static void MoveMouseUp(int8_t pixels)
     SendReport(&mouseReport);
 }
 
+/*! *********************************************************************************
+* \brief        Moves mouse cursor down by specified number of pixels.
+*
+* \param[in]    pixels    Number of pixels to move down.
+********************************************************************************** */
 static void MoveMouseDown(int8_t pixels)
 {
     mouseHidReport_t mouseReport = {0,0,0};

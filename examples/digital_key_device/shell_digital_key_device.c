@@ -513,7 +513,15 @@ static shell_status_t ShellDisconnect_Command(shell_handle_t shellHandle, int32_
     
     return kStatus_SHELL_Success;
 }
-                
+
+/*! *********************************************************************************
+* \brief        Parses a string input interpreting its content as a hex number and
+*               writes the value at the input address.
+*
+* \param[in/out]    pInput    Pointer to string to be parsed.
+*
+* \return       uint8_t   Returns the size of the resulted uint value/array.
+********************************************************************************** */
 static uint8_t BleApp_ParseHexValue(char* pInput)
 {
     uint8_t i, length = (uint8_t)strlen(pInput);
