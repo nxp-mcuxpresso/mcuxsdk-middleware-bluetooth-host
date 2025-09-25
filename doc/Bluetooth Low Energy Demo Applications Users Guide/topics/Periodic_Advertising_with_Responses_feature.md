@@ -2,8 +2,6 @@
 
 The Bluetooth LE Shell application also supports the Periodic Advertising with Responses feature, which can be enabled by performing the following steps:
 
-- Flash the NBU: for KW45B41Z-EVK/FRDM-MCXW71 flash the experimental NBU found in `middleware/wireless/ble_controller/bin/experimental`; for KW47-EVK/MCX-W72-EVK/FRDM-MCXW72 flash the all-purpose NBU found in `middleware/wireless/ble_controller/bin`.
-- Update the application project so that it uses the experimental Bluetooth LE Host library, `middleware/wireless/bluetooth/host/lib_exp/lib_ble_OPT_host_cm33_iar.a`.
 - In `app_preinclude.h` file, set `BLE_SHELL_PAWR_SUPPORT` to `1`.
 
 This feature requires two (or more) devices:

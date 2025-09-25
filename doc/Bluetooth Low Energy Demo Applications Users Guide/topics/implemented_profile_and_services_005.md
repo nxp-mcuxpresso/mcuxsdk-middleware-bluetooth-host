@@ -28,7 +28,4 @@ To enable Encrypted Advertising Data (EAD), set the gAppEADSupport_d define TRUE
 
 In case EAD is enabled, the advertising structures of gAdManufacturerSpecificData_c data type will be encrypted and transmitted over the air as gAdEncryptedAdvertisingData_c data type structures. On the receiver side, they will be decrypted and printed under the “Decrypted data :” text to mark them as EAD. This applies for extended advertising, periodic advertising, PAWR subevent data or responses. 
 
-**Note:** For KW45/K32W1 platforms, the PAWR usage requires the experimental NBU image from middleware\wireless\ble_controller\bin to be downloaded. Also the lib_ble_host_central_cm33_x.a from the middleware\wireless\bluetooth\host\lib should be replaced with the lib_ble_OPT_host_cm33_x.a from the middleware\wireless\bluetooth\host\lib_exp.
-
 **Parent topic:**[Low-power extended advertising Peripheral and Central](../topics/low-power_extended_advertising_peripheral_and_exte.md)
-

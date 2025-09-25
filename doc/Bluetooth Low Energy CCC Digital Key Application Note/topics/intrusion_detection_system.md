@@ -9,8 +9,5 @@ The IDS feature is supported on the following platforms:
 
 To enable IDS, modify the Digital Key Car Anchor as per the steps listed below:
 
--   Update the application project so that it uses the experimental Bluetooth LE Host library path: `middleware/wireless/bluetooth/host/lib_exp/`.
 -   In `app_preinclude.h` file, set `gIntrusionDetectionSystem_d` to `TRUE`.
-
-
 
