@@ -44,6 +44,20 @@ out of gHandoverMonitorPacketNumberFilter_c events */
 #define gHandoverMonitorPacketNumberFilter_c        30U
 #endif /* gHandoverMonitorPacketNumberFilter_c */
 
+/*! Threshold for the invalid number of anchor monitor events before connection
+handover is aborted. Anchor search for connection handover is performed while the
+TX is suspended, because of this the threshold value should be chosen carefully
+to avoid the peer device being disconnected in case anchor search fails
+constantly. */
+#ifndef gHandoverAnchorSearchThreshold_c
+#define gHandoverAnchorSearchThreshold_c                0U
+#endif /* gHandoverAnchorSearchThreshold_c */
+
+/* Default value for the ucNbReports parameter used for Anchor Search */
+#ifndef gHandoverAnchorSearchIntervals_c
+#define gHandoverAnchorSearchIntervals_c                0U
+#endif /* gHandoverAnchorSearchIntervals_c */
+
 #define gHandoverCommandsOpGroup_c                      0xDD
 
 /* Handover commands identifier */

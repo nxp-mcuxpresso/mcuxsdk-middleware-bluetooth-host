@@ -115,6 +115,7 @@ static uint16_t mHandoverConnHandle = gInvalidConnectionHandle_c;
 static appHandoverState_t mAppHandoverState = gIdle_c;
 static appTimeSyncState_t mAppTimeSyncState = gTimeSyncIdle_c;
 static bool_t mContinuousAnchorMonitoring = FALSE;
+static uint8_t mHandoverAnchorSearchThreshold = gHandoverAnchorSearchThreshold_c;
 
 #if defined(gA2BEnabled_d) && (gA2BEnabled_d > 0U)
 static appHandoverPeerDeviceData_t maPeerDeviceInfo[gMaxBondedDevices_c];
@@ -510,6 +511,7 @@ void AppHandover_ProcessA2ACommand
                 if (result == gBleSuccess_c)
                 {
 #endif /* defined(gA2BEnabled_d) && (gA2BEnabled_d > 0U) */
+                    mHandoverAnchorSearchThreshold = gHandoverAnchorSearchThreshold_c;
                     result = Gap_HandoverAnchorSearchStart(&searchParams);
 #if defined(gA2BEnabled_d) && (gA2BEnabled_d > 0U)
                 }
@@ -961,6 +963,13 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
             {
                 if ((pGenericEvent->eventData.handoverAnchorMonitor.statusRemote & gHandoverAnchorMonitorStatusRssi_c) == 0U)
                 {
+                    if ((pGenericEvent->eventData.handoverAnchorMonitor.ucNbReports != 1U) &&
+                        (mHandoverAnchorSearchThreshold > 0U))
+                    {
+                        mHandoverAnchorSearchThreshold--;
+                        break;
+                    }
+
                     error = mAppHandover_AnchorSearchFailedToSync_c;
                     result = gBleUnexpectedError_c;
                 }
@@ -1295,6 +1304,11 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
                         maAppMonitorData[deviceId].monitorConnHandle = gMonitorConnectionHandlePending;
                     }
                     mAppHandoverState = gIdle_c;
+                }
+                else
+                {
+                    /* Default value for the Anchor Search ucNbReports parameter */
+                    buf[47] = gHandoverAnchorSearchIntervals_c;
                 }
                 
                 notifyRemoteDevice(gHandoverAnchorStartSearchCommandOpCode_c, gHandoverAnchorStartSearchCommandLen_c, buf);
