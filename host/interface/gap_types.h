@@ -469,11 +469,11 @@ typedef struct {
 typedef uint8_t gapKeypressNotification_t;
 typedef enum gapKeypressNotification_tag
 {
-    gKnPasskeyEntryStarted_c,   /*!< Start of the Passkey Entry. */
-    gKnPasskeyDigitStarted_c,   /*!< Digit entered. */
-    gKnPasskeyDigitErased_c,    /*!< Digit erased. */
-    gKnPasskeyCleared_c,        /*!< Passkey cleared. */
-    gKnPasskeyEntryCompleted_c  /*!< Passkey Entry completed. */
+    gKnPasskeyEntryStarted_c    = 0x00U,   /*!< Start of the Passkey Entry. */
+    gKnPasskeyDigitStarted_c    = 0x01U,   /*!< Digit entered. */
+    gKnPasskeyDigitErased_c     = 0x02U,   /*!< Digit erased. */
+    gKnPasskeyCleared_c         = 0x03U,   /*!< Passkey cleared. */
+    gKnPasskeyEntryCompleted_c  = 0x04U    /*!< Passkey Entry completed. */
 } gapKeypressNotification_tag;
 
 /*! List of Attribute Handles for authorization lists. */
@@ -515,10 +515,10 @@ typedef uint8_t gapAuthenticationRejectReason_t;
 
 /*! Scan Mode options; used as parameter for Gap_SetScanMode. */
 typedef enum {
-    gDefaultScan_c,         /*!< Reports all scanned devices to the application. */
-    gLimitedDiscovery_c,    /*!< Reports only devices in Limited Discoverable Mode, i.e., containing the Flags AD with the LE Limited Discoverable Flag set. */
-    gGeneralDiscovery_c,    /*!< Reports only devices in General Discoverable Mode, i.e., containing the Flags AD with the LE General Discoverable Flag set. */
-    gAutoConnect_c          /*!< Automatically connects with devices with known addresses and does not report any scanned device to the application. */
+    gDefaultScan_c       = 0x00U,   /*!< Reports all scanned devices to the application. */
+    gLimitedDiscovery_c  = 0x01U,   /*!< Reports only devices in Limited Discoverable Mode, i.e., containing the Flags AD with the LE Limited Discoverable Flag set. */
+    gGeneralDiscovery_c  = 0x02U,   /*!< Reports only devices in General Discoverable Mode, i.e., containing the Flags AD with the LE General Discoverable Flag set. */
+    gAutoConnect_c       = 0x03U    /*!< Automatically connects with devices with known addresses and does not report any scanned device to the application. */
 } gapScanMode_t;
 
 /*! Advertising Channel Map flags - setting a bit activates advertising on the respective channel. */
@@ -1057,14 +1057,14 @@ typedef enum
 
 /*! Advertising event type enumeration, as contained in the gapAdvertisingEvent_t. */
 typedef enum {
-    gAdvertisingStateChanged_c,         /*!< Event received when advertising has been successfully enabled or disabled. */
-    gAdvertisingCommandFailed_c,        /*!< Event received when advertising could not be enabled or disabled. Reason contained in gapAdvertisingEvent_t.eventData.failReason. */
+    gAdvertisingStateChanged_c    = 0x00U,      /*!< Event received when advertising has been successfully enabled or disabled. */
+    gAdvertisingCommandFailed_c   = 0x01U,      /*!< Event received when advertising could not be enabled or disabled. Reason contained in gapAdvertisingEvent_t.eventData.failReason. */
     /* BLE 5.0: Advertising extensions */
-    gExtAdvertisingStateChanged_c,      /*!< Event received when extended advertising has been successfully enabled or disabled. */
-    gAdvertisingSetTerminated_c,        /*!< Event received when advertising in a given advertising set has stopped. */
-    gExtScanNotification_c,             /*!< Event indicates that a SCAN_REQ PDU or an AUX_SCAN_REQ PDU has been received by the extended advertiser. */
-    gPerAdvSubeventDataRequest_c,       /*!< Event received when doing PAWR. */
-    gPerAdvResponse_c,                  /*!< Periodic Advertising Response. */
+    gExtAdvertisingStateChanged_c = 0x02U,      /*!< Event received when extended advertising has been successfully enabled or disabled. */
+    gAdvertisingSetTerminated_c   = 0x03U,      /*!< Event received when advertising in a given advertising set has stopped. */
+    gExtScanNotification_c        = 0x04U,      /*!< Event indicates that a SCAN_REQ PDU or an AUX_SCAN_REQ PDU has been received by the extended advertiser. */
+    gPerAdvSubeventDataRequest_c  = 0x05U,      /*!< Event received when doing PAWR. */
+    gPerAdvResponse_c             = 0x06U,      /*!< Periodic Advertising Response. */
 } gapAdvertisingEventType_t;
 
 typedef struct {
@@ -1115,18 +1115,18 @@ typedef struct {
 
 /*! Scanning event type enumeration, as contained in the gapScanningEvent_t. */
 typedef enum {
-    gScanStateChanged_c,    /*!< Event received when scanning had been successfully enabled or disabled, or a Scan duration time-out has occurred.*/
-    gScanCommandFailed_c,   /*!< Event received when scanning could not be enabled or disabled. Reason contained in gapScanningEvent_t.eventData.failReason. */
-    gDeviceScanned_c,       /*!< Event received when an advertising device has been scanned. Device data contained in gapScanningEvent_t.eventData.scannedDevice. */
+    gScanStateChanged_c               = 0x00U,   /*!< Event received when scanning had been successfully enabled or disabled, or a Scan duration time-out has occurred.*/
+    gScanCommandFailed_c              = 0x01U,   /*!< Event received when scanning could not be enabled or disabled. Reason contained in gapScanningEvent_t.eventData.failReason. */
+    gDeviceScanned_c                  = 0x02U,   /*!< Event received when an advertising device has been scanned. Device data contained in gapScanningEvent_t.eventData.scannedDevice. */
     /* BLE 5.0: Advertising extensions */
-    gExtDeviceScanned_c,           /*!< Event received when an advertising device has been scanned. Device data contained in gapScanningEvent_t.eventData.extScannedDevice. */
-    gPeriodicDeviceScanned_c,      /*!< Event received when an Periodic advertising device has been scanned. Device data contained in gapScanningEvent_t.eventData.periodicScannedDevice. */
-    gPeriodicDeviceScannedV2_c,    /*!< Event received when an Periodic advertising device has been scanned. Device data contained in gapScanningEvent_t.eventData.periodicScannedDeviceV2. */
-    gPeriodicAdvSyncEstablished_c, /*!< Event received when a sync with a periodic advertiser was established. */
-    gPeriodicAdvSyncLost_c,        /*!< Event received when a sync with a periodic advertiser have been lost. */
-    gPeriodicAdvSyncTerminated_c,  /*!< Event received when a sync with a periodic advertiser have been terminated. */
+    gExtDeviceScanned_c               = 0x03U,   /*!< Event received when an advertising device has been scanned. Device data contained in gapScanningEvent_t.eventData.extScannedDevice. */
+    gPeriodicDeviceScanned_c          = 0x04U,   /*!< Event received when an Periodic advertising device has been scanned. Device data contained in gapScanningEvent_t.eventData.periodicScannedDevice. */
+    gPeriodicDeviceScannedV2_c        = 0x05U,   /*!< Event received when an Periodic advertising device has been scanned. Device data contained in gapScanningEvent_t.eventData.periodicScannedDeviceV2. */
+    gPeriodicAdvSyncEstablished_c     = 0x06U,   /*!< Event received when a sync with a periodic advertiser was established. */
+    gPeriodicAdvSyncLost_c            = 0x07U,   /*!< Event received when a sync with a periodic advertiser have been lost. */
+    gPeriodicAdvSyncTerminated_c      = 0x08U,   /*!< Event received when a sync with a periodic advertiser have been terminated. */
     /* BLE 5.1 */
-    gConnectionlessIqReportReceived_c,      /*!< Event received when the Controller has reported IQ information from the CTE of a received advertising packet */
+    gConnectionlessIqReportReceived_c = 0x09U,   /*!< Event received when the Controller has reported IQ information from the CTE of a received advertising packet */
 } gapScanningEventType_t;
 
 /*! Scanned device information structure, obtained from LE Advertising Reports. */

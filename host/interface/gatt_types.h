@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2021-2023 NXP
+* Copyright 2016-2019, 2021-2023, 2025 NXP
 *
 *
 * \file
@@ -114,12 +114,8 @@ typedef enum {
     gGattProcWriteCharacteristicValue_c             = 0x0AU, /*!< Characteristic Writing */
     gGattProcReadCharacteristicDescriptor_c         = 0x0BU, /*!< Reading Characteristic Descriptors */
     gGattProcWriteCharacteristicDescriptor_c        = 0x0CU, /*!< Writing Characteristic Descriptors */
-#if defined(gBLE51_d) && (gBLE51_d == 1U)
-#if defined(gGattCaching_d) && (gGattCaching_d == 1U)
     gGattProcUpdateDatabaseCopy_c                   = 0x0DU, /*!< Inform the application to update its database copy */
     gGattProcSignalServiceDiscoveryComplete_c       = 0x0EU, /*!< Inform the application that service discovery has finished */
-#endif /* gGattCaching_d */
-#endif /* gBLE51_d */
     gGattProcReadMultipleVarLengthCharValues_c      = 0x0FU, /*!< Read Multiple Variable Length Characteristic Values */
 } gattProcedureType_t;
 

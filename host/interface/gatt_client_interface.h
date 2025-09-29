@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2018, 2020-2023 NXP
+* Copyright 2016-2018, 2020-2023, 2025 NXP
 *
 *
 * \file
@@ -94,8 +94,8 @@
 
 /*! GATT Client Procedure Result type */
 typedef enum {
-    gGattProcSuccess_c,     /*!< The procedure was completed successfully. */
-    gGattProcError_c        /*!< The procedure was terminated due to an error. */
+    gGattProcSuccess_c  = 0x00U,     /*!< The procedure was completed successfully. */
+    gGattProcError_c    = 0x01U      /*!< The procedure was terminated due to an error. */
 } gattProcedureResult_t;
 
 /*! GATT Client Procedure Callback type */

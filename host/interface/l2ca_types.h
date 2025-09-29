@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2021-2023 NXP
+* Copyright 2016-2019, 2021-2023, 2025 NXP
 *
 *
 * \file
@@ -105,19 +105,19 @@
 ************************************************************************************/
 typedef enum
 {
-    gL2ca_LePsmConnectRequest_c,
-    gL2ca_LePsmConnectionComplete_c,
-    gL2ca_LePsmDisconnectNotification_c,
-    gL2ca_NoPeerCredits_c,
-    gL2ca_LowPeerCredits_c,
-    gL2ca_LocalCreditsNotification_c,
-    gL2ca_Error_c,
-    gL2ca_ChannelStatusNotification_c,
-    gL2ca_LePsmEnhancedConnectRequest_c,
-    gL2ca_LePsmEnhancedConnectionComplete_c,
-    gL2ca_EnhancedReconfigureRequest_c,
-    gL2ca_EnhancedReconfigureResponse_c,
-    gL2ca_HandoverConnectionComplete_c,
+    gL2ca_LePsmConnectRequest_c                 = 0x00U,
+    gL2ca_LePsmConnectionComplete_c             = 0x01U,
+    gL2ca_LePsmDisconnectNotification_c         = 0x02U,
+    gL2ca_NoPeerCredits_c                       = 0x03U,
+    gL2ca_LowPeerCredits_c                      = 0x04U,
+    gL2ca_LocalCreditsNotification_c            = 0x05U,
+    gL2ca_Error_c                               = 0x06U,
+    gL2ca_ChannelStatusNotification_c           = 0x07U,
+    gL2ca_LePsmEnhancedConnectRequest_c         = 0x08U,
+    gL2ca_LePsmEnhancedConnectionComplete_c     = 0x09U,
+    gL2ca_EnhancedReconfigureRequest_c          = 0x0AU,
+    gL2ca_EnhancedReconfigureResponse_c         = 0x0BU,
+    gL2ca_HandoverConnectionComplete_c          = 0x0CU,
 } l2capControlMessageType_t;
 
 /************************************************************************************

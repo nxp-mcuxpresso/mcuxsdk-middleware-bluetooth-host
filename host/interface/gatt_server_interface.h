@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2023 NXP
+* Copyright 2016-2023, 2025 NXP
 *
 *
 * \file
@@ -77,11 +77,11 @@ typedef struct {
 
 /*! Server-initiated procedure type enumeration */
 typedef enum {
-    gSendAttributeWrittenStatus_c,      /*!< Procedure initiated by GattServer_SendAttributeWrittenStatus. */
-    gSendAttributeReadStatus_c,         /*!< Procedure initiated by GattServer_SendAttributeReadStatus. */
-    gSendNotification_c,                /*!< Procedure initiated by GattServer_SendNotification. */
-    gSendIndication_c,                  /*!< Procedure initiated by GattServer_SendIndication. */
-    gSendMultipleValNotification_c      /*!< Procedure initiated by GattServer_SendMultipleHandleValueNotification. */
+    gSendAttributeWrittenStatus_c  = 0x00U,      /*!< Procedure initiated by GattServer_SendAttributeWrittenStatus. */
+    gSendAttributeReadStatus_c     = 0x01U,      /*!< Procedure initiated by GattServer_SendAttributeReadStatus. */
+    gSendNotification_c            = 0x02U,      /*!< Procedure initiated by GattServer_SendNotification. */
+    gSendIndication_c              = 0x03U,      /*!< Procedure initiated by GattServer_SendIndication. */
+    gSendMultipleValNotification_c = 0x04U       /*!< Procedure initiated by GattServer_SendMultipleHandleValueNotification. */
 } gattServerProcedureType_t;
 
 /*! Server-initiated procedure error structure */

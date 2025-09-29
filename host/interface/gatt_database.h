@@ -91,9 +91,9 @@ typedef uint8_t gattAttributePermissionsBitFields_t;
 
 /*! Attribute access type */
 typedef enum {
-    gAccessRead_c,      /*< Attempting to read the attribute. */
-    gAccessWrite_c,     /*< Attempting to write the attribute. */
-    gAccessNotify_c     /*< Attempting to notify the attribute. */
+    gAccessRead_c    = 0x00U,      /*< Attempting to read the attribute. */
+    gAccessWrite_c   = 0x01U,     /*< Attempting to write the attribute. */
+    gAccessNotify_c  = 0x02U      /*< Attempting to notify the attribute. */
 } gattDbAccessType_t;
 
 /************************************************************************************

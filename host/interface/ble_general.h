@@ -161,8 +161,6 @@
 
 #define gSkdSize_c                          (16U)       /*!< LL Session Key Diversfier size */
 
-#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d==TRUE)
-
 #define gHCICSChannelMapSize                (10U)      /*!< CS Channel Map size */
 
 #define gCSReflectorTableSize_c             (72U)      /*!< CS reflector table size size */
@@ -180,8 +178,6 @@
 #define gCSMaxSubeventLen_c                 (3U)       /*!< CS maximum duration for each CS sub-event in microseconds */
 
 #define gCsAccessAdressSize_c               (4U)       /*!< CS Access Address used in SYNC packets */
-
-#endif
 
 /* Controller values for the PHYs to be used by Handover Time Sync */
 #define LL_PHY_1M                       (0U)
@@ -803,7 +799,7 @@ typedef enum
     /* BLE v5.1 */
     gLePeriodicAdvSyncTransferSender_c         = 1U << (3U * 8U + 0U), /* 24 */
     gLePeriodicAdvSyncTransferReceiver_c       = 1U << (3U * 8U + 1U), /* 25 */
-	/* BLE v5.2 */
+    /* BLE v5.2 */
     gLePowerControlRequest1_c                  = (uint64_t)1 << (4U * 8U + 1U), /* 33 */
     gLePowerControlRequest2_c                  = (uint64_t)1 << (4U * 8U + 2U), /* 34 */
     gLePathLossMonitoring_c                    = (uint64_t)1 << (4U * 8U + 3U), /* 35 */
@@ -813,9 +809,7 @@ typedef enum
     gLePawrAdvertiser_c                         = (uint64_t)1 << (5U * 8U + 3U), /* 43 */
     gLePawrScanner_c                            = (uint64_t)1 << (5U * 8U + 4U), /* 44 */
 
-#if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)
     gLeDecisionBasedAdvertisingFiltering_c     = (uint64_t)1 << (5U * 8U + 2U), /* 42 */
-#endif /* gBLE60_DecisionBasedAdvertisingFilteringSupport_d  */
 } leSupportedFeatures_tag;
 
 /*! Generic Event Type */
@@ -1044,7 +1038,7 @@ typedef enum {
     gLeSetPeriodicAdvResponseData_c = 0x86U,
     gLeSetPeriodicSyncSubevent_c = 0x87U,
     gLePeriodicAdvResponseReport_c = 0x88U,
-	gHandoverApplyConnectionUpdateProcedure_c = 0x89U,  /*!< An error occurred during the Handover Apply Connection Update procedure */
+    gHandoverApplyConnectionUpdateProcedure_c = 0x89U,  /*!< An error occurred during the Handover Apply Connection Update procedure */
     gVendorUnitaryTest_c = 0x8AU,                   /*!< An error occurred during the Vendor Unitary Test procedure */
     gSetDataRelatedAddressChanges_c = 0x8BU,        /*!< An error occurred during the Set Data Related Address procedure */
 } gapInternalErrorSource_t;
@@ -1099,9 +1093,9 @@ typedef enum  {
 /*! Phy Event Type */
 typedef enum
 {
-    gPhySetDefaultComplete_c,               /*!< Gap_LeSetPhy default mode was successful */
-    gPhyRead_c,                             /*!< Gap_LeReadPhy return values */
-    gPhyUpdateComplete_c,                   /*!< Gap_LeSetPhy return values for a connection or an update occurred */
+    gPhySetDefaultComplete_c  = 0x00U,               /*!< Gap_LeSetPhy default mode was successful */
+    gPhyRead_c                = 0x01U,               /*!< Gap_LeReadPhy return values */
+    gPhyUpdateComplete_c      = 0x02U,               /*!< Gap_LeSetPhy return values for a connection or an update occurred */
 } gapPhyEventType_t;
 
 /*! Phy Event */
@@ -1741,10 +1735,10 @@ typedef enum
 
 typedef enum
 {
-   gAdvIndexAscend_c = 0,
-   gAdvIndexDescend_c,
-   gAdvIndexUser_c,
-   gAdvIndexRandom_c,
+   gAdvIndexAscend_c  = 0x00U,
+   gAdvIndexDescend_c = 0x01U,
+   gAdvIndexUser_c    = 0x02U,
+   gAdvIndexRandom_c  = 0x03U,
 } bleAdvIndexType_t;
 /************************************************************************************
 *************************************************************************************
