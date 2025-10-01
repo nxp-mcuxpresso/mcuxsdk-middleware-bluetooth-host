@@ -59,21 +59,21 @@ gapAdvertisingParameters_t gAdvParams = {
 /* Scanning and Advertising Data */
 static uint8_t adData0[1] =  { (gapAdTypeFlags_t)(gLeGeneralDiscoverableMode_c | gBrEdrNotSupported_c) };
 static gapAdStructure_t advScanStruct[3] = {
-  {
-    .length = NumberOfElements(adData0) + 1,
-    .adType = gAdFlags_c,
-    .aData = (uint8_t *)adData0
-  },
-  {
-    .length = NumberOfElements(uuid_service_wireless_uart) + 1,
-    .adType = gAdComplete128bitServiceList_c,
-    .aData = (uint8_t *)uuid_service_wireless_uart
-  },
-  {
-    .adType = gAdShortenedLocalName_c,
-    .length = 7,
-    .aData = (uint8_t*)"NXP_WU"
-  }
+    {
+        .length = NumberOfElements(adData0) + 1,
+        .adType = gAdFlags_c,
+        .aData = (uint8_t *)adData0
+    },
+    {
+        .length = NumberOfElements(uuid_service_wireless_uart) + 1,
+        .adType = gAdComplete128bitServiceList_c,
+        .aData = (uint8_t *)uuid_service_wireless_uart
+    },
+    {
+        .adType = gAdShortenedLocalName_c,
+        .length = 7,
+        .aData = (uint8_t*)"NXP_WU"
+    }
 };
 
 gapAdvertisingData_t gAppAdvertisingData =
