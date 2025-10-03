@@ -157,7 +157,8 @@ typedef enum dkSubEventHeadUnitType_tag {
     gHeadUnitPairingFail_c      = 0x01
 } dkSubEventHeadUnitType_t;
 
-#if !defined (gAppRasDataTransfer_d) || (gAppRasDataTransfer_d == 0U)
+#if (defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)) || \
+    (defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U))
 /* BTCS Ranging Service Payload Types */
 typedef enum btcsMsgId_tag {
     gRangingProcResStart_c          = 0x01,
@@ -214,7 +215,7 @@ typedef PACKED_STRUCT gCsSubEvtContHeaderData_tag {
     uint16_t    startACLConnEvt;
     uint8_t     numStepsReported;
 } gCsSubEvtContHeaderData_t;
-#endif
+#endif /* gAppBtcsClient_d || gAppBtcsServer_d */
 
 /************************************************************************************
 *************************************************************************************
