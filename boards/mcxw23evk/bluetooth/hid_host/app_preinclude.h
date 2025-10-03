@@ -104,13 +104,14 @@
  *   Xcvr Configuration
  ********************************************************************************** */
 
-/* Define the max tx power setting in dBm. Allowed values 0, 7 or 10 */
+/* Define the max tx power setting in dBm. Allowed values 0, 2 or 6 */
 #if !defined(gAppMaxTxPowerDbm_c)
 #define gAppMaxTxPowerDbm_c 0
 #endif /* !defined(gAppMaxTxPowerDbm_c) */
 
-/*! Set maximum transmit power. */
-#define PLATFORM_MAX_TX_POWER_DBM 10U
+#if gAppMaxTxPowerDbm_c > 6
+#error "gAppMaxTxPowerDbm_c 6dBm is the maximum supported"
+#endif
 
 /*! *********************************************************************************
  *     BLE LL Configuration
