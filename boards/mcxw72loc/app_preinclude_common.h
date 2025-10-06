@@ -228,7 +228,21 @@
 
 /* Define the max tx power setting in dBm. Allowed values 0, 7 or 10 */
 #if !defined(gAppMaxTxPowerDbm_c)
-#define gAppMaxTxPowerDbm_c                     0
+#define gAppMaxTxPowerDbm_c    10
+#endif
+
+/* Set the default Tx power in dBm */
+#if !defined(mAdvertisingDefaultTxPower_c)
+#define mAdvertisingDefaultTxPower_c    0
+#endif
+
+/* Set the default Tx power in dBm */
+#if !defined(mConnectionDefaultTxPower_c)
+#define mConnectionDefaultTxPower_c    0
+#endif
+
+#if (mAdvertisingDefaultTxPower_c > gAppMaxTxPowerDbm_c) || (mConnectionDefaultTxPower_c > gAppMaxTxPowerDbm_c)
+#error "Invalid TxPower Configuration"
 #endif
 
  /*! *********************************************************************************

@@ -53,9 +53,6 @@
 
 #define gPasskeyValue_c                         999999
 
-/*! Set the Tx power in dBm */
-#define mAdvertisingDefaultTxPower_c            0
-
 /*! specifies whether the phy update procedure is going to be initiated in connection or not */
 #define gConnInitiatePhyUpdateRequest_c         (0U)
 

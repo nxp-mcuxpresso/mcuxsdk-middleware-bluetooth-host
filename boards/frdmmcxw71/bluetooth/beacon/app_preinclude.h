@@ -43,8 +43,6 @@
 #define gBeaconLargeExtAdvData_c        0
 
 #endif /* gBeaconAE_c */
-/*! Set the Tx power in dBm */
-#define mAdvertisingDefaultTxPower_c    0
 
 /*! Repeated Attempts - Mitigation for pairing attacks */
 #define gRepeatedAttempts_d             0

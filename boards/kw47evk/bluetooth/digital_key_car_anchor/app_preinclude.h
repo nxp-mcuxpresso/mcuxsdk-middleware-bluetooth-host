@@ -47,9 +47,6 @@
 
 #define gPasskeyValue_c                 999999
 
-/*! Set the Tx power in dBm */
-#define mAdvertisingDefaultTxPower_c    0
-
 /* Use a Random Static address as identity address, instead of a Public address */
 #define gRandomStaticAddress_d          1
 

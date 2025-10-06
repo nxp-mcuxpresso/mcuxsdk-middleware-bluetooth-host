@@ -52,9 +52,6 @@
 
 #define gMaxServicesCount_d             6
 
-/*! Set the Tx power in dBm */
-#define mAdvertisingDefaultTxPower_c    0
-
 #define gAppMaxConnections_c            2U
 
 /* Must open an L2CAP channel for each CCC peer */
