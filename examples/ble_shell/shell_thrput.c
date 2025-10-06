@@ -531,7 +531,7 @@ static shell_status_t ShellThr_TestConfig(uint8_t argc, char * argv[], deviceId_
             }
             else
             {
-                if (*pPeerId == gInvalidDeviceId_c)
+                if (*pPeerId >= gAppMaxConnections_c)
                 {
                     /* User must specify the connection for which the throughput config parameters are updated */
                     shell_write("Invalid peer ID!\r\n");
