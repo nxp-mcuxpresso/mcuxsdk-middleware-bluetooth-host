@@ -968,7 +968,7 @@ gapAdvertisingData_t* fsciBleGapAllocAdvertisingDataForBuffer(uint8_t* pBuffer)
     /* Allocate buffer for the advertising data */
     pAdvertisingData = (gapAdvertisingData_t*)MEM_BufferAlloc(advertisingDataSize);
 
-    if(NULL != pAdvertisingData)
+    if((NULL != pAdvertisingData) && (NULL != aDataSizeArray))
     {
          /* Set pointers in gapAdvertisingData_t structure */
         advertisingVars.pAdvertisingDataTemp = (uint8_t*)pAdvertisingData + sizeof(gapAdvertisingData_t);
