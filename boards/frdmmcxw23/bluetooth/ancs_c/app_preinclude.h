@@ -28,7 +28,7 @@
 #define gAppButtonCnt_c                 1
 
 /* Number of LEDs required by the application */
-#define gAppLedCnt_c                    1
+#define gAppLedCnt_c                    2
 
 /*! Enable Debug Console (PRINTF) */
 #define gDebugConsoleEnable_d           0
