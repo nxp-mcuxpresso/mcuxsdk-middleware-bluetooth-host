@@ -65,3 +65,10 @@ The following sections present the steps required for building the *wireless\_UA
 :heading-offset: 1
 ```
 
+```{include} ../topics/building_the_binaries_extended_nbu_iar.md
+:heading-offset: 1
+```
+
+```{include} ../topics/building_the_binaries_extended_nbu_vscode.md
+:heading-offset: 1
+```
