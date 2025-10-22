@@ -630,9 +630,9 @@ void fsciBleGapGetExtAdvertisingParametersFromBuffer(gapExtAdvertisingParameters
     fsciBleGetEnumValueFromBuffer(  pAdvertisingParameters->primaryPHY,                *ppBuffer, gapLePhyMode_t);
     fsciBleGetEnumValueFromBuffer(  pAdvertisingParameters->secondaryPHY,              *ppBuffer, gapLePhyMode_t);
     fsciBleGetUint8ValueFromBuffer( pAdvertisingParameters->secondaryAdvMaxSkip,       *ppBuffer);
-    fsciBleGetBoolValueFromBuffer(  pAdvertisingParameters->enableScanReqNotification, *ppBuffer);
-    pAdvertisingParameters->primaryAdvPhyOptions = gLeCodingNoPreference_c;
-    pAdvertisingParameters->secondaryAdvPhyOptions = gLeCodingNoPreference_c;
+    fsciBleGetBoolValueFromBuffer( pAdvertisingParameters->enableScanReqNotification,  *ppBuffer);
+    fsciBleGetEnumValueFromBuffer( pAdvertisingParameters->primaryAdvPhyOptions,       *ppBuffer, gapLePhyOptionsFlags_t);
+    fsciBleGetEnumValueFromBuffer( pAdvertisingParameters->secondaryAdvPhyOptions,     *ppBuffer, gapLePhyOptionsFlags_t);
 }
 
 void fsciBleGapGetPeriodicAdvSyncReqFromBuffer(gapPeriodicAdvSyncReq_t* pReq, uint8_t** ppBuffer)
@@ -738,6 +738,8 @@ void fsciBleGapGetBufferFromExtAdvertisingParameters(gapExtAdvertisingParameters
     fsciBleGetBufferFromEnumValue(  pAdvertisingParameters->secondaryPHY,              *ppBuffer, gapLePhyMode_t);
     fsciBleGetBufferFromUint8Value( pAdvertisingParameters->secondaryAdvMaxSkip,       *ppBuffer);
     fsciBleGetBufferFromBoolValue(  pAdvertisingParameters->enableScanReqNotification, *ppBuffer);
+    fsciBleGetBufferFromEnumValue(  pAdvertisingParameters->primaryAdvPhyOptions,      *ppBuffer, gapLePhyOptionsFlags_t);
+    fsciBleGetBufferFromEnumValue(  pAdvertisingParameters->secondaryAdvPhyOptions,    *ppBuffer, gapLePhyOptionsFlags_t);
 }
 #endif
 
@@ -2293,10 +2295,15 @@ void fsciBleGapGetBufferFromAutoConnectParams(gapAutoConnectParams_t* pAutoConne
 void fsciBleGapGetBufferFromPerAdvParameters(gapPeriodicAdvParameters_t* pAdvertisingParameters, uint8_t** ppBuffer)
 {
     /* Write gapPeriodicAdvParameters_t fields in buffer */
-    fsciBleGetBufferFromUint8Value( pAdvertisingParameters->handle,          *ppBuffer);
-    fsciBleGetBufferFromBoolValue(  pAdvertisingParameters->addTxPowerInAdv, *ppBuffer);
-    fsciBleGetBufferFromUint16Value(pAdvertisingParameters->minInterval,     *ppBuffer);
-    fsciBleGetBufferFromUint16Value(pAdvertisingParameters->maxInterval,     *ppBuffer);
+    fsciBleGetBufferFromUint8Value( pAdvertisingParameters->handle,              *ppBuffer);
+    fsciBleGetBufferFromBoolValue(  pAdvertisingParameters->addTxPowerInAdv,     *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pAdvertisingParameters->minInterval,         *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pAdvertisingParameters->maxInterval,         *ppBuffer);
+    fsciBleGetBufferFromUint8Value( pAdvertisingParameters->numSubevents,        *ppBuffer);
+    fsciBleGetBufferFromUint8Value( pAdvertisingParameters->subeventInterval,    *ppBuffer);
+    fsciBleGetBufferFromUint8Value( pAdvertisingParameters->responseSlotDelay,   *ppBuffer);
+    fsciBleGetBufferFromUint8Value( pAdvertisingParameters->responseSlotSpacing, *ppBuffer);
+    fsciBleGetBufferFromUint8Value( pAdvertisingParameters->numResponseSlots,    *ppBuffer);
 }
 
 void fsciBleGapGetPeriodicAdvParametersFromBuffer(gapPeriodicAdvParameters_t* pAdvertisingParameters, uint8_t** ppBuffer)
@@ -2306,28 +2313,12 @@ void fsciBleGapGetPeriodicAdvParametersFromBuffer(gapPeriodicAdvParameters_t* pA
     fsciBleGetBoolValueFromBuffer(  pAdvertisingParameters->addTxPowerInAdv, *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pAdvertisingParameters->minInterval,     *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pAdvertisingParameters->maxInterval,     *ppBuffer);
-    pAdvertisingParameters->numSubevents = 0U;
-    pAdvertisingParameters->subeventInterval = 0U;
-    pAdvertisingParameters->responseSlotDelay = 0U;
-    pAdvertisingParameters->responseSlotSpacing = 0U;
-    pAdvertisingParameters->numResponseSlots = 0U;
-}
-
-#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
-void fsciBleGapGetPeriodicAdvParametersV2FromBuffer(gapPeriodicAdvParameters_t* pAdvertisingParameters, uint8_t** ppBuffer)
-{
-    /* Read gapPeriodicAdvParameters_t fields from buffer */
-    fsciBleGetUint8ValueFromBuffer( pAdvertisingParameters->handle,             *ppBuffer);
-    fsciBleGetUint16ValueFromBuffer(pAdvertisingParameters->minInterval,        *ppBuffer);
-    fsciBleGetUint16ValueFromBuffer(pAdvertisingParameters->maxInterval,        *ppBuffer);
-    fsciBleGetUint16ValueFromBuffer(pAdvertisingParameters->addTxPowerInAdv,    *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pAdvertisingParameters->numSubevents,        *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pAdvertisingParameters->subeventInterval,    *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pAdvertisingParameters->responseSlotDelay,   *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pAdvertisingParameters->responseSlotSpacing, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pAdvertisingParameters->numResponseSlots,    *ppBuffer);
 }
-#endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif
 
 /************************************************************************************

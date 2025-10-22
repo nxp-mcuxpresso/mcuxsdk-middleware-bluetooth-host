@@ -82,7 +82,7 @@
         gcBleDeviceAddressSize_c + sizeof(gapAdvertisingChannelMapFlags_t)                +   \
         sizeof(gapAdvertisingFilterPolicy_t) + sizeof(bleAdvRequestProperties_t)          +   \
         sizeof(int8_t) + sizeof(gapLePhyMode_t) + sizeof(gapLePhyMode_t) + sizeof(uint8_t)+   \
-        sizeof(bool_t))
+        sizeof(bool_t) + sizeof(uint8_t) + sizeof(uint8_t))
 
 #define fsciBleGapGetScanningParametersBufferSize(pScanningParameters)  \
         (sizeof(bleScanType_t) + sizeof(uint16_t) + sizeof(uint16_t) +  \
@@ -917,14 +917,6 @@ void fsciBleGapGetPeriodicAdvParametersFromBuffer
     gapPeriodicAdvParameters_t*     pAdvertisingParameters,
     uint8_t**                       ppBuffer
 );
-
-#if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
-void fsciBleGapGetPeriodicAdvParametersV2FromBuffer
-(
-    gapPeriodicAdvParameters_t*   pAdvertisingParameters,
-    uint8_t**                       ppBuffer
-);
-#endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif
 
 #if defined(gBLE52_d) && (gBLE52_d == TRUE) && defined(gEATT_d) && (gEATT_d == TRUE)

@@ -3077,7 +3077,7 @@ void fsciBleGapSetPeriodicAdvParametersCmdMonitor(gapPeriodicAdvParameters_t* pA
     {
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapCmdSetPeriodicAdvParametersOpCode_c,
-                                                  sizeof(uint8_t) + sizeof(bool_t) +  2U * sizeof(uint16_t));
+                                                  sizeof(uint8_t) + sizeof(bool_t) +  2U * sizeof(uint16_t) + 5U * sizeof(uint8_t));
 
         if(NULL != pClientPacket)
         {

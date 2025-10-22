@@ -54,7 +54,7 @@ typedef enum
     gBleGapCmdSetDecisionInstructionsOpCode_c                                   = 0x03,                     /*! Sets up the Decision Instructions */
 
     /* BLE 5.4 */
-    gBleGapCmdSetExtAdvertisingParametersV2OpCode_c                             = 0x04,                     /*! Gap_SetExtAdvertisingParametersV2 command operation code */
+    /*!                                                                         = 0x04,                         Not Used / Free to use */
 
     gBleUnusedCmdOpCode_c                                                       = 0x05,                     /*! Not Used / Free to use */
     gBleGapCmdEcdhP256ComputeA2BKeyOpCode_c                                     = 0x06,                     /*! ECDH_P256_ComputeA2BKey command operation code */
@@ -70,7 +70,7 @@ typedef enum
     gBleGapCmdSetPeriodicAdvertisingResponseDataOpCode_c                        = 0x0F,                     /*! Gap_SetPeriodicAdvResponseData command operation code */
     gBleGapCmdSetPeriodicSyncSubeventOpCode_c                                   = 0x10,                     /*! Gap_SetPeriodicSyncSubevent command operation code */
     gBleGapCmdConnectV2OpCode_c                                                 = 0x11,                     /*! Gap_ConnectFromPawr command operation code */
-    gBleGapCmdSetPeriodicAdvParametersV2OpCode_c                                = 0x12,                     /*! Gap_SetPeriodicAdvParametersV2 command operation code */
+    /*!                                                                         = 0x12,                         Not Used / Free to use */
     gBleCtrlCmdGetTimestampExOpCode_c                                           = 0x13,                     /*! Controller_GetTimestampEx command operation code */
     gBleGapCmdSetDataRelatedAddressChanges_c                                    = 0x14,                     /*! Gap_SetDataRelatedAddress command operation code */
     gBleGapCmdSetBondedDeviceNameOpCode_c                                       = 0x15,                     /*! Gap_SetBondedDeviceName command operation code */

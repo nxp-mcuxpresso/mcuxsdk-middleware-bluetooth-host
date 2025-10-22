@@ -218,11 +218,6 @@ void HandleGapCmdSetDecisionInstructionsOpCode
 #endif /* gBLE60_DecisionBasedAdvertisingFilteringSupport_d */
 
 #if defined(gBLE54_d) && (gBLE54_d == 1U)
-void HandleGapCmdSetExtAdvertisingParametersV2OpCode
-(
-    uint8_t *pBuffer,
-    uint32_t fsciInterfaceId
-);
 #if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
 void HandleGapCmdSetPeriodicAdvertisingSubeventDataOpCode
 (
@@ -240,11 +235,6 @@ void HandleGapCmdSetPeriodicSyncSubeventOpCode
     uint32_t fsciInterfaceId
 );
 void HandleGapCmdConnectV2OpCode
-(
-    uint8_t *pBuffer,
-    uint32_t fsciInterfaceId
-);
-void HandleGapCmdSetPeriodicAdvParametersV2OpCode
 (
     uint8_t *pBuffer,
     uint32_t fsciInterfaceId
@@ -326,11 +316,7 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
     NULL,                                                                       /* reserved: 0x02 */
     NULL,                                                                       /* reserved: 0x03 */
 #endif /* gBLE60_DecisionBasedAdvertisingFilteringSupport_d */
-#if defined(gBLE54_d) && (gBLE54_d == 1U)
-    HandleGapCmdSetExtAdvertisingParametersV2OpCode,                            /* = 0x04, gBleGapCmdSetExtAdvertisingParametersV2OpCode_c */
-#else
-    NULL,
-#endif /* defined(gBLE54_d) && (gBLE54_d == 1U) */
+    NULL,                                                                       /* = 0x04, Not Used / Free to use */
     NULL,                                                                       /* = 0x05 Not Used / Free to use */
 #if defined(gA2BSupportEnabled_d) && (gA2BSupportEnabled_d == TRUE)
     HandleGapCmdEcdhP256ComputeA2BKey,                                          /* = 0x06 gBleGapCmdEcdhP256ComputeA2BKeyOpCode_c */
@@ -353,14 +339,13 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
     HandleGapCmdSetPeriodicAdvertisingResponseDataOpCode,                       /* = 0x0F, gBleGapCmdSetPeriodicAdvertisingResponseDataOpCode_c */
     HandleGapCmdSetPeriodicSyncSubeventOpCode,                                  /* = 0x10, gBleGapCmdSetPeriodicSyncSubeventOpCode_c */
     HandleGapCmdConnectV2OpCode,                                                /* = 0x11, gBleGapCmdConnectV2OpCode_c */
-    HandleGapCmdSetPeriodicAdvParametersV2OpCode,                               /* = 0x12, gBleGapCmdSetPeriodicAdvParametersV2OpCode_c */
 #else /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
     NULL,
     NULL,
     NULL,
     NULL,
-    NULL,
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
+    NULL,                                                                       /* = 0x12, Not Used / Free to use */
     HandleCtrlCmdGetTimestampExOpCode,                                          /* = 0x13, gBleCtrlCmdGetTimestampExOpCode_c */
     HandleGapCmdSetDataRelatedAddressChanges,                                   /* = 0x14, gBleGapCmdSetDataRelatedAddressChanges_c */
     HandleGapCmdSetBondedDeviceNameOpCode,                                      /* = 0x15, gBleGapCmdSetBondedDeviceNameOpCode_c */
@@ -1867,52 +1852,6 @@ void HandleGapCmdSetDecisionInstructionsOpCode(uint8_t *pBuffer, uint32_t fsciIn
 #endif /* gBLE60_DecisionBasedAdvertisingFilteringSupport_d */
 
 #if defined(gBLE54_d) && (gBLE54_d == 1U)
-/*! *********************************************************************************
-*\private
-*\fn           void HandleGapCmdSetExtAdvertisingParametersV2OpCode(
-*                                                       uint8_t *pBuffer,
-*                                                       uint32_t fsciInterfaceId)
-*\brief        Handler for the gBleGapCmdSetExtAdvertisingParametersV2OpCode_c opCode.
-*
-*\param  [in]  pBuffer              Pointer to the command parameters.
-*\param  [in]  fsciInterfaceId      FSCI interface identifier.
-*
-*\retval       void.
-********************************************************************************** */
-void HandleGapCmdSetExtAdvertisingParametersV2OpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
-{
-    gapExtAdvertisingParameters_t advertisingParameters = {0};
-    union
-    {
-        uint8_t fsciPhyOption;
-        gapLePhyOptionsFlags_t gapPhyOption;
-    }advPhyOptions = {0U};
-
-    /* Get advertising parameters from buffer */
-    /* Read gapExtAdvertisingParameters_t fields from buffer */
-    fsciBleGetUint8ValueFromBuffer( advertisingParameters.SID,                       pBuffer);
-    fsciBleGetUint8ValueFromBuffer( advertisingParameters.handle,                    pBuffer);
-    fsciBleGetUint32ValueFromBuffer(advertisingParameters.minInterval,               pBuffer);
-    fsciBleGetUint32ValueFromBuffer(advertisingParameters.maxInterval,               pBuffer);
-    fsciBleGetEnumValueFromBuffer(  advertisingParameters.ownAddressType,            pBuffer, bleAddressType_t);
-    fsciBleGetAddressFromBuffer(    advertisingParameters.ownRandomAddr,             pBuffer);
-    fsciBleGetEnumValueFromBuffer(  advertisingParameters.peerAddressType,           pBuffer, bleAddressType_t);
-    fsciBleGetAddressFromBuffer(    advertisingParameters.peerAddress,               pBuffer);
-    fsciBleGetEnumValueFromBuffer(  advertisingParameters.channelMap,                pBuffer, gapAdvertisingChannelMapFlags_t);
-    fsciBleGetEnumValueFromBuffer(  advertisingParameters.filterPolicy,              pBuffer, gapAdvertisingFilterPolicy_t);
-    fsciBleGetEnumValueFromBuffer(  advertisingParameters.extAdvProperties,          pBuffer, bleAdvRequestProperties_t);
-    fsciBleGetUint8ValueFromBufferSigned( advertisingParameters.txPower,             pBuffer);
-    fsciBleGetEnumValueFromBuffer(  advertisingParameters.primaryPHY,                pBuffer, gapLePhyMode_t);
-    fsciBleGetEnumValueFromBuffer(  advertisingParameters.secondaryPHY,              pBuffer, gapLePhyMode_t);
-    fsciBleGetUint8ValueFromBuffer( advertisingParameters.secondaryAdvMaxSkip,       pBuffer);
-    fsciBleGetBoolValueFromBuffer(  advertisingParameters.enableScanReqNotification, pBuffer);
-    fsciBleGetUint8ValueFromBuffer( advPhyOptions.fsciPhyOption,                     pBuffer);
-    advertisingParameters.primaryAdvPhyOptions = advPhyOptions.gapPhyOption;
-    fsciBleGetUint8ValueFromBuffer( advPhyOptions.fsciPhyOption,                     pBuffer);
-    advertisingParameters.secondaryAdvPhyOptions = advPhyOptions.gapPhyOption;
-
-    fsciBleGap2CallApiFunction(Gap_SetExtAdvertisingParameters(&advertisingParameters));
-}
 #if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
 /*! *********************************************************************************
 *\private
@@ -2144,28 +2083,6 @@ void HandleGapCmdConnectV2OpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
     fsciBleGapGetConnectionRequestParametersV2FromBuffer(&connectionRequestParameters, &pBuffer);
 
     fsciBleGap2CallApiFunction(Gap_ConnectFromPawr(&connectionRequestParameters, fsciBleGapCallbacks.connectionCallback));
-}
-
-/*! *********************************************************************************
-*\private
-*\fn           void HandleGapCmdSetPeriodicAdvParametersV2OpCode(
-*                                                       uint8_t *pBuffer,
-*                                                       uint32_t fsciInterfaceId)
-*\brief        Handler for the gBleGapCmdSetPeriodicAdvParametersV2OpCode_c opCode.
-*
-*\param  [in]  pBuffer              Pointer to the command parameters.
-*\param  [in]  fsciInterfaceId      FSCI interface identifier.
-*
-*\retval       void.
-********************************************************************************** */
-void HandleGapCmdSetPeriodicAdvParametersV2OpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
-{
-    gapPeriodicAdvParameters_t advertisingParameters = {0};
-
-    /* Get advertising parameters from buffer */
-    fsciBleGapGetPeriodicAdvParametersV2FromBuffer(&advertisingParameters, &pBuffer);
-
-    fsciBleGap2CallApiFunction(Gap_SetPeriodicAdvParameters(&advertisingParameters));
 }
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif /* defined(gBLE54_d) && (gBLE54_d == 1U) */
