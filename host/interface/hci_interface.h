@@ -1470,6 +1470,15 @@ typedef struct hciLeRemoveDeviceFromPeriodicAdvListCommand_tag
 
 /*! OCF 0x004A */
 /*! HCI_LE_Read_Periodic_Advertiser_List_Size - No parameters */
+
+/*! OCF 0x00B3 */
+/*! HCI_LE_Periodic_Adv_Update_Sync */
+typedef struct hciVendorLePeriodicAdvUpdateSyncCommand_tag
+{
+    uint16_t syncHandle;
+    uint16_t skip;
+    uint16_t syncTimeout;
+} hciVendorLePeriodicAdvUpdateSyncCommand_t;
 #endif /* defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE) */
 #endif /* (gBLE50_d == TRUE) */
 
@@ -4284,6 +4293,17 @@ bleResult_t Hci_LeClearPeriodicAdvList(void);
 *
 ********************************************************************************** */
 bleResult_t Hci_LeReadPeriodicAdvListSize(void);
+
+/*!*************************************************************************************************
+*\fn    bleResult_t Hci_LePeriodicAdvUpdateSync(const hciVendorLePeriodicAdvUpdateSyncCommand_t *pParam)
+*
+*\brief This function sends the vendor HCI LE Periodic Adv Update Sync command to the Controller.
+*
+*\param [in]    pParam  pointer to a structure containing the command parameters.
+*
+*\retval  bleResult_t
+***************************************************************************************************/
+bleResult_t Hci_LePeriodicAdvUpdateSync(const hciVendorLePeriodicAdvUpdateSyncCommand_t *pParam);
 #endif /* defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE) */
 #endif
 

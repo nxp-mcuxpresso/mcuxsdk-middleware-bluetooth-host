@@ -76,6 +76,7 @@ typedef enum
     gBleGapCmdSetBondedDeviceNameOpCode_c                                       = 0x15,                     /*! Gap_SetBondedDeviceName command operation code */
     gBleCtrlCmdPlatformGetDeltaTimeStampOpCode_c                                = 0x16,                     /*! PLATFORM_GetDeltaTimeStamp command operation code */
     gBleGapCmdLoadCustomBondedDeviceInformationOpCode_c                         = 0x17,                     /*! Gap_LoadCustomBondedDeviceInformation command operation code */
+    gBleGapCmdLePeriodicAdvUpdateSyncOpCode_c                                   = 0x18,                     /*! Gap_LePeriodicAdvUpdateSync command operation code */
 
     gBleGap2StatusOpCode_c                                                      = 0x80,                     /*! GAP2 status operation code */
     gBleCtrlDebugInfoOpCode_c                                                   = 0x81,                     /*! Debug data from gBleCtrlCmdGetDebugInfoCmdOpCode_c */
@@ -100,6 +101,7 @@ typedef enum
     gBleGapEvtGenericEventSetDataRelatedAddressChangesComplete_c                = 0x95,                     /*! gapGenericCallback (type = gLeSetDataRelatedAddressCommandComplete_c) event operation code */
     gBleCtrlEvtPlatformGetDeltaTimeStampOpCode_c                                = 0x96,                     /*! Output data from gBleCtrlCmdPlatformGetDeltaTimeStampOpCode_c */
     gBleGapEvtLoadCustomBondedDeviceInformationOpCode_c                         = 0x97,                     /*! Gap_LoadCustomBondedDeviceInformation out parameters event operation code */
+    gBleGapPeriodicAdvUpdateSyncComplete_c                                      = 0x98,                     /*! gapGenericCallback (type = gLePeriodicAdvUpdateSyncComplete_c) event operation code */
 } fsciBleGap2OpCode_t;
 
 /************************************************************************************

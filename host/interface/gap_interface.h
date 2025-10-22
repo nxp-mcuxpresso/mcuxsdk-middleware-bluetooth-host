@@ -2915,6 +2915,24 @@ bleResult_t Gap_LeSetSchedulerPriority
 );
 
 /*!*************************************************************************************************
+*\fn    bleResult_t Gap_LePeriodicAdvUpdateSync(uint16_t syncHandle, uint16_t skip, uint16_t syncTimeout)
+*
+*\brief This function updates the synchronization parameters for periodic advertising.
+*
+*\param [in]    syncHandle         Handle identifying the periodic advertising sync.
+*\param [in]    skip               Number of periodic advertising packets to skip.
+*\param [in]    syncTimeout        Synchronization timeout value.
+*
+*\retval  gBleSuccess_c
+*\retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+***************************************************************************************************/
+bleResult_t Gap_LePeriodicAdvUpdateSync(
+    uint16_t syncHandle,
+    uint16_t skip,
+    uint16_t syncTimeout
+);
+
+/*!*************************************************************************************************
 *\fn    void Gap_LeSetHostFeature(uint8_t bitNumber, bool_t enable)
 *
 *\brief This function is used by the Host to set or clear a bit controlled by the Host in the

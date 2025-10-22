@@ -263,6 +263,15 @@ void HandleGapCmdLoadCustomBondedDeviceInformationOpCode
     uint8_t *pBuffer,
     uint32_t fsciInterfaceId
 );
+
+#if ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE))
+static void HandleGapCmdLePeriodicAdvUpdateSync
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+#endif /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
+
 /*! *********************************************************************************
 *\private
 *\fn           void HandleCtrlCmdGetTimestampExOpCode(uint8_t *pBuffer,
@@ -361,6 +370,11 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
     NULL,
 #endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */
     HandleGapCmdLoadCustomBondedDeviceInformationOpCode,                        /* = 0x17, gBleGapCmdLoadCustomBondedDeviceInformationOpCode_c */
+#if ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE))
+    HandleGapCmdLePeriodicAdvUpdateSync,                                        /* = 0x18, gBleGapCmdLePeriodicAdvUpdateSyncOpCode_c */
+#else /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
+    NULL,
+#endif /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
 };
 
 #if gFsciBleTest_d
@@ -2297,6 +2311,37 @@ void HandleGapCmdLoadCustomBondedDeviceInformationOpCode(uint8_t *pBuffer, uint3
         (void)MEM_BufferFree(pOutInfo);
     }
 }
+
+#if ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE))
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdLePeriodicAdvUpdateSync(uint8_t *pBuffer,
+*                                                 uint32_t fsciInterfaceId)
+*\brief        Handler for gBleGapCmdLePeriodicAdvUpdateSyncOpCode_c.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+static void HandleGapCmdLePeriodicAdvUpdateSync
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+)
+{
+    uint16_t syncHandle;
+    uint16_t skip;
+    uint16_t syncTimeout;
+
+    /* Get command parameters from buffer */
+    fsciBleGetUint16ValueFromBuffer(syncHandle, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(skip, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(syncTimeout, pBuffer);
+
+    fsciBleGap2CallApiFunction(Gap_LePeriodicAdvUpdateSync(syncHandle, skip, syncTimeout));
+}
+#endif /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
 #endif /* gFsciBleGap2LayerEnabled_d */
 /*! *********************************************************************************
 * @}

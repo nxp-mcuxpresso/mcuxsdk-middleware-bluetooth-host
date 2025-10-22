@@ -246,6 +246,14 @@ void HandleGapCmdSetPeriodicAdvParametersV2OpCode
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif /* defined(gBLE54_d) && (gBLE54_d == 1U) */
 
+#if ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE))
+static void HandleGapCmdLePeriodicAdvUpdateSync
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+#endif /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
+
 /*! *********************************************************************************
 *\private
 *\fn           void HandleCtrlCmdGetTimestampExOpCode(uint8_t *pBuffer,
@@ -318,6 +326,11 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
     HandleCtrlCmdGetTimestampExOpCode,                                          /* = 0x13, gBleCtrlCmdGetTimestampExOpCode_c */
     HandleGapCmdSetDataRelatedAddressChanges,                                   /* = 0x14, gBleGapCmdSetDataRelatedAddressChanges_c */
+#if ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE))
+    HandleGapCmdLePeriodicAdvUpdateSync,                                        /* = 0x18, gBleGapCmdLePeriodicAdvUpdateSyncOpCode_c */
+#else /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
+    NULL,
+#endif /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
 };
 
 #if gFsciBleTest_d
@@ -2044,6 +2057,37 @@ static void HandleCtrlCmdGetTimestampExOpCode(uint8_t *pBuffer, uint32_t fsciInt
 #endif /* !defined(gNcpApplication_d) || (gNcpApplication_d == 0) */
 }
 
+
+#if ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE))
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdLePeriodicAdvUpdateSync(uint8_t *pBuffer,
+*                                                 uint32_t fsciInterfaceId)
+*\brief        Handler for gBleGapCmdLePeriodicAdvUpdateSyncOpCode_c.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+static void HandleGapCmdLePeriodicAdvUpdateSync
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+)
+{
+    uint16_t syncHandle;
+    uint16_t skip;
+    uint16_t syncTimeout;
+
+    /* Get command parameters from buffer */
+    fsciBleGetUint16ValueFromBuffer(syncHandle, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(skip, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(syncTimeout, pBuffer);
+
+    fsciBleGap2CallApiFunction(Gap_LePeriodicAdvUpdateSync(syncHandle, skip, syncTimeout));
+}
+#endif /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
 #endif /* gFsciBleGap2LayerEnabled_d */
 /*! *********************************************************************************
 * @}
