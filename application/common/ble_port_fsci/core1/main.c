@@ -348,6 +348,13 @@ int main(void)
     /* Not enabling the Systicks now, will be done in _tx_thread_schedule */
     SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk;
 
+#if !defined(RF_OSC_26MHZ) || (RF_OSC_26MHZ == 0)
+    /* bt_eclk should be >=16MHz, so for XO=26MHz select XO while for XO=32MHz XO/2 can be selected
+     * This allows to save some power during active mode */
+    RADIO_CTRL->RF_CLK_CTRL &= ~RADIO_CTRL_RF_CLK_CTRL_BT_ECLK_DIV_MASK;
+    RADIO_CTRL->RF_CLK_CTRL |= RADIO_CTRL_RF_CLK_CTRL_BT_ECLK_DIV(0x1U);
+#endif
+
     /* Init OSA: should be called before any other OSA API*/
     OSA_Init();
     Controller_RadioInit();
@@ -391,8 +398,8 @@ int __main(void)
 ********************************************************************************** */
 void SystemInitHook (void)
 {
-    /* Configure NBU memory mapping as early as possible in the SystemInitHook()
-     * to prevent any potential issues
+    /* Configure NBU memory mapping as early as possible in the SystemInitHook() 
+     * to prevent any potential issues 
      */
     PLATFORM_ConfigureSmuDmemMapping();
 }
