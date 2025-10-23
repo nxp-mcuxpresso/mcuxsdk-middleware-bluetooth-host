@@ -218,40 +218,35 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 
 /* LE Set Host Feature command */
 #define gHciLeSetHostFeature_c                              0x0074U
-#define gHciSetDataRelatedAddressChanges_c                  0x007CU
-
 #define gHciLeEnhancedReadTransmitPowerLevel_c              0x0076U
 #define gHciLeReadRemoteTransmitPowerLevel_c                0x0077U
 #define gHciLeSetPathLossReportingParams_c                  0x0078U
 #define gHciLeSetPathLossReportingEnable_c                  0x0079U
 #define gHciLeSetTransmitPowerReportingEnable_c             0x007AU
-
+#define gHciSetDataRelatedAddressChanges_c                  0x007CU
 #define gHciLeSetExtAdvParamsV2_c                           0x007FU
-
+#define gHciLeSetDecisionData_c                             0x0080U
+#define gHciLeSetDecisionInstructions_c                     0x0081U
 #define gHciLeSetPeriodicAdvSubeventData_c                  0x0082U
 #define gHciLeSetPeriodicAdvResponseData_c                  0x0083U
 #define gHciLeSetPeriodicSyncSubevent_c                     0x0084U
 #define gHciLeExtCreateConnectionV2_c                       0x0085U
 #define gHciLeSetPeriodicAdvParamsV2_c                      0x0086U
-
-/* Temporary values for Channel Sounding support, values to be finalized in the core spec */
-#define gHciLeCsReadLocalSupportedCapabilities_c               0x0089U
-#define gHciLeCsReadRemoteSupportedCapabilities_c              0x008AU
-#define gHciLeCsWriteRemoteCachedCapabilities_c                0x008BU
-#define gHciLeCsSetSecurityEnable_c                            0x008CU
-#define gHciLeCsSetDefaultSettings_c                           0x008DU
-#define gHciLeCsReadRemoteFaeTable_c                           0x008EU
-#define gHciLeCsWriteRemoteFaeTable_c                          0x008FU
-#define gHciLeCsCreateConfig_c                                 0x0090U
-#define gHciLeCsRemoveConfig_c                                 0x0091U
-#define gHciLeCsSetChannelClassification_c                     0x0092U
-#define gHciLeCsSetProcedureParameters_c                       0x0093U
-#define gHciLeCsSetProcedureEnable_c                           0x0094U
-#define gHciLeCsTest_c                                         0x0095U
-#define gHciLeCsTestEnd_c                                      0x0096U
-
-#define gHciLeSetDecisionData_c                     0x0080U
-#define gHciLeSetDecisionInstructions_c             0x0081U
+#define gHciLeCsReadLocalSupportedCapabilities_c            0x0089U
+#define gHciLeCsReadRemoteSupportedCapabilities_c           0x008AU
+#define gHciLeCsWriteRemoteCachedCapabilities_c             0x008BU
+#define gHciLeCsSetSecurityEnable_c                         0x008CU
+#define gHciLeCsSetDefaultSettings_c                        0x008DU
+#define gHciLeCsReadRemoteFaeTable_c                        0x008EU
+#define gHciLeCsWriteRemoteFaeTable_c                       0x008FU
+#define gHciLeCsCreateConfig_c                              0x0090U
+#define gHciLeCsRemoveConfig_c                              0x0091U
+#define gHciLeCsSetChannelClassification_c                  0x0092U
+#define gHciLeCsSetProcedureParameters_c                    0x0093U
+#define gHciLeCsSetProcedureEnable_c                        0x0094U
+#define gHciLeCsTest_c                                      0x0095U
+#define gHciLeCsTestEnd_c                                   0x0096U
+#define gHciLeSetResolvablePrivateAddressTimeoutV2_c        0x009EU
 
      /*! HCI OGF : 0x3F : Vendor Specific Debug Commands */
 #define gHciVendorSpecificDebugCommands_c                       0x03FU

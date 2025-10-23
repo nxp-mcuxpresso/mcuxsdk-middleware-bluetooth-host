@@ -1171,6 +1171,13 @@ typedef struct
     uint16_t            rpaTimeout;
 } hciLeSetResolvablePrivateAddressTimeoutCommand_t;
 
+/*! HCI_LE_Set_Resolvable_Private_Address_Timeout [v2] */
+typedef struct
+{
+    uint16_t            rpaTimeoutMin;
+    uint16_t            rpaTimeoutMax;
+} hciLeSetResolvablePrivateAddressTimeoutV2Command_t;
+
 /*! OCF 0x004E */
 /*! HCI_LE_Set_Privacy_Mode */
 typedef struct
@@ -3834,6 +3841,23 @@ bleResult_t Hci_LeSetAddressResolutionEnable(
 ********************************************************************************** */
 bleResult_t Hci_LeSetResolvablePrivateAddressTimeout(
                 const hciLeSetResolvablePrivateAddressTimeoutCommand_t *pParam);                      /* 8.45 */
+
+/*! *********************************************************************************
+* \brief        The function sends the HCI LE Set Resolvable Private Address Timeout V2 (OGF : 0x08; OCF : 0x009E) command to the Controller.
+*               Allows the Host to set the range of time the Controller uses a
+*               Resolvable Private Address before a new resolvable private address is
+*               generated and starts being used.
+*
+* \param[in]    pParam  pointer to a structure containing RPA Timeout Min and Max values in seconds.
+* \param[out]   None
+*
+* \return       Status
+*
+* \remarks      Timeout range is 1 s to 1 hour
+*
+********************************************************************************** */
+bleResult_t Hci_LeSetResolvablePrivateAddressTimeoutV2(
+                const hciLeSetResolvablePrivateAddressTimeoutV2Command_t *pParam);                    /* 8.45 */
 
 /*! ********************************************************************************
 * \brief        The function sends the HCI LE Set Privacy Mode(OGF : 0x08; OCF : 0x004E) command to the Controller.

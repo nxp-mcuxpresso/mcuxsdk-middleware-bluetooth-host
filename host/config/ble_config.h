@@ -94,6 +94,28 @@
 #define gBleControllerPrivacyTimeout_c    900
 #endif
 
+/* Minimum timeout for Randomized Resolvable Private Address generation in Controller
+ *
+ * Unit: 1 second
+ * Range: 1 - 3600
+ * Default: 900
+ */
+#ifndef gBleControllerPrivacyTimeoutMin_c
+#define gBleControllerPrivacyTimeoutMin_c    900
+#endif
+
+/* Maximum timeout for Randomized Resolvable Private Address generation in Controller
+ * (Enhanced Privacy feature - BLE 4.2 only)
+ *
+ * Unit: 1 second
+ * Range: 1 - 3600
+ * Default: 900
+ */
+#ifndef gBleControllerPrivacyTimeoutMax_c
+#define gBleControllerPrivacyTimeoutMax_c    900
+#endif
+
+
 /* Flag indicating whether OOB channel used in LE Secure Connections pairing has MITM protection (BLE 4.2 only).
  * Default: FALSE
  */
