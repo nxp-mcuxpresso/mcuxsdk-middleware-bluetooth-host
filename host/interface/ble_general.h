@@ -188,6 +188,15 @@
 #define gVendorHandoverMaxCsLlContextSize_c  (224U)   /*!< Maximum size of the LL Context for Handover (CS context is largest) */
 
 #define gVendorUnitaryTestSize_c             (255U)   /*!< Maximum size of the VENDOR_UNITARY_TEST response */
+
+#define gLeExtendedFeaturesSize_c            (1U)     /*!< Current size of the leExtendedFeatures, can be raised up to 240 */
+
+/* Macros for checking extended features */
+#define getLeExtendedFeatureByte(bitNumber)     ((bitNumber) / 8U)
+#define getLeExtendedFeatureBit(bitNumber)      ((bitNumber) % 8U)
+
+#define isSupportedLeExtendedFeature(features, bitNumber) \
+    (((features)[getLeExtendedFeatureByte(bitNumber)] & (1U << getLeExtendedFeatureBit(bitNumber))) != 0U)
 /************************************************************************************
 *************************************************************************************
 * Public type definitions
@@ -812,6 +821,13 @@ typedef enum
     gLeDecisionBasedAdvertisingFiltering_c     = (uint64_t)1 << (5U * 8U + 2U), /* 42 */
 } leSupportedFeatures_tag;
 
+/* Extended LE Features beyond the first 64 bits */
+typedef enum
+{
+    /* Features starting from bit 64 (byte 8) */
+    gLeMonitoringAdvertisers_c                  = 0U,   /* Bit 0 of byte 8, bit position 64 in Link Layer Feature table */
+} leExtendedSupportedFeatures_tag;
+
 /*! Generic Event Type */
 typedef enum {
     gInitializationComplete_c                           = 0x00U, /*!< Initial setup started by Ble_HostInitialize is complete. */
@@ -1043,6 +1059,7 @@ typedef enum {
     gVendorUnitaryTest_c = 0x8AU,                   /*!< An error occurred during the Vendor Unitary Test procedure */
     gSetDataRelatedAddressChanges_c = 0x8BU,        /*!< An error occurred during the Set Data Related Address procedure */
     gLePeriodicAdvUpdateSync_c = 0x8CU,             /*!< An error occurred during the Le Periodic Adv Update Sync procedure */
+    gReadAllLocalSupportedFeatures_c = 0x8DU,       /*!< An error occurred during the LE Read All Local Supported Features command */
 } gapInternalErrorSource_t;
 
 /*! Internal Error Event Data */
@@ -1147,6 +1164,7 @@ typedef struct {
 /*! gInitializationComplete_c event data */
 typedef struct {
     leSupportedFeatures_t supportedFeatures;
+    uint8_t               leExtendedFeatures[gLeExtendedFeaturesSize_c];
     uint16_t maxAdvDataSize;
     uint8_t  numOfSupportedAdvSets;
     uint8_t  periodicAdvListSize;

@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2021, 2023-2024 NXP
+* Copyright 2016-2021, 2023-2025 NXP
 *
 *
 * \file
@@ -37,8 +37,14 @@
 ************************************************************************************/
 typedef struct l2caConfigStruct_tag
 {
-    /* The list of the supported LE features for the Controller */
+    /* The list of the supported LE features for the Controller from page 0 */
     leSupportedFeatures_t    leFeatures;
+    /* Additional feature pages */
+    uint8_t                  leExtendedFeatures[gLeExtendedFeaturesSize_c];
+    /* The number of the highest-numbered page of the supported LE features
+     * that contains at least one bit set to 1.
+     */
+    uint8_t                  leMaxFeaturePage;
 
     /*
      * Maximum length (in octets) of the data portion of each HCI ACL Data Packet

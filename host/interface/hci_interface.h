@@ -31,6 +31,7 @@
 *************************************************************************************
 ************************************************************************************/
 #define gDecisionInstructionParamSize_c  16U
+#define gLeFeaturesSize_c                248U
 /************************************************************************************
 *************************************************************************************
 * Public type definitions
@@ -2252,6 +2253,13 @@ typedef struct hciLeSetPeriodicSyncSubeventCommandComplete_tag
 
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 
+typedef struct hciLeReadAllLocalSupportedFeaturesCommandComplete_tag
+{
+    hciErrorCode_t      status;
+    uint8_t             maxPage;
+    uint8_t             leFeatures[gLeFeaturesSize_c];
+} hciLeReadAllLocalSupportedFeaturesCommandComplete_t;
+
 #if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d==TRUE)
 typedef struct hciLeCsReadLocalSupportedCapabilities_tag
 {
@@ -2580,6 +2588,7 @@ typedef struct
         hciLeSetPeriodicAdvResponseDataCommandComplete_t        hciLeSetPeriodicAdvResponseDataCommComplete;
         hciLeSetPeriodicSyncSubeventCommandComplete_t           hciLeSetPeriodicSyncSubeventCommComplete;
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
+        hciLeReadAllLocalSupportedFeaturesCommandComplete_t     hciLeReadAllLocalSupportedFeaturesCommComplete;
 #if defined(gHandoverSupport_d) && (gHandoverSupport_d == TRUE)
         /* Handover */
         hciVendorHandoverGetTimeCommandComplete_t                hciVendorHandoverGetTimeCommComplete;
@@ -4514,8 +4523,22 @@ bleResult_t Hci_LeExtCreateConnectionV2(hciLeExtCreateConnectionV2Command_t* pPa
 *
 ********************************************************************************** */
 bleResult_t Hci_LeSetPeriodicAdvParamsV2(hciLeSetPeriodicAdvParamsV2Command_t* pParam);
-
 #endif /* defined(gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
+
+#if (gBLE60_d)
+/*! *********************************************************************************
+* \brief        The function sends the HCI LE Read All Local Supported Features (OGF : 0x08; OCF : 0x0087) command to the Controller.
+*
+* \param[in]    None
+* \param[out]   None
+*
+* \return       Status
+*
+* \remarks      Controller Information Group
+*
+********************************************************************************** */
+bleResult_t Hci_LeReadAllLocalSupportedFeatures(void);
+#endif /* gBLE60_d */
 
 #if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)
 #if gLeBroadcasterSupported_d

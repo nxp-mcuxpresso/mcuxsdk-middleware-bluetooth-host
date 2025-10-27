@@ -232,6 +232,7 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 #define gHciLeSetPeriodicSyncSubevent_c                     0x0084U
 #define gHciLeExtCreateConnectionV2_c                       0x0085U
 #define gHciLeSetPeriodicAdvParamsV2_c                      0x0086U
+#define gHciLeReadAllLocalSupportedFeatures_c               0x0087U
 #define gHciLeCsReadLocalSupportedCapabilities_c            0x0089U
 #define gHciLeCsReadRemoteSupportedCapabilities_c           0x008AU
 #define gHciLeCsWriteRemoteCachedCapabilities_c             0x008BU
