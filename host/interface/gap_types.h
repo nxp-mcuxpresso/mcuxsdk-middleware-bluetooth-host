@@ -1127,6 +1127,8 @@ typedef enum {
     gPeriodicAdvSyncTerminated_c      = 0x08U,   /*!< Event received when a sync with a periodic advertiser have been terminated. */
     /* BLE 5.1 */
     gConnectionlessIqReportReceived_c = 0x09U,   /*!< Event received when the Controller has reported IQ information from the CTE of a received advertising packet */
+    /* BLE 6.0 */
+    gMonAdvReportEventReceived_c      = 0x0AU,   /*!< Event received when Monitored Advertisers is enabled */
 } gapScanningEventType_t;
 
 /*! Scanned device information structure, obtained from LE Advertising Reports. */
@@ -1221,6 +1223,19 @@ typedef struct
     int8_t                          *aQ_samples;            /*!< List of sampleCount Q_samples. */
 } gapConnectionlessIqReport_t;
 
+typedef enum
+{
+    gBleMonAdvConditionRssiLowThreshold_c          = 0x00U, /*!< Monitored Advertisers RSSI value below the RSSI low threshold. */
+    gBleMonAdvConditionRssiHighThreshold_c         = 0x01U, /*!< Monitored Advertisers RSSI value greater than or equal to the RSSI high threshold. */
+} bleMonAdvCondition_t;
+
+typedef struct
+{
+    bleAddressType_t                peerAddressType;        /*!< Advertiser Address Type */
+    bleDeviceAddress_t              peerAddress;            /*!< Advertiser Address */
+    bleMonAdvCondition_t            condition;              /*!< Condition parameter */
+} gapMonAdvReportReport_t;
+
 /*! Scanning event structure: type + data. */
 typedef struct {
     gapScanningEventType_t eventType;   /*!< Event type. */
@@ -1233,6 +1248,7 @@ typedef struct {
         gapSyncEstbEventData_t      syncEstb;         /*!< Event data for gPeriodicAdvSyncEstablished_c event type: Sync handle information for the application. */
         gapSyncLostEventData_t      syncLost;         /*!< Event data for gPeriodicAdvSyncLost_c event type: Sync handle information for the application. */
         gapConnectionlessIqReport_t iqReport;         /*!< Event data for gConnectionlessIqReportReceived_c event type: IQ information for the application. */
+        gapMonAdvReportReport_t     monAdvReport;     /*!< Event data for gMonAdvReportEventReceived_c event type. */
     } eventData;                                     /*!< Event data, to be interpreted according to gapScanningEvent_t.eventType. */
 } gapScanningEvent_t;
 

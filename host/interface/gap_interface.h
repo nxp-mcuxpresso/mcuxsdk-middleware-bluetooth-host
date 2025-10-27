@@ -845,6 +845,95 @@ bleResult_t Gap_SetDecisionInstructions
     const gapDecisionInstructionsData_t *pDecisionInstructions
 );
 
+/*!*************************************************************************************************
+*\fn    bleResult_t Gap_InitMonitoringAdvertisers(void)
+*
+*\brief Initialize function table for Monitored Advertisers functionality.
+*
+*\retval  gBleSuccess_c
+*\retval  gBleFeatureNotSupported_c    Feature is not supported.
+***************************************************************************************************/
+bleResult_t Gap_InitMonitoringAdvertisers(void);
+
+/*!*************************************************************************************************
+*\fn    bleResult_t Gap_AddDeviceToMonAdvList(bleAddressType_t addressType, 
+*                                                           bleDeviceAddress_t address, 
+*                                                           int8_t rssiLowThreshold, 
+*                                                           int8_t rssiHighThreshold, 
+*                                                           uint8_t timeout)
+*
+*\brief This function adds a device to the Monitored Advertisers List.
+*
+*\param [in]    addressType         Address type of the device.
+*\param [in]    address             Address of the device.
+*\param [in]    rssiLowThreshold    RSSI low threshold value.
+*\param [in]    rssiHighThreshold   RSSI high threshold value.
+*\param [in]    timeout             Timeout value.
+*
+*\retval  gBleSuccess_c
+*\retval  gBleInvalidParameter_c       One or more parameters are invalid.
+*\retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+***************************************************************************************************/
+bleResult_t Gap_AddDeviceToMonAdvList
+(
+    bleAddressType_t    addressType,
+    bleDeviceAddress_t  address,
+    int8_t              rssiLowThreshold,
+    int8_t              rssiHighThreshold,
+    uint8_t             timeout
+);
+
+/*!*************************************************************************************************
+*\fn    bleResult_t Gap_RemoveDeviceFromMonAdvList(bleAddressType_t addressType, 
+*                                                                bleDeviceAddress_t address)
+*
+*\brief This function removes a device from the Monitored Advertisers List.
+*
+*\param [in]    addressType         Address type of the device.
+*\param [in]    address             Address of the device.
+*
+*\retval  gBleSuccess_c
+*\retval  gBleInvalidParameter_c       One or more parameters are invalid.
+*\retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+***************************************************************************************************/
+bleResult_t Gap_RemoveDeviceFromMonAdvList
+(
+    bleAddressType_t    addressType,
+    bleDeviceAddress_t  address
+);
+
+/*!*************************************************************************************************
+*\fn    bleResult_t Gap_ClearMonAdvList(void)
+*
+*\brief This function clears the Monitored Advertisers List.
+*
+*\retval  gBleSuccess_c
+*\retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+***************************************************************************************************/
+bleResult_t Gap_ClearMonAdvList(void);
+
+/*!*************************************************************************************************
+*\fn    bleResult_t Gap_EnableMonAdv(bool_t enable)
+*
+*\brief This function enables or disables monitoring of advertisers.
+*
+*\param [in]    enable              Enable or disable monitoring.
+*
+*\retval  gBleSuccess_c
+*\retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+***************************************************************************************************/
+bleResult_t Gap_EnableMonAdv(bool_t enable);
+
+/*!*************************************************************************************************
+*\fn    bleResult_t Gap_ReadMonAdvListSize(void)
+*
+*\brief This function reads the size of the Monitored Advertisers List.
+*
+*\retval  gBleSuccess_c
+*\retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+***************************************************************************************************/
+bleResult_t Gap_ReadMonAdvListSize(void);
+
 /*! *********************************************************************************
 * \brief  Optionally sets the scanning parameters and begins scanning.
 *

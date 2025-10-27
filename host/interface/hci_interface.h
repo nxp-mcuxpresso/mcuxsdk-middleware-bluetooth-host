@@ -1322,6 +1322,48 @@ typedef struct hciLeSetDecisionInstructionsCommand_tag
     const uint8_t               (*pTestParams)[gDecisionInstructionParamSize_c];
 } hciLeSetDecisionInstructionsCommand_t;
 
+/*! OCF 0x0098 */
+/*! HCI_LE_Add_Device_To_Monitored_Advertisers_List */
+typedef struct hciLeAddDeviceToMonAdvListCommand_tag
+{
+    hciBleAddressType_t         addressType;
+    uint8_t                     address[gcBleDeviceAddressSize_c];
+    int8_t                      rssiLowThreshold;
+    int8_t                      rssiHighThreshold;
+    uint8_t                     timeout;
+} hciLeAddDeviceToMonAdvListCommand_t;
+
+/*! OCF 0x0099 */
+/*! HCI_LE_Remove_Device_From_Monitored_Advertisers_List */
+typedef struct hciLeRemoveDeviceFromMonAdvListCommand_tag
+{
+    hciBleAddressType_t         addressType;
+    uint8_t                     address[gcBleDeviceAddressSize_c];
+} hciLeRemoveDeviceFromMonAdvListCommand_t;
+
+/*! OCF 0x009A */
+/*! HCI_LE_Clear_Monitored_Advertisers_List */
+/*! No parameters */
+
+/*! OCF 0x009B */
+/*! HCI_LE_Read_Monitored_Advertisers_List_Size */
+/*! No parameters */
+
+/*! OCF 0x009C */
+/*! HCI_LE_Enable_Monitoring_Advertisers */
+typedef struct hciLeEnableMonAdvCommand_tag
+{
+    uint8_t                     enable;
+} hciLeEnableMonAdvCommand_t;
+
+/*! LE Monitored Advertisers Report Event : LE Meta Event : 0x3E - Sub-event Code : 0x34 */
+typedef struct hciLeMonAdvReportEvent_tag
+{
+    hciBleAddressType_t         addressType;
+    uint8_t                     address[gcBleDeviceAddressSize_c];
+    uint8_t                     condition;
+} hciLeMonAdvReportEvent_t;
+
 /*! OCF 0x0038 */
 /*! HCI_LE_Set_Ext_Scan_Response Data */
 typedef struct hciLeSetExtScanRespDataCommand_tag
@@ -2260,6 +2302,13 @@ typedef struct hciLeReadAllLocalSupportedFeaturesCommandComplete_tag
     uint8_t             leFeatures[gLeFeaturesSize_c];
 } hciLeReadAllLocalSupportedFeaturesCommandComplete_t;
 
+/*! HCI_LE_Read_Monitored_Advertisers_List_Size - Return Parameters */
+typedef struct
+{
+    hciErrorCode_t      status;
+    uint8_t             number;
+} hciLeReadMonAdvListSizeCommandComplete_t;
+
 #if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d==TRUE)
 typedef struct hciLeCsReadLocalSupportedCapabilities_tag
 {
@@ -2500,6 +2549,9 @@ typedef struct
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
         hciVendorEnhancedNotificationEvent_t            hciEnhancedNotificationEvent;
         hciVendorLeSkdReportEvent_t                     hciLeSkdReportEvent;
+#if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
+        hciLeMonAdvReportEvent_t                        hciLeMonAdvReportEvent;
+#endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
     }eventData;
 } hciLeMetaEvent_t;
 
@@ -2618,6 +2670,9 @@ typedef struct
         hciLeSetExtAdvertingParamsV2CommandComplete_t           hciLeSetExtAdvertingParamsV2CommComplete;
 #endif /* (gBLE54_d && gLeBroadcasterSupported_d && gBLE54_AdvertisingCodingSelectionSupport_d) */
         hciVendorUnitaryTestCommandComplete_t                    hciVendorUnitaryTestCommComplete;
+#if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
+        hciLeReadMonAdvListSizeCommandComplete_t                 hciLeReadMonAdvListSizeCommComplete;
+#endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
     }commCompleteReturnParams;
 } hciCommandCompleteEvent_t;
 
@@ -4577,6 +4632,73 @@ bleResult_t HCI_LE_Set_Decision_Instructions(hciLeSetDecisionInstructionsCommand
 #endif /* gLeObserverSupported_d */
 #endif /* gBLE60_DecisionBasedAdvertisingFilteringSupport_d */
 
+#if gLeObserverSupported_d
+#if (gBLE60_MonitoredAdvertisers_d == TRUE)
+/*! ********************************************************************************
+* \brief        The function sends the HCI LE Add Device To Monitored Advertisers List command to the Controller.
+*
+* \param[in]    pParam  pointer to a structure containing the command parameters.
+* \param[out]   None
+*
+* \return       Status
+*
+********************************************************************************** */
+bleResult_t Hci_LeAddDeviceToMonAdvList
+(
+    const hciLeAddDeviceToMonAdvListCommand_t *pParam
+);
+
+/*! ********************************************************************************
+* \brief        The function sends the HCI LE Remove Device From Monitored Advertisers List command to the Controller.
+*
+* \param[in]    pParam  pointer to a structure containing the command parameters.
+* \param[out]   None
+*
+* \return       Status
+*
+********************************************************************************** */
+bleResult_t Hci_LeRemoveDeviceFromMonAdvList
+(
+    const hciLeRemoveDeviceFromMonAdvListCommand_t *pParam
+);
+
+/*! ********************************************************************************
+* \brief        The function sends the HCI LE Clear Monitored Advertisers List command to the Controller.
+*
+* \param[in]    None
+* \param[out]   None
+*
+* \return       Status
+*
+********************************************************************************** */
+bleResult_t Hci_LeClearMonAdvList(void);
+
+/*! ********************************************************************************
+* \brief        The function sends the HCI LE Enable Monitoring Advertisers command to the Controller.
+*
+* \param[in]    pParam  pointer to a structure containing the command parameters.
+* \param[out]   None
+*
+* \return       Status
+*
+********************************************************************************** */
+bleResult_t Hci_LeEnableMonAdv
+(
+    const hciLeEnableMonAdvCommand_t *pParam
+);
+
+/*! ********************************************************************************
+* \brief        The function sends the HCI LE Read Monitored Advertisers List Size command to the Controller.
+*
+* \param[in]    None
+* \param[out]   None
+*
+* \return       Status
+*
+********************************************************************************** */
+bleResult_t Hci_LeReadMonAdvListSize(void);
+#endif /* (gBLE60_MonitoredAdvertisers_d == TRUE) */
+#endif /* gLeObserverSupported_d */
 #ifdef __cplusplus
     }
 #endif

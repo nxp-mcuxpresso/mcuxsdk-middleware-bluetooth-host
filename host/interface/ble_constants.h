@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2025 NXP
 *
 *
 * \file
@@ -221,6 +221,12 @@
 
 /*! Value of the Additional Authentication Data field for the CCM algorithm used by EAD */
 #define gcEadAadValue_c          (0xEA)
+
+/*! Minimum RSSI threshold value for Monitored Advertisers */
+#define gBleMonAdvRssiThresholdMin_c    (-127)
+
+/*! Maximum RSSI threshold value for Monitored Advertisers */
+#define gBleMonAdvRssiThresholdMax_c    (20)
 #endif /* BLE_CONSTANTS_H */
 
 /*! *********************************************************************************

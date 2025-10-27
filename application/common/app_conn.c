@@ -298,6 +298,10 @@ void BluetoothLEHost_Init
         mpfIdsHandler = App_IdsHandler;
 #endif
 
+#if defined(gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == 1U)
+        (void)Gap_InitMonitoringAdvertisers();
+#endif /* gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == 1U) */
+
         /* BLE Host Stack Init */
         if (Ble_Initialize(App_GenericCallback) != gBleSuccess_c)
         {

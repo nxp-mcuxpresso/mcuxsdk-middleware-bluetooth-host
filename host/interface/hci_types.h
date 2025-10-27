@@ -247,6 +247,11 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 #define gHciLeCsSetProcedureEnable_c                        0x0094U
 #define gHciLeCsTest_c                                      0x0095U
 #define gHciLeCsTestEnd_c                                   0x0096U
+#define gHciLeAddDeviceToMonAdvList_c                       0x0098U
+#define gHciLeRemoveDeviceFromMonAdvList_c                  0x0099U
+#define gHciLeClearMonAdvList_c                             0x009AU
+#define gHciLeReadMonAdvListSize_c                          0x009BU
+#define gHciLeEnableMonAdv_c                                0x009CU
 #define gHciLeSetResolvablePrivateAddressTimeoutV2_c        0x009EU
 
      /*! HCI OGF : 0x3F : Vendor Specific Debug Commands */
@@ -411,6 +416,7 @@ typedef enum
     gHciLeCsSubeventResultEvent_c                          = 0x31,
     gHciLeCsSubeventResultContinueEvent_c                  = 0x32,
     gHciLeCsTestEndCompleteEvent_c                         = 0x33,
+    gHciLeMonAdvReportEvent_c                              = 0x34,
     gHciLeCsSubeventDebugResultEvent_c                     = 0xF0,
 
     gHciLeVendorEnhancedNotificationEvent_c                  = 0xFF,

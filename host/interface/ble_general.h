@@ -914,6 +914,11 @@ typedef enum {
     gVendorUnitaryTestComplete_c                        = 0x51U, /*!< Vendor Unitary Test command complete */
     gLeSetDataRelatedAddressChangesComplete_c           = 0x52U, /*!< Set Data Related Address Changes command complete */
     gLePeriodicAdvUpdateSyncComplete_c                  = 0x53U, /*!< Le Periodic Adv Update Sync command complete */
+    gDeviceAddedToMonAdvList_c                          = 0x54U, /*!< LE Add Device To Monitored Advertisers List command complete */
+    gDeviceRemovedFromMonAdvList_c                      = 0x55U, /*!< Remove Device From Monitored Advertisers List command complete */
+    gMonAdvListCleared_c                                = 0x56U, /*!< Clear Monitored Advertisers List command complete */
+    gMonAdvEnabled_c                                    = 0x57U, /*!< Enable Monitoring Advertisers command complete */
+    gMonAdvListSizeRead_c                               = 0x58U, /*!< Read Monitored Advertisers List Size command complete */
 } gapGenericEventType_t;
 
 /*! Internal Error Source - the command that triggered the error */
@@ -1060,6 +1065,11 @@ typedef enum {
     gSetDataRelatedAddressChanges_c = 0x8BU,        /*!< An error occurred during the Set Data Related Address procedure */
     gLePeriodicAdvUpdateSync_c = 0x8CU,             /*!< An error occurred during the Le Periodic Adv Update Sync procedure */
     gReadAllLocalSupportedFeatures_c = 0x8DU,       /*!< An error occurred during the LE Read All Local Supported Features command */
+    gAddDeviceToMonAdvList_c = 0x8EU,               /*!< An error occurred during the Add Device To Monitored Advertisers List */
+    gRemoveDeviceFromMonAdvList_c = 0x8FU,          /*!< An error occurred during the Remove Device From Monitored Advertisers List */
+    gClearMonAdvList_c = 0x90U,                     /*!< An error occurred during the Clear Monitored Advertisers List */
+    gEnableMonAdv_c = 0x91U,                        /*!< An error occurred during the Enable Monitoring Advertisers */
+    gReadMonAdvListSize_c = 0x92U,                  /*!< An error occurred during the Read Monitored Advertisers List Size */
 } gapInternalErrorSource_t;
 
 /*! Internal Error Event Data */
@@ -1514,6 +1524,7 @@ typedef struct {
         handoverConnectionUpdateProcedureEvent_t    handoverConnectionUpdateProcedure;      /*!< Data for the gHandoverConnectionUpdateProcedureEvent_c event */
         handoverApplyConnectionUpdateProcedure_t    handoverApplyConnectionUpdateProcedure; /*!< Data for the gHandoverApplyConnectionUpdateProcedureComplete_c event */
         vendorUnitaryTestEvent_t                  unitaryTestData;                          /*!< Data for the gVendorUnitaryTestComplete_c event */
+        uint8_t                                   monAdvListSize;                           /*!< Data for the gMonAdvListSizeRead_c event. The size of the Monitored Advertisers List. */
     } eventData;                            /*!< Event data, selected according to event type. */
 } gapGenericEvent_t;
 
