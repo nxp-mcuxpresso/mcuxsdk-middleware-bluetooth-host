@@ -4,6 +4,43 @@ All notable changes to NXP Bluetooth LE Host will be documented in this file.
 
 **NXP Bluetooth LE Host Stack** is certified **Bluetooth 6.0**
 
+## [1.10.13] - mcux v2025-12-00-pvw2
+
+### Added
+
+- Threshold for the invalid number of Anchor Monitor events received by the target anchor
+- **Experimental Monitoring Advertisers** feature in Bluetooth LE Host
+- **Experimental Randomized RPA** feature in Bluetooth LE Host
+- Application defines for default connection and default advertising tx power
+
+### Improved
+
+- Miscellaneous applications updates
+- Central applications now wait for status of Encrypt procedure in case of bonded device
+- Logging data on localization applications
+- NBU Low Power Mode enabled by default for Localization Applications
+- PCT rotation calibration added to localization apps
+- Configured CS Reflector to start the CS procedure with the tdm command and updated the documentation
+- Populated the optionalSubfeaturesSupported field correctly
+- Prevented CORE 0 from entering deep sleep while LCE is computing by setting the low power mode constraint to PWR_WFI during LCE computation and releasing it afterwards
+- Implemented in CCC_CS, Channel Sounding data transfer from the anchor to the device
+- Documentation miscellaneous updates
+- Updated all kw47 and kw45 armgcc ld linker files to take gUseInternalStorageLink_d flag value into consideration
+
+### Fixed
+
+- Memory issue when setting scan response data would return an error status from the LL
+- Set advertises with the public address, overwritten by a previously used random address on receiving the Advertising Set Terminated event
+
+### Changed
+
+- Updated memory configuration: replaced the extended heap area in the available SMU2 memory with a 24KB array in the data1
+- Removed redundant cached remote capabilities write on reflectors, as the initiator will always trigger a capabilities exchange and trying to write cached capabilities afterwards results in an HCI error
+
+### Supported Platforms
+
+- KW45, KW47, MCXW71, MCXW72, MCXW23
+
 ## [1.10.12] - mcux v2025-12-00-pvw1
 
 ### Added
