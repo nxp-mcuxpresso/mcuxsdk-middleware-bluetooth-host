@@ -391,6 +391,11 @@ static const int16_t maGenericEventToOpcode[]=
   -1,                                                                                      /* reserved: 0x51U */
   -1,                                                                                      /* reserved: 0x52U */
   -1,                                                                                      /* reserved: 0x53U */
+  -1,                                                                                      /* reserved: 0x54U */
+  -1,                                                                                      /* reserved: 0x55U */
+  -1,                                                                                      /* reserved: 0x56U */
+  -1,                                                                                      /* reserved: 0x57U */
+  -1,                                                                                      /* reserved: 0x58U */
 };
 
 static const int16_t maGenericEvent2ToOpcode[]= {
@@ -421,6 +426,19 @@ static const int16_t maGenericEvent2ToOpcode[]= {
 #else /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
     -1,                                                                                      /* reserved: 0x53U */
 #endif /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
+#if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
+    (int16_t)gBleGapEvtGenericEventDeviceAddedToMonAdvListOpCode_c,                          /* = 0x54U, gDeviceAddedToMonAdvList_c */
+    (int16_t)gBleGapEvtGenericEventDeviceRemovedFromMonAdvListOpCode_c,                      /* = 0x55U, gDeviceRemovedFromMonAdvList_c */
+    (int16_t)gBleGapEvtGenericEventMonAdvListClearedOpCode_c,                                /* = 0x56U, gMonAdvListCleared_c */
+    (int16_t)gBleGapEvtGenericEventMonAdvEnabledOpCode_c,                                    /* = 0x57U, gMonAdvEnabled_c */
+    (int16_t)gBleGapEvtGenericEventMonAdvListSizeReadOpCode_c,                               /* = 0x58U, gMonAdvListSizeRead_c */
+#else /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
+    -1,                                                                                      /* reserved: 0x54U */
+    -1,                                                                                      /* reserved: 0x55U */
+    -1,                                                                                      /* reserved: 0x56U */
+    -1,                                                                                      /* reserved: 0x57U */
+    -1,                                                                                      /* reserved: 0x58U */
+#endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
 };
 
 
@@ -3809,6 +3827,14 @@ void fsciBleGapScanningEvtMonitor(gapScanningEvent_t* pScanningEvent)
                 }
                 break;
 #endif
+#if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
+            case gMonAdvReportEventReceived_c:
+                {
+                    opGroup = gFsciBleGap2OpcodeGroup_c;
+                    opCode.gap2Code = gBleGapEvtScanningEventMonAdvReportOpCode_c;
+                }
+                break;
+#endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
             default:
                 {
                     /* Unknown event type */

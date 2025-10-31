@@ -262,6 +262,38 @@ static void HandleGapCmdLePeriodicAdvUpdateSync
 );
 #endif /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
 
+#if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
+static void HandleGapCmdAddDeviceToMonAdvList
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+
+static void HandleGapCmdRemoveDeviceFromMonAdvList
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+
+static void HandleGapCmdClearMonAdvList
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+
+static void HandleGapCmdEnableMonAdv
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+
+static void HandleGapCmdReadMonAdvListSize
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+#endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
+
 /*! *********************************************************************************
 *\private
 *\fn           void HandleCtrlCmdGetTimestampExOpCode(uint8_t *pBuffer,
@@ -360,6 +392,19 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
 #else /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
     NULL,
 #endif /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
+#if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
+    HandleGapCmdAddDeviceToMonAdvList,                                          /* = 0x19, gBleGapCmdAddDeviceToMonAdvListOpCode_c */
+    HandleGapCmdRemoveDeviceFromMonAdvList,                                     /* = 0x1A, gBleGapCmdRemoveDeviceFromMonAdvListOpCode_c */
+    HandleGapCmdClearMonAdvList,                                                /* = 0x1B, gBleGapCmdClearMonAdvListOpCode_c */
+    HandleGapCmdEnableMonAdv,                                                   /* = 0x1C, gBleGapCmdEnableMonAdvOpCode_c */
+    HandleGapCmdReadMonAdvListSize,                                             /* = 0x1D, gBleGapCmdReadMonAdvListSizeOpCode_c */
+#else /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+#endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
 };
 
 #if gFsciBleTest_d
@@ -636,6 +681,51 @@ void GetBufferFromVendorUnitaryTestCompleteEvent
                               *ppBuffer,
                               (uint8_t)pGenericEvent->eventData.unitaryTestData.paramLength);
 }
+
+#if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
+/*! *********************************************************************************
+*\fn           uint32_t GetMonAdvListSizeReadBufferSize(
+*                                           gapGenericEvent_t    *pGenericEvent)
+*
+*\brief        Returns the required FSCI buffer size for the
+*              gMonAdvListSizeRead_c event.
+*
+*\param  [in]  pGenericEvent       Pointer to the generic event.
+*
+*\return       uint32_t            Buffer size.
+********************************************************************************** */
+uint32_t GetMonAdvListSizeReadBufferSize
+(
+    gapGenericEvent_t   *pGenericEvent
+)
+{
+    return sizeof(uint8_t);
+}
+
+/*! *********************************************************************************
+*\fn           void GetBufferFromMonAdvListSizeReadEvent(
+*                                           gapGenericEvent_t    *pGenericEvent,
+*                                           uint8_t              **ppBuffer)
+*
+*\brief        Writes the gMonAdvListSizeRead_c data fields in the provided
+*              buffer.
+*
+*\param  [in]  pGenericEvent       Pointer to the generic event.
+*\param  [in]  ppBuffer            Pointer to the buffer where the data fields
+*                                  should be written.
+*
+*\retval       void.
+********************************************************************************** */
+void GetBufferFromMonAdvListSizeReadEvent
+(
+    gapGenericEvent_t   *pGenericEvent,
+    uint8_t             **ppBuffer
+)
+{
+    fsciBleGetBufferFromUint8Value((uint8_t)pGenericEvent->eventData.monAdvListSize, 
+                                   *ppBuffer);
+}
+#endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
 #endif /* gFsciIncluded_c && gFsciBleGapLayerEnabled_d */
 
 #if gFsciBleBBox_d || gFsciBleTest_d
@@ -2259,6 +2349,141 @@ static void HandleGapCmdLePeriodicAdvUpdateSync
     fsciBleGap2CallApiFunction(Gap_LePeriodicAdvUpdateSync(syncHandle, skip, syncTimeout));
 }
 #endif /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
+
+#if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdAddDeviceToMonAdvList(uint8_t *pBuffer,
+*                                                     uint32_t fsciInterfaceId)
+*\brief        Handler for gBleGapCmdAddDeviceToMonAdvListOpCode_c.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+static void HandleGapCmdAddDeviceToMonAdvList
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+)
+{
+    bleAddressType_t    addressType;
+    bleDeviceAddress_t  address;
+    uint8_t             rssiLowThreshold;
+    uint8_t             rssiHighThreshold;
+    uint8_t             timeout;
+
+    /* Get command parameters from buffer */
+    fsciBleGetEnumValueFromBuffer(addressType, pBuffer, bleAddressType_t);
+    fsciBleGetAddressFromBuffer(address, pBuffer);
+    fsciBleGetUint8ValueFromBuffer(rssiLowThreshold, pBuffer);
+    fsciBleGetUint8ValueFromBuffer(rssiHighThreshold, pBuffer);
+    fsciBleGetUint8ValueFromBuffer(timeout, pBuffer);
+
+    fsciBleGap2CallApiFunction(Gap_AddDeviceToMonAdvList(addressType, address, (int8_t)rssiLowThreshold, (int8_t)rssiHighThreshold, timeout));
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdRemoveDeviceFromMonAdvList(uint8_t *pBuffer,
+*                                                          uint32_t fsciInterfaceId)
+*\brief        Handler for gBleGapCmdRemoveDeviceFromMonAdvListOpCode_c.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+static void HandleGapCmdRemoveDeviceFromMonAdvList
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+)
+{
+    bleAddressType_t    addressType;
+    bleDeviceAddress_t  address;
+
+    /* Get command parameters from buffer */
+    fsciBleGetEnumValueFromBuffer(addressType, pBuffer, bleAddressType_t);
+    fsciBleGetAddressFromBuffer(address, pBuffer);
+
+    fsciBleGap2CallApiFunction(Gap_RemoveDeviceFromMonAdvList(addressType, address));
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdClearMonAdvList(uint8_t *pBuffer,
+*                                               uint32_t fsciInterfaceId)
+*\brief        Handler for gBleGapCmdClearMonAdvListOpCode_c.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+static void HandleGapCmdClearMonAdvList
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+)
+{
+    /* No parameters */
+    (void)pBuffer;
+    (void)fsciInterfaceId;
+
+    fsciBleGap2CallApiFunction(Gap_ClearMonAdvList());
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdEnableMonAdv(uint8_t *pBuffer,
+*                                            uint32_t fsciInterfaceId)
+*\brief        Handler for gBleGapCmdEnableMonAdvOpCode_c.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+static void HandleGapCmdEnableMonAdv
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+)
+{
+    bool_t enable;
+
+    /* Get command parameters from buffer */
+    fsciBleGetBoolValueFromBuffer(enable, pBuffer);
+
+    fsciBleGap2CallApiFunction(Gap_EnableMonAdv(enable));
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdReadMonAdvListSize(uint8_t *pBuffer,
+*                                                  uint32_t fsciInterfaceId)
+*\brief        Handler for gBleGapCmdReadMonAdvListSizeOpCode_c.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+static void HandleGapCmdReadMonAdvListSize
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+)
+{
+    /* No parameters */
+    (void)pBuffer;
+    (void)fsciInterfaceId;
+
+    fsciBleGap2CallApiFunction(Gap_ReadMonAdvListSize());
+}
+#endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
 #endif /* gFsciBleGap2LayerEnabled_d */
 /*! *********************************************************************************
 * @}

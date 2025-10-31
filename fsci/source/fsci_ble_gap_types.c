@@ -1171,6 +1171,30 @@ void fsciBleGapGetBufferFromPerScannedDeviceV2(gapPeriodicScannedDeviceV2_t* pSc
     fsciBleGetBufferFromArray(pScannedDevice->pData, *ppBuffer, pScannedDevice->dataLength);
 }
 
+#if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
+void fsciBleGapGetPMonAdvReportEventReceivedFromBuffer
+(
+    gapMonAdvReportReport_t *pScannedDevice,
+    uint8_t                 **ppBuffer
+)
+{
+    fsciBleGetEnumValueFromBuffer(pScannedDevice->peerAddressType, *ppBuffer, bleAddressType_t);
+    fsciBleGetAddressFromBuffer(pScannedDevice->peerAddress, *ppBuffer);
+    fsciBleGetEnumValueFromBuffer(pScannedDevice->condition, *ppBuffer, bleMonAdvCondition_t);
+}
+
+void fsciBleGapGetBufferFromMonAdvReportEventReceived
+(
+    gapMonAdvReportReport_t *pScannedDevice,
+    uint8_t                 **ppBuffer
+)
+{
+    fsciBleGetBufferFromEnumValue(pScannedDevice->peerAddressType, *ppBuffer, bleAddressType_t);
+    fsciBleGetBufferFromAddress(pScannedDevice->peerAddress, *ppBuffer);
+    fsciBleGetBufferFromEnumValue(pScannedDevice->condition, *ppBuffer, bleMonAdvCondition_t);
+}
+#endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
+
 #if defined(gBLE51_d) && (gBLE51_d == 1U)
 void fsciBleGapGetBufferFromConnectionlessIqReportReceived(gapConnectionlessIqReport_t* pIqReport, uint8_t** ppBuffer)
 {
@@ -2006,6 +2030,13 @@ uint32_t fsciBleGapGetScanningEventBufferSize(gapScanningEvent_t* pScanningEvent
             }
             break;
 #endif
+#if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
+            case gMonAdvReportEventReceived_c:
+            {
+                bufferSize += fsciBleGapGetMonAdvReportEventReceivedBufferSize(&pScanningEvent->eventData.monAdvReport);
+            }
+            break;
+#endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
 
         default:
             ; /* For MISRA compliance */
@@ -2138,6 +2169,13 @@ void fsciBleGapGetBufferFromScanningEvent(gapScanningEvent_t* pScanningEvent, ui
             }
             break;
 #endif
+#if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
+        case gMonAdvReportEventReceived_c:
+            {
+                fsciBleGapGetBufferFromMonAdvReportEventReceived(&pScanningEvent->eventData.monAdvReport, ppBuffer);
+            }
+            break;
+#endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
         default:
             ; /* For MISRA compliance */
             break;

@@ -2367,6 +2367,17 @@ const pfGapGetBufferFromGenericEventHandler_t maGapGetBufferFromGenericEventHand
     NULL,                                                                       /* reserved: 0x4FU */
     NULL,                                                                       /* reserved: 0x50U */
     GetBufferFromVendorUnitaryTestCompleteEvent,                                /* 0x51U, gVendorUnitaryTestComplete_c */
+    NULL,                                                                       /* reserved: 0x52U */
+    NULL,                                                                       /* reserved: 0x53U */
+    NULL,                                                                       /* reserved: 0x54U */
+    NULL,                                                                       /* reserved: 0x55U */
+    NULL,                                                                       /* reserved: 0x56U */
+    NULL,                                                                       /* reserved: 0x57U */
+#if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
+    GetBufferFromMonAdvListSizeReadEvent,                                       /* 0x58U, gMonAdvListSizeRead_c */
+#else /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
+    NULL,                                                                       /* reserved: 0x58U */
+#endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
 };
 
 /*! Array of handler functions used by fsciBleGapGetGenericEventBufferSize */
@@ -2478,6 +2489,17 @@ const pfGapGetGenericEventBufferSizeHandler_t maGapGetGenericEventBufferSizeHand
     NULL,                                                                       /* resreved: 0x4FU */
     NULL,                                                                       /* resreved: 0x50U */
     GetVendorUnitaryTestCompleteBufferSize,                                     /* 0x51U, gVendorUnitaryTestComplete_c */
+    NULL,                                                                       /* resreved: 0x52U */
+    NULL,                                                                       /* resreved: 0x53U */
+    NULL,                                                                       /* resreved: 0x54U */
+    NULL,                                                                       /* resreved: 0x55U */
+    NULL,                                                                       /* resreved: 0x56U */
+    NULL,                                                                       /* resreved: 0x57U */
+#if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
+    GetMonAdvListSizeReadBufferSize,                                            /* 0x58U, gMonAdvListSizeRead_c */
+#else /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
+    NULL,                                                                       /* resreved: 0x58U */
+#endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
 };
 
 #if gFsciBleBBox_d || gFsciBleTest_d

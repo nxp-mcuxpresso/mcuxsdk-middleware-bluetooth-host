@@ -77,6 +77,11 @@ typedef enum
     gBleCtrlCmdPlatformGetDeltaTimeStampOpCode_c                                = 0x16,                     /*! PLATFORM_GetDeltaTimeStamp command operation code */
     gBleGapCmdLoadCustomBondedDeviceInformationOpCode_c                         = 0x17,                     /*! Gap_LoadCustomBondedDeviceInformation command operation code */
     gBleGapCmdLePeriodicAdvUpdateSyncOpCode_c                                   = 0x18,                     /*! Gap_LePeriodicAdvUpdateSync command operation code */
+    gBleGapCmdAddDeviceToMonAdvListOpCode_c                                     = 0x19,                     /*! Gap_AddDeviceToMonAdvList command operation code */
+    gBleGapCmdRemoveDeviceFromMonAdvListOpCode_c                                = 0x1A,                     /*! Gap_RemoveDeviceFromMonAdvList command operation code */
+    gBleGapCmdClearMonAdvListOpCode_c                                           = 0x1B,                     /*! Gap_ClearMonAdvList command operation code */
+    gBleGapCmdEnableMonAdvOpCode_c                                              = 0x1C,                     /*! Gap_EnableMonAdv command operation code */
+    gBleGapCmdReadMonAdvListSizeOpCode_c                                        = 0x1D,                     /*! Gap_ReadMonAdvListSize command operation code */
 
     gBleGap2StatusOpCode_c                                                      = 0x80,                     /*! GAP2 status operation code */
     gBleCtrlDebugInfoOpCode_c                                                   = 0x81,                     /*! Debug data from gBleCtrlCmdGetDebugInfoCmdOpCode_c */
@@ -102,6 +107,12 @@ typedef enum
     gBleCtrlEvtPlatformGetDeltaTimeStampOpCode_c                                = 0x96,                     /*! Output data from gBleCtrlCmdPlatformGetDeltaTimeStampOpCode_c */
     gBleGapEvtLoadCustomBondedDeviceInformationOpCode_c                         = 0x97,                     /*! Gap_LoadCustomBondedDeviceInformation out parameters event operation code */
     gBleGapPeriodicAdvUpdateSyncComplete_c                                      = 0x98,                     /*! gapGenericCallback (type = gLePeriodicAdvUpdateSyncComplete_c) event operation code */
+    gBleGapEvtGenericEventDeviceAddedToMonAdvListOpCode_c                       = 0x99,                     /*! gapGenericCallback (type = gDeviceAddedToMonAdvList_c) event operation code */
+    gBleGapEvtGenericEventDeviceRemovedFromMonAdvListOpCode_c                   = 0x9A,                     /*! gapGenericCallback (type = gDeviceRemovedFromMonAdvList_c) event operation code */
+    gBleGapEvtGenericEventMonAdvListClearedOpCode_c                             = 0x9B,                     /*! gapGenericCallback (type = gMonAdvListCleared_c) event operation code */
+    gBleGapEvtGenericEventMonAdvEnabledOpCode_c                                 = 0x9C,                     /*! gapGenericCallback (type = gMonAdvEnabled_c) event operation code */
+    gBleGapEvtGenericEventMonAdvListSizeReadOpCode_c                            = 0x9D,                     /*! gapGenericCallback (type = gMonAdvListSizeRead_c) event operation code */
+    gBleGapEvtScanningEventMonAdvReportOpCode_c                                 = 0x9E,                     /*! gapScanningCallback (type = gMonAdvReportEventReceived_c) event operation code */
 } fsciBleGap2OpCode_t;
 
 /************************************************************************************
@@ -229,6 +240,64 @@ void GetBufferFromVendorUnitaryTestCompleteEvent
     gapGenericEvent_t   *pGenericEvent,
     uint8_t             **ppBuffer
 );
+
+#if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
+/*! *********************************************************************************
+*\fn           uint32_t GetMonAdvListSizeReadBufferSize(
+*                                           gapGenericEvent_t    *pGenericEvent)
+*
+*\brief        Returns the required FSCI buffer size for the
+*              gMonAdvListSizeRead_c event.
+*
+*\param  [in]  pGenericEvent       Pointer to the generic event.
+*
+*\return       uint32_t            Buffer size.
+********************************************************************************** */
+uint32_t GetMonAdvListSizeReadBufferSize
+(
+    gapGenericEvent_t   *pGenericEvent
+);
+
+/*! *********************************************************************************
+*\fn           void GetBufferFromMonAdvListSizeReadEvent(
+*                                           gapGenericEvent_t    *pGenericEvent,
+*                                           uint8_t              **ppBuffer)
+*
+*\brief        Writes the gMonAdvListSizeRead_c data fields in the provided
+*              buffer.
+*
+*\param  [in]  pGenericEvent       Pointer to the generic event.
+*\param  [in]  ppBuffer            Pointer to the buffer where the data fields
+*                                  should be written.
+*
+*\retval       void.
+********************************************************************************** */
+void GetBufferFromMonAdvListSizeReadEvent
+(
+    gapGenericEvent_t   *pGenericEvent,
+    uint8_t             **ppBuffer
+);
+
+/*! *********************************************************************************
+*\fn           void fsciBleGapGetBufferFromMonAdvReportEventReceived(
+*                                           gapMonAdvReportReport_t *pScanningEvent,
+*                                           uint8_t                 **ppBuffer)
+*
+*\brief        Writes the gMonAdvReportEventReceived_c scanning event data fields 
+*              in the provided buffer.
+*
+*\param  [in]  pScanningEvent      Pointer to the scanning event.
+*\param  [in]  ppBuffer            Pointer to the buffer where the data fields
+*                                  should be written.
+*
+*\retval       void.
+********************************************************************************** */
+void fsciBleGapGetBufferFromMonAdvReportEventReceived
+(
+    gapMonAdvReportReport_t *pScannedDevice,
+    uint8_t                 **ppBuffer
+);
+#endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
 #endif /* gFsciIncluded_c && gFsciBleGapLayerEnabled_d */
 
 /* GAP2 command handlers */

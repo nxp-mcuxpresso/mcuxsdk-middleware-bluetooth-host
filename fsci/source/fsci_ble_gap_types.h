@@ -145,6 +145,9 @@
         sizeof(bleCteType_t) + (sizeof(uint16_t) + sizeof(int8_t) + \
         sizeof(uint16_t) + (uint32_t)(pScannedDevice)->dataLength))
 
+#define fsciBleGapGetMonAdvReportEventReceivedBufferSize(pScannedDevice)             \
+        (sizeof(bleAddressType_t) + gcBleDeviceAddressSize_c + sizeof(bleMonAdvCondition_t))
+
 #define fsciBleGapGetSyncLostBufferSize(pSyncLost)               \
         (sizeof(uint8_t) + sizeof(bleAddressType_t) + sizeof(bleDeviceAddress_t))
 
@@ -653,6 +656,19 @@ void fsciBleGapGetBufferFromPerScannedDeviceV2
     uint8_t**                     ppBuffer
 );
 #endif
+#if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
+void fsciBleGapGetMonAdvReportEventReceivedFromBuffer
+(
+    gapMonAdvReportReport_t *pScannedDevice,
+    uint8_t                 **ppBuffer
+);
+
+void fsciBleGapGetBufferFromMonAdvReportEventReceived
+(
+    gapMonAdvReportReport_t *pScannedDevice,
+    uint8_t                 **ppBuffer
+);
+#endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
 
 void fsciBleGapGetConnectedEventFromBuffer
 (
