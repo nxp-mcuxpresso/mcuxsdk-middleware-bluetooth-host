@@ -217,7 +217,7 @@
     #define  gUnmirroredFeatureSet_d             (1)
     #if gNvFragmentation_Enabled_d
         /* Buffer size large enough to accommodate the maximum number of CCCDs for every device. */
-        #define  gNvRecordsCopiedBufferSize_c    (gMaxBondedDevices_c * 16)
+        #define  gNvRecordsCopiedBufferSize_c    ((uint16_t)gMaxBondedDevices_c * 16u)
     #endif
 #endif
 
