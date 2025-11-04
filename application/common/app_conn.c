@@ -1401,7 +1401,8 @@ void BluetoothLEHost_ProcessIdleTask(void)
 {
 #if (defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)) || (defined(gAppOtaASyncFlashTransactions_c) && (gAppOtaASyncFlashTransactions_c > 0))
     int RadioIdleDuration32Ktick;
-    
+
+    OSA_DisableIRQGlobal();
     /* By default, run again the idle loop to execute any pending operations
        The variable will be set to FALSE if no operation were performed this time */
     isConnectivityTaskToProcess = TRUE;
@@ -1447,6 +1448,7 @@ void BluetoothLEHost_ProcessIdleTask(void)
         /* operation could not be completed because of lack of time
          * => can be optimized by starting a timer to retry later */
     }
+    OSA_EnableIRQGlobal();
 #else
     isConnectivityTaskToProcess = FALSE;
 #endif
