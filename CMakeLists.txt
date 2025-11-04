@@ -326,7 +326,7 @@ endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_xml)
     mcux_add_source(
-        SOURCES fsci/xml/package/BLE_1.10.12.xml
+        SOURCES fsci/xml/package/BLE_1.10.14.xml
     )
 endif()
 
