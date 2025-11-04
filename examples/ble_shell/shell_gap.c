@@ -55,17 +55,40 @@
 * Private macros
 *************************************************************************************
 ************************************************************************************/
-#if defined(BLE_SHELL_AE_SUPPORT) && (BLE_SHELL_AE_SUPPORT) && \
-    (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
-#define mShellGapCmdsCount_c                37U
-#elif defined(BLE_SHELL_AE_SUPPORT) && (BLE_SHELL_AE_SUPPORT) && \
-    defined(BLE_SHELL_DBAF_SUPPORT) && (BLE_SHELL_DBAF_SUPPORT)
-#define mShellGapCmdsCount_c                37U
-#elif defined(BLE_SHELL_AE_SUPPORT) && (BLE_SHELL_AE_SUPPORT)
-#define mShellGapCmdsCount_c                33U
+#if defined(BLE_SHELL_AE_SUPPORT) && (BLE_SHELL_AE_SUPPORT)
+    /* Base AE command count */
+    #define mShellGapBaseCmdsCount_c            22U
+    #define mShellGapAECmdsCount_c              11U
+    
+    /* Additional feature command counts */
+    #if defined(BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT)
+        #define mShellGapPAWRCmdsCount_c            4U
+    #else
+        #define mShellGapPAWRCmdsCount_c            0U
+    #endif
+    
+    #if defined(BLE_SHELL_DBAF_SUPPORT) && (BLE_SHELL_DBAF_SUPPORT)
+        #define mShellGapDBAFCmdsCount_c            4U
+    #else
+        #define mShellGapDBAFCmdsCount_c            0U
+    #endif
+    
+    #if defined(BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT)
+        #define mShellGapMONADVCmdsCount_c          5U
+    #else
+        #define mShellGapMONADVCmdsCount_c          0U
+    #endif
+    
+    /* Total command count */
+    #define mShellGapCmdsCount_c           (mShellGapBaseCmdsCount_c + \
+                                            mShellGapAECmdsCount_c   + \
+                                            mShellGapPAWRCmdsCount_c + \
+                                            mShellGapDBAFCmdsCount_c + \
+                                            mShellGapMONADVCmdsCount_c)
 #else
-#define mShellGapCmdsCount_c                22U
+    #define mShellGapCmdsCount_c            22U
 #endif
+
 #define mShellGapMaxScannedDevicesCount_c   20U
 #define mShellGapMaxDeviceNameLength_c      20U
 
@@ -201,6 +224,13 @@ static bool_t ShellGap_ErasePeriodicResponseData(uint8_t idx);
 #endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 #endif /* BLE_SHELL_AE_SUPPORT */
 
+#if defined(BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT)
+static shell_status_t ShellGap_AddDeviceToMonAdvList(uint8_t argc, char * argv[]);
+static shell_status_t ShellGap_RemoveDeviceFromMonAdvList(uint8_t argc, char * argv[]);
+static shell_status_t ShellGap_ClearMonAdvList(uint8_t argc, char * argv[]);
+static shell_status_t ShellGap_EnableMonAdv(uint8_t argc, char * argv[]);
+static shell_status_t ShellGap_ReadMonAdvListSize(uint8_t argc, char * argv[]);
+#endif /* BLE_SHELL_MONADV_SUPPORT */
 /************************************************************************************
 *************************************************************************************
 * Private memory declarations
@@ -262,6 +292,13 @@ static const gapCmds_t mGapShellCmds[mShellGapCmdsCount_c] =
     {"deldecinstr",     ShellGap_DeleteDecisionInstructions},
     {"extadvdecdata",   ShellGap_SetExtAdvDecisionData},
 #endif /* BLE_SHELL_DBAF_SUPPORT */
+#if defined(BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT)
+    {"monadvadd",       ShellGap_AddDeviceToMonAdvList},
+    {"monadvrem",       ShellGap_RemoveDeviceFromMonAdvList},
+    {"monadvclear",     ShellGap_ClearMonAdvList},
+    {"monadven",        ShellGap_EnableMonAdv},
+    {"monadvsize",      ShellGap_ReadMonAdvListSize},
+#endif /* BLE_SHELL_MONADV_SUPPORT */
 };
 
 static bool_t mIsBonded = FALSE;
@@ -393,6 +430,13 @@ static bleDeviceAddress_t mMonitorPeer;
 
 /* If the advertising callback is not set, no event is received for advertising commands */
 static bool_t mAdvertisingCbSet = FALSE;
+
+#if defined(BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT)
+/* The Enable parameter may be set to 0x01 at any time as a method of restarting monitoring. */
+/* The success event for this command does not indicate the new state. */
+static bool_t mLastMonAdvState = FALSE;
+static bool_t mNewMonAdvState = FALSE;
+#endif /* defined(BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT) */
 
 /************************************************************************************
 *************************************************************************************
@@ -3690,6 +3734,51 @@ void ShellGap_GenericCallback (gapGenericEvent_t* pGenericEvent)
         break;
 #endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 
+#if defined(BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT)
+        case gDeviceAddedToMonAdvList_c:
+        {
+            shell_write(mGapEventHeader);
+            shell_write("Device added to Monitored Advertisers List.");
+            break;
+        }
+        case gDeviceRemovedFromMonAdvList_c:
+        {
+            shell_write(mGapEventHeader);
+            shell_write("Device removed from Monitored Advertisers List.");
+            break;
+        }
+        case gMonAdvListCleared_c:
+        {
+            shell_write(mGapEventHeader);
+            shell_write("Monitored Advertisers List cleared.");
+            break;
+        }
+        case gMonAdvEnabled_c:
+        {
+            shell_write(mGapEventHeader);
+            if ((mNewMonAdvState == mLastMonAdvState) && (mNewMonAdvState == TRUE))
+            {
+                shell_write("Monitoring Advertisers restarted.");
+            }
+            else if (mNewMonAdvState == TRUE)
+            {
+                shell_write("Monitoring Advertisers enabled.");
+            }
+            else
+            {
+                shell_write("Monitoring Advertisers disabled.");
+            }
+            mLastMonAdvState = mNewMonAdvState;
+            break;
+        }
+        case gMonAdvListSizeRead_c:
+        {
+            shell_write(mGapEventHeader);
+            shell_write("Monitored Advertisers List size: ");
+            shell_writeDec(pGenericEvent->eventData.monAdvListSize);
+            break;
+        }
+#endif /* BLE_SHELL_MONADV_SUPPORT */
         case gInternalError_c:
         {
             /* Command is not supported */
@@ -4156,6 +4245,34 @@ void ShellGap_ScanningCallback (gapScanningEvent_t* pScanningEvent)
         }
 #endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 
+#if defined(BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT)
+        case gMonAdvReportEventReceived_c:
+        {
+            shell_write("\r\n-->  GAP Event: Monitored Advertiser Report");
+            shell_write("\r\n    Address Type: ");
+            shell_writeDec(pScanningEvent->eventData.monAdvReport.peerAddressType);
+            shell_write("\r\n    Address: ");
+            for(uint32_t i = sizeof(bleDeviceAddress_t); i > 0U; i-- )
+            {
+                shell_writeHex(pScanningEvent->eventData.monAdvReport.peerAddress[i - 1U]);
+            }
+            shell_write("\r\n    Condition: ");
+            if (pScanningEvent->eventData.monAdvReport.condition == gBleMonAdvConditionRssiLowThreshold_c)
+            {
+                shell_write("RSSI Low Threshold");
+            }
+            else if (pScanningEvent->eventData.monAdvReport.condition == gBleMonAdvConditionRssiHighThreshold_c)
+            {
+                shell_write("RSSI High Threshold");
+            }
+            else
+            {
+                shell_write("Unknown");
+            }
+            shell_write("\r\n");
+            break;
+        }
+#endif /* BLE_SHELL_MONADV_SUPPORT */
         case gScanCommandFailed_c:
         {
             /* Scan could not be started/stopped */
@@ -4635,6 +4752,317 @@ static void ShellGap_ConfigureExtAdvPhy(uint8_t argc, char * argv[], uint32_t ar
 }
 #endif /* BLE_SHELL_AE_SUPPORT */
 
+#if defined(BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT)
+/*! *********************************************************************************
+ * \brief        Handles "gap monadvadd" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellGap_AddDeviceToMonAdvList(uint8_t argc, char * argv[])
+{
+    shell_status_t result = kStatus_SHELL_Error;
+    bleAddressType_t addressType = 0xFFU;
+    bleDeviceAddress_t address = {0};
+    int8_t rssiLowThreshold = gBleMonAdvRssiThresholdMin_c;
+    int8_t rssiHighThreshold = gBleMonAdvRssiThresholdMax_c;
+    uint8_t timeout = 0U;
+    /* Use this bitmask to indicate if required parameters are not introduced */
+    uint8_t paramsValidBitmask = 0U;
+
+    /* For no argument, print current configuration */
+    if (argc >= 10U)
+    {
+        /* Search for keywords */
+        for (uint32_t i = 0U; i < argc; i += 2U)
+        {
+            if (0 == strcmp((char*)argv[i], "-addr") && ((i + 1U) < argc))
+            {
+                /* Check that address's length is valid */
+                if (gcBleDeviceAddressSize_c == BleApp_ParseHexValue(argv[i + 1U]))
+                {
+                    FLib_MemCpyReverseOrder(&address, argv[i + 1U], sizeof(bleDeviceAddress_t));
+                }
+                /* Mandatory argument */
+                paramsValidBitmask |= 1U << 0U;
+            }
+
+            if (0 == strcmp((char*)argv[i], "-type") && ((i + 1U) < argc))
+            {
+                addressType = (bleAddressType_t)BleApp_atoi(argv[i + 1U]);
+                /* Mandatory argument */
+                paramsValidBitmask |= 1U << 1U;
+            }
+
+            if (0 == strcmp((char*)argv[i], "-rssilow") && ((i + 1U) < argc))
+            {
+                rssiLowThreshold = (int8_t)BleApp_atoi(argv[i + 1U]);
+                /* Mandatory argument */
+                paramsValidBitmask |= 1U << 2U;
+            }
+
+            if (0 == strcmp((char*)argv[i], "-rssihigh") && ((i + 1U) < argc))
+            {
+                rssiHighThreshold = (int8_t)BleApp_atoi(argv[i + 1U]);
+                /* Mandatory argument */
+                paramsValidBitmask |= 1U << 3U;
+            }
+
+            if (0 == strcmp((char*)argv[i], "-timeout") && ((i + 1U) < argc))
+            {
+                timeout = (uint8_t)BleApp_atoi(argv[i + 1U]);
+                /* Mandatory argument */
+                paramsValidBitmask |= 1U << 4U;
+            }
+        }
+
+        /* Only allow the command to the Host if all required parameters are given */
+        if (paramsValidBitmask == 0x1FU)
+        {
+            /* Validate parameter ranges */
+            if ((rssiLowThreshold >= gBleMonAdvRssiThresholdMin_c) && 
+                (rssiLowThreshold <= gBleMonAdvRssiThresholdMax_c) &&
+                (rssiHighThreshold >= gBleMonAdvRssiThresholdMin_c) && 
+                (rssiHighThreshold <= gBleMonAdvRssiThresholdMax_c) &&
+                (rssiLowThreshold <= rssiHighThreshold) &&
+                ((addressType == gBleAddrTypePublic_c) || (addressType == gBleAddrTypeRandom_c)))
+            {
+                /* Add device to monitored advertisers list */
+                if (gBleSuccess_c != Gap_AddDeviceToMonAdvList(addressType, address, rssiLowThreshold, rssiHighThreshold, timeout))
+                {
+                    shell_write(mShellErrorStatus);
+                    result = kStatus_SHELL_Success;
+                }
+                else
+                {
+                    result = kStatus_SHELL_Success;
+                }
+            }
+            else
+            {
+                result = kStatus_SHELL_Error;
+            }
+        }
+        else
+        {
+            result = kStatus_SHELL_Error;
+        }
+    }
+    else
+    {
+        result = kStatus_SHELL_Error;
+    }
+
+    if (result == kStatus_SHELL_Error)
+    {
+        shell_write("\r\nIncorrect command parameter(s).  Enter \"help\" to view a list of available commands.\r\n\r\n");
+    }
+
+    return result;
+}
+
+/*! *********************************************************************************
+ * \brief        Handles "gap monadvrem" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellGap_RemoveDeviceFromMonAdvList(uint8_t argc, char * argv[])
+{
+    shell_status_t result = kStatus_SHELL_Error;
+    bleAddressType_t addressType = 0xFFU;
+    bleDeviceAddress_t address = {0};
+    /* Use this bitmask to indicate if required parameters are not introduced */
+    uint8_t paramsValidBitmask = 0U;
+
+    /* For no argument, print current configuration */
+    if (argc >= 4U)
+    {
+        /* Search for keywords */
+        for (uint32_t i = 0U; i < argc; i += 2U)
+        {
+            if (0 == strcmp((char*)argv[i], "-addr") && ((i + 1U) < argc))
+            {
+                /* Check that address's length is valid */
+                if (gcBleDeviceAddressSize_c == BleApp_ParseHexValue(argv[i + 1U]))
+                {
+                    FLib_MemCpyReverseOrder(&address, argv[i + 1U], sizeof(bleDeviceAddress_t));
+                }
+                /* Mandatory argument */
+                paramsValidBitmask |= 1U << 0U;
+            }
+
+            if (0 == strcmp((char*)argv[i], "-type") && ((i + 1U) < argc))
+            {
+                addressType = (bleAddressType_t)BleApp_atoi(argv[i + 1U]);
+                /* Mandatory argument */
+                paramsValidBitmask |= 1U << 1U;
+            }
+        }
+
+        /* Only allow the command to the Host if all required parameters are given */
+        if (paramsValidBitmask == 0x03U)
+        {
+            /* Validate address type */
+            if ((addressType == gBleAddrTypePublic_c) || (addressType == gBleAddrTypeRandom_c))
+            {
+                /* Remove device from monitored advertisers list */
+                if (gBleSuccess_c != Gap_RemoveDeviceFromMonAdvList(addressType, address))
+                {
+                    shell_write(mShellErrorStatus);
+                    result = kStatus_SHELL_Success;
+                }
+                else
+                {
+                    result = kStatus_SHELL_Success;
+                }
+            }
+            else
+            {
+                result = kStatus_SHELL_Error;
+            }
+        }
+        else
+        {
+            result = kStatus_SHELL_Error;
+        }
+    }
+    else
+    {
+        result = kStatus_SHELL_Error;
+    }
+
+    if (result == kStatus_SHELL_Error)
+    {
+        shell_write("\r\nIncorrect command parameter(s).  Enter \"help\" to view a list of available commands.\r\n\r\n");
+    }
+
+    return result;
+}
+
+/*! *********************************************************************************
+ * \brief        Handles "gap monadvclear" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellGap_ClearMonAdvList(uint8_t argc, char * argv[])
+{
+    shell_status_t result = kStatus_SHELL_Success;
+
+    /* Do not accept command if other arguments were passed */
+    if (argc != 0U)
+    {
+        shell_write("\r\nIncorrect command parameter(s).  Enter \"help\" to view a list of available commands.\r\n\r\n");
+        result = kStatus_SHELL_Error;
+    }
+    else
+    {
+        if (gBleSuccess_c != Gap_ClearMonAdvList())
+        {
+            shell_write(mShellErrorStatus);
+        }
+    }
+
+    return result;
+}
+
+/*! *********************************************************************************
+ * \brief        Handles "gap monadven" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellGap_EnableMonAdv(uint8_t argc, char * argv[])
+{
+    shell_status_t result = kStatus_SHELL_Error;
+    bool_t enable = FALSE;
+    /* Use this bitmask to indicate if required parameters are not introduced */
+    uint8_t paramsValidBitmask = 0U;
+
+    /* For no argument, print current configuration */
+    if (argc == 2U)
+    {
+        /* Search for keywords */
+        for (uint32_t i = 0U; i < argc; i += 2U)
+        {
+            if (0 == strcmp((char*)argv[i], "-enable") && ((i + 1U) < argc))
+            {
+                enable = (bool_t)BleApp_atoi(argv[i + 1U]);
+                /* Mandatory argument */
+                paramsValidBitmask |= 1U << 0U;
+            }
+        }
+
+        /* Only allow the command to the Host if all required parameters are given */
+        if (paramsValidBitmask == 0x01U)
+        {
+            if (gBleSuccess_c != Gap_EnableMonAdv(enable))
+            {
+                shell_write(mShellErrorStatus);
+                result = kStatus_SHELL_Success;
+            }
+            else
+            {
+                result = kStatus_SHELL_Success;
+                mNewMonAdvState = enable;
+            }
+        }
+        else
+        {
+            result = kStatus_SHELL_Error;
+        }
+    }
+    else
+    {
+        result = kStatus_SHELL_Error;
+    }
+
+    if (result == kStatus_SHELL_Error)
+    {
+        shell_write("\r\nIncorrect command parameter(s).  Enter \"help\" to view a list of available commands.\r\n\r\n");
+    }
+
+    return result;
+}
+
+/*! *********************************************************************************
+ * \brief        Handles "gap monadvsize" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellGap_ReadMonAdvListSize(uint8_t argc, char * argv[])
+{
+    shell_status_t result = kStatus_SHELL_Success;
+
+    /* Do not accept command if other arguments were passed */
+    if (argc != 0U)
+    {
+        shell_write("\r\nIncorrect command parameter(s).  Enter \"help\" to view a list of available commands.\r\n\r\n");
+        result = kStatus_SHELL_Error;
+    }
+    else
+    {
+        if (gBleSuccess_c != Gap_ReadMonAdvListSize())
+        {
+            shell_write(mShellErrorStatus);
+        }
+    }
+
+    return result;
+}
+#endif /* BLE_SHELL_MONADV_SUPPORT */
 /*! *********************************************************************************
  * @}
  ********************************************************************************** */

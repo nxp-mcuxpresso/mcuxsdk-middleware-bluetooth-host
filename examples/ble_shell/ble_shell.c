@@ -145,6 +145,13 @@ static shell_command_t mGapCmd =
                     "  gap txpower [adv/conn] [powerLevel]\r\n"
                     "  gap rssimonitor [peerID]/[peerAddress] [-c]\r\n"
                     "  gap rssistop\r\n"
+#if defined(BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT)
+                    "  gap monadvadd -addr <address> -type <0|1> -rssilow <value> -rssihigh <value> -timeout <value>\r\n"
+                    "  gap monadvrem -addr <address> -type <0|1>\r\n"
+                    "  gap monadvclear\r\n"
+                    "  gap monadven -enable <0|1>\r\n"
+                    "  gap monadvsize\r\n"
+#endif /* BLE_SHELL_MONADV_SUPPORT */
 #if defined(BLE_SHELL_AE_SUPPORT) && (BLE_SHELL_AE_SUPPORT)
                     "  gap extadvstart\r\n"
                     "  gap extadvstop\r\n"

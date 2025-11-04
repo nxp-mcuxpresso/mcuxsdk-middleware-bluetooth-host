@@ -35,5 +35,9 @@ This section describes the functionality, user interactions, and testing methods
 :heading-offset: 2
 ```
 
+```{include} ../topics/Monitoring_Advertisers_feature.md
+:heading-offset: 2
+```
+
 **Parent topic:**[Bluetooth LE stack and demo applications](../topics/bluetooth_le_stack_and_demo_applications.md)
 

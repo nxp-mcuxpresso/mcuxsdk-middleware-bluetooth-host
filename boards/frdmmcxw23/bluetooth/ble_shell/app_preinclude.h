@@ -93,13 +93,23 @@
 
 #endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 
+/* Enable Monitoring Advertisers shell commands */
+#define BLE_SHELL_MONADV_SUPPORT                0
+
+#if defined(BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT)
+#define gBLE60_d                                1
+#define gBLE60_MonitoredAdvertisers_d           TRUE
+#endif /* BLE_SHELL_MONADV_SUPPORT */
+
 #if (((defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)) || \
-     ((defined BLE_SHELL_DBAF_SUPPORT) && (BLE_SHELL_DBAF_SUPPORT == 1)))
+     ((defined BLE_SHELL_DBAF_SUPPORT) && (BLE_SHELL_DBAF_SUPPORT == 1)) || \
+     ((defined BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT == 1)))
 /* Increase shell buffer size & task stack size to allow longer commands */
 #define SHELL_BUFFER_SIZE                       128U
 #define SHELL_TASK_STACK_SIZE                   1200U
-#endif /* (((defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)) ||
-           ((defined BLE_SHELL_DBAF_SUPPORT) && (BLE_SHELL_DBAF_SUPPORT == 1))) */
+#endif /* (((defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)) || \
+           ((defined BLE_SHELL_DBAF_SUPPORT) && (BLE_SHELL_DBAF_SUPPORT == 1)) || \
+           ((defined BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT == 1))) */
 
 /*! *********************************************************************************
  *     Framework Configuration

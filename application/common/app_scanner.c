@@ -362,6 +362,12 @@ STATIC void App_ScanningCallback
                             &pScanningEvent->eventData.syncLost,
                             sizeof(pScanningEvent->eventData.syncLost));
             }
+            else if (pScanningEvent->eventType == gMonAdvReportEventReceived_c)
+            {
+                FLib_MemCpy(&pMsgIn->msgData.scanMsg.eventData.monAdvReport,
+                            &pScanningEvent->eventData.monAdvReport,
+                            sizeof(pScanningEvent->eventData.monAdvReport));
+            }
             else
             {
                 /* no action for all other event types */
