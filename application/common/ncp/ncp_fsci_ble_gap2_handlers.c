@@ -20,6 +20,7 @@
 ************************************************************************************/
 #include "EmbeddedTypes.h"
 #include "fwk_platform.h"
+#include "fwk_platform_ble.h"
 #include "fsci_ble_gap.h"
 #include "fsci_ble_gap_types.h"
 #include "fsci_ble_gap2_handlers.h"
@@ -118,6 +119,13 @@ static void fsciBleGapDecryptAdvertisingDataEvtMonitor
     uint8_t *pOutput,
     uint16_t outputSize
 );
+
+static void fsciBleGapLoadCustomBondedDeviceInformationEvtMonitor
+(
+    const uint8_t *pOutInfo,
+    uint16_t      infoSize
+);
+
 #if defined(gA2BSupportEnabled_d) && (gA2BSupportEnabled_d == TRUE)
 static void HandleGapCmdEcdhP256ComputeA2BKey
 (
@@ -212,11 +220,6 @@ void HandleGapCmdSetDecisionInstructionsOpCode
 #endif /* gBLE60_DecisionBasedAdvertisingFilteringSupport_d */
 
 #if defined(gBLE54_d) && (gBLE54_d == 1U)
-void HandleGapCmdSetExtAdvertisingParametersV2OpCode
-(
-    uint8_t *pBuffer,
-    uint32_t fsciInterfaceId
-);
 #if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
 void HandleGapCmdSetPeriodicAdvertisingSubeventDataOpCode
 (
@@ -238,13 +241,20 @@ void HandleGapCmdConnectV2OpCode
     uint8_t *pBuffer,
     uint32_t fsciInterfaceId
 );
-void HandleGapCmdSetPeriodicAdvParametersV2OpCode
+#endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
+#endif /* defined(gBLE54_d) && (gBLE54_d == 1U) */
+
+void HandleGapCmdSetBondedDeviceNameOpCode
 (
     uint8_t *pBuffer,
     uint32_t fsciInterfaceId
 );
-#endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
-#endif /* defined(gBLE54_d) && (gBLE54_d == 1U) */
+
+void HandleGapCmdLoadCustomBondedDeviceInformationOpCode
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
 
 #if ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE))
 static void HandleGapCmdLePeriodicAdvUpdateSync
@@ -271,6 +281,25 @@ static void HandleCtrlCmdGetTimestampExOpCode
     uint32_t fsciInterfaceId
 );
 
+#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0))
+/*! *********************************************************************************
+*\private
+*\fn           void HandleCtrlCmdPlatformGetDeltaTimeStampOpCode(uint8_t *pBuffer,
+*                                                     uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleCtrlCmdPlatformGetDeltaTimeStampOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */   
+static void HandleCtrlCmdPlatformGetDeltaTimeStampOpCode
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */
+
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -289,11 +318,7 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
     NULL,                                                                       /* reserved: 0x02 */
     NULL,                                                                       /* reserved: 0x03 */
 #endif /* gBLE60_DecisionBasedAdvertisingFilteringSupport_d */
-#if defined(gBLE54_d) && (gBLE54_d == 1U)
-    HandleGapCmdSetExtAdvertisingParametersV2OpCode,                            /* = 0x04, gBleGapCmdSetExtAdvertisingParametersV2OpCode_c */
-#else
-    NULL,
-#endif /* defined(gBLE54_d) && (gBLE54_d == 1U) */
+    NULL,                                                                       /* = 0x04, Not Used / Free to use */
     NULL,                                                                       /* = 0x05 Not Used / Free to use */
 #if defined(gA2BSupportEnabled_d) && (gA2BSupportEnabled_d == TRUE)
     HandleGapCmdEcdhP256ComputeA2BKey,                                          /* = 0x06 gBleGapCmdEcdhP256ComputeA2BKeyOpCode_c */
@@ -316,16 +341,22 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
     HandleGapCmdSetPeriodicAdvertisingResponseDataOpCode,                       /* = 0x0F, gBleGapCmdSetPeriodicAdvertisingResponseDataOpCode_c */
     HandleGapCmdSetPeriodicSyncSubeventOpCode,                                  /* = 0x10, gBleGapCmdSetPeriodicSyncSubeventOpCode_c */
     HandleGapCmdConnectV2OpCode,                                                /* = 0x11, gBleGapCmdConnectV2OpCode_c */
-    HandleGapCmdSetPeriodicAdvParametersV2OpCode,                               /* = 0x12, gBleGapCmdSetPeriodicAdvParametersV2OpCode_c */
 #else /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
     NULL,
     NULL,
     NULL,
     NULL,
-    NULL,
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
+    NULL,                                                                       /* = 0x12, Not Used / Free to use */
     HandleCtrlCmdGetTimestampExOpCode,                                          /* = 0x13, gBleCtrlCmdGetTimestampExOpCode_c */
     HandleGapCmdSetDataRelatedAddressChanges,                                   /* = 0x14, gBleGapCmdSetDataRelatedAddressChanges_c */
+    HandleGapCmdSetBondedDeviceNameOpCode,                                      /* = 0x15, gBleGapCmdSetBondedDeviceNameOpCode_c */
+#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0))    
+    HandleCtrlCmdPlatformGetDeltaTimeStampOpCode,                               /* = 0x16, gBleCtrlCmdPlatformGetDeltaTimeStampOpCode_c */
+#else /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */
+    NULL,
+#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */
+    HandleGapCmdLoadCustomBondedDeviceInformationOpCode,                        /* = 0x17, gBleGapCmdLoadCustomBondedDeviceInformationOpCode_c */
 #if ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE))
     HandleGapCmdLePeriodicAdvUpdateSync,                                        /* = 0x18, gBleGapCmdLePeriodicAdvUpdateSyncOpCode_c */
 #else /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
@@ -913,6 +944,45 @@ static void HandleGapCmdDecryptAdvertisingData
 }
 
 /*! *********************************************************************************
+* \brief  fsciBleGapLoadCustomBondedDeviceInformationEvtMonitor out parameter monitoring macro.
+*
+* \param[in]    pOutput     Encrypted output.
+* \param[in]    pOutputSize Encrypted output size.
+*
+********************************************************************************** */
+static void fsciBleGapLoadCustomBondedDeviceInformationEvtMonitor
+(
+    const uint8_t *pOutInfo,
+    uint16_t      infoSize
+)
+{
+    clientPacketStructured_t *pClientPacket;
+    uint8_t *pBuffer;
+
+#if gFsciBleTest_d
+    /* If GAP is disabled the event must be not monitored */
+    if (TRUE == bFsciBleGap2Enabled)
+    {
+#endif /* gFsciBleTest_d */
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleGapEvtLoadCustomBondedDeviceInformationOpCode_c,
+                                                   infoSize + sizeof(uint16_t));
+
+        if (NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+            /* Set event parameters in the buffer */
+            fsciBleGetBufferFromUint16Value(infoSize, pBuffer);
+            fsciBleGetBufferFromArray(pOutInfo, pBuffer, infoSize);
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
+#if gFsciBleTest_d
+    }
+#endif /* gFsciBleTest_d */
+}
+
+/*! *********************************************************************************
 * \brief  fsciBleGapEncryptAdvertisingDataMonitor out parameter monitoring macro.
 *
 * \param[in]    pOutput     Encrypted output.
@@ -1444,16 +1514,20 @@ void HandleGapEvtAdvertisingEventPerAdvResponseOpCode(uint8_t *pBuffer, uint32_t
 
 void fsciBleGap2StatusMonitor(bleResult_t result)
 {
+    bool_t bContinueExecution = TRUE;
 #if gFsciBleTest_d
     /* If GAP is disabled the status must be not monitored */
     if(FALSE == bFsciBleGap2Enabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Send status over UART */
-    fsciBleStatusMonitor(gFsciBleGap2OpcodeGroup_c, (uint8_t)gBleGap2StatusOpCode_c, result);
+    if (bContinueExecution)
+    {
+        /* Send status over UART */
+        fsciBleStatusMonitor(gFsciBleGap2OpcodeGroup_c, (uint8_t)gBleGap2StatusOpCode_c, result);
+    }
 }
 
 /*! *********************************************************************************
@@ -1477,32 +1551,34 @@ void fsciBleCtrlDebugInfoCmdMonitor
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
+    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if(FALSE == bFsciBleGap2Enabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlDebugInfoOpCode_c, sizeof(debugInfoSize) + debugInfoSize); /* sizeof debugInfoSize + 
-                                                                                                                            * actual debugInfo */
-
-    if(NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+         /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlDebugInfoOpCode_c, sizeof(debugInfoSize) + debugInfoSize); /* sizeof debugInfoSize + 
+                                                                                                                                * actual debugInfo */
+
+        if(NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint32Value(debugInfoSize, pBuffer);
+            fsciBleGetBufferFromArray(pDebugInfo, pBuffer, debugInfoSize);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint32Value(debugInfoSize, pBuffer);
-    fsciBleGetBufferFromArray(pDebugInfo, pBuffer, debugInfoSize);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
 
 /*! *********************************************************************************
@@ -1529,34 +1605,89 @@ void fsciBleCtrlGetTimestampExCmdMonitor
 {
     clientPacketStructured_t   *pClientPacket;
     uint8_t                    *pBuffer;
+    bool_t                     bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if(FALSE == bFsciBleGap2Enabled)
     {
-        return;
+        bContinueExecution = FALSE;
     }
 #endif /* gFsciBleTest_d */
 
-    /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlEvtGetTimestampExOpCode_c,
-                                               sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint64_t));
-
-    if (NULL == pClientPacket)
+    if (bContinueExecution)
     {
-        return;
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlEvtGetTimestampExOpCode_c,
+                                                   sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint64_t));
+
+        if (NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint32Value(ll_timing_slot, pBuffer);
+            fsciBleGetBufferFromUint16Value(ll_timing_us, pBuffer);
+            fsciBleGetBufferFromUint64Value(tstmr, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
     }
-
-    pBuffer = &pClientPacket->payload[0];
-
-    /* Set command parameters in the buffer */
-    fsciBleGetBufferFromUint32Value(ll_timing_slot, pBuffer);
-    fsciBleGetBufferFromUint16Value(ll_timing_us, pBuffer);
-    fsciBleGetBufferFromUint64Value(tstmr, pBuffer);
-
-    /* Transmit the packet over UART */
-    fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
 }
+
+#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) 
+/*! *********************************************************************************
+*\fn           void fsciBleCtrlGetTimestampExCmdMonitor(
+*                                           uint32_t    ll_timing_slot,
+*                                           uint16_t    ll_timing_us,
+*                                           uint64_t    tstmr)
+*
+*\brief        Constructs the FSCI packet by serializing the input parameters
+*              executes FSCI transmit.
+*
+*\param[in]    ll_timing_slot   Link layer timing slot
+*\param[in]    ll_timing_us     Link layer timing micro second offset inside the slot
+*\param[in]    tstmr            TSTMR value in us when capturing the link layer timing
+*
+*\retval       void.
+********************************************************************************** */
+void fsciBleCtrlPlatformGetDeltaTimeStampCmdMonitor
+(
+    uint64_t    deltaTimestamp
+)
+{
+    clientPacketStructured_t   *pClientPacket;
+    uint8_t                    *pBuffer;
+    bool_t                     bContinueExecution = TRUE;
+
+#if gFsciBleTest_d
+    /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
+    if(FALSE == bFsciBleGap2Enabled)
+    {
+        bContinueExecution = FALSE;
+    }
+#endif /* gFsciBleTest_d */
+
+    if (bContinueExecution)
+    {
+        /* Allocate the packet to be sent over UART */
+        pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlEvtPlatformGetDeltaTimeStampOpCode_c,
+                                                   sizeof(uint64_t));
+
+        if (NULL != pClientPacket)
+        {
+            pBuffer = &pClientPacket->payload[0];
+
+            /* Set command parameters in the buffer */
+            fsciBleGetBufferFromUint64Value(deltaTimestamp, pBuffer);
+
+            /* Transmit the packet over UART */
+            fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
+        }
+    }
+}
+#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */ 
 
 #if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)
 /*! *********************************************************************************
@@ -1723,52 +1854,6 @@ void HandleGapCmdSetDecisionInstructionsOpCode(uint8_t *pBuffer, uint32_t fsciIn
 #endif /* gBLE60_DecisionBasedAdvertisingFilteringSupport_d */
 
 #if defined(gBLE54_d) && (gBLE54_d == 1U)
-/*! *********************************************************************************
-*\private
-*\fn           void HandleGapCmdSetExtAdvertisingParametersV2OpCode(
-*                                                       uint8_t *pBuffer,
-*                                                       uint32_t fsciInterfaceId)
-*\brief        Handler for the gBleGapCmdSetExtAdvertisingParametersV2OpCode_c opCode.
-*
-*\param  [in]  pBuffer              Pointer to the command parameters.
-*\param  [in]  fsciInterfaceId      FSCI interface identifier.
-*
-*\retval       void.
-********************************************************************************** */
-void HandleGapCmdSetExtAdvertisingParametersV2OpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
-{
-    gapExtAdvertisingParameters_t advertisingParameters = {0};
-    union
-    {
-        uint8_t fsciPhyOption;
-        gapLePhyOptionsFlags_t gapPhyOption;
-    }advPhyOptions = {0U};
-
-    /* Get advertising parameters from buffer */
-    /* Read gapExtAdvertisingParameters_t fields from buffer */
-    fsciBleGetUint8ValueFromBuffer( advertisingParameters.SID,                       pBuffer);
-    fsciBleGetUint8ValueFromBuffer( advertisingParameters.handle,                    pBuffer);
-    fsciBleGetUint32ValueFromBuffer(advertisingParameters.minInterval,               pBuffer);
-    fsciBleGetUint32ValueFromBuffer(advertisingParameters.maxInterval,               pBuffer);
-    fsciBleGetEnumValueFromBuffer(  advertisingParameters.ownAddressType,            pBuffer, bleAddressType_t);
-    fsciBleGetAddressFromBuffer(    advertisingParameters.ownRandomAddr,             pBuffer);
-    fsciBleGetEnumValueFromBuffer(  advertisingParameters.peerAddressType,           pBuffer, bleAddressType_t);
-    fsciBleGetAddressFromBuffer(    advertisingParameters.peerAddress,               pBuffer);
-    fsciBleGetEnumValueFromBuffer(  advertisingParameters.channelMap,                pBuffer, gapAdvertisingChannelMapFlags_t);
-    fsciBleGetEnumValueFromBuffer(  advertisingParameters.filterPolicy,              pBuffer, gapAdvertisingFilterPolicy_t);
-    fsciBleGetEnumValueFromBuffer(  advertisingParameters.extAdvProperties,          pBuffer, bleAdvRequestProperties_t);
-    fsciBleGetUint8ValueFromBufferSigned( advertisingParameters.txPower,             pBuffer);
-    fsciBleGetEnumValueFromBuffer(  advertisingParameters.primaryPHY,                pBuffer, gapLePhyMode_t);
-    fsciBleGetEnumValueFromBuffer(  advertisingParameters.secondaryPHY,              pBuffer, gapLePhyMode_t);
-    fsciBleGetUint8ValueFromBuffer( advertisingParameters.secondaryAdvMaxSkip,       pBuffer);
-    fsciBleGetBoolValueFromBuffer(  advertisingParameters.enableScanReqNotification, pBuffer);
-    fsciBleGetUint8ValueFromBuffer( advPhyOptions.fsciPhyOption,                     pBuffer);
-    advertisingParameters.primaryAdvPhyOptions = advPhyOptions.gapPhyOption;
-    fsciBleGetUint8ValueFromBuffer( advPhyOptions.fsciPhyOption,                     pBuffer);
-    advertisingParameters.secondaryAdvPhyOptions = advPhyOptions.gapPhyOption;
-
-    fsciBleGap2CallApiFunction(Gap_SetExtAdvertisingParameters(&advertisingParameters));
-}
 #if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
 /*! *********************************************************************************
 *\private
@@ -2002,27 +2087,6 @@ void HandleGapCmdConnectV2OpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
     fsciBleGap2CallApiFunction(Gap_ConnectFromPawr(&connectionRequestParameters, fsciBleGapCallbacks.connectionCallback));
 }
 
-/*! *********************************************************************************
-*\private
-*\fn           void HandleGapCmdSetPeriodicAdvParametersV2OpCode(
-*                                                       uint8_t *pBuffer,
-*                                                       uint32_t fsciInterfaceId)
-*\brief        Handler for the gBleGapCmdSetPeriodicAdvParametersV2OpCode_c opCode.
-*
-*\param  [in]  pBuffer              Pointer to the command parameters.
-*\param  [in]  fsciInterfaceId      FSCI interface identifier.
-*
-*\retval       void.
-********************************************************************************** */
-void HandleGapCmdSetPeriodicAdvParametersV2OpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
-{
-    gapPeriodicAdvParameters_t advertisingParameters = {0};
-
-    /* Get advertising parameters from buffer */
-    fsciBleGapGetPeriodicAdvParametersV2FromBuffer(&advertisingParameters, &pBuffer);
-
-    fsciBleGap2CallApiFunction(Gap_SetPeriodicAdvParameters(&advertisingParameters));
-}
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 #endif /* defined(gBLE54_d) && (gBLE54_d == 1U) */
 
@@ -2057,6 +2121,120 @@ static void HandleCtrlCmdGetTimestampExOpCode(uint8_t *pBuffer, uint32_t fsciInt
 #endif /* !defined(gNcpApplication_d) || (gNcpApplication_d == 0) */
 }
 
+#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0))
+/*! *********************************************************************************
+*\private
+*\fn           void HandleCtrlCmdPlatformGetDeltaTimeStampOpCode(uint8_t *pBuffer,
+*                                                     uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleCtrlCmdGetTimestampExOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */   
+static void HandleCtrlCmdPlatformGetDeltaTimeStampOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
+{
+    uint32_t receivedTimestamp;
+    uint64_t deltaTimestamp = 0;
+    
+    fsciBleGetUint32ValueFromBuffer(receivedTimestamp, pBuffer);
+    
+    deltaTimestamp = PLATFORM_GetDeltaTimeStamp(receivedTimestamp);
+
+    fsciBleGap2StatusMonitor(gBleSuccess_c);
+    
+    fsciBleCtrlPlatformGetDeltaTimeStampCmdMonitor(deltaTimestamp);
+}
+#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdSetBondedDeviceNameOpCode(uint8_t *pBuffer,
+*                                                    uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleGapCmdSetBondedDeviceNameOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+void HandleGapCmdSetBondedDeviceNameOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
+{
+    uint8_t     nvmIndex = 0U;
+    uint8_t     nameSize = 0U;
+    uchar_t*    pName = NULL;
+
+    /* Get command parameters from buffer */
+    fsciBleGetUint8ValueFromBuffer(nvmIndex, pBuffer);
+    fsciBleGetUint8ValueFromBuffer(nameSize, pBuffer);
+
+    /* Allocate buffer for name (consider that nameSize
+    is bigger than 0) */
+    pName = MEM_BufferAlloc(nameSize);
+
+    if(NULL == pName)
+    {
+        /* No memory => the GAP command can not be executed */
+        fsciBleError(gFsciOutOfMessages_c, fsciInterfaceId);
+    }
+    else
+    {
+        /* Get name from buffer */
+        fsciBleGetArrayFromBuffer(pName, pBuffer, nameSize);
+
+        fsciBleGap2CallApiFunction(Gap_SetBondedDeviceName(nvmIndex, pName, nameSize));
+
+        /* Free buffer allocated for name */
+        (void)MEM_BufferFree(pName);
+    }
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdLoadCustomBondedDeviceInformationOpCode(
+*                                                       uint8_t *pBuffer,
+*                                                       uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleGapCmdLoadCustomBondedDeviceInformationOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */   
+void HandleGapCmdLoadCustomBondedDeviceInformationOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
+{
+    uint8_t     nvmIndex = gInvalidNvmIndex_c;
+    uint16_t    offset = 0U;
+    uint16_t    infoSize = 0U;
+    uint8_t*    pOutInfo = NULL;
+
+    /* Get command parameters from buffer */
+    fsciBleGetUint8ValueFromBuffer(nvmIndex, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(offset, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(infoSize, pBuffer);
+
+    /* Allocate buffer for info (consider that infoSize is
+    bigger than 0) */
+    if (infoSize <= gcReservedFlashSizeForCustomInformation_c)
+    {
+        pOutInfo = MEM_BufferAlloc(infoSize);
+    }
+
+    if(NULL == pOutInfo)
+    {
+        /* No memory => the GAP command can not be executed */
+        fsciBleError(gFsciOutOfMessages_c, fsciInterfaceId);
+    }
+    else
+    {
+        fsciBleGap2CallApiFunction(Gap_LoadCustomBondedDeviceInformation(nvmIndex, pOutInfo, offset, infoSize));
+        fsciBleGap2MonitorOutParams(LoadCustomBondedDeviceInformation, pOutInfo, infoSize);
+
+        /* Free the buffer allocated for info */
+        (void)MEM_BufferFree(pOutInfo);
+    }
+}
 
 #if ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE))
 /*! *********************************************************************************
