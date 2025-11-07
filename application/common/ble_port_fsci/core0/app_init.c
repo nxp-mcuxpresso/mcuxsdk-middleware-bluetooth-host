@@ -119,7 +119,7 @@ void App_HandleMessages(void)
 
 #ifdef SDK_OS_FREE_RTOS
     /* Signal the main_thread again if there are more messages pending */
-    event |= (MSG_QueueGetHead(&mAppCbInputQueue) != NULL) ? gAppEvtAppCallback_c : 0U;
+    event = (MSG_QueueGetHead(&mAppCbInputQueue) != NULL) ? gAppEvtAppCallback_c : 0U;
 
     if (event != 0U)
     {
