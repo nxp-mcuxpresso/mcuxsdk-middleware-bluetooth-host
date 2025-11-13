@@ -39,7 +39,6 @@ The following sections present the steps required for building the *wireless\_UA
 
 -   **kw45b41zevk** (for this guide)
 -   kw45b41zloc
--   k32w148evk
 -   frdmmcxw71
 -   kw47evk
 -   kw47loc
@@ -50,7 +49,7 @@ The following sections present the steps required for building the *wireless\_UA
 
 **Resulting location**:
 
-`<connectivity_path>\boards\<kw45b41zevk / kw45b41zloc / k32w148evk / frdmmcxw71 / kw47evk / kw47loc / mcxw72evk / frdmmcxw72>\wireless_examples\bluetooth\w_uart\freertos\<IDE>`
+`<connectivity_path>\boards\<kw45b41zevk / kw45b41zloc / frdmmcxw71 / kw47evk / kw47loc / mcxw72evk / frdmmcxw72>\wireless_examples\bluetooth\w_uart\freertos\<IDE>`
 
 
 ```{include} ../topics/building_and_flashing_the_ble_software_demo_applic.md

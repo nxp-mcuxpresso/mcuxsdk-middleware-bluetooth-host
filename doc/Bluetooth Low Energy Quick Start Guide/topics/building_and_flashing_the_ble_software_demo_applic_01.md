@@ -17,7 +17,7 @@ To build and flash the BLE software demo applications using MCUXpresso IDE, foll
     **Importing SDK example(s)**
     ![Importing SDK example(s)](../images/MCXW72_I/Figure14.png "Importing SDK example(s)")
 
-4.  To select the desired example\(s\), select the *kw45b41zevk / kw45b41zloc / k32w148evk / kw47evk / frdmmcxw71 / frdmmcxw72 / mcxw72evk / kw47loc* board and then click the “**Next**” button:
+4.  To select the desired example\(s\), select the *kw45b41zevk / kw45b41zloc / kw47evk / frdmmcxw71 / frdmmcxw72 / mcxw72evk / kw47loc* board and then click the “**Next**” button:
 
     **Selecting the KW47-EVK board**
     ![Selecting the KW47-EVK board](../images/Figure13.png "Selecting the KW47-EVK board")

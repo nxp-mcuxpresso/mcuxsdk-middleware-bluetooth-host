@@ -57,7 +57,7 @@ To run the application, follow the steps below:
         ![Over the Air Programming tool Bluetooth LE Processor Selection](../images/Procesor_selection.PNG "Over the Air Programming tool Bluetooth LE Processor
                                             Selection")
 
-    -   Once the processor is selected, a new pop-up window would appear that allows selecting the type of image as shown in the figure below. <br> \(In the specified case, we selected the KW45Z/KW45Z/K32W1\(MCU\).
+    -   Once the processor is selected, a new pop-up window would appear that allows selecting the type of image as shown in the figure below. <br> \(In the specified case, we selected the KW45Z/KW45Z\(MCU\).
 
         ![Selecting uploaded image type](../images/selecting_image.PNG "Selecting uploaded image type")
 

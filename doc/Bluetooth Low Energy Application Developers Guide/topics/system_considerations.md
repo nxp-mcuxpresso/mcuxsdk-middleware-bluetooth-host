@@ -1,6 +1,6 @@
 # System considerations
 
-The KW45/K32W1 has a dual-core architecture and has two separated power domains:
+The KW45 has a dual-core architecture and has two separated power domains:
 
 -   The main domain for the Cortex M33
 -   The Radio domain which comprises the Cortex M3 core and the NBU \(Narrow Band Unit\).

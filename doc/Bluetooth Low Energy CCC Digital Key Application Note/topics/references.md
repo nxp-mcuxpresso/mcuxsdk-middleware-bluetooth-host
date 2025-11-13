@@ -2,14 +2,14 @@
 
 For more information, refer to the following documents:
 
--   Bluetooth Low Energy Application Developer's Guide \(KW45\_K32W1\_BLEADG\)
--   Bluetooth Low Energy Host Stack API Reference Manual \(KW45\_K32W1\_BLEHSAPIRM\)
+-   Bluetooth Low Energy Application Developer's Guide \(KW45\_BLEADG\)
+-   Bluetooth Low Energy Host Stack API Reference Manual \(KW45\_BLEHSAPIRM\)
 
 -   Bluetooth Low Energy Host Stack FSCI \(Framework Serial Connectivity Interface\) API Reference Manual
 
-    \(KW45\_K32W1\_BLEHSFSCIRM\)
+    \(KW45\_BLEHSFSCIRM\)
 
--   Connectivity Framework Reference Manual \(KW45\_K32W1\_CONNFWRM\)
+-   Connectivity Framework Reference Manual \(KW45\_CONNFWRM\)
 
 -   Bluetooth Low Energy CCC Digital Key with Channel Sounding Application Note \(AN13979\)
 

@@ -1,6 +1,6 @@
 # Running the Bluetooth Low Energy Localization Scenario
 
-To run the Bluetooth Low Energy Localization scenario, flash the **loc\_reader** and **loc\_user\_device** applications on two K32W148-EVK development boards.
+To run the Bluetooth Low Energy Localization scenario, flash the **loc\_reader** and **loc\_user\_device** applications on two KW45B41Z-EVK development boards.
 
 **Note:** The boards listed in [Bluetooth Low Energy Localization Hardware Platforms](bluetooth_low_energy_localization_hardware_platfor.md) can also be used to run the steps listed in this section.
 

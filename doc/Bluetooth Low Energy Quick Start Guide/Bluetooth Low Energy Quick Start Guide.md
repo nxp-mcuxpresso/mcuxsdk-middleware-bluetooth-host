@@ -1,4 +1,4 @@
-# KW45, K32W1, MCXW71, KW47, MCXW72 Bluetooth Low Energy Software Quick Start Guide
+# KW45, MCXW71, KW47, MCXW72 Bluetooth Low Energy Software Quick Start Guide
 
 
 ```{tocTree}
