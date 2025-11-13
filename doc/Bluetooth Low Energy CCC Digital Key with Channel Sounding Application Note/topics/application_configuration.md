@@ -1,0 +1,16 @@
+# Application configuration
+
+This section describes configuration options available for the applications. The configuration can be done either at compile time, by using macros added in the `app_preinclude.h` file of the respective sample, or at runtime, via shell commands. The available configurations are:
+
+-   The Channel Sounding role can be set through the `role` shell command at runtime only if there are no active connections. The default role is set through the `gCsDefaultRole_c` define in `app_preinclude.h`. In the default configuration, the Anchor is in the CS Initiator role (`gCsRoleInitiator_c`) and the Device is in the CS Reflector role (`gCsRoleReflector_c`).
+-   The number of Channel Sounding procedures to be run via the CS Procedure Repeat mechanism, for each triggered distance measurement. The default value can be set through the `gCsProcRepeatMaxNumProcedures_c` define. At runtime, the value can be changed using the `setnumprocs` command.
+-   The ranging algorithm to run once the local and remote measurement data is available. Each of the two supported algorithms can be disabled at compile time for code size reasons. By default, both are enabled. To disable an algorithm at compile time, define its respective macro with the value `0` inside `app_preinclude.h`. The macros are `gAppUseCDEAlgorithm_d`, `gAppUseRADEAlgorithm_d`. At runtime, the `setalgo` shell command can be used to configure the algorithm that runs upon completion of the CS procedure and data transfer. Any combination of algorithms can be selected. By default, RADE is selected.
+-   The timing information display feature can be activated by setting the `gAppCsTimeInfo_d` macro to value `1` inside `app_preinclude.h`. Additional timing information such as the duration of the CS config phase, CS procedure, BTCS transfer, and running of the algorithms is displayed on the console.
+
+-   The HCI data log export can be activated by setting the `gAppHciDataLogExport_d` macro to value 1 in `app_preinclude.h`, on both the Anchor and the Device. A log of all Subevent Result and Subevent Result Continue HCI events will be printed on the second serial for each CS procedure.
+
+For better performance and user experience, the optional LE Coded PHY advertising should be disabled by setting `gAppLeCodedAdvEnable_d` to `0` inside `app_preinclude.h` on the Anchor.
+
+
+**Parent topic:**[Localization scenarios](../topics/localization_scenarios.md)
+
