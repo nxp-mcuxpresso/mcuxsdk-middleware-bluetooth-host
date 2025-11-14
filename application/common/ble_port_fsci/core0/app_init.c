@@ -49,6 +49,11 @@ OSA_EVENT_HANDLE_DEFINE(mAppEvent);
 /* Application input queues */
 static messaging_t mAppCbInputQueue;
 
+/* provide information whether a task is to be process in Idle loop task 
+ * Set in BluetoothLEHost_ProcessIdleTask(),  and check in BluetoothLEHost_IsConnectivityTaskToProcess()
+ * If the variable is TRUE, the idle loop will schedule once more , the variable shall be set to FALSE to go to WFI/Lowpower */
+static bool_t mIsConnectivityTaskToProcess;
+
 /************************************************************************************
 *************************************************************************************
 * Private functions prototypes
@@ -188,6 +193,21 @@ bleResult_t App_PostCallbackMessage
     return gBleSuccess_c;
 }
 
+/*! *********************************************************************************
+*\private
+*\fn           void BluetoothLEHost_IsConnectivityTaskToProcess(void)
+*\brief        Returns if there is Connectivity background task to process.
+*
+*\param  [in]  none.
+*
+*\retval       TRUE     If there is a connectivity task to process
+*\retval       FALSE    If there is no connectivity task to process
+********************************************************************************** */
+bool_t BluetoothLEHost_IsConnectivityTaskToProcess(void)
+{
+    /* Prevent from going to WIFI/Low-power if TRUE */
+    return mIsConnectivityTaskToProcess;
+}
 /************************************************************************************
 *************************************************************************************
 * Private functions
