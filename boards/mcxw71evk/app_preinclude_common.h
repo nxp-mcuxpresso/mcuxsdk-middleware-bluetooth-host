@@ -231,12 +231,12 @@
 #define gAppMaxTxPowerDbm_c    10
 #endif
 
-/* Set the default Tx power in dBm */
+/* Set the advertising default Tx power in dBm */
 #if !defined(mAdvertisingDefaultTxPower_c)
 #define mAdvertisingDefaultTxPower_c    0
 #endif
 
-/* Set the default Tx power in dBm */
+/* Set the connection default Tx power in dBm */
 #if !defined(mConnectionDefaultTxPower_c)
 #define mConnectionDefaultTxPower_c    0
 #endif
