@@ -357,8 +357,8 @@ typedef enum
     gHciEncryptionKeyRefreshCompleteEvent_c             = 0x30,
     gHciLeMetaEvent_c                                   = 0x3E,
     gHciAuthenticatedPayloadTimeoutExpiredEvent_c       = 0x57,
-    /* Vendor - Handover */
-    gHciVendorHandoverMetaEvent_c                       = 0xFF,
+    /* Vendor Specific Debugging Event */
+    gHciVendorSpecificDbgEvent_c                        = 0xFF,
 } hciEventCode_tag;
 
 typedef uint8_t hciLeMetaSubEventCode_t;

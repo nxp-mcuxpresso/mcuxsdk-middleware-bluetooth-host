@@ -488,7 +488,7 @@ static bool_t hciGenfskEventHook
             }
             break;
 
-            case (uint8_t)gHciVendorHandoverMetaEvent_c:
+            case (uint8_t)gHciVendorSpecificDbgEvent_c:
             {
                 uint8_t eventType  = *pPacket;
                 pPacket++;
