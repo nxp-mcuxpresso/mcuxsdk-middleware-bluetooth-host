@@ -1,0 +1,18 @@
+# t_inter: time between measurement @ tone a and tone a+1
+# t_intra: time between IQ capture @ initiator and reflector
+# t_inter/t_intra consists of two numbers:
+# first number is a constant time
+# seconds number is the time needed per measured antenna
+
+# cfo_scaling: scaling of measured CFO value to convert it to Hz unit
+# mag_scaling: scaling of measured magnitude
+# cfo_scaling: scaling of measured phase (leave 1.0 if no scaling is needed)
+
+default:
+    t_inter: [0.0, 0.0]
+    t_intra: [0.0, 0.0]
+    t_antenna: 0.0
+    cfo_scaling: 1.0
+    mag_scaling: 1.0
+    phase_scaling: 1.0
+    tof_scaling: 1.0e-9

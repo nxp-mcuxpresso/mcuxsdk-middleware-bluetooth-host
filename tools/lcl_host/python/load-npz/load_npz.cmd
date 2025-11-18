@@ -1,0 +1,1 @@
+@python %~dp0\load_npz.py %1

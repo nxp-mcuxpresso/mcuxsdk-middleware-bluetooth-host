@@ -105,3 +105,38 @@ menu "bluetooth"
     orsource "application/common/ble_port_fsci/core1/Kconfig"
     orsource "application/common/ble_port_fsci/core0/Kconfig"
 endmenu
+
+menu "localization"
+    config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lib
+        bool "genfsk_wr_lcl_algo_cm33_lib"
+        select MCUX_COMPONENT_CMSIS_DSP_Source
+        depends on MCUX_HW_DEVICE_KW47B42Z83 || MCUX_HW_DEVICE_KW43B43ZC7
+    config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_lib
+        bool "genfsk_wr_lcl_algo_cm33_lce_lib"
+        select MCUX_COMPONENT_CMSIS_DSP_Source
+        depends on MCUX_HW_DEVICE_KW47B42ZB7 || MCUX_HW_DEVICE_MCXW727C || MCUX_HW_DEVICE_KW47B42Z97
+    config MCUX_COMPONENT_middleware.wireless.genfsk_lcl_isp_controller_wr
+        bool "genfsk_lcl_isp_controller_wr"
+    config MCUX_COMPONENT_middleware.wireless.wr_wireless_ranging_host
+        bool "wr_wireless_ranging_host"
+    config MCUX_COMPONENT_middleware.wireless.wr_wireless_ranging_tools
+        bool "wr_wireless_ranging_tools"
+    config MCUX_COMPONENT_middleware.wireless.lcl
+        bool "lcl"
+    config MCUX_COMPONENT_middleware.wireless.lcl_algo
+        bool "lcl_algo"
+    config MCUX_COMPONENT_middleware.wireless.lcl_pts_test
+        bool "lcl_pts_test"
+    config MCUX_COMPONENT_middleware.wireless.ble_profiles_ranging
+        bool "ble_profiles_ranging"
+    config MCUX_COMPONENT_middleware.wireless.ble_profiles_ranging_client
+        bool "ble_profiles_ranging_client"
+    config MCUX_COMPONENT_middleware.wireless.ble_btcs_client
+        bool "ble_btcs_client"
+    config MCUX_COMPONENT_middleware.wireless.ble_btcs_server
+        bool "ble_btcs_server"
+    config MCUX_COMPONENT_middleware.wireless.ble_host_CS
+        bool "ble_host_CS"
+    config MCUX_COMPONENT_middleware.wireless.ble_host_CS_component_lib
+        bool "ble_host_CS_lib"
+endmenu

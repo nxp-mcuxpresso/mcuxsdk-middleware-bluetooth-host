@@ -1,0 +1,271 @@
+meta:
+    type: dict
+    required: True
+    schema:
+        error_msg:
+            type: string
+            required: True
+
+        has_mciq:
+            type: boolean
+            required: True
+
+        has_tof:
+            type: boolean
+            required: True
+
+        testcase:
+            type: dict
+            required: False
+            allow_unknown: True
+            schema:
+
+                meas_nr:
+                    isnatural: True
+                    required: False
+
+        initiator: &meta_initiator
+            type: dict
+            required: True
+            schema:
+                platform:
+                    type: string
+                    required: True
+                    minlength: 1
+
+                sw_version:
+                    type: string
+                    required: True
+                    minlength: 1
+
+                unique_id:
+                    type: string
+                    required: False
+                    minlength: 1
+
+                board_nr:
+                    isnatural: True
+                    required: True
+                    
+        reflector:
+            <<: *meta_initiator
+                    
+hadm:
+    type: dict
+    required: True
+    schema:
+        sts:
+            type: integer
+            required: True 
+        stp:
+            type: dict
+            required: True
+        cfg:
+            group: [hadm_cfg]
+            type: dict
+            required: True
+            schema:
+                fcs:
+                    type: integer
+                    required: True
+                    
+                ip1:
+                    type: integer
+                    required: True
+                    
+                ip2:
+                    type: integer
+                    required: True 
+                    
+                tpm:
+                    type: integer
+                    required: True 
+                    
+                rtyp:
+                    type: integer
+                    required: True 
+                    
+                rphy:
+                    type: integer
+                    required: True 
+
+                txpwr:
+                    type: integer
+                    required: True 
+info:
+    group: [info]
+    type: dict
+    required: True
+    schema:
+        init: &info_initiator
+            type: dict
+            required: True
+            schema:
+                sync_cfo:
+                    type: integer
+                    required: False
+                    
+                sync_agc:
+                    type: integer
+                    required: False
+                    
+                sync_rssi:
+                    type: integer
+                    required: False 
+                    
+                sync_step_id:
+                    type: integer
+                    required: False 
+
+                temperature:
+                    type: integer
+                    required: False
+
+                flags:
+                    type: integer
+                    required: False 
+
+        refl:
+            <<: *info_initiator
+
+md0:
+    group: [md0]
+    type: dict
+    required: True
+    schema:
+        cfg:
+            type: dict
+            required: True
+            schema:
+                n_stp:
+                    type: integer
+                    required: True
+                    
+mciq:
+    group: [mciq]
+    type: dict
+    required: True
+    schema:
+        cfg:
+            type: dict
+            required: True
+            schema:
+                n_ap: &n_ap
+                    type: integer
+                    required: True
+                    min: 1
+                    max: 4
+
+                n_stp: &n_stp
+                    type: integer
+                    required: True
+                    min: 1
+                    max: 256
+
+        initiator: &mciq_initiator
+            type: dict
+            required: True
+            schema:
+                iq:
+                    hastype: complex
+                    hasshape: [n_stp, n_ap]
+                    required: False
+                    group: [sizeable] 
+                tqi:
+                    hasshape: [n_stp, n_ap]
+                    required: False
+                    group: [sizeable]
+        reflector:
+            <<: *mciq_initiator
+
+        result:
+            group: [post]
+            type: dict
+            required: True
+            schema:
+                distance:
+                    isreal: True
+                    required: True
+
+                CDE_distance:
+                    isreal: True
+                    required: False
+
+                CDE_dqi:
+                    isreal: True
+                    required: False
+
+                RADE:
+                    isreal: True
+                    required: False
+
+                RADE_dqi:
+                    isreal: True
+                    required: False
+
+                RADE_error:
+                    type: integer
+                    required: False
+
+                slope_rmse:
+                    required: False
+                    
+                dcde1:
+                    isreal: True
+                    required: False
+                    
+                dcde2:
+                    isreal: True
+                    required: False
+                    
+                dcde3:
+                    isreal: True
+                    required: False
+                    
+                dcqi0:
+                    isreal: True
+                    required: False
+                    
+                dcqi1:
+                    isreal: True
+                    required: False
+                    
+                dcqi2:
+                    isreal: True
+                    required: False
+                    
+                dcqi3:
+                    isreal: True
+                    required: False
+
+tof:
+    group: [tof]
+    type: dict
+    required: True
+    schema:
+        cfg:
+            type: dict
+            required: True
+            schema:
+                n_stp:
+                    type: integer
+        result:
+            group: [post]
+            type: dict
+            required: True
+            schema:
+                distance:
+                    isreal: True
+                    required: True
+                std:
+                    isreal: True
+                    required: False
+                successrate:
+                    type: integer
+                    required: True
+                init_nadm:
+                    type: integer
+                    required: True
+                refl_nadm:
+                    type: integer
+                    required: True

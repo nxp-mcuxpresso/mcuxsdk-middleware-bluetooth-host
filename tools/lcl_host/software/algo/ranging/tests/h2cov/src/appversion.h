@@ -1,0 +1,3 @@
+#define APPVERSION 0000
+#define APPHASH "__NOHEAD_"
+#define APPDATE "Fri, 15 May 2020 13:18:46 +0200"

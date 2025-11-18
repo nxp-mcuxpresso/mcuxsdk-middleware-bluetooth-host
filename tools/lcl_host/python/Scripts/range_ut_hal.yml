@@ -1,0 +1,369 @@
+## HADM Testcase definition file
+# YAML syntax using following keywords:
+# name: string identifying the testcases
+# cat: list of categories (string, comma-separated) that will trigger sets of criteria to be checked. Can be core, rtp, rtt.
+#      All categories will be checked if not specified.
+# params: parameters passed to record_range_measurement script
+
+description: 'DD 2098624 - HADM HAL & drivers'
+
+testcases:
+## T_FCS=150
+-
+    id: 1
+    name: RTT&RTP 150/145/20
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 145" --dutconfig "param timings t_pm 20"
+-
+    id: 2
+    name: RTT&RTP 150/80/20
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 80" --dutconfig "param timings t_pm 20"
+-
+    id: 3
+    name: RTP 150/80/40
+    cat: core, rtp
+    params: --mainmode 2 --testmode -n 5 --dutconfig "param timings int 150 80" --dutconfig "param timings t_pm 40"
+-
+    id: 4
+    name: RTP Channel rand 150/80/40
+    cat: core, rtp
+    params: --mainmode 2 --testmode -n 5 --dutconfig "param timings int 150 80" --dutconfig "param timings t_pm 40" --dutconfig "param ch_list generate 0 77 rand"
+-
+    id: 6
+    name: RTT 150/80
+    cat: core, rtt, rtt1
+    params: --mainmode 1 --testmode -n 5 --dutconfig "param timings int 150 80"
+-
+    id: 8
+    name: RTT&RTP 150/40/20
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40" --dutconfig "param timings t_pm 20"
+-
+    id: 9
+    name: RTT&RTP 2Mbps 150/145/40
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings intervals 150 145 145" --dutconfig "param timings t_pm 40" --dutconfig "param rtt_phy 1"
+
+## T_FCS=80
+-
+    id: 20
+    name: RTT&RTP 80/80/20
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 80" --dutconfig "param timings t_pm 20"
+-
+    id: 21
+    name: RTT&RTP 80/40/20
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 40" --dutconfig "param timings t_pm 20"
+-
+    id: 22
+    name: RTP 80/80/40
+    cat: core, rtp
+    params: --mainmode 2 --testmode -n 5 --dutconfig "param timings int 80 80" --dutconfig "param timings t_pm 40"
+
+## T_FCS=50
+-
+    id: 25
+    name: RTT&RTP 50/40/20
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20"
+-
+    id: 26
+    name: RTP 50/40/20
+    cat: core, rtp
+    params: --mainmode 2 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20"
+
+## 2Mbps
+-
+    id: 30
+    name: RTT 2Mbps
+    cat: core, rtt, rtt2
+    params: --mainmode 1 --testmode -n 5 --dutconfig "param rtt_phy 1"
+-
+    id: 31
+    name: RTP 2Mbps
+    cat: core, rtp
+    params: --mainmode 2 --testmode -n 5 --dutconfig "param rtt_phy 1"
+-
+    id: 32
+    name: RTP/RTT 2Mbps 150/80/20
+    cat: core, rtp, rtt, rtt2
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param rtt_phy 1" --dutconfig "param timings int 150 80" --dutconfig "param timings t_pm 20"
+-
+    id: 33
+    name: RTP/RTT 2Mbps 150/40/20
+    cat: core, rtp, rtt, rtt2
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param rtt_phy 1" --dutconfig "param timings int 150 40" --dutconfig "param timings t_pm 20"
+-
+    id: 34
+    name: RTP/RTT 2Mbps 80/80/20
+    cat: core, rtp, rtt, rtt2
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param rtt_phy 1" --dutconfig "param timings int 80 80" --dutconfig "param timings t_pm 20"
+-
+    id: 35
+    name: RTP/RTT 2Mbps 80/40/20
+    cat: core, rtp, rtt, rtt2
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param rtt_phy 1" --dutconfig "param timings int 80 40" --dutconfig "param timings t_pm 20"
+-
+    id: 36
+    name: RTT/RTP 2Mbps
+    cat: core, rtp, rtt, rtt2
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param rtt_phy 1"
+## Misc
+-
+    id: 40
+    name: RTP No IQ avg 150/145/20
+    cat: core
+    params: --mainmode 2 --testmode -n 1 --dutconfig "param debug 7" --dutconfig "param timings int 150 145" --dutconfig "param timings t_pm 20" --dutconfig "p ch_list generate 0 4"
+-
+    id: 41
+    name: RTT 50/40/20 single mode0
+    cat: core, rtt, rtt1
+    params: --mainmode 1 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20" --dutconfig "param mode0_nb 1"
+## Specific timing configs: T_FCS < T_IP and T_IP1 != T_IP2
+-
+    id: 45
+    name: RTT&RTP 50/145/145/20 T_IP > T_FCS
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 145 145" --dutconfig "param timings t_pm 20"
+-
+    id: 46
+    name: RTT&RTP 150/145/40/20 T_IP1 != T_IP2
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 145 40" --dutconfig "param timings t_pm 20"
+-
+    id: 47
+    name: RTT&RTP 150/40/145/20 T_IP1 != T_IP2
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40 145" --dutconfig "param timings t_pm 20"
+-
+    id: 48
+    name: RTT&RTP 50/80/40/20 T_IP > T_FCS and T_IP1 != T_IP2
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 80 40" --dutconfig "param timings t_pm 20"
+-
+    id: 49
+    name: RTT&RTP 50/40/80/20 T_IP > T_FCS and T_IP1 != T_IP2
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40 80" --dutconfig "param timings t_pm 20"
+
+## CLI
+-
+    id: 50
+    name: CLI Channel set
+    descr: Validate that CLI ch_list set does not cause crash
+    cat: core
+    params: --mainmode 2 --submode 1 --testmode -n 1 --dutconfig "p ch_list set 0,1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70"
+-
+    id: 51
+    name: CLI mainmode number
+    descr: Validate that CLI mainmode options do not cause crash
+    cat: core, rtp, rtt
+    params: --mainmode 2,15,20,0 --submode 1 --testmode -n 1
+-
+    id: 52
+    name: CLI Channel generate
+    descr: Validate that CLI ch_list generate options do not cause crash
+    cat: core
+    params: --mainmode 2,3 --submode 1 --testmode -n 1 --dutconfig "p ch_list generate 10 30 rand"
+-
+    id: 53
+    name: CLI AA setting
+    descr: Validate that CLI pn_seq works
+    cat: core
+    params: --mainmode 1 --testmode -n 1 --dutconfig "p pn_seq 0x11223344 0xAABBCCDD"
+## Antenna diversity
+-
+    id: 61
+    name: N_AP=4 T_SW=2 RTT&RTP 150/145/20
+    cat: core, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param ant 7 255" --dutconfig "param tone_ext 4" --dutconfig "param timings t_sw 2" --dutconfig "param timings int 150 145" --dutconfig "param timings t_pm 20"
+-
+    id: 62
+    name: N_AP=4 T_SW=10 RTP 150/145/20
+    cat: core, rtp
+    params: --mainmode 2 --testmode -n 5 --dutconfig "param ant 7 0" --dutconfig "param tone_ext 0" --dutconfig "param timings t_sw 10" --dutconfig "param timings int 150 145" --dutconfig "param timings t_pm 20"
+-
+    id: 63
+    name: N_AP=4 T_SW=2 RTP 80/40/20
+    cat: core, rtp
+    params: --mainmode 2 --testmode -n 5 --dutconfig "param ant 7" --dutconfig "param tone_ext 3" --dutconfig "param timings t_sw 2" --dutconfig "param timings int 80 40" --dutconfig "param timings t_pm 20"
+-
+    id: 64
+    name: N_AP=2 T_SW=10 RTT&RTP 150/145/20
+    cat: core, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param ant 1 255" --dutconfig "param tone_ext 4" --dutconfig "param timings t_sw 10" --dutconfig "param timings int 150 145" --dutconfig "param timings t_pm 20"
+## CFO
+-
+    id: 70
+    skip: n
+    name: RTT&RTP 150/145/20 with high CFO (positive)
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode --injectCFO max,+ -n 5 --dutconfig "param timings int 150 145" --dutconfig "param timings t_pm 20"
+-
+    id: 71
+    skip: n
+    name: RTT&RTP 80/40/20 with high CFO (negative)
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode --injectCFO max,- -n 5 --dutconfig "param timings int 80 40" --dutconfig "param timings t_pm 20"
+-
+    id: 72
+    skip: n
+    name: N_AP=4 T_SW=2 RTP 80/40/20 with high CFO (positive)
+    cat: core, rtp
+    params: --mainmode 2 --testmode --injectCFO max,+ -n 5 --dutconfig "param ant 7" --dutconfig "param tone_ext 3" --dutconfig "param timings t_sw 2" --dutconfig "param timings int 80 40" --dutconfig "param timings t_pm 20"
+-
+    id: 73
+    name: RTT 150/145/20 with null CFO
+    cat: core, rtt, rtt1
+    params: --mainmode 1 --testmode --injectCFO null,+ -n 1 --dutconfig "param timings int 150 145" --dutconfig "param timings t_pm 20"
+##################
+## Connected Mode
+-
+    id: 99
+    name: CONN NORAS RTP
+    skip: n
+    descr: Smoke test for RTP connected mode (no RAS test mode)
+    cat: core, rtp
+    params: --mainmode 2 --noras -n 5
+-
+    id: 100
+    name: CONN RTP
+    skip: n
+    descr: Smoke test for RTP connected mode
+    cat: core, rtp
+    params: --mainmode 2 -n 5
+-
+    id: 101
+    name: CONN RTT
+    skip: n
+    descr: Smoke test for RTT connected mode
+    cat: core, rtt, rtt1
+    params: --mainmode 1 -n 5
+-
+    id: 102
+    name: CONN RTP/RTT 2Mbps
+    skip: n
+    descr: RTP/RTT connected mode
+    cat: core, rtt, rtt2, rtp
+    params: --mainmode 2 --submode 1 -n 5 --dutconfig "param rtt_phy 1"
+-
+    id: 103
+    name: CONN CHMAP RTP/RTT
+    skip: n
+    descr: connected mode, channel map configuration (skip advertising channels)
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 -n 5 --dutconfig "param ch_map 0x1FFFFFFFFFFFFC7FFFFC 1"
+-
+    id: 104
+    name: CONN CHANREP RTP/RTT
+    skip: n
+    descr: connected mode, channel map repetition
+    cat: core, rtt, rtt1 # TODO: fix convert_to_excel to handle channel gaps, then re-enable 'rtp' category
+    params: --mainmode 2 --submode 1 -n 5 --dutconfig "param ch_map 0xF0F0F0F000F000F000F0 2"
+-
+    id: 105
+    name: CONN RTP/RTT CS#3c
+    skip: n
+    descr: connected mode, cs3c
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 -n 5 --dutconfig "param cs_algo 1"
+-
+    id: 106
+    name: CONN RTP/RTT CS#3c SHAPE_X
+    skip: n
+    descr: connected mode, cs3c shape X, 3 repetitions
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 -n 5 --dutconfig "param cs_algo 1 1 8" --dutconfig "param ch_map 0x1FFFFFFFFFFFFFFFFFFF 3"
+##################
+## LL (Fragmentation, repeat, ...)
+## Tests 150 and 151 also checks combine phase continuity across subevents
+-
+    id: 150
+    name: CONN SUBEV FRAG 5ms  # Should produce 8 subevents
+    skip: n
+    descr: connected mode, subevent frag, subevtlen=5ms
+    cat: core, rtp, rtt
+    params: --mainmode 2 --submode 1 -n 10 --dutconfig "param subevent_len 5000" --dutconfig "param ant 7 0"
+-
+    id: 151
+    name: CONN SUBEV FRAG 10ms 2Mbps # Should produce 3 subevents
+    skip: n
+    descr: connected mode, subevent frag, subevtlen=10ms, 2Mbps
+    cat: core, rtp, rtt
+    params: --mainmode 2 --submode 1 -n 5 --dutconfig "param subevent_len 10000" --dutconfig "param ant 7 0" --dutconfig "param rtt_phy 1"
+-
+    id: 170
+    name: CONN PROC_REPEAT NOFRAG 1AP
+    skip: n
+    descr: connected mode, procedure repetition, antenna path=1, all algorithms
+    cat: core, rtp, rtt
+    params: --useprocrepeat 1 --mainmode 2 --submode 1 -n 20 --dutconfig "param ant 0 0"
+-
+    id: 171
+    name: CONN PROC_REPEAT NOFRAG 4AP
+    skip: n
+    descr: connected mode, procedure repetition, antenna path=4, all algorithms
+    cat: core, rtp, rtt
+    params: --useprocrepeat 1 --mainmode 2 --submode 1 -n 20 --dutconfig "param ant 7 0"
+-
+    id: 172
+    name: CONN PROC_REPEAT NOFRAG 4AP CDE_ONLY
+    skip: n
+    descr: "connected mode, procedure repetition, antenna path=4, algo: CDE embedded only"
+    cat: algoCDE
+    params: --useprocrepeat 1 --algo 0,1 --mainmode 2 --submode 1 -n 20 --dutconfig "param ant 7 0"
+-
+    id: 173
+    name: CONN PROC_REPEAT NOFRAG 4AP CDE_RADE
+    skip: n
+    descr: "connected mode, procedure repetition, antenna path=4, algo: CDE+RADE embedded"
+    cat: algoCDE, algoRADE
+    params: --useprocrepeat 1 --algo 0,5 --mainmode 2 --submode 1 -n 20 --dutconfig "param ant 7 0"
+-
+    id: 174
+    name: CONN RTP/RTT NOFRAG 160 STEPS
+    skip: n
+    descr: connected mode FRAG STEPS_NB stops at 160
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 -n 5 --dutconfig "param subevent_len 50000" --dutconfig "param ch_map 0x1FFFFFFFFFFFFFFFFFFF 3"
+-
+    id: 175
+    name: CONN RTP/RTT 256 STEPS
+    skip: n
+    descr: connected mode FRAG STEPS_NB greater than 256
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 -n 5 --dutconfig "param subevent_len 20000" --dutconfig "param ch_map 0x1FFFFFFFFFFFFFFFFFFF 3"
+
+
+##################
+## Algos
+-
+    id: 210
+    name: EMBEDDED CDE
+    skip: n
+    descr: Embedded CDE, no algo on Host
+    cat: algoCDE
+    params: --mainmode 2 --submode 1 -n 5 --algo 0,1
+-
+    id: 213
+    name: EMBEDDED CDE + RADE DIV
+    skip: n
+    descr: Embedded CDE + CDE, with antenna diversity
+    cat: algoCDE, algoRADE
+    params: --mainmode 2 --submode 1 -n 5 --algo 0,5 --dutconfig "param ant 7 0" --dutconfig "param timings t_sw 2"
+-
+    id: 214
+    name: EMBEDDED CDE + RADE with CS3c
+    skip: n
+    descr: Embedded CDE + CDE
+    cat: algoCDE, algoRADE
+    params: --mainmode 2 --submode 1 -n 5 --algo 0,5 --dutconfig "param cs_algo 1"
+-
+    id: 215
+    name: EMBEDDED RADE
+    skip: n
+    descr: Embedded RADE
+    cat: algoRADE
+    params: --mainmode 2 --submode 1 -n 5 --algo 0,4

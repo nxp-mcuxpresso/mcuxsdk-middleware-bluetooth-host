@@ -1003,6 +1003,250 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_port_fsci)
     )
 endif()
 
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_fsci_source_channel_sounding)
+    mcux_add_source(
+        SOURCES fsci/source/fsci_channel_sounding.c
+                fsci/source/fsci_channel_sounding.h
+    )
+    mcux_add_include(
+        INCLUDES fsci/source
+    )
+endif()
+
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.lcl)
+    mcux_add_source(
+        SOURCES application/common/lcl/app_localization.c
+                application/common/lcl/app_localization.h
+    )
+    mcux_add_include(
+        INCLUDES application/common/lcl
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.lcl_algo)
+    mcux_add_source(
+        SOURCES application/common/lcl/app_localization_algo.c
+                application/common/lcl/app_localization_algo.h
+                application/common/lcl/app_localization_data_export.c
+                application/common/lcl/app_localization_data_export.h
+    )
+    mcux_add_include(
+        INCLUDES application/common/lcl
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_profiles_ranging)
+    mcux_add_source(
+        SOURCES profiles/ranging/ranging_service.c
+                profiles/ranging/ranging_interface.h
+    )
+    mcux_add_include(
+        INCLUDES profiles/ranging
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_profiles_ranging_client)
+    mcux_add_source(
+        SOURCES application/common/lcl/ranging_client.c
+                application/common/lcl/ranging_client_interface.h
+    )
+    mcux_add_include(
+        INCLUDES application/common/lcl
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_btcs_client)
+    mcux_add_source(
+        SOURCES application/common/lcl/btcs_client.c
+                application/common/lcl/btcs_client_interface.h
+    )
+    mcux_add_include(
+        INCLUDES application/common/lcl
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_btcs_server)
+    mcux_add_source(
+        SOURCES application/common/lcl/btcs_server.c
+                application/common/lcl/btcs_server_interface.h
+    )
+    mcux_add_include(
+        INCLUDES application/common/lcl
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_CS)
+    mcux_add_source(
+        SOURCES host/interface/channel_sounding.h
+    )
+    mcux_add_include(
+        INCLUDES host/interface
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_CS_component_lib)
+    mcux_add_library(
+        LIBS host/lib/lib_channel_sounding_iar.a
+        DSP DSP
+        FPU SP_FPU
+        TOOLCHAINS iar
+    )
+    mcux_add_library(
+        LIBS host/lib/core1/lib_channel_sounding_nofp_nodsp_iar.a
+        DSP NO_DSP
+        FPU NO_FPU
+        TOOLCHAINS iar
+    )
+    mcux_add_library(
+        LIBS host/lib/lib_channel_sounding_gcc.a
+        DSP DSP
+        FPU SP_FPU
+        TOOLCHAINS mcux armgcc
+    )
+    mcux_add_library(
+        LIBS host/lib/core1/lib_channel_sounding_nofp_nodsp_gcc.a
+        DSP NO_DSP
+        FPU NO_FPU
+        TOOLCHAINS armgcc
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lib)
+    mcux_add_iar_configuration(
+        CX  "--use_cmsis_dsp"
+    )
+    mcux_add_iar_configuration(
+        LD  "--config_def=gReserveCeRam_d=0"
+    )
+    mcux_add_armgcc_configuration(
+        LD "-Xlinker --defsym=gReserveCeRam_d=0"
+    )
+    mcux_add_library(
+        LIBS localization/lib/lib_lcl_algo_cm33_iar.a
+        TOOLCHAINS iar
+    )
+    mcux_add_library(
+        LIBS localization/lib/lib_lcl_algo_cm33_gcc.a
+        TOOLCHAINS mcux armgcc
+    )
+    mcux_add_include(
+        INCLUDES localization/lcl/pde/algo/interface
+    )
+    mcux_add_source(
+        SOURCES localization/lcl/pde/algo/interface/dm_phasebased.h
+        localization/lcl/pde/algo/interface/pde_postprocessing.h
+        localization/lcl/pde/algo/interface/pde_rade.h
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_lib)
+    mcux_add_iar_configuration(
+        CX  "--use_cmsis_dsp"
+    )
+    mcux_add_configuration(
+        CC "-DLCE_KW47_MCXW72"
+    )
+    mcux_add_iar_configuration(
+        LD  "--config_def=gReserveCeRam_d=1"
+    )
+    mcux_add_armgcc_configuration(
+        LD "-Xlinker --defsym=gReserveCeRam_d=1"
+    )
+    mcux_add_library(
+        LIBS localization/lib/lib_lcl_algo_cm33_lce_iar.a
+        TOOLCHAINS iar
+    )
+    mcux_add_library(
+        LIBS localization/lib/lib_lcl_algo_cm33_lce_gcc.a
+        TOOLCHAINS mcux armgcc
+    )
+    mcux_add_include(
+        INCLUDES localization/lcl/pde/algo/interface
+    )
+    mcux_add_source(
+        SOURCES localization/lcl/pde/algo/interface/dm_phasebased.h
+        localization/lcl/pde/algo/interface/pde_postprocessing.h
+        localization/lcl/pde/algo/interface/pde_rade.h
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_lcl_isp_controller_wr)
+    mcux_add_source(
+        SOURCES localization/lcl/isp/interface/isp_debug_helpers.h
+                localization/lcl/isp/interface/isp_configuration.h
+                localization/lcl/isp/interface/isp_interface.h
+                localization/lcl/isp/interface/isp_measurement.h
+                localization/lcl/isp/interface/isp_ranging_engine.h
+                localization/lcl/isp/source/isp_debug_helpers.c
+                localization/lcl/isp/source/isp_ranging_engine.c
+    )
+    mcux_add_include(
+        INCLUDES localization/lcl/isp/interface
+                 localization/lcl/isp/source
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.wr_wireless_ranging_host)
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.wr_wireless_ranging_tools)
+    mcux_add_source(
+        SOURCES tools/lcl_host/python/Generic/dataframeutils.py
+            tools/lcl_host/python/Generic/dictutils.py
+            tools/lcl_host/python/Generic/digitalfilter.py
+            tools/lcl_host/python/Generic/dirutils.py
+            tools/lcl_host/python/Generic/fileutils.py
+            tools/lcl_host/python/Generic/mathutils.py
+            tools/lcl_host/python/Generic/nesteddict.py
+            tools/lcl_host/python/Generic/popupdialog.py
+            tools/lcl_host/python/Generic/printutils.py
+            tools/lcl_host/python/Generic/reprmixin.py
+            tools/lcl_host/python/Generic/stringutils.py
+            tools/lcl_host/python/Generic/validator.py
+            tools/lcl_host/python/Generic/xtimer.py
+            tools/lcl_host/python/Instruments/ComPort.py
+            tools/lcl_host/python/Instruments/MatlabEngine.py
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/boardinfo.kw45.csv
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/boardinfo.kw47.csv
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/parser.py
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/RangingPlatform.py
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/RangingPlatform_kw45.py
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/RangingPlatform_kw47.py
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/resultfile.py
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/resultschema.2.yaml
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/swinfo.default.yaml
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/swinfo.kw45.yaml
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/types.py
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/utils.py
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/validator.py
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/__init__.py
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/rng_platform_types.py
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/nxp_logo.png
+            tools/lcl_host/python/logging.ini
+            tools/lcl_host/python/middleware_wireless_wr_wireless_ranging_host.cmake
+            tools/lcl_host/python/Pipfile
+            tools/lcl_host/python/Scripts/convert_range_measurement_data.py
+            tools/lcl_host/python/Scripts/convert_to_excel.py
+            tools/lcl_host/python/Scripts/record_range_measurement.py
+            tools/lcl_host/python/Instruments/app_localization_pkg/__init__.py
+            tools/lcl_host/python/Instruments/app_localization_pkg/app_localization_data_parser.py
+            tools/lcl_host/python/Instruments/app_localization_pkg/app_localization_dut_config.py
+            tools/lcl_host/python/Instruments/app_localization_pkg/app_localization_result_plot.py
+            tools/lcl_host/python/Instruments/app_localization_pkg/nxp_logo.png
+            tools/lcl_host/python/Scripts/record_app_loc_measurement.py
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.lcl_pts_test)
+    mcux_add_source(
+        SOURCES application/common/lcl/pts_test_vectors.c
+                application/common/lcl/pts_test_vectors.h
+    )
+    mcux_add_include(
+        INCLUDES application/common/lcl
+    )
+endif()
 
 mcux_add_cmakelists(${CMAKE_CURRENT_LIST_DIR}/application/common/ble_port_fsci/core0)
 mcux_add_cmakelists(${CMAKE_CURRENT_LIST_DIR}/application/common/ble_port_fsci/core1)

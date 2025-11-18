@@ -1,0 +1,49 @@
+# t_inter: time between measurement @ tone a and tone a+1
+# t_intra: time between IQ capture @ initiator and reflector
+# t_inter/t_intra consists of two numbers:
+# first number is a constant time
+# seconds number is the time needed per measured antenna
+
+timing_v1: &timing_v1
+    t_inter: [408.0e-6, 112.0e-6]
+    t_intra: [196.0e-6, 56.0e-6]
+    t_antenna: 56.0e-6
+
+timing_v2: &timing_v2
+    t_inter: [344.0e-6, 56.0e-6]
+    t_intra: [172.0e-6, 28.0e-6]
+    t_antenna: 25.0e-6
+
+scaling_v1: &scaling_v1
+    cfo_scaling: 1953.125 # unit is 1953Hz
+    mag_scaling: 0.00048828125 # 1/2048
+    phase_scaling: 1.0
+    tof_scaling: 31.25e-9
+
+v0.1.117:
+    <<: *timing_v1
+    <<: *scaling_v1
+
+v1.0.121:
+    <<: *timing_v1
+    <<: *scaling_v1
+
+v1.0.149:
+    <<: *timing_v1
+    <<: *scaling_v1
+
+v1.0.153:
+    <<: *timing_v1
+    <<: *scaling_v1
+
+v1.1.198:
+    <<: *timing_v1
+    <<: *scaling_v1
+
+v1.3.256:
+    <<: *timing_v2
+    <<: *scaling_v1
+
+default:
+    <<: *timing_v2
+    <<: *scaling_v1

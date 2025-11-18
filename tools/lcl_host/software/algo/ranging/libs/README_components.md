@@ -1,0 +1,3 @@
+In every sources.mk add the line:
+COMPONENTS += -DCOMPONENT_ABC
+where ABC is the name of the library in capitals. eg  EVD, H2COV, RECONSTRUCT_IQ ...

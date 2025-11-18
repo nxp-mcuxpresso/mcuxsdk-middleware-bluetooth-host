@@ -1,0 +1,30 @@
+
+message(STATUS "CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
+message(STATUS "CMAKE_CXX_COMPILER_ID = ${CMAKE_CXX_COMPILER_ID}")
+message(STATUS "CMAKE_BINARY_DIR = ${CMAKE_BINARY_DIR}")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+set(MEX_SUFFIX ".mexa64")
+#set(MEX_LINK_FLAGS "-ggdb3 -fprofile-arcs -ftest-coverage")
+set(MEX_LINK_FLAGS "-ggdb3")
+set(MEX_COMPILE_DEFINITIONS MX_COMPAT_32 MATLAB_MEX_FILE)
+set(LIB_SUFFIX .so)
+#set(PUBLIC_LINK_FLAGS "-fPIC -ggdb3 -fprofile-arcs -ftest-coverage")
+set(PUBLIC_LINK_FLAGS "-fPIC -ggdb3")
+
+set(PYTHON_LIBRARY python3.6m)
+set(PYTHON_LIB_PATH /imec/other/common/tools/python-3.6.9/lib)
+set(PYTHON_INCLUDES /imec/other/common/tools/python-3.6.9/include/python3.6m)
+
+set(MEX_LIBRARIES mex mat m)
+set(MATLAB_LIB_PATH "/imec/software/matlab/R2018a/bin/glnxa64/")
+set(MATLAB_INCLUDES "/imec/software/matlab/R2018a/extern/include" "/imec/software/matlab/R2018a/simulink/include")
+
+add_compile_options(-O3 -ggdb3 -fPIC)
+add_compile_options(-fmessage-length=0 -ffunction-sections -fdata-sections -fno-common -fno-math-errno)
+add_compile_options(-Wall -Wextra -Wno-unused-parameter -Wundef)
+add_compile_options(-Wpointer-arith -Wswitch-enum)
+add_compile_options(-fomit-frame-pointer -fno-unsafe-math-optimizations)
+#add_compile_options(-fprofile-arcs -ftest-coverage)

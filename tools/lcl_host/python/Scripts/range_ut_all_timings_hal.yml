@@ -1,0 +1,586 @@
+## HADM Testcase definition file
+# YAML syntax using following keywords:
+# name: string identifying the testcases
+# cat: list of categories (string, comma-separated) that will trigger sets of criteria to be checked. Can be core, rtp, rtt.
+#      All categories will be checked if not specified.
+# params: parameters passed to record_range_measurement script
+
+description: 'Channel Sounding full timing combinations'
+
+testcases:
+
+-
+    id: 500
+    name: RTT&RTP 150/145/145/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 145 145" --dutconfig "param timings t_pm 20"
+
+-
+    id: 501
+    name: RTT&RTP 150/145/80/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 145 80" --dutconfig "param timings t_pm 20"
+
+-
+    id: 502
+    name: RTT&RTP 150/145/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 145 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 503
+    name: RTT&RTP 150/145/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 145 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 504
+    name: RTT&RTP 150/80/145/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 80 145" --dutconfig "param timings t_pm 20"
+
+-
+    id: 505
+    name: RTT&RTP 150/80/80/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 80 80" --dutconfig "param timings t_pm 20"
+
+-
+    id: 506
+    name: RTT&RTP 150/80/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 80 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 507
+    name: RTT&RTP 150/80/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 80 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 508
+    name: RTT&RTP 150/40/145/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40 145" --dutconfig "param timings t_pm 20"
+
+-
+    id: 509
+    name: RTT&RTP 150/40/80/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40 80" --dutconfig "param timings t_pm 20"
+
+-
+    id: 510
+    name: RTT&RTP 150/40/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 511
+    name: RTT&RTP 150/40/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 512
+    name: RTT&RTP 150/40/145/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40 145" --dutconfig "param timings t_pm 20"
+
+-
+    id: 513
+    name: RTT&RTP 150/40/80/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40 80" --dutconfig "param timings t_pm 20"
+
+-
+    id: 514
+    name: RTT&RTP 150/40/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 515
+    name: RTT&RTP 150/40/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 516
+    name: RTT&RTP 80/145/145/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 145 145" --dutconfig "param timings t_pm 20"
+
+-
+    id: 517
+    name: RTT&RTP 80/145/80/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 145 80" --dutconfig "param timings t_pm 20"
+
+-
+    id: 518
+    name: RTT&RTP 80/145/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 145 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 519
+    name: RTT&RTP 80/145/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 145 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 520
+    name: RTT&RTP 80/80/145/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 80 145" --dutconfig "param timings t_pm 20"
+
+-
+    id: 521
+    name: RTT&RTP 80/80/80/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 80 80" --dutconfig "param timings t_pm 20"
+
+-
+    id: 522
+    name: RTT&RTP 80/80/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 80 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 523
+    name: RTT&RTP 80/80/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 80 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 524
+    name: RTT&RTP 80/40/145/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 40 145" --dutconfig "param timings t_pm 20"
+
+-
+    id: 525
+    name: RTT&RTP 80/40/80/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 40 80" --dutconfig "param timings t_pm 20"
+
+-
+    id: 526
+    name: RTT&RTP 80/40/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 40 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 527
+    name: RTT&RTP 80/40/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 40 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 528
+    name: RTT&RTP 80/40/145/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 40 145" --dutconfig "param timings t_pm 20"
+
+-
+    id: 529
+    name: RTT&RTP 80/40/80/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 40 80" --dutconfig "param timings t_pm 20"
+
+-
+    id: 530
+    name: RTT&RTP 80/40/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 40 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 531
+    name: RTT&RTP 80/40/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 40 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 532
+    name: RTT&RTP 50/145/145/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 145 145" --dutconfig "param timings t_pm 20"
+
+-
+    id: 533
+    name: RTT&RTP 50/145/80/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 145 80" --dutconfig "param timings t_pm 20"
+
+-
+    id: 534
+    name: RTT&RTP 50/145/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 145 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 535
+    name: RTT&RTP 50/145/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 145 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 536
+    name: RTT&RTP 50/80/145/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 80 145" --dutconfig "param timings t_pm 20"
+
+-
+    id: 537
+    name: RTT&RTP 50/80/80/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 80 80" --dutconfig "param timings t_pm 20"
+
+-
+    id: 538
+    name: RTT&RTP 50/80/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 80 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 539
+    name: RTT&RTP 50/80/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 80 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 540
+    name: RTT&RTP 50/40/145/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40 145" --dutconfig "param timings t_pm 20"
+
+-
+    id: 541
+    name: RTT&RTP 50/40/80/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40 80" --dutconfig "param timings t_pm 20"
+
+-
+    id: 542
+    name: RTT&RTP 50/40/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 543
+    name: RTT&RTP 50/40/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 544
+    name: RTT&RTP 50/40/145/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40 145" --dutconfig "param timings t_pm 20"
+
+-
+    id: 545
+    name: RTT&RTP 50/40/80/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40 80" --dutconfig "param timings t_pm 20"
+
+-
+    id: 546
+    name: RTT&RTP 50/40/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 547
+    name: RTT&RTP 50/40/40/20 1Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40 40" --dutconfig "param timings t_pm 20"
+
+-
+    id: 600
+    name: RTT&RTP 150/145/145/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 145 145" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 601
+    name: RTT&RTP 150/145/80/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 145 80" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 602
+    name: RTT&RTP 150/145/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 145 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 603
+    name: RTT&RTP 150/145/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 145 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 604
+    name: RTT&RTP 150/80/145/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 80 145" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 605
+    name: RTT&RTP 150/80/80/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 80 80" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 606
+    name: RTT&RTP 150/80/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 80 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 607
+    name: RTT&RTP 150/80/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 80 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 608
+    name: RTT&RTP 150/40/145/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40 145" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 609
+    name: RTT&RTP 150/40/80/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40 80" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 610
+    name: RTT&RTP 150/40/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 611
+    name: RTT&RTP 150/40/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 612
+    name: RTT&RTP 150/40/145/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40 145" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 613
+    name: RTT&RTP 150/40/80/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40 80" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 614
+    name: RTT&RTP 150/40/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 615
+    name: RTT&RTP 150/40/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 150 40 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 616
+    name: RTT&RTP 80/145/145/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 145 145" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 617
+    name: RTT&RTP 80/145/80/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 145 80" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 618
+    name: RTT&RTP 80/145/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 145 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 619
+    name: RTT&RTP 80/145/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 145 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 620
+    name: RTT&RTP 80/80/145/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 80 145" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 621
+    name: RTT&RTP 80/80/80/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 80 80" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 622
+    name: RTT&RTP 80/80/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 80 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 623
+    name: RTT&RTP 80/80/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 80 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 624
+    name: RTT&RTP 80/40/145/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 40 145" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 625
+    name: RTT&RTP 80/40/80/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 40 80" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 626
+    name: RTT&RTP 80/40/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 40 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 627
+    name: RTT&RTP 80/40/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 40 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 628
+    name: RTT&RTP 80/40/145/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 40 145" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 629
+    name: RTT&RTP 80/40/80/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 40 80" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 630
+    name: RTT&RTP 80/40/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 40 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 631
+    name: RTT&RTP 80/40/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 80 40 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 632
+    name: RTT&RTP 50/145/145/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 145 145" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 633
+    name: RTT&RTP 50/145/80/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 145 80" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 634
+    name: RTT&RTP 50/145/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 145 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 635
+    name: RTT&RTP 50/145/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 145 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 636
+    name: RTT&RTP 50/80/145/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 80 145" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 637
+    name: RTT&RTP 50/80/80/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 80 80" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 638
+    name: RTT&RTP 50/80/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 80 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 639
+    name: RTT&RTP 50/80/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 80 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 640
+    name: RTT&RTP 50/40/145/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40 145" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 641
+    name: RTT&RTP 50/40/80/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40 80" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 642
+    name: RTT&RTP 50/40/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 643
+    name: RTT&RTP 50/40/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 644
+    name: RTT&RTP 50/40/145/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40 145" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 645
+    name: RTT&RTP 50/40/80/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40 80" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 646
+    name: RTT&RTP 50/40/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
+
+-
+    id: 647
+    name: RTT&RTP 50/40/40/20 2Mbps
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"

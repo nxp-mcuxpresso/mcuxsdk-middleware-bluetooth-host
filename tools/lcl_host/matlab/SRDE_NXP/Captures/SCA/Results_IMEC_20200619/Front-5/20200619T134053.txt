@@ -1,0 +1,96 @@
+=== SetCFO = 0, MeasurementCount = 0,  ===
+
+items:[{init:{v:v0.1.10,u:'0x000000603738812A4E455752710100E2'},refl:{v:v0.1.10,u:'0x00000060373880F74E455752710100C6'},mciq:{cfg:{n_pairs:1,n_tones:80,ta:162,tr:324,tp:27},init:{f:0x0000,a:0,o:-1,g:13,c:-5,rr:-7,r:-37,i:['imgjiolTeSe/bblkXmljZjjLcYiVikfkcLgXb1kvc4iRiSa6c8iyZJmaYQn9d4axjwj5WPi6iHkvXMlmhnfJmKmhbwf3gbYaloW+WukVmBetbspvfOi7nEX/nAkmnucRpJYXlKgsdMnuf9fpZGi9laYMkooraFXb',],q:['aIm5m5a0mfZXmHmIekaHibbRixcfcMk2cAlzcWgQbsaOlidGaOmidYb8hbckowZLYZovfSoyYEm0gNaUnKYcj+g5lMY2n4cYZ2hteoXUntpdXOexqLWUmDasYWWLmnXIeicWaXoMYOeqnlnIezZilOcPXbk8n5aZ',],},refl:{f:0x0000,a:0,o:-1,g:14,c:4,rr:-4,r:-37,i:['XzmDmgW8pkXwqVo1aTfyZKh9dweMdTmhYnnNYQkkY6bBoJYsWvpzWujpYWnugOYUkKmLTDdsqDfzXcrGYyoUfXjfWmnFXfeirOYofFssU5TQtMc7UUmjS0tLfae0TRliS5puYDfWh+UzizikpgbsW9reYuWjsEnQ',],q:['cNnUoTlof0bfcsoIVprxZboDaSl8lnd5dscJfelYdum8d+cHgmdrbiqKYJp8Tqppq/UNliTcmJUipWdiY4m3VzXdhOnZZEr5cEqytUalX0kqkBShokTueZj1RmRGnFT/eBZTY0rrU6hIqbpwdDXPl3bmUsqznET2',],}},},]
+profiling:{t_print:85450,systick:3881398}
+marker:[DONE]
+
+=== SetCFO = 0, MeasurementCount = 1,  ===
+
+items:[{init:{v:v0.1.10,u:'0x000000603738812A4E455752710100E2'},refl:{v:v0.1.10,u:'0x00000060373880F74E455752710100C6'},mciq:{cfg:{n_pairs:1,n_tones:80,ta:162,tr:324,tp:27},init:{f:0x0000,a:0,o:-1,g:14,c:-5,rr:-4,r:-37,i:['pDZxhhW1kFg5qUTjsGUWc1mAZGjPdUmAX+j2dlfMnxZCn2XWeUXmpcVjf5iTdBkooJXuoEtRf7eSiKcojHVHqrn8Xwm/iRfhezSztFm4VarhT5tdTvrxTulnWhuMlRsSXQoxWhpVUqkzXUhEjmZKpGc+qdRps9Xw',],q:['i+YLVfaDpDWJa6gtj6cSqDZwdqmDm4bWj7oGX7nriYmocLh6Wum4ajkLrjTtscUopCVGrmeOUXsFT+rfWKhee2lQa3nkU4stT/hydWsYXHZgm7bEoWnya1sCVUk9tgakqmoLasmXeVp4aGWNpVYnlfUNo/ePbWsM',],},refl:{f:0x0000,a:0,o:0,g:14,c:4,rr:-4,r:-37,i:['ccd/V/bHoTV5Z0ftoSVLiOiHYtnGkkdifWpHYxlMmhgci9bjXKe2kGZfk+c1eqjpn2Y7jdrFoKXdrBUjqgZZkveufze8rHUrrFaSk5UbrUkEb9eYfcR5spTluqQnX1UDpQZao7Xnqoccm8csd1mDWFkOW2tASUta',],q:['oyVwbRVylxdlplTTqcZvVdofe2fiaQnwXbeflSaTljW7oRYlkiVqqZXKVpstTWsRWgsPSVYPo+YKmYeAijpDWZWkqHV0kAbQl4sVTnYWoxTVtXR9uzdYlBlheefRsGZ0p+qaZroDbkquYDWmqEX7kxUkqvZdiHlk',],}},},]
+profiling:{t_print:85349,systick:3641633}
+marker:[DONE]
+
+=== SetCFO = 0, MeasurementCount = 2,  ===
+
+items:[{init:{v:v0.1.10,u:'0x000000603738812A4E455752710100E2'},refl:{v:v0.1.10,u:'0x00000060373880F74E455752710100C6'},mciq:{cfg:{n_pairs:1,n_tones:80,ta:162,tr:324,tp:27},init:{f:0x0000,a:0,o:-2,g:14,c:-5,rr:-6,r:-38,i:['o7a/qgqubMWNg2TalDnpf/W7hxl/Z2lKjjekX4kOmyX1eaoUYch4oaXgUxfSqbWFpqgwT9UmZ4rMayY8prmrVriTW1l2q1WVg3nfiboGgni1rzSrmyteXQUmtba+rcj5WFa+pnXgW4quWnoeVjoDdPTosvWAlQhZ',],q:['cMXWdAceXNkMUdiMsBV7VYhpnlkClWl5YJXUkDmakUbzpJfSmHqpZkZaiPsTY/ZPmPS/mRmTqEgtVPpSiHYWd4XMiWnueOZFr7qtTdqiSzsPaccJsEhzWqmziNuCYtT2oVrDcCYbnOe/bAarfzl+V0hgkjV5tQSM',],},refl:{f:0x0000,a:0,o:1,g:14,c:4,rr:-6,r:-37,i:['XrbZYvaKW+mtUAgNtgeObaXwlknge+oAbzZVaungn+W4kBl7eqnXkkVXW0joqwWGpzjkSITEUcnglnVUkCqVeqplY2c8oVhzVPZmtNVvtdTPh0pTR6Vys9k5UXeZWYcVqPl8Waocp3VHnrWmqeYKjgsgUDm9iKXi',],q:['k8WjoIqBatYHfXTDf4sSpvbZaahrYliJoKmeZMdfi6eBXxmoW8YTpah7ZBUVnQmyZdsgfwi6eSXZrLjYW2dmqohZmPW0YpsIaxU9epW1dXf2TMqtf0W6eIsWYoutWOTxoUqWbsYVmAhJYtcJfbm2WGg9nITytsVC',],}},},]
+profiling:{t_print:85353,systick:3401868}
+marker:[DONE]
+
+=== SetCFO = 0, MeasurementCount = 3,  ===
+
+items:[{init:{v:v0.1.10,u:'0x000000603738812A4E455752710100E2'},refl:{v:v0.1.10,u:'0x00000060373880F74E455752710100C6'},mciq:{cfg:{n_pairs:1,n_tones:80,ta:162,tr:324,tp:27},init:{f:0x0000,a:0,o:0,g:14,c:-5,rr:-7,r:-38,i:['grkDa/m5jlh/qHf2kNoukFm1mujccYalYBahYrZhbsavfljnijlWfqZZkLcLWKUyjwq8sVoIfPmRrKpZjhmAeyiRm+o/qFngeNlfb0e7qxgNbnTHYEVHgWfirxS9XnT6eCoofhl7p+p4gUd+n4n9gQeNSZdArynd',],q:['pHosXTYmX0XScxsBrInSo/lGhblFahbwf5aYeGhOa4msoNmfYSYuWkYsWhVQZ7hEqElxbupNrYo3ixa0XgYDWho4kjfihfYRVYVsUytCmJUOUidTqsm9sgselXa/qMhtsEl7qFphdVdnV/qBmMa8V3UMfht/mJUd',],},refl:{f:0x0000,a:0,o:-1,g:14,c:4,rr:-5,r:-38,i:['ZrapmNoxotpelMUuT3UhX0XnZAZpm7mzlQoRnrkynGeHbBYokviGnpqJiLnhrGrSbYUhSufCn7geaSX7WlWKXXnCgQZcaoVBXTUJVos8nPUCTtZgltfYo+pOsoSFapUheJodg7nmqXqGgpcloHoEcdbwSZZ0o2sm',],q:['ZDYFouaXcfgzWUivfqeBlliUfEgXffiIlzfth6kSf9oQl4h6YxXMaJeTV2XLcAhbqLlOfFsOnmrZp/m1e3gqbmluo1mIonh2ZehLZ+gZqwhSdxUZUVSoX4YLkdeAURcVUAZeWhYjjIjap6W/aWl+p8rkgJTvV7mi',],}},},]
+profiling:{t_print:85355,systick:3177103}
+marker:[DONE]
+
+=== SetCFO = 0, MeasurementCount = 4,  ===
+
+items:[{init:{v:v0.1.10,u:'0x000000603738812A4E455752710100E2'},refl:{v:v0.1.10,u:'0x00000060373880F74E455752710100C6'},mciq:{cfg:{n_pairs:1,n_tones:80,ta:162,tr:324,tp:27},init:{f:0x0000,a:0,o:-1,g:14,c:-5,rr:-8,r:-37,i:['oTcNoHXLksn/VenuYhUPpFl+bhf/Zoh+nzZRaUjEegdvXyc/Y0oYnDdIbTqwnvbObVTZZbneWDgdqcofedZGhvXIdFntg5YkVIqdi1q7r9rmhbYjTflkq7hsYJp5jFWEcrjWgcV3VWjnolfVkXodo5agVKSZTSVU',],q:['jppAmJaaXqksdzouqDe7bPmSlxZ8dkZifxkVawaWnbooh2ZCbrb6mIpwXDcfoQqXqBgmU0p7bLVGaGmUptZHWWeCX9bdqtoefYaqUeZti0gWsjqqieUVaer9q7p4tpYYUTVrqakKehWVaJWRXgcHjZqHmnh9b/XX',],},refl:{f:0x0000,a:0,o:-1,g:14,c:4,rr:-5,r:-37,i:['h6WNcylEogc/hRVsaEpiZdYtitkcmfklbkjPn4gzbGa3mGndomcGWaeEo2WKXlk0lys3jDhsjcY2UzjrpSd4WDgWZCXLneqgj6XNUIZKlIjHsOm4caZql2qAimtnlTVleElUgWWDWAlSpuhum4o8pxbWVJSkVvbm',],q:['WregV2pIbSW0qoZtqunsXvkzmPbCjDaRZLnUesZAljnNmIdUhqXxhwqDapaboUqgpOfqS6s4VJXLkCqGilWEeQWqa+ianlchWIoLi4qZr0rodzVNTkrzrFZCTDbgTxnZr5qBVubbjspbkIqAndi1elV6ZRjJoxtV',],}},},]
+profiling:{t_print:85449,systick:2974838}
+marker:[DONE]
+
+=== SetCFO = 0, MeasurementCount = 5,  ===
+
+items:[{init:{v:v0.1.10,u:'0x000000603738812A4E455752710100E2'},refl:{v:v0.1.10,u:'0x00000060373880F74E455752710100C6'},mciq:{cfg:{n_pairs:1,n_tones:80,ta:162,tr:324,tp:27},init:{f:0x0000,a:0,o:-1,g:15,c:-5,rr:-4,r:-41,i:['sKS8TGsTS1sMuXW7cjtGYYroWxpOqHX8hHX1eumRgBqJdnargNefXlttTQwNWdbcqijWP+ulm+lfP4qshpf/rir2YBfPg6RnqhQ7iJk6uailUQv6kBdbwZPJjxcjyIRHpZrZenrPWymwqhqVXKZZr3T5Wqt9pWSJ',],q:['iojomwn0fta2awuGOsqaTojZjtgpfempUQovUqnlVXZjrYWQUEs2VogEabgVtkQpVKwxX0WoSZuNdKVftNSGnGhvouTLufbRU+mePSPPpOwFUdYIx9NhjYfsNqMofdX5SVpkSbomqoTVownSo4Voa+o+RzUZuosD',],},refl:{f:0x0000,a:0,o:-1,g:14,c:4,rr:-5,r:-38,i:['iHZQZBabhkkrkaX4sNTqpBXDmRadalhMlZgqjrZVljcCe7nGj3cdpOWpqNQrnUgXWthSnfT+U3mHkTXLomWcjOfTojYrpRgOV7mKT4Uap7rkUwgysdWLrvWDakaVtlV9onluhCncXKnxlMkeX3caouXVZ/s5iCSr',],q:['WunentXHpyXlVxpabggzaegjkObtbLn3Y/o6YRjCatYYoKcOX8pAcicgbwecqBUnaPsuVRjzf4psUlmwlPdNpxokeDamlTVBk/V0hAlWoWc1betPaupfklY6spstgVnXo0W7qBYvaQnZXkX+cEoRkSZbrSkJTufN',],}},},]
+profiling:{t_print:85453,systick:2757574}
+marker:[DONE]
+
+=== SetCFO = 0, MeasurementCount = 6,  ===
+
+items:[{init:{v:v0.1.10,u:'0x000000603738812A4E455752710100E2'},refl:{v:v0.1.10,u:'0x00000060373880F74E455752710100C6'},mciq:{cfg:{n_pairs:1,n_tones:80,ta:162,tr:324,tp:27},init:{f:0x0000,a:0,o:-1,g:13,c:-5,rr:-7,r:-37,i:['juZtYTbKmcYpd2hGhhe4niaFjljDliaclwjNbsk8d4mnZrktcpnOYghekJaTl6YMdKixcaWfe4iBdHikdinhYTZpmJaDf6eQijoHmQYCpUbSjsaGjTV8ofXWqCoZWUe6ddmEmXYwkdYJltm3Y1l9bIoaY3hCj7Wo',],q:['aFj7eGmac9fFoVpKWso7gbdTj6bxfheAixaUkkdTaQg8eoj8l4gGfCnpZBnIZBbrX1pSWgejoiXxolYCnNecg9deiQcGn/XooIcGmvaficoCXToJWVhBcbcYgHmSddpWW7l0bskFY9icavh/hTcBl2eamyVxpIba',],},refl:{f:0x0000,a:0,o:0,g:14,c:4,rr:-4,r:-37,i:['WNp0iiqVaZissStJUHnwpxW6njeIj4aMoMd0fyieXnoIXfozioopWsnWgPcJnIVMcqiUhWWcVopmUir4VknLaphHiee4XEptXOo2XjnMa4WXrFYyqfnobMsZV2RbuUgbkeYXXIqhZcrsWeW7qZXQlQUOqbaPgMn6',],q:['efcQVYbUoLWHgAhslpVnlef9ehm4m8Z7k4pNW7nchnlFc8hlXFmVa3YGrzTlrQmLr5SzuZp/ZungaSgadUX1pNpMXLpsZonfXnW2V9rhTkohYlsPWSsVUElaVqi/fytaT5pWaAlsWHhTaOk2gtaypkcipkSsuPT7',],}},},]
+profiling:{t_print:85354,systick:2517809}
+marker:[DONE]
+
+=== SetCFO = 0, MeasurementCount = 7,  ===
+
+items:[{init:{v:v0.1.10,u:'0x000000603738812A4E455752710100E2'},refl:{v:v0.1.10,u:'0x00000060373880F74E455752710100C6'},mciq:{cfg:{n_pairs:1,n_tones:80,ta:162,tr:324,tp:27},init:{f:0x0000,a:0,o:0,g:14,c:-5,rr:-7,r:-37,i:['j+hiemVRXqYZp4npixZxg+eBhZg7eehgmDfnkWl2floelThqYoWUaUgcbFaZjNqZjDajTYgfpHikZUVYWrVRYvk3eQZQZ6UNXjTUYdrNgIU5dymPuRs1qhq7dzi0tboTsKgIpCjfixXBXDpjfwWyXnWumXtdf8RX',],q:['XsWVqniIlnnCadWYT9WHWPYAZmZlnLnYlvpGmzlBoHcqZnYGl3jmpBrTqgrrsLmQU1T+agTGZUU6V6cXj1gRoMYQXEYyW1fVoghYqjYPSinLtbsmgYlJYzZRSSuyh/pbc7URaZVHVEZhlqcuV0bnmoossRbMSEe0',],},refl:{f:0x0000,a:0,o:-1,g:14,c:4,rr:-5,r:-37,i:['WpXNqSlTmco6YtXRWDUacsaQdfasmAnxoKnJoPnhntkUgqa8f5cXhWnjhMfQmoq2jobxVKpJr1phjbfWXwZ4WApbmVg9kdbbUoaKTxoUt9bnTlR9ZcTXewddrTWtSXVdUgfcX2cabyoXqTWFeypKnUoraXRgb/sW',],q:['d+a4keWEYHbGogoSnmijpUl8mLj5bEd4jNaYdPh9cKoAoamZWiWwVvYKU4TIVPZPrrsZofp9fSnQsLrhmjofkFeSnPpyqFqpjTrikmVXgsr7lFeGTZZ8TVTbXprbedm4ayUcYnVTVtYokId1WDbWobpVtBfVS0X/',],}},},]
+profiling:{t_print:85356,systick:2323044}
+marker:[DONE]
+
+=== SetCFO = 0, MeasurementCount = 8,  ===
+
+items:[{init:{v:v0.1.10,u:'0x000000603738812A4E455752710100E2'},refl:{v:v0.1.10,u:'0x00000060373880F74E455752710100C6'},mciq:{cfg:{n_pairs:1,n_tones:80,ta:162,tr:324,tp:27},init:{f:0x0000,a:0,o:-1,g:14,c:-5,rr:-7,r:-37,i:['kXY4nrWAhIqEW6r3p+gXYEiBlkcGmpfGXei1ohkdX0WVackFcxqLnvVBcxnXs7ocrCjtZbipl0cuU+VGcgqtnellpantXIToV0sCidphtbpfsnpOkRReUTmpr2WMcCs0phmVWAdEhWrPp+lvoDpvqHe9bHZ1WhUm',],q:['odn9nsbrWUern1b/oSsYZPXjkomRkBodjRXleUmgdbgQZBYmXbepnTjJVCVxebpRk7tMsvTJqFrplob5WJgMnhYVd7mnnhg/ZmbSTRVycIWQkpqzuQfAZRUgXlUdSMjtpGqUbQU3UrgDjvXuZ4dOi/sdtFtIqRoo',],},refl:{f:0x0000,a:0,o:-1,g:14,c:4,rr:-4,r:-37,i:['cpVzceitqRkeWrj/T7XJqohjYic1YmZuhsj2aAYBm4nEoniYoxYiVSn5oBcqTTX3VZfFr0U9j9qer4frYua+jwWlY9gdrklfeGYrSvVweTYRoIuGuiVGSdd2kWSbYRtCp9kVWYegj6rFoOn8p+qUqmeJZMVASjRk',],q:['WthTVUqhgDWWm9TragoudpW3gxmictk/osXXZWhclHnEcFXQbyYYh4onW9T2cDpwmZuBoaYBrglqa/UjX0p9qDinmjqwc7VKUWrIhhpItuq5q6kTcNWve2tquNnar/cHXNURlZrxrKdBZEnAjEgBdkUTUbXKchfc',],}},},]
+profiling:{t_print:85448,systick:2090779}
+marker:[DONE]
+
+=== SetCFO = 0, MeasurementCount = 9,  ===
+
+items:[{init:{v:v0.1.10,u:'0x000000603738812A4E455752710100E2'},refl:{v:v0.1.10,u:'0x00000060373880F74E455752710100C6'},mciq:{cfg:{n_pairs:1,n_tones:80,ta:162,tr:324,tp:27},init:{f:0x0000,a:0,o:-1,g:14,c:-4,rr:-5,r:-38,i:['jKfLkgWFoCZcXufdgdjhpDYJnDZ5c1iWcvYjmkabmsYyl7auWaleYhoOgpaai0fNT3tlSmh7qcXDm9cEhMXOl+nvbzkhV+mifJsUp4SatUloa8rkQ+qLS4pORJRmuAXbtfV6oDWGmfU3pjp+YDiDjPg4p/RynDlM',],q:['pJV7WIa3mWX3pQswSysRZgl4dCbhYnn8XnmeaLmclUnaYtnoduo8YKoPUTsJTMtSdjfYlet8aqoaVnrzVcnQXIZipaWkmSVjswbrokcmbDs2TGoXfhqScBqafpalcWVLhBoIogZTqDdUbah0mgWYqZUIpyjHUUtm',],},refl:{f:0x0000,a:0,o:0,g:14,c:4,rr:-4,r:-37,i:['aXoCrZjybClwVnTJsOUXbjlUcenwoYX0pbgveUg9XhgQe/fUorVwq9Ujj2jpd5iLrlSRuknVU8sQTJsRWQqKVNW+qRVhqhTZsYY1nRd/dAt4R6tDXou1TYt9TVQctjXXtrU3naXJkLWyq+pJWQkrkXhupgSLsPcV',],q:['X1nFhNqgWio4mAh1aKliVmoUYthYeihxe7p6XVoedaqaWNo/lejRcxhRUVskTAsnbUiIfQr0kZfUelgbazbRiOkMgidEaNhni6qyrCR4txh1gGnCTTe/axfTX7g6maqpdeZkXPn5VRnGhubJcTokWprvVfj3nHSG',],}},},]
+profiling:{t_print:85351,systick:1881014}
+marker:[DONE]
+
+=== SetCFO = 0, MeasurementCount = 10,  ===
+
+items:[{init:{v:v0.1.10,u:'0x000000603738812A4E455752710100E2'},refl:{v:v0.1.10,u:'0x00000060373880F74E455752710100C6'},mciq:{cfg:{n_pairs:1,n_tones:80,ta:162,tr:324,tp:27},init:{f:0x0000,a:0,o:0,g:13,c:-5,rr:-9,r:-37,i:['iYllYcdrZ4YUoXnji/ZNc8ZwbTaglukAfIi2dUardGcjijmHbNaSX6bsXhcAmRpKaTV+cmWYXvZIglnbmlmYfpkGnIkJj9ZzYEWgpPlDYhg9pYpIbqcrV7WZitqnWzWFgupFmzoXd+a+ZHl6bUZxiEk+nCYOZto2',],q:['mrlFc1X4bae4hkaxWyZtYndic5fHfbbwZZZ0Z6dYaTmhmgimalapg8nRiIounSfEY2g8p1iGc7lipakdbpbFX7mAfJZhYcZRkKgNiNXBYmp4jfatV4VrgBjEqccmlahnp3e/kzduXeZPj5beaDjanHm5ZEZAnvlC',],},refl:{f:0x0000,a:0,o:-1,g:14,c:4,rr:-5,r:-37,i:['aRgDfWq0nXfOgBmbq2tRocpooAmDbeh6oljtoEoEpRdLXnW3qVrEpIgpqahDW3Szl4uWsArxkVsgqXiAWZWZV1nSabVIUAaDoVjli5S+T2t8pNg3RaS3VmYKrjs7TvR9fGtBn+sgh9ecU6qlekWLi2musUaCSukv',],q:['XjVBrUk+nxqrTiUzXwf7YWfKf7k5Y3XicYXUbVihevqOk7dBeZeGm+romstGp/haUyd/o7YbUodvo0sAlcmaaunxo5gffpUhWrS0tGmCXodBrXvHk9nHW1UAWApuXjeeSVdxXSgLsKrxfbh2qid1WJVpm6tTbySj',],}},},]
+profiling:{t_print:85354,systick:1686249}
+marker:[DONE]
+
+=== SetCFO = 0, MeasurementCount = 11,  ===
+
+items:[{init:{v:v0.1.10,u:'0x000000603738812A4E455752710100E2'},refl:{v:v0.1.10,u:'0x00000060373880F74E455752710100C6'},mciq:{cfg:{n_pairs:1,n_tones:80,ta:162,tr:324,tp:27},init:{f:0x0000,a:0,o:0,g:14,c:-5,rr:-5,r:-37,i:['XLbSUXrughU8r+UqlssrVfbRnHb2lEZVYjpTgAXeoxqBkuYQbeamnqqsUJfus5YloAZERStkTkZlnPsPh6VwhBVmePpheuVUT4tqp5uPnzo3VVRDXavInyRvS0UZQsrvuGpIVxikpukUcjm2fRY6VmktrRufrknf',],q:['lkWjhre+qvgAdSZsTzjCklX+cfnbmxl8amiep5g+c7cdo0mcpwWYXflTb2SWahrjqSs9eMjXjEVGUtjFrOaqUweXV3bEsPnAb3frV2jgs6rCpteCTHhvr/jeYCrKguXOiIpzZKTxYAq9rKn8qrnWfCU/XYexnjsl',],},refl:{f:0x0000,a:0,o:-2,g:14,c:4,rr:-7,r:-37,i:['pgakmjc4rDijcvWiXSrbY+YQkIi8osgyXEoclPaAjIl5pEdzihWHjNsfTTdVtlWCleU2ULmUWvj1t6gMVwiIrggjoopIUyW6iliDqZbARSSFb4qxv8S9S2qlvzp3vnS0S3bHntYeTli2pgfGmEpcqQZxSmTZaOj7',],q:['bjWWV6rPg/VdryW+qknQW2l9m4YJeeXIcvlDXvZmpFpQasWFVnlOrrgOgltbkbWbUJWao7S8oosnfwS9a6rziwqPmeZ4bppdtASkWoRwdOcluNrKfGXkl7qffxtPgKaHmIsyWVWEfGrym1q7oujxdHV5b/njs3uO',],}},},]
+profiling:{t_print:85349,systick:1483984}
+marker:[DONE]
+
+=== SetCFO = 0, MeasurementCount = 12,  ===
+
+items:[{init:{v:v0.1.10,u:'0x000000603738812A4E455752710100E2'},refl:{v:v0.1.10,u:'0x00000060373880F74E455752710100C6'},mciq:{cfg:{n_pairs:1,n_tones:80,ta:162,tr:324,tp:27},init:{f:0x0000,a:0,o:0,g:14,c:-5,rr:-5,r:-37,i:['XJnFjQr7VWpsjTeBhVb9WqoWXxlNhDgdf+pyWYo0eUq4Vgp+ijmnZ+kxUptiR5jIb9iih0uBeiiubCnQXkfydVhngTewYujUhqr1W1RZt7kgcepYQinAUxk2TGYqtbhhohSjdwgRZoeXolhfX/pkWEr0U2goo5Rr',],q:['bNoIrNfxeDlXsAS+tyTcnKbWiTm7pOXVqFeOiFfzWyhKgLgPqMWwqwUrZ+jsdgtctZRru5iSTXsnTRqrX8sVU3VmqmVNqGTktWZCrLdbautqR8sTc0uQWvuSXWRlnIRjsLc9s/TMrZUMnvrBZkhfjQhYowRqq0gj',],},refl:{f:0x0000,a:0,o:-1,g:14,c:4,rr:-4,r:-37,i:['gHdlWohsh1ciULtvS6sSlHZ4luXkYnnaYRaMnuZno5XLplXPXTfJg8gTsySBuYgLoVYHnjY0VvoBZ5pJa1r+VGVQqDWNr3S5svYeqebpfgu0R5vfS5t8RbrpQpWvtzkFkcU2ZEmPU4lhh4aQePnNVwrLSbpQfzW0',],q:['qFVMYiT+qoVCbcgXkwadqLYLmKfZkwaaloXomjaAb+ZwlPalmMUrsRTvcqiyc6uRrHTttcsMXuqyTOp6VHiecJf6krbCc0fRkJraWVR/vZe/j6irXaYxhqW9jVtIY0ucSRobVIrIafqjU5Wvp8Zee3bXcdrYSjqm',],}},},]
+profiling:{t_print:85362,systick:1296719}
+marker:[DONE]
+
+=== SetCFO = 0, MeasurementCount = 13,  ===
+
+items:[{init:{v:v0.1.10,u:'0x000000603738812A4E455752710100E2'},refl:{v:v0.1.10,u:'0x00000060373880F74E455752710100C6'},mciq:{cfg:{n_pairs:1,n_tones:80,ta:162,tr:324,tp:27},init:{f:0x0000,a:0,o:1,g:15,c:-5,rr:-5,r:-41,i:['Z9R+utv1qXgOnVxcsAUrXBSzUpaaf7VwWmT5eipoogfsSkWeq4oYVeQFQ/XkvDuRN0cpy7pZkjxQjTQ0WRbKtXSMhOuDvic/O7NcybcVMay9tRPdWnbEy9xWSG05e4ggMtoOhpwdugVIXvg9SnlLsXnrNengtfOp',],q:['TpcLaRiiVcQvQtjmRoR4TPgsiAqBUAZxo9lps/mlpcROcAplWrS4TdllpAxIrzUCghzym0w/w7fENoXXsdvSnmjeuMjedHOxihfmd5MUkZiMRoTqy20aknW1P9lWLGMOiUwaw7jxX3UHs6RsierkbUSCfuxyT8Yk',],},refl:{f:0x0000,a:0,o:-2,g:14,c:4,rr:-6,r:-38,i:['mqdjnneFnSrQrZYokOtHpSpcm7fdk5oxh8lAcMXZWtmFqajYcJenp9qTqWlmWZTKsvqVZ0mHp6aNSjbTp0rjlni/qVgmbyTph9fKhfRmdpqqeKRCjkjyuMqeTzv4jTmdSUfMbFo8sFgBVJoXXvdRp3oQU8Z9tGcR',],q:['n3qLXXUKYEgvabUyTIdWZijIkropY9iEpnoQofgHhGXahYphWgU7ZcnVoGtFqFazbeq2t0tIofrqd5UaZ5dlqQWPioq+rKdfTzSxt4iBRypvudd9RPRfjnqWppc2u6s/j6S0U+Xbdlr2dPmfllXbg+oan7TvdmtV',],}},},]
+profiling:{t_print:85354,systick:1101954}
+marker:[DONE]
+
+=== SetCFO = 0, MeasurementCount = 14,  ===
+
+items:[{init:{v:v0.1.10,u:'0x000000603738812A4E455752710100E2'},refl:{v:v0.1.10,u:'0x00000060373880F74E455752710100C6'},mciq:{cfg:{n_pairs:1,n_tones:80,ta:162,tr:324,tp:27},init:{f:0x0000,a:0,o:-2,g:14,c:-5,rr:-5,r:-38,i:['jvqAlgcMVgiUV+kMtglsVoiOlUZakHYvYDppikZHlHk3p9hynjVlYQj2l0TPVkh9gWs2soS+sTm2bFTeY4rMm4ntpkh0UuaAjcknZVlpbGgpSGTRbKuqo1UGQwdHVBhdosskYGUSXepVqwi7nJo7nZYGTvSJUGV9',],q:['W4jcV7rcdZVaY9Tuh0r9bAWhmVlknVlRbEgtpFlFYsW3hAp4mpkUXiUwq/lgW9S1TAZgnBbCeNqPsihdXYedodZoijq7c1VEUMtBr8tHt7uQibYpRkiRrMnfejv1p9R+VHcApYb8XgZpgLWbZyfFmIoBkNfzakW/',],},refl:{f:0x0000,a:0,o:0,g:14,c:4,rr:-8,r:-38,i:['qUhMrnU7jzrKolqKXLT4rmgtYvh3YrhipoXaZvkUhdf1WBZ0WDomqbfJW2tBpuX/axRebziAZClhtiiHYVcYn3YZgoqCfUWCT5s6q4uYqlroaSSTSKuWsiXcQ+dPTTlBsrtcUTXzf2rjn/pYp5n2mSV7SxVla3gj',],q:['hGVBdgkzqkd3pYXeVfmTd9WZkyoak1o3iCbUnlnYXFVld4nujHnsadUEpEldWDVLUJgtuZSTqxrqfITWX1rHoRmpqekWUhYajuktX2iaWBYQTcagm/lqZLUxdLQuYQthnBe3b+phsQe0YnkigNbbY9bMgLpMsJto',],}},},]
+profiling:{t_print:85354,systick:907188}
+marker:[DONE]
+
+=== SetCFO = 0, MeasurementCount = 15,  ===
+
+items:[{init:{v:v0.1.10,u:'0x000000603738812A4E455752710100E2'},refl:{v:v0.1.10,u:'0x00000060373880F74E455752710100C6'},mciq:{cfg:{n_pairs:1,n_tones:80,ta:162,tr:324,tp:27},init:{f:0x0000,a:0,o:-1,g:14,c:-5,rr:-5,r:-38,i:['hxZaUhbqntVJX5kIesgdrUWdgakUoKXcowkQZCnaciqiWDoPbtrRUJr+f+WYp1VYb0joc/iScIlNaWmAZzrMUsY+nCaIbNisf1thjtZWqITNt7SVruR7uMWjszlOWvW6k+hwscTSn3U4rAmcXUpRXWpcSSrWaedK',],q:['WSo1iiq5Y+h5XCsWSgtNeUeBoyZWeaexjEXenGbvXhhWdjlHpwfee3ikTVquWApRTXusRmt5skUosVVPpqhsfIYlnRXBrWTttMettwTKqdmyefmmWaaVhZVLoTvmUHrPSrt/f/eqpdcGghoZbOg/bOm9gkX+sdSn',],},refl:{f:0x0000,a:0,o:1,g:14,c:4,rr:-7,r:-38,i:['pxVVakUznXcOo3S+s8WdWQp0bJiabzmbXniBhjdho2WxqTWBeuWVrqTokaoOV1rzfjjbZCphskTatkUEq9emgragkWazsKTIsyentrSctgg6ladAg1Q1tHSKvsn3WUUhnBcLr3Vlina7o4gIbYoCYLoWS3uSUAoe',],q:['johSqDjFYXqEoydSaspJZXh5mrYXYVmabKWmpVXRckaNi8fHqQZmj7eCUGrtVmn1SxuhSjqpjrdQgVj/caruU7W4puWqfreYipt2jqaCmtSBtgRmvpdWm1kUgASGrnXBstTKbXnET/qwZOV3o/a3mQX2jmhLZkrQ',],}},},]
+profiling:{t_print:85354,systick:719924}
+marker:[DONE]
+

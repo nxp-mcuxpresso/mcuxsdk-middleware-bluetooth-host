@@ -1,0 +1,6 @@
+DEBUG:      
+CFLAGS:      -fPIC -MMD -O3 -g0 -ggdb0 -fmessage-length=0 -ffunction-sections -fdata-sections -fno-common -fno-math-errno -Wall -Wextra -Wno-unused-parameter -Wpointer-arith -Wswitch-enum -Wundef -Wshadow -fno-unsafe-math-optimizations -ffp-contract=off -fno-associative-math -fno-unsafe-math-optimizations -fno-trapping-math -Wno-shadow
+CPPFLAGS:   
+LD_FLAGS:    -shared -O3 -g0 -ggdb0
+DEFINES:     -DARM_MATH_MATRIX_CHECK -DARM_MATH_CM4 -DEIGEN_MPL2_ONLY -DCOMPONENT_COMMON -DCOMPONENT_CRNPC -DCOMPONENT_H2COV -DCOMPONENT_EVD -DCOMPONENT_EIGEN_SOLVER_SAES -DCOMPONENT_MUSIC -DCOMPONENT_EIGEN -DUSE_MEMTRACE=0 -DUSE_STOPWATCH=0 -DSTOPWATCH_MAXNESTING=4 -DRANGE_CHECK=1
+COMPONENTS:  COMPONENT_COMMON COMPONENT_CRNPC COMPONENT_H2COV COMPONENT_EVD COMPONENT_EIGEN_SOLVER_SAES COMPONENT_MUSIC COMPONENT_EIGEN
