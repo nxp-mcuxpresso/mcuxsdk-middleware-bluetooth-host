@@ -24,9 +24,6 @@
 #include "fsl_component_serial_manager.h"
 #include "fsl_component_mem_manager.h"
 #include "fsl_adapter_reset.h"
-#if defined(gPlatformUseHwParameter_d) && (gPlatformUseHwParameter_d > 0)
-#include "HWParameter.h"
-#endif
 #include "app.h"
 #include "board_comp.h"
 #include "FunctionLib.h"
@@ -475,10 +472,6 @@ bool_t BleInfo_IsConnected(void)
 static void BluetoothLEHost_Initialized(void)
 {
     uint8_t mPeerId = 0;
-#if defined(gPlatformUseHwParameter_d) && (gPlatformUseHwParameter_d > 0)
-    hardwareParameters_t *pHWParams = NULL;
-    (void)NV_ReadHWParameters(&pHWParams);
-#endif
 
     {
         uint8_t status = PLATFORM_InitLcl();
