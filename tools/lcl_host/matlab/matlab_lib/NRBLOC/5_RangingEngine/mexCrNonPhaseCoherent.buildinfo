@@ -1,6 +1,0 @@
-DEBUG:      
-CFLAGS:      -fPIC -MMD -O3 -g0 -ggdb0 -fmessage-length=0 -ffunction-sections -fdata-sections -fno-common -fno-math-errno -Wall -Wextra -Wno-unused-parameter -Wpointer-arith -Wswitch-enum -Wundef -Wshadow -fno-unsafe-math-optimizations -ffp-contract=off -fno-associative-math -fno-unsafe-math-optimizations -fno-trapping-math
-CPPFLAGS:   
-LD_FLAGS:    -shared -O3 -g0 -ggdb0 -L/imec/software/matlab/R2018a/bin/glnxa64 -lmex -lmat -lm
-DEFINES:     -DARM_MATH_MATRIX_CHECK -DARM_MATH_CM4 -DCOMPONENT_COMMON -DCOMPONENT_MEXSUPPORT -DCOMPONENT_CRNPC -DMATLAB_DEFAULT_RELEASE=R2017b -DUSE_MEMTRACE=0 -DUSE_STOPWATCH=0 -DSTOPWATCH_MAXNESTING=4 -DRANGE_CHECK=1
-COMPONENTS:  COMPONENT_COMMON COMPONENT_MEXSUPPORT COMPONENT_CRNPC
