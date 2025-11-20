@@ -14,6 +14,7 @@ This document explains how to integrate the NXP Bluetooth Low Energy Host Stack 
 -   [Low-Power Management](low-power_management.md): This section describes low-power management and how an application can use the low-power modes of the hardware and software.
 -   [Over the Air Programming \(OTAP\)](over_the_air_programming_otap.md): This section describes the Over The Air Programming \(OTAP\) capabilities that the Host Stack offers via a dedicated Service/Profile. The section also describes how to use the OTAP capabilities in an application and also contains a detailed description of the SDK components involved in the OTAP process.
 -   [Creating a Bluetooth LE application when the Host Stack runs on another processor](creating_a_bluetooth_low_energy_application_when_t.md): This section describes how to build a Bluetooth Low Energy application when the Host Stack is running on a separate processor.
+-   [Intrusion Detection System](ids.md): This section describes the usage of the Intrusion Detection System (IDS).
 -   [References](reference_documentation.md): This section lists the documents that can be referred to for more information.
 -   [Acronyms and abbreviations](Acronyms.md): This section lists the acronyms used in this document.
 
