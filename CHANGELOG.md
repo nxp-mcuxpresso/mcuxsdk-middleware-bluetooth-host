@@ -4,6 +4,28 @@ All notable changes to NXP Bluetooth LE Host will be documented in this file.
 
 **NXP Bluetooth LE Host Stack** is certified **Bluetooth 6.0**
 
+## [1.10.14] - mcux v2025-12-00
+
+### Added
+
+- KW47/MCXW72 CCC and IOT Channel Sounding Localization applications on GitHub repository
+- Monitoring Advertisers support in fsci_black_box and BleShell applications
+- Local average and remote average RSSI values to the CS measurement report
+- The "-Os" optimization flag to the ARMGCC release configuration for NCP applications
+
+### Improved
+
+- Enabled low power support in loc_reader_host application
+
+### Fixed
+
+- loc_reader_host application event set issue
+- Missing handler for Version2 of the Set RPA Timeout command
+
+### Supported Platforms
+
+- KW45, KW47, MCXW71, MCXW72, MCXW23
+
 ## [1.10.13] - mcux v2025-12-00-pvw2
 
 ### Added
