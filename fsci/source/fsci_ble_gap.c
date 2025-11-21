@@ -396,6 +396,7 @@ static const int16_t maGenericEventToOpcode[]=
   -1,                                                                                      /* reserved: 0x56U */
   -1,                                                                                      /* reserved: 0x57U */
   -1,                                                                                      /* reserved: 0x58U */
+  -1,                                                                                      /* reserved: 0x59U */
 };
 
 static const int16_t maGenericEvent2ToOpcode[]= {
@@ -439,6 +440,7 @@ static const int16_t maGenericEvent2ToOpcode[]= {
     -1,                                                                                      /* reserved: 0x57U */
     -1,                                                                                      /* reserved: 0x58U */
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
+    (int16_t)gBleGapEvtGenericEventDebugNbuFatalErrorOpCode_c,                               /* = 0x59U, gDebugNbuFatalError_c */
 };
 
 

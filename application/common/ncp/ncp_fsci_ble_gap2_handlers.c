@@ -638,6 +638,50 @@ void GetBufferFromVendorUnitaryTestCompleteEvent
                               *ppBuffer,
                               (uint8_t)pGenericEvent->eventData.unitaryTestData.paramLength);
 }
+
+/*! *********************************************************************************
+*\fn           void GetBufferFromVendorDebugFatalErrorEvent(
+*                                           gapGenericEvent_t    *pGenericEvent,
+*                                           uint8_t              **ppBuffer)
+*
+*\brief        Writes the vendorSpecificDbgEvent_t data fields in the provided
+*              buffer.
+*
+*\param  [in]  pGenericEvent       Pointer to the generic event.
+*\param  [in]  ppBuffer            Pointer to the buffer where the data fields
+*                                  should be written.
+*
+*\retval       void.
+********************************************************************************** */
+void GetBufferFromVendorDebugFatalErrorEvent
+(
+    gapGenericEvent_t   *pGenericEvent,
+    uint8_t             **ppBuffer
+)
+{
+    fsciBleGetBufferFromArray(pGenericEvent->eventData.vendorDbgFatalError.pData,
+                              *ppBuffer, pGenericEvent->eventData.vendorDbgFatalError.dataSize);
+}
+
+/*! *********************************************************************************
+*\fn           uint32_t GetVendorDbgFatalErrorEventBufferSize(
+*                                           gapGenericEvent_t    *pGenericEvent)
+*
+*\brief        Returns the required FSCI buffer size for the
+*              gDebugNbuFatalError_c event.
+*
+*\param  [in]  pGenericEvent       Pointer to the generic event.
+*
+*\return       uint32_t            Buffer size.
+********************************************************************************** */
+uint32_t GetVendorDbgFatalErrorEventBufferSize
+(
+    gapGenericEvent_t   *pGenericEvent
+)
+{
+    return sizeof(uint8_t) +
+           (uint32_t)pGenericEvent->eventData.vendorDbgFatalError.dataSize;
+}
 #endif /* gFsciIncluded_c && gFsciBleGapLayerEnabled_d */
 
 #if gFsciBleBBox_d || gFsciBleTest_d

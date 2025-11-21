@@ -226,6 +226,14 @@ typedef struct
     } handoverEventData;
 } hciVendorHandoverMetaEvent_t;
 
+/*! HCI_VENDOR_SPECIFIC_DEBUG_FATAL_ERROR */
+typedef struct hciVendorSpecificDbgEvent_tag
+{
+    uint8_t             subEventCode;
+    uint8_t             dataSize;
+    uint8_t             pData[gVendorDebugEventSize_c];
+} hciVendorSpecificDbgEvent_t;
+
 /*! OCF 0x0001 */
 /*! HCI_Set_Event_Mask */
 typedef struct
@@ -2696,6 +2704,7 @@ typedef struct
 #if defined(gHandoverSupport_d) && (gHandoverSupport_d == TRUE)
         hciVendorHandoverMetaEvent_t                    hciVendorHandoverMetaEvent;
 #endif /* (gHandoverSupport_d == TRUE) */
+        hciVendorSpecificDbgEvent_t                     hciVendorSpecificDbgEvent;
     }eventData;
 } hciEvent_t;
 

@@ -2378,6 +2378,7 @@ const pfGapGetBufferFromGenericEventHandler_t maGapGetBufferFromGenericEventHand
 #else /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
     NULL,                                                                       /* reserved: 0x58U */
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
+    GetBufferFromVendorDebugFatalErrorEvent,                                    /* reserved for 0x59U gDebugNbuFatalError_c */
 };
 
 /*! Array of handler functions used by fsciBleGapGetGenericEventBufferSize */
@@ -2500,6 +2501,7 @@ const pfGapGetGenericEventBufferSizeHandler_t maGapGetGenericEventBufferSizeHand
 #else /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
     NULL,                                                                       /* resreved: 0x58U */
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
+    GetVendorDbgFatalErrorEventBufferSize                                      /* 0x59, gDebugNbuFatalError_c */
 };
 
 #if gFsciBleBBox_d || gFsciBleTest_d

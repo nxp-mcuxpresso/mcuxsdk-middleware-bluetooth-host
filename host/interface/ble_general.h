@@ -189,6 +189,7 @@
 
 #define gVendorUnitaryTestSize_c             (255U)   /*!< Maximum size of the VENDOR_UNITARY_TEST response */
 
+#define gVendorDebugEventSize_c              (255U)   /*!< Maximum size of the debug payload */
 #define gLeExtendedFeaturesSize_c            (1U)     /*!< Current size of the leExtendedFeatures, can be raised up to 240 */
 
 /* Macros for checking extended features */
@@ -919,6 +920,7 @@ typedef enum {
     gMonAdvListCleared_c                                = 0x56U, /*!< Clear Monitored Advertisers List command complete */
     gMonAdvEnabled_c                                    = 0x57U, /*!< Enable Monitoring Advertisers command complete */
     gMonAdvListSizeRead_c                               = 0x58U, /*!< Read Monitored Advertisers List Size command complete */
+    gDebugNbuFatalError_c                               = 0x59U, /*!< Vendor specific debugging event signaling NBU fatal error */
 } gapGenericEventType_t;
 
 /*! Internal Error Source - the command that triggered the error */
@@ -1461,6 +1463,12 @@ typedef struct vendorUnitaryTestEvent_tag
     uint8_t     aParam[gVendorUnitaryTestSize_c];
 } vendorUnitaryTestEvent_t;
 
+typedef struct vendorSpecificDbgEvent_tag
+{
+    uint8_t     dataSize;
+    uint8_t     pData[gVendorDebugEventSize_c];
+} vendorSpecificDbgEvent_t;
+
 /*! Generic Event Structure = type + data */
 typedef struct {
     gapGenericEventType_t  eventType;       /*!< Event type. */
@@ -1525,6 +1533,7 @@ typedef struct {
         handoverApplyConnectionUpdateProcedure_t    handoverApplyConnectionUpdateProcedure; /*!< Data for the gHandoverApplyConnectionUpdateProcedureComplete_c event */
         vendorUnitaryTestEvent_t                  unitaryTestData;                          /*!< Data for the gVendorUnitaryTestComplete_c event */
         uint8_t                                   monAdvListSize;                           /*!< Data for the gMonAdvListSizeRead_c event. The size of the Monitored Advertisers List. */
+        vendorSpecificDbgEvent_t                  vendorDbgFatalError;                      /*!< Data for the gDebugNbuFatalError_c event. */
     } eventData;                            /*!< Event data, selected according to event type. */
 } gapGenericEvent_t;
 
