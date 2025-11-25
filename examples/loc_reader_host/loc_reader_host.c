@@ -187,8 +187,6 @@ void BluetoothLEHost_AppInit(void)
 #ifdef LCE_KW47_MCXW72
     (void)APP_InitLce();
 #endif
-    /* Set default role */
-    mGlobalRangeSettings.role = gCsDefaultRole_c;
 
 #if (gAppUseNvm_d && defined(gFsciIncluded_c) && (gFsciIncluded_c))
 #if gNvmEnableFSCIMonitoring_c

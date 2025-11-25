@@ -111,9 +111,6 @@
    Information available in algorithm result structure */
 #define gAppParseRssiInfo_d                     0
 
-/* Channel Sounding role - default reflector */
-#define gCsDefaultRole_c                        gCsRoleReflector_c
-
 /*! *********************************************************************************
  *     BLE LL Configuration
  ***********************************************************************************/

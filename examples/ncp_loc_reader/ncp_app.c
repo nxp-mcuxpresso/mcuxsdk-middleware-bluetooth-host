@@ -136,16 +136,17 @@ void AppLocalizationAlgo_RunMeasurement
     (void)role;
 
     appCsRes_t res;
-    uint8_t* pBuff = MEM_BufferAlloc(sizeof(appLocalization_rangeCfg_t) + sizeof(deviceId_t));
+    uint8_t* pBuff = MEM_BufferAlloc(sizeof(appLocalization_rangeCfg_t) + sizeof(deviceId_t) + sizeof(uint8_t));
 
     if (pBuff != NULL)
     {
         /* Send mRangeSettings for algorithm timings */
         pBuff[0] = deviceId;
-        FLib_MemCpy(pBuff + 1, &mRangeSettings[deviceId], sizeof(appLocalization_rangeCfg_t));
+        pBuff[1] = mGlobalRangeSettings.role;
+        FLib_MemCpy(pBuff + 1 + 1, &mRangeSettings[deviceId], sizeof(appLocalization_rangeCfg_t));
         /* Send message */
         FSCI_transmitPayload(gFsciNcpAppOpcodeGroup_c, gAppSendRangeSettingsOpCode_c,
-                             pBuff, (sizeof(appLocalization_rangeCfg_t) + sizeof(deviceId_t)), gFsciInterface_c);
+                             pBuff, (sizeof(appLocalization_rangeCfg_t) + sizeof(deviceId_t) + sizeof(uint8_t)), gFsciInterface_c);
 
         (void)MEM_BufferFree(pBuff);
 
