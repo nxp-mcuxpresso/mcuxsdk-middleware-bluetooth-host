@@ -142,6 +142,9 @@ static void App_FsciBleAppCbHandler
 
             /* Copy the received range settings for the given peer */
             fsciBleGetDeviceIdFromBuffer(&deviceId, &pBuffer);
+
+            fsciBleGetUint8ValueFromBuffer(mGlobalRangeSettings.role, pBuffer);
+
             /* Do not overwrite CS Algo buffer */
             fsciBleGetArrayFromBuffer(&mRangeSettings[deviceId], pBuffer, sizeof(appLocalization_rangeCfg_t) - sizeof(void *));
         }
