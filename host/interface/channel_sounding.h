@@ -55,6 +55,7 @@
 #define gCSParamInlinePhaseReturnPresent_c              BIT4
 #define gCSParamRttBiasPresent_c                        BIT5
 #define gCSParamPctPhaseRotationPresent_c               BIT6
+#define gCSParamPaRampingControlPresent_c               BIT7
 
 /* The maximum number of antenna pairs used. */
 #define gCsMaxNumberOfAntennas_c             (4U)
