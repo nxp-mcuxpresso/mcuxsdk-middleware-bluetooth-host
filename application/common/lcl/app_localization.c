@@ -448,6 +448,11 @@ bleResult_t AppLocalization_HostInitHandler(void)
         status = CS_RegisterCmdStatusEventCallback(csEventCmdStatusCallback);
     }
 
+    /* Register application callbacks */
+    App_RegisterCsCallbacks(AppLocalization_CSCmdCompleteCallback,
+                            AppLocalization_CSCmdStatusCallback,
+                            AppLocalization_CSMetaEventCallback);
+
     /* Reset measurement data */
     for(uint8_t index = 0U; index < (uint8_t)gAppMaxConnections_c; index++)
     {
@@ -1348,6 +1353,8 @@ static bleResult_t csMetaEventCallback
 {
     bleResult_t result = gBleSuccess_c;
     csMetaEventData_t *pCsMetaEvent = MEM_BufferAlloc(sizeof(csMetaEventData_t));
+    appMsgFromHost_t *pMsgIn = NULL;
+    uint32_t msgLen = (uint32_t)&(pMsgIn->msgData) + sizeof(void*);
 
     if (pCsMetaEvent != NULL)
     {
@@ -1580,13 +1587,19 @@ static bleResult_t csMetaEventCallback
             break;
         }
 
-        /* Send event to application task for processing - application task is responsible to free the allocated memory */
-        if (result == gBleSuccess_c)
+        pMsgIn = MSG_Alloc(msgLen);
+        if (pMsgIn != NULL)
         {
-            result = App_PostCallbackMessage(AppLocalization_CSMetaEventCallback, pCsMetaEvent);
-        }
+            pMsgIn->msgType = gAppCsMetaEventMsg_c;
+            pMsgIn->msgData.pCsEventData = pCsMetaEvent;
 
-        if (gBleSuccess_c != result)
+            /* Put message in the Host Stack to App queue */
+            (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
+
+            /* Signal application */
+            (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+        }
+        else
         {
             if (pCsMetaEvent->pEventData != NULL)
             {
@@ -2297,13 +2310,27 @@ static bleResult_t csEventCmdCompleteCallback
 )
 {
     bleResult_t result = gBleSuccess_c;
+    appMsgFromHost_t *pMsgIn = NULL;
+    uint32_t msgLen = (uint32_t)&(pMsgIn->msgData) + sizeof(void*);
 
     csCommandCompleteEvent_t *pCsCmdCompleteEvent = MEM_BufferAlloc(sizeof(csCommandCompleteEvent_t));
     if (pCsCmdCompleteEvent != NULL)
     {
         FLib_MemCpy(pCsCmdCompleteEvent, pPacket, sizeof(csCommandCompleteEvent_t));
-        result = App_PostCallbackMessage(AppLocalization_CSCmdCompleteCallback, pCsCmdCompleteEvent);
-        if (result != gBleSuccess_c)
+
+        pMsgIn = MSG_Alloc(msgLen);
+        if (pMsgIn != NULL)
+        {
+            pMsgIn->msgType = gAppCsCmdCompleteEventMsg_c;
+            pMsgIn->msgData.pCsEventData = pCsCmdCompleteEvent;
+
+            /* Put message in the Host Stack to App queue */
+            (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
+
+            /* Signal application */
+            (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+        }
+        else
         {
             (void)MEM_BufferFree(pCsCmdCompleteEvent);
         }
@@ -2480,13 +2507,27 @@ static bleResult_t csEventCmdStatusCallback
 )
 {
     bleResult_t result = gBleSuccess_c;
+    appMsgFromHost_t *pMsgIn = NULL;
+    uint32_t msgLen = (uint32_t)&(pMsgIn->msgData) + sizeof(void*);
 
     csCommandStatusEvent_t *pCsCmdStatusEvent = MEM_BufferAlloc(sizeof(csCommandStatusEvent_t));
     if (pCsCmdStatusEvent != NULL)
     {
         FLib_MemCpy(pCsCmdStatusEvent, pPacket, sizeof(csCommandStatusEvent_t));
-        result = App_PostCallbackMessage(AppLocalization_CSCmdStatusCallback, pCsCmdStatusEvent);
-        if (result != gBleSuccess_c)
+
+        pMsgIn = MSG_Alloc(msgLen);
+        if (pMsgIn != NULL)
+        {
+            pMsgIn->msgType = gAppCsCmdStatusEventMsg_c;
+            pMsgIn->msgData.pCsEventData = pCsCmdStatusEvent;
+
+            /* Put message in the Host Stack to App queue */
+            (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
+
+            /* Signal application */
+            (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+        }
+        else
         {
             (void)MEM_BufferFree(pCsCmdStatusEvent);
         }

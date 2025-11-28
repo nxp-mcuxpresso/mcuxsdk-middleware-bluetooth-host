@@ -63,7 +63,10 @@ typedef enum {
     gAppL2caLeDataMsg_c,
     gAppL2caLeControlMsg_c,
     gAppSecLibMultiplyMsg_c,
-    gAppIdsEventMsg_c
+    gAppIdsEventMsg_c,
+    gAppCsCmdCompleteEventMsg_c,
+    gAppCsCmdStatusEventMsg_c,
+    gAppCsMetaEventMsg_c,
 } appHostMsgType_t;
 
 /* Host to Application GATT Server Message */
@@ -128,6 +131,7 @@ typedef struct appMsgFromHost_tag
         l2capControlMessage_t   l2caLeCbControlMsg;
         secLibMsgData_t         secLibMsgData;
         idsEventData_t          idsEventData;
+        void                    *pCsEventData;
     } msgData;
 } appMsgFromHost_t;
 
@@ -493,6 +497,33 @@ bleResult_t App_RegisterLeCbCallbacks
 (
     l2caLeCbDataCallback_t      pCallback,
     l2caLeCbControlCallback_t   pCtrlCallback
+);
+
+/*! *********************************************************************************
+*\fn           void App_RegisterCsCallbacks(
+*                            appCallbackHandler_t  csCmdCompleteCallback,
+*                            appCallbackHandler_t  csCmdStatusCallback,
+*                            appCallbackHandler_t  csMetaEventCallback
+*              )
+*\brief        Register callbacks for CS Command Complete, Command Status and Meta Events.
+*
+*\param  [in]  csCmdCompleteCallback   Application-defined callback to be triggered by this
+*                                      module.
+*\param  [in]  csCmdStatusCallback     Application-defined callback to be triggered by this
+*                                      module.
+*\param  [in]  csMetaEventCallback     Application-defined callback to be triggered by this
+*                                      module.
+*
+*\return       None
+*
+*\remarks      This function should be used by the application if the callback should
+*              be executed in the context of the Application Task.
+********************************************************************************** */
+void App_RegisterCsCallbacks
+(
+    appCallbackHandler_t  csCmdCompleteCallback,
+    appCallbackHandler_t  csCmdStatusCallback,
+    appCallbackHandler_t  csMetaEventCallback
 );
 
 /*! *********************************************************************************
