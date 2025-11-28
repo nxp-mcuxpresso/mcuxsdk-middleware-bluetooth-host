@@ -126,6 +126,10 @@ static bool_t App_HandleHostMessageInput_L2ca
 (
     appMsgFromHost_t* pMsg
 );
+static bool_t App_HandleHostMessageInput_Cs
+(
+    appMsgFromHost_t* pMsg
+);
 static void App_GenericHandler
 (
     gapGenericEvent_t *pGenericEvent
@@ -201,6 +205,10 @@ static l2caLeCbControlCallback_t            pfL2caLeCbControlCallback = NULL;
 static idsCallback_t                        mpfIdsHandler             = NULL;
 static idsCallback_t                        mpfAppIdsCallback         = NULL;
 #endif
+
+static appCallbackHandler_t pfCsCmdCompleteCallback                   = NULL;
+static appCallbackHandler_t pfCsCmdStatusCallback                     = NULL;
+static appCallbackHandler_t pfCsMetaEventCallback                     = NULL;
 
 /* Application input queues */
 static messaging_t mAppCbInputQueue;
@@ -571,6 +579,38 @@ bleResult_t App_RegisterLeCbCallbacks
 }
 
 /*! *********************************************************************************
+*\fn           void App_RegisterCsCallbacks(
+*                            appCallbackHandler_t  csCmdCompleteCallback,
+*                            appCallbackHandler_t  csCmdStatusCallback,
+*                            appCallbackHandler_t  csMetaEventCallback
+*              )
+*\brief        Register callbacks for CS Command Complete, Command Status and Meta Events.
+*
+*\param  [in]  csCmdCompleteCallback   Application-defined callback to be triggered by this
+*                                      module.
+*\param  [in]  csCmdStatusCallback     Application-defined callback to be triggered by this
+*                                      module.
+*\param  [in]  csMetaEventCallback     Application-defined callback to be triggered by this
+*                                      module.
+*
+*\return       None
+*
+*\remarks      This function should be used by the application if the callback should
+*              be executed in the context of the Application Task.
+********************************************************************************** */
+void App_RegisterCsCallbacks
+(
+    appCallbackHandler_t  csCmdCompleteCallback,
+    appCallbackHandler_t  csCmdStatusCallback,
+    appCallbackHandler_t  csMetaEventCallback
+)
+{
+    pfCsCmdCompleteCallback = csCmdCompleteCallback;
+    pfCsCmdStatusCallback = csCmdStatusCallback;
+    pfCsMetaEventCallback = csMetaEventCallback;
+}
+
+/*! *********************************************************************************
 \fn            bleResult_t App_PostCallbackMessage(
 *                  appCallbackHandler_t   handler,
 *                  appCallbackParam_t     param
@@ -713,6 +753,11 @@ static void App_HandleHostMessageInput
     if (!matchFound)
     {
         matchFound = App_HandleHostMessageInput_L2ca(pMsg);
+    }
+
+    if (!matchFound)
+    {
+        matchFound = App_HandleHostMessageInput_Cs(pMsg);
     }
 }
 
@@ -909,6 +954,58 @@ static bool_t App_HandleHostMessageInput_L2ca
     return matchFound;
 }
 
+/*! *********************************************************************************
+*\private
+*\fn           bool_t App_HandleHostMessageInput_Cs(appMsgFromHost_t* pMsg)
+*\brief        Handles all messages received from the host task if the message
+*              addresses CS functionality. Called by App_HandleHostMessageInput().
+*
+*\param  [in]  pMsg    Pointer to the mesage received from the host task.
+*
+*\retval       TRUE     If the message type matched and a handler function was called
+*\retval       FALSE    Message was not CS layer related
+********************************************************************************** */
+static bool_t App_HandleHostMessageInput_Cs
+(
+    appMsgFromHost_t* pMsg
+)
+{
+    bool_t matchFound = TRUE;
+
+    switch ( pMsg->msgType )
+    {
+        case (uint32_t)gAppCsCmdCompleteEventMsg_c:
+        {
+            if (pfCsCmdCompleteCallback != NULL)
+            {
+                pfCsCmdCompleteCallback(pMsg->msgData.pCsEventData);
+            }
+            break;
+        }
+        case (uint32_t)gAppCsCmdStatusEventMsg_c:
+        {
+            if (pfCsCmdStatusCallback != NULL)
+            {
+                pfCsCmdStatusCallback(pMsg->msgData.pCsEventData);
+            }
+            break;
+        }
+        case (uint32_t)gAppCsMetaEventMsg_c:
+        {
+            if (pfCsMetaEventCallback != NULL)
+            {
+                pfCsMetaEventCallback(pMsg->msgData.pCsEventData);
+            }
+            break;
+        }
+        default:
+        {
+            matchFound = FALSE;
+            break;
+        }
+    }
+    return matchFound;
+}
 /*! *********************************************************************************
 *\private
 *\fn           void App_GattServerCallback(deviceId_t          peerDeviceId,
