@@ -1321,9 +1321,9 @@ static void App_HandleConnectionCallback(appEventData_t *pEventData)
             }
 
             /* Save address used during discovery if controller privacy was used. */
-            if (pConnectedEventData->pConnectedEvent.localRpaUsed)
+            if (pConnectedEventData->eventData.pConnectedEvent.localRpaUsed)
             {
-                FLib_MemCpy(gaAppOwnDiscAddress, pConnectedEventData->pConnectedEvent.localRpa, gcBleDeviceAddressSize_c);
+                FLib_MemCpy(gaAppOwnDiscAddress, pConnectedEventData->eventData.pConnectedEvent.localRpa, gcBleDeviceAddressSize_c);
             }
 
             /* Update UI */
@@ -1354,7 +1354,7 @@ static void App_HandleConnectionCallback(appEventData_t *pEventData)
             procInterval +=  LOC_BOARD_PROC_REPEAT_DELAY;
 #endif
             /* Convert ms to connection intervals */
-            uint32_t connInterval = (uint32_t)(pConnectedEventData->pConnectedEvent.connParameters.connInterval);
+            uint32_t connInterval = (uint32_t)(pConnectedEventData->eventData.pConnectedEvent.connParameters.connInterval);
             if (connInterval >= gGapConnIntervalMin_d && connInterval <= gGapConnIntervalMax_d)
             {
                 procInterval = 1U + (procInterval * 1000U)/(connInterval * 1250U);
@@ -1363,6 +1363,7 @@ static void App_HandleConnectionCallback(appEventData_t *pEventData)
             }
 
             (void)AppLocalization_WriteConfig(pConnectedEventData->peerDeviceId, &locConfig);
+            AppLocalization_SetConnectionInterval(pConnectedEventData->peerDeviceId, pConnectedEventData->eventData.pConnectedEvent.connParameters.connInterval);
 
             /* Read the PHY on which the connection was establihed */
             (void)Gap_LeReadPhy(pConnectedEventData->peerDeviceId);
@@ -1436,6 +1437,14 @@ static void App_HandleConnectionCallback(appEventData_t *pEventData)
             BleApp_StateMachineHandler(pEventData->peerDeviceId, mAppEvt_AuthenticationRejected_c);
             break;
         }
+
+        case mAppEvt_ConnectionCallback_ConnEvtParameterUpdateComplete_c:
+        {
+            /* Update connection interval when a Parameter Update procedure completes */
+            appConnectionCallbackEventData_t *pConnParamUpdateCompleteEvent = (appConnectionCallbackEventData_t *)pEventData->eventData.pData;
+            AppLocalization_SetConnectionInterval(pConnParamUpdateCompleteEvent->peerDeviceId, pConnParamUpdateCompleteEvent->eventData.pConnParamUpdateCompleteEvent.connInterval); 
+        }
+        break;
 
         default:
         {
