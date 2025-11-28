@@ -61,8 +61,15 @@
 * Private macros
 *************************************************************************************
 ************************************************************************************/
+/* Time between temperature measurement trigger and reading the temperature value */
+#ifndef gRefreshTime_c
 #define gRefreshTime_c                (25U)     /* milliseconds */
+#endif
+
+/* Refresh the temperature value periodically */
+#ifndef gTemperaturePollingInterval_c
 #define gTemperaturePollingInterval_c (500U)    /* milliseconds */
+#endif
 
 #define CS_ANT_BOARD_EVK                   0U   /*!< EVK board, no diversity */
 #define CS_ANT_BOARD_ANTDIV_SMA            1U   /*!< X-FR ANTDIV board, EXT antennas (SMA) */
@@ -511,7 +518,7 @@ bleResult_t AppLocalization_HostInitHandler(void)
     /* Start interval timer for temperature updates */
     (void)TM_Open((timer_handle_t)mTemperatureTimerId);
     (void)TM_InstallCallback((timer_handle_t)mTemperatureTimerId, TemperatureTimerCallback, NULL);
-    (void)TM_Start((timer_handle_t)mTemperatureTimerId, kTimerModeIntervalTimer | kTimerModeLowPowerTimer, gRefreshTime_c);
+    (void)TM_Start((timer_handle_t)mTemperatureTimerId, kTimerModeSingleShot | kTimerModeLowPowerTimer, gTemperaturePollingInterval_c);
 
     return status;
 }
@@ -3016,23 +3023,28 @@ static void TemperatureTimerCallback
 {
     (void)pParam;
 
-    static uint32_t tickCounter = 0U;
-    const uint32_t tickInterval = gTemperaturePollingInterval_c / gRefreshTime_c;
+    static bool_t bWaitingForRefresh = FALSE;
 
-    if ((tickCounter % tickInterval) == 0U)
+    if (!bWaitingForRefresh)
     {
+        /* Trigger measurement */
         SENSORS_TriggerTemperatureMeasurement();
-    }
-    else if ((tickCounter % tickInterval) == 1U)
-    {
-        (void)SENSORS_RefreshTemperatureValue();
+        bWaitingForRefresh = TRUE;
+
+        /* Reschedule for gRefreshTime_c to read the result */
+        (void)TM_Start((timer_handle_t)mTemperatureTimerId,
+                       kTimerModeSingleShot | kTimerModeLowPowerTimer, gRefreshTime_c);
     }
     else
     {
-        /* MISRA */
-    }
+        /* Read measurement result */
+        (void)SENSORS_RefreshTemperatureValue();
+        bWaitingForRefresh = FALSE;
 
-    tickCounter++;
+        /* Reschedule for next measurement cycle */
+        (void)TM_Start((timer_handle_t)mTemperatureTimerId,
+                       kTimerModeSingleShot | kTimerModeLowPowerTimer, gTemperaturePollingInterval_c);
+    }
 }
 
 #if defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
