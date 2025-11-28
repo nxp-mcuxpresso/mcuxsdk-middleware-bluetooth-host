@@ -104,9 +104,6 @@ typedef struct advState_tag{
 static uint8_t gaAppOwnDiscAddress[gcBleDeviceAddressSize_c];
 
 /* Application timer*/
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-static TIMER_MANAGER_HANDLE_DEFINE(mAppTimerId);
-#endif
 static TIMER_MANAGER_HANDLE_DEFINE(mL2caTimerId);
 static bool_t mL2caTimerValid = FALSE;
 #if defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1)
@@ -151,17 +148,8 @@ static void L2caTimerCallback(void *param);
 static void BleApp_L2capPsmDataCallback (deviceId_t deviceId, uint16_t lePsm, uint8_t* pPacket, uint16_t packetLength);
 static void BleApp_L2capPsmControlCallback (l2capControlMessage_t* pMessage);
 
-/* Timer Callbacks */
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-static void AdvertisingTimerCallback(void *pParam);
-#endif
-
 static void BleApp_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent);
 static void BleApp_Advertise(void);
-
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-static void SleepTimeoutSequence(void);
-#endif
 
 static uint8_t BleApp_GetNoOfActiveConnections(void);
 
@@ -536,9 +524,6 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
             gCurrentAdvHandle = gNoAdvSetHandle_c;
 
 #endif /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-            (void)TM_Stop((timer_handle_t)mAppTimerId);
-#endif
 
             maPeerInformation[peerDeviceId].deviceId = peerDeviceId;
 #if defined(gHandoverIncluded_d) && (gHandoverIncluded_d == 1)
@@ -547,11 +532,8 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
 
             BleApp_StateMachineHandler(maPeerInformation[peerDeviceId].deviceId, mAppEvt_PeerConnected_c);
             /* UI */
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-            PWR_AllowDeviceToSleep();
-#else
+
             LedStopFlashingAllLeds();
-#endif
 
             /* UI */
             Led1On();
@@ -605,12 +587,8 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
             }
 #endif
 
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-            /* UI */
-            Led1Off();
-#else
             LedStartFlashingAllLeds();
-#endif
+
         }
         break;
 
@@ -731,9 +709,6 @@ void BleApp_StopDiscovery(void)
 {
     gCurrentAdvHandle = gNoAdvSetHandle_c;
     (void)Gap_StopExtAdvertising(0xFF);
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-    (void)TM_Stop((timer_handle_t)mAppTimerId);
-#endif
 }
 
 /*! *********************************************************************************
@@ -1073,10 +1048,6 @@ void BluetoothLEHost_Initialized(void)
     /* Register stack callbacks */
     (void)App_RegisterLeCbCallbacks(BleApp_L2capPsmDataCallback, BleApp_L2capPsmControlCallback);
 
-    /* Allocate application timers */
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-    (void)TM_Open(mAppTimerId);
-#endif
     if (TM_Open(mL2caTimerId) == kStatus_TimerSuccess)
     {
         mL2caTimerValid = TRUE;
@@ -1393,16 +1364,9 @@ static void BleApp_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent
                 }
 #endif /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
 
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                /* Start advertising timer */
-                (void)TM_InstallCallback((timer_handle_t)mAppTimerId, AdvertisingTimerCallback, NULL);
-                (void)TM_Start((timer_handle_t)mAppTimerId, (uint8_t)kTimerModeSetSecondTimer | (uint8_t)kTimerModeLowPowerTimer, TmSecondsToMilliseconds(gAdvTime_c));
-                Led1On();
-#else
                 /* UI */
                 LedStopFlashingAllLeds();
                 Led1Flashing();
-#endif /* #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode) */
             }
 #if defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1)
             else if (gCurrentAdvHandle == gExtendedAdvSetHandle_c)
@@ -1425,14 +1389,6 @@ static void BleApp_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent
                     /* Inform the user interface handler that advertising has stopped */
                     appEvent = mAppEvt_AdvertisingStopped_c;
 
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                    timer_status_t status = TM_Stop((timer_handle_t)mAppTimerId);
-                    if (status != kStatus_TimerSuccess)
-                    {
-                        panic(0, (uint32_t)BleApp_AdvertisingCallback, 0, 0);
-                    }
-                    Led1Off();
-#else
                     if (0U == BleApp_GetNoOfActiveConnections())
                     {
                         /* UI */
@@ -1442,7 +1398,6 @@ static void BleApp_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent
                         Led2Flashing();
 #endif
                     }
-#endif /* #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode) */
                 }
             }
 #else /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
@@ -1450,15 +1405,7 @@ static void BleApp_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent
             {
                 /* Inform the user interface handler that advertising has stopped */
                 appEvent = mAppEvt_AdvertisingStopped_c;
-                
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                timer_status_t status = TM_Stop((timer_handle_t)mAppTimerId);
-                if (status != kStatus_TimerSuccess)
-                {
-                    panic(0, (uint32_t)BleApp_AdvertisingCallback, 0, 0);
-                }
-                Led1Off();
-#else
+
                 if (0U == BleApp_GetNoOfActiveConnections())
                 {
                     /* UI */
@@ -1468,7 +1415,6 @@ static void BleApp_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent
                     Led2Flashing();
 #endif
                 }
-#endif /* #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode) */
             }
 #endif /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
 
@@ -1573,25 +1519,6 @@ static void BleApp_GattServerCallback (deviceId_t deviceId, gattServerEvent_t* p
     }
 }
 
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-/*! *********************************************************************************
-* \brief        Stops advertising when the application timeout has expired.
-*
-* \param[in]    pParam        Callback parameters.
-********************************************************************************** */
-static void AdvertisingTimerCallback(void* pParam)
-{
-    (void)Gap_StopAdvertising();
-}
-#endif
-
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-static void SleepTimeoutSequence(void)
-{
-    (void)PWR_ChangeDeepSleepMode(cPWR_DeepSleepMode);
-}
-#endif
-
 /*! *********************************************************************************
 * \brief        Callback for incoming PSM data.
 *
@@ -1655,7 +1582,6 @@ static void BleApp_L2capPsmDataCallback (deviceId_t     deviceId,
             }
         }
     }
-
 
     /* Inform the application events handler that L2capPsmData package received */
     if(mpfBleEventHandler != NULL)

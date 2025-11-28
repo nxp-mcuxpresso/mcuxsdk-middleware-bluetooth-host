@@ -113,10 +113,6 @@ typedef struct appPeerInfo_tag
 *************************************************************************************
 ************************************************************************************/
 static appPeerInfo_t maPeerInformation[gAppMaxConnections_c];
-/* Application timer*/
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-static TIMER_MANAGER_HANDLE_DEFINE(mAppTimerId);
-#endif
 
 #if defined(gAppIsPeripheral_d) && (gAppIsPeripheral_d == 1U)
 static bool_t mAdvOn = FALSE;
@@ -867,10 +863,6 @@ static void BluetoothLEHost_Initialized(void)
     {
         BleServDisc_RegisterCallback(BleApp_ServiceDiscoveryCallback);
 
-        /* Allocate application timers */
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-        (void)TM_Open(mAppTimerId);
-#endif
         status = AppLocalization_HostInitHandler();
     }
 
@@ -902,34 +894,19 @@ static void BleApp_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent
             if (mAdvOn == TRUE)
             {
                 shell_write("Advertising started\r\n");
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                /* Start advertising timer */
-                (void)TM_InstallCallback((timer_handle_t)mAppTimerId, AdvertisingTimerCallback, NULL);
-                (void)TM_Start((timer_handle_t)mAppTimerId, (uint8_t)kTimerModeLowPowerTimer | (uint8_t)kTimerModeSetSecondTimer, TmSecondsToMilliseconds(gAdvTime_c));
-                 Led1On();
-#else
+
                  /* UI */
                  LedStopFlashingAllLeds();
                  Led1Flashing();
-#endif /* #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode) */
             }
             else
             {
                 shell_write("Advertising stopped\r\n");
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                timer_status_t status = TM_Stop((timer_handle_t)mAppTimerId);
-                if(status != kStatus_TimerSuccess)
-                {
-                    panic(0, (uint32_t)BleApp_AdvertisingCallback, 0, 0);
-                }
-                Led1Off();
-#else
+
                 /* UI */
                 LedStopFlashingAllLeds();
                 Led1Flashing();
                 Led2Flashing();
-
-#endif /* #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode) */
             }
         }
         break;
@@ -983,21 +960,15 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
             mAdvOn = FALSE;
 #endif
 
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-            (void)TM_Stop((timer_handle_t)mAppTimerId);
-#endif
             maPeerInformation[peerDeviceId].deviceId = peerDeviceId;
             maPeerInformation[peerDeviceId].isBonded = FALSE;
             maPeerInformation[peerDeviceId].nvmIndex = gInvalidNvmIndex_c;
 
             (void)Gap_CheckIfBonded(peerDeviceId, &maPeerInformation[peerDeviceId].isBonded, &maPeerInformation[peerDeviceId].nvmIndex);
             BleApp_StateMachineHandler(peerDeviceId, mAppEvt_PeerConnected_c);
+
             /* UI */
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-            PWR_AllowDeviceToSleep();
-#else
             LedStopFlashingAllLeds();
-#endif
 
             /* UI */
             Led1On();
@@ -1038,12 +1009,7 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
 
             BleApp_StateMachineHandler(peerDeviceId, mAppEvt_PeerDisconnected_c);
 
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-            /* UI */
-            Led1Off();
-#else
             LedStartFlashingAllLeds();
-#endif
         }
         break;
 
@@ -2033,27 +1999,12 @@ static void BleApp_ScanningCallback (gapScanningEvent_t* pScanningEvent)
 
                 shell_write("Scanning\r\n");
 
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                /* Start scanning timer */
-                (void)TM_InstallCallback((timer_handle_t)mAppTimerId, ScanningTimeoutTimerCallback, NULL);
-                (void)TM_Start((timer_handle_t)mAppTimerId, (uint8_t)kTimerModeLowPowerTimer | (uint8_t)kTimerModeSetSecondTimer, gScanningTime_c);
-                Led1On();
-#else
                 LedStopFlashingAllLeds();
                 Led1Flashing();
-#endif /* #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode) */
             }
             /* Node is not scanning */
             else
             {
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                timer_status_t status = TM_Stop((timer_handle_t)mAppTimerId);
-                if(status != kStatus_TimerSuccess)
-                {
-                    panic(0, (uint32_t)BleApp_ScanningCallback, 0, 0);
-                }
-#endif
-
                 shell_write("Scan stopped\r\n");
 
                 /* Connect with the previously scanned peer device */
@@ -2067,13 +2018,9 @@ static void BleApp_ScanningCallback (gapScanningEvent_t* pScanningEvent)
                 }
                 else
                 {
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                    Led1Off();
-#else
                     LedStopFlashingAllLeds();
                     Led1Flashing();
                     Led2Flashing();
-#endif
                     shell_cmd_finished();
                 }
             }

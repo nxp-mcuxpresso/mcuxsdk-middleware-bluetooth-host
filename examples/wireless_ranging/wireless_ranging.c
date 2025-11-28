@@ -66,10 +66,6 @@
 #include "isp_ranging_engine.h"
 #include "hci_transport.h"
 
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-#include "PWR_Interface.h"
-#endif
-
 #ifdef LCE_KW47_MCXW72
 #include "app_lce_init.h"
 #endif /* LCE_KW47_MCXW72 */
@@ -526,11 +522,6 @@ static void BluetoothLEHost_Initialized(void)
     /* Start bleInfo timer */
     (void)TM_InstallCallback((timer_handle_t)mBleInfoTimerId, BleInfo_TimerCallback, NULL);
     (void)TM_Start((timer_handle_t)mBleInfoTimerId, kTimerModeIntervalTimer | kTimerModeLowPowerTimer, gBleInfoRefreshTime_c /*Pworkaround TMR issue*/);
-
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-    PWR_SetNewAppState(PWR_APP_STATE_NO_ACTIVITY_RAM_RET);
-    PWR_AllowDeviceToSleep(); /* Enable lower power */
-#endif
 }
 
 /*! *********************************************************************************
@@ -1430,9 +1421,7 @@ static void BleInfo_TimerCallback(void * pParam)
         if (gConnReqParams.supervisionTimeout > gcConnectionSupervisionTimeoutMax_c) {
             gConnReqParams.supervisionTimeout = gcConnectionSupervisionTimeoutMax_c;
         }
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-        PWR_SetNewAppState(PWR_APP_STATE_NO_ACTIVITY_RAM_RET);
-#endif
+
         /*
          * Scanning/Advertising must be enabled within 500ms after it was requested (depending on intervals?)
          * Connection must be active within 500ms after connection was setup (depending on intervals?)
@@ -1444,17 +1433,11 @@ static void BleInfo_TimerCallback(void * pParam)
             bleInfo.state = mConnRequest;
             if(!bleInfo.scnOn && bleInfo.role == gGapCentral_c)
             {
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                PWR_SetNewAppState(PWR_APP_STATE_SCAN);
-#endif
                 gPairingParameters.localIoCapabilities = gIoKeyboardDisplay_c;
                 (void)BluetoothLEHost_StartScanning(&mAppScanParams, BleApp_ScanningCallback);
             }
             else if(!bleInfo.advOn && bleInfo.role == gGapPeripheral_c)
             {
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                PWR_SetNewAppState(PWR_APP_STATE_ADV);
-#endif
                 gPairingParameters.localIoCapabilities = gIoDisplayOnly_c;
                 (void)BluetoothLEHost_StartAdvertising(&mAppAdvParams, BleApp_AdvertisingCallback, BleApp_ConnectionCallback);
             }
@@ -1591,10 +1574,6 @@ static void BleInfo_TimerCallback(void * pParam)
                 {
                     (void)Gap_StopScanning();
                 }
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                /* Signal low power module that we are in BLE connected state */
-                PWR_SetNewAppState(PWR_APP_STATE_CONN);
-#endif
                 break;
 
             default:

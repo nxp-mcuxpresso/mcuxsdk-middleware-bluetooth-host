@@ -29,11 +29,6 @@
 #endif
 #include "app.h"
 
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-#include "PWR_Interface.h"
-#include "PWR_Configuration.h"
-#endif
-
 /* BLE Host Stack */
 #include "gatt_server_interface.h"
 #include "gatt_client_interface.h"
@@ -1003,12 +998,6 @@ static void App_HandleConnectionCallback(appEventData_t *pEventData)
             maPeerInformation[pConnectedEventData->peerDeviceId].deviceId = pConnectedEventData->peerDeviceId;
             maPeerInformation[pConnectedEventData->peerDeviceId].isBonded = FALSE;
 
-            /* Set low power mode */
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-            (void)PWR_ChangeDeepSleepMode(gAppDeepSleepMode_c);
-            PWR_AllowDeviceToSleep();
-#endif
-
 #if defined(gAppUseBonding_d) && (gAppUseBonding_d)
             (void)Gap_CheckIfBonded(pConnectedEventData->peerDeviceId, &maPeerInformation[pConnectedEventData->peerDeviceId].isBonded, NULL);
 
@@ -1032,13 +1021,9 @@ static void App_HandleConnectionCallback(appEventData_t *pEventData)
             shell_writeDec((uint32_t)maPeerInformation[pEventData->eventData.peerDeviceId].disconReason);
             shell_write("!\r\n");
 
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-            /* Go to sleep */
-            Led1Off();
-#else
             LedStopFlashingAllLeds();
             LedStartFlashingAllLeds();
-#endif
+
             BleApp_StateMachineHandler(pEventData->eventData.peerDeviceId, mAppEvt_PeerDisconnected_c);
             break;
         }

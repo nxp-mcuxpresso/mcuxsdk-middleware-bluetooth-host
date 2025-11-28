@@ -114,9 +114,6 @@ static bool_t   mScanningOn = FALSE;
 static bool_t   mFoundDeviceToConnect = FALSE;
 #endif /* gAppIsPeripheral_d */
 
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-static TIMER_MANAGER_HANDLE_DEFINE(mAppTimerId);
-#endif
 static uint16_t mCharMonitoredHandles[4] = { (uint16_t)value_ras_ctrl_point, (uint16_t)cccd_ras_stored_data,
                                              (uint16_t)cccd_ras_real_time_data, (uint16_t)cccd_ras_ctrl_point };
 /* Number of the current procedure */
@@ -196,9 +193,6 @@ static bool_t CheckScanEventExtended(gapExtScannedDevice_t* pData);
 static bool_t CheckScanEventLegacy(gapScannedDevice_t* pData);
 #endif /* gAppIsPeripheral_d */
 
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-static void ScanningTimeoutTimerCallback(void* pParam);
-#endif
 static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventType_t eventType);
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
 static void BleApp_PrintMeasurementResults(deviceId_t deviceId, localizationAlgoResult_t *pResult);
@@ -851,11 +845,6 @@ static void BluetoothLEHost_Initialized(void)
         mFoundDeviceToConnect = FALSE;
 #endif
 
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-        /* Allocate scan timeout timer */
-        TM_Open((timer_handle_t)mAppTimerId);
-#endif
-
         /* Initialize RAS */
         mRasServiceConfig.serviceHandle = (uint16_t)service_ranging;
         mRasServiceConfig.controlPointHandle = (uint16_t)value_ras_ctrl_point;
@@ -1050,27 +1039,12 @@ static void BleApp_ScanningCallback (gapScanningEvent_t* pScanningEvent)
 
                 shell_write("Scanning\r\n");
 
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                /* Start scanning timer */
-                (void)TM_InstallCallback((timer_handle_t)mAppTimerId, ScanningTimeoutTimerCallback, NULL);
-                (void)TM_Start((timer_handle_t)mAppTimerId, (uint8_t)kTimerModeLowPowerTimer | (uint8_t)kTimerModeSetSecondTimer, gScanningTime_c);
-                Led1On();
-#else
                 LedStopFlashingAllLeds();
                 Led1Flashing();
-#endif /* #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode) */
             }
             /* Node is not scanning */
             else
             {
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                timer_status_t status = TM_Stop((timer_handle_t)mAppTimerId);
-                if(status != kStatus_TimerSuccess)
-                {
-                    panic(0, (uint32_t)BleApp_ScanningCallback, 0, 0);
-                }
-#endif
-
                 shell_write("Scan stopped\r\n");
 
                 /* Connect with the previously scanned peer device */
@@ -1084,13 +1058,9 @@ static void BleApp_ScanningCallback (gapScanningEvent_t* pScanningEvent)
                 }
                 else
                 {
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                    Led1Off();
-#else
                     LedStopFlashingAllLeds();
                     Led1Flashing();
                     Led2Flashing();
-#endif
                     shell_cmd_finished();
                 }
             }
@@ -1110,23 +1080,6 @@ static void BleApp_ScanningCallback (gapScanningEvent_t* pScanningEvent)
         break;
     }
 }
-
-/*! *********************************************************************************
-* \brief        Stop scanning after a given time (gScanningTime_c).
-                Called on timer task.
-*
-* \param[in]    pParam              not used
-********************************************************************************** */
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-static void ScanningTimeoutTimerCallback(void* pParam)
-{
-    /* Stop scanning */
-    if (mScanningOn)
-    {
-        (void)Gap_StopScanning();
-    }
-}
-#endif
 #endif /* gAppIsPeripheral_d */
 
 /*! *********************************************************************************
@@ -1180,11 +1133,7 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
             locConfig.maxPeriodBetweenProcedures = (uint16_t)procInterval;
 
             (void)AppLocalization_WriteConfig(peerDeviceId, &locConfig);
-            /* Set low power mode */
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-            (void)PWR_ChangeDeepSleepMode(gAppDeepSleepMode_c);
-            PWR_AllowDeviceToSleep();
-#endif
+
             (void)Gap_CheckIfBonded(peerDeviceId, &maPeerInformation[peerDeviceId].isBonded, &maPeerInformation[peerDeviceId].nvmIndex);
 
             BleApp_StateMachineHandler(peerDeviceId, mAppEvt_PeerConnected_c);
@@ -2036,35 +1985,20 @@ static void BleApp_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent
             {
                 mAdvOn = !mAdvOn;
                 shell_write("Advertising started\r\n");
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                /* Start advertising timer */
-                (void)TM_InstallCallback((timer_handle_t)mAppTimerId, AdvertisingTimerCallback, NULL);
-                (void)TM_Start((timer_handle_t)mAppTimerId, (uint8_t)kTimerModeLowPowerTimer | (uint8_t)kTimerModeSetSecondTimer, TmSecondsToMilliseconds(gAdvTime_c));
-                 Led1On();
-#else
+
                  /* UI */
                  LedStopFlashingAllLeds();
                  Led1Flashing();
-#endif /* #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode) */
             }
             else
             {
                 mAdvOn = !mAdvOn;
                 shell_write("Advertising stopped\r\n");
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                timer_status_t status = TM_Stop((timer_handle_t)mAppTimerId);
-                if(status != kStatus_TimerSuccess)
-                {
-                    panic(0, (uint32_t)BleApp_AdvertisingCallback, 0, 0);
-                }
-                Led1Off();
-#else
+
                 /* UI */
                 LedStopFlashingAllLeds();
                 Led1Flashing();
                 Led2Flashing();
-
-#endif /* #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode) */
             }
         }
         break;
