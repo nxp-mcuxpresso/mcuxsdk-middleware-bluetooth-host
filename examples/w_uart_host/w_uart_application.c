@@ -1543,9 +1543,8 @@ static void BleApp_GenericEvtInitCompleteHandler
     (void)TM_Open(mSwitchPressTimerId);
 #endif
 
-#if !(defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode))
     LedStartFlashingAllLeds();
-#endif
+
 #if (gWuart_AutoStart_c == 1)
     BleApp_Start(mGapRole);
 #endif

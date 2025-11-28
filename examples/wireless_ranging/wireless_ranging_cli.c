@@ -37,9 +37,6 @@
 
 #include "board.h"
 #include "nxp2p4_xcvr.h"
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-#include "PWR_Interface.h"
-#endif
 #include "fwk_platform.h"
 #include "fwk_platform_ics.h"
 #include "fwk_platform_lcl.h"
@@ -68,10 +65,6 @@
  *  Macros
  *************************************************************************************
  ************************************************************************************/
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-/* Active time after wake up on UART (Central device) */
-#define gAppSerialManagerKeepActiveMs_c 2000
-#endif
 
 #define IQ_SIZE_MEM (4U) /* Size in bytes for an IQ record as produced by XCVR */
 
@@ -177,10 +170,6 @@ static void cli_tof_measurement_print
  *  Public memory declarations
  *************************************************************************************
  ************************************************************************************/
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-/* This timer will be used to keep the device awake to receive additional bytes on UART */
-static TIMER_MANAGER_HANDLE_DEFINE(appSerialTimerId);
-#endif
 
 /* Used by char conversion routines */
 const char hexchar[] = "0123456789ABCDEF";
@@ -646,15 +635,6 @@ void isp_cli_powerup(void)
     assert(kStatus_SerialManager_Success == ret);
     /* remove warning in release build */
     (void)ret;
-
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-    /* Configure the serial wakeup pins. It shall be done before PWRLib_init call */
-    PWR_SetWakeupPinsSerial(BOARD_WAKEUP_PIN_SERIAL_BITMAP, gAppSerMgrIf);
-
-    PWR_Init();
-
-    (void)TM_Open(appSerialTimerId);
-#endif
 
     /* Check if parameter seem valid -> load defaults if not */
     if (gRangeSettings->ch_nb == 0xFFU)
@@ -2257,13 +2237,6 @@ void cli_uart_rx_cb
             }
         }
     }  while(byteCount != 0U);
-
-    /* Prevents the device from going to lowpower immediatly so more bytes can be received on UART */
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-    /* Restart Serial Timer every time data is received */
-    (void)TM_InstallCallback((timer_handle_t)appSerialTimerId, NULL, NULL);
-    (void)TM_Start((timer_handle_t)appSerialTimerId, (uint8_t)kTimerModeSingleShot, TmSecondsToMilliseconds(gAppSerialManagerKeepActiveMs_c));
-#endif
 }
 #undef CTL_BACKSPACE
 

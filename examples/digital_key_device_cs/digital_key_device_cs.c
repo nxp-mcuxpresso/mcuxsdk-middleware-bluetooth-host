@@ -88,11 +88,6 @@ static appScanningParams_t appScanParams = {
 static bool_t   mScanningOn = FALSE;
 static bool_t   mFoundDeviceToConnect = FALSE;
 
-/* Timers */
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-static TIMER_MANAGER_HANDLE_DEFINE(mAppTimerId);
-#endif
-
 /* Application callback */
 pfBleCallback_t mpfBleEventHandler = NULL;
 
@@ -155,9 +150,6 @@ static void BleApp_StoreServiceHandles
 );
 
 static void BleApp_GenericCallback_HandlePrivacyEvents(gapGenericEvent_t* pGenericEvent);
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-static void ScanningTimeoutTimerCallback(void* pParam);
-#endif
 static void BluetoothLEHost_Initialized(void);
 
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
@@ -624,27 +616,12 @@ static void BleApp_ScanningCallback (gapScanningEvent_t* pScanningEvent)
 
                 shell_write("Scanning...\r\n");
 
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                /* Start scanning timer */
-                (void)TM_InstallCallback((timer_handle_t)mAppTimerId, ScanningTimeoutTimerCallback, NULL);
-                (void)TM_Start((timer_handle_t)mAppTimerId, (uint8_t)kTimerModeSetSecondTimer | (uint8_t)kTimerModeLowPowerTimer, gScanningTime_c);
-                Led1On();
-#else
                 LedStopFlashingAllLeds();
                 Led1Flashing();
-#endif /* #if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode) */
             }
             /* Node is not scanning */
             else
             {
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                timer_status_t status = TM_Stop((timer_handle_t)mAppTimerId);
-                if (status != kStatus_TimerSuccess)
-                {
-                    panic(0, (uint32_t)BleApp_ScanningCallback, 0, 0);
-                }
-#endif
-
                 shell_write("Scan stopped.\r\n");
 
                 /* Connect with the previously scanned peer device */
@@ -655,14 +632,10 @@ static void BleApp_ScanningCallback (gapScanningEvent_t* pScanningEvent)
                 }
                 else
                 {
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-                    Led1Off();
-#else
                     LedStopFlashingAllLeds();
                     Led1Flashing();
 #if (defined(gAppLedCnt_c) && (gAppLedCnt_c > 1U))
                     Led2Flashing();
-#endif
 #endif
                     shell_cmd_finished();
                 }
@@ -1151,22 +1124,6 @@ static bool_t CheckScanEventExtended(gapExtScannedDevice_t* pData)
 }
 
 /*! *********************************************************************************
-* \brief        Stop scanning after a given time (gScanningTime_c).
-                Called on timer task.
-*
-* \param[in]    pParam              not used
-********************************************************************************** */
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-static void ScanningTimeoutTimerCallback(void* pParam)
-{
-    /* Stop scanning */
-    if (mScanningOn)
-    {
-        (void)Gap_StopScanning();
-    }
-}
-#endif
-/*! *********************************************************************************
 * \brief        Callback for incoming PSM data.
 *
 * \param[in]    deviceId        The device ID of the connected peer that sent the data
@@ -1330,11 +1287,6 @@ static void BluetoothLEHost_Initialized(void)
     }
     mScanningOn = FALSE;
     mFoundDeviceToConnect = FALSE;
-
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-    /* Allocate scan timeout timer */
-    (void)TM_Open(mAppTimerId);
-#endif
 
     /* Register stack callbacks */
     (void)App_RegisterLeCbCallbacks(BleApp_L2capPsmDataCallback, BleApp_L2capPsmControlCallback);

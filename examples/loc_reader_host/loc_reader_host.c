@@ -106,10 +106,6 @@ extern SHELL_HANDLE_DEFINE(g_shellHandle);
 * Private memory declarations
 *************************************************************************************
 ************************************************************************************/
-/* Application timer*/
-#if defined(cPWR_UsePowerDownMode) && (cPWR_UsePowerDownMode)
-static TIMER_MANAGER_HANDLE_DEFINE(mAppTimerId);
-#endif
 
 #if (defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)) || \
     (defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1))
