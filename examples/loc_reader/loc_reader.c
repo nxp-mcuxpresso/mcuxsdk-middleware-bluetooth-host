@@ -1465,6 +1465,13 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
         }
         break;
 
+        case gConnEvtParameterUpdateComplete_c:
+        {
+            /* Update connection interval when a Parameter Update procedure completes */
+            AppLocalization_SetConnectionInterval(peerDeviceId, pConnectionEvent->eventData.connectionUpdateComplete.connInterval);
+        }
+        break;
+
         default:
         {
             ; /* No action required */

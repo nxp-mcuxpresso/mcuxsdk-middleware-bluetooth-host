@@ -78,6 +78,7 @@ typedef enum appEvent_tag{
     mAppEvt_ConnectionCallback_ConnEvtPairingComplete_c,
     mAppEvt_ConnectionCallback_ConnEvtEncryptionChanged_c,
     mAppEvt_ConnectionCallback_ConnEvtAuthenticationRejected_c,
+    mAppEvt_ConnectionCallback_ConnEvtParameterUpdateComplete_c,
     mAppEvt_ServiceDiscoveryCallback_DiscoveryFinishedWithSuccess_c,
     mAppEvt_ServiceDiscoveryCallback_DiscoveryFinishedFailed_c,
     mAppEvt_GattClientCallback_GattProcError_c,
@@ -139,7 +140,10 @@ typedef struct appEventL2capPsmData_tag
 typedef struct appConnectionCallbackEventData_tag
 {
     deviceId_t peerDeviceId;
-    gapConnectedEvent_t pConnectedEvent;
+    union {
+        gapConnectedEvent_t           pConnectedEvent;
+        gapConnParamsUpdateComplete_t pConnParamUpdateCompleteEvent;
+    } eventData;
 } appConnectionCallbackEventData_t;
 
 typedef struct appEventData_tag

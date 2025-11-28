@@ -681,7 +681,7 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
                     pEventData->eventData.pData = pEventData + 1;
                     appConnectionCallbackEventData_t *pConnectionCallbackEventData = pEventData->eventData.pData;
                     pConnectionCallbackEventData->peerDeviceId = peerDeviceId;
-                    FLib_MemCpy(&pConnectionCallbackEventData->pConnectedEvent, &pConnectionEvent->eventData.connectedEvent, sizeof(gapConnectedEvent_t));
+                    FLib_MemCpy(&pConnectionCallbackEventData->eventData.pConnectedEvent, &pConnectionEvent->eventData.connectedEvent, sizeof(gapConnectedEvent_t));
                     pConnectionCallbackEventData = NULL;
                     if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
                     {
@@ -737,6 +737,28 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
         break;
 #endif /* gAppUseBonding_d */
 #endif /* gAppUsePairing_d */
+
+        case gConnEvtParameterUpdateComplete_c:
+        {
+            if(mpfBleEventHandler != NULL)
+            {
+                appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(appConnectionCallbackEventData_t));
+                if(pEventData != NULL)
+                {
+                    pEventData->appEvent = mAppEvt_ConnectionCallback_ConnEvtParameterUpdateComplete_c;
+                    pEventData->eventData.pData = pEventData + 1;
+                    appConnectionCallbackEventData_t *pConnectionCallbackEventData = pEventData->eventData.pData;
+                    pConnectionCallbackEventData->peerDeviceId = peerDeviceId;
+                    FLib_MemCpy(&pConnectionCallbackEventData->eventData.pConnParamUpdateCompleteEvent, &pConnectionEvent->eventData.connectionUpdateComplete, sizeof(gapConnParamsUpdateComplete_t));
+                    pConnectionCallbackEventData = NULL;
+                    if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
+                    {
+                        (void)MEM_BufferFree(pEventData);
+                    }
+                }
+            }
+        }
+        break;
 
         default:
             ; /* No action required */
