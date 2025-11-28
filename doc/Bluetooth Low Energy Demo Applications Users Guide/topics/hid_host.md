@@ -14,6 +14,7 @@ This section presents the implemented profiles and services, user interactions, 
 ```{include} ../topics/user_interface_018.md
 :heading-offset: 2
 ```
+[Switches and pins](../topics/switches_and_pins.md#hid-host)
 
 ```{include} ../topics/usage_015.md
 :heading-offset: 2

@@ -19,6 +19,8 @@ The Wireless UART Host application must be flashed together with the NCP FSCI Bl
 :heading-offset: 2
 ```
 
+[Switches and pins](../topics/switches_and_pins.md#wireless-uart-host)
+
 ```{include} ../topics/usage_w_uart_host.md
 :heading-offset: 2
 ```

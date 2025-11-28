@@ -15,6 +15,8 @@ This section describes implemented profiles and services, user interactions, and
 :heading-offset: 2
 ```
 
+[Switches and pins](../topics/switches_and_pins.md#hid-device)
+
 ```{include} ../topics/usage_014.md
 :heading-offset: 2
 ```

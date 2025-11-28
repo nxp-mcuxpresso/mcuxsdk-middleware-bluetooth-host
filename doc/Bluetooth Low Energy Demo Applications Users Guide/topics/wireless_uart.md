@@ -15,6 +15,8 @@ This section describes the implemented profiles and services, user interactions,
 :heading-offset: 2
 ```
 
+[Switches and pins](../topics/switches_and_pins.md#wireless-uart)
+
 ```{include} ../topics/usage_024.md
 :heading-offset: 2
 ```

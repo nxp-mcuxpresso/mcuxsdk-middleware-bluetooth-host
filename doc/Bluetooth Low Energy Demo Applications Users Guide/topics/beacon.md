@@ -15,6 +15,8 @@ This section presents the user interactions and testing methods for the Beacon a
 :heading-offset: 2
 ```
 
+[Switches and pins](../topics/switches_and_pins.md#beacon)
+
 ```{include} ../topics/usage_007.md
 :heading-offset: 2
 ```

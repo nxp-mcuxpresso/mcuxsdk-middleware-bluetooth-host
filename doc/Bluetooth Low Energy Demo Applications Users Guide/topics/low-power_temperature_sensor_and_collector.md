@@ -15,6 +15,9 @@ This section describes the implemented profiles and services, user interactions,
 :heading-offset: 2
 ```
 
+[Switches and pins(Collector)](../topics/switches_and_pins.md#temperature-collector)
+[Switches and pins(Sensor)](../topics/switches_and_pins.md#temperature-sensor)
+
 ```{include} ../topics/usage_018.md
 :heading-offset: 2
 ```

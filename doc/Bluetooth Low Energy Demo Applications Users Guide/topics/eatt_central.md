@@ -15,6 +15,8 @@ This section describes the implemented profiles and services, user interactions,
 :heading-offset: 2
 ```
 
+[Switches and pins](../topics/switches_and_pins.md#eatt-central)
+
 ```{include} ../topics/usage_003.md
 :heading-offset: 2
 ```

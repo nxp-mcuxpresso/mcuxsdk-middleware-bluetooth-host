@@ -15,6 +15,8 @@ This section describes the implemented profiles, services, user interactions, an
 :heading-offset: 2
 ```
 
+[Switches and pins](../topics/switches_and_pins.md#ancs-client)
+
 ```{include} ../topics/usage_001.md
 :heading-offset: 2
 ```

@@ -15,6 +15,9 @@ This section describes the implemented profiles and services, user interactions,
 :heading-offset: 2
 ```
 
+[Switches and pins(Central)](../topics/switches_and_pins.md#extended-advertising-central)
+[Switches and pins(Peripheral)](../topics/switches_and_pins.md#extended-advertising-peripheral)
+
 ```{include} ../topics/usage_017.md
 :heading-offset: 2
 ```
