@@ -156,7 +156,7 @@ static void AppLocalizationAlgo_UncompressRemoteResponseL2CAP
 #endif
 
 static uint8_t AppLocalizationAlgo_ComputeTsw(deviceId_t deviceId);
-
+static uint8_t AppLocalizationAlgo_CountLeadingZeroes(uint16_t decimalPart);
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -414,6 +414,8 @@ void AppLocalizationAlgo_RunMeasurement
             /* Get the decimal part of the distance in meters. */
             var4.u32 = (tempDistance - (tempDistance / mPrecisionScaler) * mPrecisionScaler);
             pResult->resultCDE.distanceDecimalPart = var4.u16;
+            /* Count leading zeroes for decimal part for display purposes. */
+            pResult->resultCDE.leadingZeroesDecimalPart = AppLocalizationAlgo_CountLeadingZeroes(pResult->resultCDE.distanceDecimalPart);
 
             /* Get integer and decimal parts, keeping just log10(mDecimalPrecision) decimals.
             Division by 100 is needed because 2 decimals where already included in the conversion to percentage. */
@@ -449,6 +451,8 @@ void AppLocalizationAlgo_RunMeasurement
             /* Get the decimal part of the distance in meters. */
             var4.u32 = (tempDistance - (tempDistance / mPrecisionScaler) * mPrecisionScaler);
             pResult->resultRADE.distanceDecimalPart = var4.u16;
+            /* Count leading zeroes for decimal part for display purposes. */
+            pResult->resultRADE.leadingZeroesDecimalPart = AppLocalizationAlgo_CountLeadingZeroes(pResult->resultRADE.distanceDecimalPart);
 
             /* Get integer and decimal parts, keeping just log10(mDecimalPrecision) decimals.
             Division by 100 is needed because 2 decimals where already included in the conversion to percentage. */
@@ -1977,4 +1981,29 @@ static uint8_t AppLocalizationAlgo_ComputeTsw
     }
 
     return t_sw;
+}
+
+/*! *********************************************************************************
+ *\fn           uint8_t AppLocalizationAlgo_CountLeadingZeroes(uint16_t decimalPart);
+ *
+ * \brief       Computes leading zeroes of the result decimal part, for display purposes.
+ *
+ * \param[in]   decimalPart         Decimal part value
+ *
+ *\retval       leadingZeroes       Number of leading zeroes to be displayed
+ ********************************************************************************** */
+static uint8_t AppLocalizationAlgo_CountLeadingZeroes
+(
+    uint16_t decimalPart
+)
+{
+    uint16_t leadingZeroes = 0U;
+
+    while ((decimalPart != 0U) && (decimalPart * 10U < mPrecisionScaler))
+    {
+        leadingZeroes++;
+        decimalPart *= 10U;
+    }
+
+    return leadingZeroes;
 }

@@ -575,6 +575,13 @@ void BleApp_PrintMeasurementResults(deviceId_t deviceId, localizationAlgoResult_
                 /* Display the integer part of the distance in meters. */
                 shell_writeDec(pResult->resultRADE.distanceIntegerPart);
                 shell_write(".");
+
+                /* Leading zeroes for decimal part */
+                for (uint8_t i = 0U; i < pResult->resultRADE.leadingZeroesDecimalPart; i++)
+                {
+                    shell_write("0");
+                }
+
                 /* Display the decimal part of the distance in meters. */
                 shell_writeDec(pResult->resultRADE.distanceDecimalPart);
                 shell_write(" m   ");
@@ -597,6 +604,13 @@ void BleApp_PrintMeasurementResults(deviceId_t deviceId, localizationAlgoResult_
             /* Display the integer part of the distance in meters. */
             shell_writeDec(pResult->resultCDE.distanceIntegerPart);
             shell_write(".");
+
+            /* Leading zeroes for decimal part */
+            for (uint8_t i = 0U; i < pResult->resultCDE.leadingZeroesDecimalPart; i++)
+            {
+                shell_write("0");
+            }
+
             /* Display the decimal part of the distance in meters. */
             shell_writeDec(pResult->resultCDE.distanceDecimalPart);
             shell_write(" m   ");
