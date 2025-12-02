@@ -1121,7 +1121,7 @@ void fsciBleGapEnterPasskeyCmdMonitor
 * \brief  Gap_ProvideOob command monitoring function.
 *
 * \param[in]    deviceId    The pairing device.
-* \param[in]    aOob        Pointer to OOB data (array of gcSmpOobSize_d size).
+* \param[in]    aOob        Pointer to OOB data (array of gcSmpOobSize_c size).
 *
 ********************************************************************************** */
 void fsciBleGapProvideOobCmdMonitor
