@@ -190,6 +190,7 @@ typedef struct localizationAlgoRun_tag
     float    distanceInMeters;
     uint8_t  distanceIntegerPart;
     uint16_t distanceDecimalPart;
+    uint8_t  leadingZeroesDecimalPart;
     float    dqiPercentage;
     uint16_t dqiIntegerPart;
     uint16_t dqiDecimalPart;
