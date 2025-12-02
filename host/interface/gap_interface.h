@@ -532,7 +532,7 @@ bleResult_t Gap_EnterPasskey
 * \brief  Provides the Out-Of-Band data for the SMP Pairing process.
 *
 * \param[in] deviceId   The pairing device.
-* \param[in] aOob       Pointer to OOB data (array of gcSmpOobSize_d size).
+* \param[in] aOob       Pointer to OOB data (array of gcSmpOobSize_c size).
 *
 * \retval  gBleSuccess_c
 * \retval  gBleFeatureNotSupported_c    The requested feature is not supported by this
