@@ -691,9 +691,9 @@ static void BleApp_PrintMeasurementResults
             shell_write("-");
             rssiLocalAverage = ~((uint8_t)rssiLocalAverage - 1U);
         }
+        shell_writeDec(rssiLocalAverage);
         shell_write("    ");
     }
-        shell_writeDec(rssiLocalAverage);
 
     if (pResult->rssiInfo.rssiRemoteNo != 0U)
     {
