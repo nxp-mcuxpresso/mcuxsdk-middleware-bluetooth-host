@@ -21,6 +21,10 @@
 :heading-offset: 1
 ```
 
+```{include} ../topics/fsci_bridge.md
+:heading-offset: 1
+```
+
 ```{include} ../topics/hci_black_box.md
 :heading-offset: 1
 ```
@@ -33,11 +37,31 @@
 :heading-offset: 1
 ```
 
+```{include} ../topics/loc_reader.md
+:heading-offset: 1
+```
+
+```{include} ../topics/loc_reader_host.md
+:heading-offset: 1
+```
+
+```{include} ../topics/loc_user_device.md
+:heading-offset: 1
+```
+
 ```{include} ../topics/low-power_temperature_sensor_and_collector.md
 :heading-offset: 1
 ```
 
 ```{include} ../topics/low-power_extended_advertising_peripheral_and_exte.md
+:heading-offset: 1
+```
+
+```{include} ../topics/ncp_fsci_black_box.md
+:heading-offset: 1
+```
+
+```{include} ../topics/ncp_loc_reader.md
 :heading-offset: 1
 ```
 
@@ -58,14 +82,6 @@
 ```
 
 ```{include} ../topics/wireless_uart_host.md
-:heading-offset: 1
-```
-
-```{include} ../topics/fsci_bridge.md
-:heading-offset: 1
-```
-
-```{include} ../topics/ncp_fsci_black_box.md
 :heading-offset: 1
 ```
 

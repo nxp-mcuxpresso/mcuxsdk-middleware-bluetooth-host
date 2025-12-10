@@ -1,3 +1,4 @@
+(examples__wireless_examples__bluetooth__digital_key_car_anchor_cs_docs)=
 # Digital Key Car Anchor application
 
 The Digital Key Car Anchor demo application implements one of the multiple Bluetooth Low Energy Anchors that can reside inside the car. It is a Bluetooth Low Energy peripheral. Depending on the scenario, this peripheral can perform both Legacy \(1M PHY\) and Extended Long Range \(500 kilobits per sec Coded PHY\) advertising, searching for a CCC Digital Key-enabled device such as a smartphone.
