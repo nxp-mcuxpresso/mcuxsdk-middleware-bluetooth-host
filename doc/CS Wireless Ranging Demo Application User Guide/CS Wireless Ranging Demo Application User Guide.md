@@ -1,3 +1,4 @@
+(examples__wireless_examples__bluetooth__wireless_ranging_docs)=
 # CS Wireless Ranging Demo Application User Guide
 
 

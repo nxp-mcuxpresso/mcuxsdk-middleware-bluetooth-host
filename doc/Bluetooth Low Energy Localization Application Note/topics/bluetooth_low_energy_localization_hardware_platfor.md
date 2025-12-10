@@ -1,3 +1,4 @@
+(examples__wireless_examples__bluetooth__loc_reader_platforms_docs)=
 # Bluetooth Low Energy Localization Hardware Platforms
 
 The Bluetooth Low Energy Localization demo applications support the following platforms that have Bluetooth Low Energy transceiver capabilities:

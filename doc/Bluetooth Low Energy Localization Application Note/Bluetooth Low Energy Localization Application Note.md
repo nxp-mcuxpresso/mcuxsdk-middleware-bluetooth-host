@@ -1,3 +1,4 @@
+(examples__wireless_examples__bluetooth__loc_docs)=
 # AN13974
 
 
