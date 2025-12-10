@@ -1497,7 +1497,7 @@ static void BleApp_GattServerCallback
         {
             if (pServerEvent->eventData.procedureError.procedureType == gSendIndication_c)
             {
-                Ras_GattSendIndicationErrorHandler(deviceId);
+                Ras_ClearIndicationPendingFlag(deviceId);
             }
         }
         break;

@@ -1379,13 +1379,13 @@ void Ras_GattValueConfirmationHandler
 }
 
 /*!**********************************************************************************
-* \brief        Handles GATT Send Indication error event.
+* \brief        Clears the indication pending flag for a peer.
 *
 * \param[in]    deviceId      Identifier of the peer
 *
 * \retval       none
 ************************************************************************************/
-void Ras_GattSendIndicationErrorHandler
+void Ras_ClearIndicationPendingFlag
 (
     deviceId_t deviceId
 )

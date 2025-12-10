@@ -850,6 +850,7 @@ void AppLocalization_ResetPeer
     {
         Ras_SetDataPointer(deviceId, NULL);
     }
+    Ras_ClearIndicationPendingFlag(deviceId);
 #endif
 
     if ( maAppLclState[deviceId] != gAppLclIdle_c )
