@@ -758,7 +758,7 @@ static void BleApp_HandleIdleState(deviceId_t peerDeviceId, appEvent_t event)
         maPeerInformation[peerDeviceId].appState = mAppServiceDisc_c;
 
         /* Read SPSM from vehicle. */
-        FLib_MemCpy(psmCharUuid.uuid128, uuid_char_vehicle_psm_dk_version, gcBleLongUuidSize_c);
+        FLib_MemCpy(psmCharUuid.uuid128, uuid_char_vehicle_psm_vdbt_version, gcBleLongUuidSize_c);
         handleRange.startHandle = 0x0001U;
         handleRange.endHandle = 0xFFFFU;
         mCurrentCharReadingIndex = mcCharVehiclePsmDkVersionIndex_c;

@@ -844,7 +844,7 @@ static void BleApp_StoreServiceHandles
                     maCharacteristics[mcCharVehiclePsmIndex_c].value.maxValueLength = mcCharVehiclePsmLength_c;
                     maCharacteristics[mcCharVehiclePsmIndex_c].value.paValue = mValVehiclePsm;
                 }
-                else if (FLib_MemCmp(pService->aCharacteristics[i].value.uuid.uuid128, uuid_char_vehicle_psm_dk_version, 16))
+                else if (FLib_MemCmp(pService->aCharacteristics[i].value.uuid.uuid128, uuid_char_vehicle_psm_vdbt_version, 16))
                 {
                     /* Found Vehicle PSM DK Version Char */
                     maPeerInformation[peerDeviceId].customInfo.hPsmVersionChar = pService->aCharacteristics[i].value.handle;
@@ -853,7 +853,7 @@ static void BleApp_StoreServiceHandles
                     maCharacteristics[mcCharVehiclePsmDkVersionIndex_c].value.maxValueLength = mcCharVehiclePsmDkVersionLength_c;
                     maCharacteristics[mcCharVehiclePsmDkVersionIndex_c].value.paValue = mValVehiclePsmDkVersion;
                 }
-                else if (FLib_MemCmp(pService->aCharacteristics[i].value.uuid.uuid128, uuid_char_device_selected_dk_version, 16))
+                else if (FLib_MemCmp(pService->aCharacteristics[i].value.uuid.uuid128, uuid_char_device_selected_vdbt_version, 16))
                 {
                     /* Found Device Selected DK Version Char */
                     maPeerInformation[peerDeviceId].customInfo.hDeviceSelectedVersionChar = pService->aCharacteristics[i].value.handle;
@@ -901,7 +901,7 @@ static void BleApp_StoreServiceHandles
             handleRange.endHandle = 0xFFFFU;
 
             mCurrentCharReadingIndex = mcCharVehiclePsmDkVersionIndex_c;
-            FLib_MemCpy(charUuid.uuid128, uuid_char_vehicle_psm_dk_version, gcBleLongUuidSize_c);
+            FLib_MemCpy(charUuid.uuid128, uuid_char_vehicle_psm_vdbt_version, gcBleLongUuidSize_c);
             (void)GattClient_ReadUsingCharacteristicUuid(peerDeviceId,
                                                          gBleUuidType128_c,
                                                          &charUuid,
