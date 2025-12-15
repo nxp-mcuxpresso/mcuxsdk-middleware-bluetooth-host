@@ -63,7 +63,6 @@ typedef struct _rade_cs_para
     uint16_t step_nb;           /*!< Number of CS steps */
     uint16_t startAclCnt;       /*!< ACL event index of CS start */
     uint16_t connInterval;      /*!< Connection interval of BLE link */
-    uint8_t status;             /*!< CS status */
     uint8_t mode0_nb;           /*!< Mode-0 steps */
     uint8_t subevt_nb;          /*!< Number of subevents in a CS procedure */
     uint8_t rtt_type;           /*!< RTT type */
@@ -80,7 +79,9 @@ typedef struct _rade_cs_para
     uint8_t main_mode_type;     /*!< Main mode type */
     uint8_t sub_mode_type;      /*!< Sub-mode type */
     int8_t *refPowerLevel_init; /*!< referencePowerLevel at initiator */
-    int8_t *refPowerLevel_refl; /*!< referencePowerLevel at reflector */ 
+    int8_t *refPowerLevel_refl; /*!< referencePowerLevel at reflector */
+    uint8_t *subevtDoneStatusLocal;  /*!< Subevent Done status - local data */
+    uint8_t *subevtDoneStatusRemote;  /*!< Subevent Done status - remote data */
 } rade_cs_para_t;
 
 /*! \struct rade_result_t

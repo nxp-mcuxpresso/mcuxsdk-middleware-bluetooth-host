@@ -997,6 +997,9 @@ void measurement_populate_response
         FLib_MemCpy(response->cs_data->subevtRefPowerLevelInit, remoteAppDataBuffer->csData.subevtRefPowerLevelInit, gCsSubeventMax_c);
     }
 
+    FLib_MemCpy(response->cs_data->subevtDoneStatusLocal, localAppDataBuffer->csData.subevtDoneStatusLocal, gCsSubeventMax_c);
+    FLib_MemCpy(response->cs_data->subevtDoneStatusRemote, remoteAppDataBuffer->csData.subevtDoneStatusLocal, gCsSubeventMax_c);
+
     if (localAppDataBuffer->csData.mode0_nb != 0)
     {
         /* Mode0 */
@@ -1334,6 +1337,7 @@ static void measurement_uncompress_response
     dstAppBuffer->csData.subevtStopIdx[dstAppBuffer->csData.subevt_nb] = step;
     dstAppBuffer->csData.subevtConnEvent[dstAppBuffer->csData.subevt_nb] = event_p->startACLConnEvent - dstAppBuffer->csData.startAclCnt;
     dstAppBuffer->csData.subevtRefPowerLevelInit[dstAppBuffer->csData.subevt_nb] = event_p->referencePowerLevel;
+    dstAppBuffer->csData.subevtDoneStatusLocal[dstAppBuffer->csData.subevt_nb] = event_p->subeventDoneStatus;
     dstAppBuffer->csData.subevt_nb++;
 
 #ifdef ENABLE_SANITY_SUBEVT_SEPARATOR

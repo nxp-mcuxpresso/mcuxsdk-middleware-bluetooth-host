@@ -249,7 +249,6 @@ void AppLocalizationAlgo_RunMeasurement
     {
         FLib_MemSet(&response, 0, sizeof(isp_meas_response_t));
         response.cs_data = &localAppDataBuffer->csData;
-        response.cs_data->status = 0x00U;
 
         /* Reset procedure buffers for a new measurement */
         FLib_MemSet(&gLocalAppDataBuffer, 0, sizeof(csAppData_t));
@@ -274,10 +273,7 @@ void AppLocalizationAlgo_RunMeasurement
         /* Uncompress local data */
         for (uint8_t idx = 0U; idx <= pLocalData->subeventIndex; idx++)
         {
-            if (pLocalData->aSubEventData[idx].subevtHeader.subeventDoneStatus != (uint8_t)gCsCompleteResults_c)
-            {
-                response.cs_data->status = pLocalData->aSubEventData[idx].subevtHeader.subeventDoneStatus;
-            }
+            response.cs_data->subevtDoneStatusLocal[idx] = pLocalData->aSubEventData[idx].subevtHeader.subeventDoneStatus;
         }
         AppLocalizationAlgo_UncompressResponse(pLocalData, localAppDataBuffer);
 
@@ -286,10 +282,9 @@ void AppLocalizationAlgo_RunMeasurement
         {
             if (pPeerData->aSubEventData[idx].subevtHeader.subeventDoneStatus != (uint8_t)gCsCompleteResults_c)
             {
-                response.cs_data->status = pPeerData->aSubEventData[idx].subevtHeader.subeventDoneStatus;
+                response.cs_data->subevtDoneStatusRemote[idx] = pPeerData->aSubEventData[idx].subevtHeader.subeventDoneStatus;
             }
         }
-
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
 #if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
         AppLocalizationAlgo_UncompressRemoteResponse(pPeerData, remoteAppDataBuffer);
@@ -1118,7 +1113,6 @@ static void AppLocalizationAlgo_UncompressRemoteResponse
             pRemoteData->aSubEventData[pRemoteData->subeventIndex].subevtHeader.numStepsReported)
         {
             /* move on to the next subevent */
-            pDstAppBuffer->csData.status = pRemoteData->aSubEventData[pRemoteData->subeventIndex].subevtHeader.subeventDoneStatus;
             pRemoteData->subeventIndex++;
             pRemoteData->crtNumSteps = 0U;
 
@@ -1446,7 +1440,6 @@ static void AppLocalizationAlgo_UncompressRemoteResponseL2CAP
             pRemoteData->aSubEventData[pRemoteData->subeventIndex].subevtHeader.numStepsReported)
         {
             /* Move on to the next subevent */
-            pDstAppBuffer->csData.status = pRemoteData->aSubEventData[pRemoteData->subeventIndex].subevtHeader.subeventDoneStatus;
             pRemoteData->subeventIndex++;
             pRemoteData->crtNumSteps = 0U;
         }
@@ -1697,28 +1690,29 @@ static void isp_mciq_ranging_compute
         rade_cs_para_t radeCsPara;
         rade_result_t radeResult;
         rade_data_t radeData;
-        radeCsPara.step_nb           =  meas_response->cs_data->step_nb          ;
-        radeCsPara.startAclCnt       =  meas_response->cs_data->startAclCnt      ;
-        radeCsPara.status            =  meas_response->cs_data->status           ;
-        radeCsPara.mode0_nb          =  meas_response->cs_data->mode0_nb         ;
-        radeCsPara.subevt_nb         =  meas_response->cs_data->subevt_nb        ;
-        radeCsPara.t_fcs             =  meas_response->cs_data->t_fcs            ;
-        radeCsPara.t_ip1             =  meas_response->cs_data->t_ip1            ;
-        radeCsPara.t_ip2             =  meas_response->cs_data->t_ip2            ;
-        radeCsPara.t_pm              =  meas_response->cs_data->t_pm             ;
-        radeCsPara.t_sw              =  meas_response->cs_data->t_sw             ;
-        radeCsPara.channelMap        =  meas_response->cs_data->channelMap       ;
-        radeCsPara.modeMap           =  meas_response->cs_data->modeMap          ;
-        radeCsPara.subevtStopIdx     =  meas_response->cs_data->subevtStopIdx    ;
-        radeCsPara.subevtConnEvent   =  meas_response->cs_data->subevtConnEvent  ;
-        radeCsPara.main_mode_repeat  =  meas_response->cs_data->main_mode_repeat ;
-        radeCsPara.rtt_type          =  meas_response->cs_data->rtt_type         ;
-        radeCsPara.rtt_phy           =  meas_response->cs_data->phy              ;
-        radeCsPara.main_mode_type    =  meas_response->cs_data->main_mode_type   ;
-        radeCsPara.sub_mode_type     =  meas_response->cs_data->sub_mode_type    ;
-        radeCsPara.connInterval      =  meas_response->cs_data->conn_interval    ;
-        radeCsPara.refPowerLevel_init = meas_response->cs_data->subevtRefPowerLevelInit;
-        radeCsPara.refPowerLevel_refl = meas_response->cs_data->subevtRefPowerLevelRefl;
+        radeCsPara.step_nb                = meas_response->cs_data->step_nb;
+        radeCsPara.startAclCnt            = meas_response->cs_data->startAclCnt;
+        radeCsPara.mode0_nb               = meas_response->cs_data->mode0_nb;
+        radeCsPara.subevt_nb              = meas_response->cs_data->subevt_nb;
+        radeCsPara.t_fcs                  = meas_response->cs_data->t_fcs;
+        radeCsPara.t_ip1                  = meas_response->cs_data->t_ip1;
+        radeCsPara.t_ip2                  = meas_response->cs_data->t_ip2;
+        radeCsPara.t_pm                   = meas_response->cs_data->t_pm;
+        radeCsPara.t_sw                   = meas_response->cs_data->t_sw;
+        radeCsPara.channelMap             = meas_response->cs_data->channelMap;
+        radeCsPara.modeMap                = meas_response->cs_data->modeMap;
+        radeCsPara.subevtStopIdx          = meas_response->cs_data->subevtStopIdx;
+        radeCsPara.subevtConnEvent        = meas_response->cs_data->subevtConnEvent;
+        radeCsPara.main_mode_repeat       = meas_response->cs_data->main_mode_repeat;
+        radeCsPara.rtt_type               = meas_response->cs_data->rtt_type;
+        radeCsPara.rtt_phy                = meas_response->cs_data->phy;
+        radeCsPara.main_mode_type         = meas_response->cs_data->main_mode_type;
+        radeCsPara.sub_mode_type          = meas_response->cs_data->sub_mode_type;
+        radeCsPara.connInterval           = meas_response->cs_data->conn_interval;
+        radeCsPara.refPowerLevel_init     = meas_response->cs_data->subevtRefPowerLevelInit;
+        radeCsPara.refPowerLevel_refl     = meas_response->cs_data->subevtRefPowerLevelRefl;
+        radeCsPara.subevtDoneStatusLocal  = meas_response->cs_data->subevtDoneStatusLocal;
+        radeCsPara.subevtDoneStatusRemote = meas_response->cs_data->subevtDoneStatusRemote;
         radeResult.rng_est = &mciq_result->rade_dist;
         radeResult.rng_est_qi = &mciq_result->rade_dqi;
         radeResult.reserved = &radeResReserved;

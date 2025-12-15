@@ -276,7 +276,6 @@ void isp_mciq_ranging_compute(isp_meas_response_t *meas_response, mciq_result_t 
 
         radeCsPara.step_nb              =  meas_response->cs_data->step_nb            ;
         radeCsPara.startAclCnt          =  meas_response->cs_data->startAclCnt        ;
-        radeCsPara.status               =  meas_response->cs_data->status             ;
         radeCsPara.subevt_nb            =  meas_response->cs_data->subevt_nb          ;
         radeCsPara.channelMap           =  meas_response->cs_data->channelMap         ;
         radeCsPara.modeMap              =  meas_response->cs_data->modeMap            ;
@@ -296,6 +295,8 @@ void isp_mciq_ranging_compute(isp_meas_response_t *meas_response, mciq_result_t 
         radeCsPara.connInterval         =  meas_response->mparams->cfg.connInterval     ;
         radeCsPara.refPowerLevel_init   =  meas_response->cs_data->subevtRefPowerLevelInit;
         radeCsPara.refPowerLevel_refl   =  meas_response->cs_data->subevtRefPowerLevelRefl;
+        radeCsPara.subevtDoneStatusLocal  = meas_response->cs_data->subevtDoneStatusLocal;
+        radeCsPara.subevtDoneStatusRemote = meas_response->cs_data->subevtDoneStatusRemote;
         radeResult.rng_est              =  &mciq_result->rade_dist;
         radeResult.rng_trk              =  &mciq_result->rade_dist_trk;
         radeResult.rng_est_qi           =  &mciq_result->rade_dqi;

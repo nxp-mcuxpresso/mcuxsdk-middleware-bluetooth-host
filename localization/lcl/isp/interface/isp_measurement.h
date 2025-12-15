@@ -150,6 +150,8 @@ typedef struct cs_data_tag {
     uint8_t subevtConnEvent[gHciCsMaxStepsPerProcedure_c]; /* Delta regarding ACL counter of first subevent */
     int8_t subevtRefPowerLevelInit[gCsSubeventMax_c]; /* Reference power level per subevent */
     int8_t subevtRefPowerLevelRefl[gCsSubeventMax_c]; /* Reference power level per subevent */
+    uint8_t subevtDoneStatusLocal[gCsSubeventMax_c]; /* Status for each subevent - local data */
+    uint8_t subevtDoneStatusRemote[gCsSubeventMax_c]; /* Status for each subevent - remote data */
 } cs_data_t;
 
 typedef struct  {

@@ -100,7 +100,6 @@ typedef struct  {
 typedef struct cs_data_tag {
     uint16_t step_nb;
     uint16_t startAclCnt;
-    uint8_t status;
     uint8_t subevt_nb;
     uint8_t main_mode_repeat;
     uint8_t mode0_nb;
@@ -121,6 +120,8 @@ typedef struct cs_data_tag {
     uint8_t subevtConnEvent[gCsSubeventMax_c]; /* Delta regarding ACL counter of first subevent */
     int8_t subevtRefPowerLevelInit[gCsSubeventMax_c]; /* Reference power level per subevent */
     int8_t subevtRefPowerLevelRefl[gCsSubeventMax_c]; /* Reference power level per subevent */
+    uint8_t subevtDoneStatusLocal[gCsSubeventMax_c]; /* Status for each subevent - local data */
+    uint8_t subevtDoneStatusRemote[gCsSubeventMax_c]; /* Status for each subevent - remote data */
 } cs_data_t;
 
 /* Buffer storing last captured IQ and corresponding params */
