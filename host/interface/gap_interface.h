@@ -1636,6 +1636,43 @@ bleResult_t Gap_UpdateLeDataLength
     uint16_t    txTime
 );
 
+/*!*************************************************************************************************
+*\fn    bleResult_t Gap_SetDefaultConnectionSubrateParameters( const gapConnectionSubrateParameters_t* pConnSubrateParam)
+*
+*\brief The function sets the initial values of the acceptable parameters
+*       for subrating requests, for all future connections where the Controller is Central.
+*       User should wait for a gLeSetDefaultConnectionSubrateParametersSetupComplete_c generic event or for a
+*       gInternalError_c generic event with source gSetDefaultConnectionSubrateParameters_c .
+*
+*\param [in]    pConnSubrateParam   Pointer to the new set of connection subrate parameters
+*
+*\retval        bleResult_t         gBleSuccess_c or error.
+***************************************************************************************************/
+bleResult_t Gap_SetDefaultConnectionSubrateParameters
+(
+    const gapConnectionSubrateParameters_t* pConnSubrateParam
+);
+/*!*************************************************************************************************
+*\fn    bleResult_t Gap_ConnectionSubrateRequest(deviceId_t deviceId,
+*       const gapConnectionSubrateParameters_t* pConnSubrateParam)
+*
+*\brief Requests a set of new connection subrate parameters. A connection must be in place.
+*       When initiated on a Central this procedure triggers the Link Layer Connection Subrate Update procedure.
+*       When initiated on a Peripheral this procedure triggers the Link Layer Connection Subrate Request procedure.
+*       User should wait for a gConnEvtLeSubrateChange_c connection event or for a
+*       gInternalError_c generic event with source gConnectionSubrateRequest_c.
+*
+*\param [in]    deviceId            The DeviceID for which the command is intended
+*\param [in]    pConnSubrateParam   Pointer to the new set of connection subrate parameters
+*
+*\retval        bleResult_t         gBleSuccess_c or error.
+***************************************************************************************************/
+bleResult_t Gap_ConnectionSubrateRequest
+(
+    deviceId_t  deviceId,
+    const gapConnectionSubrateParameters_t* pConnSubrateParam
+);
+
 /*! *********************************************************************************
 * \brief     Enables or disables Host Privacy (automatic regeneration of a Private Address).
 *

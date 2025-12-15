@@ -575,6 +575,29 @@ typedef struct
     uint16_t            maximumCeLength;
 } hciLeConnectionUpdateCommand_t;
 
+/*! OCF 0x007D */
+/*! HCI_LE_Set_Default_Subrate */
+typedef struct
+{
+    uint16_t            subrateMin;
+    uint16_t            subrateMax;
+    uint16_t            latencyMax;
+    uint16_t            continuationNumber;
+    uint16_t            supervisionTimeout;
+} hciLeSetDefaultSubrateCommand_t;
+
+/*! OCF 0x007E */
+/*! HCI_LE_Subrate_Request */
+typedef struct
+{
+    uint16_t            connectionHandle;
+    uint16_t            subrateMin;
+    uint16_t            subrateMax;
+    uint16_t            latencyMax;
+    uint16_t            continuationNumber;
+    uint16_t            supervisionTimeout;
+} hciLeSubrateRequestCommand_t;
+
 /*! LE Connection Update Complete Event : LE Meta Event : 0x3E : Sub-event Code : 0x03 */
 /* Although not used, tag is needed in order to satisfy MISRA rule 10.3 */
 typedef struct hciLeConnectionUpdateCompleteEvent_tag
@@ -913,6 +936,21 @@ typedef struct hciLeTransmitPowerReportingEvent_tag
 } hciLeTransmitPowerReportingEvent_t;
 #endif /* gBLE52_LePowerControlSupport_d */
 #endif /* gBLE52_d */
+
+#if (gBLE53_d == TRUE)
+#if (gBLE53_ConnectionSubratingSupport_d == TRUE)
+/* LE Subrate Change Event : LE Meta Event : 0x3E - Sub-event Code : 0x23 */
+typedef struct hciLeSubrateChangeEvent_tag
+{
+    hciErrorCode_t                      status;
+    uint16_t                            connHandle;
+    uint16_t                            subrateFactor;
+    uint16_t                            peripheralLatency;
+    uint16_t                            continuationNumber;
+    uint16_t                            supervisionTimeout;
+} hciLeSubrateChangeEvent_t;
+#endif /* (gBLE53_ConnectionSubratingSupport_d == TRUE) */
+#endif /* gBLE53_d */
 
 #if (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE)
 
@@ -2557,6 +2595,11 @@ typedef struct
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
         hciVendorEnhancedNotificationEvent_t            hciEnhancedNotificationEvent;
         hciVendorLeSkdReportEvent_t                     hciLeSkdReportEvent;
+#if (gBLE53_d == TRUE)
+#if (gBLE53_ConnectionSubratingSupport_d == TRUE)
+        hciLeSubrateChangeEvent_t                       hciLeSubrateChangeEvent;
+#endif /* (gBLE53_ConnectionSubratingSupport_d == TRUE) */
+#endif /* gBLE53_d */
 #if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
         hciLeMonAdvReportEvent_t                        hciLeMonAdvReportEvent;
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
@@ -3275,6 +3318,43 @@ bleResult_t Hci_LeRemoteConnParamReqReply(
 ********************************************************************************** */
 bleResult_t Hci_LeRemoteConnectionParameterRequestNegativeReply(
                 const hciLeRemoteConnectionParameterRequestNegativeReplyCommand_t *pParam);           /* 8.32 */
+
+#if gBLE53_d
+#if (gBLE53_ConnectionSubratingSupport_d == TRUE)
+#if gConnCentralSupported_d
+/*! *********************************************************************************
+* \fn           bleResult_t Hci_LeSetDefaultSubrateParams( const hciLeSetDefaultSubrateCommand_t *pParam )
+*
+* \brief        The function sends the HCI LE Set Default Subrate (OGF : 0x08; OCF : 0x007D) command to the Controller.
+*
+* \param[in]    pParam  pointer to a structure containing the connection parameters.
+* \param[out]   None
+*
+* \return       Status
+*
+* \remarks      Connection State Group
+*
+********************************************************************************** */
+bleResult_t Hci_LeSetDefaultSubrateParams( const hciLeSetDefaultSubrateCommand_t *pParam );               /* 7.8.123 */
+#endif /* gConnCentralSupported_d */
+#if gConnectionSupported_d
+/*! *********************************************************************************
+* \fn           bleResult_t Hci_LeSubrateRequest( const hciLeSubrateRequestCommand_t *pParam )
+*
+* \brief        The function sends the HCI LE Subrate Request (OGF : 0x08; OCF : 0x007E) command to the Controller.
+*
+* \param[in]    pParam  pointer to a structure containing the connection parameters.
+* \param[out]   None
+*
+* \return       Status
+*
+* \remarks      Connection State Group
+*
+********************************************************************************** */
+bleResult_t Hci_LeSubrateRequest( const hciLeSubrateRequestCommand_t *pParam );                    /* 7.8.124 */
+#endif /* gConnectionSupported_d */
+#endif /*(gBLE53_ConnectionSubratingSupport_d == TRUE)*/
+#endif /* gBLE53_d */
 
 #if defined(gHciCompleteHciCmdSupport_d) && (gHciCompleteHciCmdSupport_d == TRUE)
 /* Host Flow Control Group */

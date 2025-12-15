@@ -130,6 +130,8 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 #define gHciLeSetHostChannelClassification_c        0x0014U
 #define gHciLeReadChannelMap_c                      0x0015U
 #define gHciLeReadRemoteFeatures_c                  0x0016U
+#define gHciLeSetDefaultSubrate_c                   0x007DU
+#define gHciSubrateRequest_c                        0x007EU
 
 #define gHciLeEncrypt_c                         0x0017U
 
@@ -308,6 +310,9 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 #define gAdvertisingCodingSelectionHostSupportShift_c       (5U * 8U + 1U)
 #define gLeDecisionBasedAdvertisingFilteringSupportShift_c  (5U * 8U + 2U)
 
+#define gHciLeSubrateChangeEventShift_c              (4U * 8U + 2U)
+#define gLeConnectionSubratingHostSupportShift_c     (uint8_t)(4U * 8U + 6U)
+#define gLeConnectionSubratingLLSupportShift_c       (uint8_t)(4U * 8U + 5U)
 #define gExtAdvDecisionDataTypeFlags_ResolvableTag_c  BIT0
 /************************************************************************************
 *************************************************************************************
@@ -397,6 +402,9 @@ typedef enum
     gHciLePathLossThresholdEvent_c                  = 0x20,
     gHciLeTransmitPowerReportingEvent_c             = 0x21,
 
+    /* BLE v5.3 */
+    gHciLeSubrateChangeEvent_c                      = 0x23,
+
     /* BLE v5.4 */
     gHciLePeriodicAdvSyncEstbV2Event_c              = 0x24,
     gHciLePeriodicAdvReportV2Event_c                = 0x25,
@@ -459,6 +467,8 @@ typedef enum
     /* BLE v5.2 */
     gHciLePathLossThresholdEventMask_c                  = BIT((3 * 8) + 7),
     gHciLeTransmitPowerReportingEventMask_c             = BIT64((4 * 8) + 0),
+    /* BLE v5.3 */
+    gHciLeSubrateChangeEventMask_c                      = BIT64(gHciLeSubrateChangeEventShift_c),
     /* BLE v5.4 */
     gHciLePerAdvSyncEstablishedV2EventMask_c            = BIT64((4 * 8) + 3),
     gHciLePerAdvReportV2EventMask_c                     = BIT64((4 * 8) + 4),

@@ -575,6 +575,9 @@ typedef enum
     gBleGapCmdLeSetSchedulerPriority_c                                             = 0x79,                       /*! Set priority for one connection in case of several connections */
     gBleGapCmdLeSetHostFeature_c                                                   = 0x7B,                       /*! Set or clear a bit controlled by the Host in the Link Layer FeatureSet */
     gBleGapCmdPlatformRegisterErrorCallbackOpCode_c                                = 0x7C,                       /*! Register platform error callback */
+    gBleGapCmdLeSetDefaultConnectionSubrateParametersOpCode_c                      = 0x7D,                       /*! Set the initial values of the acceptable parameters for subrating requests */
+    gBleGapCmdLeConnectionSubrateRequestOpCode_c                                   = 0x7E,                       /*! Requests a set of new connection subrate parameters */
+
 
     gBleGapStatusOpCode_c                                                          = 0x80,                       /*! GAP status operation code */
 
@@ -723,6 +726,8 @@ typedef enum
     
     gBleGapEvtPlatformError_c                                                      = 0xF8,                       /*! platform error callback event operation code */
     gBleGapEvtConnectionEventSmError_c                                             = 0xF9,                       /*! gapConnectionCallback (type = gConnEvtSmError_c) event operation code */
+    gBleGapEvtConnectionEventSubrateChangeEvent_c                                  = 0xFA,                       /*! gapConnectionCallback (type = gConnEvtLeSubrateChange_c) event operation code */
+
 }fsciBleGapOpCode_t;
 
 /************************************************************************************

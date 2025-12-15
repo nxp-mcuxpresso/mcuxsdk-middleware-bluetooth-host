@@ -188,6 +188,11 @@ static shell_command_t mGapCmd =
                     "  gap deldecinstr\r\n"
                     "  gap extadvdecdata [-key key] [-prand rand] [-decdata decisionData] [-datalen dataLength] [-restag resolvableTagPresent]\r\n"
 #endif /* BLE_SHELL_DBAF_SUPPORT */
+#if BLE_SHELL_CONN_SBR_SUPPORT
+                    "  gap sbrcfg [-sbrmin minSubrateFactor] [-sbrmax maxSubrateFactor] [-latency latency] [-contnum continuationNumber] [-timeout timeout]\r\n"
+                    "  gap setdefsbrparam\r\n"
+                    "  gap connsbrreq <peerID>\r\n"
+#endif /* BLE_SHELL_CONN_SBR_SUPPORT */
                     ,
     .pFuncCallBack = ShellGap_Command,
     .cExpectedNumberOfParameters = 0xFF,

@@ -55,39 +55,8 @@
 * Private macros
 *************************************************************************************
 ************************************************************************************/
-#if defined(BLE_SHELL_AE_SUPPORT) && (BLE_SHELL_AE_SUPPORT)
-    /* Base AE command count */
-    #define mShellGapBaseCmdsCount_c            22U
-    #define mShellGapAECmdsCount_c              11U
-    
-    /* Additional feature command counts */
-    #if defined(BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT)
-        #define mShellGapPAWRCmdsCount_c            4U
-    #else
-        #define mShellGapPAWRCmdsCount_c            0U
-    #endif
-    
-    #if defined(BLE_SHELL_DBAF_SUPPORT) && (BLE_SHELL_DBAF_SUPPORT)
-        #define mShellGapDBAFCmdsCount_c            4U
-    #else
-        #define mShellGapDBAFCmdsCount_c            0U
-    #endif
-    
-    #if defined(BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT)
-        #define mShellGapMONADVCmdsCount_c          5U
-    #else
-        #define mShellGapMONADVCmdsCount_c          0U
-    #endif
-    
-    /* Total command count */
-    #define mShellGapCmdsCount_c           (mShellGapBaseCmdsCount_c + \
-                                            mShellGapAECmdsCount_c   + \
-                                            mShellGapPAWRCmdsCount_c + \
-                                            mShellGapDBAFCmdsCount_c + \
-                                            mShellGapMONADVCmdsCount_c)
-#else
-    #define mShellGapCmdsCount_c            22U
-#endif
+
+#define mShellGapCmdsCount_c NumberOfElements(mGapShellCmds)
 
 #define mShellGapMaxScannedDevicesCount_c   20U
 #define mShellGapMaxDeviceNameLength_c      20U
@@ -231,12 +200,19 @@ static shell_status_t ShellGap_ClearMonAdvList(uint8_t argc, char * argv[]);
 static shell_status_t ShellGap_EnableMonAdv(uint8_t argc, char * argv[]);
 static shell_status_t ShellGap_ReadMonAdvListSize(uint8_t argc, char * argv[]);
 #endif /* BLE_SHELL_MONADV_SUPPORT */
+#if BLE_SHELL_CONN_SBR_SUPPORT
+static shell_status_t ShellGap_ConfigConnSubrateParams(uint8_t argc, char * argv[]);
+static shell_status_t ShellGap_SetDefaultConnSbrParams(uint8_t argc, char * argv[]);
+static shell_status_t ShellGap_ConnSbrReq(uint8_t argc, char * argv[]);
+static void ShellGap_HandleSubrateChangeEvt(deviceId_t peerDeviceId, gapSubrateChangeEvent_t *pEvent);
+#endif /* BLE_SHELL_CONN_SBR_SUPPORT */
+static void ShellGap_GenericCallbackAdv (gapGenericEvent_t* pGenericEvent);
 /************************************************************************************
 *************************************************************************************
 * Private memory declarations
 *************************************************************************************
 ************************************************************************************/
-static const gapCmds_t mGapShellCmds[mShellGapCmdsCount_c] =
+static const gapCmds_t mGapShellCmds[] =
 {
     {"address",     ShellGap_DeviceAddress},
     {"devicename",  ShellGap_DeviceName},
@@ -299,6 +275,11 @@ static const gapCmds_t mGapShellCmds[mShellGapCmdsCount_c] =
     {"monadven",        ShellGap_EnableMonAdv},
     {"monadvsize",      ShellGap_ReadMonAdvListSize},
 #endif /* BLE_SHELL_MONADV_SUPPORT */
+#if BLE_SHELL_CONN_SBR_SUPPORT
+    {"sbrcfg",          ShellGap_ConfigConnSubrateParams},
+    {"setdefsbrparam",  ShellGap_SetDefaultConnSbrParams},
+    {"connsbrreq",      ShellGap_ConnSbrReq},
+#endif /* BLE_SHELL_CONN_SBR_SUPPORT */
 };
 
 static bool_t mIsBonded = FALSE;
@@ -3598,68 +3579,21 @@ void ShellGap_GenericCallback (gapGenericEvent_t* pGenericEvent)
         }
         case gExtAdvertisingDataSetupComplete_c:
         case gAdvertisingDataSetupComplete_c:
-        {
-            shell_write(mGapEventHeader);
-            /* Confirm for shell command: "gap advdata [data]" or "gap extadvdata [data]" */
-            if (gExtAdvertisingDataSetupComplete_c == pGenericEvent->eventType)
-            {
-                shell_write("Extended ");
-            }
-
-            shell_write("Advertising data successfully set.");
-            break;
-        }
-
         case gExtAdvertisingParametersSetupComplete_c:
         case gAdvertisingParametersSetupComplete_c:
-        {
-            shell_write(mGapEventHeader);
-            /* Confirm for shell command: "gap advcfg [params]" or "gap extadvcfg [params]" */
-            if (gExtAdvertisingParametersSetupComplete_c == pGenericEvent->eventType)
-            {
-                shell_write("Extended ");
-            }
-            shell_write("Advertising parameters successfully set.");
-            break;
-        }
-
         case gPeriodicAdvParamSetupComplete_c:
-        {
-            /* Confirm for shell command: "gap periodiccfg [params]"  */
-            shell_write(mGapEventHeader);
-            shell_write("Periodic Advertising parameters successfully set.");
-            break;
-        }
-
         case gPeriodicAdvDataSetupComplete_c:
-        {
-            /* Confirm for shell command: "gap periodicdata [data]"  */
-            shell_write(mGapEventHeader);
-            shell_write("Periodic Advertising data successfully set.");
-            break;
-        }
-
         case gPeriodicAdvCreateSyncCancelled_c:
-        {
-            /* Periodic advertising create sync command was successfully cancelled */
-            shell_write(mGapEventHeader);
-            shell_write("Periodic sync cancelled.");
-            break;
-        }
-
         case gAdvertisingSetupFailed_c:
-        {
-            /* Error for shell command: "gap advcfg" */
-            shell_write(mGapEventHeader);
-            shell_write("Advertising setup failed.");
-            break;
-        }
-
         case gPeriodicAdvListUpdateComplete_c:
+        case gPeriodicAdvertisingStateChanged_c:
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+        case gPeriodicAdvSetSubeventDataComplete_c:
+        case gPeriodicAdvSetResponseDataComplete_c:
+        case gPeriodicSyncSubeventComplete_c:
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
         {
-            /* Periodic advertiser list has been successfully updated */
-            shell_write(mGapEventHeader);
-            shell_write("Periodic Advertising list updated.");
+            ShellGap_GenericCallbackAdv(pGenericEvent);
             break;
         }
 
@@ -3703,37 +3637,6 @@ void ShellGap_GenericCallback (gapGenericEvent_t* pGenericEvent)
             ShellGap_HandleTxPowerLevelSetCompleteEvt(pGenericEvent);
             break;
         }
-
-        case gPeriodicAdvertisingStateChanged_c:
-        {
-            /* Operation succeeded */
-            shell_write("Periodic Advertising state changed successfully!\r\n");
-            break;
-        }
-
-#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
-        case gPeriodicAdvSetSubeventDataComplete_c:
-        {
-            /* Operation succeeded */
-            shell_write("Periodic advertising subevent data has been successfully set.\r\n");
-        }
-        break;
-
-        case gPeriodicAdvSetResponseDataComplete_c:
-        {
-            /* Operation succeeded */
-            shell_write("Periodic advertising response data has been successfully set.\r\n");
-        }
-        break;
-
-        case gPeriodicSyncSubeventComplete_c:
-        {
-            /* Operation succeeded */
-            shell_write("Set Sync Subevent command successfully completed.\r\n");
-        }
-        break;
-#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
-
 #if defined(BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT)
         case gDeviceAddedToMonAdvList_c:
         {
@@ -3779,6 +3682,14 @@ void ShellGap_GenericCallback (gapGenericEvent_t* pGenericEvent)
             break;
         }
 #endif /* BLE_SHELL_MONADV_SUPPORT */
+#if BLE_SHELL_CONN_SBR_SUPPORT
+        case gLeSetDefaultConnectionSubrateParametersSetupComplete_c:
+        {
+            shell_write(mGapEventHeader);
+            shell_write("Default Connection Subrate Parameters Setup Complete.");
+            break;
+        }
+#endif /* BLE_SHELL_CONN_SBR_SUPPORT */
         case gInternalError_c:
         {
             /* Command is not supported */
@@ -4029,7 +3940,13 @@ void ShellGap_ConnectionCallback
             shell_cmd_finished();
         }
         break;
-
+#if BLE_SHELL_CONN_SBR_SUPPORT
+        case gConnEvtLeSubrateChange_c:
+        {
+            ShellGap_HandleSubrateChangeEvt(peerDeviceId, &pConnectionEvent->eventData.gapSubrateChangeEvent);
+        }
+        break;
+#endif /* BLE_SHELL_CONN_SBR_SUPPORT */
         default:
             ; /* Other Connection Event */
         break;
@@ -5063,6 +4980,288 @@ static shell_status_t ShellGap_ReadMonAdvListSize(uint8_t argc, char * argv[])
     return result;
 }
 #endif /* BLE_SHELL_MONADV_SUPPORT */
+
+#if BLE_SHELL_CONN_SBR_SUPPORT
+/*! *********************************************************************************
+ * \brief        Handles "gap sbrcfg" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellGap_ConfigConnSubrateParams(uint8_t argc, char * argv[])
+{
+    shell_status_t result = kStatus_SHELL_Error;
+    bool_t bValidCmd = FALSE;
+
+    if (argc == 0U)
+    {
+        bValidCmd = TRUE;
+    }
+
+    /* Search through the arguments for keywords */
+    for (uint32_t i = 0U; i < argc; i += 2U)
+    {
+        if (0 == strcmp((char*)argv[i], "-sbrmin") && ((i+1U) < argc))
+        {
+            /* Set min subrate factor */
+            gConnSubrateParams.subrateMin = (uint16_t)BleApp_atoi(argv[i+1U]);
+            bValidCmd = TRUE;
+        }
+        else if (0 == strcmp((char*)argv[i], "-sbrmax") && ((i+1U) < argc))
+        {
+            /* Set max subrate factor */
+            gConnSubrateParams.subrateMax = (uint16_t)BleApp_atoi(argv[i+1U]);
+            bValidCmd = TRUE;
+        }
+        else if (0 == strcmp((char*)argv[i], "-latency") && ((i+1U) < argc))
+        {
+            /* The maximum number of consecutive subrated connection events the Peripheral is allowed to ignore. Default: 0 */
+            gConnSubrateParams.latencyMax = (uint16_t)BleApp_atoi(argv[i+1U]);
+            bValidCmd = TRUE;
+        }
+        else if (0 == strcmp((char*)argv[i], "-contnum") && ((i+1U) < argc))
+        {
+            /* Minimum number of underlying connection events to remain active after a packet containing
+             a Link Layer PDU with a non-zero Length field is sent or received */
+            gConnSubrateParams.continuationNumber = (uint16_t)BleApp_atoi(argv[i+1U]);
+            bValidCmd = TRUE;
+        }
+        else if(0 == strcmp((char*)argv[i], "-timeout") && ((i+1U) < argc))
+        {
+            /* The maximum time interval between consecutive over-the-air packets; Default: 32s */
+            gConnSubrateParams.supervisionTimeout = (uint16_t)BleApp_atoi(argv[i+1U])/10U;
+             bValidCmd = TRUE;
+        }
+        else
+        {
+            /* MISRA rule 15.7 - All if else if constructs shall be terminated with an else statement */
+        }
+    }
+
+    /* Print the connection subrate parameters */
+    if (bValidCmd)
+    {
+        shell_write("\r\n-->  Connection Subrate Parameters:");
+        shell_write("\r\n    -->  subrateMin: ");
+        shell_writeDec((uint32_t)gConnSubrateParams.subrateMin);
+        shell_write("\r\n    -->  subrateMax: ");
+        shell_writeDec((uint32_t)gConnSubrateParams.subrateMax);
+        shell_write("\r\n    -->  Connection Latency: ");
+        shell_writeDec((uint32_t)gConnSubrateParams.latencyMax);
+        shell_write("\r\n    -->  continuationNumber: ");
+        shell_writeDec((uint32_t)gConnSubrateParams.continuationNumber);
+
+        shell_write("\r\n    -->  Supervision Timeout: ");
+        /* Convert the value to milliseconds */
+        shell_writeDec((uint32_t)gConnSubrateParams.supervisionTimeout * 10U);
+        shell_write(" ms");
+        SHELL_NEWLINE();
+        result = kStatus_SHELL_Success;
+    }
+
+    return result;
+}
+/*! *********************************************************************************
+ * \brief        Handles "gap setdefsbrparam" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellGap_SetDefaultConnSbrParams(uint8_t argc, char * argv[])
+{
+    shell_status_t result = kStatus_SHELL_Success;
+
+    if (gBleSuccess_c != Gap_SetDefaultConnectionSubrateParameters(&gConnSubrateParams))
+    {
+        shell_write(mShellErrorStatus);
+        result = kStatus_SHELL_Success;
+    }
+
+    return result;
+}
+
+/*! *********************************************************************************
+ * \brief        Handles "gap connsbrreq" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellGap_ConnSbrReq(uint8_t argc, char * argv[])
+{
+    shell_status_t result = kStatus_SHELL_Success;
+    deviceId_t peerId = gInvalidDeviceId_c;
+
+    if (argc != 1U)
+    {
+        shell_write("\r\nIncorrect command parameter(s).  Enter \"help\" to view a list of available commands.\r\n\r\n");
+        result = kStatus_SHELL_Error;
+    }
+    else
+    {
+        peerId = (deviceId_t)BleApp_atoi(argv[0]);
+    }
+
+    if ((peerId < gAppMaxConnections_c) && (IS_CONNECTED(peerId) != 0U))
+    {
+        if (gBleSuccess_c != Gap_ConnectionSubrateRequest(peerId, &gConnSubrateParams))
+        {
+            shell_write(mShellErrorStatus);
+         }
+    }
+    else
+    {
+        shell_write("Invalid peer ID!");
+        SHELL_NEWLINE();
+    }
+    return result;
+}
+
+/*! *********************************************************************************
+ * \brief        Handles the gConnEvtLeSubrateChange_c connection event.
+ *
+ * \param[in]    peerDeviceId   ID of the peer device 
+ *
+ * \param[in]    pEvent         pointer to the event data   
+ *
+ * \return       void
+ ********************************************************************************** */
+static void ShellGap_HandleSubrateChangeEvt(deviceId_t peerDeviceId, gapSubrateChangeEvent_t *pEvent)
+{
+    /* Print subrate change event parameters */
+    shell_write("\r\n-->  GAP Event: Subrate Changed ");
+    shell_writeDec(peerDeviceId);
+    shell_write("\r\n    -->  subrateFactor: ");
+    shell_writeDec((uint32_t)pEvent->subrateFactor);
+    shell_write("\r\n    -->  peripheralLatency: ");
+    shell_writeDec((uint32_t)pEvent->peripheralLatency);
+    shell_write("\r\n    -->  continuationNumber: ");
+    shell_writeDec((uint32_t)pEvent->continuationNumber);
+    shell_write("\r\n    -->  supervisionTimeout: ");
+    /* Convert the value to milliseconds */
+    shell_writeDec((uint32_t)pEvent->supervisionTimeout * 10U);
+    shell_write(" ms");
+    shell_cmd_finished();
+}
+#endif /* BLE_SHELL_CONN_SBR_SUPPORT */
+
+/*! *********************************************************************************
+ * \brief        Handles BLE generic callback related to advertising.
+ *
+ * \param[in]    pGenericEvent    Pointer to gapGenericEvent_t.
+ ********************************************************************************** */
+static void ShellGap_GenericCallbackAdv (gapGenericEvent_t* pGenericEvent)
+{
+    /* Handles generic GAP events related to advertising */
+    switch(pGenericEvent->eventType)
+    {
+        case gExtAdvertisingDataSetupComplete_c:
+        case gAdvertisingDataSetupComplete_c:
+        {
+            shell_write(mGapEventHeader);
+            /* Confirm for shell command: "gap advdata [data]" or "gap extadvdata [data]" */
+            if (gExtAdvertisingDataSetupComplete_c == pGenericEvent->eventType)
+            {
+                shell_write("Extended ");
+            }
+
+            shell_write("Advertising data successfully set.");
+            break;
+        }
+
+        case gExtAdvertisingParametersSetupComplete_c:
+        case gAdvertisingParametersSetupComplete_c:
+        {
+            shell_write(mGapEventHeader);
+            /* Confirm for shell command: "gap advcfg [params]" or "gap extadvcfg [params]" */
+            if (gExtAdvertisingParametersSetupComplete_c == pGenericEvent->eventType)
+            {
+                shell_write("Extended ");
+            }
+            shell_write("Advertising parameters successfully set.");
+            break;
+        }
+
+        case gPeriodicAdvParamSetupComplete_c:
+        {
+            /* Confirm for shell command: "gap periodiccfg [params]"  */
+            shell_write(mGapEventHeader);
+            shell_write("Periodic Advertising parameters successfully set.");
+            break;
+        }
+
+        case gPeriodicAdvDataSetupComplete_c:
+        {
+            /* Confirm for shell command: "gap periodicdata [data]"  */
+            shell_write(mGapEventHeader);
+            shell_write("Periodic Advertising data successfully set.");
+            break;
+        }
+
+        case gPeriodicAdvCreateSyncCancelled_c:
+        {
+            /* Periodic advertising create sync command was successfully cancelled */
+            shell_write(mGapEventHeader);
+            shell_write("Periodic sync cancelled.");
+            break;
+        }
+
+        case gAdvertisingSetupFailed_c:
+        {
+            /* Error for shell command: "gap advcfg" */
+            shell_write(mGapEventHeader);
+            shell_write("Advertising setup failed.");
+            break;
+        }
+
+        case gPeriodicAdvListUpdateComplete_c:
+        {
+            /* Periodic advertiser list has been successfully updated */
+            shell_write(mGapEventHeader);
+            shell_write("Periodic Advertising list updated.");
+            break;
+        }
+
+        case gPeriodicAdvertisingStateChanged_c:
+        {
+            /* Operation succeeded */
+            shell_write("Periodic Advertising state changed successfully!\r\n");
+            break;
+        }
+
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+        case gPeriodicAdvSetSubeventDataComplete_c:
+        {
+            /* Operation succeeded */
+            shell_write("Periodic advertising subevent data has been successfully set.\r\n");
+        }
+        break;
+
+        case gPeriodicAdvSetResponseDataComplete_c:
+        {
+            /* Operation succeeded */
+            shell_write("Periodic advertising response data has been successfully set.\r\n");
+        }
+        break;
+
+        case gPeriodicSyncSubeventComplete_c:
+        {
+            /* Operation succeeded */
+            shell_write("Set Sync Subevent command successfully completed.\r\n");
+        }
+        break;
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
+
+        default:
+            /* Other Generic Event */
+        break;
+    }
+}
 /*! *********************************************************************************
  * @}
  ********************************************************************************** */

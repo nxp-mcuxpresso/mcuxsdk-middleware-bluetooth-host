@@ -222,6 +222,9 @@
 #define fsciBleGapGetConnParameterUpdateCompleteBufferSize(pConnParameterUpdateComplete)  \
         (sizeof(bleResult_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t))
 
+#define fsciBleGapGetConnSubrateChangeEventBufferSize(pGapSubrateChangeEvent)  \
+        (sizeof(bleResult_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t))
+
 #define fsciBleGapGetConnLeSetDataLengthFailureBufferSize(pConnLeDataLengthChanged)  \
         (sizeof(uint16_t))
 
@@ -861,6 +864,13 @@ void fsciBleGapGetBuffFromConnParameterUpdateComplete
     uint8_t**                       ppBuffer
 );
 
+#if defined(gBLE53_d) && (gBLE53_d == 1U)
+void fsciBleGapGetBuffFromConnSubrateChangeEvent
+(
+    gapSubrateChangeEvent_t* pConnSubrateChangeEvent,
+    uint8_t** ppBuffer
+);
+#endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
 void fsciBleGapGetConnLeDataLengthChangedFromBuffer
 (
     gapConnLeDataLengthChanged_t*   pConnLeDataLengthChanged,

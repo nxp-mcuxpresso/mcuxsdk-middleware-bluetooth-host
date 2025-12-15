@@ -1554,7 +1554,17 @@ void fsciBleGapGetBuffFromConnParameterUpdateComplete(gapConnParamsUpdateComplet
     fsciBleGetBufferFromUint16Value(pConnParameterUpdateComplete->connLatency, *ppBuffer);
     fsciBleGetBufferFromUint16Value(pConnParameterUpdateComplete->supervisionTimeout, *ppBuffer);
 }
-
+#if defined(gBLE53_d) && (gBLE53_d == 1U)
+void fsciBleGapGetBuffFromConnSubrateChangeEvent(gapSubrateChangeEvent_t* pConnSubrateChangeEvent, uint8_t** ppBuffer)
+{
+    /* Write gapConnParamsUpdateComplete_t structure fields in buffer */
+    fsciBleGetBufferFromEnumValue(pConnSubrateChangeEvent->status, *ppBuffer, bleResult_t);
+    fsciBleGetBufferFromUint16Value(pConnSubrateChangeEvent->subrateFactor, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pConnSubrateChangeEvent->peripheralLatency, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pConnSubrateChangeEvent->continuationNumber, *ppBuffer);
+    fsciBleGetBufferFromUint16Value(pConnSubrateChangeEvent->supervisionTimeout, *ppBuffer);
+}
+#endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
 void fsciBleGapGetConnLeDataLengthChangedFromBuffer(gapConnLeDataLengthChanged_t* pConnLeDataLengthChanged, uint8_t** ppBuffer)
 {
     /* Read gapConnParamsUpdateReq_t structure fields from buffer */

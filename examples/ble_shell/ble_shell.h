@@ -29,12 +29,17 @@
 
 /* Enable Advertising Extension shell commands */
 #ifndef BLE_SHELL_AE_SUPPORT
-#define BLE_SHELL_AE_SUPPORT    0U
+#define BLE_SHELL_AE_SUPPORT        0U
 #endif
 
 /* Enable Decision Based Advertising Filtering shell commands */
 #ifndef BLE_SHELL_DBAF_SUPPORT
-#define BLE_SHELL_DBAF_SUPPORT  0U
+#define BLE_SHELL_DBAF_SUPPORT      0U
+#endif
+
+/* Enable Connection Subrating shell commands */
+#ifndef BLE_SHELL_CONN_SBR_SUPPORT
+#define BLE_SHELL_CONN_SBR_SUPPORT  0U
 #endif
 
 /************************************************************************************
@@ -92,6 +97,9 @@ extern gapAdvertisingDecisionData_t     gAppExtAdvDecisionData;
 extern gapDecisionInstructionsData_t gaDecisionInstructions[];
 extern uint8_t gNumDecisionInstructions;
 #endif /* BLE_SHELL_DBAF_SUPPORT */
+#if BLE_SHELL_CONN_SBR_SUPPORT
+extern gapConnectionSubrateParameters_t gConnSubrateParams;
+#endif /* BLE_SHELL_CONN_SBR_SUPPORT */
 
 /* Peer Device ID */
 extern uint8_t                          gActiveConnections;

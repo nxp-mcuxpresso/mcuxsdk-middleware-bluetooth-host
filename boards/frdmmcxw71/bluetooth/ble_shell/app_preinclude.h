@@ -95,6 +95,8 @@
 
 /* Enable Monitoring Advertisers shell commands */
 #define BLE_SHELL_MONADV_SUPPORT                0
+/* Enable Connection Subrating shell commands */
+#define BLE_SHELL_CONN_SBR_SUPPORT              0U
 
 #if defined(BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT)
 #define gBLE60_d                                1

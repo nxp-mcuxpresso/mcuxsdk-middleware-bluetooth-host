@@ -114,6 +114,7 @@ typedef enum
     gBleGapEvtGenericEventMonAdvListSizeReadOpCode_c                            = 0x9D,                     /*! gapGenericCallback (type = gMonAdvListSizeRead_c) event operation code */
     gBleGapEvtScanningEventMonAdvReportOpCode_c                                 = 0x9E,                     /*! gapScanningCallback (type = gMonAdvReportEventReceived_c) event operation code */
     gBleGapEvtGenericEventDebugNbuFatalErrorOpCode_c                            = 0x9F,                     /*! gapGenericCallback (type = gDebugNbuFatalError_c) event operation code */
+    gBleGapEvtGenericEventSetDefaultConnectionSubrateParametersSetupComplete_c  = 0xA0,                      /*! gapGenericCallback (type = gLeSetDefaultConnectionSubrateParametersSetupComplete_c) event operation code */
 } fsciBleGap2OpCode_t;
 
 /************************************************************************************

@@ -729,6 +729,17 @@ typedef struct {
     uint16_t                    supervisionTimeout;     /*!< The maximum time interval between consecutive over-the-air packets; if this timer expires, the connection is dropped. */
     bleCentralClockAccuracy_t   centralClockAccuracy;   /*!< Accuracy of central's clock, allowing for frame detection optimizations. */
 } gapConnectionParameters_t;
+
+/*! Connection subrate parameters */
+typedef struct {
+    uint16_t                    subrateMin;           /*!< Minimum subrate factor to be applied to the underlying connection interval. */
+    uint16_t                    subrateMax;           /*!< Maximum subrate factor to be applied to the underlying connection interval. */
+    uint16_t                    latencyMax;           /*!< Maximum Peripheral latency for the connection in units of subrated connection intervals. */
+    uint16_t                    continuationNumber;   /*!< Minimum number of underlying connection events to remain active
+                                                           after a packet containing a Link Layer PDU with a non-zero Length field
+                                                           is sent or received. */
+    uint16_t                    supervisionTimeout;     /*!< The maximum time interval between consecutive over-the-air packets in 10ms units; if this timer expires, the connection is dropped. */
+} gapConnectionSubrateParameters_t;
 /*
 *
 * BLE 5.1
@@ -1312,6 +1323,7 @@ typedef enum {
 
     gConnEvtLeSetDataLengthFailure_c                = 0x2EU, /*!< The Set Data Length command has failed. */
     gConnEvtSmError_c                               = 0x2FU, /*!< Security Manager error occured. */
+    gConnEvtLeSubrateChange_c                       = 0x30U, /*!< The connection has new parameters. Data in gapConnectionEvent_t.eventData.gapSubrateChangeEvent. */
 } gapConnectionEventType_t;
 
 /*! Event data structure for the gConnEvtConnected_c event. */
@@ -1438,6 +1450,17 @@ typedef struct {
     int8_t                              delta;          /*!< Change in tx power level. Units: dB. */
 } gapTransmitPowerReporting_t;
 
+/*! Event data structure for the gConnEvtLeSubrateChange_c event. */
+typedef struct {
+    bleResult_t status;
+    uint16_t                            subrateFactor;     /*!< subrate factor applied to the underlying connection interval. */
+    uint16_t                            peripheralLatency; /*!< Peripheral latency for the connection in units of subrated connection intervals. */
+    uint16_t                            continuationNumber; /*!< Minimum number of underlying connection events to remain active
+                                                                 after a packet containing a Link Layer PDU with a non-zero Length field
+                                                                 is sent or received. */
+    uint16_t                            supervisionTimeout; /*!< The maximum time interval between consecutive over-the-air packets in 10ms units; if this timer expires, the connection is dropped. */
+} gapSubrateChangeEvent_t;
+
 /*! Event data structure for the gConnEvtEnhancedReadTransmitPowerLevel_c event. */
 typedef struct {
     blePowerControlPhyType_t    phy;                /*!< The PHY for which the event is generated. */
@@ -1533,6 +1556,7 @@ typedef struct {
         gapHandoverConnectedEvent_t         handoverConnectedEvent;          /*!< Data for gConnEvtHandoverConnected_c: information about the connection parameters. */
         gapHandoverDisconnectedEvent_t      handoverDisconnectedEvent;       /*!< Data for gHandoverDisconnected_c: status of the Gap_HandoverDisconnect. */
         bleResult_t                         smError;                         /*!< Data for gConnEvtSmError_c: SM error status. */
+        gapSubrateChangeEvent_t             gapSubrateChangeEvent;           /*!< Data for gConnEvtLeSubrateChange_c: connection parameters update. */
     } eventData;                        /*!< Event data, to be interpreted according to gapConnectionEvent_t.eventType. */
 } gapConnectionEvent_t;
 

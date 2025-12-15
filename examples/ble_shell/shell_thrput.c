@@ -57,6 +57,9 @@
 #include "gatt_uuid128.h"
 #undef UUID128
 
+#if BLE_SHELL_CONN_SBR_SUPPORT
+#include "shell_gap.h"
+#endif /* BLE_SHELL_CONN_SBR_SUPPORT */
 /************************************************************************************
 *************************************************************************************
 * Private macros
@@ -886,6 +889,13 @@ gapConnectionEvent_t* pConnectionEvent
             shell_write(" dBm");
         }
         break;
+#if BLE_SHELL_CONN_SBR_SUPPORT
+        case gConnEvtLeSubrateChange_c:
+        {
+            ShellGap_ConnectionCallback(peerDeviceId, pConnectionEvent);
+        }
+        break;
+#endif /* BLE_SHELL_CONN_SBR_SUPPORT */
         default:
         {
             ; /* Other Connection Event */

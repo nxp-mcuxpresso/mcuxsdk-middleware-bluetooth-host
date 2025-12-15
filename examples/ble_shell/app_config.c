@@ -37,6 +37,9 @@
 #ifndef SHELL_EXT_ADV_DATA_MAX_AD_STRUCTURES
 #define SHELL_EXT_ADV_DATA_MAX_AD_STRUCTURES    5U
 #endif
+#define mDefaultSubrateMin_c                    4U
+#define mDefaultSubrateMax_c                    4U
+#define mDefaultSubrateContNo_c                 2U
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -257,3 +260,14 @@ gapSmpKeys_t gSmpKeys = {
     .cRandSize = gcSmpMaxRandSize_c,
     .ediv = smpEdiv,
 };
+
+#if BLE_SHELL_CONN_SBR_SUPPORT
+gapConnectionSubrateParameters_t gConnSubrateParams =
+{
+    .subrateMin = mDefaultSubrateMin_c,
+    .subrateMax = mDefaultSubrateMax_c,
+    .latencyMax = gGapConnLatencyMin_d,
+    .continuationNumber = mDefaultSubrateContNo_c,
+    .supervisionTimeout = gGapConnSuperTimeoutMax_d
+};
+#endif /* BLE_SHELL_CONN_SBR_SUPPORT */

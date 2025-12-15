@@ -274,6 +274,11 @@ static const int16_t maConnectionEventToOpcode[]=
     -1,                                                                          /* = 0x2DU, gHandoverDisconnected_c */
     (int16_t)gBleGapEvtConnectionEventLeSetDataLengthFailedOpCode_c,             /* = 0x2EU, gConnEvtLeDataLengthChanged_c */
     (int16_t)gBleGapEvtConnectionEventSmError_c,                                 /* = 0x2FU, gConnEvtSmError_c */
+     #if defined(gBLE53_d) && (gBLE53_d == 1U)
+    (int16_t)gBleGapEvtConnectionEventSubrateChangeEvent_c                       /* = 0x30U, gConnEvtLeSubrateChange_c */
+    #else
+    -1                                                                           /* reserved: 0x30U */
+    #endif
 };
 
 
@@ -397,6 +402,7 @@ static const int16_t maGenericEventToOpcode[]=
   -1,                                                                                      /* reserved: 0x57U */
   -1,                                                                                      /* reserved: 0x58U */
   -1,                                                                                      /* reserved: 0x59U */
+  -1,                                                                                      /* reserved: 0x5AU */
 };
 
 static const int16_t maGenericEvent2ToOpcode[]= {
@@ -441,6 +447,11 @@ static const int16_t maGenericEvent2ToOpcode[]= {
     -1,                                                                                      /* reserved: 0x58U */
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
     (int16_t)gBleGapEvtGenericEventDebugNbuFatalErrorOpCode_c,                               /* = 0x59U, gDebugNbuFatalError_c */
+#if defined(gBLE53_d) && (gBLE53_d == 1U)
+    (int16_t)gBleGapEvtGenericEventSetDefaultConnectionSubrateParametersSetupComplete_c,     /* = 0x5AU, gLeSetDefaultConnectionSubrateParametersSetupComplete_c */
+#else
+    -1,                                                                                      /* reserved: 0x5AU */
+#endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
 };
 
 
