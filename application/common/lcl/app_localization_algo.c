@@ -280,10 +280,7 @@ void AppLocalizationAlgo_RunMeasurement
         /* Uncompress remote data */
         for (uint8_t idx = 0U; idx <= pPeerData->subeventIndex; idx++)
         {
-            if (pPeerData->aSubEventData[idx].subevtHeader.subeventDoneStatus != (uint8_t)gCsCompleteResults_c)
-            {
-                response.cs_data->subevtDoneStatusRemote[idx] = pPeerData->aSubEventData[idx].subevtHeader.subeventDoneStatus;
-            }
+            response.cs_data->subevtDoneStatusRemote[idx] = pPeerData->aSubEventData[idx].subevtHeader.subeventDoneStatus;
         }
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
 #if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
