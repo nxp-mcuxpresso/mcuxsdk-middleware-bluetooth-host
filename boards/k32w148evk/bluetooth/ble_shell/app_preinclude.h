@@ -60,6 +60,9 @@
 /* Enable Advertising Extension shell commands */
 #define BLE_SHELL_AE_SUPPORT            1
 
+/*! Set maximum arguments in command */
+#define SHELL_MAX_ARGS                  20U
+
 #if BLE_SHELL_AE_SUPPORT
 
 #define gGapSimultaneousEAChainedReports_c     2
