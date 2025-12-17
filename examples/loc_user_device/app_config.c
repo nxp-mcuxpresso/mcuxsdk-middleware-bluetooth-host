@@ -160,11 +160,16 @@ gapExtAdvertisingParameters_t gAdvParams =
 static uint8_t adData0[2] = { UuidArray(gBleSig_RangingService_d) };
 
 /* Advertising Data */
-static gapAdStructure_t advScanStruct[1] = {
+static gapAdStructure_t advScanStruct[2] = {
   {
     .length = NumberOfElements(adData0) + 1,
     .adType = gAdIncomplete16bitServiceList_c,
     .aData = (uint8_t *)adData0
+  },
+  {
+    .length = 7U,
+    .adType = gAdShortenedLocalName_c,
+    .aData = (uint8_t*)"NXP_CS"
   }
 };
 
