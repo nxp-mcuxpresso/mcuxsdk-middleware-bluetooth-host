@@ -80,8 +80,8 @@ typedef struct _rade_cs_para
     uint8_t sub_mode_type;      /*!< Sub-mode type */
     int8_t *refPowerLevel_init; /*!< referencePowerLevel at initiator */
     int8_t *refPowerLevel_refl; /*!< referencePowerLevel at reflector */
-    uint8_t *subevtDoneStatusLocal;  /*!< Subevent Done status - local data */
-    uint8_t *subevtDoneStatusRemote;  /*!< Subevent Done status - remote data */
+    uint8_t *subevtDoneStatus_init;  /*!< Subevent Done status - initiator */
+    uint8_t *subevtDoneStatus_refl;  /*!< Subevent Done status - reflector */
 } rade_cs_para_t;
 
 /*! \struct rade_result_t

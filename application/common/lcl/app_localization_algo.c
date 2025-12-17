@@ -1680,9 +1680,12 @@ static void isp_mciq_ranging_compute
         rade_result_type_t radeStatus;
         mciq_result->rade_error_flag = 0U;
         uint32_t tqiMask[(XCVR_F_RANGE/32)+1];
-        for (uint32_t i = 0u; i < (XCVR_F_RANGE/32U)+1U; i++){
-          tqiMask[i] = tqi1Mask[i] & tqi2Mask[i];
+        for (uint32_t i = 0u; i < (XCVR_F_RANGE/32U)+1U; i++)
+        {
+            tqiMask[i] = tqi1Mask[i] & tqi2Mask[i];
         }
+        uint8_t *subevtDoneStatus_init = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtDoneStatusLocal : meas_response->cs_data->subevtDoneStatusRemote;
+        uint8_t *subevtDoneStatus_refl = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtDoneStatusRemote : meas_response->cs_data->subevtDoneStatusLocal;
         float_rade_t radeResReserved;
         rade_cs_para_t radeCsPara;
         rade_result_t radeResult;
@@ -1708,8 +1711,8 @@ static void isp_mciq_ranging_compute
         radeCsPara.connInterval           = meas_response->cs_data->conn_interval;
         radeCsPara.refPowerLevel_init     = meas_response->cs_data->subevtRefPowerLevelInit;
         radeCsPara.refPowerLevel_refl     = meas_response->cs_data->subevtRefPowerLevelRefl;
-        radeCsPara.subevtDoneStatusLocal  = meas_response->cs_data->subevtDoneStatusLocal;
-        radeCsPara.subevtDoneStatusRemote = meas_response->cs_data->subevtDoneStatusRemote;
+        radeCsPara.subevtDoneStatus_init  = subevtDoneStatus_init;
+        radeCsPara.subevtDoneStatus_refl  = subevtDoneStatus_refl;
         radeResult.rng_est = &mciq_result->rade_dist;
         radeResult.rng_est_qi = &mciq_result->rade_dqi;
         radeResult.reserved = &radeResReserved;

@@ -377,94 +377,88 @@ static void app_print_cs_measurement(isp_meas_response_t *meas_response, appLoca
                 ranging_cfg->ant_cfg_index);
     (void)printf("},");
 
-    /* Status */
-    (void)printf("sts:%u,", meas_response->cs_data->status);
-
-    if (meas_response->cs_data->status == 0U)
+    /* CS Steps */
+    (void)printf("stp:{nb:%u,", meas_response->cs_data->step_nb);
+    /* Modes */
+    (void)printf("md:");
+    pBuffer = MEM_BufferAlloc((uint32_t)meas_response->cs_data->step_nb + 4U);
+    if (pBuffer == NULL)
     {
-        /* CS Steps */
-        (void)printf("stp:{nb:%u,", meas_response->cs_data->step_nb);
-        /* Modes */
-        (void)printf("md:");
-        pBuffer = MEM_BufferAlloc((uint32_t)meas_response->cs_data->step_nb + 4U);
-        if (pBuffer == NULL)
-        {
-            (void)printf("'NA:oom'");
-        }
-        else
-        {
-            cli_sprint_hex4b(pBuffer, meas_response->cs_data->modeMap, (uint8_t)meas_response->cs_data->step_nb, NULL);
-            (void)printf("'%s'", (char *)pBuffer);
-            (void)MEM_BufferFree(pBuffer);
-        }
-
-        (void)printf(",");
-
-        /* Channels */
-        (void)printf("ch:");
-        pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->step_nb + 4U);
-        if (pBuffer == NULL)
-        {
-            (void)printf("'NA:oom'");
-        } 
-        else
-        {
-            cli_sprint_hex8b(pBuffer, meas_response->cs_data->channelMap, (uint8_t)meas_response->cs_data->step_nb, NULL);
-            (void)printf("'%s'", (char*)pBuffer);
-            (void)MEM_BufferFree(pBuffer);
-        }
-
-        (void)printf(",");
-        
-        /* CS proc startAclCnt */
-        (void)printf("acl:%u,", meas_response->cs_data->startAclCnt);
-        
-        /* Connection interval */
-        (void)printf("ci:%u,", meas_response->cs_data->conn_interval);
-        
-        /* Subevt number */
-        (void)printf("senb:%u,", meas_response->cs_data->subevt_nb);
-        
-        /* Main mode repeat */
-        (void)printf("mmdrp:%u,", meas_response->cs_data->main_mode_repeat);
-        
-        /* Main mode type */
-        (void)printf("mmdt:%u,", meas_response->cs_data->main_mode_type);
-        
-        /* Sub-mode type */
-        (void)printf("smdt:%u,", meas_response->cs_data->sub_mode_type);
-        
-        /* Event counter for each subevent */
-        (void)printf("evt:");
-        pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
-        if (pBuffer == NULL)
-        {
-            (void)printf("'NA:oom'");
-        } 
-        else
-        {
-            cli_sprint_hex8b(pBuffer, meas_response->cs_data->subevtConnEvent, meas_response->cs_data->subevt_nb, NULL);
-            (void)printf("'%s'", (char*)pBuffer);
-            (void)MEM_BufferFree(pBuffer);
-        }
-        (void)printf(",");
-
-        /* Subevt */
-        (void)printf("se:");
-        pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
-        if (pBuffer == NULL)
-        {
-            (void)printf("'NA:oom'");
-        } 
-        else
-        {
-            cli_sprint_hex8b(pBuffer, meas_response->cs_data->subevtStopIdx, meas_response->cs_data->subevt_nb, NULL);
-            (void)printf("'%s'", (char*)pBuffer);
-            (void)MEM_BufferFree(pBuffer);
-        }
-
-        (void)printf("}");
+        (void)printf("'NA:oom'");
     }
+    else
+    {
+        cli_sprint_hex4b(pBuffer, meas_response->cs_data->modeMap, (uint8_t)meas_response->cs_data->step_nb, NULL);
+        (void)printf("'%s'", (char *)pBuffer);
+        (void)MEM_BufferFree(pBuffer);
+    }
+
+    (void)printf(",");
+
+    /* Channels */
+    (void)printf("ch:");
+    pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->step_nb + 4U);
+    if (pBuffer == NULL)
+    {
+        (void)printf("'NA:oom'");
+    } 
+    else
+    {
+        cli_sprint_hex8b(pBuffer, meas_response->cs_data->channelMap, (uint8_t)meas_response->cs_data->step_nb, NULL);
+        (void)printf("'%s'", (char*)pBuffer);
+        (void)MEM_BufferFree(pBuffer);
+    }
+
+    (void)printf(",");
+    
+    /* CS proc startAclCnt */
+    (void)printf("acl:%u,", meas_response->cs_data->startAclCnt);
+    
+    /* Connection interval */
+    (void)printf("ci:%u,", meas_response->cs_data->conn_interval);
+    
+    /* Subevt number */
+    (void)printf("senb:%u,", meas_response->cs_data->subevt_nb);
+    
+    /* Main mode repeat */
+    (void)printf("mmdrp:%u,", meas_response->cs_data->main_mode_repeat);
+    
+    /* Main mode type */
+    (void)printf("mmdt:%u,", meas_response->cs_data->main_mode_type);
+    
+    /* Sub-mode type */
+    (void)printf("smdt:%u,", meas_response->cs_data->sub_mode_type);
+    
+    /* Event counter for each subevent */
+    (void)printf("evt:");
+    pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
+    if (pBuffer == NULL)
+    {
+        (void)printf("'NA:oom'");
+    } 
+    else
+    {
+        cli_sprint_hex8b(pBuffer, meas_response->cs_data->subevtConnEvent, meas_response->cs_data->subevt_nb, NULL);
+        (void)printf("'%s'", (char*)pBuffer);
+        (void)MEM_BufferFree(pBuffer);
+    }
+    (void)printf(",");
+
+    /* Subevt */
+    (void)printf("se:");
+    pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
+    if (pBuffer == NULL)
+    {
+        (void)printf("'NA:oom'");
+    } 
+    else
+    {
+        cli_sprint_hex8b(pBuffer, meas_response->cs_data->subevtStopIdx, meas_response->cs_data->subevt_nb, NULL);
+        (void)printf("'%s'", (char*)pBuffer);
+        (void)MEM_BufferFree(pBuffer);
+    }
+
+    (void)printf("}");
     (void)printf("},");
 }
 #if defined(gAppLocDataExport_c) && (gAppLocDataExport_c > 1) 
@@ -581,6 +575,21 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
             (void)MEM_BufferFree(pBuffer);
         }
         
+        /* Subevent done status */
+        (void)printf("sts:");
+        uint8_t *subevtDoneStatus_init = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtDoneStatusLocal : meas_response->cs_data->subevtDoneStatusRemote;
+        pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
+        if (pBuffer == NULL)
+        {
+            (void)printf("'NA:oom'");
+        }
+        else
+        {
+            cli_sprint_hex8b_c(pBuffer, (uint8_t *)subevtDoneStatus_init, (uint8_t)meas_response->cs_data->subevt_nb, 1U);
+            (void)printf("'%s',", (char*)pBuffer);
+            (void)MEM_BufferFree(pBuffer);
+        }
+        
         (void)printf("},");
     }
 
@@ -589,6 +598,7 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
     {
         (void)printf("refl:{");
         app_mciq_print_node_data(mdata);
+        
         (void)printf("rpl:");
         uint8_t *pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
         if (pBuffer == NULL)
@@ -601,6 +611,21 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
             (void)printf("'%s',", (char*)pBuffer);
             (void)MEM_BufferFree(pBuffer);
         }
+        
+        (void)printf("sts:");
+        uint8_t *subevtDoneStatus_refl = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtDoneStatusRemote : meas_response->cs_data->subevtDoneStatusLocal;
+        pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
+        if (pBuffer == NULL)
+        {
+            (void)printf("'NA:oom'");
+        }
+        else
+        {
+            cli_sprint_hex8b_c(pBuffer, (uint8_t *)subevtDoneStatus_refl, (uint8_t)meas_response->cs_data->subevt_nb, 1U);
+            (void)printf("'%s',", (char*)pBuffer);
+            (void)MEM_BufferFree(pBuffer);
+        }
+        
         (void)printf("},");
     }
     

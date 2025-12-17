@@ -266,7 +266,8 @@ void isp_mciq_ranging_compute(isp_meas_response_t *meas_response, mciq_result_t 
         /* Run RADE algorithm */
         rade_result_type_t radeStatus;
         uint32_t tqiMask[(XCVR_F_RANGE/32U)+1U];
-        for (uint32_t i = 0; i < (XCVR_F_RANGE/32U)+1U; i++){
+        for (uint32_t i = 0; i < (XCVR_F_RANGE/32U)+1U; i++)
+        {
           tqiMask[i] = tqi1Mask[i] & tqi2Mask[i];
         }
         float_rade_t radeResReserved;
@@ -295,8 +296,8 @@ void isp_mciq_ranging_compute(isp_meas_response_t *meas_response, mciq_result_t 
         radeCsPara.connInterval         =  meas_response->mparams->cfg.connInterval     ;
         radeCsPara.refPowerLevel_init   =  meas_response->cs_data->subevtRefPowerLevelInit;
         radeCsPara.refPowerLevel_refl   =  meas_response->cs_data->subevtRefPowerLevelRefl;
-        radeCsPara.subevtDoneStatusLocal  = meas_response->cs_data->subevtDoneStatusLocal;
-        radeCsPara.subevtDoneStatusRemote = meas_response->cs_data->subevtDoneStatusRemote;
+        radeCsPara.subevtDoneStatus_init = meas_response->cs_data->subevtDoneStatusLocal  ;
+        radeCsPara.subevtDoneStatus_refl = meas_response->cs_data->subevtDoneStatusRemote ;
         radeResult.rng_est              =  &mciq_result->rade_dist;
         radeResult.rng_trk              =  &mciq_result->rade_dist_trk;
         radeResult.rng_est_qi           =  &mciq_result->rade_dqi;
