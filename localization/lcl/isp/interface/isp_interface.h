@@ -118,7 +118,7 @@ typedef struct isp_configuration_range_tag
     uint8_t main_mode_repeat;   /*!< number of Main mode steps to be inserted after a mode0 */
     uint8_t mode0_nb;           /*!< Number of mode0 steps to be inserted at each event */
     uint8_t rtt_type;           /*!< RTT type */
-    uint8_t rtt_phy;            /*!< RTT Phy 0=1Mbps, 1=2Mbps */
+    uint8_t rtt_phy;            /*!< RTT Phy 0=1Mbps, 1=2Mbps, 2=BT2.0 */
     int8_t tx_pwr;              /*!< Transmit power during measurement in dB [-12,4] */
     uint8_t t_fcs;              /*!< CS T_FCS */
     uint8_t t_ip1;              /*!< CS T_IP1 */

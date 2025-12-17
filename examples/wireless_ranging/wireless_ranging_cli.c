@@ -310,7 +310,7 @@ const command_t sub_parameter_tbl[] = {
         eFlag1Args | eFlagRead
     },
     {
-        "rtt_phy [<0|1>] | Set/show RTT phy rate (0=1Mbps, 1=2Mbps)",
+        "rtt_phy [<0|1>] | Set/show RTT phy rate (0=1Mbps, 1=2Mbps, 2=BT2.0)",
         {cli_cmd_parameter_rtt_phy},
         eFlag1Args | eFlagRead
     },
@@ -1589,7 +1589,7 @@ void cli_cmd_parameter_rtt_phy(int argc, char *argv[])
     if(argc == 1)
     {
         inp = (uint8_t)atoi(argv[0]);
-        if(inp <= 1U)
+        if(inp <= 2U)
         {
             gRangeSettings->rtt_phy = inp;
         }

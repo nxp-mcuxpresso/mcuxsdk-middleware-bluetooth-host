@@ -36,8 +36,8 @@
 #define CS_TEST_CONNHDL (0xFFFFU)
 
 /* Proprietary debug flags encoded in RTT_PHY field */
-#define CS_DBG_FLG_MASK    (0xFCU)
-#define CS_DBG_FLG_SHIFT   (2U)
+#define CS_DBG_FLG_MASK    (0xF0U)
+#define CS_DBG_FLG_SHIFT   (4U)
 
 #define gHciVendorCsDebug_c 0x00AEU
 
@@ -415,7 +415,7 @@ void processCsConfigCompleteEvent
     config->main_mode_repeat = pEvent->mainModeRepetition;
     config->mode0_nb = pEvent->mode0Steps;
     config->rtt_type = pEvent->RTTTypes;
-    config->rtt_phy = ((pEvent->csSyncPhy & (~CS_DBG_FLG_MASK)) == 1)? 0:1; /* 0x01 or 0x02 in HCI */
+    config->rtt_phy = (pEvent->csSyncPhy & (~CS_DBG_FLG_MASK)) - 1; /* 0x01, 0x02 or 0x03 in HCI */
     config->test_mode = 0;
     FLib_MemCpy(config->ch_map, pEvent->channelMap, CS_CH_MAP_LEN);
     config->ch_map_repeat = pEvent->channelMapRepetition;
@@ -621,7 +621,7 @@ bleResult_t measurement_configure(deviceId_t deviceId)
     createConfigParams.mode0Steps = config->mode0_nb;
     createConfigParams.role = config->role;
     createConfigParams.RTTTypes = (rttTypes_t)config->rtt_type;
-    createConfigParams.csSyncPhy = (config->rtt_phy == 0) ? 1U:2U;
+    createConfigParams.csSyncPhy = config->rtt_phy + 1U;
     FLib_MemCpy(createConfigParams.channelMap, config->ch_map, CS_CH_MAP_LEN);
     createConfigParams.channelMapRepetition = config->ch_map_repeat;
     createConfigParams.channelSelectionType = (hoppingAlgorithmTypes_t)config->ch_sel_algo;
@@ -737,7 +737,7 @@ bleResult_t measurement_run(deviceId_t deviceId)
             pCommand->mode0Steps = meas_params.cfg.mode0_nb;              /* Nb mode0 to be included at Mode0Interval */
             pCommand->role = meas_params.cfg.role;                        /* 0=initiator, 1=reflector */
             pCommand->RTTTypes = (rttTypes_t)meas_params.cfg.rtt_type;     /* 0=coarse, 1=frac, 2=frac+soundSeq */
-            pCommand->CSSyncPhy = (meas_params.cfg.rtt_phy == 0) ? 1U:2U; /* 1=1Mbps, 2=2Mbps */
+            pCommand->CSSyncPhy = meas_params.cfg.rtt_phy + 1;             /* 1=1Mbps, 2=2Mbps, 3=BT2.0 */
             pCommand->CSSYNCAntennaSelection = meas_params.cfg.ant_CS_SYNC;  /* AntId to be used for RTT. */
             /* If subevent lenght has been specified explicitly */
             if (meas_params.cfg.subevent_len != WR_CS_SUBEVT_DURATION_US_MAX)
