@@ -4,6 +4,34 @@ All notable changes to NXP Bluetooth LE Host will be documented in this file.
 
 **NXP Bluetooth LE Host Stack** is certified **Bluetooth 6.0**
 
+
+## [1.10.15] – mcux v2026-03-00-pvw1
+
+### Added
+
+- Added an API to update local synchronization parameters after PAwR is already established on the scanner side
+- Added Connection Subrating feature (experimental) in the Bluetooth LE Host
+- Added Connection Subrating feature in ble_shell
+- CCC v4.1.0: renamed DK_VERSION to VDBT_VERSION as per updated specification
+
+### Improved
+
+- Improved localization applications timer mechanism to reduce the number of wakeups
+- Updated localization timeout values to be overridable by the application
+- Retain the subevent_done_status local and remote values for all subevents and pass them to the algorithm
+- Documentation miscellaneous updates
+
+### Fixed
+
+- Fixed L2CAP credit-based channel disconnection where the channel's timer ID would be set to 0 instead of gTmrInvalidTimerID_c
+- Fixed Channel Sounding applications issue: clear the Indication Pending flag for a peer device on disconnect
+- ble_shell: Set maximum arguments in command (SHELL_MAX_ARGS = 20) in app_preinclude.h
+
+### Supported Platforms
+
+- KW45, KW47, MCXW71, MCXW72, MCXW23
+
+
 ## [1.10.14] - mcux v2025-12-00
 
 ### Added
