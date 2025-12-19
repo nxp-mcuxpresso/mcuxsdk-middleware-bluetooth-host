@@ -41,9 +41,9 @@
 #if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))
 #include "SecLib.h"
 #endif
-#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA))
+#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U)
 #include "fwk_platform.h"
-#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA)) */
+#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) */
 
 #if (defined(gFsciBleUseHwParameter_c) && (gFsciBleUseHwParameter_c > 0U))
 #include "HWParameter.h"
@@ -176,9 +176,9 @@ static void fsciBleGapGenericCallback(gapGenericEvent_t* pGenericEvent);
 static bleResult_t fsciBleHciHostToControllerInterface(hciPacketType_t packetType, void* pPacket, uint16_t packetSize);
 static bleResult_t fsciWritePublicDeviceAddress(bleDeviceAddress_t bdAddress);
 static void WritePublicDeviceAddress_TmrCb (void *param);
-#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA))
+#if defined(gEnableGapCmdErr_d) && (gEnableGapCmdErr_d == 1U)
 static void fsciPlatformErrorCallback(uint32_t id, int32_t error_status);
-#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA)) */
+#endif /* defined(gEnableGapCmdErr_d) && (gEnableGapCmdErr_d == 1U) */
 
 /************************************************************************************
 *************************************************************************************
@@ -820,7 +820,7 @@ void HandleGapCmdStartExtAdvertisingOpCode(uint8_t *pBuffer, uint32_t fsciInterf
 
 #endif
 
-#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA))
+#if defined(gEnableGapCmdErr_d) && (gEnableGapCmdErr_d == 1U)
 /*! *********************************************************************************
 *\private
 *\fn           void HandleGapCmdPlatformRegisterErrorCallback(uint8_t *pBuffer,
@@ -851,7 +851,7 @@ void HandleGapCmdPlatformRegisterErrorCallback
     PLATFORM_RegisterErrorCallback(pfPlatformErrorCallback);
     fsciBleGapStatusMonitor(gBleSuccess_c);
 }
-#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA)) */
+#endif /* defined(gEnableGapCmdErr_d) && (gEnableGapCmdErr_d == 1U) */
 
 #endif
 
@@ -4111,7 +4111,7 @@ static void WritePublicDeviceAddress_TmrCb (void *param)
     HAL_ResetMCU();
 }
 
-#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA))
+#if defined(gEnableGapCmdErr_d) && (gEnableGapCmdErr_d == 1U)
 /*! *********************************************************************************
  * \brief       Error callback used to handle error at platform level.
  *
@@ -4152,7 +4152,7 @@ static void fsciPlatformErrorCallback(uint32_t id, int32_t error_status)
         }
     }
 }
-#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA)) */
+#endif /* defined(gEnableGapCmdErr_d) && (gEnableGapCmdErr_d == 1U) */
 
 #endif /* gFsciIncluded_c && gFsciBleGapLayerEnabled_d */
 

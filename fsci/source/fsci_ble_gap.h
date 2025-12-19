@@ -1681,7 +1681,7 @@ void fsciBleGapSetPeriodicAdvParametersCmdMonitor
     gapPeriodicAdvParameters_t* pAdvertisingParameters
 );
 
-#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA))
+#if defined(gEnableGapCmdErr_d) && (gEnableGapCmdErr_d == 1U)
 /*! *********************************************************************************
 *\private
 *\fn           void HandleGapCmdPlatformRegisterErrorCallback(uint8_t *pBuffer,
@@ -1698,7 +1698,7 @@ void HandleGapCmdPlatformRegisterErrorCallback
     uint8_t *pBuffer,
     uint32_t fsciInterfaceId
 );
-#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA)) */
+#endif /* defined(gEnableGapCmdErr_d) && (gEnableGapCmdErr_d == 1U) */
 
 #endif /* gFsciBleHost_d || gFsciBleTest_d */
 /*! *********************************************************************************

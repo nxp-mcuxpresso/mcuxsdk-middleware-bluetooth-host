@@ -2725,11 +2725,11 @@ const pfGapOpCodeHandler_t maGapCmdOpCodeHandlers[]=
     HandleGapCmdLeSetSchedulerPriority,                                               /* = 0x79, gBleGapCmdLeSetSchedulerPriority_c */
     NULL,                                                                             /* reserved: 0x7A - gBleCtrlCmdSetMDBitModeOpCode_c on KW38 */
     HandleGapCmdLeSetHostFeature,                                                     /* = 0x7B, gBleGapCmdLeSetHostFeature_c */
-#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA))
+#if defined(gEnableGapCmdErr_d) && (gEnableGapCmdErr_d == 1U)
     HandleGapCmdPlatformRegisterErrorCallback,                                        /* = 0x7C, gBleGapCmdPlatformRegisterErrorCallbackOpCode_c*/
 #else
     NULL,                                                                              /* reserved: 0x7C */
-#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA)) */
+#endif /* defined(gEnableGapCmdErr_d) && (gEnableGapCmdErr_d == 1U) */
 #if defined(gBLE53_d) && (gBLE53_d == 1U)
     HandleGapCmdSetDefaultConnectionSubrateParametersOpCode,                           /* = 0x7D, gBleGapCmdLeSetDefaultConnectionSubrateParametersOpCode_c */
     HandleGapCmdConnectionSubrateRequestOpCode,                                        /* = 0x7E, gBleGapCmdLeConnectionSubrateRequestOpCode_c */
