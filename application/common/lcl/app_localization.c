@@ -187,12 +187,16 @@ static uint16_t maPsmChannels[gAppMaxConnections_c];
 static TIMER_MANAGER_HANDLE_DEFINE(mTemperatureTimerId);
 
 /* PCT Rotation calibration parameters */
-/* 50cm compensation for EVK and LOC boards */
-static uint8_t maPctRotationParams[4U * APP_LOCALIZATION_MAX_NO_ANTENNAS] = {57U, 1U, 0U, 0U,
-                                                                             57U, 1U, 0U, 0U,
-                                                                             57U, 1U, 0U, 0U,
-                                                                             57U, 1U, 0U, 0U};
-
+#if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
+/* 0cm compensation for LOC boards */
+static uint8_t maPctRotationParams[4U * APP_LOCALIZATION_MAX_NO_ANTENNAS] = {0U};
+#else
+/* 15cm compensation for EVK boards */
+static uint8_t maPctRotationParams[4U * APP_LOCALIZATION_MAX_NO_ANTENNAS] = {67U, 0U, 0U, 0U,
+                                                                             67U, 0U, 0U, 0U,
+                                                                             67U, 0U, 0U, 0U,
+                                                                             67U, 0U, 0U, 0U};
+#endif
 /************************************************************************************
 *************************************************************************************
 * Private prototypes
