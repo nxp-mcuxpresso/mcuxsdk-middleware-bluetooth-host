@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file digital_key_interface.h
 *
-* Copyright 2020-2022, 2024-2025 NXP
+* Copyright 2020-2022, 2024-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -77,29 +77,29 @@ typedef enum rangingMsgId_tag {
 
 /* DK Event Notification Payload Types */
 typedef enum dkEvtNotifMsgId_tag {
-    gDkEventNotification_c           = 0x01,
+    gDkEventNotification_c           = 0x11,
 } dkEvtNotifMsgId_t;
 
 /* Vehicle OEM App Payload Types */
 typedef enum vehicleOEMAppMsgId_tag {
-    gPassthrough_c                   = 0x01,
+    gPassthrough_c                   = 0x10,
 } vehicleOEMAppMsgId_t;
 
 /* Supplementary Service Payload Types */
 typedef enum suplServiceMsgId_tag {
-    gTimeSync_c                      = 0x01,
-    gFirstApproachRQ_c               = 0x02,
-    gFirstApproachRS_c               = 0x03,
-    gRKEAuthRQ_c                     = 0x04,
-    gRKEAuthRS_c                     = 0x05,
-    gUWBFinalData_c                  = 0x06,
+    gTimeSync_c                      = 0x0D,
+    gFirstApproachRQ_c               = 0x0E,
+    gFirstApproachRS_c               = 0x0F,
+    gRKEAuthRQ_c                     = 0x14,
+    gRKEAuthRS_c                     = 0x15,
+    gUWBFinalData_c                  = 0x19,
 } suplServiceMsgId_t;
 
 /* Head Unit Pairing Payload Types */
 typedef enum headUnitPairingMsgId_tag {
-    gHeadUnitPairingPrep_c           = 0x01,
-    gHeadUnitPairingRQ_c             = 0x02,
-    gHeadUnitPairingRS_c             = 0x03
+    gHeadUnitPairingPrep_c           = 0x16,
+    gHeadUnitPairingRQ_c             = 0x17,
+    gHeadUnitPairingRS_c             = 0x18,
 } headUnitPairingMsgId_t;
 
 typedef struct rangingMsg_tag {
@@ -115,7 +115,11 @@ typedef enum dkSubEventCategory_tag {
     gDeviceRangingIntent_c         = 0x03,
     gVehicleStatusChange_c         = 0x04,
     gRKERequest_c                  = 0x05,
-    gHeadUnitPairing_c             = 0x06
+    gHeadUnitPairing_c             = 0x06,
+    gDeviceUAPolicy_c              = 0x07,
+    gDeviceUAStatus_c              = 0x08,
+    gPDRDataRequest_c              = 0x09,
+    gPDRDataSubevent_c             = 0x0A,
 } dkSubEventCategory_t;
 
 typedef enum dkSubEventCommandCompleteType_tag {
@@ -131,6 +135,7 @@ typedef enum dkSubEventCommandCompleteType_tag {
     gCommandTemporarilyBlocked_c  = 0x84,
     gUnsupportedChannelBitmask_c  = 0x85,
     gOPDeviceNotInsideVehicle_c   = 0x86,
+    gDeviceResourceAvailable      = 0x87,
     gOOBMismatch_c                = 0xFC,
     gBLEPairingFailed_c           = 0xFD,
     gFACryptoOperationFailed_c    = 0xFE,
@@ -140,16 +145,18 @@ typedef enum dkSubEventCommandCompleteType_tag {
 typedef enum dkSubEventRangingSessionStatusChangedType_tag {
     gRangingSessionUsrkRefresh_c          = 0x00,
     gRangingSessionUsrkNotFound_c         = 0x01,
+    gRangingSessionNotRequired_c          = 0x02,
     gRangingSessionSrFailed_c             = 0x03,
     gRangingSessionTerminated_c           = 0x04,
     gRangingSessionRecoveryFailed_c       = 0x06,
+    gRangingSessionSuspended_c            = 0x07,
 } dkSubEventRangingSessionStatusChangedType_t;
 
 typedef enum dkSubEventDeviceRangingIntentType_tag
 {
-    gLowApproachConfidence_c    = 0x01,
-    gMediumApproachConfidence_c = 0x02,
-    gHighApproachConfidence_c   = 0x03
+    gLowApproachConfidence_c    = 0x00,
+    gMediumApproachConfidence_c = 0x01,
+    gHighApproachConfidence_c   = 0x02,
 } dkSubEventDeviceRangingIntentType_t;
 
 typedef enum dkSubEventHeadUnitType_tag {
