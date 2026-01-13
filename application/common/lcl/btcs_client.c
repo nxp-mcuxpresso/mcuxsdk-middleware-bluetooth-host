@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025 - 2026 NXP
 *
 * \file btcs_server.c
 *
@@ -21,6 +21,9 @@
 #include "channel_sounding.h"
 #include "btcs_client_interface.h"
 #include "app_localization.h"
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1U)
+#include "fsl_component_timer_manager.h"
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1U) */
 
 /************************************************************************************
 *************************************************************************************
@@ -323,6 +326,14 @@ static bleResult_t handleRangingProcResStart
         uint16_t u16;
         uint32_t u32;
     }dataLen = {0U};
+
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1U)
+    /* Set transferStart when first L2CAP paket is received */
+    if (gCsTimeInfo.transferStart == 0U)
+    {
+        gCsTimeInfo.transferStart = TM_GetTimestamp();
+    }
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1U) */
 
     /* Reset data in preparation for a new procedure */
     if (mPeerResultData[deviceId].pData == NULL)

@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2022-2025 NXP
+* Copyright 2022-2026 NXP
 *
 * \file app_localization.c
 *
@@ -3124,6 +3124,8 @@ void AppLocalization_RunAlgorithm
         gCsTimeInfo.noOfRcvSubEvsInConnInt = 0;
         gCsTimeInfo.csConfigEndTs = 0UL;
         gCsTimeInfo.csConfigStartTs = 0UL;
+        gCsTimeInfo.transferEnd = 0UL;
+        gCsTimeInfo.transferStart = 0UL;
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
 
         /* Update state */
