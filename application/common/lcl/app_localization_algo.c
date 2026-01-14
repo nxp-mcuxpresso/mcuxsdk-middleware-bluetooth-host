@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2023 - 2025 NXP
+* Copyright 2023 - 2026 NXP
 *
 * \file app_localization_algo.c
 *
@@ -734,376 +734,377 @@ static void AppLocalizationAlgo_UncompressRemoteResponse
 
         if ((mode & BIT7) != 0U)
         {
-            /* Step was aborted - length is assumed to be 0. Skip to the next step */
-            continue;
+            /* Step aborted, assume length zero */
         }
-
-        assert(mode <= 3);
-
-        pDstAppBuffer->csData.modeMap[step] = mode;
-        /* Get filter for the current mode */
-        filter = RasClient_GetModeFilter(pRemoteData->deviceId, mode);
-        quality = 0;
-
-        switch(mode)
+        else
         {
-            case 0:
+            assert(mode <= 3);
+
+            pDstAppBuffer->csData.modeMap[step] = mode;
+            /* Get filter for the current mode */
+            filter = RasClient_GetModeFilter(pRemoteData->deviceId, mode);
+            quality = 0;
+
+            switch(mode)
             {
-                if ((filter & BIT2) != 0U)
+                case 0:
                 {
-                    /* Data includes Packet Quality*/
-                    pEventData++;
-                    crtDataLen++;
-                }
-
-                if ((filter & BIT3) != 0U)
-                {
-                    /* Data includes Packet RSSI */
-                    pEventData++;
-                    crtDataLen++;
-                }
-
-                if ((filter & BIT4) != 0U)
-                {
-                    /* Data includes Packet Antenna */
-                    pEventData++;
-                    crtDataLen++;
-                }
-
-                if ((mGlobalRangeSettings.role == gCsRoleReflector_c)
-                    && ((filter & BIT5) != 0U))
-                {
-                    /* Data includes Measured_Freq_Offset information */
-                    pEventData += sizeof(uint16_t);
-                    crtDataLen += (uint16_t)sizeof(uint16_t);
-                }
-            }
-            break;
-
-            case 1:
-            {
-                /* ToF record */
-                step ++;
-                pDstAppBuffer->tof_data.nbSteps ++;
-
-                if ((filter & BIT2) != 0U)
-                {
-                    /* Data includes Packet Quality*/
-                    quality = (uint32_t)(*pEventData++);
-                    crtDataLen++;
-                }
-
-                if ((filter & BIT3) != 0U)
-                {
-                    /* Data includes Packet NADM */
-                    hciCsStoreBytesInTofBuffer(pDstAppBuffer, pEventData, (int)CS_NADM_SIZE); /* Packet_NADM */
-                    pEventData++;
-                    crtDataLen++;
-                }
-
-                if ((filter & BIT4) != 0U)
-                {
-                    /* Data includes Packet RSSI */
-                    hciCsStoreBytesInTofBuffer(pDstAppBuffer, pEventData, (int)CS_RSSI_SIZE);
-#if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
-                    if ((int8_t)(*pEventData) != gRssiNotAvailable_c)
-                    {
-                        /* Count RSSI if available */
-                        pDstAppBuffer->aRssiValue[pDstAppBuffer->rssiStepNo] = (int8_t)(*pEventData);
-                        pDstAppBuffer->rssiStepNo++;
-                    }
-#endif /* gAppParseRssiInfo_d */
-                    pEventData++;
-                    crtDataLen++;
-                }
-                else
-                {
-                    uint8_t rssi = 0U;
-                    hciCsStoreBytesInTofBuffer(pDstAppBuffer, &rssi, (int)CS_RSSI_SIZE);
-                }
-
-                if ((filter & BIT5) != 0U)
-                {
-                    int16_t temp1 = 0;
-
-                    /* Data includes ToA_ToD_Initiator/ToD_ToA_Reflector information */
-                    FLib_MemCpy(&ts_diff_hci, pEventData, sizeof(uint16_t)); /* Time Diff signed Q16, 2 bytes */
-                    pEventData += sizeof(uint16_t);
-                    crtDataLen += (uint16_t)sizeof(uint16_t);
-
-                    /* Combine TS_DIFF & quality on 24 bits and store in local buffer */
-                    temp1 = ts_diff_hci/2;
-                    ts_diff = (uint32_t)(temp1); /* HCI reports half ns, application expects ns in Tof Buffer */
-                    ts_diff &= 0x00FFFFU;
-                    ts_diff |= (quality & 0x0FU) << gTimeStampDiffSize_c;
-                    hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)CS_TS_SIZE);
-                }
-
-                if ((filter & BIT6) != 0U)
-                {
-                    /* Data includes Packet Antenna */
-                    pEventData++;
-                    crtDataLen++;
-                }
-
-                /* Check if data includes Packet_PCT1, Packet_PCT2 information (3 octets each) */
-                if (AppLocalization_GetRttSoundingSupport() == TRUE)
-                {
-                    if ((filter & BIT7) != 0U)
-                    {
-                        /* Data includes Packet_PCT1 */
-                        pEventData += gPacket_PCTSize_c;
-                        crtDataLen += gPacket_PCTSize_c;
-                    }
-
-                    if ((filter & BIT8) != 0U)
-                    {
-                        /* Data includes Packet_PCT2 */
-                        pEventData += gPacket_PCTSize_c;
-                        crtDataLen += gPacket_PCTSize_c;
-                    }
-                }
-            }
-            break;
-
-            case 2:
-            {
-                /* Tone record */
-                step++;
-                antPermIndex = 0;
-
-                if ((filter & BIT2) != 0U)
-                {
-                    /* Data includes Antenna Permutation Index */
-                    antPermIndex = *pEventData++; /* Antenna_Permutation_Index */
-                    crtDataLen++;
-                }
-                pAntIndex = &maAntPermNAp[antPermIndex][0];
-                antIdx = 0U;
-                FLib_MemSet(iq_dec, 0, ISP_MAX_NO_ANTENNAS * sizeof(int32_t));
-                FLib_MemSet(tqi, 0U, ISP_MAX_NO_ANTENNAS);
-
-                /* Num_Antenna_Path + 1 are reported by the firmware, but discard last one */
-                /* Re-order per antenna path index */
-                for (uint8_t idx = 0U; idx <= pRemoteData->numAntennaPaths; idx++)
-                {
-                    if (idx == pRemoteData->numAntennaPaths)
-                    {
-                        /* Skip last IQ data (n_ap+1) */
-                        if (((antIdx == 0U) && ((filter & BIT5) != 0U)) ||
-                        ((antIdx == 1U) && ((filter & BIT6) != 0U)) ||
-                        ((antIdx == 2U) && ((filter & BIT7) != 0U)) ||
-                        ((antIdx == 3U) && ((filter & BIT8) != 0U)))
-                        {
-                            pEventData += gTone_PCTSize_c + sizeof(uint8_t);
-                            crtDataLen += gTone_PCTSize_c + sizeof(uint8_t);
-                        }
-                        break;
-                    }
-                    antIdx = pAntIndex[idx];
-
-                    /* Check if the corresponding Antenna Path is enabled */
-                    if (((antIdx == 0U) && ((filter & BIT5) != 0U)) ||
-                        ((antIdx == 1U) && ((filter & BIT6) != 0U)) ||
-                        ((antIdx == 2U) && ((filter & BIT7) != 0U)) ||
-                        ((antIdx == 3U) && ((filter & BIT8) != 0U)))
-                    {
-                        if ((filter & BIT3) != 0U)
-                        {
-                            /* Data includes Tone_PCT information */
-                            uint32_t temp1 = ((uint32_t)pEventData[2])<<BIT4 | ((uint32_t)pEventData[1])<<BIT3
-                                  | ((uint32_t)pEventData[0]);
-                            int32_t iq = (int32_t)temp1;
-
-                            /* Swap I and Q as application expects I as MSB and Q as LSB (opposite from Tone_PCT[k]) */
-                            uint32_t temp2 = (((uint32_t)(((uint32_t)iq)&0xFFFU) << gIQSampleSize_c) |
-                                              ((uint32_t)(((uint32_t)iq)>>gIQSampleSize_c)&0xFFFU));
-                            iq_dec[antIdx] = (int32_t)temp2;
-                            pEventData += gTone_PCTSize_c;
-                            crtDataLen += gTone_PCTSize_c;
-                        }
-
-                        if ((filter & BIT4) != 0U)
-                        {
-                            /* Data includes Tone_Quality_Indication */
-                            tqi[antIdx] = *pEventData;
-                            pEventData += sizeof(uint8_t);
-                            crtDataLen++;
-                        }
-                    }
-                }
-
-                for (uint8_t idx = 0U; idx < pDstAppBuffer->mciq_data.n_ap; idx++)
-                {
-                    hciCsStoreBytesInIqBuffer(pDstAppBuffer, (uint8_t *)&iq_dec[idx], 3);
-                    hciCsStoreBytesInIqBuffer(pDstAppBuffer, &tqi[idx], 1);
-                }
-
-                pDstAppBuffer->mciq_data.nbSteps ++;
-            }
-            break;
-
-            case 3:
-            {
-                int16_t temp = 0;
-
-                /* ToF+Tone record */
-                step ++;
-
-                if ((filter & BIT2) != 0U)
-                {
-                    /* Data includes Packet Quality*/
-                    quality = (uint32_t)(*pEventData++);
-                    crtDataLen++;
-                }
-
-                if ((filter & BIT3) != 0U)
-                {
-                    /* Data includes Packet NADM */
-                    pEventData++;
-                    crtDataLen++;
-                }
-
-                if ((filter & BIT4) != 0U)
-                {
-                    /* Data includes Packet RSSI */
-                    hciCsStoreBytesInTofBuffer(pDstAppBuffer, pEventData, (int)CS_RSSI_SIZE);
-#if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
-                    if ((int8_t)(*pEventData) != gRssiNotAvailable_c)
-                    {
-                        /* Count RSSI if available */
-                        pDstAppBuffer->aRssiValue[pDstAppBuffer->rssiStepNo] = (int8_t)(*pEventData);
-                        pDstAppBuffer->rssiStepNo++;
-                    }
-#endif /* gAppParseRssiInfo_d */
-                    pEventData++;
-                    crtDataLen++;
-                }
-
-                if ((filter & BIT5) != 0U)
-                {
-                    /* Data includes ToA_ToD_Initiator/ToD_ToA_Reflector information */
-                    FLib_MemCpy(&ts_diff_hci, pEventData, sizeof(uint16_t)); /* Time Diff signed Q16, 2 bytes */
-                    pEventData += sizeof(uint16_t);
-                    crtDataLen += (uint16_t)sizeof(uint16_t);
-
-                    /* Combine TS_DIFF & quality on 24 bits and store in local buffer */
                     if ((filter & BIT2) != 0U)
                     {
-                        temp = ts_diff_hci/2;
-                        ts_diff = (uint32_t)(temp); /* HCI reports half ns, application expects ns in Tof Buffer */
+                        /* Data includes Packet Quality*/
+                        pEventData++;
+                        crtDataLen++;
+                    }
+
+                    if ((filter & BIT3) != 0U)
+                    {
+                        /* Data includes Packet RSSI */
+                        pEventData++;
+                        crtDataLen++;
+                    }
+
+                    if ((filter & BIT4) != 0U)
+                    {
+                        /* Data includes Packet Antenna */
+                        pEventData++;
+                        crtDataLen++;
+                    }
+
+                    if ((mGlobalRangeSettings.role == gCsRoleReflector_c)
+                        && ((filter & BIT5) != 0U))
+                    {
+                        /* Data includes Measured_Freq_Offset information */
+                        pEventData += sizeof(uint16_t);
+                        crtDataLen += (uint16_t)sizeof(uint16_t);
+                    }
+                }
+                break;
+
+                case 1:
+                {
+                    /* ToF record */
+                    step ++;
+                    pDstAppBuffer->tof_data.nbSteps ++;
+
+                    if ((filter & BIT2) != 0U)
+                    {
+                        /* Data includes Packet Quality*/
+                        quality = (uint32_t)(*pEventData++);
+                        crtDataLen++;
+                    }
+
+                    if ((filter & BIT3) != 0U)
+                    {
+                        /* Data includes Packet NADM */
+                        hciCsStoreBytesInTofBuffer(pDstAppBuffer, pEventData, (int)CS_NADM_SIZE); /* Packet_NADM */
+                        pEventData++;
+                        crtDataLen++;
+                    }
+
+                    if ((filter & BIT4) != 0U)
+                    {
+                        /* Data includes Packet RSSI */
+                        hciCsStoreBytesInTofBuffer(pDstAppBuffer, pEventData, (int)CS_RSSI_SIZE);
+    #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
+                        if ((int8_t)(*pEventData) != gRssiNotAvailable_c)
+                        {
+                            /* Count RSSI if available */
+                            pDstAppBuffer->aRssiValue[pDstAppBuffer->rssiStepNo] = (int8_t)(*pEventData);
+                            pDstAppBuffer->rssiStepNo++;
+                        }
+    #endif /* gAppParseRssiInfo_d */
+                        pEventData++;
+                        crtDataLen++;
+                    }
+                    else
+                    {
+                        uint8_t rssi = 0U;
+                        hciCsStoreBytesInTofBuffer(pDstAppBuffer, &rssi, (int)CS_RSSI_SIZE);
+                    }
+
+                    if ((filter & BIT5) != 0U)
+                    {
+                        int16_t temp1 = 0;
+
+                        /* Data includes ToA_ToD_Initiator/ToD_ToA_Reflector information */
+                        FLib_MemCpy(&ts_diff_hci, pEventData, sizeof(uint16_t)); /* Time Diff signed Q16, 2 bytes */
+                        pEventData += sizeof(uint16_t);
+                        crtDataLen += (uint16_t)sizeof(uint16_t);
+
+                        /* Combine TS_DIFF & quality on 24 bits and store in local buffer */
+                        temp1 = ts_diff_hci/2;
+                        ts_diff = (uint32_t)(temp1); /* HCI reports half ns, application expects ns in Tof Buffer */
                         ts_diff &= 0x00FFFFU;
                         ts_diff |= (quality & 0x0FU) << gTimeStampDiffSize_c;
                         hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)CS_TS_SIZE);
                     }
-                }
 
-                if ((filter & BIT6) != 0U)
-                {
-                    /* Data includes Packet Antenna */
-                    pEventData++;
-                    crtDataLen++;
-                }
-
-                /* Check if data includes Packet_PCT1, Packet_PCT2 information (3 octets each) */
-                if (AppLocalization_GetRttSoundingSupport() == TRUE)
-                {
-                    if ((filter & BIT7) != 0U)
+                    if ((filter & BIT6) != 0U)
                     {
-                        /* Data includes Packet_PCT1 */
-                        pEventData += gPacket_PCTSize_c;
-                        crtDataLen += gPacket_PCTSize_c;
+                        /* Data includes Packet Antenna */
+                        pEventData++;
+                        crtDataLen++;
                     }
 
-                    if ((filter & BIT8) != 0U)
+                    /* Check if data includes Packet_PCT1, Packet_PCT2 information (3 octets each) */
+                    if (AppLocalization_GetRttSoundingSupport() == TRUE)
                     {
-                        /* Data includes Packet_PCT2 */
-                        pEventData += gPacket_PCTSize_c;
-                        crtDataLen += gPacket_PCTSize_c;
-                    }
-                }
-
-                antPermIndex = 0;
-
-                if ((filter & BIT9) != 0U)
-                {
-                    /* Data includes Antenna Permutation Index */
-                    antPermIndex = *pEventData++; /* Antenna_Permutation_Index */
-                    crtDataLen++;
-                }
-                pAntIndex = &maAntPermNAp[antPermIndex][0];
-                antIdx = 0U;
-                FLib_MemSet(iq_dec, 0, ISP_MAX_NO_ANTENNAS * sizeof(int32_t));
-                FLib_MemSet(tqi, 0U, ISP_MAX_NO_ANTENNAS);
-
-                /* Num_Antenna_Path + 1 are reported by the firmware, but discard last one */
-                /* Re-order per antenna path index */
-                for (uint8_t idx = 0U; idx <= pRemoteData->numAntennaPaths; idx++)
-                {
-                    if (idx == pRemoteData->numAntennaPaths)
-                    {
-                        /* Skip last IQ data (n_ap+1) */
-                      if (((antIdx == 0U) && ((filter & BIT12) != 0U)) ||
-                        ((antIdx == 1U) && ((filter & BIT13) != 0U)) ||
-                        ((antIdx == 2U) && ((filter & BIT14) != 0U)) ||
-                        ((antIdx == 3U) && ((filter & BIT15) != 0U)))
+                        if ((filter & BIT7) != 0U)
                         {
-                            pEventData += gTone_PCTSize_c + sizeof(uint8_t);
-                            crtDataLen += gTone_PCTSize_c + sizeof(uint8_t);
-                        }
-                        break;
-                    }
-                    antIdx = pAntIndex[idx];
-
-                    /* Check if the corresponding Antenna Path is enabled */
-                    if (((antIdx == 0U) && ((filter & BIT12) != 0U)) ||
-                        ((antIdx == 1U) && ((filter & BIT13) != 0U)) ||
-                        ((antIdx == 2U) && ((filter & BIT14) != 0U)) ||
-                        ((antIdx == 3U) && ((filter & BIT15) != 0U)))
-                    {
-                        if ((filter & BIT10) != 0U)
-                        {
-                            /* Data includes Tone_PCT information */
-                            uint32_t temp1 = ((uint32_t)pEventData[2])<<BIT4 | ((uint32_t)pEventData[1])<<BIT3
-                                  | ((uint32_t)pEventData[0]);
-                            int32_t iq = (int32_t)temp1;
-
-                            /* Swap I and Q as application expects I as MSB and Q as LSB (opposite from Tone_PCT[k]) */
-                            uint32_t temp2 = (((uint32_t)(((uint32_t)iq)&0xFFFU) << gIQSampleSize_c) |
-                                              ((uint32_t)(((uint32_t)iq)>>gIQSampleSize_c)&0xFFFU));
-                            iq_dec[antIdx] = (int32_t)temp2;
-                            pEventData += gTone_PCTSize_c;
-                            crtDataLen += gTone_PCTSize_c;
+                            /* Data includes Packet_PCT1 */
+                            pEventData += gPacket_PCTSize_c;
+                            crtDataLen += gPacket_PCTSize_c;
                         }
 
-                        if ((filter & BIT11) != 0U)
+                        if ((filter & BIT8) != 0U)
                         {
-                            /* Data includes Tone_Quality_Indication */
-                            tqi[antIdx] = *pEventData;
-                            pEventData += sizeof(uint8_t);
-                            crtDataLen++;
+                            /* Data includes Packet_PCT2 */
+                            pEventData += gPacket_PCTSize_c;
+                            crtDataLen += gPacket_PCTSize_c;
                         }
                     }
                 }
+                break;
 
-                for (uint8_t idx = 0U; idx < pDstAppBuffer->mciq_data.n_ap; idx++)
+                case 2:
                 {
-                    hciCsStoreBytesInIqBuffer(pDstAppBuffer, (uint8_t *)&iq_dec[idx], 3);
-                    hciCsStoreBytesInIqBuffer(pDstAppBuffer, &tqi[idx], 1);
-                }
+                    /* Tone record */
+                    step++;
+                    antPermIndex = 0;
 
-                pDstAppBuffer->mciq_data.nbSteps ++;
+                    if ((filter & BIT2) != 0U)
+                    {
+                        /* Data includes Antenna Permutation Index */
+                        antPermIndex = *pEventData++; /* Antenna_Permutation_Index */
+                        crtDataLen++;
+                    }
+                    pAntIndex = &maAntPermNAp[antPermIndex][0];
+                    antIdx = 0U;
+                    FLib_MemSet(iq_dec, 0, ISP_MAX_NO_ANTENNAS * sizeof(int32_t));
+                    FLib_MemSet(tqi, 0U, ISP_MAX_NO_ANTENNAS);
+
+                    /* Num_Antenna_Path + 1 are reported by the firmware, but discard last one */
+                    /* Re-order per antenna path index */
+                    for (uint8_t idx = 0U; idx <= pRemoteData->numAntennaPaths; idx++)
+                    {
+                        if (idx == pRemoteData->numAntennaPaths)
+                        {
+                            /* Skip last IQ data (n_ap+1) */
+                            if (((antIdx == 0U) && ((filter & BIT5) != 0U)) ||
+                            ((antIdx == 1U) && ((filter & BIT6) != 0U)) ||
+                            ((antIdx == 2U) && ((filter & BIT7) != 0U)) ||
+                            ((antIdx == 3U) && ((filter & BIT8) != 0U)))
+                            {
+                                pEventData += gTone_PCTSize_c + sizeof(uint8_t);
+                                crtDataLen += gTone_PCTSize_c + sizeof(uint8_t);
+                            }
+                            break;
+                        }
+                        antIdx = pAntIndex[idx];
+
+                        /* Check if the corresponding Antenna Path is enabled */
+                        if (((antIdx == 0U) && ((filter & BIT5) != 0U)) ||
+                            ((antIdx == 1U) && ((filter & BIT6) != 0U)) ||
+                            ((antIdx == 2U) && ((filter & BIT7) != 0U)) ||
+                            ((antIdx == 3U) && ((filter & BIT8) != 0U)))
+                        {
+                            if ((filter & BIT3) != 0U)
+                            {
+                                /* Data includes Tone_PCT information */
+                                uint32_t temp1 = ((uint32_t)pEventData[2])<<BIT4 | ((uint32_t)pEventData[1])<<BIT3
+                                      | ((uint32_t)pEventData[0]);
+                                int32_t iq = (int32_t)temp1;
+
+                                /* Swap I and Q as application expects I as MSB and Q as LSB (opposite from Tone_PCT[k]) */
+                                uint32_t temp2 = (((uint32_t)(((uint32_t)iq)&0xFFFU) << gIQSampleSize_c) |
+                                                  ((uint32_t)(((uint32_t)iq)>>gIQSampleSize_c)&0xFFFU));
+                                iq_dec[antIdx] = (int32_t)temp2;
+                                pEventData += gTone_PCTSize_c;
+                                crtDataLen += gTone_PCTSize_c;
+                            }
+
+                            if ((filter & BIT4) != 0U)
+                            {
+                                /* Data includes Tone_Quality_Indication */
+                                tqi[antIdx] = *pEventData;
+                                pEventData += sizeof(uint8_t);
+                                crtDataLen++;
+                            }
+                        }
+                    }
+
+                    for (uint8_t idx = 0U; idx < pDstAppBuffer->mciq_data.n_ap; idx++)
+                    {
+                        hciCsStoreBytesInIqBuffer(pDstAppBuffer, (uint8_t *)&iq_dec[idx], 3);
+                        hciCsStoreBytesInIqBuffer(pDstAppBuffer, &tqi[idx], 1);
+                    }
+
+                    pDstAppBuffer->mciq_data.nbSteps ++;
+                }
+                break;
+
+                case 3:
+                {
+                    int16_t temp = 0;
+
+                    /* ToF+Tone record */
+                    step ++;
+
+                    if ((filter & BIT2) != 0U)
+                    {
+                        /* Data includes Packet Quality*/
+                        quality = (uint32_t)(*pEventData++);
+                        crtDataLen++;
+                    }
+
+                    if ((filter & BIT3) != 0U)
+                    {
+                        /* Data includes Packet NADM */
+                        pEventData++;
+                        crtDataLen++;
+                    }
+
+                    if ((filter & BIT4) != 0U)
+                    {
+                        /* Data includes Packet RSSI */
+                        hciCsStoreBytesInTofBuffer(pDstAppBuffer, pEventData, (int)CS_RSSI_SIZE);
+    #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
+                        if ((int8_t)(*pEventData) != gRssiNotAvailable_c)
+                        {
+                            /* Count RSSI if available */
+                            pDstAppBuffer->aRssiValue[pDstAppBuffer->rssiStepNo] = (int8_t)(*pEventData);
+                            pDstAppBuffer->rssiStepNo++;
+                        }
+    #endif /* gAppParseRssiInfo_d */
+                        pEventData++;
+                        crtDataLen++;
+                    }
+
+                    if ((filter & BIT5) != 0U)
+                    {
+                        /* Data includes ToA_ToD_Initiator/ToD_ToA_Reflector information */
+                        FLib_MemCpy(&ts_diff_hci, pEventData, sizeof(uint16_t)); /* Time Diff signed Q16, 2 bytes */
+                        pEventData += sizeof(uint16_t);
+                        crtDataLen += (uint16_t)sizeof(uint16_t);
+
+                        /* Combine TS_DIFF & quality on 24 bits and store in local buffer */
+                        if ((filter & BIT2) != 0U)
+                        {
+                            temp = ts_diff_hci/2;
+                            ts_diff = (uint32_t)(temp); /* HCI reports half ns, application expects ns in Tof Buffer */
+                            ts_diff &= 0x00FFFFU;
+                            ts_diff |= (quality & 0x0FU) << gTimeStampDiffSize_c;
+                            hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)CS_TS_SIZE);
+                        }
+                    }
+
+                    if ((filter & BIT6) != 0U)
+                    {
+                        /* Data includes Packet Antenna */
+                        pEventData++;
+                        crtDataLen++;
+                    }
+
+                    /* Check if data includes Packet_PCT1, Packet_PCT2 information (3 octets each) */
+                    if (AppLocalization_GetRttSoundingSupport() == TRUE)
+                    {
+                        if ((filter & BIT7) != 0U)
+                        {
+                            /* Data includes Packet_PCT1 */
+                            pEventData += gPacket_PCTSize_c;
+                            crtDataLen += gPacket_PCTSize_c;
+                        }
+
+                        if ((filter & BIT8) != 0U)
+                        {
+                            /* Data includes Packet_PCT2 */
+                            pEventData += gPacket_PCTSize_c;
+                            crtDataLen += gPacket_PCTSize_c;
+                        }
+                    }
+
+                    antPermIndex = 0;
+
+                    if ((filter & BIT9) != 0U)
+                    {
+                        /* Data includes Antenna Permutation Index */
+                        antPermIndex = *pEventData++; /* Antenna_Permutation_Index */
+                        crtDataLen++;
+                    }
+                    pAntIndex = &maAntPermNAp[antPermIndex][0];
+                    antIdx = 0U;
+                    FLib_MemSet(iq_dec, 0, ISP_MAX_NO_ANTENNAS * sizeof(int32_t));
+                    FLib_MemSet(tqi, 0U, ISP_MAX_NO_ANTENNAS);
+
+                    /* Num_Antenna_Path + 1 are reported by the firmware, but discard last one */
+                    /* Re-order per antenna path index */
+                    for (uint8_t idx = 0U; idx <= pRemoteData->numAntennaPaths; idx++)
+                    {
+                        if (idx == pRemoteData->numAntennaPaths)
+                        {
+                            /* Skip last IQ data (n_ap+1) */
+                          if (((antIdx == 0U) && ((filter & BIT12) != 0U)) ||
+                            ((antIdx == 1U) && ((filter & BIT13) != 0U)) ||
+                            ((antIdx == 2U) && ((filter & BIT14) != 0U)) ||
+                            ((antIdx == 3U) && ((filter & BIT15) != 0U)))
+                            {
+                                pEventData += gTone_PCTSize_c + sizeof(uint8_t);
+                                crtDataLen += gTone_PCTSize_c + sizeof(uint8_t);
+                            }
+                            break;
+                        }
+                        antIdx = pAntIndex[idx];
+
+                        /* Check if the corresponding Antenna Path is enabled */
+                        if (((antIdx == 0U) && ((filter & BIT12) != 0U)) ||
+                            ((antIdx == 1U) && ((filter & BIT13) != 0U)) ||
+                            ((antIdx == 2U) && ((filter & BIT14) != 0U)) ||
+                            ((antIdx == 3U) && ((filter & BIT15) != 0U)))
+                        {
+                            if ((filter & BIT10) != 0U)
+                            {
+                                /* Data includes Tone_PCT information */
+                                uint32_t temp1 = ((uint32_t)pEventData[2])<<BIT4 | ((uint32_t)pEventData[1])<<BIT3
+                                      | ((uint32_t)pEventData[0]);
+                                int32_t iq = (int32_t)temp1;
+
+                                /* Swap I and Q as application expects I as MSB and Q as LSB (opposite from Tone_PCT[k]) */
+                                uint32_t temp2 = (((uint32_t)(((uint32_t)iq)&0xFFFU) << gIQSampleSize_c) |
+                                                  ((uint32_t)(((uint32_t)iq)>>gIQSampleSize_c)&0xFFFU));
+                                iq_dec[antIdx] = (int32_t)temp2;
+                                pEventData += gTone_PCTSize_c;
+                                crtDataLen += gTone_PCTSize_c;
+                            }
+
+                            if ((filter & BIT11) != 0U)
+                            {
+                                /* Data includes Tone_Quality_Indication */
+                                tqi[antIdx] = *pEventData;
+                                pEventData += sizeof(uint8_t);
+                                crtDataLen++;
+                            }
+                        }
+                    }
+
+                    for (uint8_t idx = 0U; idx < pDstAppBuffer->mciq_data.n_ap; idx++)
+                    {
+                        hciCsStoreBytesInIqBuffer(pDstAppBuffer, (uint8_t *)&iq_dec[idx], 3);
+                        hciCsStoreBytesInIqBuffer(pDstAppBuffer, &tqi[idx], 1);
+                    }
+
+                    pDstAppBuffer->mciq_data.nbSteps ++;
+                }
+                break;
+
+                default:
+                {
+                    /* mode not yet implemented, skip data */
+                }
+                break;
             }
-            break;
-
-            default:
-            {
-                /* mode not yet implemented, skip data */
-            }
-            break;
         }
 
-        /* Increase parsed number of steps for the current subevent */
+        /* Count step for the current subevent whether it was aborted or not */
         pRemoteData->crtNumSteps++;
 
         if (pRemoteData->crtNumSteps ==
