@@ -742,22 +742,8 @@ bleResult_t AppLocalization_StopMeasurement
 {
     bleResult_t result = gBleSuccess_c;
 
-    /* Reset measurement data */
-    if (mResultData[deviceId].pData != NULL)
-    {
-        (void)MEM_BufferFree(mResultData[deviceId].pData);
-        mResultData[deviceId].pData = NULL;
-    }
-    FLib_MemSet(&mResultData[deviceId], 0x00, sizeof(rasMeasurementData_t));
-
-#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
-#if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
-    RasClient_ResetRasTransferInfo(deviceId);
-#endif /* gRasRREQ_d */
-#endif /* gAppRasDataTransfer_d */
-
-    /* Reset state back to idle */
-    maAppLclState[deviceId] = gAppLclIdle_c;
+    /* Send the command to disable the ongoing CS procedure */
+    maAppLclState[deviceId] = gAppLclWaitingForPECS_c;
     result = CS_ProcedureEnable(deviceId, mRangeSettings[deviceId].configId, FALSE);
 
     return result;
@@ -2164,50 +2150,71 @@ static void AppLocalization_CSMetaEventCallback
             csProcedureEnableCompleteEvent_t* pProcEnableComplete = (csProcedureEnableCompleteEvent_t*)pPacket->pEventData;
             deviceId = pProcEnableComplete->deviceId;
 
-            /* Update number of procedures and reset internal counters */
-            mRangeSettings[deviceId].maxNumProcedures = pProcEnableComplete->procedureCount;
-
 #if defined (gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
             maAlgoRunCount[deviceId] = 0U;
 #endif
             maCsProcCount[deviceId] = 0U;
 
-            if (mResultData[deviceId].pData == NULL)
+            /* Procedure was enabled */
+            if (pProcEnableComplete->state == 1U)
             {
-                mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
+                /* Update number of procedures and reset internal counters */
+                mRangeSettings[deviceId].maxNumProcedures = pProcEnableComplete->procedureCount;
+
                 if (mResultData[deviceId].pData == NULL)
                 {
-                    result = gBleOutOfMemory_c;
+                    mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
+                    if (mResultData[deviceId].pData == NULL)
+                    {
+                        result = gBleOutOfMemory_c;
+                    }
                 }
-            }
 
-            if (result == gBleSuccess_c)
-            {
+                if (result == gBleSuccess_c)
+                {
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-                gCsTimeInfo.subeventInterval = pProcEnableComplete->subeventInterval;
-                gCsTimeInfo.subeventLen = Utils_ExtractThreeByteValue(pProcEnableComplete->subeventLen);
+                    gCsTimeInfo.subeventInterval = pProcEnableComplete->subeventInterval;
+                    gCsTimeInfo.subeventLen = Utils_ExtractThreeByteValue(pProcEnableComplete->subeventLen);
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
 
 #if defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
-                BtcsServer_SetServerCfg(deviceId, mResultData);
+                    BtcsServer_SetServerCfg(deviceId, mResultData);
 #endif /* defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U) */
 
-                /* Wait for measurement data. */
-                maAppLclState[deviceId] = gAppLclWaitingForMeasData_c;
+                    /* Wait for measurement data. */
+                    maAppLclState[deviceId] = gAppLclWaitingForMeasData_c;
 
-                mResultData[deviceId].selectedTxPower = ((int8_t)pProcEnableComplete->selectedTxPower);
+                    mResultData[deviceId].selectedTxPower = ((int8_t)pProcEnableComplete->selectedTxPower);
 
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-                gCsTimeInfo.csDistMeasStart = TM_GetTimestamp();
+                    gCsTimeInfo.csDistMeasStart = TM_GetTimestamp();
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
 
-                if (mGlobalRangeSettings.role == gCsRoleReflector_c)
-                {
-                    if (mpfAppCsCallback != NULL)
+                    if (mGlobalRangeSettings.role == gCsRoleReflector_c)
                     {
-                        mpfAppCsCallback(deviceId, NULL, gDistanceMeastStarted_c);
+                        if (mpfAppCsCallback != NULL)
+                        {
+                            mpfAppCsCallback(deviceId, NULL, gDistanceMeastStarted_c);
+                        }
                     }
                 }
+            }
+            /* Procedure was disabled either by the local or remote device */
+            else
+            {
+                /* Reset measurement data */
+                if (mResultData[deviceId].pData != NULL)
+                {
+                    (void)MEM_BufferFree(mResultData[deviceId].pData);
+                    mResultData[deviceId].pData = NULL;
+                }
+                FLib_MemSet(&mResultData[deviceId], 0x00, sizeof(rasMeasurementData_t));
+
+#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
+#if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
+                RasClient_ResetRasTransferInfo(deviceId);
+#endif /* gRasRREQ_d */
+#endif /* gAppRasDataTransfer_d */
             }
         }
         break;
