@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023, 2025 NXP
+ * Copyright 2020-2023, 2025-2026 NXP
  *
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -142,7 +142,7 @@ bleResult_t Hcit_Init(hciTransportInterface_t hcitConfigStruct)
             mTransportInterface = hcitConfigStruct;
 
             /* Register RX callback to PLATFORM layer */
-            PLATFORM_SetHciRxCallback(Hcit_RxCallBack);
+            (void)PLATFORM_SetHciRxCallback(Hcit_RxCallBack);
 
             /* Flag initialization on module */
             mHcitInit = TRUE;
@@ -179,7 +179,7 @@ bleResult_t Hcit_Deinit(void)
             mTransportInterface = NULL;
 
             /* Reset RX callback */
-            PLATFORM_SetHciRxCallback(NULL);
+            (void)PLATFORM_SetHciRxCallback(NULL);
 
             HCI_MUTEX_LOCK();
             /* Release allocated memory */
