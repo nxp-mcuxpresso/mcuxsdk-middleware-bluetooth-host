@@ -278,10 +278,6 @@ void AppLocalizationAlgo_RunMeasurement
         AppLocalizationAlgo_UncompressResponse(pLocalData, localAppDataBuffer);
 
         /* Uncompress remote data */
-        for (uint8_t idx = 0U; idx <= pPeerData->subeventIndex; idx++)
-        {
-            response.cs_data->subevtDoneStatusRemote[idx] = pPeerData->aSubEventData[idx].subevtHeader.subeventDoneStatus;
-        }
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
 #if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
         AppLocalizationAlgo_UncompressRemoteResponse(pPeerData, remoteAppDataBuffer);
@@ -289,6 +285,12 @@ void AppLocalizationAlgo_RunMeasurement
 #else
         AppLocalizationAlgo_UncompressRemoteResponseL2CAP(pPeerData, pLocalData, remoteAppDataBuffer);
 #endif
+        /* Populate after uncompressing remote response */
+        for (uint8_t idx = 0U; idx <= pPeerData->subeventIndex; idx++)
+        {
+            response.cs_data->subevtDoneStatusRemote[idx] = pPeerData->aSubEventData[idx].subevtHeader.subeventDoneStatus;
+        }
+
         FLib_MemCpy(remoteAppDataBuffer->csData.channelMap,
                     localAppDataBuffer->csData.channelMap,
                     APP_LOCALIZATION_MAX_STEPS);
