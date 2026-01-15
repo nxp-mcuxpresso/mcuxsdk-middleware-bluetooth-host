@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 *
 * \file
@@ -516,7 +516,7 @@ static void  NBU_HADM_CopyConfig(void)
     uint32_t clock;
     uint16_t qus;
     LL_API_GetBleTiming(&clock, &qus);
-    uint64_t tstmr = *(uint64_t *)TSTMR0;
+    uint64_t tstmr =  PLATFORM_TSTMR_ReadTimeStamp(TSTMR_1MHZ_ID);
 
     uint64_t current = ((uint64_t)clock*625*2 + (uint64_t)qus) / 4;
     uint64_t start   = (uint64_t)ulStartTimeHSlot * 625 * 2 / 4 + (uint64_t)ulStartTimeOffsetUs;
