@@ -66,6 +66,9 @@
 
 #define gAppUseShellInApplication_d     1
 
+/*! Display distance measurement related timing information */
+#define gAppCsTimeInfo_d                0
+
 #define gAppLowpowerEnabled_d           0
 
 #define gAppDisableControllerLowPower_d 0
