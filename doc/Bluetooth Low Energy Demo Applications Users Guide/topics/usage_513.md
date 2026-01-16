@@ -99,5 +99,9 @@ The application is built to work with any other Bluetooth LE device. To showcase
 :heading-offset: 3
 ```
 
+```{include} ../topics/ble_shell_tak.md
+:heading-offset: 3
+```
+
 **Parent topic:**[Bluetooth LE Shell](../topics/bluetooth_le_shell_513.md)
 

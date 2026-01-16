@@ -468,6 +468,22 @@ bleResult_t Gap_EncryptLink
     deviceId_t                  deviceId
 );
 
+/*!*************************************************************************************************
+*\fn    bleResult_t Gap_EncryptLinkTak(deviceId_t deviceId, uint8_t *pTak). GAP Central-only API function.
+*
+*\brief Encrypts the link using a Transient Application Key.
+*
+*\param [in] deviceId       Device ID of the peer.
+*\param [in] ptak           Pointer to the Transient Key.
+*
+*\retval     bleResult_t    gBleSuccess_c or error.
+***************************************************************************************************/
+bleResult_t Gap_EncryptLinkTak
+(
+    deviceId_t  deviceId,
+    uint8_t     *pTak
+);
+
 /*! *********************************************************************************
 * \brief  Accepts the pairing request from a peer.
 *
@@ -696,6 +712,25 @@ bleResult_t Gap_LeScSendKeypressNotification
 *
 ********************************************************************************** */
 bleResult_t Gap_ProvideLongTermKey
+(
+    deviceId_t        deviceId,
+    const uint8_t*    aLtk,
+    uint8_t           ltkSize
+);
+
+/*!*************************************************************************************************
+*\fn    bleResult_t Gap_ProvideLongTermKeyTak(deviceId_t deviceId, const uint8_t* aLtk, uint8_t ltkSize)
+*
+*\brief Provides the Long Term Key (TAK) to the controller for encryption setup.
+*       GAP Peripheral-only API function.
+*
+*\param [in] deviceId       The GAP peer who requested encryption.
+*\param [in] aLtk           The Transient Application Key.
+*\param [in] ltkSize        The Transient Application Key size.
+*
+*\retval     bleResult_t    gBleSuccess_c or error.
+***************************************************************************************************/
+bleResult_t Gap_ProvideLongTermKeyTak
 (
     deviceId_t        deviceId,
     const uint8_t*    aLtk,

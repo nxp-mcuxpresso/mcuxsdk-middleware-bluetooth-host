@@ -116,6 +116,12 @@
            ((defined BLE_SHELL_DBAF_SUPPORT) && (BLE_SHELL_DBAF_SUPPORT == 1)) || \
            ((defined BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT == 1))) */
 
+/*! Transient application key demo */
+#define BLE_SHELL_TAK_SUPPORT                   0
+
+/*! Number of TAK keys the application can store at once */
+#define BLE_SHELL_MAX_TAK_ENTRIES               1U
+
 /*! *********************************************************************************
  *     Framework Configuration
  ********************************************************************************** */

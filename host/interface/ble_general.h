@@ -1081,6 +1081,7 @@ typedef enum {
     gReadMonAdvListSize_c = 0x92U,                  /*!< An error occurred during the Read Monitored Advertisers List Size */
     gSetDefaultConnectionSubrateParameters_c = 0x93U,/*!< An error occurred while setting the Default Connection Subrate Parameters*/
     gConnectionSubrateRequest_c = 0x94U,             /*!< An error occurred during the Connection Subrate procedure */
+    gEncryptLinkTak_c = 0x95U,                       /*!< An error occurred during Encrypt link with TAK procedure */
 } gapInternalErrorSource_t;
 
 /*! Internal Error Event Data */
