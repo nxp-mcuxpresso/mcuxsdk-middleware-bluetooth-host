@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025 - 2026 NXP
 *
 * \file btcs_server.c
 *
@@ -414,7 +414,8 @@ bleResult_t BtcsServer_BuildRangingData
                     mpRangingData[deviceId].pRangingData[mpSegmIdx[deviceId]->numStepsIdx] += numStepsParsed;
 
                     /* Move on to the next segment */
-                    if (mpRangingData[deviceId].pCfg->dataParsedLen != 0U)
+                    if ((mpRangingData[deviceId].pCfg->dataParsedLen != 0U) && 
+                        (mpRangingData[deviceId].pCfg->dataIndex != mpRangingData[deviceId].pCfg->dataParsedLen))
                     {
                         mpSegmIdx[deviceId]->crtIdx++;
                         segmIdx++;

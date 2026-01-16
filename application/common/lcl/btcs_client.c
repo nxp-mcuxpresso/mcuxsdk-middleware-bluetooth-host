@@ -605,6 +605,7 @@ static void parseRecvNoOfSteps
         {
             uint8_t outParsedLen = 0U;
             stepIdx++;
+            mSubEvtInfo[deviceId].crtSubEvtIdx++;
             /* Increase subevent index */
             mPeerResultData[deviceId].subeventIndex++;
             /* Parse subevent header */
