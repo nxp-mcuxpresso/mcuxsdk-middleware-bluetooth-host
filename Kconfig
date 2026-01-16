@@ -44,8 +44,6 @@ menu "bluetooth"
         bool "fsci_host"
     config MCUX_COMPONENT_middleware.wireless.ble_host_interface_handover
         bool "host_interface_handover"
-    config MCUX_COMPONENT_middleware.wireless.ble_host_handover_component_lib
-        bool "host_handover_lib"
     config MCUX_COMPONENT_middleware.wireless.auto
         bool "auto"
     config MCUX_COMPONENT_middleware.wireless.ble_init_matter

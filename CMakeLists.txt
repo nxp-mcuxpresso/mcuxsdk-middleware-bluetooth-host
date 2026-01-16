@@ -649,17 +649,6 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_interface_handover)
     )
 endif()
 
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_handover_component_lib)
-    mcux_add_library(
-        LIBS host/lib/lib_ble_handover_cm33_iar.a
-        TOOLCHAINS iar
-    )
-    mcux_add_library(
-        LIBS host/lib/lib_ble_handover_cm33_gcc.a
-        TOOLCHAINS mcux armgcc
-    )
-endif()
-
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.auto)
     mcux_add_source(
         SOURCES application/common/auto/app_a2a_interface.c
