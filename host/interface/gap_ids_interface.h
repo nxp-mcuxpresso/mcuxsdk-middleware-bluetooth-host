@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 * \file gap_ids_interface.h
 *
@@ -61,8 +61,7 @@ typedef enum {
     /*! Sweyntooth - LL Length Overflow. Target: Connection. Stack location: Link Layer. */
     gSecEvt_LlLenOverflow_c                 = BIT10,
 
-    /*! Sweyntooth - Sequential ATT Deadlock. Target: Connection. Stack location: Host. */
-    gSecEvt_SequentialAttDeadlock_c         = BIT11,
+    /* BIT11 reserved for future use */
 
     /*! Repeated attempts disconnect - Too little time has elapsed since the last
      * authentication or pairing attempt failed. Target: Connection. Stack location: Link Layer. */
