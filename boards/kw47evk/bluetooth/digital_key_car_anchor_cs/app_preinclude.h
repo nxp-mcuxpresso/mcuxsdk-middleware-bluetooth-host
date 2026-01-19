@@ -206,9 +206,6 @@
 /* Channel Sounding role - default initiator */
 #define gCsDefaultRole_c                        gCsRoleInitiator_c
 
-/* Enable Real-Time Data Transfer */
-#define gAppRealTimeDataTransfer_c              0
-
 /* Configure high speed CPU clock (96 MHz) */
 #define gAppHighSystemClockFrequency_d          1
 

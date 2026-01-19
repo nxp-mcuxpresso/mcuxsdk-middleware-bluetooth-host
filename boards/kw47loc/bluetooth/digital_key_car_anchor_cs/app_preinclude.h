@@ -217,9 +217,6 @@
 /* Channel Sounding role - default initiator */
 #define gCsDefaultRole_c                        gCsRoleInitiator_c
 
-/* Enable Real-Time Data Transfer */
-#define gAppRealTimeDataTransfer_c              0
-
 /* Enable/Disable the saving of RSSI information for mode 1 data.
    Information available in algorithm result structure */
 #define gAppParseRssiInfo_d                     0
