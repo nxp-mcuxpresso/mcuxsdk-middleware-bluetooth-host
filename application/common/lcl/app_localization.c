@@ -1945,6 +1945,11 @@ static void AppLocalization_CSMetaEventCallback
 
                         case (uint8_t)gCsNoResultsProcAborted_c:
                         {
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U)
+                            gCsTimeInfo.csDistMeasStart = 0U;
+                            gCsTimeInfo.csDistMeasDuration = 0U;
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U) */
+
                             /* All subsequent CS procedures aborted */
                             maCsProcCount[deviceId] = 0U;
                             maAppLclState[deviceId] = gAppLclIdle_c;
@@ -1957,6 +1962,11 @@ static void AppLocalization_CSMetaEventCallback
 
                         default:
                         {
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U)
+                            gCsTimeInfo.csDistMeasStart = 0U;
+                            gCsTimeInfo.csDistMeasDuration = 0U;
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U) */
+
                             /* Check if we reached the last procedure */
                             if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
                             {
@@ -2101,6 +2111,11 @@ static void AppLocalization_CSMetaEventCallback
 
                         case (uint8_t)gCsNoResultsProcAborted_c:
                         {
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U)
+                            gCsTimeInfo.csDistMeasStart = 0U;
+                            gCsTimeInfo.csDistMeasDuration = 0U;
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U) */
+
                             /* All subsequent CS procedures aborted */
                             maCsProcCount[deviceId] = 0U;
                             maAppLclState[deviceId] = gAppLclIdle_c;
@@ -2113,6 +2128,11 @@ static void AppLocalization_CSMetaEventCallback
 
                         default:
                         {
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U)
+                            gCsTimeInfo.csDistMeasStart = 0U;
+                            gCsTimeInfo.csDistMeasDuration = 0U;
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U) */
+
                             /* Procedure error! */
                             if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
                             {
@@ -2186,9 +2206,7 @@ static void AppLocalization_CSMetaEventCallback
 
                     mResultData[deviceId].selectedTxPower = ((int8_t)pProcEnableComplete->selectedTxPower);
 
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-                    gCsTimeInfo.csDistMeasStart = TM_GetTimestamp();
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
+
 
                     if (mGlobalRangeSettings.role == gCsRoleReflector_c)
                     {
@@ -2755,6 +2773,11 @@ static bleResult_t processCsResultsEvent
         mResultData[deviceId].configId = pEvent->configId;
         mResultData[deviceId].procedureCounter = pEvent->procedureCounter;
         mResultData[deviceId].numAntennaPaths = pEvent->numAntennaPaths;
+
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1U)
+        gCsTimeInfo.csDistMeasStart = TM_GetTimestamp();
+        gCsTimeInfo.csDistMeasDuration  = 0U;
+#endif
 
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
 #if defined(gRasRREQ_d) && (gRasRREQ_d == 1U)
