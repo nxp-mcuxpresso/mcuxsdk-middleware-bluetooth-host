@@ -74,4 +74,6 @@ The [Figure](../images/figure2.png) illustrates the generic GAP topology.
 ```{include} ../topics/enhanced_att.md
 :heading-offset: 1
 ```
-
+```{include} ../topics/debug_keys_and_btsnoop.md
+:heading-offset: 1
+```
