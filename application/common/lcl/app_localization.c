@@ -3054,7 +3054,7 @@ static void TemperatureTimerCallback
 )
 {
     (void)pParam;
-
+#if defined(gAppUseSensors_d) && (gAppUseSensors_d > 0)
     static bool_t bWaitingForRefresh = FALSE;
 
     if (!bWaitingForRefresh)
@@ -3077,6 +3077,7 @@ static void TemperatureTimerCallback
         (void)TM_Start((timer_handle_t)mTemperatureTimerId,
                        kTimerModeSingleShot | kTimerModeLowPowerTimer, gTemperaturePollingInterval_c);
     }
+#endif /* defined(gAppUseSensors_d) && (gAppUseSensors_d > 0) */
 }
 
 #if defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
