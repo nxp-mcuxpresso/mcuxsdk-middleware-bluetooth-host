@@ -174,16 +174,11 @@ static const uint8_t cs_ant_idx_to_GPIO_ANTDIV_4ANT[CS_MAX_NB_ANTENNAS] =  {LCL_
 static const uint8_t cs_ant_idx_to_GPIO_LOC[CS_MAX_NB_ANTENNAS] =  {LCL_HAL_LOC_ANT_A_ANT , LCL_HAL_LOC_ANT_B_ANT, LCL_HAL_LOC_ALL_OFF, LCL_HAL_LOC_ALL_OFF};
 
 /* PCT Rotation calibration parameters */
-#if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
-/* 0cm compensation for LOC boards */
-static uint8_t maPctRotationParams[4U * CS_MAX_NB_ANTENNAS] = {0U};
-#else
-/* 15cm compensation for EVK boards */
-static uint8_t maPctRotationParams[4U * CS_MAX_NB_ANTENNAS] = {67U, 0U, 0U, 0U,
-                                                               67U, 0U, 0U, 0U,
-                                                               67U, 0U, 0U, 0U,
-                                                               67U, 0U, 0U, 0U};
-#endif
+/* 50cm compensation for EVK and LOC boards */
+static uint8_t maPctRotationParams[4U * CS_MAX_NB_ANTENNAS] = {57U, 1U, 0U, 0U,
+                                                               57U, 1U, 0U, 0U,
+                                                               57U, 1U, 0U, 0U,
+                                                               57U, 1U, 0U, 0U};
 /************************************************************************************
  *************************************************************************************
  * Public Types
