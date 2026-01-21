@@ -48,7 +48,7 @@
 #if (defined(KW37A4_SERIES) || defined(KW37Z4_SERIES) || defined(KW38A4_SERIES) || defined(KW38Z4_SERIES) || defined(KW39A4_SERIES))
 #include "fsl_rcm.h"
 #elif (defined(KW45B41Z83_SERIES) || defined(K32W232H_SERIES) || defined(K32W1480_SERIES) || \
-       defined(MCXW716A_SERIES) || defined(MCXW716C_SERIES) || defined(KW47B42ZB7_cm33_core0_SERIES) || defined(MCXW727C_cm33_core0_SERIES))
+       defined(MCXW716A_SERIES) || defined(MCXW716C_SERIES) || defined(KW47B42ZB7_cm33_core0_SERIES) || defined(MCXW727C_cm33_core0_SERIES) || defined(KW47_core0_SERIES))
 #include "fsl_cmc.h"
 #else
 /*to support other platform*/
@@ -646,7 +646,7 @@ void isp_cli_powerup(void)
     cli_cmd_system_build_info(0, NULL);
 
 #if !defined(FPGA_TARGET) || (FPGA_TARGET == 0)
-#if (defined(KW45B41Z83_SERIES) || defined(K32W232H_SERIES) || defined(K32W1480_SERIES) || defined(MCXW716A_SERIES) || defined(MCXW716C_SERIES) || defined(KW47B42ZB7_cm33_core0_SERIES) || defined(MCXW727C_cm33_core0_SERIES))
+#if (defined(KW45B41Z83_SERIES) || defined(K32W232H_SERIES) || defined(K32W1480_SERIES) || defined(MCXW716A_SERIES) || defined(MCXW716C_SERIES) || defined(KW47B42ZB7_cm33_core0_SERIES) || defined(MCXW727C_cm33_core0_SERIES) || defined(KW47_core0_SERIES))
     uint32_t tmp = CMC_GetSystemResetStatus(CMC0);
     if ((tmp & (uint32_t)kCMC_Watchdog0Reset) != 0U)
     {
