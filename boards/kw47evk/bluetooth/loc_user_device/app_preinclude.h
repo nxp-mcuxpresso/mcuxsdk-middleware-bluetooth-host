@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*!
- * Copyright 2023-2025 NXP
+ * Copyright 2023-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -71,7 +71,11 @@
 /*! Display distance measurement related timing information */
 #define gAppCsTimeInfo_d                0
 
-/* CS HCI data logging support */
+/* CS HCI data logging support
+  *  0 = disabled
+  *  1 = export local HCI data only
+  *  2 = export local HCI data and remote data received via RAS
+  */
 #define gAppHciDataLogExport_d          0
 
 #define gAppUseShellInApplication_d     1

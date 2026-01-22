@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 * \file app_localization_data_export.h
 *
@@ -37,9 +37,9 @@
     #define shell_data_export_writeN(a,b)    (void)SHELL_WriteSynchronization((shell_handle_t)g_shellHandle, a, b)
 #endif
 
-#ifndef gAppLocDataExport_c
-#define gAppLocDataExport_c             0 /* 0: No localization data exporting; 1: Export CS config data + Ranging results; 2: Export CS config + PBR data + ToF data + ranging results */
-#endif /* gAppLocDataExport_c */
+#ifndef gAppLocDataExport_d
+#define gAppLocDataExport_d             0 /* 0: No localization data exporting; 1: Export CS config data + Ranging results; 2: Export CS config + PBR data + ToF data + ranging results */
+#endif /* gAppLocDataExport_d */
 /************************************************************************************
  *************************************************************************************
  *  Public prototypes

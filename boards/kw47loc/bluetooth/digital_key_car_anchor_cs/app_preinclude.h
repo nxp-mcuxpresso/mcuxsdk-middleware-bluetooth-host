@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file app_preinclude.h
 *
-* Copyright 2022-2025 NXP
+* Copyright 2022-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -142,6 +142,18 @@
   *  2 = export local HCI data and remote data received via RAS
   */
 #define gAppHciDataLogExport_d          0
+
+/* CS data logging support
+   0 = disabled
+   1 = export CS config data + ranging results
+   2 = export CS config + PBR data + ToF data + ranging results
+  */
+#define gAppLocDataExport_d             0
+
+/* Baudrate for loc data export */
+#if gAppLocDataExport_d > 0
+#define BOARD_APP_UART_BAUDRATE         1000000
+#endif
 
 #if (gHandoverIncluded_d == 1) || (gA2BEnabled_d == 1)
 #define gA2ASerialInterface_d   1

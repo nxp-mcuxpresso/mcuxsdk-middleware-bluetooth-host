@@ -348,7 +348,7 @@ void AppLocalizationAlgo_RunMeasurement
         pResult->rttResult.dm_sr = engine_response.tof_result.dm_sr;
         pResult->rttResult.dm_ad = engine_response.tof_result.dm_ad;
 
-#if defined(gAppLocDataExport_c) && (gAppLocDataExport_c > 0)
+#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 0)
         engine_response.is_valid = TRUE;
         app_print_cs_data(&response, &engine_response, &mRangeSettings[deviceId]);
 #endif 

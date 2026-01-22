@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 * \file app_localization_data_export.c
 *
@@ -16,7 +16,7 @@
 #include "fsl_component_mem_manager.h"
 #include "fwk_platform_ble.h"
 
-#if defined(gAppLocDataExport_c) && (gAppLocDataExport_c > 0)
+#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 0)
 /************************************************************************************
 *************************************************************************************
 * Private memory declarations
@@ -24,7 +24,7 @@
 ************************************************************************************/
 /* Used by char conversion routines */
 const static char hexchar[] = "0123456789ABCDEF";
-#if defined(gAppLocDataExport_c) && (gAppLocDataExport_c > 1) 
+#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1) 
 const static char basechar[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 #endif
 
@@ -137,7 +137,7 @@ static void cli_sprint_hex4b(uint8_t *dataOut,
     *dataOut = 0;
 }
 
-#if defined(gAppLocDataExport_c) && (gAppLocDataExport_c > 1) 
+#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1) 
 /*! *********************************************************************************
 * \brief        Print 12 bits out of 3 bytes (CS IQ) shifted by 'shift',
 *               every 'incr' bytes - 'units' times
@@ -461,7 +461,7 @@ static void app_print_cs_measurement(isp_meas_response_t *meas_response, appLoca
     (void)printf("}");
     (void)printf("},");
 }
-#if defined(gAppLocDataExport_c) && (gAppLocDataExport_c > 1) 
+#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1) 
 static void app_mciq_print_node_data(mciq_data_t *mciq_data)
 {
     uint8_t m, n_ap;
@@ -501,7 +501,7 @@ static void app_mciq_print_node_data(mciq_data_t *mciq_data)
 
 static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engine_response_t *engine_response, appLocalization_rangeCfg_t *ranging_cfg)
 {
-#if defined(gAppLocDataExport_c) && (gAppLocDataExport_c > 1) 
+#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1) 
     mciq_data_t *mdata;
 #endif
     uint32_t nb_steps, n_ap;
@@ -512,7 +512,7 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
     /* In test mode, one of reflector or intiator nbSteps is null, keep the relevant one */
     nb_steps = (mciq_data_init->nbSteps != 0U) ? mciq_data_init->nbSteps : mciq_data_refl->nbSteps;
     n_ap = (mciq_data_init->n_ap != 0U) ? mciq_data_init->n_ap : mciq_data_refl->n_ap;
-#if defined(gAppLocDataExport_c) && (gAppLocDataExport_c > 1) 
+#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1) 
     mdata = mciq_data_init;
 #endif
     (void)printf("mciq:{cfg:{n_ap:%u,n_stp:%u},", n_ap, nb_steps);
@@ -555,7 +555,7 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
     }
     (void)printf("},");
 
-#if defined(gAppLocDataExport_c) && (gAppLocDataExport_c > 1) 
+#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1) 
     if (mdata->nbSteps != 0U)
     {
         (void)printf("init:{");
@@ -634,7 +634,7 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
     (void)printf("},");
 }
 
-#if defined(gAppLocDataExport_c) && (gAppLocDataExport_c > 1)
+#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1)
 static void app_tof_print_node_data(tof_data_t *data)
 {
     uint8_t *pBuffer = MEM_BufferAlloc(4U * (uint32_t)data->nbSteps + 1U);
@@ -788,7 +788,7 @@ void app_print_cs_data(isp_meas_response_t *meas_response, engine_response_t *en
         {
             app_mciq_measurement_print(meas_response, engine_response, ranging_cfg);
         }
-#if defined(gAppLocDataExport_c) && (gAppLocDataExport_c > 1)
+#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1)
         if (meas_response->tof_data[0].ts != NULL)
         {
             app_tof_measurement_print(meas_response, engine_response, ranging_cfg);
