@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -260,7 +260,7 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 #define gHciVendorSpecificDebugCommands_c                       0x03FU
 #define gHciSetTxPowerCommand_c                                 0x012DU
 #define gHciVendorEnhancedNotificationCommand_c                 0x01F0U
-#define gHciVendorSetExpmSupportedFeaturesCommand_c             0x009EU
+#define gHciVendorUnitaryTestCommand_c                          0x009EU
 #define gHciVendorGetConnectionParameters_c                     0x00A3U
         /*! HCI Commands OCF for OGF : 0x3F : Vendor Specific Debug Commands */
         /* Will be inherited from "vendor_debug_commands.h" */
@@ -277,6 +277,9 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 
 /* Vendor specific command LE_Periodic_Adv_Update_Sync */
 #define gHciVendorLePeriodicAdvUpdateSync_c                      0x00BBU
+
+/* Vendor specific command LE Enable Experimental Feature */
+#define gHciVendorEnableExpmFeaturesCommand_c                    0x00BCU
 
 #define gHciVendorCsConfig_c                                     0x00AFU
 

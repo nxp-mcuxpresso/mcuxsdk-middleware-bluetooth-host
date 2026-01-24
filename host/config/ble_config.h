@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -274,6 +274,14 @@
  */
 #ifndef gGattDynamicValSize_c
 #define gGattDynamicValSize_c 1U
+#endif
+
+/*! Enables/disables the command that enables the experimental features 
+ * in Controller at Host init sequence.
+ * Default value is disabled.
+ */
+#ifndef gHostInitEnableExpmFeatures_c
+#define gHostInitEnableExpmFeatures_c      FALSE
 #endif
 
 #endif /* BLE_CONFIG_H */

@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -1082,6 +1082,7 @@ typedef enum {
     gSetDefaultConnectionSubrateParameters_c = 0x93U,/*!< An error occurred while setting the Default Connection Subrate Parameters*/
     gConnectionSubrateRequest_c = 0x94U,             /*!< An error occurred during the Connection Subrate procedure */
     gEncryptLinkTak_c = 0x95U,                       /*!< An error occurred during Encrypt link with TAK procedure */
+    gVendorEnableExpmFeatures_c = 0x96U,             /*!< An error occurred during gHciVendorEnableExpmFeaturesCommand_c execution */
 } gapInternalErrorSource_t;
 
 /*! Internal Error Event Data */

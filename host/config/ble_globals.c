@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -368,6 +368,10 @@ const bool_t gEnableIntrusionDetectionSystem = TRUE;
 #else
 const bool_t gEnableIntrusionDetectionSystem = FALSE;
 #endif
+
+/*Enable experimental features in Controller*/
+extern bool_t gHostInitEnableExpmFeatures;
+bool_t gHostInitEnableExpmFeatures = gHostInitEnableExpmFeatures_c;
 /************************************************************************************
 *************************************************************************************
 * Public functions

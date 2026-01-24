@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -4055,6 +4055,20 @@ bleResult_t Hci_LeChannelOverride(const hciVendorLeChannelOverrideCommand_t *pPa
 *
 ********************************************************************************** */
 bleResult_t Hci_LeSetSchedulerPriority(const hciVendorLeSetSchedulerPriorityCommand_t *pParam);
+
+/*! ********************************************************************************
+* \brief        The function sends the HCI LE Enable Experimental Features Command(OGF : 0x3F; OCF : 0xBC) command to the Controller.
+*               This command is used to allow the Host to enable all experimental features supported by the controller
+*
+* \param[in]    None.
+* \param[out]   None
+*
+* \return       Status
+*
+* \remarks      The command must be issued before Hci_Reset command
+*
+********************************************************************************** */
+bleResult_t Hci_LeVendorEnableExpmFeatures(void);
 
 /* v5.0 specific interface */
 
