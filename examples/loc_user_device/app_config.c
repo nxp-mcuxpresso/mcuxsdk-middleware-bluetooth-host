@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file app_config.c
 *
-* Copyright 2023 - 2025 NXP
+* Copyright 2023 - 2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -116,7 +116,11 @@ static gapSecurityRequirements_t        deviceSecurity = gGapDefaultSecurityRequ
 static gapServiceSecurityRequirements_t serviceSecurity[1] = {
   {
     .requirements = {
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+        .securityModeLevel = gSecurityMode_1_Level_1_c,
+#else
         .securityModeLevel = gSecurityMode_1_Level_2_c,
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
         .authorization = FALSE,
         .minimumEncryptionKeySize = gDefaultEncryptionKeySize_d
     },
@@ -160,7 +164,7 @@ gapExtAdvertisingParameters_t gAdvParams =
 static uint8_t adData0[2] = { UuidArray(gBleSig_RangingService_d) };
 
 /* Advertising Data */
-static gapAdStructure_t advScanStruct[2] = {
+static gapAdStructure_t advScanStruct[] = {
   {
     .length = NumberOfElements(adData0) + 1,
     .adType = gAdIncomplete16bitServiceList_c,
@@ -170,7 +174,14 @@ static gapAdStructure_t advScanStruct[2] = {
     .length = 7U,
     .adType = gAdShortenedLocalName_c,
     .aData = (uint8_t*)"NXP_CS"
+  },
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+  {
+    .length = sizeof(gAppTAKAdvID_c),
+    .adType = gAdManufacturerSpecificData_c,
+    .aData = (uint8_t*)gAppTAKAdvID_c
   }
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
 };
 
 gapAdvertisingData_t gAppAdvertisingData =

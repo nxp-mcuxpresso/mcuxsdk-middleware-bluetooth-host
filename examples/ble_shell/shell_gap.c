@@ -99,12 +99,6 @@ typedef struct gapScannedDevices_tag
     uchar_t             name[mShellGapMaxDeviceNameLength_c];
 }gapScannedDevices_t;
 
-typedef struct takEntry_tag
-{
-    deviceId_t device;
-    uint8_t aTak[mcEncryptionKeySize_c];
-} takEntry_t;
-
 /************************************************************************************
 *************************************************************************************
 * Private functions prototypes
@@ -215,10 +209,9 @@ static shell_status_t ShellGap_ConnSbrReq(uint8_t argc, char * argv[]);
 static void ShellGap_HandleSubrateChangeEvt(deviceId_t peerDeviceId, gapSubrateChangeEvent_t *pEvent);
 #endif /* BLE_SHELL_CONN_SBR_SUPPORT */
 static void ShellGap_GenericCallbackAdv (gapGenericEvent_t* pGenericEvent);
-#if (defined(BLE_SHELL_TAK_SUPPORT) && BLE_SHELL_TAK_SUPPORT)
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
 static shell_status_t ShellGap_Tak(uint8_t argc, char * argv[]);
-static takEntry_t* ShellGap_GetTak(deviceId_t deviceId, bool_t bFindFreeSlot);
-#endif /* (defined(BLE_SHELL_TAK_SUPPORT) && BLE_SHELL_TAK_SUPPORT) */
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
 
 /************************************************************************************
 *************************************************************************************
@@ -293,9 +286,9 @@ static const gapCmds_t mGapShellCmds[] =
     {"setdefsbrparam",  ShellGap_SetDefaultConnSbrParams},
     {"connsbrreq",      ShellGap_ConnSbrReq},
 #endif /* BLE_SHELL_CONN_SBR_SUPPORT */
-#if (defined(BLE_SHELL_TAK_SUPPORT) && BLE_SHELL_TAK_SUPPORT)
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
     {"tak",             ShellGap_Tak},
-#endif /* (defined(BLE_SHELL_TAK_SUPPORT) && BLE_SHELL_TAK_SUPPORT) */
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
 };
 
 static bool_t mIsBonded = FALSE;
@@ -434,13 +427,6 @@ static bool_t mAdvertisingCbSet = FALSE;
 static bool_t mLastMonAdvState = FALSE;
 static bool_t mNewMonAdvState = FALSE;
 #endif /* defined(BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT) */
-
-#if (defined(BLE_SHELL_TAK_SUPPORT) && BLE_SHELL_TAK_SUPPORT)
-/*! Initiator TAK list that will be used automatically after connection
- * The list is in form {deviceId, Tak key}. If a device id is found in a list TAK will be used, otherwise SMP Pairing
- */
-static takEntry_t aTakList[BLE_SHELL_MAX_TAK_ENTRIES] = {};
-#endif /* (defined(BLE_SHELL_TAK_SUPPORT) && BLE_SHELL_TAK_SUPPORT) */
 
 /************************************************************************************
 *************************************************************************************
@@ -4353,10 +4339,10 @@ static void ShellGap_HandleConnectedEvt(deviceId_t peerDeviceId, gapConnectedEve
 
     if (mIsCentral == TRUE)
     {
-#if BLE_SHELL_TAK_SUPPORT
+#if gAppUseTAK_c
         takEntry_t *pTakEntry = NULL;
 
-        pTakEntry = ShellGap_GetTak(peerDeviceId, FALSE);
+        pTakEntry = BleConnManager_GetTak(peerDeviceId, FALSE);
         if (pTakEntry != NULL)
         {
             (void)Gap_EncryptLinkTak(peerDeviceId, pTakEntry->aTak);
@@ -4365,7 +4351,7 @@ static void ShellGap_HandleConnectedEvt(deviceId_t peerDeviceId, gapConnectedEve
             FLib_MemSet(pTakEntry->aTak, 0, sizeof(pTakEntry->aTak));
         }
         else
-#endif /* BLE_SHELL_TAK_SUPPORT */
+#endif /* gAppUseTAK_c */
         {
             mIsBonded = FALSE;
 
@@ -4430,8 +4416,8 @@ static void ShellGap_SendSmpKeys(deviceId_t peerDeviceId, gapSmpKeyFlags_t *pReq
  ********************************************************************************** */
 static void ShellGap_HandleLongTermKeyRequestEvt(deviceId_t peerDeviceId, gapLongTermKeyRequestEvent_t *pEvent)
 {
-#if (defined(BLE_SHELL_TAK_SUPPORT) && BLE_SHELL_TAK_SUPPORT)
-    takEntry_t *pTakEntry = ShellGap_GetTak(peerDeviceId, FALSE);
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+    takEntry_t *pTakEntry = BleConnManager_GetTak(peerDeviceId, FALSE);
     
     if (pTakEntry != NULL)
     {
@@ -4441,7 +4427,7 @@ static void ShellGap_HandleLongTermKeyRequestEvt(deviceId_t peerDeviceId, gapLon
         FLib_MemSet(pTakEntry->aTak, 0, sizeof(pTakEntry->aTak));
     }
     else
-#endif /* (defined(BLE_SHELL_TAK_SUPPORT) && BLE_SHELL_TAK_SUPPORT) */   
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */   
     {   
         if (pEvent->ediv == gSmpKeys.ediv &&
             pEvent->randSize == gSmpKeys.cRandSize)
@@ -5318,7 +5304,7 @@ static void ShellGap_GenericCallbackAdv (gapGenericEvent_t* pGenericEvent)
     }
 }
 
-#if (defined(BLE_SHELL_TAK_SUPPORT) && BLE_SHELL_TAK_SUPPORT)
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
 
 /*! *********************************************************************************
  * \brief        Handles "gap tak" shell command.
@@ -5341,7 +5327,7 @@ static shell_status_t ShellGap_Tak(uint8_t argc, char * argv[])
         takLength = BleApp_ParseHexValue(argv[1]);
 
         /* First check if this deviceID exist in the list */
-        pTakEntry = ShellGap_GetTak(deviceId, FALSE);
+        pTakEntry = BleConnManager_GetTak(deviceId, FALSE);
         if (pTakEntry != NULL)
         {
             FLib_MemCpy(pTakEntry->aTak, argv[1], takLength);
@@ -5349,7 +5335,7 @@ static shell_status_t ShellGap_Tak(uint8_t argc, char * argv[])
         else
         {
             /* If this deviceID was not previously registered, try to add a new entry */
-            pTakEntry = ShellGap_GetTak(deviceId, TRUE);
+            pTakEntry = BleConnManager_GetTak(deviceId, TRUE);
             if (pTakEntry != NULL)
             {
                 pTakEntry->device = deviceId;
@@ -5357,7 +5343,7 @@ static shell_status_t ShellGap_Tak(uint8_t argc, char * argv[])
             }
             else
             {
-                shell_write("No more room for a new entry, update BLE_SHELL_MAX_TAK_ENTRIES\n\r");
+                shell_write("No more room for a new entry, update gConnTakMaxEntries_c\n\r");
             }
         }
     }
@@ -5369,35 +5355,7 @@ static shell_status_t ShellGap_Tak(uint8_t argc, char * argv[])
     return kStatus_SHELL_Success;
 }
 
-static takEntry_t* ShellGap_GetTak(deviceId_t deviceId, bool_t bFindFreeSlot)
-{
-    uint32_t index = 0;
-    takEntry_t *pResult = NULL;
-
-    index = NumberOfElements(aTakList);
-    while((index--) && (pResult == NULL))
-    {
-        uint8_t aZeroes[mcEncryptionKeySize_c] = {};
-        if (bFindFreeSlot == TRUE)
-        {
-            if (FLib_MemCmp(aTakList[index].aTak, aZeroes, sizeof(aTakList[index].aTak)) == TRUE)
-            {
-                pResult = &aTakList[index];
-            }
-        }
-        else
-        {
-            if ((aTakList[index].device == deviceId) && 
-                FLib_MemCmp(aTakList[index].aTak, aZeroes, sizeof(aTakList[index].aTak)) == FALSE)
-            {
-                pResult = &aTakList[index];
-            }
-        }
-    }
-    
-    return pResult;
-}
-#endif /* (defined(BLE_SHELL_TAK_SUPPORT) && BLE_SHELL_TAK_SUPPORT) */
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
 /*! *********************************************************************************
  * @}
  ********************************************************************************** */

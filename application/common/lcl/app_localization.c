@@ -193,6 +193,12 @@ static uint8_t maPctRotationParams[4U * APP_LOCALIZATION_MAX_NO_ANTENNAS] = {57U
                                                                              57U, 1U, 0U, 0U,
                                                                              57U, 1U, 0U, 0U};
 
+
+/* TAK support for each device */
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+static bool_t maTakSupport[gAppMaxConnections_c];
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+
 /************************************************************************************
 *************************************************************************************
 * Private prototypes
@@ -541,6 +547,9 @@ bleResult_t AppLocalization_Config
     bleResult_t result = gBleSuccess_c;
     uint8_t nvmIndex = gInvalidNvmIndex_c;
     bool_t isBonded = FALSE;
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+    bool_t bHasTAK = maTakSupport[deviceId];
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
 
     result = Gap_CheckIfBonded(deviceId, &isBonded, &nvmIndex);
 
@@ -551,7 +560,11 @@ bleResult_t AppLocalization_Config
     }
     else
     {
-        if ((isBonded == TRUE) && (mpCachedRemoteCaps[nvmIndex] == NULL))
+        if ((isBonded == TRUE 
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+             || bHasTAK == TRUE
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+             ) && (mpCachedRemoteCaps[nvmIndex] == NULL))
         {
             result = CS_ReadRemoteSupportedCapabilities(deviceId);
         }
@@ -566,7 +579,11 @@ bleResult_t AppLocalization_Config
 
     if (result == gBleSuccess_c)
     {
-        if ((isBonded == TRUE) && (mpCachedRemoteCaps[nvmIndex] == NULL))
+        if ((isBonded == TRUE
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+             || bHasTAK == TRUE
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+             ) && (mpCachedRemoteCaps[nvmIndex] == NULL))
         {
             maAppLclState[deviceId] = gAppLclWaitingForRRSC_c;
         }
@@ -3196,6 +3213,22 @@ void AppLocalization_RunAlgorithm
 #endif
 }
 #endif /* gAppRunAlgo_d */
+
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+/*! *********************************************************************************
+*\fn            void AppLocalization_SetTakEnable(deviceId_t deviceId)
+*
+*\brief         Set the the TAK support for a connection.
+*
+*\param  [in]   deviceId               Peer device identifier.
+*
+*\retval        none
+********************************************************************************** */
+void AppLocalization_SetTakEnable(deviceId_t deviceId)
+{
+    maTakSupport[deviceId] = TRUE;
+}
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
 
 #if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
 /*! *********************************************************************************

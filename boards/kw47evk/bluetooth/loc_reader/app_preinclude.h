@@ -102,6 +102,10 @@
 
 #define gRasRapPtsTest_d                0U
 
+/*! Transient application key demo */
+#define gAppUseTAK_c                    0
+#define gAppTAKAdvID_c                  "TAK_ID"
+
 /*! *********************************************************************************
  *     Framework Configuration
  ********************************************************************************** */

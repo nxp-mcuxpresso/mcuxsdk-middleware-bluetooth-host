@@ -76,6 +76,7 @@
 #define gcScanInterval_c                36U /* 550 ms */
 #define gcConnectionInterval_c          24U /* 30 ms, interval = gcConnectionInterval_c * 1.25ms */
 
+
 /*! *********************************************************************************
  *     Framework Configuration
  ********************************************************************************** */

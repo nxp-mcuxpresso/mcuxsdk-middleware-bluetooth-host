@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2022-2025 NXP
+* Copyright 2022-2026 NXP
 *
 * \file app_localization.h
 *
@@ -995,6 +995,17 @@ void AppLocalization_SetDefaultConfig
     deviceId_t deviceId,
     uint8_t    configId
 );
+
+/*! *********************************************************************************
+*\fn            void AppLocalization_SetTakEnable(deviceId_t deviceId)
+*
+*\brief         Set the the TAK support for a connection.
+*
+*\param  [in]   deviceId               Peer device identifier.
+*
+*\retval        none
+********************************************************************************** */
+void AppLocalization_SetTakEnable(deviceId_t deviceId);
 
 #if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
 /*! *********************************************************************************

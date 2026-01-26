@@ -103,6 +103,10 @@
 /* Enable/Disable the use of RAS to transfer localization data */
 #define gAppRasDataTransfer_d           1
 
+/*! Transient application key demo */
+#define gAppUseTAK_c                    0
+#define gAppTAKAdvID_c                  "TAK_ID"
+
 /*! *********************************************************************************
  *     Framework Configuration
  ********************************************************************************** */

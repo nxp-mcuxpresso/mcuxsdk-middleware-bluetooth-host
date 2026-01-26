@@ -175,7 +175,11 @@ gapSmpKeys_t gSmpKeys = {
 
 /* Device Security Requirements */
 static gapSecurityRequirements_t  deviceSecurity = {
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+        .securityModeLevel = gSecurityMode_1_Level_1_c,
+#else
         .securityModeLevel = gSecurityMode_1_Level_3_c,
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
         .authorization = FALSE,
         .minimumEncryptionKeySize = mcEncryptionKeySize_c
 };

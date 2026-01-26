@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file shell_loc_user_device.c
 *
-* Copyright 2023-2025 NXP
+* Copyright 2023-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -32,6 +32,7 @@
 #include "loc_user_device.h"
 #include "shell_loc_user_device.h"
 #include "app_conn.h"
+#include "ble_conn_manager.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -70,6 +71,10 @@ static uint32_t BleApp_AsciiToHex(char *pString, uint32_t strLen);
 static int32_t BleApp_atoi(char *pStr);
 static uint8_t BleApp_ParseHexValue(char* pInput);
 static void ShellResetTimeoutTimerCallback(void* pParam);
+
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+static shell_status_t ShellTak_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
+#endif /* defined(gAppUseTAK_c) && gAppUseTAK_c */
 #endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 
 /************************************************************************************
@@ -171,6 +176,16 @@ static shell_command_t mSetNumProcsCmd =
     .cExpectedNumberOfParameters = SHELL_IGNORE_PARAMETER_COUNT,
     .pFuncCallBack = ShellSetNumProcs_Command,
 };
+
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+static shell_command_t mTakCmd =
+{
+    .pcCommand = "tak",
+    .cExpectedNumberOfParameters = SHELL_IGNORE_PARAMETER_COUNT,
+    .pFuncCallBack = ShellTak_Command,
+    .pcHelpString = "\r\n\"tak\": Set a Transient Application Key for a device.\r\n",
+};
+#endif /* defined(gAppUseTAK_c) && gAppUseTAK_c */
 #endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 
 /************************************************************************************
@@ -225,6 +240,10 @@ void AppShellInit(char *prompt)
     assert(kStatus_SHELL_Success == status);
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mListBdCmd);
     assert(kStatus_SHELL_Success == status);
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mTakCmd);
+    assert(kStatus_SHELL_Success == status);
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
 #if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mRunTestCmd);
     assert(kStatus_SHELL_Success == status);
@@ -891,6 +910,57 @@ static shell_status_t ShellListBd_Command (shell_handle_t shellHandle, int32_t a
 
     return kStatus_SHELL_Success;
 }
+
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+/*! *********************************************************************************
+ * \brief        Handles "tak" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellTak_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
+{
+    deviceId_t deviceId = gInvalidDeviceId_c;
+    takEntry_t *pTakEntry = NULL;
+    uint32_t takLength = 0;
+
+    /* Both arguments must be provided */
+    if (argc == 3U)
+    {
+        deviceId = (uint8_t)BleApp_atoi(argv[1]);
+        takLength = BleApp_ParseHexValue(argv[2]);
+
+        /* First check if this deviceID exist in the list */
+        pTakEntry = BleConnManager_GetTak(deviceId, FALSE);
+        if (pTakEntry != NULL)
+        {
+            FLib_MemCpy(pTakEntry->aTak, argv[2], takLength);
+        }
+        else
+        {
+            /* If this deviceID was not previously registered, try to add a new entry */
+            pTakEntry = BleConnManager_GetTak(deviceId, TRUE);
+            if (pTakEntry != NULL)
+            {
+                pTakEntry->device = deviceId;
+                FLib_MemCpy(pTakEntry->aTak, argv[2], takLength);
+            }
+            else
+            {
+                shell_write("No more room for a new entry, update BLE_SHELL_MAX_TAK_ENTRIES\n\r");
+            }
+        }
+    }
+    else
+    {
+        shell_write("Usage: gap tak <deviceID> <Transient Application Key>\n\r");
+    }
+
+    return kStatus_SHELL_Success;
+}
+#endif /* defined(gAppUseTAK_c) && gAppUseTAK_c */
 
 #if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
 static shell_status_t ShellRunTest_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])

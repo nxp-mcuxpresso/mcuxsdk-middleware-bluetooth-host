@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -163,6 +163,12 @@ static TIMER_MANAGER_HANDLE_DEFINE(mRepeatedAttemptsTimerId);
 STATIC uint16_t             mMinTimeToWait = 0;
 #endif /* gRepeatedAttempts_d */
 
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+/*! Initiator TAK list that will be used automatically after connection
+ * The list is in form {deviceId, Tak key}. If a device id is found in a list TAK will be used, otherwise SMP Pairing
+ */
+static takEntry_t maTakList[gConnTakMaxEntries_c] = {};
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
 
 /************************************************************************************
 *************************************************************************************
@@ -580,6 +586,18 @@ void BleConnManager_GapPeripheralEvent
 
         case    gConnEvtLongTermKeyRequest_c:
         {
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+            takEntry_t *pTakEntry = BleConnManager_GetTak(peerDeviceId, FALSE);
+    
+            if (pTakEntry != NULL)
+            {
+                (void)Gap_ProvideLongTermKeyTak(peerDeviceId, pTakEntry->aTak, sizeof (pTakEntry->aTak));
+                
+                /* Clear Transient Key after usage */
+                FLib_MemSet(pTakEntry->aTak, 0, sizeof(pTakEntry->aTak));
+            }
+            else
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
             if ((pConnectionEvent->eventData.longTermKeyRequestEvent.ediv == gSmpKeys.ediv) &&
                 (pConnectionEvent->eventData.longTermKeyRequestEvent.randSize == gSmpKeys.cRandSize) &&
                 (TRUE == FLib_MemCmp(pConnectionEvent->eventData.longTermKeyRequestEvent.aRand,
@@ -1689,6 +1707,46 @@ STATIC void RepeatedAttempts_TimerCb(void *param)
     }
 }
 #endif /* gRepeatedAttempts_d */
+
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+/*! *********************************************************************************
+*\fn           void BleConnManager_GetTak(void)
+*\brief        Search for a Transient Application Key for the specified device.
+*
+*\param  [in]  deviceId         The device identifier
+*\param  [in]  bFindFreeSlot    Find an empty slot where one TAK can be stored
+*
+*\return       takEntry_t*      Pointer to the TAK entry memory
+********************************************************************************** */
+takEntry_t* BleConnManager_GetTak(deviceId_t deviceId, bool_t bFindFreeSlot)
+{
+    uint32_t index = 0;
+    takEntry_t *pResult = NULL;
+
+    index = NumberOfElements(maTakList);
+    while((index--) && (pResult == NULL))
+    {
+        uint8_t aZeroes[16U] = {};
+        if (bFindFreeSlot == TRUE)
+        {
+            if (FLib_MemCmp(maTakList[index].aTak, aZeroes, sizeof(maTakList[index].aTak)) == TRUE)
+            {
+                pResult = &maTakList[index];
+            }
+        }
+        else
+        {
+            if ((maTakList[index].device == deviceId) && 
+                FLib_MemCmp(maTakList[index].aTak, aZeroes, sizeof(maTakList[index].aTak)) == FALSE)
+            {
+                pResult = &maTakList[index];
+            }
+        }
+    }
+    
+    return pResult;
+}
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
 
 /*! *********************************************************************************
 * @}

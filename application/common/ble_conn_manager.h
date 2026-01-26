@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2016-2023, 2025 NXP
+* Copyright 2016-2023, 2025-2026 NXP
 *
 *
 * \file
@@ -117,6 +117,11 @@ LE Coded PHY*/
 #define gConnPhyUpdateReqPhyOptions_c           (gLeCodingNoPreference_c)
 #endif /* gConnPhyUpdateReqPhyOptions_c */
 
+/*! Number of TAK keys the application can store at once */
+#ifndef gConnTakMaxEntries_c
+#define gConnTakMaxEntries_c                    1U
+#endif
+  
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -134,6 +139,12 @@ extern uint8_t gcBondedDevices;
 extern gapPairingParameters_t           gPairingParameters;
 extern gapDeviceSecurityRequirements_t  deviceSecurityRequirements;
 #endif /* gAppUsePairing_d */
+
+typedef struct takEntry_tag
+{
+    deviceId_t device;
+    uint8_t aTak[16U];
+} takEntry_t;
 
 /************************************************************************************
 *************************************************************************************
@@ -218,6 +229,19 @@ bleResult_t BleConnManager_EnablePrivacy(void);
 *\return       bleResult_t    Result of the operation.
 ********************************************************************************** */
 bleResult_t BleConnManager_DisablePrivacy(void);
+
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+/*! *********************************************************************************
+*\fn           void BleConnManager_GetTak(void)
+*\brief        Search for a Transient Application Key for the specified device.
+*
+*\param  [in]  deviceId         The device identifier
+*\param  [in]  bFindFreeSlot    Find an empty slot where one TAK can be stored
+*
+*\return       takEntry_t*      Pointer to the TAK entry memory
+********************************************************************************** */
+takEntry_t* BleConnManager_GetTak(deviceId_t deviceId, bool_t bFindFreeSlot);
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
 
 #ifdef __cplusplus
 }

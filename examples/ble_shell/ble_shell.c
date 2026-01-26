@@ -193,9 +193,9 @@ static shell_command_t mGapCmd =
                     "  gap setdefsbrparam\r\n"
                     "  gap connsbrreq <peerID>\r\n"
 #endif /* BLE_SHELL_CONN_SBR_SUPPORT */
-#if (defined(BLE_SHELL_TAK_SUPPORT) && BLE_SHELL_TAK_SUPPORT)
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
                     "  gap tak <peerID> <Transient Application Key>\r\n"
-#endif /* (defined(BLE_SHELL_TAK_SUPPORT) && BLE_SHELL_TAK_SUPPORT) */
+#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
                     ,
     .pFuncCallBack = ShellGap_Command,
     .cExpectedNumberOfParameters = 0xFF,
