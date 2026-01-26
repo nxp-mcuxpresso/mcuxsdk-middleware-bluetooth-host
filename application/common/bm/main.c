@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2021-2025 NXP
+* Copyright 2021-2026 NXP
 *
 *
 * \file
@@ -24,6 +24,9 @@
 
 #if defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d > 0)
 #include "PWR_Interface.h"
+#endif
+#if defined(BOARD_DBG_NBU_ENABLE)
+#include "board_debug_nbu.h"
 #endif
 
 /************************************************************************************
@@ -60,6 +63,9 @@ int main(void)
         /* Before executing WFI, need to execute some connectivity background tasks
             (usually done in Idle thread) such as NVM save in Idle, etc.. */
         BluetoothLEHost_ProcessIdleTask();
+#if defined(BOARD_DBG_NBU_ENABLE)
+        BOARD_DbgNbuProcess();
+#endif
 
         OSA_DisableIRQGlobal();
 
