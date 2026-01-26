@@ -4,6 +4,38 @@ All notable changes to NXP Bluetooth LE Host will be documented in this file.
 
 **NXP Bluetooth LE Host Stack** is certified **Bluetooth 6.0**
 
+## [1.10.16] – mcux v2026-03-00-pvw2
+
+### Added
+- Implemented Bluetooth LE Host Transient Application Key feature (experimental). in ble_shell, loc_reader and loc_user_device
+- Added Bluetooth LE Host Transient Application Key in ble_shell, loc_reader and loc_user_device
+- Added Channel Sounding phase calibration, with 0.5m compensation for all boards
+- Added Vendor Specific Command to enable Link Layer experimental features
+- Added `gAppCsTimeInfo_d` define in app_preinclude.h for digital_key_car_anchor_cs on KW47EVK
+- Added Channel Sounding **phase calibration** logic and updates in RAS CS Procedure Timing Measurement
+
+### Improved
+- Updated RADE algorithm source files license description with NXP proprietary license
+- Improved data logging for digital key application
+- Updated CCC enumeration values to align with CCC v4.0.0 specification
+- Updated Intrusion Detection System documentation with event details
+- Documentation miscellaneous updates
+
+### Fixed
+- Fixed ranging data body parser on the client side — aborted steps are now counted correctly to prevent subevent misalignment
+- Fixed handling of CS Procedure Disable at Host and application level
+- Fixed app_localization timer blocking when sensors were disabled
+- Fixed setting of `gCsTimeInfo.transferStart` for BTCS Client L2CAP transfer
+- Removed unused `gAppRealTimeDataTransfer_c` define from digital_key_car_anchor_cs
+- Removed pin_mux files from core1 application projects
+- Fixed issues in data transfer and event updates related to timing measurement
+
+### Changed
+- Updated `(SHELL_MAX_ARGS = 20)` in `app_preinclude.h` for localization applications.
+
+### Supported Platforms
+
+- KW45, KW47, MCXW71, MCXW72, MCXW23
 
 ## [1.10.15] – mcux v2026-03-00-pvw1
 
