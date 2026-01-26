@@ -1103,9 +1103,6 @@ endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lib)
     mcux_add_iar_configuration(
-        CX  "--use_cmsis_dsp"
-    )
-    mcux_add_iar_configuration(
         LD  "--config_def=gReserveCeRam_d=0"
     )
     mcux_add_armgcc_configuration(
@@ -1130,9 +1127,6 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lib)
 endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_lib)
-    mcux_add_iar_configuration(
-        CX  "--use_cmsis_dsp"
-    )
     mcux_add_configuration(
         CC "-DLCE_KW47_MCXW72"
     )
