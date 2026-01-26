@@ -2194,7 +2194,7 @@ static void AppLocalization_CSMetaEventCallback
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
 
 #if defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
-                    BtcsServer_SetServerCfg(deviceId, mResultData);
+                    BtcsServer_SetServerCfg(deviceId, &mResultData[deviceId]);
 #endif /* defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U) */
 
                     /* Wait for measurement data. */
