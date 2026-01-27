@@ -46,6 +46,9 @@
 /*! Enable/Disable PowerDown functionality in Application */
 #define gAppLowpowerEnabled_d           0
 
+/*! Set maximum arguments in command */
+#define SHELL_MAX_ARGS                  20U
+
 /* Disable LEDs when enabling low power */
 #if (defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0))
   #undef gAppLedCnt_c

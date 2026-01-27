@@ -49,6 +49,9 @@
 /*! Enable/disable use of privacy */
 #define gAppUsePrivacy_d                1
 
+/*! Set maximum arguments in command */
+#define SHELL_MAX_ARGS                  20U
+
 /* Use a Random Static address as identity address, instead of a Public address */
 #define gRandomStaticAddress_d          1
 

@@ -44,6 +44,9 @@
 /*! Enable/disable use of privacy */
 #define gAppUsePrivacy_d                1
 
+/*! Set maximum arguments in command */
+#define SHELL_MAX_ARGS                  20U
+
 /*! Repeated Attempts - Mitigation for pairing attacks */
 #define gRepeatedAttempts_d             0
 
