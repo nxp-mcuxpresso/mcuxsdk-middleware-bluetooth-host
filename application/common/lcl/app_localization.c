@@ -349,6 +349,23 @@ extern bleResult_t Ble_HciSend(hciPacketType_t packetType, void* pPacket, uint16
 ************************************************************************************/
 
 /*! *********************************************************************************
+*\fn            rasMeasurementData_t* AppLocalization_GetLocalData(deviceId_t deviceId);
+*
+*\brief         Get pointer to local measurement data for the specified peer.
+*
+*\param[in]     deviceId      Peer identifier
+*
+*\retval        Pointer to local measurement data
+********************************************************************************** */
+rasMeasurementData_t* AppLocalization_GetLocalData
+(
+    deviceId_t deviceId
+)
+{
+    return &mResultData[deviceId];
+}
+
+/*! *********************************************************************************
 *\fn           bleResult_t AppLocalization_Init(uint8_t role,
 *                                               pfAppCsCallback_t pfAppCallback,
 *                                               pfAppDisplayResult_t pfAppDisplayCallback)
@@ -475,7 +492,7 @@ bleResult_t AppLocalization_HostInitHandler(void)
 
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
 #if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
-        RasClient_Init(mpfAppCsCallback);
+        RasClient_Init(mpfAppCsCallback, index);
 #endif /* gRasRREQ_d */
 #elif defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
         BtcsClient_Init();
@@ -859,11 +876,7 @@ void AppLocalization_ResetPeer
 
     /* Reset mResultData */
     FLib_MemSet(&mResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-    if (mResultData[deviceId].pData != NULL)
-    {
-        (void)MEM_BufferFree(mResultData[deviceId].pData);
-        mResultData[deviceId].pData = NULL;
-    }
+    AppLocalization_FreeLocalData(deviceId);
 
     maCsProcCount[deviceId] = 0U;
 
@@ -1162,27 +1175,6 @@ uint16_t AppLocalization_GetGlobalProcedureCount
 }
 
 /*! *********************************************************************************
-*\fn            void AppLocalization_ClearLocalData(deviceId_t deviceId);
-*
-*\brief         Clear the local CS data for the specified peer.
-*
-*\param[in]     deviceId         Peer identifier
-*
-*\retval        none
-********************************************************************************** */
-void AppLocalization_ClearLocalData
-(
-    deviceId_t deviceId
-)
-{
-    FLib_MemSet(&mResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-    if (mResultData[deviceId].pData != NULL)
-    {
-        FLib_MemSet(mResultData[deviceId].pData, 0U, gRasCsSubeventDataSize_c);
-    }
-}
-
-/*! *********************************************************************************
 *\fn            void AppLocalization_GetProcDoneStatus(deviceId_t deviceId, uint8_t subeventIdx);
 *
 *\brief         Get the procedure done status for the specified subevent index and peer.
@@ -1201,6 +1193,82 @@ uint8_t AppLocalization_GetProcDoneStatus
 }
 #endif /* gRasRREQ_d */
 #endif /* gAppRasDataTransfer_d */
+
+/*! *********************************************************************************
+*\fn            void AppLocalization_AllocLocalData(deviceId_t deviceId);
+*
+*\brief         Allocate the local CS data space for the specified peer.
+*
+*\param[in]     deviceId         Peer identifier
+*
+*\retval        pointer to the allocated area
+********************************************************************************** */
+void* AppLocalization_AllocLocalData
+(
+    deviceId_t deviceId
+)
+{
+    if (mResultData[deviceId].pData == NULL)
+    {
+#if gRasRREQ_d || gAppBtcsClient_d
+        mResultData[deviceId].pData = MEM_BufferAlloc(sizeof(csAppData_t));
+#elif gRasRRSP_d || gAppBtcsServer_d
+        mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
+#else
+#warning "Not supported"
+#endif
+    }
+
+    return mResultData[deviceId].pData;
+}
+
+/*! *********************************************************************************
+*\fn            void AppLocalization_ClearLocalData(deviceId_t deviceId);
+*
+*\brief         Clear the local CS data for the specified peer.
+*
+*\param[in]     deviceId         Peer identifier
+*
+*\retval        none
+********************************************************************************** */
+void AppLocalization_ClearLocalData
+(
+    deviceId_t deviceId
+)
+{
+    FLib_MemSet(&mResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
+    if (mResultData[deviceId].pData != NULL)
+    {
+#if gRasRREQ_d || gAppBtcsClient_d
+        FLib_MemSet(mResultData[deviceId].pData, 0U, sizeof(csAppData_t));
+#elif gRasRRSP_d || gAppBtcsServer_d
+        FLib_MemSet(mResultData[deviceId].pData, 0U, gRasCsSubeventDataSize_c);
+#else
+#warning "Not supported"
+#endif
+    }
+}
+
+/*! *********************************************************************************
+*\fn            void AppLocalization_FreeLocalData(deviceId_t deviceId);
+*
+*\brief         Free the memory of the local CS data for the specified peer.
+*
+*\param[in]     deviceId         Peer identifier
+*
+*\retval        none
+********************************************************************************** */
+void AppLocalization_FreeLocalData
+(
+    deviceId_t deviceId
+)
+{
+    if (mResultData[deviceId].pData != NULL)
+    {
+        (void)MEM_BufferFree(mResultData[deviceId].pData);
+        mResultData[deviceId].pData = NULL;
+    }
+}
 
 /*! *********************************************************************************
 *\fn            void AppLocalization_GetSubeventIdx(deviceId_t deviceId);
@@ -1782,33 +1850,33 @@ static void AppLocalization_CSMetaEventCallback
             if ((maAppLclState[deviceId] == gAppLclWaitingForMeasData_c) || (maAppLclState[deviceId] == gAppRasTransfInProgress_c))
             {
                 maAppLclState[deviceId] = gAppLclReceivingMeasData_c;
-                /* Clear local data  */
-                FLib_MemSet(&mResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-                if (mResultData[deviceId].pData != NULL)
+
+                if (AppLocalization_AllocLocalData(deviceId) != NULL)
                 {
-                    FLib_MemSet(mResultData[deviceId].pData, 0U, gRasCsSubeventDataSize_c);
-                }
+                    /* Clear local data */
+                    AppLocalization_ClearLocalData(deviceId);
 
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
 #if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
-                /* clear any leftover peer data */
-                RasClient_ResetPeerInfo(deviceId);
+                    /* clear any leftover peer data */
+                    RasClient_ResetPeerInfo(deviceId);
 #endif /* gRasRREQ_d */
 
 #if defined (gRasRRSP_d) && (gRasRRSP_d == 1U)
-                /* If a transfer was in progress send data overwritten indication */
-                if ((Ras_CheckRealTimeData(deviceId) == FALSE) && (Ras_CheckTransferInProgress(deviceId) == TRUE))
-                {
-                    (void)Ras_SendDataOverwritten(deviceId);
-                    if (mpfAppCsCallback != NULL)
+                    /* If a transfer was in progress send data overwritten indication */
+                    if ((Ras_CheckRealTimeData(deviceId) == FALSE) && (Ras_CheckTransferInProgress(deviceId) == TRUE))
                     {
-                        mpfAppCsCallback(deviceId, NULL, gDataOverwritten_c);
+                        (void)Ras_SendDataOverwritten(deviceId);
+                        if (mpfAppCsCallback != NULL)
+                        {
+                            mpfAppCsCallback(deviceId, NULL, gDataOverwritten_c);
+                        }
                     }
-                }
-                /* Clear RAS data pointer to avoid reading of incomplete data. */
-                Ras_SetDataPointer(deviceId, NULL);
+                    /* Clear RAS data pointer to avoid reading of incomplete data. */
+                    Ras_SetDataPointer(deviceId, NULL);
 #endif /* gRasRRSP_d */
 #endif /* gAppRasDataTransfer_d */
+                }
             }
 
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
@@ -2194,15 +2262,6 @@ static void AppLocalization_CSMetaEventCallback
                 /* Update number of procedures and reset internal counters */
                 mRangeSettings[deviceId].maxNumProcedures = pProcEnableComplete->procedureCount;
 
-                if (mResultData[deviceId].pData == NULL)
-                {
-                    mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
-                    if (mResultData[deviceId].pData == NULL)
-                    {
-                        result = gBleOutOfMemory_c;
-                    }
-                }
-
                 if (result == gBleSuccess_c)
                 {
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
@@ -2234,11 +2293,7 @@ static void AppLocalization_CSMetaEventCallback
             else
             {
                 /* Reset measurement data */
-                if (mResultData[deviceId].pData != NULL)
-                {
-                    (void)MEM_BufferFree(mResultData[deviceId].pData);
-                    mResultData[deviceId].pData = NULL;
-                }
+                AppLocalization_FreeLocalData(deviceId);
                 FLib_MemSet(&mResultData[deviceId], 0x00, sizeof(rasMeasurementData_t));
 
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
@@ -2911,8 +2966,16 @@ static bleResult_t processEventResultData
     {
         /* Increment subevent data size */
         mResultData[deviceId].aSubEventData[subeventIndex].dataSize += (uint16_t)dataSize;
-        /* Add results to buffer */
+
+#if gRasRREQ_d || gAppBtcsClient_d
+        /* Uncompress local data on-the-fly */
+        AppLocalizationAlgo_UncompressResponse(pEventData, dataSize, &mResultData[deviceId]);
+#elif gRasRRSP_d || gAppBtcsServer_d
+        /* Accumulate data for Responder */
         FLib_MemCpy(&mResultData[deviceId].pData[mResultData[deviceId].dataIndex], pEventData, dataSize);
+#else
+#warning "Not permitted"
+#endif
         mResultData[deviceId].dataIndex += dataSize;
 
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
@@ -3114,16 +3177,13 @@ void AppLocalization_RunAlgorithm
 {
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
    /* Parse header of the ranging data body */
-    uint16_t peerProcCount = 0U;
-    RasClient_ParseDataHeader(deviceId);
     rasMeasurementData_t* mpPeerResultData = RasClient_GetPeerRangingData(deviceId);
-    peerProcCount = RasClient_GetPeerProcCount(deviceId);
 
     /* Clear transfer data */
     RasClient_ResetRasTransferInfo(deviceId);
 
     /* Only compare the lower 12 bits of the counter, RAS truncates the original 16-bit value */
-    if ((mResultData[deviceId].procedureCounter & 0x0FFFU) == peerProcCount)
+    if ((mResultData[deviceId].procedureCounter & 0x0FFFU) == mpPeerResultData[deviceId].procedureCounter)
     {
         if (RasClient_GetRealTimeMode(deviceId) == FALSE)
         {
@@ -3133,7 +3193,7 @@ void AppLocalization_RunAlgorithm
                                            gAntennaPathFilterAllowAll_c);
         }
 #elif defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
-    rasMeasurementData_t* mpPeerResultData = BtcsClient_GetPeerRangingData(deviceId);
+        rasMeasurementData_t* mpPeerResultData = BtcsClient_GetPeerRangingData(deviceId);
 #endif
         localizationAlgoResult_t algoResult;
         FLib_MemSet(&algoResult, 0U, sizeof(localizationAlgoResult_t));
@@ -3191,9 +3251,8 @@ void AppLocalization_RunAlgorithm
         }
 #endif
 
-        /* Reset mResultData and mPeerResultData */
+        /* Reset mResultData */
         FLib_MemSet(&mResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-        FLib_MemSet(mResultData[deviceId].pData, 0U, gRasCsSubeventDataSize_c);
 
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
         RasClient_ResetPeerProcData(deviceId);
@@ -3211,6 +3270,9 @@ void AppLocalization_RunAlgorithm
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
     }
 #endif
+    
+    (void)MEM_BufferFree(mpPeerResultData->pData);
+    mpPeerResultData->pData = NULL;
 }
 #endif /* gAppRunAlgo_d */
 

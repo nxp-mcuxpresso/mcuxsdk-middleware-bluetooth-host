@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 - 2026 NXP
+* Copyright 2025-2026 NXP
 *
 * \file btcs_server.c
 *
@@ -24,6 +24,7 @@
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1U)
 #include "fsl_component_timer_manager.h"
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1U) */
+#include "app_localization_algo.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -73,14 +74,6 @@ static bleResult_t handleRangingProcResStart
 
 /* Handler function for the BTCS Ranging Procedure Results Continue message */
 static bleResult_t handleRangingProcResCont
-(
-    deviceId_t deviceId,
-    uint16_t   packetLen,
-    uint8_t*   pMsgData
-);
-
-/* Helper function to save the received data and count the number of steps */
-static void parseRecvNoOfSteps
 (
     deviceId_t deviceId,
     uint16_t   packetLen,
@@ -320,6 +313,7 @@ static bleResult_t handleRangingProcResStart
     uint8_t* pData = pMsgData;
     uint8_t outParsedLen = 0U;
     uint16_t parsedDataLen = 0U;
+    rasMeasurementData_t *pRemoteData = &mPeerResultData[deviceId];
 
     union
     {
@@ -336,10 +330,10 @@ static bleResult_t handleRangingProcResStart
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1U) */
 
     /* Reset data in preparation for a new procedure */
-    if (mPeerResultData[deviceId].pData == NULL)
+    if (pRemoteData->pData == NULL)
     {
-        mPeerResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
-        if (mPeerResultData[deviceId].pData == NULL)
+        pRemoteData->pData = AppLocalizationAlgo_AllocData();
+        if (pRemoteData->pData == NULL)
         {
             result = gBleOutOfMemory_c;
         }
@@ -349,15 +343,15 @@ static bleResult_t handleRangingProcResStart
     {
         /* Clean up data */
         FLib_MemSet(&mPeerResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-        FLib_MemSet(mPeerResultData[deviceId].pData, 0U, gRasCsSubeventDataSize_c);
+        FLib_MemSet(pRemoteData->pData, 0U, gRasCsSubeventDataSize_c);
         mSubEvtInfo[deviceId].crtSubEvtIdx = 0U;
         mSubEvtInfo[deviceId].parsedStepsCrtSubEvt = 0U;
 
         /* Parse procedure header */
         FLib_MemCpy(&procHeader, pMsgData, sizeof(gCsProcHeaderData_t));
-        mPeerResultData[deviceId].configId = procHeader.configId;
-        mPeerResultData[deviceId].procedureCounter = procHeader.seqNo;
-        mPeerResultData[deviceId].numAntennaPaths = AppLocalization_GetNumAntennaPaths(deviceId);
+        pRemoteData->configId = procHeader.configId;
+        pRemoteData->procedureCounter = procHeader.seqNo;
+        pRemoteData->numAntennaPaths = AppLocalization_GetNumAntennaPaths(deviceId);
         pData = &pData[sizeof(gCsProcHeaderData_t)];
         dataLen.u32 = sizeof(gCsProcHeaderData_t);
         parsedDataLen = dataLen.u16;
@@ -366,10 +360,16 @@ static bleResult_t handleRangingProcResStart
         parseSubEvtHeader(deviceId, pData, &outParsedLen);
         pData = &pData[outParsedLen];
         parsedDataLen += outParsedLen;
-
-        /* Count the received number of steps */
-        parseRecvNoOfSteps(deviceId, (packetLen-parsedDataLen), pData);
-        mPeerResultData[deviceId].totalSentRcvDataIndex = (packetLen-parsedDataLen);
+        
+        /* Parse data */
+        pRemoteData->totalSentRcvDataIndex = (packetLen-parsedDataLen);
+        (void)AppLocalizationAlgo_UncompressRemoteResponseL2CAP(
+            pData, packetLen-parsedDataLen, 
+            &mPeerResultData[deviceId],
+            pRemoteData->aSubEventData[pRemoteData->subeventIndex].subevtHeader.numStepsReported);
+         
+         /* Count the received number of steps */
+         mSubEvtInfo[deviceId].parsedStepsCrtSubEvt += pRemoteData->crtNumSteps;
     }
 
     return result;
@@ -395,12 +395,10 @@ static bleResult_t handleRangingProcResCont
 )
 {
     bleResult_t result = gBleSuccess_c;
-    gCsProcContHeaderData_t procHeader;
     uint8_t* pData = pMsgData;
-    uint8_t stepIdx = mSubEvtInfo[deviceId].crtSubEvtIdx;
-    uint8_t outParsedLen = 0U;
     uint16_t parsedDataLen = 0U;
-    gCsSubEvtContHeaderData_t subEvtContHeader;
+    rasMeasurementData_t *pRemoteData = &mPeerResultData[deviceId];
+    csAppData_t *pDstAppBuffer = (csAppData_t*)pRemoteData->pData;
 
     union
     {
@@ -408,7 +406,7 @@ static bleResult_t handleRangingProcResCont
         uint32_t u32;
     }dataLen = {0U};
 
-    if (mPeerResultData[deviceId].pData == NULL)
+    if (pDstAppBuffer == NULL)
     {
         /* Should not get here */
         result = gBleInvalidState_c;
@@ -417,56 +415,108 @@ static bleResult_t handleRangingProcResCont
     if (result == gBleSuccess_c)
     {
         /* Parse procedure header */
+        gCsProcContHeaderData_t procHeader;
         FLib_MemCpy(&procHeader, pData, sizeof(gCsProcContHeaderData_t));
         pData = &pData[sizeof(gCsProcContHeaderData_t)];
         dataLen.u32 = sizeof(gCsProcContHeaderData_t);
         parsedDataLen += dataLen.u16;
 
         /* Check that we received data for the current procedure */
-        if (mPeerResultData[deviceId].procedureCounter != procHeader.seqNo)
+        if (pRemoteData->procedureCounter != procHeader.seqNo)
         {
             result = gBleInvalidParameter_c;
         }
         else
         {
-            if (mSubEvtInfo[deviceId].parsedStepsCrtSubEvt >=
-                mPeerResultData[deviceId].aSubEventData[stepIdx].subevtHeader.numStepsReported)
+            uint32_t remainingData = 0;
+            do
             {
-                /* We're starting a new subevet */
-                mSubEvtInfo[deviceId].crtSubEvtIdx++;
-                mPeerResultData[deviceId].subeventIndex++;
-                mSubEvtInfo[deviceId].parsedStepsCrtSubEvt = 0U;
+                uint8_t stepIdx = mSubEvtInfo[deviceId].crtSubEvtIdx;
+                uint8_t crtSteps = pRemoteData->crtNumSteps;
+                uint8_t remainingSteps = 0;
 
-                /* Parse subevent header */
-                parseSubEvtHeader(deviceId, pData, &outParsedLen);
-                pData = &pData[outParsedLen];
-                parsedDataLen += outParsedLen;
-            }
-            else
-            {
-                /* We received additional data for the current subevent */
-                FLib_MemCpy(&subEvtContHeader, pData, sizeof(gCsSubEvtContHeaderData_t));
-                pData = &pData[sizeof(gCsSubEvtContHeaderData_t)];
-                dataLen.u32 = sizeof(gCsSubEvtContHeaderData_t);
-                parsedDataLen += dataLen.u16;
-            }
+                /* Check if we have data from a new subevent or the same */
+                if (mSubEvtInfo[deviceId].parsedStepsCrtSubEvt >=
+                    pRemoteData->aSubEventData[stepIdx].subevtHeader.numStepsReported)
+                {
+                    /* We're starting a new subevent */
+                    uint8_t outParsedLen = 0U;
+                    mSubEvtInfo[deviceId].crtSubEvtIdx++;
+                    stepIdx = mSubEvtInfo[deviceId].crtSubEvtIdx;
+                    pRemoteData->subeventIndex++;
+                    mSubEvtInfo[deviceId].parsedStepsCrtSubEvt = 0U;
+                    parseSubEvtHeader(deviceId, pData, &outParsedLen);
+                    pData = &pData[outParsedLen];
+                    parsedDataLen += outParsedLen;
+                    remainingSteps = pRemoteData->aSubEventData[stepIdx].subevtHeader.numStepsReported;
+                }
+                else
+                {
+                    /* We received additional data for the current subevent */
+                    gCsSubEvtContHeaderData_t subEvtContHeader;
+                    FLib_MemCpy(&subEvtContHeader, pData, sizeof(gCsSubEvtContHeaderData_t));
+                    pData = &pData[sizeof(gCsSubEvtContHeaderData_t)];
+                    dataLen.u32 = sizeof(gCsSubEvtContHeaderData_t);
+                    parsedDataLen += dataLen.u16;
+                    remainingSteps = subEvtContHeader.numStepsReported;
+                }
 
-            /* Count the received number of steps */
-            parseRecvNoOfSteps(deviceId,
-                               (packetLen-parsedDataLen),
-                               pData);
-
-            stepIdx = mPeerResultData[deviceId].subeventIndex;
+                /* Count the received number of steps */
+                remainingData = AppLocalizationAlgo_UncompressRemoteResponseL2CAP(
+                    pData, 
+                    packetLen-parsedDataLen, &mPeerResultData[deviceId],
+                    remainingSteps);
+                
+                /* Advance data pointer */
+                if (remainingData)
+                {
+                    pData = &pData[(packetLen - parsedDataLen) - remainingData];
+                    parsedDataLen += (packetLen - parsedDataLen) - remainingData;
+                }
+                
+                /* Count the received number of steps */
+                mSubEvtInfo[deviceId].parsedStepsCrtSubEvt += pRemoteData->crtNumSteps - crtSteps;
+            } while (remainingData != 0);
 
             /* Check if we reached the end of the transfer */
             if ((mSubEvtInfo[deviceId].parsedStepsCrtSubEvt >=
-                 mPeerResultData[deviceId].aSubEventData[stepIdx].subevtHeader.numStepsReported) &&
-                (mPeerResultData[deviceId].aSubEventData[stepIdx].subevtHeader.procedureDoneStatus == (uint8_t)gCsCompleteResults_c))
+                 pRemoteData->aSubEventData[pRemoteData->subeventIndex].subevtHeader.numStepsReported) &&
+                (pRemoteData->aSubEventData[pRemoteData->subeventIndex].subevtHeader.procedureDoneStatus == (uint8_t)gCsCompleteResults_c))
             {
+                uint16_t totalStepCounter = 0U;
+    
+                /* Total number of steps */
+                pDstAppBuffer->csData.step_nb = (uint16_t)pRemoteData->step;
+
+                /* Start ACL count */
+                pDstAppBuffer->csData.startAclCnt =
+                        pRemoteData->aSubEventData[pDstAppBuffer->csData.subevt_nb].subevtHeader.startACLConnEvent;
+
+                /* For every subevent */
+                for (uint8_t index = 0U; index <= pRemoteData->subeventIndex; index++)
+                {
+                    /* The stop index is the total number of previous steps */
+                    pDstAppBuffer->csData.subevtStopIdx[index] =
+                        (uint8_t)totalStepCounter + pRemoteData->aSubEventData[index].subevtHeader.numStepsReported;
+
+                    /* Delta regarding ACL counter of first subevent */
+                    pDstAppBuffer->csData.subevtConnEvent[index] =
+                        (uint8_t)(pRemoteData->aSubEventData[index].subevtHeader.startACLConnEvent - pDstAppBuffer->csData.startAclCnt);
+
+                    /* Save the reference power level in subevtRefPowerLevelInit - will be switched to the proper role by the caller */
+                    pDstAppBuffer->csData.subevtRefPowerLevelInit[index] = pRemoteData->aSubEventData[index].subevtHeader.referencePowerLevel;
+
+                    /* Count handled steps */
+                    totalStepCounter += pRemoteData->aSubEventData[index].subevtHeader.numStepsReported;
+                }
+
+                /* Total number of subevents */
+                pDstAppBuffer->csData.subevt_nb = pRemoteData->subeventIndex + 1U;
+
 #if defined(gAppDeferAlgoRun_d) && (gAppDeferAlgoRun_d == TRUE)
                 result = gBleUnavailable_c;
 #else
-                /* Call algo */
+                /* Call algo (pDstAppBuffer is NULL after this call) */
                 AppLocalization_RunAlgorithm(deviceId);
 #endif
             }
@@ -474,148 +524,6 @@ static bleResult_t handleRangingProcResCont
     }
 
     return result;
-}
-
-/*! *********************************************************************************
-*\fn         static void parseRecvNoOfSteps(deviceId_t deviceId,
-*                                           uint16_t packetLen, uint8_t* pMsgData)
-*
-*\brief       Helper function to save the received data and count the number of steps
-*
-*\param[in]  deviceId         Peer identifier
-*\param[in]  deviceId         Peer identifier
-*\param[in]  deviceId         Peer identifier
-*
-*\retval     none
-********************************************************************************** */
-static void parseRecvNoOfSteps
-(
-    deviceId_t deviceId,
-    uint16_t   packetLen,
-    uint8_t*   pMsgData
-)
-{
-    uint8_t* pData = pMsgData;
-    uint16_t parsedDataLen = 0U;
-    uint8_t mode = 0U;
-    uint8_t stepIdx = mSubEvtInfo[deviceId].crtSubEvtIdx;
-
-    union
-    {
-        uint16_t u16;
-        uint32_t u32;
-    }dataLen = {0U};
-
-    while (parsedDataLen < packetLen)
-    {
-        dataLen.u32 = 0U;
-        /* Step mode value */
-        mode = *pData++;
-        parsedDataLen++;
-
-        assert(mode <= gCsStepMode3_c);
-
-        mPeerResultData[deviceId].pData[mPeerResultData[deviceId].totalSentRcvDataIndex] = mode;
-        mPeerResultData[deviceId].totalSentRcvDataIndex++;
-
-        switch (mode)
-        {
-            case (uint8_t)gCsStepMode0_c:
-            {
-               FLib_MemCpy(mPeerResultData[deviceId].pData + mPeerResultData[deviceId].totalSentRcvDataIndex,
-                           pData,
-                           gMode0DataSize_c);
-
-                pData = &pData[gMode0DataSize_c];
-                parsedDataLen += gMode0DataSize_c;
-                mPeerResultData[deviceId].totalSentRcvDataIndex += gMode0DataSize_c;
-
-                if (mGlobalRangeSettings.role == gCsRoleReflector_c)
-                {
-                    /* Peer is initiator - parse additional mode 0 data */
-                    FLib_MemCpy(mPeerResultData[deviceId].pData + mPeerResultData[deviceId].totalSentRcvDataIndex,
-                             pData,
-                             sizeof(uint16_t));
-
-                    mPeerResultData[deviceId].totalSentRcvDataIndex += sizeof(uint16_t);
-                    dataLen.u32 = sizeof(uint16_t);
-                    pData = &pData[sizeof(uint16_t)];
-                    parsedDataLen += dataLen.u16;
-                }
-            }
-            break;
-
-            case (uint8_t)gCsStepMode1_c:
-            {
-                FLib_MemCpy(mPeerResultData[deviceId].pData + mPeerResultData[deviceId].totalSentRcvDataIndex,
-                             pData,
-                             gMode1DataSize_c);
-
-                mPeerResultData[deviceId].totalSentRcvDataIndex += gMode1DataSize_c;
-                pData = &pData[gMode1DataSize_c];
-                parsedDataLen += gMode1DataSize_c;
-            }
-            break;
-
-            case (uint8_t)gCsStepMode2_c:
-            {
-                /* 1 byte quality + 3 bytes per antenna path for Tone_PCT */
-                uint8_t mode2DataSize = (mPeerResultData[deviceId].numAntennaPaths*gTone_PCTSize_c) + 1U;
-
-                FLib_MemCpy(mPeerResultData[deviceId].pData + mPeerResultData[deviceId].totalSentRcvDataIndex,
-                             pData,
-                             mode2DataSize);
-
-                mPeerResultData[deviceId].totalSentRcvDataIndex += mode2DataSize;
-                pData = &pData[mode2DataSize];
-                parsedDataLen += mode2DataSize;
-            }
-            break;
-
-            case (uint8_t)gCsStepMode3_c:
-            {
-                /* 1 byte quality + 3 bytes per antenna path for Tone_PCT */
-                uint8_t mode3DataSize = (mPeerResultData[deviceId].numAntennaPaths*gTone_PCTSize_c) + 1U + gMode1DataSize_c;
-
-                FLib_MemCpy(mPeerResultData[deviceId].pData + mPeerResultData[deviceId].totalSentRcvDataIndex,
-                             pData,
-                             mode3DataSize);
-
-                mPeerResultData[deviceId].totalSentRcvDataIndex += mode3DataSize;
-
-                pData = &pData[mode3DataSize];
-                parsedDataLen += mode3DataSize;
-            }
-            break;
-
-            default:
-            {
-                /* Should not get here */
-                assert(FALSE);
-            }
-            break;
-        }
-
-        mSubEvtInfo[deviceId].parsedStepsCrtSubEvt++;
-
-        /* We reached the end of the current subevent - parse the header for the new one */
-        if ((mSubEvtInfo[deviceId].parsedStepsCrtSubEvt ==
-            mPeerResultData[deviceId].aSubEventData[stepIdx].subevtHeader.numStepsReported) &&
-            (mPeerResultData[deviceId].aSubEventData[stepIdx].subevtHeader.procedureDoneStatus != (uint8_t)gCsCompleteResults_c))
-        {
-            uint8_t outParsedLen = 0U;
-            stepIdx++;
-            mSubEvtInfo[deviceId].crtSubEvtIdx++;
-            /* Increase subevent index */
-            mPeerResultData[deviceId].subeventIndex++;
-            /* Parse subevent header */
-            parseSubEvtHeader(deviceId, pData, &outParsedLen);
-            /* Increase counters */
-            pData = &pData[outParsedLen];
-            parsedDataLen += outParsedLen;
-            mSubEvtInfo[deviceId].parsedStepsCrtSubEvt = 0U;
-        }
-    }
 }
 
 #endif /* gAppBtcsClient_d */

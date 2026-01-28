@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 * \file btcs_server.c
 *
@@ -201,7 +201,7 @@ static void sendMeasurementResultHelper
        FSCI_transmitPayload(gFsciNcpAppOpcodeGroup_c, gAppSetAlgoTypeIDOpCode_c,
                                  &algoValue, sizeof(uint8_t), gFsciInterface_c);
         
-       while (dataLen < pRes->pData->dataIndex)
+       while (dataLen < sizeof(csAppData_t))
        {
           /* Reset buffer */
           FLib_MemSet(pEventData, 0U, gFsciMaxPayloadLen_c);
@@ -215,7 +215,9 @@ static void sendMeasurementResultHelper
               /* Set event tpe */
               pBuff[0] = (uint8_t)eventType;
               pBuff++;
-              dataSize--;
+              pBuff[0] = deviceId;
+              pBuff++;
+              dataSize -= 2U;
               /* Copy rasMeasurementData_t header data */
               FLib_MemCpy(pBuff, pRes->pData, dataHeaderSize);
               dataSize -= dataHeaderSize;
@@ -228,23 +230,25 @@ static void sendMeasurementResultHelper
               FSCI_transmitPayload(gFsciNcpAppOpcodeGroup_c, gAppBleCSDataOpCode_c,
                                    pEventData, gFsciMaxPayloadLen_c, gFsciInterface_c);
           }
-          else if ((pRes->pData->dataIndex - dataLen) < (uint32_t)gFsciMaxPayloadLen_c)
+          else if ((sizeof(csAppData_t) - dataLen) < (uint32_t)gFsciMaxPayloadLen_c)
           {
               /* This is the last packet - send the remaing data */
               pRes->isLocal == TRUE ? (eventType = gIQLocalTrEnd_c) : (eventType = gIQRemoteTrEnd_c);
               /* Set event tpe */
               pBuff[0] = (uint8_t)eventType;
               pBuff++;
+              pBuff[0] = deviceId;
+              pBuff++;
 
               /* Fill the remaining valid data */
-              FLib_MemCpy(pBuff, pRes->pData->pData + dataLen, (pRes->pData->dataIndex - dataLen));
-              pBuff += (pRes->pData->dataIndex - dataLen);
+              FLib_MemCpy(pBuff, pRes->pData->pData + dataLen, (sizeof(csAppData_t) - dataLen));
+              pBuff += (sizeof(csAppData_t) - dataLen);
 
               /* Fill the remaining data */
-              uint32_t remainingDataLen =   (uint32_t)gFsciMaxPayloadLen_c - sizeof(eventType) - (pRes->pData->dataIndex - dataLen);
+              uint32_t remainingDataLen =   (uint32_t)gFsciMaxPayloadLen_c - sizeof(eventType) -1U - (sizeof(csAppData_t) - dataLen);
               FLib_MemSet(pBuff, 0U, remainingDataLen);
 
-              dataLen += ((uint16_t)pRes->pData->dataIndex - dataLen);
+              dataLen += ((uint16_t)sizeof(csAppData_t) - dataLen);
 
               /* Send message */
               FSCI_transmitPayload(gFsciNcpAppOpcodeGroup_c, gAppBleCSDataOpCode_c,
@@ -257,7 +261,9 @@ static void sendMeasurementResultHelper
               /* Set event tpe */
               pBuff[0] = (uint8_t)eventType;
               pBuff++;
-              dataSize--;
+              pBuff[0] = deviceId;
+              pBuff++;
+              dataSize -= 2U;
               /* Fill data and set message len */
               FLib_MemCpy(pBuff, pRes->pData->pData + dataLen, dataSize);
               dataLen += dataSize;

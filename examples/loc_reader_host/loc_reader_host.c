@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file loc_reader_host.c
 *
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -114,10 +114,6 @@ static float mPreviousDistance = (float)10.0;
 
 /*! Algorithm result structure */
 static localizationAlgoResult_t mAlgoResult;
-/*! Local localization data received from Core 1 */
-static rasMeasurementData_t *mpLocalData = NULL;
-/*! Remote localization data received from Core 1 */
-static rasMeasurementData_t *mpPeerData = NULL;
 
 /************************************************************************************
 *************************************************************************************
@@ -139,7 +135,7 @@ static void BleApp_PrintMeasurementResults
 *\brief Checks if remote and local IQ data has been received from Core 1 and the algorithm can be run.
 *
 ***************************************************************************************************/
-static void BleApp_CheckRunAlgo(void);
+static void BleApp_CheckRunAlgo(deviceId_t deviceId);
 
 /*!*************************************************************************************************
 *\brief Runs the localization algorithm with the data received from Core 1
@@ -299,38 +295,37 @@ void BleApp_HandleNcpMsg
 )
 {
     uint8_t* pEventData = pMsg;
+    deviceId_t deviceId = pEventData[0];
+    pEventData++;
     uint16_t dataHeaderSize = (sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-    uint32_t evenDataSize = (uint32_t)gFsciMaxPayloadLen_c - sizeof(ncpIqTransferMsgType_t) - 1U;
+    uint32_t evenDataSize = (uint32_t)gFsciMaxPayloadLen_c - sizeof(ncpIqTransferMsgType_t) - sizeof(deviceId_t) - 1U;
     union {
       uint32_t u32;
       uint16_t u16;
     } dataLen = {};
 
+    rasMeasurementData_t* pLocalData = AppLocalization_GetLocalData(deviceId);
+    rasMeasurementData_t* pPeerData = RasClient_GetPeerRangingData(deviceId);
+
     switch (eventType)
     {
         case gIQLocalTrStart_c:
         {
+            unpackDataHeader(pLocalData, pEventData);
             /* Save local data */
-            if (mpLocalData == NULL)
+            if (pLocalData->pData == NULL)
             {
-                mpLocalData = MEM_BufferAlloc(sizeof(rasMeasurementData_t));
+                pLocalData->pData = MEM_BufferAlloc(sizeof(csAppData_t));
             }
 
-            if (mpLocalData != NULL)
+            if (pLocalData->pData != NULL)
             {
-                /* Unpack data header */
-                unpackDataHeader(mpLocalData, pEventData);
-                /* Start unpacking the data */
-                mpLocalData->pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
-                if (mpLocalData->pData != NULL)
-                {
-                    mpLocalData->totalSentRcvDataIndex = 0U;
-                    FLib_MemCpy(mpLocalData->pData,
-                                pEventData + dataHeaderSize,
-                                (evenDataSize - dataHeaderSize));
-                    dataLen.u32 = evenDataSize-dataHeaderSize;
-                    mpLocalData->totalSentRcvDataIndex += dataLen.u16;
-                }
+                pLocalData->totalSentRcvDataIndex = 0U;
+                FLib_MemCpy(pLocalData->pData,
+                            pEventData + dataHeaderSize,
+                            (evenDataSize - dataHeaderSize));
+                dataLen.u32 = evenDataSize - dataHeaderSize;
+                pLocalData->totalSentRcvDataIndex += dataLen.u16;
             }
         }
         break;
@@ -338,13 +333,13 @@ void BleApp_HandleNcpMsg
         case gIQLocalTrCont_c:
         {
             /* Save local data */
-            if ((mpLocalData != NULL) && (mpLocalData->pData != NULL))
+            if (pLocalData->pData != NULL)
             {
-                FLib_MemCpy(mpLocalData->pData + mpLocalData->totalSentRcvDataIndex,
+                FLib_MemCpy(pLocalData->pData + pLocalData->totalSentRcvDataIndex,
                             pEventData,
                             evenDataSize);
                 dataLen.u32 = evenDataSize;
-                mpLocalData->totalSentRcvDataIndex += dataLen.u16;
+                pLocalData->totalSentRcvDataIndex += dataLen.u16;
             }
         }
         break;
@@ -352,43 +347,38 @@ void BleApp_HandleNcpMsg
         case gIQLocalTrEnd_c:
         {
             /* Save local data */
-            if ((mpLocalData != NULL) && (mpLocalData->pData != NULL))
+            if (pLocalData->pData != NULL)
             {
-                FLib_MemCpy(mpLocalData->pData + mpLocalData->totalSentRcvDataIndex,
-                            pEventData,
-                            evenDataSize);
-                dataLen.u32 = mpLocalData->dataIndex;
-                mpLocalData->totalSentRcvDataIndex = dataLen.u16;
+                uint32_t remainingBytes = sizeof(csAppData_t) - pLocalData->totalSentRcvDataIndex;
 
-                /* Chck if all data was received and run algorithm if yes */
-                BleApp_CheckRunAlgo();
+                FLib_MemCpy(pLocalData->pData + pLocalData->totalSentRcvDataIndex,
+                            pEventData,
+                            remainingBytes);
+                dataLen.u32 = pLocalData->dataIndex;
+                pLocalData->totalSentRcvDataIndex = pLocalData->dataIndex;
+
             }
         }
         break;
 
         case gIQRemoteTrStart_c:
         {
+            RasClient_Init(NULL, deviceId);
+            unpackDataHeader(pPeerData, pEventData);
             /* Save remote data */
-            if (mpPeerData == NULL)
+            if (pPeerData->pData == NULL)
             {
-                mpPeerData = MEM_BufferAlloc(sizeof(rasMeasurementData_t));
+                pPeerData->pData = MEM_BufferAlloc(sizeof(csAppData_t));
             }
 
-            if (mpPeerData != NULL)
+            if (pPeerData->pData != NULL)
             {
-                /* Unpack data header */
-                unpackDataHeader(mpPeerData, pEventData);
-                /* Start unpacking the data */
-                mpPeerData->pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
-                if (mpPeerData->pData != NULL)
-                {
-                    mpPeerData->totalSentRcvDataIndex = 0U;
-                    FLib_MemCpy(mpPeerData->pData,
-                                pEventData+dataHeaderSize,
-                                (evenDataSize - dataHeaderSize));
-                    dataLen.u32 = evenDataSize - dataHeaderSize;
-                    mpPeerData->totalSentRcvDataIndex += dataLen.u16;
-                }
+                pPeerData->totalSentRcvDataIndex = 0U;
+                FLib_MemCpy(pPeerData->pData,
+                            pEventData+dataHeaderSize,
+                            (evenDataSize - dataHeaderSize));
+                dataLen.u32 = evenDataSize - dataHeaderSize;
+                pPeerData->totalSentRcvDataIndex += dataLen.u16;
             }
         }
         break;
@@ -396,13 +386,13 @@ void BleApp_HandleNcpMsg
         case gIQRemoteTrCont_c:
         {
             /* Save remote data */
-            if ((mpPeerData != NULL) && (mpPeerData->pData != NULL))
+            if (pPeerData->pData != NULL)
             {
-                FLib_MemCpy(mpPeerData->pData + mpPeerData->totalSentRcvDataIndex,
+                FLib_MemCpy(pPeerData->pData + pPeerData->totalSentRcvDataIndex,
                             pEventData,
                             evenDataSize);
                 dataLen.u32 = evenDataSize;
-                mpPeerData->totalSentRcvDataIndex += dataLen.u16;
+                pPeerData->totalSentRcvDataIndex += dataLen.u16;
             }
         }
         break;
@@ -410,16 +400,18 @@ void BleApp_HandleNcpMsg
         case gIQRemoteTrEnd_c:
         {
             /* Save remote data */
-            if ((mpPeerData != NULL) && (mpPeerData->pData != NULL))
+            if (pPeerData->pData != NULL)
             {
-                FLib_MemCpy(mpPeerData->pData + mpPeerData->totalSentRcvDataIndex,
+                uint32_t remainingBytes = sizeof(csAppData_t) - pPeerData->totalSentRcvDataIndex;
+
+                FLib_MemCpy(pPeerData->pData + pPeerData->totalSentRcvDataIndex,
                             pEventData,
-                            evenDataSize);
-                dataLen.u32 = mpPeerData->dataIndex;
-                mpPeerData->totalSentRcvDataIndex = dataLen.u16;
+                            remainingBytes);
+                dataLen.u32 = pPeerData->dataIndex;
+                pPeerData->totalSentRcvDataIndex = pPeerData->dataIndex;
 
                 /* Chck if all data was received and run algorithm if yes */
-                BleApp_CheckRunAlgo();
+                BleApp_CheckRunAlgo(deviceId);
             }
         }
         break;
@@ -445,26 +437,34 @@ static void App_RunAlgo
     void* pData
 )
 {
-    (void)pData;
+    deviceId_t deviceId = (deviceId_t)(uint32_t)pData;
+
+    rasMeasurementData_t* pLocalData = AppLocalization_GetLocalData(deviceId);
+    rasMeasurementData_t* pPeerData = RasClient_GetPeerRangingData(deviceId);
 
     FLib_MemSet(&mAlgoResult, 0U, sizeof(localizationAlgoResult_t));
     mAlgoResult.algorithm = AppLocalization_GetAlgorithm();
 
     /* We have both remote and local data - run algo */
-    RasClient_Init(NULL);
-    RasClient_SetPeerRangingData(0, mpPeerData);
-    AppLocalizationAlgo_RunMeasurement(0, mpLocalData, mpPeerData, mGlobalRangeSettings.role,  &mAlgoResult);
-    BleApp_PrintMeasurementResults(mpLocalData->deviceId, &mAlgoResult);
+    RasClient_SetPeerRangingData(deviceId, pPeerData);
+    AppLocalizationAlgo_RunMeasurement(deviceId, pLocalData, pPeerData, mGlobalRangeSettings.role,  &mAlgoResult);
+    BleApp_PrintMeasurementResults(deviceId, &mAlgoResult);
 
     /* Free local data */
-    (void)MEM_BufferFree(mpLocalData->pData);
-    (void)MEM_BufferFree(mpLocalData);
-    mpLocalData = NULL;
+    if (pLocalData->pData != NULL)
+    {
+        (void)MEM_BufferFree(pLocalData->pData);
+        pLocalData->pData = NULL;
+    }
+    FLib_MemSet(pLocalData, 0U, sizeof(rasMeasurementData_t));
 
     /* Free peer data */
-    (void)MEM_BufferFree(mpPeerData->pData);
-    (void)MEM_BufferFree(mpPeerData);
-    mpPeerData = NULL;
+    if (pPeerData->pData != NULL)
+    {
+        (void)MEM_BufferFree(pPeerData->pData);
+        pPeerData->pData = NULL;
+    }
+    FLib_MemSet(pPeerData, 0U, sizeof(rasMeasurementData_t));
 }
 
 /*!*************************************************************************************************
@@ -475,12 +475,14 @@ static void App_RunAlgo
 *
 *\return      none
 ***************************************************************************************************/
-static void BleApp_CheckRunAlgo(void)
+static void BleApp_CheckRunAlgo(deviceId_t deviceId)
 {
-    if ((mpLocalData != NULL) && (mpPeerData != NULL) &&
-        (mpLocalData->pData != NULL) && (mpPeerData->pData != NULL))
+    rasMeasurementData_t* pLocalData = AppLocalization_GetLocalData(deviceId);
+    rasMeasurementData_t* pPeerData = RasClient_GetPeerRangingData(deviceId);
+
+    if ((pLocalData->pData != NULL) && (pPeerData->pData != NULL))
     {
-        (void)App_PostCallbackMessage(App_RunAlgo, NULL);
+        (void)App_PostCallbackMessage(App_RunAlgo, (void*)(uint32_t)deviceId);
     }
 }
 

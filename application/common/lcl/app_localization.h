@@ -181,7 +181,14 @@ typedef PACKED_STRUCT rasMeasurementData_tag
     uint8_t             subeventIndex;
     uint8_t             crtNumSteps;
     measSubEvtData_t    aSubEventData[gRasMaxNumSubevents_c];
-    uint8_t             *pData;
+
+    int                 crtStep;
+    int                 step;
+    uint32_t            position;
+    uint8_t             *pRemaining;
+    uint32_t            remainingLen;
+
+    uint8_t             *pData; /* Must be the last element in this structure */
 } rasMeasurementData_t;
 #endif
 
@@ -479,6 +486,18 @@ extern rasStaticConfig_t mRasServiceConfig;
 #if defined(__cplusplus)
 extern "C" {
 #endif /* __cplusplus */
+
+/*! *********************************************************************************
+*\brief         Get pointer to local measurement data for the specified peer.
+*
+*\param[in]     deviceId      Peer identifier
+*
+*\retval        Pointer to local measurement data
+********************************************************************************** */
+rasMeasurementData_t* AppLocalization_GetLocalData
+(
+    deviceId_t deviceId
+);
 
 /*! *********************************************************************************
 *\fn           bleResult_t AppLocalization_Init(uint8_t role,
@@ -896,6 +915,7 @@ void AppLocalization_ClearLocalData
 (
     deviceId_t deviceId
 );
+
 #endif /* gRasRREQ_d */
 #else
 #if defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
@@ -915,6 +935,34 @@ void AppLocalization_SetPsmChannelId
 );
 #endif /* defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U) */
 #endif /* gAppRasDataTransfer_d */
+
+/*! *********************************************************************************
+*\fn            void AppLocalization_AllocLocalData(deviceId_t deviceId);
+*
+*\brief         Allocate the local CS data space for the specified peer.
+*
+*\param[in]     deviceId         Peer identifier
+*
+*\retval        pointer to the allocated area
+********************************************************************************** */
+void* AppLocalization_AllocLocalData
+(
+    deviceId_t deviceId
+);
+
+/*! *********************************************************************************
+*\fn            void AppLocalization_FreeLocalData(deviceId_t deviceId);
+*
+*\brief         Free the memory of the local CS data for the specified peer.
+*
+*\param[in]     deviceId         Peer identifier
+*
+*\retval        none
+********************************************************************************** */
+void AppLocalization_FreeLocalData
+(
+    deviceId_t deviceId
+);
 
 /*! *********************************************************************************
 *\fn            uint8_t AppLocalization_GetNumAntennaPaths(deviceId_t deviceId);

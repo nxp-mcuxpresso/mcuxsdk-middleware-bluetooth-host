@@ -1007,6 +1007,9 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.lcl)
     mcux_add_source(
         SOURCES application/common/lcl/app_localization.c
                 application/common/lcl/app_localization.h
+                application/common/lcl/app_localization_utils.c
+                application/common/lcl/app_localization_utils.h
+                application/common/lcl/ranging_client_interface.h
     )
     mcux_add_include(
         INCLUDES application/common/lcl

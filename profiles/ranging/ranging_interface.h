@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2022-2025 NXP
+* Copyright 2022-2026 NXP
 *
 *
 * \file
@@ -157,7 +157,14 @@ typedef PACKED_STRUCT rasMeasurementData_tag
     uint8_t             subeventIndex;
     uint8_t             crtNumSteps;
     measSubEvtData_t    aSubEventData[gRasMaxNumSubevents_c];
-    uint8_t             *pData;
+
+    int                 crtStep;
+    int                 step;
+    uint32_t            position;
+    uint8_t             *pRemaining;
+    uint32_t            remainingLen;
+
+    uint8_t             *pData; /* Must be the last element in this structure */
 } rasMeasurementData_t;
 
 /* Segment information for Retrieve Lost Ranging Data Segments command */

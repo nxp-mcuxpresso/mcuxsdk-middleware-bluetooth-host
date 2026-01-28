@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 * \file ranging_client.c
 *
@@ -20,6 +20,7 @@
 #include "fsl_component_mem_manager.h"
 #include "channel_sounding.h"
 #include "gatt_client_interface.h"
+#include "app_localization_utils.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -161,35 +162,34 @@ static bleResult_t RasClient_UnsubscribeRealTime
 ********************************************************************************** */
 void RasClient_Init
 (
-    pfAppCsCallback_t pAppCallback
+    pfAppCsCallback_t pAppCallback,
+    deviceId_t deviceId
 )
 {
     mpfAppCallback = pAppCallback;
 
     /* Reset measurement data */
-    for (uint8_t index = 0U; index < (uint8_t)gAppMaxConnections_c; index++)
+
+    FLib_MemSet(mRasTransferInfo[deviceId].lostSegm, 0U, gRASMaxNoOfSegments_c);
+    FLib_MemSet(mRasTransferInfo[deviceId].recvSegm, 0U, gRASMaxNoOfSegments_c);
+    FLib_MemSet(mRasTransferInfo[deviceId].recvIntermSegm, 0U, gRASMaxNoOfSegments_c);
+    FLib_MemSet(mRasTransferInfo[deviceId].recvIntermSegmLen, 0U, gRASMaxNoOfSegments_c * sizeof(uint16_t));
+    for (uint8_t filterIdx = 0; filterIdx < 4U; filterIdx++)
     {
-        FLib_MemSet(mRasTransferInfo[index].lostSegm, 0U, gRASMaxNoOfSegments_c);
-        FLib_MemSet(mRasTransferInfo[index].recvSegm, 0U, gRASMaxNoOfSegments_c);
-        FLib_MemSet(mRasTransferInfo[index].recvIntermSegm, 0U, gRASMaxNoOfSegments_c);
-        FLib_MemSet(mRasTransferInfo[index].recvIntermSegmLen, 0U, gRASMaxNoOfSegments_c * sizeof(uint16_t));
-        for (uint8_t filterIdx = 0; filterIdx < 4U; filterIdx++)
-        {
-            maRasClientFilter[index * 4U + filterIdx].filterVal = gNoFilter_c;
-            maRasClientFilter[index * 4U + filterIdx].filterSet = FALSE;
-        }
-        mRasTransferInfo[index].currentIdxLostSegm = 0U;
-        mRasTransferInfo[index].currentIdxRecvSegm = 0U;
-        mRasTransferInfo[index].currentIdxRecvIntermSegm = 0U;
-        mRasTransferInfo[index].crtTempDataIdx  = 0U;
-        mRasTransferInfo[index].lastDataIdx = 0U;
-        mRasTransferInfo[index].crtIdxRecvLost = 0U;
-        mRasTransferInfo[index].expectingSegments = FALSE;
-        mPeerResultData[index].pData = NULL;
-        maRASFeatures[index] = 0U;
-        mbRealTimeTransfer[index] = FALSE;
-        mbRetrLostRangingDataOngoing[index] = FALSE;
+      maRasClientFilter[deviceId * 4U + filterIdx].filterVal = gNoFilter_c;
+      maRasClientFilter[deviceId * 4U + filterIdx].filterSet = FALSE;
     }
+    mRasTransferInfo[deviceId].currentIdxLostSegm = 0U;
+    mRasTransferInfo[deviceId].currentIdxRecvSegm = 0U;
+    mRasTransferInfo[deviceId].currentIdxRecvIntermSegm = 0U;
+    mRasTransferInfo[deviceId].crtTempDataIdx  = 0U;
+    mRasTransferInfo[deviceId].lastDataIdx = 0U;
+    mRasTransferInfo[deviceId].crtIdxRecvLost = 0U;
+    mRasTransferInfo[deviceId].expectingSegments = FALSE;
+    mPeerResultData[deviceId].pData = NULL;
+    maRASFeatures[deviceId] = 0U;
+    mbRealTimeTransfer[deviceId] = FALSE;
+    mbRetrLostRangingDataOngoing[deviceId] = FALSE;
 }
 
 /*! *********************************************************************************
@@ -214,7 +214,6 @@ bleResult_t RasClient_StorePeerMeasurementData
 )
 {
     bleResult_t result = gBleSuccess_c;
-    uint8_t* pRangingData = pValue;
     uint8_t segmentHeader;
     uint8_t receivedSegmentCounter;
     uint8_t currentIdx;
@@ -226,10 +225,15 @@ bleResult_t RasClient_StorePeerMeasurementData
 
     if (mPeerResultData[deviceId].pData == NULL)
     {
-        mPeerResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
+        mPeerResultData[deviceId].pData = AppLocalizationAlgo_AllocData();
+
         if (mPeerResultData[deviceId].pData == NULL)
         {
             result = gBleOutOfMemory_c;
+        }
+        else
+        {
+            FLib_MemSet(&mPeerResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
         }
     }
 
@@ -239,14 +243,17 @@ bleResult_t RasClient_StorePeerMeasurementData
     }
     else
     {
+        uint8_t* pRangingData = pValue;
+        uint32_t rangingLength = valueLength;
         /* Extract Segment Header */
         segmentHeader = *pRangingData++;
+        rangingLength--;
         receivedSegmentCounter = segmentHeader;
         receivedSegmentCounter &= (~(uint8_t)gRasNotifFirstSegment_c);
         receivedSegmentCounter &= (~(uint8_t)gRasNotifLastSegment_c);
         receivedSegmentCounter = (uint8_t)(receivedSegmentCounter >> 2U);
 
-       if ((segmentHeader & ((uint8_t)gRasNotifFirstSegment_c)) != 0U)
+        if ((segmentHeader & ((uint8_t)gRasNotifFirstSegment_c)) != 0U)
         {
             segmentCounter = gRasSegmentCounterMinValue_c;
 
@@ -256,17 +263,33 @@ bleResult_t RasClient_StorePeerMeasurementData
                 FLib_MemSet(mPeerResultData[deviceId].pData, 0U, gRasCsSubeventDataSize_c);
                 mPeerResultData[deviceId].totalSentRcvDataIndex = 0U;
             }
+
+            /* Get first header and subevent here */
+            if (rangingLength >= (sizeof(rasSubeventDataHeader_t) + sizeof(rasRangingDataHeader_t)))
+            {
+                RasClient_ParseDataHeader(&pRangingData, &rangingLength, deviceId);
+            }
+            else
+            {
+                /* TBD in case we received less than 13 bytes as the first peer packet:
+                    - enqueue this buffer
+                    - exit call
+                    - next run merge buffers then try again
+                */
+            }
         }
 
         if ((receivedSegmentCounter == segmentCounter) || (mbRealTimeTransfer[deviceId] == TRUE))
         {
-            /* Copy all received data */
+            /* Uncompress this chunk of data */
             if (mRasTransferInfo[deviceId].pNotifTempBuffer == NULL)
             {
-                FLib_MemCpy(mPeerResultData[deviceId].pData + mPeerResultData[deviceId].totalSentRcvDataIndex,
-                            pRangingData,
-                            (valueLength - sizeof(uint8_t)));
-                mPeerResultData[deviceId].totalSentRcvDataIndex += (uint16_t)(valueLength - sizeof(uint8_t));
+                mPeerResultData[deviceId].totalSentRcvDataIndex += (uint16_t)rangingLength;
+                AppLocalizationAlgo_UncompressRemoteResponse(
+                    pRangingData,
+                    rangingLength,
+                    &mPeerResultData[deviceId],
+                    (segmentHeader & ((uint8_t)gRasNotifLastSegment_c)) != 0U);
 
                 /* Copy segmentation header information for the received segments */
                 currentIdx = mRasTransferInfo[deviceId].currentIdxRecvSegm;
@@ -387,60 +410,48 @@ bleResult_t RasClient_ProcessRasDataReadyIndications
     (void)TM_Stop((timer_handle_t)mRreqTimerId);
 
     /* Reset RAS transfer data in preparation for a new procedure */
-    if (mPeerResultData[deviceId].pData == NULL)
+    FLib_MemSet(&mPeerResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
+    
+    FLib_MemSet(mRasTransferInfo[deviceId].lostSegm, 0U, gRASMaxNoOfSegments_c);
+    FLib_MemSet(mRasTransferInfo[deviceId].recvSegm, 0U, gRASMaxNoOfSegments_c);
+    FLib_MemSet(mRasTransferInfo[deviceId].recvIntermSegm, 0U, gRASMaxNoOfSegments_c);
+    FLib_MemSet(mRasTransferInfo[deviceId].recvIntermSegmLen, 0U, gRASMaxNoOfSegments_c * sizeof(uint16_t));
+    mRasTransferInfo[deviceId].expectingSegments = FALSE;
+    mRasTransferInfo[deviceId].currentIdxLostSegm = 0U;
+    mRasTransferInfo[deviceId].currentIdxRecvIntermSegm = 0U;
+    mRasTransferInfo[deviceId].currentIdxRecvSegm = 0U;
+
+    /* Check if the received procedure index matches the local one */
+    if (pRasIndication->procedureIndex != procedureCounter)
     {
-        mPeerResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
-        if (mPeerResultData[deviceId].pData == NULL)
+        /* Received an unexpected procedure - do not initiate transfer and wait for the next procedure */
+        if (procCounter == mRangeSettings[deviceId].maxNumProcedures)
         {
-            result = gBleOutOfMemory_c;
-        }
-    }
-
-    if (result == gBleSuccess_c)
-    {
-        FLib_MemSet(&mPeerResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-        FLib_MemSet(mPeerResultData[deviceId].pData, 0U, gRasCsSubeventDataSize_c);
-        FLib_MemSet(mRasTransferInfo[deviceId].lostSegm, 0U, gRASMaxNoOfSegments_c);
-        FLib_MemSet(mRasTransferInfo[deviceId].recvSegm, 0U, gRASMaxNoOfSegments_c);
-        FLib_MemSet(mRasTransferInfo[deviceId].recvIntermSegm, 0U, gRASMaxNoOfSegments_c);
-        FLib_MemSet(mRasTransferInfo[deviceId].recvIntermSegmLen, 0U, gRASMaxNoOfSegments_c * sizeof(uint16_t));
-        mRasTransferInfo[deviceId].expectingSegments = FALSE;
-        mRasTransferInfo[deviceId].currentIdxLostSegm = 0U;
-        mRasTransferInfo[deviceId].currentIdxRecvIntermSegm = 0U;
-        mRasTransferInfo[deviceId].currentIdxRecvSegm = 0U;
-
-        /* Check if the received procedure index matches the local one */
-        if (pRasIndication->procedureIndex != procedureCounter)
-        {
-            /* Received an unexpected procedure - do not initiate transfer and wait for the next procedure */
-            if (procCounter == mRangeSettings[deviceId].maxNumProcedures)
-            {
-                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
-            }
-            else
-            {
-                AppLocalization_SetLocState(deviceId, gAppLclWaitingForMeasData_c);
-            }
-
-            error = gAppLclInvalidProcIndex_c;
-            segmentCounter = gRasSegmentCounterMinValue_c;
-            result = gBleUnexpectedError_c;
-
-            if (mpfAppCallback != NULL)
-            {
-                mpfAppCallback(deviceId, (void*)&error, gErrorEvent_c);
-            }
+            AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
         }
         else
         {
-            /* Send Get ranging data command if the procedure executed successfully locally */
-            if (AppLocalization_GetProcDoneStatus(deviceId, subeventIndex) == (uint8_t)gCsCompleteResults_c)
-            {
-                segmentCounter = gRasSegmentCounterMinValue_c;
-                result = RasClient_SendRasCommand(deviceId, getRangingDataOpCode_c,
-                                                  0U, 0U, procedureCounter,
-                                                  gAntennaPathFilterAllowAll_c);
-            }
+            AppLocalization_SetLocState(deviceId, gAppLclWaitingForMeasData_c);
+        }
+
+        error = gAppLclInvalidProcIndex_c;
+        segmentCounter = gRasSegmentCounterMinValue_c;
+        result = gBleUnexpectedError_c;
+
+        if (mpfAppCallback != NULL)
+        {
+            mpfAppCallback(deviceId, (void*)&error, gErrorEvent_c);
+        }
+    }
+    else
+    {
+        /* Send Get ranging data command if the procedure executed successfully locally */
+        if (AppLocalization_GetProcDoneStatus(deviceId, subeventIndex) == (uint8_t)gCsCompleteResults_c)
+        {
+            segmentCounter = gRasSegmentCounterMinValue_c;
+            result = RasClient_SendRasCommand(deviceId, getRangingDataOpCode_c,
+                                              0U, 0U, procedureCounter,
+                                              gAntennaPathFilterAllowAll_c);
         }
     }
 
@@ -1076,39 +1087,46 @@ void RasClient_SartRapTimer
 }
 
 /*! *********************************************************************************
-*\fn            void RasClient_ParseDataHeader(deviceId_t deviceId);
+*\fn            void RasClient_ParseDataHeader(uint8_t **ppRangingData,
+*               uint32_t *pRangingLength, deviceId_t deviceId);
 *
 *\brief         Parser for header data.
 *
+*\param[in/out] ppRangingData   Double pointer to the received data
+*\param[in/out] pRangingLength  Pointer to the received data size
 *\param[in]     deviceId        Peer identifier
 *
 *\retval        None
 ********************************************************************************** */
 void RasClient_ParseDataHeader
 (
+    uint8_t **ppRangingData,
+    uint32_t *pRangingLength,
     deviceId_t deviceId
 )
 {
     mPeerResultData[deviceId].deviceId = deviceId;
-    uint8_t* pRangingData = mPeerResultData[deviceId].pData;
     uint16_t counterCfgId = 0U;
 
-    /* After RAS transfer is completed mPeerResultData will contain the whole ranging body:
-       procedure header, subevent header 1, subevent data 1, ... , subevent header n, subevent data n.*/
-    counterCfgId = Utils_BeExtractTwoByteValue(pRangingData);
-    pRangingData += 2U;
+    counterCfgId = Utils_BeExtractTwoByteValue(*ppRangingData);
+    *ppRangingData += 2U;
+    *pRangingLength -= 2U;
     mPeerResultData[deviceId].procedureCounter = ((counterCfgId & 0xFF00U) >> 8U);
     mPeerResultData[deviceId].configId = (uint8_t)((counterCfgId & 0xF0U) >> 4U);
     mPeerResultData[deviceId].procedureCounter |= ((counterCfgId & 0x0FU) << 8U);
 
-    mPeerResultData[deviceId].selectedTxPower = (int8_t)(*pRangingData);
-    pRangingData++;
+    mPeerResultData[deviceId].selectedTxPower = (int8_t)(**ppRangingData);
+    *ppRangingData = *ppRangingData + 1;
+    *pRangingLength = *pRangingLength - 1;
     /* Skip RFU (Reserved for future use) byte */
-    pRangingData++;
+    *ppRangingData = *ppRangingData + 1;
+    *pRangingLength = *pRangingLength - 1;
     mPeerResultData[deviceId].numAntennaPaths = AppLocalization_GetNumAntennaPaths(deviceId);
 
     /* Parse first subevent header */
-    RasClient_ParseReceivedSubeventHeader(deviceId, pRangingData);
+    RasClient_ParseReceivedSubeventHeader(deviceId, *ppRangingData);
+    *ppRangingData += sizeof(rasSubeventDataHeader_t);
+    *pRangingLength -= sizeof(rasSubeventDataHeader_t);
 }
 
 /*! *********************************************************************************
@@ -1225,23 +1243,31 @@ static void parseBufferedNotifs
 )
 {
     uint8_t* pRangingData;
-    uint8_t dataLen = 0U;
+    uint16_t dataLen = 0U;
     uint8_t currentIdx = 0U;
+    uint16_t rangingLength = 0U;
+    uint8_t segmentHeader = 0U;
 
     for (uint8_t recvIdx = 0U; recvIdx < mRasTransferInfo[deviceId].currentIdxRecvIntermSegm; recvIdx++)
     {
         if ((mRasTransferInfo[deviceId].recvIntermSegm[recvIdx] != 0U) &&
             (mRasTransferInfo[deviceId].recvIntermSegm[recvIdx] != 0xFFU))
         {
-            dataLen = (uint8_t)(mRasTransferInfo[deviceId].recvIntermSegmLen[recvIdx]);
+            dataLen = mRasTransferInfo[deviceId].recvIntermSegmLen[recvIdx];
             pRangingData = mRasTransferInfo[deviceId].pNotifTempBuffer + mRasTransferInfo[deviceId].crtTempDataIdx;
+
             /* Skip segmentation header */
-            pRangingData++;
-            /* Copy data from buffered notifications */
-            FLib_MemCpy(mPeerResultData[deviceId].pData + mPeerResultData[deviceId].totalSentRcvDataIndex,
-                        pRangingData,
-                        (dataLen - sizeof(uint8_t)));
-            mPeerResultData[deviceId].totalSentRcvDataIndex += (uint16_t)(dataLen - sizeof(uint8_t));
+            segmentHeader = *pRangingData++;
+            rangingLength = dataLen - sizeof(uint8_t);
+
+            /* Uncompress remaining data from buffered notifications */
+            mPeerResultData[deviceId].totalSentRcvDataIndex += rangingLength;
+            AppLocalizationAlgo_UncompressRemoteResponse(
+                pRangingData,
+                rangingLength,
+                &mPeerResultData[deviceId],
+                (segmentHeader & ((uint8_t)gRasNotifLastSegment_c)) != 0U);
+
             mRasTransferInfo[deviceId].crtTempDataIdx += dataLen;
             /* mark segment as copied */
             currentIdx = mRasTransferInfo[deviceId].currentIdxRecvSegm;
@@ -1673,18 +1699,21 @@ static bleResult_t RasClient_ProcessGetRecordSegmentsResponse
     uint8_t segmentHeader;
     uint8_t* pData;
     uint8_t crtIdx = mRasTransferInfo[deviceId].crtIdxRecvLost;
+    uint16_t rangingLength = 0;
 
     /* Extract Segment Header */
     segmentHeader = *pRangingData++;
+    rangingLength = valueLength - sizeof(uint8_t);
 
     /* First measurement - fill procedure data header */
     if (FALSE == checkIfSegmWasReceived(deviceId, segmentHeader))
     {
-        FLib_MemCpy(mPeerResultData[deviceId].pData + mPeerResultData[deviceId].totalSentRcvDataIndex,
-                    pRangingData,
-                    (valueLength - sizeof(uint8_t)));
-
-        mPeerResultData[deviceId].totalSentRcvDataIndex += (uint16_t)(valueLength - sizeof(uint8_t));
+        mPeerResultData[deviceId].totalSentRcvDataIndex += rangingLength;
+        AppLocalizationAlgo_UncompressRemoteResponse(
+            pRangingData,
+            rangingLength,
+            &mPeerResultData[deviceId],
+            (segmentHeader & ((uint8_t)gRasNotifLastSegment_c)) != 0U);
 
         /* Mark segment as received */
         if (mRasTransferInfo[deviceId].currentIdxLostSegm > 0U)

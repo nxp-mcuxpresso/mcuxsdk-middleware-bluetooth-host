@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 * \file ranging_client_interface.h
 *
@@ -69,7 +69,8 @@ extern "C" {
 ********************************************************************************** */
 void RasClient_Init
 (
-    pfAppCsCallback_t pAppCallback
+    pfAppCsCallback_t pAppCallback,
+    deviceId_t deviceId
 );
 
 /*! *********************************************************************************
@@ -396,16 +397,21 @@ void RasClient_SartRapTimer
 );
 
 /*! *********************************************************************************
-*\fn            void RasClient_ParseDataHeader(deviceId_t deviceId);
+*\fn            void RasClient_ParseDataHeader(uint8_t **ppRangingData,
+*               uint32_t *pRangingLength, deviceId_t deviceId);
 *
 *\brief         Parser for header data.
 *
+*\param[in/out] ppRangingData   Double pointer to the received data
+*\param[in/out] pRangingLength  Pointer to the received data size
 *\param[in]     deviceId        Peer identifier
 *
 *\retval        None
 ********************************************************************************** */
 void RasClient_ParseDataHeader
 (
+    uint8_t **ppRangingData,
+    uint32_t *pRangingLength,
     deviceId_t deviceId
 );
 
