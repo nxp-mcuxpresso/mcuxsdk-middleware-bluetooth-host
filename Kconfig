@@ -108,11 +108,11 @@ menu "localization"
     config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lib
         bool "genfsk_wr_lcl_algo_cm33_lib"
         select MCUX_COMPONENT_CMSIS_DSP_Source
-        depends on MCUX_HW_DEVICE_KW47B42Z83 || MCUX_HW_DEVICE_KW43B43ZC7
+        depends on MCUX_HW_DEVICE_KW47B42Z83 || MCUX_HW_DEVICE_KW43B43ZC7 || MCUX_HW_DEVICE_KW47B42ZB2 || MCUX_HW_DEVICE_KW47B42ZB3
     config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_lib
         bool "genfsk_wr_lcl_algo_cm33_lce_lib"
         select MCUX_COMPONENT_CMSIS_DSP_Source
-        depends on MCUX_HW_DEVICE_KW47B42ZB7 || MCUX_HW_DEVICE_MCXW727C || MCUX_HW_DEVICE_KW47B42Z97
+        depends on MCUX_HW_DEVICE_KW47B42ZB7 || MCUX_HW_DEVICE_MCXW727C || MCUX_HW_DEVICE_KW47B42Z97 || MCUX_HW_DEVICE_KW47B42Z96 || MCUX_HW_DEVICE_KW47B42ZB6
     config MCUX_COMPONENT_middleware.wireless.genfsk_lcl_isp_controller_wr
         bool "genfsk_lcl_isp_controller_wr"
     config MCUX_COMPONENT_middleware.wireless.wr_wireless_ranging_host
