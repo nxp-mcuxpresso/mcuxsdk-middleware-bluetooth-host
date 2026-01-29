@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 - 2025 NXP
+ * Copyright 2022 - 2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -994,6 +994,8 @@ void measurement_populate_response
 
     FLib_MemCpy(response->cs_data->subevtDoneStatusLocal, localAppDataBuffer->csData.subevtDoneStatusLocal, gCsSubeventMax_c);
     FLib_MemCpy(response->cs_data->subevtDoneStatusRemote, remoteAppDataBuffer->csData.subevtDoneStatusLocal, gCsSubeventMax_c);
+    FLib_MemCpy(response->cs_data->subevtStopIdxLocal, localAppDataBuffer->csData.subevtStopIdxLocal, gCsSubeventMax_c);
+    FLib_MemCpy(response->cs_data->subevtStopIdxRemote, remoteAppDataBuffer->csData.subevtStopIdxLocal, gCsSubeventMax_c);
 
     if (localAppDataBuffer->csData.mode0_nb != 0)
     {
@@ -1329,7 +1331,7 @@ static void measurement_uncompress_response
         step ++;
     }
     dstAppBuffer->csData.step_nb = step;
-    dstAppBuffer->csData.subevtStopIdx[dstAppBuffer->csData.subevt_nb] = step;
+    dstAppBuffer->csData.subevtStopIdxLocal[dstAppBuffer->csData.subevt_nb] = step;
     dstAppBuffer->csData.subevtConnEvent[dstAppBuffer->csData.subevt_nb] = event_p->startACLConnEvent - dstAppBuffer->csData.startAclCnt;
     dstAppBuffer->csData.subevtRefPowerLevelInit[dstAppBuffer->csData.subevt_nb] = event_p->referencePowerLevel;
     dstAppBuffer->csData.subevtDoneStatusLocal[dstAppBuffer->csData.subevt_nb] = event_p->subeventDoneStatus;

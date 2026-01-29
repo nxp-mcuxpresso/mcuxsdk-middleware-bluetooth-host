@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2025 NXP
+ * Copyright 2021-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -280,7 +280,8 @@ void isp_mciq_ranging_compute(isp_meas_response_t *meas_response, mciq_result_t 
         radeCsPara.subevt_nb            =  meas_response->cs_data->subevt_nb          ;
         radeCsPara.channelMap           =  meas_response->cs_data->channelMap         ;
         radeCsPara.modeMap              =  meas_response->cs_data->modeMap            ;
-        radeCsPara.subevtStopIdx        =  meas_response->cs_data->subevtStopIdx      ;
+        radeCsPara.subevtStopIdx_local  =  meas_response->cs_data->subevtStopIdxLocal ;
+        radeCsPara.subevtStopIdx_remote =  meas_response->cs_data->subevtStopIdxRemote;
         radeCsPara.subevtConnEvent      =  meas_response->cs_data->subevtConnEvent    ;
         radeCsPara.mode0_nb             =  meas_response->mparams->cfg.mode0_nb       ;
         radeCsPara.main_mode_repeat     =  meas_response->mparams->cfg.main_mode_repeat ;

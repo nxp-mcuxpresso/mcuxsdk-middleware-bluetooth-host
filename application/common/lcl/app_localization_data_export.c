@@ -453,7 +453,7 @@ static void app_print_cs_measurement(isp_meas_response_t *meas_response, appLoca
     } 
     else
     {
-        cli_sprint_hex8b(pBuffer, meas_response->cs_data->subevtStopIdx, meas_response->cs_data->subevt_nb, NULL);
+        cli_sprint_hex8b(pBuffer, meas_response->cs_data->subevtStopIdxLocal, meas_response->cs_data->subevt_nb, NULL);
         (void)printf("'%s'", (char*)pBuffer);
         (void)MEM_BufferFree(pBuffer);
     }

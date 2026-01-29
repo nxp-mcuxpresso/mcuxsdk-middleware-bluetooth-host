@@ -205,14 +205,17 @@ void AppLocalizationAlgo_RunMeasurement
         response.cs_data->conn_interval     = mRangeSettings[deviceId].connInterval;
         response.cs_data->csAlgoBuf         = &mRangeSettings[deviceId].csAlgoBuf;
 
+        /* Extract Subevent Done Status for local data */
         for (uint8_t idx = 0U; idx <= pLocalData->subeventIndex; idx++)
         {
             response.cs_data->subevtDoneStatusLocal[idx] = pLocalData->aSubEventData[idx].subevtHeader.subeventDoneStatus;
         }
 
+        /* Extract Subevent Done Status and Stop Index for remote data */
         for (uint8_t idx = 0U; idx <= pPeerData->subeventIndex; idx++)
         {
             response.cs_data->subevtDoneStatusRemote[idx] = pPeerData->aSubEventData[idx].subevtHeader.subeventDoneStatus;
+            response.cs_data->subevtStopIdxRemote[idx] = pRemoteCsAppData->csData.subevtStopIdxRemote[idx];
         }
 
         FLib_MemCpy(pRemoteCsAppData->csData.channelMap,
@@ -589,7 +592,8 @@ static void isp_mciq_ranging_compute
         radeCsPara.t_sw                   = meas_response->cs_data->t_sw;
         radeCsPara.channelMap             = meas_response->cs_data->channelMap;
         radeCsPara.modeMap                = meas_response->cs_data->modeMap;
-        radeCsPara.subevtStopIdx          = meas_response->cs_data->subevtStopIdx;
+        radeCsPara.subevtStopIdx_local    = meas_response->cs_data->subevtStopIdxLocal;
+        radeCsPara.subevtStopIdx_remote   = meas_response->cs_data->subevtStopIdxRemote;
         radeCsPara.subevtConnEvent        = meas_response->cs_data->subevtConnEvent;
         radeCsPara.main_mode_repeat       = meas_response->cs_data->main_mode_repeat;
         radeCsPara.rtt_type               = meas_response->cs_data->rtt_type;

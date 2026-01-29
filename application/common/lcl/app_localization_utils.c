@@ -455,7 +455,7 @@ void AppLocalizationAlgo_UncompressResponse
         for (uint8_t index = 0U; index <= pLocalData->subeventIndex; index++)
         {
             /* The stop index is the total number of previous steps plus the current subevent's steps */
-            dstAppBuffer->csData.subevtStopIdx[index] =
+            dstAppBuffer->csData.subevtStopIdxLocal[index] =
                 (uint8_t)totalStepCounter + pLocalData->aSubEventData[index].subevtHeader.numStepsReported;
 
             /* Delta regarding ACL counter of first subevent */
@@ -679,10 +679,10 @@ void AppLocalizationAlgo_UncompressRemoteResponse
                 pRemoteData->aSubEventData[pDstAppBuffer->csData.subevt_nb].subevtHeader.startACLConnEvent;
 
         /* For every subevent */
-        for (uint8_t index = 0U; index < pRemoteData->subeventIndex; index++)
+        for (uint8_t index = 0U; index <= pRemoteData->subeventIndex; index++)
         {
             /* The stop index is the total number of previous steps */
-            pDstAppBuffer->csData.subevtStopIdx[index] =
+            pDstAppBuffer->csData.subevtStopIdxRemote[index] =
                 (uint8_t)totalStepCounter + pRemoteData->aSubEventData[index].subevtHeader.numStepsReported;
 
             /* Delta regarding ACL counter of first subevent */
@@ -697,7 +697,7 @@ void AppLocalizationAlgo_UncompressRemoteResponse
         }
 
         /* Total number of subevents */
-        pDstAppBuffer->csData.subevt_nb = pRemoteData->subeventIndex;
+        pDstAppBuffer->csData.subevt_nb = pRemoteData->subeventIndex + 1U;
     }
 }
 #endif /* defined (gRasRREQ_d) && (gRasRREQ_d == 1) */

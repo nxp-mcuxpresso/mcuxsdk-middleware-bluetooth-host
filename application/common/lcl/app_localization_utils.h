@@ -98,7 +98,8 @@ typedef struct cs_data_tag {
     void *csAlgoBuf;
     uint8_t channelMap[APP_LOCALIZATION_MAX_STEPS];
     uint8_t modeMap[APP_LOCALIZATION_MAX_STEPS];
-    uint8_t subevtStopIdx[gCsSubeventMax_c];
+    uint8_t subevtStopIdxLocal[gCsSubeventMax_c];
+    uint8_t subevtStopIdxRemote[gCsSubeventMax_c];
     uint8_t subevtConnEvent[gCsSubeventMax_c]; /* Delta regarding ACL counter of first subevent */
     int8_t subevtRefPowerLevelInit[gCsSubeventMax_c]; /* Reference power level per subevent */
     int8_t subevtRefPowerLevelRefl[gCsSubeventMax_c]; /* Reference power level per subevent */

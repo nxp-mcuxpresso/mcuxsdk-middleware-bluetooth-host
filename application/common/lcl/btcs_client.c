@@ -496,7 +496,7 @@ static bleResult_t handleRangingProcResCont
                 for (uint8_t index = 0U; index <= pRemoteData->subeventIndex; index++)
                 {
                     /* The stop index is the total number of previous steps */
-                    pDstAppBuffer->csData.subevtStopIdx[index] =
+                    pDstAppBuffer->csData.subevtStopIdxRemote[index] =
                         (uint8_t)totalStepCounter + pRemoteData->aSubEventData[index].subevtHeader.numStepsReported;
 
                     /* Delta regarding ACL counter of first subevent */

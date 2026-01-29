@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 NXP
+ * Copyright 2020-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -3309,7 +3309,7 @@ static void cli_cs_measurement_print
         if (pBuffer == NULL) {
             (void)printf("'NA:oom'");
         } else {
-            cli_sprint_hex8b(pBuffer, cs_data->subevtStopIdx, cs_data->subevt_nb, NULL);
+            cli_sprint_hex8b(pBuffer, cs_data->subevtStopIdxLocal, cs_data->subevt_nb, NULL);
             (void)printf("'%s'", (char*)pBuffer);
             MEM_BufferFree(pBuffer);
         }
