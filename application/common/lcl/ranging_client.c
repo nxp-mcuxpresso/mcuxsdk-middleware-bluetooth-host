@@ -284,12 +284,19 @@ bleResult_t RasClient_StorePeerMeasurementData
             /* Uncompress this chunk of data */
             if (mRasTransferInfo[deviceId].pNotifTempBuffer == NULL)
             {
+                rasMeasurementData_t *pLocalData = AppLocalization_GetLocalData(deviceId);
                 mPeerResultData[deviceId].totalSentRcvDataIndex += (uint16_t)rangingLength;
-                AppLocalizationAlgo_UncompressRemoteResponse(
-                    pRangingData,
-                    rangingLength,
-                    &mPeerResultData[deviceId],
-                    (segmentHeader & ((uint8_t)gRasNotifLastSegment_c)) != 0U);
+
+                /* Proceed to decompression only in case we have local data also, otherwise, 
+                   this might be a testing data and may not be valid */
+                if ((pLocalData != NULL) && (pLocalData->dataIndex != 0U))
+                {
+                    AppLocalizationAlgo_UncompressRemoteResponse(
+                        pRangingData,
+                        rangingLength,
+                        &mPeerResultData[deviceId],
+                        (segmentHeader & ((uint8_t)gRasNotifLastSegment_c)) != 0U);
+                }
 
                 /* Copy segmentation header information for the received segments */
                 currentIdx = mRasTransferInfo[deviceId].currentIdxRecvSegm;
@@ -1253,6 +1260,8 @@ static void parseBufferedNotifs
         if ((mRasTransferInfo[deviceId].recvIntermSegm[recvIdx] != 0U) &&
             (mRasTransferInfo[deviceId].recvIntermSegm[recvIdx] != 0xFFU))
         {
+            rasMeasurementData_t *pLocalData = AppLocalization_GetLocalData(deviceId);
+
             dataLen = mRasTransferInfo[deviceId].recvIntermSegmLen[recvIdx];
             pRangingData = mRasTransferInfo[deviceId].pNotifTempBuffer + mRasTransferInfo[deviceId].crtTempDataIdx;
 
@@ -1262,11 +1271,16 @@ static void parseBufferedNotifs
 
             /* Uncompress remaining data from buffered notifications */
             mPeerResultData[deviceId].totalSentRcvDataIndex += rangingLength;
-            AppLocalizationAlgo_UncompressRemoteResponse(
-                pRangingData,
-                rangingLength,
-                &mPeerResultData[deviceId],
-                (segmentHeader & ((uint8_t)gRasNotifLastSegment_c)) != 0U);
+            /* Proceed to decompression only in case we have local data also, otherwise, 
+               this might be a testing data and may not be valid */
+            if ((pLocalData != NULL) && (pLocalData->dataIndex != 0U))
+            {
+                AppLocalizationAlgo_UncompressRemoteResponse(
+                    pRangingData,
+                    rangingLength,
+                    &mPeerResultData[deviceId],
+                    (segmentHeader & ((uint8_t)gRasNotifLastSegment_c)) != 0U);
+            }
 
             mRasTransferInfo[deviceId].crtTempDataIdx += dataLen;
             /* mark segment as copied */
@@ -1708,12 +1722,20 @@ static bleResult_t RasClient_ProcessGetRecordSegmentsResponse
     /* First measurement - fill procedure data header */
     if (FALSE == checkIfSegmWasReceived(deviceId, segmentHeader))
     {
+        rasMeasurementData_t *pLocalData = AppLocalization_GetLocalData(deviceId);
+
         mPeerResultData[deviceId].totalSentRcvDataIndex += rangingLength;
-        AppLocalizationAlgo_UncompressRemoteResponse(
-            pRangingData,
-            rangingLength,
-            &mPeerResultData[deviceId],
-            (segmentHeader & ((uint8_t)gRasNotifLastSegment_c)) != 0U);
+        
+        /* Proceed to decompression only in case we have local data also, otherwise, 
+           this might be a testing data and may not be valid */
+        if ((pLocalData != NULL) && (pLocalData->dataIndex != 0U))
+        {
+            AppLocalizationAlgo_UncompressRemoteResponse(
+                pRangingData,
+                rangingLength,
+                &mPeerResultData[deviceId],
+                (segmentHeader & ((uint8_t)gRasNotifLastSegment_c)) != 0U);
+        }
 
         /* Mark segment as received */
         if (mRasTransferInfo[deviceId].currentIdxLostSegm > 0U)
