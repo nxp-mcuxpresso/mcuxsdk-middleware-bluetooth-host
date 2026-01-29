@@ -78,6 +78,15 @@ typedef struct  {
     uint8_t *ts;           /*!< Array of timestamps delta (RX-TX on reflector, Tx-RX on initiator), OR'd with TSflags */
 } tof_data_t;
 
+/*! Mode0 step data.
+ */
+typedef struct  {
+    uint8_t quality;             /*!< Packet Quality */
+    int8_t  rssi;                /*!< Packet RSSI */
+    uint8_t antenna;             /*!< Packet Antenna */
+    uint16_t measuredFreqOffset; /*!< Measured Frequency Offset (initiator only) */
+} mode0_data_t;
+
 /* Buffer storing generic CS data (steps, etc ...) that are common to both devices (and only collected on local device) */
 typedef struct cs_data_tag {
     uint16_t step_nb;
@@ -105,6 +114,7 @@ typedef struct cs_data_tag {
     int8_t subevtRefPowerLevelRefl[gCsSubeventMax_c]; /* Reference power level per subevent */
     uint8_t subevtDoneStatusLocal[gCsSubeventMax_c]; /* Status for each subevent - local data */
     uint8_t subevtDoneStatusRemote[gCsSubeventMax_c]; /* Status for each subevent - remote data */
+    mode0_data_t mode0Data[2U * APP_LOCALIZATION_MAX_STEPS_MODE0]; /* Mode0 step data - local and remote */
 } cs_data_t;
 
 /* Buffer storing last captured IQ and corresponding params */
