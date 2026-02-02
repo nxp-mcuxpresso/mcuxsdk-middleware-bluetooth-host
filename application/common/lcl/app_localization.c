@@ -3309,13 +3309,9 @@ void AppLocalization_RunPtsTest(deviceId_t deviceId, uint8_t index, uint8_t acti
     {
         case 1U: /* Test vector 1 - single_subevent_mode1_only */
         {
-            if (mResultData[deviceId].pData == NULL)
+            if (AppLocalization_AllocLocalData(deviceId) == NULL)
             {
-                mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
-                if (mResultData[deviceId].pData == NULL)
-                {
-                    break;
-                }
+                break;
             }
 
             mResultData[deviceId].selectedTxPower = 0x7F;
@@ -3362,13 +3358,9 @@ void AppLocalization_RunPtsTest(deviceId_t deviceId, uint8_t index, uint8_t acti
 
         case 2U: /* Test vector 2 - single_subevent_mode2_mode1 (actually two subevents) */
         {
-            if (mResultData[deviceId].pData == NULL)
+            if (AppLocalization_AllocLocalData(deviceId) == NULL)
             {
-                mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
-                if (mResultData[deviceId].pData == NULL)
-                {
-                    break;
-                }
+                break;
             }
 
             mResultData[deviceId].selectedTxPower = 0x7F;
@@ -3440,13 +3432,9 @@ void AppLocalization_RunPtsTest(deviceId_t deviceId, uint8_t index, uint8_t acti
 
         case 3U: /* Test vector 3 - single_subevent_mode2_only */
         {
-            if (mResultData[deviceId].pData == NULL)
+            if (AppLocalization_AllocLocalData(deviceId) == NULL)
             {
-                mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
-                if (mResultData[deviceId].pData == NULL)
-                {
-                    break;
-                }
+                break;
             }
 
             mResultData[deviceId].selectedTxPower = 0x7F;
@@ -3504,13 +3492,9 @@ void AppLocalization_RunPtsTest(deviceId_t deviceId, uint8_t index, uint8_t acti
 
         case 4U: /* Test vector 4 - single_subevent_mode3_only (actually two subevents) */
         {
-            if (mResultData[deviceId].pData == NULL)
+            if (AppLocalization_AllocLocalData(deviceId) == NULL)
             {
-                mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
-                if (mResultData[deviceId].pData == NULL)
-                {
-                    break;
-                }
+                break;
             }
 
             mResultData[deviceId].selectedTxPower = 0x7F;
@@ -3607,13 +3591,9 @@ void AppLocalization_RunPtsTest(deviceId_t deviceId, uint8_t index, uint8_t acti
 
         case 5U: /* Test vector 5 - multiple_subevents_mode1_only (7 subevents) */
         {
-            if (mResultData[deviceId].pData == NULL)
+            if (AppLocalization_AllocLocalData(deviceId) == NULL)
             {
-                mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
-                if (mResultData[deviceId].pData == NULL)
-                {
-                    break;
-                }
+                break;
             }
 
             mResultData[deviceId].selectedTxPower = 0x7F;
@@ -3720,13 +3700,9 @@ void AppLocalization_RunPtsTest(deviceId_t deviceId, uint8_t index, uint8_t acti
 
         case 6U: /* Test vector 6 - multiple_subevents_mode2_mode1 (7 subevents) */
         {
-            if (mResultData[deviceId].pData == NULL)
+            if (AppLocalization_AllocLocalData(deviceId) == NULL)
             {
-                mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
-                if (mResultData[deviceId].pData == NULL)
-                {
-                    break;
-                }
+                break;
             }
 
             mResultData[deviceId].selectedTxPower = 0x7F;
@@ -3833,13 +3809,9 @@ void AppLocalization_RunPtsTest(deviceId_t deviceId, uint8_t index, uint8_t acti
 
         case 7U: /* Test vector 7 - multiple_subevents_mode2_only (6 subevents) */
         {
-            if (mResultData[deviceId].pData == NULL)
+            if (AppLocalization_AllocLocalData(deviceId) == NULL)
             {
-                mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
-                if (mResultData[deviceId].pData == NULL)
-                {
-                    break;
-                }
+                break;
             }
 
             mResultData[deviceId].selectedTxPower = 0x7F;
@@ -3931,13 +3903,9 @@ void AppLocalization_RunPtsTest(deviceId_t deviceId, uint8_t index, uint8_t acti
         case 11U: /* Fall-through */
                   /* Test vector 11 - long procedure 1 aborted, start another procedure */
         {
-            if (mResultData[deviceId].pData == NULL)
+            if (AppLocalization_AllocLocalData(deviceId) == NULL)
             {
-                mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
-                if (mResultData[deviceId].pData == NULL)
-                {
-                    break;
-                }
+                break;
             }
 
             mResultData[deviceId].selectedTxPower = 0x7F;
@@ -4013,13 +3981,9 @@ void AppLocalization_RunPtsTest(deviceId_t deviceId, uint8_t index, uint8_t acti
 
         case 8U: /* Test vector 8 - multiple_subevents_mode3_only (8 subevents) */
         {
-            if (mResultData[deviceId].pData == NULL)
+            if (AppLocalization_AllocLocalData(deviceId) == NULL)
             {
-                mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
-                if (mResultData[deviceId].pData == NULL)
-                {
-                    break;
-                }
+                break;
             }
 
             mResultData[deviceId].selectedTxPower = 0x7F;
@@ -4143,13 +4107,9 @@ void AppLocalization_RunPtsTest(deviceId_t deviceId, uint8_t index, uint8_t acti
 
         case 9U: /* Test vector 9  - filter_input_mode0123_Ini_sounding_nAP4 (4 subevents) */
         {
-            if (mResultData[deviceId].pData == NULL)
+            if (AppLocalization_AllocLocalData(deviceId) == NULL)
             {
-                mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
-                if (mResultData[deviceId].pData == NULL)
-                {
-                    break;
-                }
+                break;
             }
 
             mResultData[deviceId].selectedTxPower = 0x7F;
@@ -4239,13 +4199,9 @@ void AppLocalization_RunPtsTest(deviceId_t deviceId, uint8_t index, uint8_t acti
         case 10U: /* Test vector 10 (case 9)  - filter_input_mode0123_Ini_sounding_nAP4 (4 subevents) */
                   /* (Merged Continue Events) */
         {
-            if (mResultData[deviceId].pData == NULL)
+            if (AppLocalization_AllocLocalData(deviceId) == NULL)
             {
-                mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
-                if (mResultData[deviceId].pData == NULL)
-                {
-                    break;
-                }
+                break;
             }
 
             mResultData[deviceId].selectedTxPower = 0x7F;
@@ -4319,13 +4275,9 @@ void AppLocalization_RunPtsTest(deviceId_t deviceId, uint8_t index, uint8_t acti
 
         case 101U:
         {
-            if (mResultData[deviceId].pData == NULL)
+            if (AppLocalization_AllocLocalData(deviceId) == NULL)
             {
-                mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
-                if (mResultData[deviceId].pData == NULL)
-                {
-                    break;
-                }
+                break;
             }
             break;
         }

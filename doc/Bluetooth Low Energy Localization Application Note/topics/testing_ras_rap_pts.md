@@ -10,7 +10,6 @@ The test code support for testing RAS and RAP against PTS is located in the file
 
 This configuration must be enabled in the app_preinclude.h of either of the examples:
  - gRasRapPtsTest_d is set to 1
- - gAppIsPeripheral_d is set to 1
  - gAppUsePrivacy_d is set to 0
  - gRandomStaticAddress_d is set to 0
  - gAppMaxConnections_c is set to 2 (any value higher than 1)

@@ -457,11 +457,6 @@ void BleApp_RunPtsTest(void *pParam)
     }
     else if (strcmp(arg, "RAS/SR/RRD/BV-01-C") == 0)
     {
-        uint8_t rasPreferenceValue = Ras_GetDataSendPreference(deviceId);
-        /* Force the use of indications instead of notifications */
-        rasPreferenceValue |= BIT3;
-        (void)Ras_SetDataSendPreference(deviceId, rasPreferenceValue);
-
         AppLocalization_RunPtsTest(deviceId, 8U, 0U);
     }
     else if (strcmp(arg, "RAS/SR/RCP/BV-01-C") == 0 ||
