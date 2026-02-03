@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2022-2025 NXP
+* Copyright 2022-2026 NXP
 *
 *
 * \file
@@ -1463,10 +1463,13 @@ static void antennaPathFilterStepData
         uint16_t dataIndex16;
         uint32_t dataIndex32;
     } dataIndex = {0U};
+    bool_t bHasData = FALSE;
     dataIndex.dataIndex32 = maRasDynamicCfg[deviceId].pCfg->dataIndex;
-
+    
     while (maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex < dataIndex.dataIndex16)
     {
+        bHasData = TRUE;
+
         /* Step mode value */
         mode = *pStepDataAux++;
         /* Skip step channel */
@@ -1814,6 +1817,11 @@ static void antennaPathFilterStepData
         {
             gRasSubeventStepIndex++;
         }
+    }
+
+    if (bHasData == FALSE)
+    {
+        gRasSubeventStepIndex++;
     }
 }
 

@@ -588,6 +588,14 @@ void AppLocalizationAlgo_UncompressRemoteResponse
                 CheckSkipBytes(pEventData, dataLength, sizeof(rasSubeventDataHeader_t), bIncomplete, 
                         RasClient_ParseReceivedSubeventHeader(pRemoteData->deviceId, pEventData));
             } while(0);
+            
+            /* In case the subevent has no data, continue the loop.
+               We can have another subevent header or no more data.
+               In case the subevent is split between 2 ATT frames bIncomplete is TRUE */
+            if ((totalNumSteps == pRemoteData->totalNumSteps) && (bIncomplete == FALSE))
+            {
+                continue;
+            }
         }
 
         if (bIncomplete == FALSE)
@@ -664,7 +672,7 @@ void AppLocalizationAlgo_UncompressRemoteResponse
             if (pRemoteData->crtNumSteps == 0U)
             {
                 pRemoteData->crtNumSteps = crtNumSteps;
-                pRemoteData->totalNumSteps -= totalNumSteps;
+                pRemoteData->totalNumSteps = totalNumSteps;
                 pRemoteData->subeventIndex--;
             }
             
