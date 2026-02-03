@@ -362,7 +362,8 @@ static void app_print_cs_measurement(isp_meas_response_t *meas_response, appLoca
     (void)printf("cs:{");
 
     (void)printf("cfg:{");
-    (void)printf("rtyp:%u,rphy:%u, txpwr_delta:%d,", meas_response->cs_data->rtt_type, meas_response->cs_data->phy, ranging_cfg->txPwrDelta);
+    uint8_t csRole = mGlobalRangeSettings.role == gCsRoleInitiator_c ? 0U : 1U;
+    (void)printf("role:%u,rtyp:%u,rphy:%u, txpwr_delta:%d,", csRole, meas_response->cs_data->rtt_type, meas_response->cs_data->phy, ranging_cfg->txPwrDelta);
     (void)printf(  "fcs:%u,"
                 "ip1:%u,"
                 "ip2:%u,"
@@ -394,7 +395,21 @@ static void app_print_cs_measurement(isp_meas_response_t *meas_response, appLoca
     }
 
     (void)printf(",");
+    /* Remote Modes */
+    (void)printf("mdr:");
+    pBuffer = MEM_BufferAlloc((uint32_t)meas_response->cs_data->subevtStopIdxRemote[meas_response->cs_data->subevt_nb - 1U] + 4U);
+    if (pBuffer == NULL)
+    {
+        (void)printf("'NA:oom'");
+    }
+    else
+    {
+        cli_sprint_hex4b(pBuffer, meas_response->cs_data->modeMapRemote, (uint8_t)meas_response->cs_data->subevtStopIdxRemote[meas_response->cs_data->subevt_nb - 1U], NULL);
+        (void)printf("'%s'", (char *)pBuffer);
+        (void)MEM_BufferFree(pBuffer);
+    }
 
+    (void)printf(",");
     /* Channels */
     (void)printf("ch:");
     pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->step_nb + 4U);
@@ -439,21 +454,6 @@ static void app_print_cs_measurement(isp_meas_response_t *meas_response, appLoca
     else
     {
         cli_sprint_hex8b(pBuffer, meas_response->cs_data->subevtConnEvent, meas_response->cs_data->subevt_nb, NULL);
-        (void)printf("'%s'", (char*)pBuffer);
-        (void)MEM_BufferFree(pBuffer);
-    }
-    (void)printf(",");
-
-    /* Subevt */
-    (void)printf("se:");
-    pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
-    if (pBuffer == NULL)
-    {
-        (void)printf("'NA:oom'");
-    } 
-    else
-    {
-        cli_sprint_hex8b(pBuffer, meas_response->cs_data->subevtStopIdxLocal, meas_response->cs_data->subevt_nb, NULL);
         (void)printf("'%s'", (char*)pBuffer);
         (void)MEM_BufferFree(pBuffer);
     }
@@ -558,7 +558,7 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
 #if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1) 
     if (mdata->nbSteps != 0U)
     {
-        (void)printf("init:{");
+        (void)printf("init:{"); 
         app_mciq_print_node_data(mdata);
         
         /* Reference power level */
@@ -586,6 +586,21 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
         else
         {
             cli_sprint_hex8b_c(pBuffer, (uint8_t *)subevtDoneStatus_init, (uint8_t)meas_response->cs_data->subevt_nb, 1U);
+            (void)printf("'%s',", (char*)pBuffer);
+            (void)MEM_BufferFree(pBuffer);
+        }
+        
+        /* subevt */
+        (void)printf("se:");
+        uint8_t *subevtStopIdx_init = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtStopIdxLocal : meas_response->cs_data->subevtStopIdxRemote;
+        pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
+        if (pBuffer == NULL)
+        {
+            (void)printf("'NA:oom'");
+        }
+        else
+        {
+            cli_sprint_hex8b_c(pBuffer, (uint8_t *)subevtStopIdx_init, (uint8_t)meas_response->cs_data->subevt_nb, 1U);
             (void)printf("'%s',", (char*)pBuffer);
             (void)MEM_BufferFree(pBuffer);
         }
@@ -622,6 +637,21 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
         else
         {
             cli_sprint_hex8b_c(pBuffer, (uint8_t *)subevtDoneStatus_refl, (uint8_t)meas_response->cs_data->subevt_nb, 1U);
+            (void)printf("'%s',", (char*)pBuffer);
+            (void)MEM_BufferFree(pBuffer);
+        }
+        
+        /* subevt */
+        (void)printf("se:");
+        uint8_t *subevtStopIdx_refl = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtStopIdxRemote : meas_response->cs_data->subevtStopIdxLocal;
+        pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
+        if (pBuffer == NULL)
+        {
+            (void)printf("'NA:oom'");
+        }
+        else
+        {
+            cli_sprint_hex8b_c(pBuffer, (uint8_t *)subevtStopIdx_refl, (uint8_t)meas_response->cs_data->subevt_nb, 1U);
             (void)printf("'%s',", (char*)pBuffer);
             (void)MEM_BufferFree(pBuffer);
         }

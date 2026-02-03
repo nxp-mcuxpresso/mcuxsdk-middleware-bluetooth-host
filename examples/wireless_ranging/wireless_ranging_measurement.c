@@ -996,6 +996,7 @@ void measurement_populate_response
     FLib_MemCpy(response->cs_data->subevtDoneStatusRemote, remoteAppDataBuffer->csData.subevtDoneStatusLocal, gCsSubeventMax_c);
     FLib_MemCpy(response->cs_data->subevtStopIdxLocal, localAppDataBuffer->csData.subevtStopIdxLocal, gCsSubeventMax_c);
     FLib_MemCpy(response->cs_data->subevtStopIdxRemote, remoteAppDataBuffer->csData.subevtStopIdxLocal, gCsSubeventMax_c);
+    FLib_MemCpy(response->cs_data->modeMapRemote, remoteAppDataBuffer->csData.modeMap, gHciCsMaxStepsPerProcedure_c);
 
     if (localAppDataBuffer->csData.mode0_nb != 0)
     {

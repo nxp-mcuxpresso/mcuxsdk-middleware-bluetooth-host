@@ -188,6 +188,7 @@ void AppLocalizationAlgo_RunMeasurement
         
         FLib_MemSet(&response, 0, sizeof(isp_meas_response_t));
         response.cs_data = &pLocalCsAppData->csData;
+        response.cs_data->modeMapRemote = pRemoteCsAppData->csData.modeMap;
 
         /* Populate timing information to be used by algorithm */
         response.cs_data->t_fcs             = mRangeSettings[deviceId].t_fcs;
@@ -217,13 +218,6 @@ void AppLocalizationAlgo_RunMeasurement
             response.cs_data->subevtDoneStatusRemote[idx] = pPeerData->aSubEventData[idx].subevtHeader.subeventDoneStatus;
             response.cs_data->subevtStopIdxRemote[idx] = pRemoteCsAppData->csData.subevtStopIdxRemote[idx];
         }
-
-        FLib_MemCpy(pRemoteCsAppData->csData.channelMap,
-                    pLocalCsAppData->csData.channelMap,
-                    APP_LOCALIZATION_MAX_STEPS);
-        FLib_MemCpy(pRemoteCsAppData->csData.modeMap,
-                    pLocalCsAppData->csData.modeMap,
-                    APP_LOCALIZATION_MAX_STEPS);
 
         /* Reorder data so that index 0 represents initiator, index 1 represents reflector whatever the device role is */
         if (role == gCsRoleInitiator_c)
@@ -580,12 +574,12 @@ static void isp_mciq_ranging_compute
         {
             tqiMask[i] = tqi1Mask[i] & tqi2Mask[i];
         }
-        uint8_t *subevtDoneStatus_init = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtDoneStatusLocal : meas_response->cs_data->subevtDoneStatusRemote;
-        uint8_t *subevtDoneStatus_refl = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtDoneStatusRemote : meas_response->cs_data->subevtDoneStatusLocal;
+
         float_rade_t radeResReserved;
         rade_cs_para_t radeCsPara;
         rade_result_t radeResult;
         rade_data_t radeData;
+        radeCsPara.csRole                 = mGlobalRangeSettings.role == gCsRoleInitiator_c ? 0U : 1U;
         radeCsPara.step_nb                = meas_response->cs_data->step_nb;
         radeCsPara.startAclCnt            = meas_response->cs_data->startAclCnt;
         radeCsPara.mode0_nb               = meas_response->cs_data->mode0_nb;
@@ -597,6 +591,7 @@ static void isp_mciq_ranging_compute
         radeCsPara.t_sw                   = meas_response->cs_data->t_sw;
         radeCsPara.channelMap             = meas_response->cs_data->channelMap;
         radeCsPara.modeMap                = meas_response->cs_data->modeMap;
+        radeCsPara.modeMap_remote         = meas_response->cs_data->modeMapRemote;
         radeCsPara.subevtStopIdx_local    = meas_response->cs_data->subevtStopIdxLocal;
         radeCsPara.subevtStopIdx_remote   = meas_response->cs_data->subevtStopIdxRemote;
         radeCsPara.subevtConnEvent        = meas_response->cs_data->subevtConnEvent;
@@ -608,8 +603,8 @@ static void isp_mciq_ranging_compute
         radeCsPara.connInterval           = meas_response->cs_data->conn_interval;
         radeCsPara.refPowerLevel_init     = meas_response->cs_data->subevtRefPowerLevelInit;
         radeCsPara.refPowerLevel_refl     = meas_response->cs_data->subevtRefPowerLevelRefl;
-        radeCsPara.subevtDoneStatus_init  = subevtDoneStatus_init;
-        radeCsPara.subevtDoneStatus_refl  = subevtDoneStatus_refl;
+        radeCsPara.subevtDoneStatus_local  = meas_response->cs_data->subevtDoneStatusLocal;
+        radeCsPara.subevtDoneStatus_remote = meas_response->cs_data->subevtDoneStatusRemote;
         radeResult.rng_est = &mciq_result->rade_dist;
         radeResult.rng_est_qi = &mciq_result->rade_dqi;
         radeResult.reserved = &radeResReserved;

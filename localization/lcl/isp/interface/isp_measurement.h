@@ -146,6 +146,7 @@ typedef struct cs_data_tag {
     uint8_t subevt_nb;
     uint8_t channelMap[gHciCsMaxStepsPerProcedure_c];
     uint8_t modeMap[gHciCsMaxStepsPerProcedure_c];
+    uint8_t modeMapRemote[gHciCsMaxStepsPerProcedure_c];
     uint8_t subevtStopIdxLocal[gCsSubeventMax_c];   /* stepId of the beginning of the next subevent (out of range for last subevent) - local */
     uint8_t subevtStopIdxRemote[gCsSubeventMax_c];  /* stepId of the beginning of the next subevent (out of range for last subevent) - remote */
     uint8_t subevtConnEvent[gHciCsMaxStepsPerProcedure_c]; /* Delta regarding ACL counter of first subevent */

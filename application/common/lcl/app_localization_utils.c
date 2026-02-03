@@ -977,6 +977,8 @@ static bool_t ParseMode0
             pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].measuredFreqOffset = 0U;
         }
     } while(FALSE);
+
+    pRemoteData->step++;
     
     return bIncomplete;
 }
@@ -1509,6 +1511,8 @@ static bool_t ParseMode0
             pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].measuredFreqOffset = 0U;
         }
     } while(FALSE);
+    
+    pRemoteData->step++;
     
     return bIncomplete;
 }

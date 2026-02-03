@@ -73,16 +73,18 @@ typedef struct _rade_cs_para
     uint8_t t_pm;               /*!< T_PM */
     uint8_t t_sw;               /*!< T_SW */
     uint8_t *channelMap;        /*!< Channel map array */
-    uint8_t *modeMap;           /*!< Mode map array */
-    uint8_t *subevtStopIdx_local;  /*!< StepId of the beginning of the next subevent - local */ 
-    uint8_t *subevtStopIdx_remote; /*!< StepId of the beginning of the next subevent - remote */
+    uint8_t *modeMap;           /*!< Mode map array - local */
+    uint8_t *modeMap_remote;    /*!< Mode map array - remote */
+    uint8_t csRole;             /*!< CS role */
+    uint8_t *subevtStopIdx_local;/*!< StepId of the beginning of the next subevent - local */ 
+    uint8_t *subevtStopIdx_remote;/*!< StepId of the beginning of the next subevent - remote */
     uint8_t *subevtConnEvent;   /*!< Delta regarding ACL counter of first subevent */ 
     uint8_t main_mode_type;     /*!< Main mode type */
     uint8_t sub_mode_type;      /*!< Sub-mode type */
     int8_t *refPowerLevel_init; /*!< referencePowerLevel at initiator */
     int8_t *refPowerLevel_refl; /*!< referencePowerLevel at reflector */
-    uint8_t *subevtDoneStatus_init;  /*!< Subevent Done status - initiator */
-    uint8_t *subevtDoneStatus_refl;  /*!< Subevent Done status - reflector */
+    uint8_t *subevtDoneStatus_local;  /*!< Subevent Done status - local */
+    uint8_t *subevtDoneStatus_remote; /*!< Subevent Done status - remote */
 } rade_cs_para_t;
 
 /*! \struct rade_result_t
