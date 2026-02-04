@@ -1113,7 +1113,7 @@ static void BleApp_HandleRasSubscription
 )
 {
     static uint16_t lastWrittenHandle = gGattDbInvalidHandle_d;
-    uint16_t value = gCccdNotification_c;
+    uint16_t value = gRasUseNotifOrInd_c;
     bleResult_t result = gBleSuccess_c;
     bool_t filteringDone = TRUE;
 
@@ -1146,13 +1146,13 @@ static void BleApp_HandleRasSubscription
 #else
     else if (lastWrittenHandle == (maPeerInformation[peerDeviceId].rasConfigInfo.controlPointHandle + 1U))
     {
-        value = gCccdIndication_c;
+        value = gRasUseNotifOrInd_c;
         lastWrittenHandle = (uint16_t)(maPeerInformation[peerDeviceId].rasConfigInfo.dataReadyHandle + 1U);
         result = BleApp_ConfigureRasServer(peerDeviceId, value, lastWrittenHandle);
     }
     else if (lastWrittenHandle == (maPeerInformation[peerDeviceId].rasConfigInfo.dataReadyHandle + 1U))
     {
-        value = gCccdIndication_c;
+        value = gRasUseNotifOrInd_c;
         lastWrittenHandle = (uint16_t)(maPeerInformation[peerDeviceId].rasConfigInfo.dataOverwrittenHandle + 1U);
         result = BleApp_ConfigureRasServer(peerDeviceId, value, lastWrittenHandle);
     }

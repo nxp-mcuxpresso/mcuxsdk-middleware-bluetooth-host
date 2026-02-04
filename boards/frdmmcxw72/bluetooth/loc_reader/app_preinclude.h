@@ -100,6 +100,9 @@
 /* Enable/Disable the use of RAS to transfer localization data */
 #define gAppRasDataTransfer_d           1
 
+/* Configure for GATT CCCD types */
+#define gRasUseNotifOrInd_c             gCccdNotification_c
+
 /* Enable/Disable running the selected localization algorithm */
 #define gAppRunAlgo_d                   1
 

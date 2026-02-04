@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file app_preinclude.h
 *
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -75,6 +75,9 @@
 #define gcScanWindow_c                  18U /* 96 ms */
 #define gcScanInterval_c                36U /* 550 ms */
 #define gcConnectionInterval_c          24U /* 30 ms, interval = gcConnectionInterval_c * 1.25ms */
+
+/* Configure for GATT CCCD types */
+#define gRasUseNotifOrInd_c             gCccdNotification_c
 
 /*! *********************************************************************************
  *     Framework Configuration
