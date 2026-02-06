@@ -113,7 +113,7 @@ typedef enum
     gBleGapEvtGenericEventMonAdvEnabledOpCode_c                                 = 0x9C,                     /*! gapGenericCallback (type = gMonAdvEnabled_c) event operation code */
     gBleGapEvtGenericEventMonAdvListSizeReadOpCode_c                            = 0x9D,                     /*! gapGenericCallback (type = gMonAdvListSizeRead_c) event operation code */
     gBleGapEvtScanningEventMonAdvReportOpCode_c                                 = 0x9E,                     /*! gapScanningCallback (type = gMonAdvReportEventReceived_c) event operation code */
-    gBleGapEvtGenericEventDebugNbuFatalErrorOpCode_c                            = 0x9F,                     /*! gapGenericCallback (type = gDebugNbuFatalError_c) event operation code */
+    gBleGapEvtGenericEventVendorDebugOpCode_c                                   = 0x9F,                     /*! gapGenericCallback (type = gVendorDebugEvent_c) event operation code */
     gBleGapEvtGenericEventSetDefaultConnectionSubrateParametersSetupComplete_c  = 0xA0,                      /*! gapGenericCallback (type = gLeSetDefaultConnectionSubrateParametersSetupComplete_c) event operation code */
 } fsciBleGap2OpCode_t;
 
@@ -244,7 +244,7 @@ void GetBufferFromVendorUnitaryTestCompleteEvent
 );
 
 /*! *********************************************************************************
-*\fn           void GetBufferFromVendorDebugFatalErrorEvent(
+*\fn           void GetBufferFromVendorDebugEvent(
 *                                           gapGenericEvent_t    *pGenericEvent,
 *                                           uint8_t              **ppBuffer)
 *
@@ -257,24 +257,24 @@ void GetBufferFromVendorUnitaryTestCompleteEvent
 *
 *\retval       void.
 ********************************************************************************** */
-void GetBufferFromVendorDebugFatalErrorEvent
+void GetBufferFromVendorDebugEvent
 (
     gapGenericEvent_t   *pGenericEvent,
     uint8_t             **ppBuffer
 );
 
 /*! *********************************************************************************
-*\fn           uint32_t GetVendorDbgFatalErrorEventBufferSize(
+*\fn           uint32_t GetVendorDebugEventBufferSize(
 *                                           gapGenericEvent_t    *pGenericEvent)
 *
 *\brief        Returns the required FSCI buffer size for the
-*              gDebugNbuFatalError_c event.
+*              gVendorDebugEvent_c event.
 *
 *\param  [in]  pGenericEvent       Pointer to the generic event.
 *
 *\return       uint32_t            Buffer size.
 ********************************************************************************** */
-uint32_t GetVendorDbgFatalErrorEventBufferSize
+uint32_t GetVendorDebugEventBufferSize
 (
     gapGenericEvent_t   *pGenericEvent
 );

@@ -42,7 +42,7 @@
 *************************************************************************************
 ************************************************************************************/
 #if defined(gA2BSupportEnabled_d) && (gA2BSupportEnabled_d == TRUE)
-static const bleResult_t maSecStatusMap[gSecResultPending_c + 1U] = 
+static const bleResult_t maSecStatusMap[gSecResultPending_c + 1U] =
 {
     gBleSuccess_c,
     gBleOutOfMemory_c,
@@ -304,7 +304,7 @@ static void HandleGapCmdReadMonAdvListSize
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
-********************************************************************************** */   
+********************************************************************************** */
 static void HandleCtrlCmdGetTimestampExOpCode
 (
     uint8_t *pBuffer,
@@ -322,7 +322,7 @@ static void HandleCtrlCmdGetTimestampExOpCode
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
-********************************************************************************** */   
+********************************************************************************** */
 static void HandleCtrlCmdPlatformGetDeltaTimeStampOpCode
 (
     uint8_t *pBuffer,
@@ -381,7 +381,7 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
     HandleCtrlCmdGetTimestampExOpCode,                                          /* = 0x13, gBleCtrlCmdGetTimestampExOpCode_c */
     HandleGapCmdSetDataRelatedAddressChanges,                                   /* = 0x14, gBleGapCmdSetDataRelatedAddressChanges_c */
     HandleGapCmdSetBondedDeviceNameOpCode,                                      /* = 0x15, gBleGapCmdSetBondedDeviceNameOpCode_c */
-#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0))    
+#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0))
     HandleCtrlCmdPlatformGetDeltaTimeStampOpCode,                               /* = 0x16, gBleCtrlCmdPlatformGetDeltaTimeStampOpCode_c */
 #else /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */
     NULL,
@@ -683,7 +683,7 @@ void GetBufferFromVendorUnitaryTestCompleteEvent
 }
 
 /*! *********************************************************************************
-*\fn           void GetBufferFromVendorDebugFatalErrorEvent(
+*\fn           void GetBufferFromVendorDebugEvent(
 *                                           gapGenericEvent_t    *pGenericEvent,
 *                                           uint8_t              **ppBuffer)
 *
@@ -696,34 +696,35 @@ void GetBufferFromVendorUnitaryTestCompleteEvent
 *
 *\retval       void.
 ********************************************************************************** */
-void GetBufferFromVendorDebugFatalErrorEvent
+void GetBufferFromVendorDebugEvent
 (
     gapGenericEvent_t   *pGenericEvent,
     uint8_t             **ppBuffer
 )
 {
-    fsciBleGetBufferFromArray(pGenericEvent->eventData.vendorDbgFatalError.pData,
-                              *ppBuffer, pGenericEvent->eventData.vendorDbgFatalError.dataSize);
+    fsciBleGetBufferFromUint8Value(pGenericEvent->eventData.vendorDebug.dataSize, *ppBuffer);
+    fsciBleGetBufferFromArray(pGenericEvent->eventData.vendorDebug.pData,
+                              *ppBuffer, pGenericEvent->eventData.vendorDebug.dataSize);
 }
 
 /*! *********************************************************************************
-*\fn           uint32_t GetVendorDbgFatalErrorEventBufferSize(
+*\fn           uint32_t GetVendorDebugEventBufferSize(
 *                                           gapGenericEvent_t    *pGenericEvent)
 *
 *\brief        Returns the required FSCI buffer size for the
-*              gDebugNbuFatalError_c event.
+*              gVendorDebugEvent_c event.
 *
 *\param  [in]  pGenericEvent       Pointer to the generic event.
 *
 *\return       uint32_t            Buffer size.
 ********************************************************************************** */
-uint32_t GetVendorDbgFatalErrorEventBufferSize
+uint32_t GetVendorDebugEventBufferSize
 (
     gapGenericEvent_t   *pGenericEvent
 )
 {
     return sizeof(uint8_t) +
-           (uint32_t)pGenericEvent->eventData.vendorDbgFatalError.dataSize;
+           (uint32_t)pGenericEvent->eventData.vendorDebug.dataSize;
 }
 
 #if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
@@ -766,7 +767,7 @@ void GetBufferFromMonAdvListSizeReadEvent
     uint8_t             **ppBuffer
 )
 {
-    fsciBleGetBufferFromUint8Value((uint8_t)pGenericEvent->eventData.monAdvListSize, 
+    fsciBleGetBufferFromUint8Value((uint8_t)pGenericEvent->eventData.monAdvListSize,
                                    *ppBuffer);
 }
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
@@ -1212,11 +1213,11 @@ static void HandleGapCmdEcdhP256ComputeA2BKey
 {
     ecdhPublicKey_t peerPubKey = {0U};
     ecdhDhKey_t outE2EKey = {0U};
-    
+
     if (gSecLibFunctions.pfECDH_P256_ComputeA2BKey != NULL)
     {
         fsciBleGetArrayFromBuffer(&peerPubKey, pBuffer, sizeof(ecdhPublicKey_t));
-        
+
         fsciBleGap2CallSecLibApiFunction(gSecLibFunctions.pfECDH_P256_ComputeA2BKey(&peerPubKey, &outE2EKey));
         fsciBleGap2MonitorOutParams(ComputeA2B, &outE2EKey);
     }
@@ -1244,7 +1245,7 @@ static void HandleGapCmdEcdhP256FreeE2EKeyData
 )
 {
     ecdhDhKey_t E2EKey = {0U};
-    
+
     if (gSecLibFunctions.pfECDH_P256_FreeE2EKeyData != NULL)
     {
         fsciBleGetArrayFromBuffer(&E2EKey, pBuffer, sizeof(ecdhDhKey_t));
@@ -1276,12 +1277,12 @@ static void HandleGapCmdExportA2BBlob
     uint8_t aKeyData[gSecLibElkeBlobSize_c] = {0U};
     uint8_t aE2EKeyBlob[gSecLibElkeBlobSize_c] = {0U};
     secInputKeyType_t keyType = gSecPlainText_c;
-    
+
     if (gSecLibFunctions.pfSecLib_ExportA2BBlob != NULL)
     {
         keyType = (secInputKeyType_t)*pBuffer;
         pBuffer = &pBuffer[1];
-        
+
         switch (keyType)
         {
             case gSecPlainText_c:
@@ -1301,7 +1302,7 @@ static void HandleGapCmdExportA2BBlob
             }
             break;
         }
-        
+
         fsciBleGap2CallSecLibApiFunction(gSecLibFunctions.pfSecLib_ExportA2BBlob(aKeyData, (secInputKeyType_t)keyType, aE2EKeyBlob));
         fsciBleGap2MonitorOutParams(ExportA2B, aE2EKeyBlob);
     }
@@ -1331,7 +1332,7 @@ static void HandleGapCmdImportA2BBlob
     uint8_t aE2EKeyBlob[gSecLibElkeBlobSize_c] = {0U};
     uint8_t aKeyData[gSecLibElkeBlobSize_c] = {0U};
     uint8_t keyType = 0U;
-    
+
     if (gSecLibFunctions.pfSecLib_ImportA2BBlob != NULL)
     {
         fsciBleGetUint8ValueFromBuffer(keyType, pBuffer);
@@ -1364,7 +1365,7 @@ static void HandleGapCmdEcdhP256GenerateKeys
 {
     ecdhPublicKey_t pubKey = {0U};
     ecdhPrivateKey_t prvKey = {0U};
-    
+
     fsciBleGap2CallSecLibApiFunction(ECDH_P256_GenerateKeys(&pubKey, &prvKey));
     fsciBleGap2MonitorOutParams(GeneratePubPrvPair, &pubKey);
 }
@@ -1391,7 +1392,7 @@ static void fsciBleGapComputeA2BEvtMonitor
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleGapEvtEcdhP256ComputeA2BKeyOpCode_c,
                                                    sizeof(ecdhDhKey_t));
-        
+
         if (NULL != pClientPacket)
         {
             pBuffer = &pClientPacket->payload[0];
@@ -1427,7 +1428,7 @@ static void fsciBleGapExportA2BEvtMonitor
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleGapEvtExportA2BBlobOpCode_c,
                                                   gSecLibElkeBlobSize_c);
-        
+
         if (NULL != pClientPacket)
         {
             pBuffer = &pClientPacket->payload[0];
@@ -1482,11 +1483,11 @@ static void fsciBleGapImportA2BEvtMonitor
             }
             break;
         }
-        
+
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleGapEvtImportA2BBlobOpCode_c,
                                                    (uint32_t)keyDataSize + 1U);
-        
+
         if (NULL != pClientPacket)
         {
             pBuffer = &pClientPacket->payload[0];
@@ -1523,7 +1524,7 @@ static void fsciBleGapGeneratePubPrvPairEvtMonitor
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleGapEvtEcdhP256GenerateKeysOpCode_c,
                                                   sizeof(ecdhPublicKey_t));
-        
+
         if (NULL != pClientPacket)
         {
             pBuffer = &pClientPacket->payload[0];
@@ -1578,7 +1579,7 @@ static void HandleGap2StatusOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
-********************************************************************************** */   
+********************************************************************************** */
 void HandleGapEvtScanningEventPeriodicDeviceScannedV2OpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
     gapScanningEvent_t*     pScanningEvent = NULL;
@@ -1611,7 +1612,7 @@ void HandleGapEvtScanningEventPeriodicDeviceScannedV2OpCode(uint8_t *pBuffer, ui
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
-********************************************************************************** */   
+********************************************************************************** */
 void HandleGapEvtAdvertisingEventPerAdvSubeventDataRequestOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
     gapAdvertisingEvent_t advertisingEvent = {0};
@@ -1632,7 +1633,7 @@ void HandleGapEvtAdvertisingEventPerAdvSubeventDataRequestOpCode(uint8_t *pBuffe
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
-********************************************************************************** */   
+********************************************************************************** */
 void HandleGapEvtAdvertisingEventPerAdvResponseOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
     gapAdvertisingEvent_t advertisingEvent = {0};
@@ -1696,7 +1697,7 @@ void fsciBleCtrlDebugInfoCmdMonitor
     if (bContinueExecution)
     {
          /* Allocate the packet to be sent over UART */
-        pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlDebugInfoOpCode_c, sizeof(debugInfoSize) + debugInfoSize); /* sizeof debugInfoSize + 
+        pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlDebugInfoOpCode_c, sizeof(debugInfoSize) + debugInfoSize); /* sizeof debugInfoSize +
                                                                                                                                 * actual debugInfo */
 
         if(NULL != pClientPacket)
@@ -1768,7 +1769,7 @@ void fsciBleCtrlGetTimestampExCmdMonitor
     }
 }
 
-#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) 
+#if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0))
 /*! *********************************************************************************
 *\fn           void fsciBleCtrlGetTimestampExCmdMonitor(
 *                                           uint32_t    ll_timing_slot,
@@ -1819,7 +1820,7 @@ void fsciBleCtrlPlatformGetDeltaTimeStampCmdMonitor
         }
     }
 }
-#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */ 
+#endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */
 
 #if defined(gBLE60_DecisionBasedAdvertisingFilteringSupport_d) && (gBLE60_DecisionBasedAdvertisingFilteringSupport_d == TRUE)
 /*! *********************************************************************************
@@ -2013,12 +2014,12 @@ void HandleGapCmdSetPeriodicAdvertisingSubeventDataOpCode(uint8_t *pBuffer, uint
     /* Read gapPeriodicAdvertisingSubeventData_t fields from buffer */
     fsciBleGetUint8ValueFromBuffer(advHandle,                                   pBuffer);
     fsciBleGetUint8ValueFromBuffer(advertisingSubeventData.cNumSubevents,       pBuffer);
-    
+
     /* Allocate buffer for each gapSubeventDataStructure_t structure */
-    advertisingSubeventData.aSubeventDataStructures = 
+    advertisingSubeventData.aSubeventDataStructures =
         (gapSubeventDataStructure_t*)MEM_BufferAlloc(sizeof(gapSubeventDataStructure_t) *
                                                      advertisingSubeventData.cNumSubevents);
-    
+
     if(NULL == advertisingSubeventData.aSubeventDataStructures)
     {
         /* No memory */
@@ -2050,7 +2051,7 @@ void HandleGapCmdSetPeriodicAdvertisingSubeventDataOpCode(uint8_t *pBuffer, uint
                     {
                         (void)fsciBleGapFreeAdvertisingData(advertisingSubeventData.aSubeventDataStructures[j].pAdvertisingData);
                     }
-                    
+
                     /* failed to alloc pAdvertisingData, but advertisingSubeventData.aSubeventDataStructures is allocated */
                     (void)MEM_BufferFree(advertisingSubeventData.aSubeventDataStructures);
                 }
@@ -2058,7 +2059,7 @@ void HandleGapCmdSetPeriodicAdvertisingSubeventDataOpCode(uint8_t *pBuffer, uint
                 {
                     /* Get the advertising data from buffer */
                     fsciBleGapGetAdvertisingDataFromBuffer(pAdvertisingData, &pBuffer);
-                    
+
                     pSubeventDataStructure->pAdvertisingData = pAdvertisingData;
                 }
             }
@@ -2122,7 +2123,7 @@ void HandleGapCmdSetPeriodicAdvertisingResponseDataOpCode(uint8_t *pBuffer, uint
     {
         /* Get the advertising data from buffer */
         fsciBleGapGetAdvertisingDataFromBuffer(pAdvertisingData, &pBuffer);
-        
+
         advertisingResponseData.pResponseData = pAdvertisingData;
     }
 
@@ -2159,7 +2160,7 @@ void HandleGapCmdSetPeriodicSyncSubeventOpCode(uint8_t *pBuffer, uint32_t fsciIn
     uint8_t  numSubevents = 0U;
     gapPeriodicSyncSubeventParameters_t *pPerSyncSubeventParams = NULL;
     bleResult_t status = gBleSuccess_c;
-    
+
     /* Read gapPeriodicAdvertisingResponseData_t fields from buffer */
     fsciBleGetUint16ValueFromBuffer(handle,             pBuffer);
     fsciBleGetUint16ValueFromBuffer(perAdvProperties,   pBuffer);
@@ -2182,7 +2183,7 @@ void HandleGapCmdSetPeriodicSyncSubeventOpCode(uint8_t *pBuffer, uint32_t fsciIn
         fsciBleGetArrayFromBuffer(pPerSyncSubeventParams->aSubevents , pBuffer, numSubevents);
     }
 
-    
+
     if(gBleSuccess_c == status)
     {
         fsciBleGap2CallApiFunction(Gap_SetPeriodicSyncSubevent(handle, pPerSyncSubeventParams));
@@ -2231,7 +2232,7 @@ void HandleGapCmdConnectV2OpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
-********************************************************************************** */   
+********************************************************************************** */
 static void HandleCtrlCmdGetTimestampExOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
     uint32_t ll_timing_slot = 0U;
@@ -2259,18 +2260,18 @@ static void HandleCtrlCmdGetTimestampExOpCode(uint8_t *pBuffer, uint32_t fsciInt
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
-********************************************************************************** */   
+********************************************************************************** */
 static void HandleCtrlCmdPlatformGetDeltaTimeStampOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
     uint32_t receivedTimestamp;
     uint64_t deltaTimestamp = 0;
-    
+
     fsciBleGetUint32ValueFromBuffer(receivedTimestamp, pBuffer);
-    
+
     deltaTimestamp = PLATFORM_GetDeltaTimeStamp(receivedTimestamp);
 
     fsciBleGap2StatusMonitor(gBleSuccess_c);
-    
+
     fsciBleCtrlPlatformGetDeltaTimeStampCmdMonitor(deltaTimestamp);
 }
 #endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */
@@ -2328,7 +2329,7 @@ void HandleGapCmdSetBondedDeviceNameOpCode(uint8_t *pBuffer, uint32_t fsciInterf
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
-********************************************************************************** */   
+********************************************************************************** */
 void HandleGapCmdLoadCustomBondedDeviceInformationOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
     uint8_t     nvmIndex = gInvalidNvmIndex_c;

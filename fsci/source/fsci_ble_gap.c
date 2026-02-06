@@ -446,7 +446,7 @@ static const int16_t maGenericEvent2ToOpcode[]= {
     -1,                                                                                      /* reserved: 0x57U */
     -1,                                                                                      /* reserved: 0x58U */
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
-    (int16_t)gBleGapEvtGenericEventDebugNbuFatalErrorOpCode_c,                               /* = 0x59U, gDebugNbuFatalError_c */
+    (int16_t)gBleGapEvtGenericEventVendorDebugOpCode_c,                                      /* = 0x59U, gVendorDebugEvent_c */
 #if defined(gBLE53_d) && (gBLE53_d == 1U)
     (int16_t)gBleGapEvtGenericEventSetDefaultConnectionSubrateParametersSetupComplete_c,     /* = 0x5AU, gLeSetDefaultConnectionSubrateParametersSetupComplete_c */
 #else

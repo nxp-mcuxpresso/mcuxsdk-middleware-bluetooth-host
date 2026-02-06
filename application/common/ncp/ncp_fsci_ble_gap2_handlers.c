@@ -640,7 +640,7 @@ void GetBufferFromVendorUnitaryTestCompleteEvent
 }
 
 /*! *********************************************************************************
-*\fn           void GetBufferFromVendorDebugFatalErrorEvent(
+*\fn           void GetBufferFromVendorDebugEvent(
 *                                           gapGenericEvent_t    *pGenericEvent,
 *                                           uint8_t              **ppBuffer)
 *
@@ -653,34 +653,35 @@ void GetBufferFromVendorUnitaryTestCompleteEvent
 *
 *\retval       void.
 ********************************************************************************** */
-void GetBufferFromVendorDebugFatalErrorEvent
+void GetBufferFromVendorDebugEvent
 (
     gapGenericEvent_t   *pGenericEvent,
     uint8_t             **ppBuffer
 )
 {
-    fsciBleGetBufferFromArray(pGenericEvent->eventData.vendorDbgFatalError.pData,
-                              *ppBuffer, pGenericEvent->eventData.vendorDbgFatalError.dataSize);
+    fsciBleGetBufferFromUint8Value((uint8_t)pGenericEvent->eventData.vendorDebug.dataSize, *ppBuffer);
+    fsciBleGetBufferFromArray(pGenericEvent->eventData.vendorDebug.pData,
+                              *ppBuffer, pGenericEvent->eventData.vendorDebug.dataSize);
 }
 
 /*! *********************************************************************************
-*\fn           uint32_t GetVendorDbgFatalErrorEventBufferSize(
+*\fn           uint32_t GetVendorDebugEventBufferSize(
 *                                           gapGenericEvent_t    *pGenericEvent)
 *
 *\brief        Returns the required FSCI buffer size for the
-*              gDebugNbuFatalError_c event.
+*              gVendorDebugEvent_c event.
 *
 *\param  [in]  pGenericEvent       Pointer to the generic event.
 *
 *\return       uint32_t            Buffer size.
 ********************************************************************************** */
-uint32_t GetVendorDbgFatalErrorEventBufferSize
+uint32_t GetVendorDebugEventBufferSize
 (
     gapGenericEvent_t   *pGenericEvent
 )
 {
     return sizeof(uint8_t) +
-           (uint32_t)pGenericEvent->eventData.vendorDbgFatalError.dataSize;
+           (uint32_t)pGenericEvent->eventData.vendorDebug.dataSize;
 }
 #endif /* gFsciIncluded_c && gFsciBleGapLayerEnabled_d */
 

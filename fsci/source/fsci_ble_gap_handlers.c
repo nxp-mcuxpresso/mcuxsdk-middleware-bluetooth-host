@@ -2415,7 +2415,7 @@ const pfGapGetBufferFromGenericEventHandler_t maGapGetBufferFromGenericEventHand
 #else /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
     NULL,                                                                       /* reserved: 0x58U */
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
-    GetBufferFromVendorDebugFatalErrorEvent,                                    /* reserved for 0x59U gDebugNbuFatalError_c */
+    GetBufferFromVendorDebugEvent,                                              /* reserved for 0x59U gVendorDebugEvent_c */
     NULL                                                                        /* reserved: 0x5AU gLeSetDefaultConnectionSubrateParametersSetupComplete_c */
 };
 
@@ -2539,7 +2539,7 @@ const pfGapGetGenericEventBufferSizeHandler_t maGapGetGenericEventBufferSizeHand
 #else /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
     NULL,                                                                       /* resreved: 0x58U */
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
-    GetVendorDbgFatalErrorEventBufferSize,                                      /* 0x59, gDebugNbuFatalError_c */
+    GetVendorDebugEventBufferSize,                                              /* 0x59, gVendorDebugEvent_c */
     NULL,                                                                       /* 0x5AU gLeSetDefaultConnectionSubrateParametersSetupComplete_c */
 };
 

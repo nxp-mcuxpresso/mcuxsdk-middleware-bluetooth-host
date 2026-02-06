@@ -926,7 +926,7 @@ typedef enum {
     gMonAdvListCleared_c                                    = 0x56U, /*!< Clear Monitored Advertisers List command complete */
     gMonAdvEnabled_c                                        = 0x57U, /*!< Enable Monitoring Advertisers command complete */
     gMonAdvListSizeRead_c                                   = 0x58U, /*!< Read Monitored Advertisers List Size command complete */
-    gDebugNbuFatalError_c                                   = 0x59U, /*!< Vendor specific debugging event signaling NBU fatal error */
+    gVendorDebugEvent_c                                     = 0x59U, /*!< Vendor specific debugging event signaling NBU fatal error */
     gLeSetDefaultConnectionSubrateParametersSetupComplete_c = 0x5AU, /*!< Default Connection Subrate Parameters.have been successfully set */
 } gapGenericEventType_t;
 
@@ -1544,7 +1544,7 @@ typedef struct {
         handoverApplyConnectionUpdateProcedure_t    handoverApplyConnectionUpdateProcedure; /*!< Data for the gHandoverApplyConnectionUpdateProcedureComplete_c event */
         vendorUnitaryTestEvent_t                  unitaryTestData;                          /*!< Data for the gVendorUnitaryTestComplete_c event */
         uint8_t                                   monAdvListSize;                           /*!< Data for the gMonAdvListSizeRead_c event. The size of the Monitored Advertisers List. */
-        vendorSpecificDbgEvent_t                  vendorDbgFatalError;                      /*!< Data for the gDebugNbuFatalError_c event. */
+        vendorSpecificDbgEvent_t                  vendorDebug;                              /*!< Data for the gVendorDebugEvent_c event. */
     } eventData;                            /*!< Event data, selected according to event type. */
 } gapGenericEvent_t;
 

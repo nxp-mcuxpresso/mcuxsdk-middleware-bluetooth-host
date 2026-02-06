@@ -436,7 +436,7 @@ typedef enum
 typedef uint8_t hciLeVendorSpecificDbgSubEventCode_t;
 typedef enum
 {
-    gHciLeVendorDbgFatalError_c                             = 0xF1,
+    gHciLeVendorDebugEvent_c                                = 0xF1,
 }hciLeVendorSpecificDbgSubEventCode_tag;
 
 typedef uint64_t hciLeMetaSubEventMask_t;
