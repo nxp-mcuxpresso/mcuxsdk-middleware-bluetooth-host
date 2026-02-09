@@ -323,6 +323,9 @@ typedef enum
 /*!< RAS Transfer status */
 typedef uint8_t rasServerTransferStatus_t;
 
+/*!< RAS Event callback */
+typedef void(*pfRasEventCallback_t)(deviceId_t deviceId, rasControlPointRspCodeValues_tag status);
+
 /************************************************************************************
 *************************************************************************************
 * Public prototypes
@@ -453,6 +456,19 @@ void Ras_SetDataPointer
 (
     deviceId_t deviceId,
     rasMeasurementData_t* pData
+);
+
+/*!**********************************************************************************
+* \brief        Set the RAS function pointer for handling events
+*
+* \param[in]    deviceId    Identifier of the peer
+* \param[in]    pData       Pointer to the callback function
+*
+* \return       none
+************************************************************************************/
+void Ras_SetEventCallback
+(
+    pfRasEventCallback_t pfCallback
 );
 
 /*!**********************************************************************************

@@ -430,20 +430,6 @@ uint16_t RasClient_GetPeerProcCount
 );
 
 /*! *********************************************************************************
-*\fn            void RasClient_ResetPeerProcData(deviceId_t deviceId);
-*
-*\brief         Reset the peer procedure data
-*
-*\param[in]     deviceId        Peer identifier
-*
-*\retval        none
-********************************************************************************** */
-void RasClient_ResetPeerProcData
-(
-    deviceId_t deviceId
-);
-
-/*! *********************************************************************************
 *\fn            rasMeasurementData_t* RasClient_GetPeerRangingData(deviceId_t deviceId);
 *
 *\brief         Get a pointer to the peer ranging data

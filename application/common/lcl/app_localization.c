@@ -229,6 +229,16 @@ static bleResult_t processCsResultsContinueEvent
     csSubeventResultContinueEvent_t* pEvent
 );
 
+#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
+#if defined (gRasRRSP_d) && (gRasRRSP_d == 1U)
+static void RASEventCallback
+(
+    deviceId_t deviceId,
+    rasControlPointRspCodeValues_tag status
+);
+#endif
+#endif
+
 static void AppLocalizationError
 (
     deviceId_t deviceId,
@@ -1849,7 +1859,16 @@ static void AppLocalization_CSMetaEventCallback
             /* Clear local data on new procedure start during ongoing RAS transfer */
             if ((maAppLclState[deviceId] == gAppLclWaitingForMeasData_c) || (maAppLclState[deviceId] == gAppRasTransfInProgress_c))
             {
-                maAppLclState[deviceId] = gAppLclReceivingMeasData_c;
+                if (maAppLclState[deviceId] == gAppRasTransfInProgress_c)
+                {
+                    /* New CS procedure started while RAS transfer was in progress for the previous one
+                       Enter a new state in which leftover RAS notifications/indications will be dropped */
+                    maAppLclState[deviceId] = gAppLclReceivingMeasDataDropLeftovers_c;
+                }
+                else
+                {
+                    maAppLclState[deviceId] = gAppLclReceivingMeasData_c;
+                }
 
                 if (AppLocalization_AllocLocalData(deviceId) != NULL)
                 {
@@ -2922,6 +2941,28 @@ static bleResult_t processCsResultsContinueEvent
     return result;
 }
 
+#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
+#if defined (gRasRRSP_d) && (gRasRRSP_d == 1U)
+/*! *********************************************************************************
+*\fn           static void RASEventCallback(deviceId_t deviceId, rasControlPointRspCodeValues_tag status)
+*
+*\brief        Handles RAS event.
+*
+*\param[in]    deviceId    Identifier of the peer
+*\param[in]    status      RAS status of the event
+*
+*\retval       none.
+********************************************************************************** */
+static void RASEventCallback(deviceId_t deviceId, rasControlPointRspCodeValues_tag status)
+{
+    if (status != gRasSuccess_c)
+    {
+        AppLocalization_ClearLocalData(deviceId);
+    }
+}
+#endif
+#endif
+
 /*! *********************************************************************************
 *\fn           static bleResult_t processEventResultData(deviceId_t deviceId, uint8_t nbSteps,
 *              uint8_t subEventStatus, uint8_t procDoneStatus, uint8_t *pEventData)
@@ -2982,6 +3023,7 @@ static bleResult_t processEventResultData
 #if defined (gRasRRSP_d) && (gRasRRSP_d == 1U)
         /* Parse new subevent data */
         Ras_SetDataPointer(deviceId, &mResultData[deviceId]);
+        Ras_SetEventCallback(RASEventCallback);
 
         /* This is continuation data for the current subevent */
         if ((subeventIndex == 0U) &&
@@ -3255,7 +3297,7 @@ void AppLocalization_RunAlgorithm
         FLib_MemSet(&mResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
 
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
-        RasClient_ResetPeerProcData(deviceId);
+        RasClient_ResetPeerInfo(deviceId);
 #elif defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
         BtcsClient_ResetPeer(deviceId, FALSE);
 #endif /* gAppRasDataTransfer_d */

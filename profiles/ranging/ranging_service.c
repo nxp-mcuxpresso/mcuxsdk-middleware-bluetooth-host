@@ -166,6 +166,10 @@ static bool_t maIndicationPendingData[gAppMaxConnections_c];
 
 /* FALSE if GATT notifications can currently be sent for each device */
 static bool_t mNotificationsPaused[gAppMaxConnections_c] = {FALSE};
+
+/* RAS event callback */
+static pfRasEventCallback_t mpfEventCallback = NULL;
+
 /************************************************************************************
 *************************************************************************************
 * Private functions prototypes
@@ -646,6 +650,22 @@ void Ras_SetDataPointer
     {
         maRasDynamicCfg[deviceId].pCfg = pData;
     }
+}
+
+/*!**********************************************************************************
+* \brief        Set the RAS function pointer for handling events
+*
+* \param[in]    deviceId    Identifier of the peer
+* \param[in]    pData       Pointer to the callback function
+*
+* \return       none
+************************************************************************************/
+void Ras_SetEventCallback
+(
+    pfRasEventCallback_t pfCallback
+)
+{
+    mpfEventCallback = pfCallback;
 }
 
 /*!**********************************************************************************
@@ -2030,6 +2050,11 @@ static void checkRasStatus
         {
             (void)MEM_BufferFree(maRasDynamicCfg[deviceId].pRangingDataBody);
             maRasDynamicCfg[deviceId].pRangingDataBody = NULL;
+              
+            if (mpfEventCallback != NULL)
+            {
+                mpfEventCallback(deviceId, rasStatus);
+            }
         }
 
         /* Send response with the received error code */

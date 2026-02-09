@@ -420,6 +420,7 @@ typedef enum
     gAppLclWaitingForPECS_c,                    /* Wait for Procedure Enable Command Status */
     gAppLclWaitingForPEC_c,                     /* Wait for Procedure Enable Complete Meta Event */
     gAppLclWaitingForMeasData_c,                /* Wait for the first Subevent Result Event */
+    gAppLclReceivingMeasDataDropLeftovers_c,    /* Wait for the end of the current procedure - drop leftover RAS ranging data from previous procedure */
     gAppLclReceivingMeasData_c,                 /* Wait for the end of the current procedure */
     gAppLclWaitingForWCCC_c,                    /* Wait for Write Cached Remote Capabilities command complete */
     gAppLclWaitingForLocCfg_c,                  /* Wait for Create Config Complete Meta Event after writing the local config */
