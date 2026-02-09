@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file shell_digital_key_device_cs.h
 *
-* Copyright 2022 - 2025 NXP
+* Copyright 2022 - 2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -77,6 +77,7 @@ typedef struct appCsConfigParams_tag
     uint8_t     channelMap[APP_LOCALIZATION_CH_MAP_LEN];
     uint8_t     channelMapRepetition;
     uint8_t     channelSelectionType;
+    uint8_t     csSyncPhy;
 } appCsConfigParams_t;
 
 typedef struct appCsProcedureParams_tag

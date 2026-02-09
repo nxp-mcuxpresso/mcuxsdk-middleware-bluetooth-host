@@ -71,6 +71,10 @@ Other available shell commands are:
     -   `channelSelectionType`: Possible values:
         -   0 (Channel Selection Algorithm #3b)
         -   1 (Channel Selection Algorithm #3c)
+    -   `cs_sync_phy`: PHY to be used for CS_SYNC exchanges during the CS procedure for the specified CS configuration. Possible values:
+        -   1 (LE 1M PHY)
+        -   2 (LE 2M PHY)
+        -   3 (LE 2M 2BT PHY)
 -   `setcsproc`: This command overwrites the default parameters for the *Channel Sounding Set Procedure Parameters* command. It takes the following parameters, in the order below:
     -   `peerId`
     -   `maxProcedureDuration`: Maximum duration for each CS procedure. Range:

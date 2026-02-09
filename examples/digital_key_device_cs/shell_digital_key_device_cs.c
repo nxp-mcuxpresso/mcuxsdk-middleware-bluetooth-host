@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file shell_digital_key_device_cs.c
 *
-* Copyright 2022 - 2025 NXP
+* Copyright 2022 - 2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -566,7 +566,7 @@ static shell_status_t ShellSetCsConfigParams_Command(shell_handle_t shellHandle,
 {
     bleResult_t status = gBleSuccess_c;
 
-    if (argc == 13)
+    if (argc == 14)
     {
         deviceId_t deviceId = (uint8_t)BleApp_atoi(argv[1]);
 
@@ -680,6 +680,16 @@ static shell_status_t ShellSetCsConfigParams_Command(shell_handle_t shellHandle,
 
                     if (status == gBleSuccess_c)
                     {
+                        pAppCsConfigParams->csSyncPhy = (uint8_t)BleApp_atoi(argv[13]);
+
+                        if ((pAppCsConfigParams->csSyncPhy < 1U) || (pAppCsConfigParams->csSyncPhy > 3U))
+                        {
+                            status = gBleInvalidParameter_c;
+                        }
+                    }
+
+                    if (status == gBleSuccess_c)
+                    {
                         status = App_PostCallbackMessage(mpfBleEventHandler, pEventData);
                     }
 
@@ -702,7 +712,7 @@ static shell_status_t ShellSetCsConfigParams_Command(shell_handle_t shellHandle,
     else
     {
         shell_write("\r\nUsage: \
-                    \r\nsetcsconfig peer_id, main_mode_type, sub_mode_type, main_mode_min_steps, main_mode_max_steps, main_mode_repetition, mode_0_steps, role, rtt_types, chann_map, chan_map_repetition, chan_sel_type \
+                    \r\nsetcsconfig peer_id, main_mode_type, sub_mode_type, main_mode_min_steps, main_mode_max_steps, main_mode_repetition, mode_0_steps, role, rtt_types, chann_map, chan_map_repetition, chan_sel_type cs_sync_phy \
                     \r\n");
     }
 
