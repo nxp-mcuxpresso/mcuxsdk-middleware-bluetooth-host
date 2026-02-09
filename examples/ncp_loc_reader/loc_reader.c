@@ -835,6 +835,23 @@ static void BleApp_GenericCallback(gapGenericEvent_t* pGenericEvent)
 {
     /* Call BLE Conn Manager */
     BleConnManager_GenericEvent(pGenericEvent);
+
+    if (pGenericEvent->eventType == gLePhyEvent_c)
+    {
+        if (pGenericEvent->eventData.phyEvent.phyEventType == gPhyRead_c)
+        {
+            appLocalization_rangeCfg_t locConfig;
+
+            /* Read current CS config */
+            (void)AppLocalization_ReadConfig(pGenericEvent->eventData.phyEvent.deviceId, &locConfig);
+
+            /* Set the CS PHY according to the connection PHY */
+            locConfig.phy = pGenericEvent->eventData.phyEvent.rxPhy;
+
+            /* Update CS config with the PHY */
+            (void)AppLocalization_WriteConfig(pGenericEvent->eventData.phyEvent.deviceId, &locConfig);
+        }
+    }
 }
 
 /*! *********************************************************************************
@@ -999,7 +1016,8 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
             AppLocalization_TimeInfoSetConnInterval(pConnectionEvent->eventData.connectedEvent.connParameters.connInterval);
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
-
+            /* Read PHY on which connection was established */
+            (void)Gap_LeReadPhy(peerDeviceId);
         }
         break;
 

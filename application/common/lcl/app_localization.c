@@ -284,49 +284,30 @@ static void TemperatureTimerCallback
 * Public memory declarations
 *************************************************************************************
 ************************************************************************************/
-appLocalization_rangeCfgGlobal_t mGlobalRangeSettings =
-{
-    .ant_type = 0,
-    .t_sw_local = 2,
-    .t_pm_tone_ext = 0,
-    .tx_pwr = 0,
-    .ch_list_auto = TRUE,
-    .ch_start = 0,
-    .ch_stop = XCVR_CHAN_MAX,
-    .ch_isrand = FALSE,
-};
+appLocalization_rangeCfgGlobal_t mGlobalRangeSettings = {};
 
 appLocalization_rangeCfg_t mDefaultRangeSettings =
 {
     .configId = APP_LOCALIZATION_CONFIG_ID,
     .main_mode_type = 2, /* RTP */
-    .sub_mode_type = 1, /* RTT */
+    .sub_mode_type = 3, /* RTT + RTP */
     .main_mode_min = 4,
     .main_mode_max = 8,
     .main_mode_repeat = 1,
     .mode0_nb = 3,
-    .rtt_type = 0, /* coarse */
-    .phy = (uint8_t)gLePhy1M_c,
+    .rtt_type = gRTT32bitRandomSequence_c,
     .cs_sync_phy = (uint8_t)gLePhy1M_c,
     .ant_cfg_index = 0,
-    .ant_perm_index = 0,
-    .initiator_AA = {0x36, 0xE6, 0x5E, 0x21},
-    .reflector_AA = {0x59, 0x8D, 0x11, 0x41},
     .ch_map_repeat = 1,
     .channelSelectionType = 0, /* Algorithm #3b */
     .maxProcedureDuration = 0xFFFF,
     .minPeriodBetweenProcedures = 1,
     .maxPeriodBetweenProcedures = 1,
-    .maxNumProcedures = 1,
+    .maxNumProcedures = gCsProcRepeatMaxNumProcedures_c,
     .minSubeventLen = 40000,
     .maxSubeventLen = 40000,
     .txPwrDelta = 0, /* 0dBm */
-    .t_fcs = 150,
-    .t_ip1 = 145,
-    .t_ip2 = 145,
-    .t_pm = 20,
-    .connInterval = 0,
-    .csAlgoBuf = NULL
+    .csAlgoBuf = NULL  /* Used by algorithm */
 };
 
 appLocalization_rangeCfg_t mRangeSettings[gAppMaxConnections_c];
@@ -430,8 +411,6 @@ bleResult_t AppLocalization_Init
         {
             FLib_MemCpy(&mRangeSettings[index], &mDefaultRangeSettings, sizeof(appLocalization_rangeCfg_t));
             FLib_MemCpy(mRangeSettings[index].ch_map, CSChMapReal, APP_LOCALIZATION_CH_MAP_LEN);
-            /* Procedure repeat */
-            mRangeSettings[index].maxNumProcedures = gCsProcRepeatMaxNumProcedures_c;
 #if defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
             maPsmChannels[index] = 0U;
 #endif /* defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U) */

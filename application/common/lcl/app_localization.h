@@ -298,16 +298,8 @@ typedef enum
 typedef struct appLocalization_rangeCfgGlobal_tag
 {
     uint8_t role;                               /*!< CS role */
-    uint8_t ant_type;                           /*!< Antenna div board type 0:none, 1:X-FR-ANTDIV SMA, 2:X-FR-ANTDIV printed */
-    int8_t tx_pwr;                              /*!< Transmit power during measurement in dB [-12,4] */
+    uint8_t ant_type;                           /*!< Antenna diversity board type */
     uint8_t t_sw_local;                         /*!< CS T_SW local */
-    uint8_t t_pm_tone_ext;                      /*!< CS T_PM tone extension */
-    bool_t ch_list_auto;                        /*!< set to TRUE when ch_list has to be auto-generated */
-    bool_t ch_isrand;                           /*!< set to TRUE when auto-generated ch_list must be random */
-    uint8_t ch_start;                           /*!< First channel used for ch_list generation */
-    uint8_t ch_stop;                            /*!< Last channel used for ch_list generation */
-    uint8_t ch_nb;                              /*!< Number of channels in the channel list */
-    uint8_t ch_list[APP_LOCALIZATION_MAX_STEPS]; /*!< List of channels used for CS Test mode */
 } appLocalization_rangeCfgGlobal_t;
 
 typedef struct appLocalization_rangeCfg_tag
@@ -323,9 +315,6 @@ typedef struct appLocalization_rangeCfg_tag
     uint8_t phy;                                /*!< PHY to be used by the CS procedure */
     uint8_t cs_sync_phy;                        /*!< PHY to be used for CS_SYNC exchanges */
     uint8_t ant_cfg_index;                      /*!< Antenna configuration index 0-7 */
-    uint8_t ant_perm_index;                     /*!< Antenna permutation index 0-23, 0xFF = loop */
-    uint8_t initiator_AA[4];                    /*!< Initiator AA */
-    uint8_t reflector_AA[4];                    /*!< Reflector AA */
     uint8_t ch_map[APP_LOCALIZATION_CH_MAP_LEN]; /*!< Bitmask for channels 0-78 */
     uint8_t ch_map_repeat;                      /*!< channel map repetition */
     uint8_t channelSelectionType;               /*!< Channel selection type */
@@ -336,11 +325,12 @@ typedef struct appLocalization_rangeCfg_tag
     uint32_t minSubeventLen;                    /*!< Minimum suggested duration for each CS subevent in microseconds */
     uint32_t maxSubeventLen;                    /*!< Maximum suggested duration for each CS subevent in microseconds */
     int8_t txPwrDelta;                          /*!< Transmit power delta, in signed dB */
-    uint8_t t_fcs;                              /*!< CS T_FCS */
-    uint8_t t_ip1;                              /*!< CS T_IP1 */
-    uint8_t t_ip2;                              /*!< CS T_IP2 */
-    uint8_t t_pm;                               /*!< CS T_PM */
+    uint8_t t_fcs;                              /*!< CS T_FCS - not configurable by the application */
+    uint8_t t_ip1;                              /*!< CS T_IP1 - not configurable by the application */
+    uint8_t t_ip2;                              /*!< CS T_IP2 - not configurable by the application */
+    uint8_t t_pm;                               /*!< CS T_PM  - not configurable by the application */
     uint8_t t_sw_remote;                        /*!< CS T_SW remote */
+    /* Used by algorithm */
     uint16_t connInterval;                      /*!< Connection interval of the Bluetooth LE link (units of 1.25ms) - required by algorithm */
     void *csAlgoBuf;                            /*!< Buffer used by RADE */
 } appLocalization_rangeCfg_t;

@@ -799,6 +799,24 @@ static void BleApp_GenericCallback(gapGenericEvent_t* pGenericEvent)
         }
         break;
 
+        case gLePhyEvent_c:
+        {
+            if (pGenericEvent->eventData.phyEvent.phyEventType == gPhyRead_c)
+            {
+                appLocalization_rangeCfg_t locConfig;
+
+                /* Read current CS config */
+                (void)AppLocalization_ReadConfig(pGenericEvent->eventData.phyEvent.deviceId, &locConfig);
+
+                /* Set the CS PHY according to the connection PHY */
+                locConfig.phy = pGenericEvent->eventData.phyEvent.rxPhy;
+
+                /* Update CS config with the PHY */
+                (void)AppLocalization_WriteConfig(pGenericEvent->eventData.phyEvent.deviceId, &locConfig);
+            }
+        }
+        break;
+
         default:
         {
             ; /* For MISRA compliance */
@@ -1136,6 +1154,8 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
 
             (void)Gap_CheckIfBonded(peerDeviceId, &maPeerInformation[peerDeviceId].isBonded, &maPeerInformation[peerDeviceId].nvmIndex);
 
+            /* Read PHY on which connection was established */
+            (void)Gap_LeReadPhy(peerDeviceId);
             BleApp_StateMachineHandler(peerDeviceId, mAppEvt_PeerConnected_c);
         }
         break;

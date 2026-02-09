@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2022 - 2025 NXP
+* Copyright 2022 - 2026 NXP
 *
 *
 * \file
@@ -391,13 +391,13 @@ typedef enum
 
 typedef enum
 {
-    gRTTCoarse_c,
-    gRTTFractional32bitSoundingSequence_c,
-    gRTTFractional96bitSoundingSequence_c,
-    gRTTFractional32bitRandomSequence_c,
-    gRTTFractional64bitRandomSequence_c,
-    gRTTFractional96bitRandomSequence_c,
-    gRTTFractional128bitRandomSequence_c,
+    gRTTAAOnly_c                  = 0x00U,
+    gRTT32bitSoundingSequence_c   = 0x01U,
+    gRTT96bitSoundingSequence_c   = 0x02U,
+    gRTT32bitRandomSequence_c     = 0x03U,
+    gRTT64bitRandomSequence_c     = 0x04U,
+    gRTT96bitRandomSequence_c     = 0x05U,
+    gRTT128bitRandomSequence_c    = 0x06U,
 } rttTypes_t;
 
 typedef enum
