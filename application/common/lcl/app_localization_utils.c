@@ -1780,6 +1780,9 @@ static bool_t ParseMode3
             FLib_MemCpy(&ts_diff_hci, *ppEventData, sizeof(uint16_t)); /* Time Diff signed Q16, 2 bytes */
         );
 
+        /* Skip Antenna used by the sender */
+        CheckSkipBytesDoNothing(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete);
+
         /* Data includes Antenna Permutation Index */
         GetItem(&antPermIndex);
         pAntIndex = &maAntPermNAp[antPermIndex][0];
@@ -1787,10 +1790,9 @@ static bool_t ParseMode3
         /* Extract quality - 2 bits per antenna path, up to 4 antenna paths, ordered*/
         CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
             pctQuality = (uint32_t)(**ppEventData));
-                
-        /* Num_Antenna_Path + 1 are reported by the firmware, but discard last one */
+
         /* Re-order per antenna path index */
-        for (uint8_t idx = 0U; idx <= pRemoteData->numAntennaPaths; idx++)
+        for (uint8_t idx = 0U; idx < pRemoteData->numAntennaPaths; idx++)
         {
             antIdx = pAntIndex[idx];
 
