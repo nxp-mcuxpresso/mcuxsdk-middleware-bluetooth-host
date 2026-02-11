@@ -3200,13 +3200,13 @@ void AppLocalization_RunAlgorithm
 {
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
    /* Parse header of the ranging data body */
-    rasMeasurementData_t* mpPeerResultData = RasClient_GetPeerRangingData(deviceId);
+    rasMeasurementData_t* pPeerResultData = RasClient_GetPeerRangingData(deviceId);
 
     /* Clear transfer data */
     RasClient_ResetRasTransferInfo(deviceId);
 
     /* Only compare the lower 12 bits of the counter, RAS truncates the original 16-bit value */
-    if ((mResultData[deviceId].procedureCounter & 0x0FFFU) == mpPeerResultData[deviceId].procedureCounter)
+    if ((mResultData[deviceId].procedureCounter & 0x0FFFU) == pPeerResultData->procedureCounter)
     {
         if (RasClient_GetRealTimeMode(deviceId) == FALSE)
         {
@@ -3216,7 +3216,7 @@ void AppLocalization_RunAlgorithm
                                            gAntennaPathFilterAllowAll_c);
         }
 #elif defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
-        rasMeasurementData_t* mpPeerResultData = BtcsClient_GetPeerRangingData(deviceId);
+        rasMeasurementData_t* pPeerResultData = BtcsClient_GetPeerRangingData(deviceId);
 #endif
         localizationAlgoResult_t algoResult;
         FLib_MemSet(&algoResult, 0U, sizeof(localizationAlgoResult_t));
@@ -3235,7 +3235,7 @@ void AppLocalization_RunAlgorithm
         {
             AppLocalizationAlgo_RunMeasurement(deviceId,
                                                &mResultData[deviceId],
-                                               mpPeerResultData,
+                                               pPeerResultData,
                                                mGlobalRangeSettings.role,
                                                &algoResult);
         }
@@ -3270,7 +3270,7 @@ void AppLocalization_RunAlgorithm
         if (mpfAppCsCallback != NULL)
         {
             /* Send data logging event to the application. */
-            mpfAppCsCallback(deviceId, (void*)mpPeerResultData->pData, gCsRemoteDataLogEvent_c);
+            mpfAppCsCallback(deviceId, (void*)pPeerResultData->pData, gCsRemoteDataLogEvent_c);
         }
 #endif
 
@@ -3294,8 +3294,8 @@ void AppLocalization_RunAlgorithm
     }
 #endif
     
-    (void)MEM_BufferFree(mpPeerResultData->pData);
-    mpPeerResultData->pData = NULL;
+    (void)MEM_BufferFree(pPeerResultData->pData);
+    pPeerResultData->pData = NULL;
 }
 #endif /* gAppRunAlgo_d */
 
