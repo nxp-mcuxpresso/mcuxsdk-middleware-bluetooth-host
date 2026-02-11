@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*
- * Copyright 2020 - 2025 NXP
+ * Copyright 2020 - 2026 NXP
  *
  *
  *
@@ -97,9 +97,15 @@
 #endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 
 /* Enable Monitoring Advertisers shell commands */
-#define BLE_SHELL_MONADV_SUPPORT                0
+#define BLE_SHELL_MONADV_SUPPORT                0U
 /* Enable Connection Subrating shell commands */
 #define BLE_SHELL_CONN_SBR_SUPPORT              0U
+
+/* Experimental features require special initialization */
+#if ((defined(BLE_SHELL_MONADV_SUPPORT)) && (BLE_SHELL_MONADV_SUPPORT == 1U)) || \
+    ((defined(BLE_SHELL_CONN_SBR_SUPPORT)) && (BLE_SHELL_CONN_SBR_SUPPORT == 1U))
+#define gHostInitEnableExpmFeatures_c      TRUE
+#endif
 
 #if defined(BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT)
 #define gBLE60_d                                1
