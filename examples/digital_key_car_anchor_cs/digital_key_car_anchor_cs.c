@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file digital_key_car_anchor_cs.c
 *
-* Copyright 2022 - 2025 NXP
+* Copyright 2022 - 2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -457,6 +457,18 @@ void BleApp_GenericCallback (gapGenericEvent_t* pGenericEvent)
 ********************************************************************************** */
 void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* pConnectionEvent)
 {
+    if (pConnectionEvent->eventType == gConnEvtConnected_c)
+    {
+        if (pConnectionEvent->eventData.connectedEvent.connectionRole == gBleLlConnectionCentral_c)
+        {
+            maPeerInformation[peerDeviceId].gapRole = gGapCentral_c;
+        }
+        else
+        {
+            maPeerInformation[peerDeviceId].gapRole = gGapPeripheral_c;
+        }
+    }
+
     /* Connection Manager to handle Host Stack interactions */
     if (maPeerInformation[peerDeviceId].gapRole == gGapCentral_c)
     {
@@ -493,15 +505,6 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
 #endif /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
             maPeerInformation[peerDeviceId].isBonded = FALSE;
             maPeerInformation[peerDeviceId].nvmIndex = gInvalidNvmIndex_c;
-
-            if (pConnectionEvent->eventData.connectedEvent.connectionRole == gBleLlConnectionCentral_c)
-            {
-                maPeerInformation[peerDeviceId].gapRole = gGapCentral_c;
-            }
-            else
-            {
-                maPeerInformation[peerDeviceId].gapRole = gGapPeripheral_c;
-            }
 
             (void)Gap_CheckIfBonded(peerDeviceId, &maPeerInformation[peerDeviceId].isBonded, &maPeerInformation[peerDeviceId].nvmIndex);
 
