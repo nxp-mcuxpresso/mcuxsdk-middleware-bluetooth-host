@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2022 - 2025 NXP
+* Copyright 2022 - 2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -316,6 +316,14 @@ static void GetBufferFromConnEvtParameterUpdateComplete
     uint8_t              **ppBuffer
 );
 
+#if defined(gBLE53_d) && (gBLE53_d == 1U)
+static void GetBufferFromConnEvtConnSubrateChangeEvent
+(
+    gapConnectionEvent_t *pConnectionEvent,
+    uint8_t              **ppBuffer
+);
+#endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
+
 static void GetBufferFromConnEvtLeSetDataLengthFailure
 (
     gapConnectionEvent_t *pConnectionEvent,
@@ -498,6 +506,13 @@ static uint32_t GetConnEvtParameterUpdateCompleteBufferSize
 (
     gapConnectionEvent_t *pConnectionEvent
 );
+
+#if defined(gBLE53_d) && (gBLE53_d == 1U)
+static uint32_t GetConnEvtLeSubrateChangeEventBufferSize
+(
+    gapConnectionEvent_t *pConnectionEvent
+);
+#endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
 
 static uint32_t GetConnEvtLeSetDataLengthFailureBufferSize
 (
@@ -1448,7 +1463,19 @@ void HandleGapCmdUpdateConnectionParametersOpCode
     uint8_t *pBuffer, 
     uint32_t fsciInterfaceId
 );
+#if defined(gBLE53_d) && (gBLE53_d == 1U)
+void HandleGapCmdSetDefaultConnectionSubrateParametersOpCode
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
 
+void HandleGapCmdConnectionSubrateRequestOpCode
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+#endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
 void HandleGapCmdEnableUpdateConnectionParametersOpCode
 (
     uint8_t *pBuffer, 
@@ -2114,6 +2141,11 @@ const pfGapGetBufferFromConnEventHandler_t maGapGetBufferFromConnEventHandlers[]
     NULL,                                               /* 0x2DU gHandoverDisconnected_c */
     GetBufferFromConnEvtLeSetDataLengthFailure,         /* 0x2EU, gConnEvtLeSetDataLengthFailure_c */
     GetBufferFromConnEvtSmError,                        /* 0x2FU, gConnEvtSmError_c */
+#if defined(gBLE53_d) && (gBLE53_d == 1U)
+    GetBufferFromConnEvtConnSubrateChangeEvent,         /* 0x30U, gConnEvtLeSubrateChange_c */
+#else
+    NULL,
+#endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
 };
 
 /*! Array of handler functions used by fsciBleGapGetConnectionEventBufferSize */
@@ -2192,6 +2224,11 @@ const pfGapGetConnEventBufferSizeHandler_t maGapGetConnEventBufferSizeHandlers[]
     NULL,                                               /* 0x2DU gHandoverDisconnected_c */
     GetConnEvtLeSetDataLengthFailureBufferSize,         /* 0x2EU, gConnEvtLeSetDataLengthFailure_c */
     GetConnEvtSmErrorBufferSize,                        /* 0x2FU, gConnEvtSmError_c */
+#if defined(gBLE53_d) && (gBLE53_d == 1U)
+    GetConnEvtLeSubrateChangeEventBufferSize,           /* 0x30U, gConnEvtLeSubrateChange_c */
+#else
+    NULL,
+#endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
 };
 
 /*! Array of handler functions used by fsciBleGapGetGenericEventFromBuffer */
@@ -2373,6 +2410,7 @@ const pfGapGetBufferFromGenericEventHandler_t maGapGetBufferFromGenericEventHand
     NULL,                                                                       /* reserved: 0x58U */
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
     GetBufferFromVendorDebugEvent,                                              /* reserved for 0x59U gVendorDebugEvent_c */
+    NULL                                                                        /* reserved: 0x5AU gLeSetDefaultConnectionSubrateParametersSetupComplete_c */
 };
 
 /*! Array of handler functions used by fsciBleGapGetGenericEventBufferSize */
@@ -2498,7 +2536,8 @@ const pfGapGetGenericEventBufferSizeHandler_t maGapGetGenericEventBufferSizeHand
 #else /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
     NULL,                                                                       /* resreved: 0x58U */
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
-    GetVendorDebugEventBufferSize                                               /* 0x59, gVendorDebugEvent_c */
+    GetVendorDebugEventBufferSize,                                              /* 0x59, gVendorDebugEvent_c */
+    NULL,                                                                       /* 0x5AU gLeSetDefaultConnectionSubrateParametersSetupComplete_c */
 #endif /* (defined(gMatterConfig_d) && (gMatterConfig_d > 0)) */
 };
 
@@ -2821,8 +2860,13 @@ const pfGapOpCodeHandler_t maGapCmdOpCodeHandlers[]=
 #else
     NULL,                                                                              /* reserved: 0x7C */
 #endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA)) */
+#if defined(gBLE53_d) && (gBLE53_d == 1U)
+    HandleGapCmdSetDefaultConnectionSubrateParametersOpCode,                           /* = 0x7D, gBleGapCmdLeSetDefaultConnectionSubrateParametersOpCode_c */
+    HandleGapCmdConnectionSubrateRequestOpCode,                                        /* = 0x7E, gBleGapCmdLeConnectionSubrateRequestOpCode_c */
+#else /* defined(gBLE53_d) && (gBLE53_d == 1U) */
     NULL,                                                                             /* reserved: 0x7D */
     NULL,                                                                             /* reserved: 0x7E */
+#endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
 };
 #endif /* gMatterConfig_d */
 #endif /* gFsciBleBBox_d || gFsciBleTest_d */
@@ -3929,6 +3973,27 @@ static uint32_t GetConnEvtParameterUpdateCompleteBufferSize
     return fsciBleGapGetConnParameterUpdateCompleteBufferSize(&pConnectionEvent->eventData.connectionUpdateComplete);
 }
 
+#if defined(gBLE53_d) && (gBLE53_d == 1U)
+/*! *********************************************************************************
+*\private
+*\fn           uint32_t GetConnEvtLeSubrateChangeEventBufferSize(
+*                                       gapConnectionEvent_t *pConnectionEvent)
+*
+*\brief        Returns the required FSCI buffer size for the
+*              gConnEvtLeSubrateChange_c event.
+*
+*\param  [in]  pConnectionEvent    Pointer to the connection event.
+*
+*\return       uint32_t            Buffer size.
+********************************************************************************** */
+static uint32_t GetConnEvtLeSubrateChangeEventBufferSize
+(
+    gapConnectionEvent_t *pConnectionEvent
+)
+{
+    return fsciBleGapGetConnSubrateChangeEventBufferSize(&pConnectionEvent->eventData.gapSubrateChangeEvent);
+}
+#endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
 /*! *********************************************************************************
 *\private
 *\fn           uint32_t GetConnEvtLeSetDataLengthFailureBufferSize(
@@ -4631,6 +4696,31 @@ static void GetBufferFromConnEvtParameterUpdateComplete
 {
     fsciBleGapGetBuffFromConnParameterUpdateComplete(&pConnectionEvent->eventData.connectionUpdateComplete, ppBuffer);
 }
+#if defined(gBLE53_d) && (gBLE53_d == 1U)
+/*! *********************************************************************************
+*\private
+*\fn           void GetBufferFromConnEvtConnSubrateChangeEvent(
+*                                           gapConnectionEvent_t *pConnectionEvent,
+*                                           uint8_t              **ppBuffer)
+*
+*\brief        Writes the gapSubrateChangeEvent data fields in the provided
+*              buffer.
+*
+*\param  [in]  pConnectionEvent    Pointer to the connection event.
+*\param  [in]  ppBuffer            Pointer to the buffer where the data fields
+*                                  should be written.
+*
+*\retval       void.
+********************************************************************************** */
+static void GetBufferFromConnEvtConnSubrateChangeEvent
+(
+    gapConnectionEvent_t *pConnectionEvent,
+    uint8_t              **ppBuffer
+)
+{
+    fsciBleGapGetBuffFromConnSubrateChangeEvent(&pConnectionEvent->eventData.gapSubrateChangeEvent, ppBuffer);
+}
+#endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
 
 /*! *********************************************************************************
 *\private
@@ -9084,6 +9174,59 @@ void HandleGapCmdUpdateConnectionParametersOpCode(uint8_t *pBuffer, uint32_t fsc
     fsciBleGapCallApiFunction(Gap_UpdateConnectionParameters(deviceId, intervalMin, intervalMax, peripheralLatency, timeoutMultiplier, minCeLength, maxCeLength));
 }
 
+#if defined(gBLE53_d) && (gBLE53_d == 1U)
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdSetDefaultConnectionSubrateParametersOpCode(
+*                                                       uint8_t *pBuffer,
+*                                                       uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleGapCmdLeSetDefaultConnectionSubrateParametersOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+void HandleGapCmdSetDefaultConnectionSubrateParametersOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
+{
+    gapConnectionSubrateParameters_t params;
+
+    /* Get command parameters from the received packet */
+    fsciBleGetUint16ValueFromBuffer(params.subrateMin, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(params.subrateMax, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(params.latencyMax, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(params.continuationNumber, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(params.supervisionTimeout, pBuffer);
+    fsciBleGapCallApiFunction(Gap_SetDefaultConnectionSubrateParameters(&params));
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdConnectionSubrateRequestOpCode(
+*                                                       uint8_t *pBuffer,
+*                                                       uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleGapCmdLeConnectionSubrateRequestOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+void HandleGapCmdConnectionSubrateRequestOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
+{
+    deviceId_t  deviceId;
+    gapConnectionSubrateParameters_t params;
+
+    /* Get command parameters from the received packet */
+    fsciBleGetDeviceIdFromBuffer(&deviceId, &pBuffer);
+    fsciBleGetUint16ValueFromBuffer(params.subrateMin, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(params.subrateMax, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(params.latencyMax, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(params.continuationNumber, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(params.supervisionTimeout, pBuffer);
+    fsciBleGapCallApiFunction(Gap_ConnectionSubrateRequest(deviceId, &params));
+}
+#endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
 /*! *********************************************************************************
 *\private
 *\fn           void HandleGapCmdEnableUpdateConnectionParametersOpCode(
