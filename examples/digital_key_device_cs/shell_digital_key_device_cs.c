@@ -740,7 +740,7 @@ static shell_status_t ShellSetCsProcedureParams_Command(shell_handle_t shellHand
 {
     bleResult_t status = gBleSuccess_c;
 
-    if (argc == 9)
+    if (argc == 11)
     {
         deviceId_t deviceId = (uint8_t)BleApp_atoi(argv[1]);
 
@@ -776,8 +776,15 @@ static shell_status_t ShellSetCsProcedureParams_Command(shell_handle_t shellHand
                         pAppCsProcedureParams->minSubeventLen = (uint32_t)BleApp_atoi(argv[6]);
                         pAppCsProcedureParams->maxSubeventLen = (uint32_t)BleApp_atoi(argv[7]);
                         pAppCsProcedureParams->antCfgIndex = (uint8_t)BleApp_atoi(argv[8]);
+                        pAppCsProcedureParams->snrControlInit = (uint8_t)BleApp_atoi(argv[9]);
+                        pAppCsProcedureParams->snrControlRefl = (uint8_t)BleApp_atoi(argv[10]);
 
                         if (pAppCsProcedureParams->antCfgIndex > 7U)
+                        {
+                            status = gBleInvalidParameter_c;
+                        }
+
+                        if(!isValidSnrControl(pAppCsProcedureParams->snrControlInit) || !isValidSnrControl(pAppCsProcedureParams->snrControlRefl))
                         {
                             status = gBleInvalidParameter_c;
                         }
@@ -807,7 +814,7 @@ static shell_status_t ShellSetCsProcedureParams_Command(shell_handle_t shellHand
     else
     {
         shell_write("\r\nUsage: \
-                    \r\nsetcsproc peer_id, max_proc_duration, min_period_between_proc, max_period_between_proc, max_num_proc, min_subevent_len, max_subevent_len, ant_config_idx \
+                    \r\nsetcsproc peer_id, max_proc_duration, min_period_between_proc, max_period_between_proc, max_num_proc, min_subevent_len, max_subevent_len, ant_config_idx snr_control_init snr_control_refl \
                     \r\n");
     }
 

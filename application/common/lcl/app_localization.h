@@ -139,6 +139,12 @@
 /* 0x7F - RSSI is not available */
 #define gRssiNotAvailable_c             0x7F
 
+/* Macro to validate an SNR_Control value (CS Procedure Parameter) */
+#define isValidSnrControl(x) \
+    ((x) == gSNRControlAdjustment18dB_c || (x) == gSNRControlAdjustment21dB_c || \
+     (x) == gSNRControlAdjustment24dB_c || (x) == gSNRControlAdjustment27dB_c || \
+     (x) == gSNRControlAdjustment30dB_c || (x) == gSNRControlNotApplied_c)
+
 /************************************************************************************
 *************************************************************************************
 * Private type definitions
@@ -330,6 +336,8 @@ typedef struct appLocalization_rangeCfg_tag
     uint8_t t_ip2;                              /*!< CS T_IP2 - not configurable by the application */
     uint8_t t_pm;                               /*!< CS T_PM  - not configurable by the application */
     uint8_t t_sw_remote;                        /*!< CS T_SW remote */
+    uint8_t snr_control_init;                   /*!< CS SNR_Control_Initiator */
+    uint8_t snr_control_refl;                   /*!< CS SNR_Control_Reflector */
     /* Used by algorithm */
     uint16_t connInterval;                      /*!< Connection interval of the Bluetooth LE link (units of 1.25ms) - required by algorithm */
     void *csAlgoBuf;                            /*!< Buffer used by RADE */

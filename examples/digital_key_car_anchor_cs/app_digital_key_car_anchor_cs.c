@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file app_digital_key_car_anchor_cs.c
 *
-* Copyright 2022 - 2025 NXP
+* Copyright 2022 - 2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -1193,6 +1193,7 @@ static void BleApp_SetCsConfigParams(appEventData_t* pEventData)
     FLib_MemCpy(csConfigParams.ch_map, pAppCsConfigParams->channelMap, APP_LOCALIZATION_CH_MAP_LEN);
     csConfigParams.ch_map_repeat = pAppCsConfigParams->channelMapRepetition;
     csConfigParams.channelSelectionType = pAppCsConfigParams->channelSelectionType;
+    csConfigParams.cs_sync_phy = pAppCsConfigParams->csSyncPhy;
 
     (void)AppLocalization_WriteConfig(deviceId, &csConfigParams);
 };
@@ -1218,6 +1219,8 @@ static void BleApp_SetCsProcParams(appEventData_t* pEventData)
     csConfigParams.minSubeventLen = pAppCsProcParams->minSubeventLen;
     csConfigParams.maxSubeventLen = pAppCsProcParams->maxSubeventLen;
     csConfigParams.ant_cfg_index = pAppCsProcParams->antCfgIndex;
+    csConfigParams.snr_control_init = pAppCsProcParams->snrControlInit;
+    csConfigParams.snr_control_refl = pAppCsProcParams->snrControlRefl;
 
     (void)AppLocalization_WriteConfig(deviceId, &csConfigParams);
 }

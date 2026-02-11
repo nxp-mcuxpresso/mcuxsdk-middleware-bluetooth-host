@@ -47,7 +47,7 @@ Other available shell commands are:
     -   `cs_sync_phy`: PHY to be used for CS_SYNC exchanges during the CS procedure for the specified CS configuration. Possible values:
         -   1 (LE 1M PHY)
         -   2 (LE 2M PHY)
-        -   3 (LE 2M 2BT PHY)
+        -   3 (LE 2M 2BT PHY) - if supported at Link Layer level
 -   `setcsproc`: This command overwrites the default parameters for the *Channel Sounding Set Procedure Parameters* command. It takes the following parameters, in the order below:
     -   `peerId`
     -   `maxProcedureDuration`: Maximum duration for each CS procedure. Range:
@@ -65,6 +65,20 @@ Other available shell commands are:
         -   1250 microseconds to 3.999999 seconds
     -   `antCfgIndex`: Antenna Configuration Index as described in the Core specification. Range:
         -   0 to 7
+    -   `snr_control_init`: SNR Control to be applied to the Initiator in the CS procedure (if supported at Link Layer level). Possible values:
+        -   0 (SNR control adjustment of 18 dB)
+        -   1 (SNR control adjustment of 21 dB)
+        -   2 (SNR control adjustment of 24 dB)
+        -   3 (SNR control adjustment of 27 dB)
+        -   4 (SNR control adjustment of 30 dB)
+        -   255 (SNR control is not to be applied)
+    -  `snr_control_refl`: SNR Control to be applied to the Reflector in the CS procedure (if supported at Link Layer level). Possible values:
+        -   0 (SNR control adjustment of 18 dB)
+        -   1 (SNR control adjustment of 21 dB)
+        -   2 (SNR control adjustment of 24 dB)
+        -   3 (SNR control adjustment of 27 dB)
+        -   4 (SNR control adjustment of 30 dB)
+        -   255 (SNR control is not to be applied)
 -   `verbosity`: Sets the verbosity level during the CS procedure.
 -   `setnumprocs`: This command overwrites the default value `gCsProcRepeatMaxNumProcedures_c` parameter for the CS Procedure Repeat. It takes the following parameters, in the order below:
 

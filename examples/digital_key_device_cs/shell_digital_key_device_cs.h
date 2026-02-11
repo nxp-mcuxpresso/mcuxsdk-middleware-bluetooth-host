@@ -89,6 +89,8 @@ typedef struct appCsProcedureParams_tag
     uint32_t    minSubeventLen;
     uint32_t    maxSubeventLen;
     uint8_t     antCfgIndex;
+    uint8_t     snrControlInit;
+    uint8_t     snrControlRefl;
 } appCsProcedureParams_t;
 
 /************************************************************************************

@@ -307,6 +307,8 @@ appLocalization_rangeCfg_t mDefaultRangeSettings =
     .minSubeventLen = 40000,
     .maxSubeventLen = 40000,
     .txPwrDelta = 0, /* 0dBm */
+    .snr_control_init = gSNRControlNotApplied_c,
+    .snr_control_refl = gSNRControlNotApplied_c,
     .csAlgoBuf = NULL  /* Used by algorithm */
 };
 
@@ -691,8 +693,8 @@ bleResult_t AppLocalization_SetProcedureParameters(deviceId_t deviceId)
     params.phys = mRangeSettings[deviceId].phy; /* Should have been updated by the app upon connection to be the same as the connection PHY */
     params.txPwrDelta = 0; /* 0dBm */
     params.preferredPeerAntenna = 3U; /* Use any of the 2 antenna */
-    params.SNRCtrlInitiator = gSNRControlNotApplied_c;
-    params.SNRCtrlReflector = gSNRControlNotApplied_c;
+    params.SNRCtrlInitiator = mRangeSettings[deviceId].snr_control_init;
+    params.SNRCtrlReflector = mRangeSettings[deviceId].snr_control_refl;
     /* Reset mResultData - if pData is allocated, it remains so for the upcoming procedure */
     FLib_MemSet(&mResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
 
