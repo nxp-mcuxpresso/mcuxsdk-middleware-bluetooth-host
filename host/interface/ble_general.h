@@ -1812,7 +1812,7 @@ extern bool_t gUseHciCommandFlowControl;
 extern const bool_t gUseHciCommandFlowControl;
 #endif /* gUnitTesting_d */
 
-
+extern bool_t gHostInitEnableExpmFeatures;
 
 /************************************************************************************
 *************************************************************************************

@@ -370,7 +370,6 @@ const bool_t gEnableIntrusionDetectionSystem = FALSE;
 #endif
 
 /*Enable experimental features in Controller*/
-extern bool_t gHostInitEnableExpmFeatures;
 bool_t gHostInitEnableExpmFeatures = gHostInitEnableExpmFeatures_c;
 /************************************************************************************
 *************************************************************************************
