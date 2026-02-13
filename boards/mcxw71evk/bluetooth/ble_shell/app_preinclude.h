@@ -114,6 +114,7 @@
 
 #if (((defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)) || \
      ((defined BLE_SHELL_DBAF_SUPPORT) && (BLE_SHELL_DBAF_SUPPORT == 1)) || \
+     ((defined BLE_SHELL_CONN_SBR_SUPPORT) && (BLE_SHELL_CONN_SBR_SUPPORT == 1)) || \
      ((defined BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT == 1)))
 /* Increase shell buffer size & task stack size to allow longer commands */
 #define SHELL_BUFFER_SIZE                       128U

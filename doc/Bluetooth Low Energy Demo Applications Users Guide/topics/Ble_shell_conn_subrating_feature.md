@@ -8,14 +8,26 @@ This feature requires two connected devices to be demonstrated. There are three 
 
 **Connection subrating configuration**
 
-- gap sbrcf does not require a connection to be established.
+- gap sbrcfg does not require a connection to be established.
 
-- gap sbrcf can be issued without any parameters to return the default configuration.
-
-- optional parameters can be used to configure connection subrating: gap sbrcf[-sbrmin minSubrateFactor] [-sbrmax maxSubrateFactor] [-latency latency] [-contnum continuationNumber] [-timeout timeout in ms]
+- gap sbrcfg can be issued without any parameters to return the default configuration.
 
 ```
    BLE Shell>gap sbrcfg
+
+-->  Connection Subrate Parameters:
+    -->  subrateMin: 4
+    -->  subrateMax: 4
+    -->  Connection Latency: 0
+    -->  continuationNumber: 2
+    -->  Supervision Timeout: 32000 ms
+BLE Shell>
+```
+
+- optional parameters can be used to configure connection subrating: gap sbrcfg[-sbrmin minSubrateFactor] [-sbrmax maxSubrateFactor] [-latency latency] [-contnum continuationNumber] [-timeout timeout in ms]
+
+```
+ BLE Shell>gap sbrcfg -sbrmin 4 -sbrmax 4 -latency 0 -contnum 2 -timeout 32000
 
 -->  Connection Subrate Parameters:
     -->  subrateMin: 4
@@ -45,6 +57,7 @@ BLE Shell>
 - When the connection subrating is applied the subrate change event is received.
 
 ```
+LE Shell>gap connsbrreq 0
 BLE Shell>
 -->  GAP Event: Subrate Changed 0
     -->  subrateFactor: 4
@@ -57,6 +70,43 @@ BLE Shell>
 
 To showcase the functionality, the throughput feature can be used.
 
+1. Configure the desired subrating configurations parameters on both central and peripheral.
+
+```
+BLE Shell>gap sbrcfg -sbrmin 4 -sbrmax 4 -latency 0 -contnum 2 -timeout 32000
+
+-->  Connection Subrate Parameters:
+    -->  subrateMin: 4
+    -->  subrateMax: 4
+    -->  Connection Latency: 0
+    -->  continuationNumber: 2
+    -->  Supervision Timeout: 32000 ms
+BLE Shell>
+```
+2. Set the default connection subrating parameters on central.
+
+```
+BLE Shell>gap setdefsbrparam
+BLE Shell>
+-->  GAP Event: Default Connection Subrate Parameters Setup Complete.
+
+BLE Shell>
+```
+3. Start the throughput tx on peripheral.
+
+```
+BLE Shell>thrput start tx
+BLE Shell>
+-->  GAP Event: Advertising parameters successfully set.
+
+BLE Shell>
+-->  GAP Event: Advertising data successfully set.
+
+BLE Shell>
+-->  GAP Event: Advertising started.>
+```
+4. Start the throughput rx on central.
+
 ```
 BLE Shell>thrput start rx
 BLE Shell>
@@ -64,7 +114,7 @@ BLE Shell>
 
 Found device:
 THR_PER
-006037F3C4FF
+006037327E67
 ->  GAP Event: Scan stopped.
 
 -->  GAP Event: Connected to peer 0
@@ -77,17 +127,16 @@ Receiving packets...
 
 Packets received: 1000
 Total bytes: 244000
-Receive duration: 3977 ms
-Average bitrate: 490 kbps
+Receive duration: 2613 ms
+Average bitrate: 747 kbps
 
 ************************************
 ********** END OF REPORT ***********
 ************************************
+```
+5. Request connection subrating from the peripheral. The subrate change event should be observed on both boards.
 
-BLE Shell>gap setdefsbrparam
-BLE Shell>
--->  GAP Event: Default Connection Subrate Parameters Setup Complete.
-
+```
 BLE Shell>gap connsbrreq 0
 BLE Shell>
 -->  GAP Event: Subrate Changed 0
@@ -95,23 +144,39 @@ BLE Shell>
     -->  peripheralLatency: 0
     -->  continuationNumber: 2
     -->  supervisionTimeout: 32000 ms
-BLE Shell>thrput start 0 rx
+BLE Shell>
+```
+6. Start the throughput rx on central again .
+
+```
+thrput start 0 rx
 Throughput test started.
 Receiving packets...
 BLE Shell>
+```
+7. Start the throughput tx on peripheral again .
+
+```
+thrput start 0 tx
+Throughput test started.
+Sending packets...
+```
+8. When the test is finished the test report should be printed on the central side.
+```
 ************************************
 ***** TEST REPORT FOR PEER ID 0 ****
 ************************************
 
 Packets received: 1000
 Total bytes: 244000
-Receive duration: 4004 ms
-Average bitrate: 487 kbps
+Receive duration: 2645 ms
+Average bitrate: 737 kbps
 
 ************************************
 ********** END OF REPORT ***********
 ************************************
 ```
+
 As can be observed the throughput with the subrating applied is almost similar with the throughput without subrating while the energy efficiency when no data is being transmitted is improved given the effective connection interval is subrate factor bigger.
 
 **Parent topic:**[Bluetooth LE Shell](../topics/bluetooth_le_shell_513.md)
