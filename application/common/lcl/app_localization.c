@@ -2005,6 +2005,7 @@ static void AppLocalization_CSMetaEventCallback
                             }
                             else
                             {
+                                maCsProcCount[deviceId]++;
                                 /* Check if we reached the last procedure */
                                 if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
                                 {
@@ -2823,7 +2824,6 @@ static bleResult_t processCsResultsEvent
 
     if (pEvent->subeventDoneStatus == (uint8_t)gCsNoResultsProcAborted_c)
     {
-        maCsProcCount[deviceId]++;
 #if defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
         maAlgoRunCount[deviceId]++;
 #endif
@@ -2900,7 +2900,6 @@ static bleResult_t processCsResultsContinueEvent
 
     if (pEvent->subeventDoneStatus == (uint8_t)gCsNoResultsProcAborted_c)
     {
-        maCsProcCount[deviceId]++;
 #if defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
         maAlgoRunCount[deviceId]++;
 #endif

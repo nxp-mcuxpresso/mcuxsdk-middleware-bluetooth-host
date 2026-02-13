@@ -328,9 +328,15 @@ static bleResult_t handleRangingProcResStart
         gCsTimeInfo.transferStart = TM_GetTimestamp();
     }
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1U) */
+    
+    /* If no local data is available do not move forward with processing. */
+    if (AppLocalization_GetNumAntennaPaths(deviceId) == 0U)
+    {
+        result = gBleInvalidState_c;
+    }
 
     /* Reset data in preparation for a new procedure */
-    if (pRemoteData->pData == NULL)
+    if ((result == gBleSuccess_c) && (pRemoteData->pData == NULL))
     {
         pRemoteData->pData = AppLocalizationAlgo_AllocData();
         if (pRemoteData->pData == NULL)
@@ -406,9 +412,9 @@ static bleResult_t handleRangingProcResCont
         uint32_t u32;
     }dataLen = {0U};
 
-    if (pDstAppBuffer == NULL)
+    /* If the number of antenna paths is 0 no local data is available. */
+    if ((pDstAppBuffer == NULL) || (AppLocalization_GetNumAntennaPaths(deviceId) == 0U))
     {
-        /* Should not get here */
         result = gBleInvalidState_c;
     }
 
