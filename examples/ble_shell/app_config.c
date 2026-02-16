@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2022-2025 NXP
+* Copyright 2016-2019, 2022-2026 NXP
 *
 *
 * \file
@@ -180,7 +180,7 @@ gapExtAdvertisingParameters_t gExtAdvParams =
 /*Default Periodic Advertising Parameters */
 gapPeriodicAdvParameters_t gPeriodicAdvParams =
 {
-    /* handle */                    1, \
+    /* handle */                    1U, \
     /* addTxPowerInAdv*/            TRUE, \
     /* minInterval */               1600 /* 1 s */, \
     /* maxInterval */               3200 /* 2 s */,

@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -908,7 +908,16 @@ static bool_t ShellGap_AppendAdvData
         default:
         {
             /* Check if we got space. Take into account length and type octets */
-            uint8_t availableSize = gcGapMaxAdvertisingDataLength_c - (advCursor + 2U * (pAdvData->cNumAdStructures));
+            uint32_t usedSize = (uint32_t)advCursor + 2U * (uint32_t)(pAdvData->cNumAdStructures);
+            uint8_t availableSize = 0U;
+
+            if (usedSize >= (uint32_t)gcGapMaxAdvertisingDataLength_c)
+            {
+                /* No more free space */
+                return FALSE;
+            }
+
+            availableSize = (uint8_t)((uint32_t)gcGapMaxAdvertisingDataLength_c - usedSize);
 
             /* Halve length because string size is twice the hex array */
             length = ((length % 2U) != 0U) ? (uint8_t)((length/2U) + 1U) : (uint8_t)(length/2U);

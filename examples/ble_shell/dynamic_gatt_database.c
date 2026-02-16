@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2021, 2023 NXP
+* Copyright 2016-2019, 2021, 2026 NXP
 *
 *
 * \file
@@ -22,11 +22,34 @@
 #include "gatt_uuid128.h"
 #undef UUID128
 
+/************************************************************************************
+*************************************************************************************
+* Private prototypes
+*************************************************************************************
+************************************************************************************/
 
+static bleResult_t GattDbDynamic_AddPrimaryServiceGatt(void);
+static bleResult_t GattDbDynamic_AddCharServiceChanged(void);
+static bleResult_t GattDbDynamic_AddCccdServiceChanged(void);
+static bleResult_t GattDbDynamic_AddPrimaryServiceGap(void);
+static bleResult_t GattDbDynamic_AddCharDeviceName(void);
+static bleResult_t GattDbDynamic_AddCharAppearance(void);
+static bleResult_t GattDbDynamic_AddPrimaryServiceThroughput(void);
+static bleResult_t GattDbDynamic_AddCharThroughputStream(void);
+static bleResult_t GattDbDynamic_AddPrimaryServiceBattery(void);
+static bleResult_t GattDbDynamic_AddCharBatteryLevel(void);
+static bleResult_t GattDbDynamic_AddCccdBatteryLevel(void);
+static bleResult_t GattDbDynamic_AddPrimaryServiceDeviceInfo(void);
+static bleResult_t GattDbDynamic_AddCharManufName(void);
+static bleResult_t GattDbDynamic_AddCharModelNo(void);
+static bleResult_t GattDbDynamic_AddCharSerialNo(void);
+static bleResult_t GattDbDynamic_AddCharHwRev(void);
+static bleResult_t GattDbDynamic_AddCharFwRev(void);
+static bleResult_t GattDbDynamic_AddCharSwRev(void);
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddPrimaryServiceGatt
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddPrimaryServiceGatt(void)
+static bleResult_t GattDbDynamic_AddPrimaryServiceGatt(void)
 {
     bleUuid_t   uuid;
     uint16_t    handle;
@@ -43,17 +66,19 @@ bleResult_t GattDbDynamic_AddPrimaryServiceGatt(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddCharServiceChanged
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddCharServiceChanged(void)
+static bleResult_t GattDbDynamic_AddCharServiceChanged(void)
 {
     bleUuid_t   uuid;
     uint8_t     aInitialValue[] = {0x00, 0x00, 0x00, 0x00};
     uint16_t    handle;
+    uint8_t     charProperties;
 
     uuid.uuid16 = gBleSig_GattServiceChanged_d;
+    charProperties = (uint8_t)gGattCharPropRead_c | (uint8_t)gGattCharPropNotify_c;
 
     return GattDbDynamic_AddCharacteristicDeclarationAndValue(gBleUuidType16_c,
                                                               &uuid,
-                                                              (gattCharacteristicPropertiesBitFields_t)(gGattCharPropRead_c | gGattCharPropNotify_c),
+                                                              (gattCharacteristicPropertiesBitFields_t)charProperties,
                                                               0,
                                                               4,
                                                               aInitialValue,
@@ -65,7 +90,7 @@ bleResult_t GattDbDynamic_AddCharServiceChanged(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddCccdServiceChanged
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddCccdServiceChanged(void)
+static bleResult_t GattDbDynamic_AddCccdServiceChanged(void)
 {
     uint16_t handle;
 
@@ -76,7 +101,7 @@ bleResult_t GattDbDynamic_AddCccdServiceChanged(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddPrimaryServiceGap
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddPrimaryServiceGap(void)
+static bleResult_t GattDbDynamic_AddPrimaryServiceGap(void)
 {
     bleUuid_t   uuid;
     uint16_t    handle;
@@ -93,7 +118,7 @@ bleResult_t GattDbDynamic_AddPrimaryServiceGap(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddCharDeviceName
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddCharDeviceName(void)
+static bleResult_t GattDbDynamic_AddCharDeviceName(void)
 {
     bleUuid_t   uuid;
     uint8_t     aInitialValue[] = "NXP_SHELL";
@@ -115,7 +140,7 @@ bleResult_t GattDbDynamic_AddCharDeviceName(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddCharAppearance
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddCharAppearance(void)
+static bleResult_t GattDbDynamic_AddCharAppearance(void)
 {
     bleUuid_t   uuid;
     uint8_t     aInitialValue[] = {0x00, 0x00};
@@ -137,7 +162,7 @@ bleResult_t GattDbDynamic_AddCharAppearance(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddPrimaryServiceThroughput
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddPrimaryServiceThroughput(void)
+static bleResult_t GattDbDynamic_AddPrimaryServiceThroughput(void)
 {
     bleUuid_t   uuid;
     uint16_t    handle;
@@ -154,7 +179,7 @@ bleResult_t GattDbDynamic_AddPrimaryServiceThroughput(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddCharThroughputStream
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddCharThroughputStream(void)
+static bleResult_t GattDbDynamic_AddCharThroughputStream(void)
 {
     bleUuid_t   uuid;
     uint8_t     aInitialValue[] = {0x00};
@@ -176,7 +201,7 @@ bleResult_t GattDbDynamic_AddCharThroughputStream(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddPrimaryServiceBattery
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddPrimaryServiceBattery(void)
+static bleResult_t GattDbDynamic_AddPrimaryServiceBattery(void)
 {
     bleUuid_t   uuid;
     uint16_t    handle;
@@ -193,17 +218,19 @@ bleResult_t GattDbDynamic_AddPrimaryServiceBattery(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddCharBatteryLevel
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddCharBatteryLevel(void)
+static bleResult_t GattDbDynamic_AddCharBatteryLevel(void)
 {
     bleUuid_t   uuid;
     uint8_t     aInitialValue[] = {0x5A};
     uint16_t    handle;
+    uint8_t     charProperties;
 
     uuid.uuid16 = gBleSig_BatteryLevel_d;
+    charProperties = (uint8_t)gGattCharPropNotify_c | (uint8_t)gGattCharPropRead_c;
 
     return GattDbDynamic_AddCharacteristicDeclarationAndValue(gBleUuidType16_c,
                                                               &uuid,
-                                                              (gattCharacteristicPropertiesBitFields_t)(gGattCharPropNotify_c | gGattCharPropRead_c),
+                                                              (gattCharacteristicPropertiesBitFields_t)charProperties,
                                                               0,
                                                               1,
                                                               aInitialValue,
@@ -215,7 +242,7 @@ bleResult_t GattDbDynamic_AddCharBatteryLevel(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddDescBatLevel
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddDescBatLevel(void)
+static bleResult_t GattDbDynamic_AddDescBatLevel(void)
 {
     bleUuid_t   uuid;
     uint8_t     aInitialValue[] = {0x04, 0x00, 0xAD, 0x27, 0x01, 0x00, 0x00};
@@ -235,7 +262,7 @@ bleResult_t GattDbDynamic_AddDescBatLevel(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddCccdBatteryLevel
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddCccdBatteryLevel(void)
+static bleResult_t GattDbDynamic_AddCccdBatteryLevel(void)
 {
     uint16_t handle;
 
@@ -246,7 +273,7 @@ bleResult_t GattDbDynamic_AddCccdBatteryLevel(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddPrimaryServiceDeviceInfo
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddPrimaryServiceDeviceInfo(void)
+static bleResult_t GattDbDynamic_AddPrimaryServiceDeviceInfo(void)
 {
     bleUuid_t   uuid;
     uint16_t    handle;
@@ -263,11 +290,12 @@ bleResult_t GattDbDynamic_AddPrimaryServiceDeviceInfo(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddCharManufName
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddCharManufName(void)
+static bleResult_t GattDbDynamic_AddCharManufName(void)
 {
     bleUuid_t   uuid;
     uint8_t     aInitialValue[] = MANUFACTURER_NAME;
     uint16_t    handle;
+    uint16_t    manufactureNameSize = (uint16_t)sizeof(MANUFACTURER_NAME);
 
     uuid.uuid16 = gBleSig_ManufacturerNameString_d;
 
@@ -275,7 +303,7 @@ bleResult_t GattDbDynamic_AddCharManufName(void)
                                                               &uuid,
                                                               (gattCharacteristicPropertiesBitFields_t)(gGattCharPropRead_c),
                                                               0,
-                                                              sizeof(MANUFACTURER_NAME),
+                                                              manufactureNameSize,
                                                               aInitialValue,
                                                               (gattAttributePermissionsBitFields_t)(gPermissionFlagReadable_c),
                                                               &handle);
@@ -285,7 +313,7 @@ bleResult_t GattDbDynamic_AddCharManufName(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddCharModelNo
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddCharModelNo(void)
+static bleResult_t GattDbDynamic_AddCharModelNo(void)
 {
     bleUuid_t   uuid;
     uint8_t     aInitialValue[] = "BLE Shell Demo";
@@ -307,7 +335,7 @@ bleResult_t GattDbDynamic_AddCharModelNo(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddCharSerialNo
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddCharSerialNo(void)
+static bleResult_t GattDbDynamic_AddCharSerialNo(void)
 {
     bleUuid_t   uuid;
     uint8_t     aInitialValue[] = "BLESN01";
@@ -329,11 +357,12 @@ bleResult_t GattDbDynamic_AddCharSerialNo(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddCharHwRev
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddCharHwRev(void)
+static bleResult_t GattDbDynamic_AddCharHwRev(void)
 {
     bleUuid_t   uuid;
     uint8_t     aInitialValue[] = BOARD_NAME;
     uint16_t    handle;
+    uint16_t    boardNameSize = (uint16_t)sizeof(BOARD_NAME);
 
     uuid.uuid16 = gBleSig_HardwareRevisionString_d;
 
@@ -341,7 +370,7 @@ bleResult_t GattDbDynamic_AddCharHwRev(void)
                                                               &uuid,
                                                               (gattCharacteristicPropertiesBitFields_t)(gGattCharPropRead_c),
                                                               0,
-                                                              sizeof(BOARD_NAME),
+                                                              boardNameSize,
                                                               aInitialValue,
                                                               (gattAttributePermissionsBitFields_t)(gPermissionFlagReadable_c),
                                                               &handle);
@@ -351,7 +380,7 @@ bleResult_t GattDbDynamic_AddCharHwRev(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddCharFwRev
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddCharFwRev(void)
+static bleResult_t GattDbDynamic_AddCharFwRev(void)
 {
     bleUuid_t   uuid;
     uint8_t     aInitialValue[] = "1.1.1";
@@ -373,7 +402,7 @@ bleResult_t GattDbDynamic_AddCharFwRev(void)
 /*! *********************************************************************************
 * \brief    GattDbDynamic_AddCharSwRev
 ********************************************************************************** */
-bleResult_t GattDbDynamic_AddCharSwRev(void)
+static bleResult_t GattDbDynamic_AddCharSwRev(void)
 {
     bleUuid_t   uuid;
     uint8_t     aInitialValue[] = "1.1.3";

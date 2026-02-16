@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -438,22 +438,54 @@ int32_t BleApp_atoi
 {
     int32_t res = 0;
     bool_t bIsNegative = FALSE;
+    bool_t bContinue = TRUE;
 
-    if (*pStr == '-')
+    /* Validate input pointer */
+    if (pStr != NULL)
     {
-        bIsNegative = TRUE;
-        pStr++;
-    }
+        /* Check for negative sign */
+        if (*pStr == '-')
+        {
+            bIsNegative = TRUE;
+            pStr++;
+        }
 
-    while ((*pStr != '\0') && (*pStr != ' ') && (*pStr >= '0') && (*pStr <= '9') && ((res < MAX_INT32/10U) || ((res == MAX_INT32 / 10U) && ((*pStr - '0') <= MAX_INT32 % 10U))))
-    {
-        res = res * 10 + *pStr - '0';
-        pStr++;
-    }
+        /* Convert string to integer with overflow protection */
+        while (bContinue && (*pStr != '\0') && (*pStr != ' '))
+        {
+            /* Check if character is a digit */
+            if ((*pStr >= '0') && (*pStr <= '9'))
+            {
+                int32_t digit = *pStr - '0';
+                
+                /* Check for overflow before multiplication */
+                if (res > (MAX_INT32 / 10))
+                {
+                    /* Overflow would occur */
+                    bContinue = FALSE;
+                }
+                else if ((res == (MAX_INT32 / 10)) && (digit > (MAX_INT32 % 10)))
+                {
+                    /* Overflow would occur after addition */
+                    bContinue = FALSE;
+                }
+                else
+                {
+                    res = (res * 10) + digit;
+                    pStr++;
+                }
+            }
+            else
+            {
+                /* Non-digit character encountered, stop parsing */
+                bContinue = FALSE;
+            }
+        }
 
-    if (bIsNegative)
-    {
-        res = -res;
+        if (bIsNegative)
+        {
+            res = -res;
+        }
     }
 
     return res;

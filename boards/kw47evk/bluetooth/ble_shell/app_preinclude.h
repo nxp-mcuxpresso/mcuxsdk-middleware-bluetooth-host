@@ -65,7 +65,7 @@
 
 #if BLE_SHELL_AE_SUPPORT
 
-#define gGapSimultaneousEAChainedReports_c     2
+#define gGapSimultaneousEAChainedReports_c     2U
 
 /* User defined payload pattern and length of extended advertising data */
 #define SHELL_EXT_ADV_DATA_PATTERN      "\n\rEXTENDED_ADVERTISING_DATA_LARGE_PAYLOAD"
