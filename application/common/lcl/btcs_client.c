@@ -370,7 +370,7 @@ static bleResult_t handleRangingProcResStart
         /* Parse data */
         pRemoteData->totalSentRcvDataIndex = (packetLen-parsedDataLen);
         (void)AppLocalizationAlgo_UncompressRemoteResponseL2CAP(
-            pData, packetLen-parsedDataLen, 
+            pData, (uint32_t)(packetLen-parsedDataLen),
             &mPeerResultData[deviceId],
             pRemoteData->aSubEventData[pRemoteData->subeventIndex].subevtHeader.numStepsReported);
          
@@ -404,7 +404,7 @@ static bleResult_t handleRangingProcResCont
     uint8_t* pData = pMsgData;
     uint16_t parsedDataLen = 0U;
     rasMeasurementData_t *pRemoteData = &mPeerResultData[deviceId];
-    csAppData_t *pDstAppBuffer = (csAppData_t*)pRemoteData->pData;
+    csAppData_t *pDstAppBuffer = (csAppData_t*)(void*)pRemoteData->pData;
 
     union
     {
@@ -470,14 +470,14 @@ static bleResult_t handleRangingProcResCont
                 /* Count the received number of steps */
                 remainingData = AppLocalizationAlgo_UncompressRemoteResponseL2CAP(
                     pData, 
-                    packetLen-parsedDataLen, &mPeerResultData[deviceId],
+                    (uint32_t)(packetLen-parsedDataLen), &mPeerResultData[deviceId],
                     remainingSteps);
                 
                 /* Advance data pointer */
-                if (remainingData)
+                if (remainingData != 0U)
                 {
-                    pData = &pData[(packetLen - parsedDataLen) - remainingData];
-                    parsedDataLen += (packetLen - parsedDataLen) - remainingData;
+                    pData = &pData[(packetLen - parsedDataLen) - (uint16_t)remainingData];
+                    parsedDataLen += (packetLen - parsedDataLen) - (uint16_t)remainingData;
                 }
                 
                 /* Count the received number of steps */

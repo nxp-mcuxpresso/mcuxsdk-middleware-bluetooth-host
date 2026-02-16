@@ -67,16 +67,18 @@
 *\retval        None
 ********************************************************************************** */
 #define CheckSkipBytesDoNothing(pos, remainingLen, fetchDataLen, endVar)\
-    if (remainingLen < fetchDataLen)\
+{\
+    if ((remainingLen) < (fetchDataLen))\
     {\
-        endVar = TRUE;\
+        (endVar) = TRUE;\
         break;\
     }\
     else\
     {\
-        remainingLen -= fetchDataLen;\
-        pos += fetchDataLen;\
-    }
+        (remainingLen) -= (fetchDataLen);\
+        (pos) += (fetchDataLen);\
+    }\
+}
 
 /*! *********************************************************************************
 *\def           CheckSkipBytes(pos, remainingLen, fetchDataLen, endVar, x)
@@ -97,17 +99,19 @@
 *\retval        None
 ********************************************************************************** */
 #define CheckSkipBytes(pos, remainingLen, fetchDataLen, endVar, x)\
-    if (remainingLen < fetchDataLen)\
+{\
+    if ((remainingLen) < (fetchDataLen))\
     {\
-        endVar = TRUE;\
+        (endVar) = TRUE;\
         break;\
     }\
     else\
     {\
-        x;\
-        remainingLen -= fetchDataLen;\
-        pos += fetchDataLen;\
-    }
+        {x}\
+        (remainingLen) -= (fetchDataLen);\
+        (pos) += (fetchDataLen);\
+    }\
+}
 
 /************************************************************************************
 *************************************************************************************
@@ -121,7 +125,7 @@
 *************************************************************************************
 ************************************************************************************/
 /* Antenna permutation order */
-const uint8_t maAntPermNAp[24][4] = {
+const uint8_t gaAntPermNAp[24][4] = {
     {0,1,2,3}, /* A1,A2,A3,A4 */
     {1,0,2,3}, /* A2,A1,A3,A4 */
     {0,2,1,3}, /* A1,A3,A2,A4 */
@@ -178,6 +182,17 @@ static void hciCsStoreBytesInIqBuffer
     int nbBytes
 );
 
+#if defined(gRasRREQ_d) && (gRasRREQ_d == 1U)
+static bool_t HandleRemoteModes
+(
+    uint8_t mode,
+    uint16_t filter,
+    uint8_t **ppEventData,
+    uint32_t *pDataLength,
+    csAppData_t *pDstAppBuffer,
+    rasMeasurementData_t *pRemoteData
+);
+#endif /* #if defined(gRasRREQ_d) && (gRasRREQ_d == 1U) */
 #if defined(gRasRREQ_d) && (gRasRREQ_d == 1U) || \
     defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
 static bool_t ParseMode0
@@ -202,7 +217,7 @@ static bool_t ParseMode2
 (
     uint16_t filter, 
     uint8_t **ppEventData, 
-    uint32_t *pDdataLength, 
+    uint32_t *pDataLength, 
     csAppData_t *pDstAppBuffer, 
     rasMeasurementData_t *pRemoteData
 );
@@ -257,32 +272,35 @@ void AppLocalizationAlgo_UncompressResponse
 #ifdef SKIP_MAIN_MODES_REPET
     uint32_t parsedMainModeNb = CS_MAIN_MODE_REPEAT_MAX;
 #endif
-    csAppData_t *dstAppBuffer = (csAppData_t *)pLocalData->pData;
+    csAppData_t *pDstAppBuffer = (csAppData_t*)(void*)pLocalData->pData;
     bool_t bIncomplete = FALSE;
 
-    dstAppBuffer->mciq_data.n_ap = pLocalData->numAntennaPaths;
+    pDstAppBuffer->mciq_data.n_ap = pLocalData->numAntennaPaths;
 
-    dstAppBuffer->csData.subevt_nb = 0U;
+    pDstAppBuffer->csData.subevt_nb = 0U;
 
     for (;pLocalData->crtStep < pLocalData->totalNumSteps; pLocalData->crtStep++)
     {
         bool_t tofPresent = FALSE;
         bool_t mciqPresent = FALSE;
-        uint8_t mode = gCsStepMode0_c;
+        uint8_t mode = (uint8_t)gCsStepMode0_c;
         uint8_t channel = 0U;
         uint8_t stepDataLength = 0U;
 
         CheckSkipBytes(pEventData, dataSize, sizeof(uint8_t), bIncomplete, 
-            mode = *pEventData);
+            mode = *pEventData;
+        );
 
         CheckSkipBytes(pEventData, dataSize, sizeof(uint8_t), bIncomplete, 
-            channel = *pEventData);
+            channel = *pEventData;
+        );
 
         CheckSkipBytes(pEventData, dataSize, sizeof(uint8_t), bIncomplete, 
-            stepDataLength = *pEventData);
+            stepDataLength = *pEventData;
+        );
 
-        dstAppBuffer->csData.channelMap[pLocalData->step] = channel;
-        dstAppBuffer->csData.modeMap[pLocalData->step] = mode;
+        pDstAppBuffer->csData.channelMap[pLocalData->step] = channel;
+        pDstAppBuffer->csData.modeMap[pLocalData->step] = mode;
 
         /* Check if there is reported step data - skip to next step if not */
         if (stepDataLength == 0U)
@@ -291,22 +309,26 @@ void AppLocalizationAlgo_UncompressResponse
             continue;
         }
 
-        if (mode == gCsStepMode0_c)
+        if (mode == (uint8_t)gCsStepMode0_c)
         {
             CheckSkipBytes(pEventData, dataSize, sizeof(uint8_t), bIncomplete,
-                dstAppBuffer->csData.mode0Data[pLocalData->crtStep].quality = *pEventData);
+                pDstAppBuffer->csData.mode0Data[pLocalData->crtStep].quality = *pEventData;
+            );
             CheckSkipBytes(pEventData, dataSize, sizeof(uint8_t), bIncomplete,
-                dstAppBuffer->csData.mode0Data[pLocalData->crtStep].rssi = (int8_t)*pEventData);
+                pDstAppBuffer->csData.mode0Data[pLocalData->crtStep].rssi = (int8_t)*pEventData;
+            );
             CheckSkipBytes(pEventData, dataSize, sizeof(uint8_t), bIncomplete,
-                dstAppBuffer->csData.mode0Data[pLocalData->crtStep].antenna = *pEventData);
+                pDstAppBuffer->csData.mode0Data[pLocalData->crtStep].antenna = *pEventData;
+            );
             if (mGlobalRangeSettings.role == gCsRoleInitiator_c)
             {
                 CheckSkipBytes(pEventData, dataSize, sizeof(uint16_t), bIncomplete,
-                    dstAppBuffer->csData.mode0Data[pLocalData->crtStep].measuredFreqOffset = Utils_ExtractTwoByteValue(pEventData));
+                    pDstAppBuffer->csData.mode0Data[pLocalData->crtStep].measuredFreqOffset = Utils_ExtractTwoByteValue(pEventData);
+                );
             }
             else
             {
-                dstAppBuffer->csData.mode0Data[pLocalData->crtStep].measuredFreqOffset = 0U;
+                pDstAppBuffer->csData.mode0Data[pLocalData->crtStep].measuredFreqOffset = 0U;
             }
             pLocalData->step++;
             continue;
@@ -324,21 +346,21 @@ void AppLocalizationAlgo_UncompressResponse
 
         switch(mode)
         {
-            case gCsStepMode1_c:
+            case (uint8_t)gCsStepMode1_c:
             {
                 /* ToF record */
                 tofPresent = TRUE;
             }
             break;
 
-            case gCsStepMode2_c:
+            case (uint8_t)gCsStepMode2_c:
             {
                 /* Tone record */
                 mciqPresent = TRUE;
             }
             break;
 
-            case gCsStepMode3_c:
+            case (uint8_t)gCsStepMode3_c:
             {
                 /* ToF+Tone record */
                 tofPresent = TRUE;
@@ -363,22 +385,23 @@ void AppLocalizationAlgo_UncompressResponse
             uint32_t quality = 0;
 
             CheckSkipBytes(pEventData, dataSize, sizeof(uint8_t), bIncomplete, 
-                quality = (uint32_t)(*pEventData)); /* Packet_AA_Quality */
+                quality = (uint32_t)(*pEventData); /* Packet_AA_Quality */
+            );
             
             CheckSkipBytes(pEventData, dataSize, CS_NADM_SIZE, bIncomplete, 
-                hciCsStoreBytesInTofBuffer(dstAppBuffer, pEventData, (int)CS_NADM_SIZE); /* Packet_NADM */
+                hciCsStoreBytesInTofBuffer(pDstAppBuffer, pEventData, (int)CS_NADM_SIZE); /* Packet_NADM */
             );
 
             CheckSkipBytes(pEventData, dataSize, CS_RSSI_SIZE, bIncomplete, 
-                hciCsStoreBytesInTofBuffer(dstAppBuffer, pEventData, (int)CS_RSSI_SIZE); /* Packet_RSSI */
+                hciCsStoreBytesInTofBuffer(pDstAppBuffer, pEventData, (int)CS_RSSI_SIZE); /* Packet_RSSI */
             );
 
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
             if ((int8_t)(*pEventData) != gRssiNotAvailable_c)
             {
                 /* Count RSSI if available */
-                dstAppBuffer->aRssiValue[dstAppBuffer->rssiStepNo] = (int8_t)(*pEventData);
-                dstAppBuffer->rssiStepNo++;
+                pDstAppBuffer->aRssiValue[pDstAppBuffer->rssiStepNo] = (int8_t)(*pEventData);
+                pDstAppBuffer->rssiStepNo++;
             }
 #endif /* gAppParseRssiInfo_d */
 
@@ -389,12 +412,12 @@ void AppLocalizationAlgo_UncompressResponse
                 ts_diff = (uint32_t)(temp1); /* HCI reports half ns, application expects ns in Tof Buffer */
                 ts_diff &= 0x00FFFFU;
                 ts_diff |= (quality&0x0FU)<<gTimeStampDiffSize_c;
-                hciCsStoreBytesInTofBuffer(dstAppBuffer, (uint8_t *)&ts_diff, (int)CS_TS_SIZE);
+                hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)CS_TS_SIZE);
             );
 
             CheckSkipBytesDoNothing(pEventData, dataSize, 1U, bIncomplete); /* Packet_Antenna, ignored */
             
-            dstAppBuffer->tof_data.nbSteps ++;
+            pDstAppBuffer->tof_data.nbSteps ++;
         }
 
         if (mciqPresent)
@@ -413,11 +436,11 @@ void AppLocalizationAlgo_UncompressResponse
             AddItem(antPermIndex);
 #endif
 
-            antIndex_p = &maAntPermNAp[antPermIndex][0];
+            antIndex_p = &gaAntPermNAp[antPermIndex][0];
 
             /* Num_Antenna_Path + 1 are reported by the firmware, but discard last one */
             /* Re-order per antenna path index */
-            for (uint8_t idx = 0U; idx < dstAppBuffer->mciq_data.n_ap; idx++)
+            for (uint8_t idx = 0U; idx < pDstAppBuffer->mciq_data.n_ap; idx++)
             {
                 int antIdx = (int)antIndex_p[idx];
 
@@ -439,16 +462,16 @@ void AppLocalizationAlgo_UncompressResponse
 
             if (bIncomplete == FALSE)
             {
-                for (uint8_t idx = 0U; idx < dstAppBuffer->mciq_data.n_ap; idx++)
+                for (uint8_t idx = 0U; idx < pDstAppBuffer->mciq_data.n_ap; idx++)
                 {
-                    hciCsStoreBytesInIqBuffer(dstAppBuffer, (uint8_t *)&iq_dec[idx], 3);
-                    hciCsStoreBytesInIqBuffer(dstAppBuffer, &tqi[idx], 1);
+                    hciCsStoreBytesInIqBuffer(pDstAppBuffer, (uint8_t *)&iq_dec[idx], 3);
+                    hciCsStoreBytesInIqBuffer(pDstAppBuffer, &tqi[idx], 1);
                 }
 
                 /* Skip last IQ data (n_ap+1) */
                 CheckSkipBytesDoNothing(pEventData, dataSize, gTone_PCTSize_c + sizeof(uint8_t), bIncomplete);
 
-                dstAppBuffer->mciq_data.nbSteps ++;
+                pDstAppBuffer->mciq_data.nbSteps ++;
             }
         }
 
@@ -458,39 +481,39 @@ void AppLocalizationAlgo_UncompressResponse
     /* All data was parsed */
     if (pLocalData->crtStep >= pLocalData->totalNumSteps)
     {
-        /* Populate additional fields in dstAppBuffer */
+        /* Populate additional fields in pDstAppBuffer */
 
         /* Total number of steps */
-        dstAppBuffer->csData.step_nb = (uint16_t)pLocalData->step;
+        pDstAppBuffer->csData.step_nb = (uint16_t)pLocalData->step;
 
         /* Start ACL count */
-        dstAppBuffer->csData.startAclCnt =
-                pLocalData->aSubEventData[dstAppBuffer->csData.subevt_nb].subevtHeader.startACLConnEvent;
+        pDstAppBuffer->csData.startAclCnt =
+                pLocalData->aSubEventData[pDstAppBuffer->csData.subevt_nb].subevtHeader.startACLConnEvent;
 
         /* For every subevent */
         for (uint8_t index = 0U; index <= pLocalData->subeventIndex; index++)
         {
             /* The stop index is the total number of previous steps plus the current subevent's steps */
-            dstAppBuffer->csData.subevtStopIdxLocal[index] =
+            pDstAppBuffer->csData.subevtStopIdxLocal[index] =
                 (uint8_t)totalStepCounter + pLocalData->aSubEventData[index].subevtHeader.numStepsReported;
 
             /* Delta regarding ACL counter of first subevent */
-            dstAppBuffer->csData.subevtConnEvent[index] =
-                (uint8_t)(pLocalData->aSubEventData[index].subevtHeader.startACLConnEvent - dstAppBuffer->csData.startAclCnt);
+            pDstAppBuffer->csData.subevtConnEvent[index] =
+                (uint8_t)(pLocalData->aSubEventData[index].subevtHeader.startACLConnEvent - pDstAppBuffer->csData.startAclCnt);
 
             /* Count handled steps */
             totalStepCounter += (int)pLocalData->aSubEventData[index].subevtHeader.numStepsReported;
 
             /* Save the reference power level in subevtRefPowerLevelInit - will be switched to the proper role by the caller */
-            dstAppBuffer->csData.subevtRefPowerLevelInit[index] = pLocalData->aSubEventData[index].subevtHeader.referencePowerLevel;
+            pDstAppBuffer->csData.subevtRefPowerLevelInit[index] = pLocalData->aSubEventData[index].subevtHeader.referencePowerLevel;
         }
 
         /* Total number of subevents */
-        dstAppBuffer->csData.subevt_nb =  pLocalData->subeventIndex + 1U;
+        pDstAppBuffer->csData.subevt_nb =  pLocalData->subeventIndex + 1U;
     }
 }
 
-void* AppLocalizationAlgo_AllocData()
+void* AppLocalizationAlgo_AllocData(void)
 {
     void *pResult = MEM_BufferAlloc(sizeof(csAppData_t));
     
@@ -503,7 +526,7 @@ void* AppLocalizationAlgo_AllocData()
 
 #if defined (gRasRREQ_d) && (gRasRREQ_d == 1)
 /*! *********************************************************************************
-*\fn        void AppLocalizationAlgo_UncompressRemoteResponse(uint8_t* pEventData,
+*\fn        void AppLocalizationAlgo_UncompressRemoteResponse(uint8_t *pEventData,
 *           uint32_t dataLength, rasMeasurementData_t *pRemoteData, bool_t lastSegment);
 *
 *\brief     Uncompress CS data, received from the peer, on-the-fly.
@@ -518,14 +541,14 @@ void* AppLocalizationAlgo_AllocData()
 ********************************************************************************** */
 void AppLocalizationAlgo_UncompressRemoteResponse
 (
-    uint8_t* pEventData,
+    uint8_t *pEventData,
     uint32_t dataLength,
     rasMeasurementData_t *pRemoteData,
     bool_t lastSegment
 )
 {
     uint16_t totalStepCounter = 0U;
-    csAppData_t *pDstAppBuffer = (csAppData_t*)pRemoteData->pData;
+    csAppData_t *pDstAppBuffer = (csAppData_t*)(void*)pRemoteData->pData;
 
     uint8_t mode;
     bool_t bIncomplete = FALSE;
@@ -553,7 +576,7 @@ void AppLocalizationAlgo_UncompressRemoteResponse
             dataLength += pRemoteData->remainingLen;
 
             /* Clear previous event data */
-            MEM_BufferFree(pRemoteData->pRemaining);
+            (void)MEM_BufferFree(pRemoteData->pRemaining);
             pRemoteData->pRemaining = NULL;
             pRemoteData->remainingLen = 0;
         }
@@ -564,7 +587,7 @@ void AppLocalizationAlgo_UncompressRemoteResponse
     }
 
     /* Loop through all of the received bytes */
-    while ((dataLength > 0) && (bIncomplete == FALSE))
+    while ((dataLength > 0U) && (bIncomplete == FALSE))
     {
         uint16_t filter = 0U;
 
@@ -586,8 +609,9 @@ void AppLocalizationAlgo_UncompressRemoteResponse
             do
             {
                 CheckSkipBytes(pEventData, dataLength, sizeof(rasSubeventDataHeader_t), bIncomplete, 
-                        RasClient_ParseReceivedSubeventHeader(pRemoteData->deviceId, pEventData));
-            } while(0);
+                        RasClient_ParseReceivedSubeventHeader(pRemoteData->deviceId, pEventData);
+                );
+            } while(FALSE);
             
             /* In case the subevent has no data, continue the loop.
                We can have another subevent header or no more data.
@@ -603,8 +627,9 @@ void AppLocalizationAlgo_UncompressRemoteResponse
             do
             {
                 CheckSkipBytes(pEventData, dataLength, sizeof(uint8_t), bIncomplete, 
-                    mode = *pEventData);
-            } while(0);
+                    mode = *pEventData;
+                );
+            } while(FALSE);
             
             if (bIncomplete == FALSE)
             {
@@ -620,38 +645,10 @@ void AppLocalizationAlgo_UncompressRemoteResponse
                     /* Get filter for the current mode */
                     filter = RasClient_GetModeFilter(pRemoteData->deviceId, mode);
 
-                    switch(mode)
-                    {
-                        case gCsStepMode0_c:
-                        {
-                            bIncomplete = ParseMode0(filter, &pEventData, &dataLength, pDstAppBuffer, pRemoteData);
-                        }
-                        break;
-
-                        case gCsStepMode1_c:
-                        {
-                            bIncomplete = ParseMode1(filter, &pEventData, &dataLength, pDstAppBuffer, pRemoteData);
-                        }
-                        break;
-
-                        case gCsStepMode2_c:
-                        {
-                            bIncomplete = ParseMode2(filter, &pEventData, &dataLength, pDstAppBuffer, pRemoteData);
-                        }
-                        break;
-
-                        case gCsStepMode3_c:
-                        {
-                            bIncomplete = ParseMode3(filter, &pEventData, &dataLength, pDstAppBuffer, pRemoteData);
-                        }
-                        break;
-
-                        default:
-                        {
-                            /* mode not yet implemented, skip data */
-                        }
-                        break;
-                    }
+                    /* Unpack mode data */
+                    bIncomplete = HandleRemoteModes(mode, filter, &pEventData, 
+                                                    &dataLength, pDstAppBuffer, 
+                                                    pRemoteData);
                 }
             }
         }
@@ -689,7 +686,7 @@ void AppLocalizationAlgo_UncompressRemoteResponse
     if (pTemp != NULL)
     {
         pEventData = NULL;
-        MEM_BufferFree(pTemp);
+        (void)MEM_BufferFree(pTemp);
     }
 
     /* Populate additional fields in pDstAppBuffer */
@@ -744,7 +741,7 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
     uint8_t maxSteps
 )
 {
-    csAppData_t *pDstAppBuffer = (csAppData_t*)pRemoteData->pData;
+    csAppData_t *pDstAppBuffer = (csAppData_t*)(void*)pRemoteData->pData;
     
     uint8_t mode = 0U;
     bool_t bIncomplete = FALSE;
@@ -771,7 +768,7 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
             dataLength += pRemoteData->remainingLen;
 
             /* Clear previous event data */
-            MEM_BufferFree(pRemoteData->pRemaining);
+            (void)MEM_BufferFree(pRemoteData->pRemaining);
             pRemoteData->pRemaining = NULL;
             pRemoteData->remainingLen = 0;
         }
@@ -782,17 +779,18 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
     }
     
     /* Loop through all of the received bytes */
-    while ((dataLength > 0) && (bIncomplete == FALSE) && (parsedSteps < maxSteps))
+    while ((dataLength > 0U) && (bIncomplete == FALSE) && (parsedSteps < maxSteps))
     {
         /* Keep a pointer to the end of the last completed parse */
         pLastOk = pEventData;
         pRemoteData->remainingLen = dataLength;
 
         CheckSkipBytes(pEventData, dataLength, sizeof(uint8_t), bIncomplete, 
-            mode = *pEventData);
+            mode = *pEventData;
+        );
 
         /* Make sure the mode is valid and that local and remote mode match */
-        assert(mode <= gCsStepMode3_c);
+        assert(mode <= (uint8_t)gCsStepMode3_c);
 
         pDstAppBuffer->csData.modeMap[pRemoteData->step] = mode;
 
@@ -800,25 +798,25 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
         {
             case (uint8_t)gCsStepMode0_c:
             {
-                ParseMode0(0, &pEventData, &dataLength, pDstAppBuffer, pRemoteData);
+                bIncomplete = ParseMode0(0, &pEventData, &dataLength, pDstAppBuffer, pRemoteData);
             }
             break;
 
             case (uint8_t)gCsStepMode1_c:
             {
-                ParseMode1(0, &pEventData, &dataLength, pDstAppBuffer, pRemoteData);
+                bIncomplete = ParseMode1(0, &pEventData, &dataLength, pDstAppBuffer, pRemoteData);
             }
             break;
 
             case (uint8_t)gCsStepMode2_c:
             {
-                ParseMode2(0, &pEventData, &dataLength, pDstAppBuffer, pRemoteData);
+                bIncomplete = ParseMode2(0, &pEventData, &dataLength, pDstAppBuffer, pRemoteData);
             }
             break;
 
             case (uint8_t)gCsStepMode3_c:
             {
-                ParseMode3(0, &pEventData, &dataLength, pDstAppBuffer, pRemoteData);
+                bIncomplete = ParseMode3(0, &pEventData, &dataLength, pDstAppBuffer, pRemoteData);
             }
             break;
 
@@ -855,7 +853,7 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
     if (pTemp != NULL)
     {
         pEventData = NULL;
-        MEM_BufferFree(pTemp);
+        (void)MEM_BufferFree(pTemp);
     }
     
     return dataLength;
@@ -912,6 +910,76 @@ static void hciCsStoreBytesInIqBuffer
 
 #if defined (gRasRREQ_d) && (gRasRREQ_d == 1)
 /*! *********************************************************************************
+ *\fn           static bool_t HandleRemoteModes(uint8_t mode,
+ *                                       uint16_t filter, 
+ *                                       uint8_t **ppEventData, 
+ *                                       uint32_t *pDataLength,
+ *                                       csAppData_t *pDstAppBuffer,
+ *                                       rasMeasurementData_t *pRemoteData)  
+ *
+ * \brief       Parse CS Mode 0 data from received event data.
+ *              Mode 0 contains only metadata without ToF or tone information.
+ *
+ * \param[in]     mode              Mode number
+ * \param[in]     filter            Filter bits indicating which fields are present
+ * \param[in,out] ppEventData       Pointer to pointer of event data. Updated to point
+ *                                  after parsed data.
+ * \param[in,out] pDataLength       Pointer to remaining data length. Updated after parsing.
+ * \param[out]    pDstAppBuffer     Pointer to destination application buffer for storing
+ *                                  parsed metadata
+ * \param[in,out] pRemoteData       Pointer to measurement data structure containing
+ *                                  parsing state information
+ *
+ *\retval       bool_t              TRUE if data is incomplete, FALSE if parsing succeeded
+ ********************************************************************************** */
+static bool_t HandleRemoteModes
+(
+    uint8_t mode,
+    uint16_t filter,
+    uint8_t **ppEventData,
+    uint32_t *pDataLength,
+    csAppData_t *pDstAppBuffer,
+    rasMeasurementData_t *pRemoteData
+)
+{
+    bool_t bIncomplete = FALSE;
+    switch(mode)
+    {
+        case (uint8_t)gCsStepMode0_c:
+        {
+            bIncomplete = ParseMode0(filter, ppEventData, pDataLength, pDstAppBuffer, pRemoteData);
+        }
+        break;
+
+        case (uint8_t)gCsStepMode1_c:
+        {
+            bIncomplete = ParseMode1(filter, ppEventData, pDataLength, pDstAppBuffer, pRemoteData);
+        }
+        break;
+
+        case (uint8_t)gCsStepMode2_c:
+        {
+            bIncomplete = ParseMode2(filter, ppEventData, pDataLength, pDstAppBuffer, pRemoteData);
+        }
+        break;
+
+        case (uint8_t)gCsStepMode3_c:
+        {
+            bIncomplete = ParseMode3(filter, ppEventData, pDataLength, pDstAppBuffer, pRemoteData);
+        }
+        break;
+
+        default:
+        {
+            /* mode not yet implemented, skip data */
+        }
+        break;
+    }
+    
+    return bIncomplete;
+}
+
+/*! *********************************************************************************
  *\fn           static bool_t ParseMode0(uint16_t filter, 
  *                                       uint8_t **ppEventData, 
  *                                       uint32_t *pDataLength,
@@ -948,21 +1016,24 @@ static bool_t ParseMode0
         {
             /* Data includes Packet Quality*/
             CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-                pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].quality = **ppEventData);
+                pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].quality = **ppEventData;
+            );
         }
 
         if ((filter & BIT3) != 0U)
         {
             /* Data includes Packet RSSI */
             CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-                pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].rssi = (int8_t)**ppEventData);
+                pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].rssi = (int8_t)**ppEventData;
+            );
         }
 
         if ((filter & BIT4) != 0U)
         {
             /* Data includes Packet Antenna */
             CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-                pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].antenna = **ppEventData);
+                pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].antenna = **ppEventData;
+            );
         }
 
         if ((mGlobalRangeSettings.role == gCsRoleReflector_c)
@@ -970,7 +1041,8 @@ static bool_t ParseMode0
         {
             /* Data includes Measured_Freq_Offset information */
             CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint16_t), bIncomplete,
-                pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].measuredFreqOffset = Utils_ExtractTwoByteValue(*ppEventData));
+                pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].measuredFreqOffset = Utils_ExtractTwoByteValue(*ppEventData);
+            );
         }
         else
         {
@@ -1030,25 +1102,31 @@ static bool_t ParseMode1
         {
             /* Data includes Packet Quality*/
             CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete, 
-                quality = (uint32_t)**ppEventData);
+                quality = (uint32_t)**ppEventData;
+            );
         }
 
         if ((filter & BIT3) != 0U)
         {
             /* Data includes Packet NADM */
             CheckSkipBytes(*ppEventData, *pDataLength, CS_NADM_SIZE, bIncomplete,
-                FLib_MemCpy(aNadm, *ppEventData, CS_NADM_SIZE)); /* Packet_NADM */
+                FLib_MemCpy(aNadm, *ppEventData, CS_NADM_SIZE); /* Packet_NADM */
+            );
         }
 
         if ((filter & BIT4) != 0U)
         {
             /* Data includes Packet RSSI */
-            CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
-                FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE)
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
-                rssiValue = (int8_t)(**ppEventData); /* do we need also dataLength--? */
-#endif /* gAppParseRssiInfo_d */
+            CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
+                FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE);
+                rssiValue = (int8_t)(**ppEventData);
             );
+#else
+            CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
+                FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE);
+            );
+#endif /* gAppParseRssiInfo_d */
         }
 
         if ((filter & BIT5) != 0U)
@@ -1177,7 +1255,7 @@ static bool_t ParseMode2
                 antPermIndex = **ppEventData; /* Antenna_Permutation_Index */
             );
         }
-        pAntIndex = &maAntPermNAp[antPermIndex][0];
+        pAntIndex = &gaAntPermNAp[antPermIndex][0];
 
         /* Num_Antenna_Path + 1 are reported by the firmware, but discard last one */
         /* Re-order per antenna path index */
@@ -1222,7 +1300,8 @@ static bool_t ParseMode2
                 {
                     /* Data includes Tone_Quality_Indication */
                     CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-                        tqi[antIdx] = **ppEventData);
+                        tqi[antIdx] = **ppEventData;
+                    );
                 }
             }
         }
@@ -1299,7 +1378,8 @@ static bool_t ParseMode3
         {
             /* Data includes Packet Quality*/
             CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-                quality = (uint32_t)(**ppEventData));
+                quality = (uint32_t)(**ppEventData);
+            );
         }
 
         if ((filter & BIT3) != 0U)
@@ -1311,12 +1391,16 @@ static bool_t ParseMode3
         if ((filter & BIT4) != 0U)
         {
             /* Data includes Packet RSSI */
-            CheckSkipBytes(*ppEventData, *pDataLength, (int)CS_RSSI_SIZE, bIncomplete,
-                FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE)
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
+            CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
+                FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE);
                 rssiVal = (int8_t)(**ppEventData);
-#endif /* gAppParseRssiInfo_d */
             );
+#else
+            CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
+                FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE);
+            );
+#endif /* gAppParseRssiInfo_d */
         }
 
         if ((filter & BIT5) != 0U)
@@ -1358,7 +1442,7 @@ static bool_t ParseMode3
                 antPermIndex = **ppEventData; /* Antenna_Permutation_Index */
             );
         }
-        pAntIndex = &maAntPermNAp[antPermIndex][0];
+        pAntIndex = &gaAntPermNAp[antPermIndex][0];
 
         /* Num_Antenna_Path + 1 are reported by the firmware, but discard last one */
         /* Re-order per antenna path index */
@@ -1402,7 +1486,7 @@ static bool_t ParseMode3
                 {
                     /* Data includes Tone_Quality_Indication */
                     CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-                        tqi[antIdx] = **ppEventData);
+                        tqi[antIdx] = **ppEventData;);
                 }
             }
         }
@@ -1490,21 +1574,25 @@ static bool_t ParseMode0
     {
         /* Data includes Packet Quality */
         CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-            pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].quality = **ppEventData);
+            pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].quality = **ppEventData;
+        );
 
         /* Data includes Packet RSSI */
         CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-            pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].rssi = (int8_t)**ppEventData);
+            pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].rssi = (int8_t)**ppEventData;
+        );
 
         /* Data includes Packet Antenna */
         CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-            pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].antenna = **ppEventData);
+            pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].antenna = **ppEventData;
+        );
         
         if (mGlobalRangeSettings.role == gCsRoleReflector_c)
         {
             /* Data includes Measured_Freq_Offset information */
             CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint16_t), bIncomplete,
-                pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].measuredFreqOffset = Utils_ExtractTwoByteValue(*ppEventData));
+                pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].measuredFreqOffset = Utils_ExtractTwoByteValue(*ppEventData);
+            );
         }
         else
         {
@@ -1559,15 +1647,17 @@ static bool_t ParseMode1
     {        
         /* Data includes Packet Quality*/
         CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete, 
-            quality = (uint32_t)**ppEventData);
+            quality = (uint32_t)**ppEventData;
+        );
 
         /* Data includes Packet NADM */
         CheckSkipBytes(*ppEventData, *pDataLength, CS_NADM_SIZE, bIncomplete,
-            FLib_MemCpy(aNadm, *ppEventData, CS_NADM_SIZE)); /* Packet_NADM */
+            FLib_MemCpy(aNadm, *ppEventData, CS_NADM_SIZE);
+        ); /* Packet_NADM */
 
         /* Data includes Packet RSSI */
         CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
-            FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE)
+            FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE);
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
             rssiValue = (int8_t)(**ppEventData);
 #endif /* gAppParseRssiInfo_d */
@@ -1660,12 +1750,13 @@ static bool_t ParseMode2
     do
     {
         /* Data includes Antenna Permutation Index */
-        GetItem(&antPermIndex);
-        pAntIndex = &maAntPermNAp[antPermIndex][0];
+        (void)GetItem(&antPermIndex);
+        pAntIndex = &gaAntPermNAp[antPermIndex][0];
         
         /* Data includes Packet Quality*/
         CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete, 
-            quality = (uint32_t)**ppEventData);
+            quality = **ppEventData;
+        );
 
         /* Data includes Tone_PCT information */
         for (uint8_t idx = 0U; idx < pRemoteData->numAntennaPaths; idx++)
@@ -1762,18 +1853,24 @@ static bool_t ParseMode3
         /* ToF+Tone record */
         /* Data includes Packet Quality*/
         CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-            quality = (uint32_t)(**ppEventData));
+            quality = (uint32_t)(**ppEventData);
+        );
 
         /* Data includes Packet NADM */
         CheckSkipBytesDoNothing(*ppEventData, *pDataLength, 1U, bIncomplete);
 
         /* Data includes Packet RSSI */
-        CheckSkipBytes(*ppEventData, *pDataLength, (int)CS_RSSI_SIZE, bIncomplete,
-            FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE)
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
+        CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
+            FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE);
             rssiVal = (int8_t)(**ppEventData);
-#endif /* gAppParseRssiInfo_d */
         );
+#else
+        CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
+            FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE);
+        );    
+#endif /* gAppParseRssiInfo_d */
+        
 
         /* Data includes ToA_ToD_Initiator/ToD_ToA_Reflector information */
         CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint16_t), bIncomplete,
@@ -1784,12 +1881,13 @@ static bool_t ParseMode3
         CheckSkipBytesDoNothing(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete);
 
         /* Data includes Antenna Permutation Index */
-        GetItem(&antPermIndex);
-        pAntIndex = &maAntPermNAp[antPermIndex][0];
+        (void)GetItem(&antPermIndex);
+        pAntIndex = &gaAntPermNAp[antPermIndex][0];
 
         /* Extract quality - 2 bits per antenna path, up to 4 antenna paths, ordered*/
         CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-            pctQuality = (uint32_t)(**ppEventData));
+            pctQuality = (uint32_t)(**(uint8_t**)ppEventData);
+        );
 
         /* Re-order per antenna path index */
         for (uint8_t idx = 0U; idx < pRemoteData->numAntennaPaths; idx++)
@@ -1888,7 +1986,7 @@ static bool_t GetItem(uint8_t *pItem)
     bool_t result = TRUE;
 
     /* Check if buffer is empty */
-    if (mCount == 0)
+    if (mCount == 0U)
     {
         result = FALSE;  /* Buffer empty, nothing to get */
     }

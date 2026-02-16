@@ -295,7 +295,7 @@ appLocalization_rangeCfg_t mDefaultRangeSettings =
     .main_mode_max = 8,
     .main_mode_repeat = 1,
     .mode0_nb = 3,
-    .rtt_type = gRTT32bitRandomSequence_c,
+    .rtt_type = (uint8_t)gRTT32bitRandomSequence_c,
     .cs_sync_phy = (uint8_t)gLePhy1M_c,
     .ant_cfg_index = 0,
     .ch_map_repeat = 1,
@@ -333,7 +333,6 @@ appLocalization_TimeInfo_t gCsTimeInfo = {0};
  *  Public prototypes
  *************************************************************************************
  ************************************************************************************/
-extern bleResult_t Ble_HciSend(hciPacketType_t packetType, void* pPacket, uint16_t packetSize);
 
 /************************************************************************************
 *************************************************************************************
@@ -451,7 +450,7 @@ bleResult_t AppLocalization_Init
 bleResult_t AppLocalization_HostInitHandler(void)
 {
     bleResult_t status = gBleSuccess_c;
-    const uint8_t *ant2gpio_p;
+    const uint8_t *ant2gpio_p = NULL;
     uint32_t paramsPresence = (gCSParamAntennaConfigPresent_c | gCSParamPctPhaseRotationPresent_c);
     uint8_t  paramDataLength = CS_CONFIG_VENDOR_PARAM_LENGTH;
     uint8_t aAppData[CS_CONFIG_VENDOR_PARAM_LENGTH] = {0U};
@@ -497,7 +496,6 @@ bleResult_t AppLocalization_HostInitHandler(void)
 
     if (mGlobalRangeSettings.ant_type >= CS_NO_ANT_TYPES)
     {
-        ant2gpio_p = NULL;
         assert(0);
     }
     else
@@ -1201,9 +1199,9 @@ void* AppLocalization_AllocLocalData
 {
     if (mResultData[deviceId].pData == NULL)
     {
-#if gRasRREQ_d || gAppBtcsClient_d
+#if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U)) || (defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1U))
         mResultData[deviceId].pData = MEM_BufferAlloc(sizeof(csAppData_t));
-#elif gRasRRSP_d || gAppBtcsServer_d
+#elif (defined (gRasRRSP_d) && (gRasRRSP_d == 1U)) || (defined (gAppBtcsServer_d) && (gAppBtcsServer_d == 1U))
         mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
 #else
 #warning "Not supported"
@@ -1230,9 +1228,9 @@ void AppLocalization_ClearLocalData
     FLib_MemSet(&mResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
     if (mResultData[deviceId].pData != NULL)
     {
-#if gRasRREQ_d || gAppBtcsClient_d
+#if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U)) || (defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1U))
         FLib_MemSet(mResultData[deviceId].pData, 0U, sizeof(csAppData_t));
-#elif gRasRRSP_d || gAppBtcsServer_d
+#elif (defined (gRasRRSP_d) && (gRasRRSP_d == 1U)) || (defined (gAppBtcsServer_d) && (gAppBtcsServer_d == 1U))
         FLib_MemSet(mResultData[deviceId].pData, 0U, gRasCsSubeventDataSize_c);
 #else
 #warning "Not supported"
@@ -1661,7 +1659,7 @@ static bleResult_t csMetaEventCallback
         pMsgIn = MSG_Alloc(msgLen);
         if (pMsgIn != NULL)
         {
-            pMsgIn->msgType = gAppCsMetaEventMsg_c;
+            pMsgIn->msgType = (uint32_t)gAppCsMetaEventMsg_c;
             pMsgIn->msgData.pCsEventData = pCsMetaEvent;
 
             /* Put message in the Host Stack to App queue */
@@ -1706,6 +1704,7 @@ static void AppLocalization_CSMetaEventCallback
             csReadRemoteSupportedCapabilitiesCompleteEvent_t* pRemoteCapabilities =
                 (csReadRemoteSupportedCapabilitiesCompleteEvent_t*)pPacket->pEventData;
             deviceId = pRemoteCapabilities->deviceId;
+
             mRangeSettings[deviceId].t_sw_remote = pRemoteCapabilities->TSWtimeSupported;
 
             if (((mGlobalRangeSettings.role == gCsRoleInitiator_c) &&
@@ -2263,30 +2262,26 @@ static void AppLocalization_CSMetaEventCallback
                 /* Update number of procedures and reset internal counters */
                 mRangeSettings[deviceId].maxNumProcedures = pProcEnableComplete->procedureCount;
 
-                if (result == gBleSuccess_c)
-                {
+
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-                    gCsTimeInfo.subeventInterval = pProcEnableComplete->subeventInterval;
-                    gCsTimeInfo.subeventLen = Utils_ExtractThreeByteValue(pProcEnableComplete->subeventLen);
+                gCsTimeInfo.subeventInterval = pProcEnableComplete->subeventInterval;
+                gCsTimeInfo.subeventLen = Utils_ExtractThreeByteValue(pProcEnableComplete->subeventLen);
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
 
 #if defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
-                    BtcsServer_SetServerCfg(deviceId, &mResultData[deviceId]);
+                BtcsServer_SetServerCfg(deviceId, &mResultData[deviceId]);
 #endif /* defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U) */
 
-                    /* Wait for measurement data. */
-                    maAppLclState[deviceId] = gAppLclWaitingForMeasData_c;
+                /* Wait for measurement data. */
+                maAppLclState[deviceId] = gAppLclWaitingForMeasData_c;
 
-                    mResultData[deviceId].selectedTxPower = ((int8_t)pProcEnableComplete->selectedTxPower);
+                mResultData[deviceId].selectedTxPower = ((int8_t)pProcEnableComplete->selectedTxPower);
 
-
-
-                    if (mGlobalRangeSettings.role == gCsRoleReflector_c)
+                if (mGlobalRangeSettings.role == gCsRoleReflector_c)
+                {
+                    if (mpfAppCsCallback != NULL)
                     {
-                        if (mpfAppCsCallback != NULL)
-                        {
-                            mpfAppCsCallback(deviceId, NULL, gDistanceMeastStarted_c);
-                        }
+                        mpfAppCsCallback(deviceId, NULL, gDistanceMeastStarted_c);
                     }
                 }
             }
@@ -2428,7 +2423,7 @@ static bleResult_t csEventCmdCompleteCallback
         pMsgIn = MSG_Alloc(msgLen);
         if (pMsgIn != NULL)
         {
-            pMsgIn->msgType = gAppCsCmdCompleteEventMsg_c;
+            pMsgIn->msgType = (uint32_t)gAppCsCmdCompleteEventMsg_c;
             pMsgIn->msgData.pCsEventData = pCsCmdCompleteEvent;
 
             /* Put message in the Host Stack to App queue */
@@ -2625,7 +2620,7 @@ static bleResult_t csEventCmdStatusCallback
         pMsgIn = MSG_Alloc(msgLen);
         if (pMsgIn != NULL)
         {
-            pMsgIn->msgType = gAppCsCmdStatusEventMsg_c;
+            pMsgIn->msgType = (uint32_t)gAppCsCmdStatusEventMsg_c;
             pMsgIn->msgData.pCsEventData = pCsCmdStatusEvent;
 
             /* Put message in the Host Stack to App queue */
@@ -2988,10 +2983,10 @@ static bleResult_t processEventResultData
         /* Increment subevent data size */
         mResultData[deviceId].aSubEventData[subeventIndex].dataSize += (uint16_t)dataSize;
 
-#if gRasRREQ_d || gAppBtcsClient_d
+#if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U)) || (defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1U))
         /* Uncompress local data on-the-fly */
         AppLocalizationAlgo_UncompressResponse(pEventData, dataSize, &mResultData[deviceId]);
-#elif gRasRRSP_d || gAppBtcsServer_d
+#elif (defined (gRasRRSP_d) && (gRasRRSP_d == 1U)) || (defined (gAppBtcsServer_d) && (gAppBtcsServer_d == 1U))
         /* Accumulate data for Responder */
         FLib_MemCpy(&mResultData[deviceId].pData[mResultData[deviceId].dataIndex], pEventData, dataSize);
 #else
@@ -4316,7 +4311,7 @@ void AppLocalization_RunPtsTest(deviceId_t deviceId, uint8_t index, uint8_t acti
 
         default:
         {
-            break;
+            /* MISRA C-2012 Rule 16.4: Ensure default case is present */
         }
     }
 

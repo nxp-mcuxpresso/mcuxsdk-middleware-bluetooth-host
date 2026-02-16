@@ -188,8 +188,8 @@ typedef PACKED_STRUCT rasMeasurementData_tag
     uint8_t             crtNumSteps;
     measSubEvtData_t    aSubEventData[gRasMaxNumSubevents_c];
 
-    int                 crtStep;
-    int                 step;
+    uint8_t             crtStep;
+    uint8_t             step;
     uint32_t            position;
     uint8_t             *pRemaining;
     uint32_t            remainingLen;
@@ -901,20 +901,6 @@ uint8_t AppLocalization_GetProcDoneStatus
     uint8_t    subeventIdx
 );
 
-/*! *********************************************************************************
-*\fn            void AppLocalization_ClearLocalData(deviceId_t deviceId);
-*
-*\brief         Clear the local CS data for the specified peer.
-*
-*\param[in]     deviceId         Peer identifier
-*
-*\retval        none
-********************************************************************************** */
-void AppLocalization_ClearLocalData
-(
-    deviceId_t deviceId
-);
-
 #endif /* gRasRREQ_d */
 #else
 #if defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
@@ -945,6 +931,20 @@ void AppLocalization_SetPsmChannelId
 *\retval        pointer to the allocated area
 ********************************************************************************** */
 void* AppLocalization_AllocLocalData
+(
+    deviceId_t deviceId
+);
+
+/*! *********************************************************************************
+*\fn            void AppLocalization_ClearLocalData(deviceId_t deviceId);
+*
+*\brief         Clear the local CS data for the specified peer.
+*
+*\param[in]     deviceId         Peer identifier
+*
+*\retval        none
+********************************************************************************** */
+void AppLocalization_ClearLocalData
 (
     deviceId_t deviceId
 );
@@ -1043,6 +1043,7 @@ void AppLocalization_SetDefaultConfig
     uint8_t    configId
 );
 
+#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
 /*! *********************************************************************************
 *\fn            void AppLocalization_SetTakEnable(deviceId_t deviceId)
 *
@@ -1053,6 +1054,7 @@ void AppLocalization_SetDefaultConfig
 *\retval        none
 ********************************************************************************** */
 void AppLocalization_SetTakEnable(deviceId_t deviceId);
+#endif /* #if (defined(gAppUseTAK_c) && gAppUseTAK_c) */
 
 #if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
 /*! *********************************************************************************

@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************************************************* */
 /*! ********************************************************************************************************************
-* Copyright 2022-2025 NXP
+* Copyright 2022-2026 NXP
 *
 *
 * \file app_handover.c
@@ -540,10 +540,10 @@ void AppHandover_ProcessA2ACommand
             pCmdData = &pCmdData[2];
             appAnchMntEvt.anchorMntEvt.connEvent = Utils_ExtractTwoByteValue(pCmdData);
             pCmdData = &pCmdData[2];
-            appAnchMntEvt.anchorMntEvt.rssiRemote = *pCmdData++;
+            appAnchMntEvt.anchorMntEvt.rssiRemote = (int8_t)*pCmdData++;
             appAnchMntEvt.anchorMntEvt.lqiRemote = *pCmdData++;
             appAnchMntEvt.anchorMntEvt.statusRemote = *pCmdData++;
-            appAnchMntEvt.anchorMntEvt.rssiActive = *pCmdData++;
+            appAnchMntEvt.anchorMntEvt.rssiActive = (int8_t)*pCmdData++;
             appAnchMntEvt.anchorMntEvt.lqiActive = *pCmdData++;
             appAnchMntEvt.anchorMntEvt.statusActive = *pCmdData++;
             appAnchMntEvt.anchorMntEvt.anchorClock625Us = Utils_BeExtractFourByteValue(pCmdData);
@@ -582,7 +582,7 @@ void AppHandover_ProcessA2ACommand
             pCmdData = &pCmdData[1];
             appPktMntEvt.pktMntEvt.chIdx = *pCmdData;
             pCmdData = &pCmdData[1];
-            appPktMntEvt.pktMntEvt.rssiPacket = *pCmdData;
+            appPktMntEvt.pktMntEvt.rssiPacket = (int8_t)*pCmdData;
             pCmdData = &pCmdData[1];
             appPktMntEvt.pktMntEvt.lqiPacket = *pCmdData;
             pCmdData = &pCmdData[1];
@@ -1894,13 +1894,17 @@ static void addMonitorFilter(uint16_t connHandle)
     {
         if (maAppMonitorFilter[i].connHandle == connHandle)
         {
+            /* Already exists, reset to invalid to prevent adding duplicate */
             firstFreeIdx = gAppMaxConnections_c;
             break;
         }
-        else if ((maAppMonitorFilter[i].connHandle == gInvalidConnectionHandle_c) &&
-                 (firstFreeIdx == (uint8_t)gAppMaxConnections_c))
+        else if (maAppMonitorFilter[i].connHandle == gInvalidConnectionHandle_c)
         {
-            firstFreeIdx = i;
+            /* Store first free index only if not already found */
+            if (firstFreeIdx == gAppMaxConnections_c)
+            {
+                firstFreeIdx = i;
+            }
         }
         else
         {
@@ -1982,13 +1986,13 @@ static int8_t getMonitorFilterAverageRemoteRssi(uint16_t connHandle)
     {
         if (maAppMonitorFilter[i].connHandle == connHandle)
         {
-            averageRssi = (int8_t)(maAppMonitorFilter[i].rssiRemoteSum / gHandoverMonitorPacketNumberFilter_c);
+            averageRssi = (int8_t)(maAppMonitorFilter[i].rssiRemoteSum / (int32_t)gHandoverMonitorPacketNumberFilter_c);
             maAppMonitorFilter[i].rssiRemoteSum = 0;
             break;
         }
     }
 
-    return averageRssi;
+    return (int8_t)averageRssi;
 }
 
 /*! ********************************************************************************************************************

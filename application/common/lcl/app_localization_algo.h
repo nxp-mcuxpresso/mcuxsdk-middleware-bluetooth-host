@@ -63,11 +63,7 @@
 * Public memory declarations
 *************************************************************************************
 ************************************************************************************/
-/* Buffer to hold local and peer measurement data */
-extern csAppData_t gLocalAppDataBuffer;
-extern csAppData_t gRemoteAppDataBuffer;
-extern csAppData_t *localAppDataBuffer;
-extern csAppData_t *remoteAppDataBuffer;
+
 /************************************************************************************
  *************************************************************************************
  *  Public prototypes

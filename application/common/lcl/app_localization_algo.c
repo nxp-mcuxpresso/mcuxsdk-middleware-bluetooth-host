@@ -183,8 +183,8 @@ void AppLocalizationAlgo_RunMeasurement
 
     if (pResult != NULL)
     {
-        csAppData_t *pLocalCsAppData = (csAppData_t*)pLocalData->pData;
-        csAppData_t *pRemoteCsAppData = (csAppData_t*)pPeerData->pData;
+        csAppData_t *pLocalCsAppData = (csAppData_t*)(void*)pLocalData->pData;
+        csAppData_t *pRemoteCsAppData = (csAppData_t*)(void*)pPeerData->pData;
         
         FLib_MemSet(&response, 0, sizeof(isp_meas_response_t));
         response.cs_data = &pLocalCsAppData->csData;
@@ -515,7 +515,7 @@ static void isp_mciq_ranging_compute
         for(m = 0; m < engine_config->n_ap; m++)
         {
 
-            success[m] = 0;
+            success[m] = false;
 
             /* Run the algorithm */
             success[m] = dm_cde_distance_estimation(iq1 + (2U*m*gCsChannelsNb_c),
@@ -883,13 +883,19 @@ static uint8_t AppLocalizationAlgo_CountLeadingZeroes
     uint16_t decimalPart
 )
 {
+    union 
+    {
+        uint16_t u16;
+        uint8_t u8;
+    } tmp;
     uint16_t leadingZeroes = 0U;
 
-    while ((decimalPart != 0U) && (decimalPart * 10U < mPrecisionScaler))
+    while (((uint32_t)decimalPart != 0U) && ((uint32_t)decimalPart * 10U < mPrecisionScaler))
     {
         leadingZeroes++;
         decimalPart *= 10U;
     }
+    tmp.u16 = leadingZeroes;
 
-    return leadingZeroes;
+    return tmp.u8;
 }

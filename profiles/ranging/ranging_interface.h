@@ -158,7 +158,7 @@ typedef PACKED_STRUCT rasMeasurementData_tag
     uint8_t             crtNumSteps;
     measSubEvtData_t    aSubEventData[gRasMaxNumSubevents_c];
 
-    int                 crtStep;
+    uint8_t             crtStep;
     int                 step;
     uint32_t            position;
     uint8_t             *pRemaining;

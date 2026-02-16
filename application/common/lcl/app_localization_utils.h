@@ -187,7 +187,7 @@ typedef struct csAppData_tag {
 * Public memory declarations
 *************************************************************************************
 ************************************************************************************/
-extern const uint8_t maAntPermNAp[24][4];
+extern const uint8_t gaAntPermNAp[24][4];
 /************************************************************************************
  *************************************************************************************
  *  Public prototypes
@@ -198,9 +198,9 @@ extern const uint8_t maAntPermNAp[24][4];
 extern "C" {
 #endif /* __cplusplus */
 
-void* AppLocalizationAlgo_AllocData();
+void* AppLocalizationAlgo_AllocData(void);
 
-#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
+#if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U))
 /*! *********************************************************************************
 *\fn         void AppLocalizationAlgo_UncompressRemoteResponse(uint8_t* pEventData,
 *            uint32_t dataLength, rasMeasurementData_t *pRemoteData, bool_t lastSegment);
@@ -217,13 +217,12 @@ void* AppLocalizationAlgo_AllocData();
 ********************************************************************************** */
 void AppLocalizationAlgo_UncompressRemoteResponse
 (
-    uint8_t *pData,
+    uint8_t *pEventData,
     uint32_t dataLength,
     rasMeasurementData_t *pRemoteData,
     bool_t lastSegment
 );
-
-#else
+#elif (defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1U))
 /*! *********************************************************************************
 *\fn        uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP(uint8_t *pEventData,
             uint32_t dataLength, rasMeasurementData_t *pRemoteData, uint8_t maxSteps);
@@ -243,7 +242,7 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
     rasMeasurementData_t *pRemoteData,
     uint8_t maxSteps
 );
-#endif /* defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1) */
+#endif
 
 /*! *********************************************************************************
 *\fn         void AppLocalizationAlgo_UncompressResponse(uint8_t *pEventData,

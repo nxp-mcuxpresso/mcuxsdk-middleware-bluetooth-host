@@ -599,6 +599,7 @@ bleResult_t RasClient_SendRasCommand
 {
     rasControlPointReq_t rasCtrlPointCmd = {0};
     bool_t rasCommandSupported = TRUE;
+    bleResult_t result = gBleSuccess_c;
 
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
     if (rasCmdOpcode == getRangingDataOpCode_c)
@@ -679,15 +680,17 @@ bleResult_t RasClient_SendRasCommand
         maRasCharacteristic.value.uuidType = gBleUuidType16_c;
         maRasCharacteristic.value.uuid.uuid16 = gBleSig_RasControlPoint_d;
 
-        return GattClient_CharacteristicWriteWithoutResponse(peerDeviceId, &maRasCharacteristic,
+        result = GattClient_CharacteristicWriteWithoutResponse(peerDeviceId, &maRasCharacteristic,
                                                              (uint16_t)maRasCPCommandSizes[rasCmdOpcode],
                                                              (uint8_t*)&rasCtrlPointCmd);
     }
     else
     {
         /* Peer RAS server does not support the selected command */
-        return gBleFeatureNotSupported_c;
+        result = gBleFeatureNotSupported_c;
     }
+    
+    return result;
 }
 
 /*! *********************************************************************************
@@ -801,8 +804,8 @@ void RasClient_ParseReceivedSubeventHeader
     pAuxData = &pAuxData[2];
     pSubevtHeader->frequencyCompensation = Utils_ExtractTwoByteValue(pAuxData);
     pAuxData = &pAuxData[2];
-    pSubevtHeader->procedureDoneStatus = (*pAuxData) & 0x0F;
-    pSubevtHeader->subeventDoneStatus = ((*pAuxData++) & 0xF0) >> 4U;
+    pSubevtHeader->procedureDoneStatus = (*pAuxData) & 0x0FU;
+    pSubevtHeader->subeventDoneStatus = ((*pAuxData++) & 0xF0U) >> 4U;
     pSubevtHeader->abortReason = *pAuxData++;
     pSubevtHeader->referencePowerLevel = (int8_t)(*pAuxData++);
     pSubevtHeader->numStepsReported = *pAuxData++;
@@ -863,43 +866,37 @@ bleResult_t RasClient_RasSetFilter
     /* Check the Mode bits and save the filter value */
     if (sendCommand == FALSE)
     {
+        uint8_t modeBits = (uint8_t)(filterValue & (BIT0 | BIT1));
+        uint8_t modeIndex = 0U;
+
         filterIdx[deviceId] = 0;
-        if (((filterValue & BIT0) == 0U)
-            && ((filterValue & BIT1) == 0U))
+        
+        /* Determine mode index based on bit pattern */
+        if (modeBits == 0U)
         {
-            maRasClientFilter[deviceId * 4U + gMode0Idx_c].filterVal =
-                filterVal.val32;
-            maRasClientFilter[deviceId * 4U + gMode0Idx_c].filterSet = FALSE;
+            /* Mode 0: BIT0=0, BIT1=0 */
+            modeIndex = gMode0Idx_c;
         }
-        else if (((filterValue & BIT0) != 0U)
-            && ((filterValue & BIT1) == 0U))
+        else if (modeBits == BIT0)
         {
-            maRasClientFilter[deviceId * 4U + gMode1Idx_c].filterVal =
-                filterVal.val32;
-            maRasClientFilter[deviceId * 4U + gMode1Idx_c].filterSet = FALSE;
+            /* Mode 1: BIT0=1, BIT1=0 */
+            modeIndex = gMode1Idx_c;
         }
-        else if (((filterValue & BIT0) == 0U)
-                 && ((filterValue & BIT1) != 0U))
+        else if (modeBits == BIT1)
         {
-            maRasClientFilter[deviceId * 4U + gMode2Idx_c].filterVal =
-                filterVal.val32;
-            maRasClientFilter[deviceId * 4U + gMode2Idx_c].filterSet = FALSE;
-        }
-        else if (((filterValue & BIT0) != 0U)
-                 && ((filterValue & BIT1) != 0U))
-        {
-            maRasClientFilter[deviceId * 4U + gMode3Idx_c].filterVal =
-                filterVal.val32;
-            maRasClientFilter[deviceId * 4U + gMode3Idx_c].filterSet = FALSE;
+            /* Mode 2: BIT0=0, BIT1=1 */
+            modeIndex = gMode2Idx_c;
         }
         else
         {
-            /* Invalid mode */
-            result = gBleInvalidParameter_c;
+            /* Mode 3: BIT0=1, BIT1=1 */
+            modeIndex = gMode3Idx_c;
         }
-    }
 
-    if ((result == gBleSuccess_c) && (sendCommand == TRUE))
+        maRasClientFilter[deviceId * 4U + modeIndex].filterVal = filterVal.val32;
+        maRasClientFilter[deviceId * 4U + modeIndex].filterSet = FALSE;
+    }
+    else
     {
         /* Check if filters for multiple modes are set */
         for (uint8_t idx = filterIdx[deviceId]; idx <= (gMode3Idx_c+1U); idx++)
@@ -1150,10 +1147,10 @@ void RasClient_ParseDataHeader
 
     mPeerResultData[deviceId].selectedTxPower = (int8_t)(**ppRangingData);
     *ppRangingData = *ppRangingData + 1;
-    *pRangingLength = *pRangingLength - 1;
+    *pRangingLength = *pRangingLength - 1U;
     /* Skip RFU (Reserved for future use) byte */
     *ppRangingData = *ppRangingData + 1;
-    *pRangingLength = *pRangingLength - 1;
+    *pRangingLength = *pRangingLength - 1U;
     mPeerResultData[deviceId].numAntennaPaths = AppLocalization_GetNumAntennaPaths(deviceId);
 
     /* Parse first subevent header */
@@ -1272,7 +1269,7 @@ static void parseBufferedNotifs
 
             /* Skip segmentation header */
             segmentHeader = *pRangingData++;
-            rangingLength = dataLen - sizeof(uint8_t);
+            rangingLength = dataLen - (uint16_t)sizeof(uint8_t);
 
             /* Uncompress remaining data from buffered notifications */
             mPeerResultData[deviceId].totalSentRcvDataIndex += rangingLength;
@@ -1718,7 +1715,7 @@ static bleResult_t RasClient_ProcessGetRecordSegmentsResponse
 
     /* Extract Segment Header */
     segmentHeader = *pRangingData++;
-    rangingLength = valueLength - sizeof(uint8_t);
+    rangingLength = valueLength - (uint16_t)sizeof(uint8_t);
 
     /* First measurement - fill procedure data header */
     if (FALSE == checkIfSegmWasReceived(deviceId, segmentHeader))

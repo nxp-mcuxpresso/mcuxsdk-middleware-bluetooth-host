@@ -557,11 +557,11 @@ void APP_UserInterfaceEventHandler(void *pData)
                 (void)AppLocalization_ReadConfig(pPhyEvent->deviceId, &locConfig);
 
                 /* Set the PHY according to the connection PHY */
-                if (pPhyEvent->rxPhy == gLePhyCoded_c)
+                if (pPhyEvent->rxPhy == (uint8_t)gLePhyCoded_c)
                 {
                     /* This event does not differentiate between coding schemes,
                        but Channel Sounding does - application uses S2 */
-                    locConfig.phy = gPowerControlLePhyCodedS2_c;
+                    locConfig.phy = (uint8_t)gPowerControlLePhyCodedS2_c;
                 }
                 else
                 {
@@ -705,10 +705,10 @@ void APP_UserInterfaceEventHandler(void *pData)
                 shell_write("-");
 
                 uint8_t aux = ~((uint8_t)pEventData->eventData.anchorPacketEvent.pktMntEvt.rssiPacket - 1U);
-                pEventData->eventData.anchorPacketEvent.pktMntEvt.rssiPacket = aux;
+                pEventData->eventData.anchorPacketEvent.pktMntEvt.rssiPacket = (int8_t)aux;
             }
 
-            shell_writeDec(pEventData->eventData.anchorPacketEvent.pktMntEvt.rssiPacket);
+            shell_writeDec((uint32_t)pEventData->eventData.anchorPacketEvent.pktMntEvt.rssiPacket);
             shell_write("\r\n");
             /* Free pdu memory */
             (void)MEM_BufferFree(pEventData->eventData.anchorPacketEvent.pktMntEvt.pPdu);
@@ -2161,9 +2161,9 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
             if (pEvent->eventType == commandError_c)
             {
                 shell_write("CS Command Complete error! errorSource: ");
-                shell_writeDec(pEvent->eventData.csCommandError.errorSource); /* value in commandErrorSource_t enum */
+                shell_writeDec((uint32_t)pEvent->eventData.csCommandError.errorSource); /* value in commandErrorSource_t enum */
                 shell_write(", status ");
-                shell_writeDec(pEvent->eventData.csCommandError.status); /* value in bleResult_t enum */
+                shell_writeDec((uint32_t)pEvent->eventData.csCommandError.status); /* value in bleResult_t enum */
                 SHELL_NEWLINE();
             }
         }

@@ -29,6 +29,7 @@
 #include "att_types.h"
 #include "hci_interface.h"
 #include "ranging_interface.h"
+#include "app_localization_utils.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -125,34 +126,6 @@ static uint8_t mNotifIndEnabled[gAppMaxConnections_c] = {0U};
 
 /*! TRUE if peer has enabled real time data transfer */
 static bool_t mbServRealTimeTransfer[gAppMaxConnections_c];
-
-/* Antenna permutation order */
-static const uint8_t maAntPermNAp[24][4] = {
-    {0,1,2,3}, /* A1,A2,A3,A4 */
-    {1,0,2,3}, /* A2,A1,A3,A4 */
-    {0,2,1,3}, /* A1,A3,A2,A4 */
-    {2,0,1,3}, /* A3,A1,A2,A4 */
-    {2,1,0,3}, /* A3,A2,A1,A4 */
-    {1,2,0,3}, /* A2,A3,A1,A4 */
-    {0,1,3,2}, /* A1,A2,A4,A3 */
-    {1,0,3,2}, /* A2,A1,A4,A3 */
-    {0,3,1,2}, /* A1,A4,A2,A3 */
-    {3,0,1,2}, /* A4,A1,A2,A3 */
-    {3,1,0,2}, /* A4,A2,A1,A3 */
-    {1,3,0,2}, /* A2,A4,A1,A3 */
-    {0,3,2,1}, /* A1,A4,A3,A2 */
-    {3,0,2,1}, /* A4,A1,A3,A2 */
-    {0,2,3,1}, /* A1,A3,A4,A2 */
-    {2,0,3,1}, /* A3,A1,A4,A2 */
-    {2,3,0,1}, /* A3,A4,A1,A2 */
-    {3,2,0,1}, /* A4,A3,A1,A2 */
-    {3,1,2,0}, /* A4,A2,A3,A1 */
-    {1,3,2,0}, /* A2,A4,A3,A1 */
-    {3,2,1,0}, /* A4,A3,A2,A1 */
-    {2,3,1,0}, /* A3,A4,A2,A1 */
-    {2,1,3,0}, /* A3,A2,A4,A1 */
-    {1,2,3,0}, /* A2,A3,A4,A1 */
-};
 
 /* Mechanism for Ranging Profile-defined RRSP timer */
 static TIMER_MANAGER_HANDLE_DEFINE(mRrspTimerId);
@@ -344,7 +317,7 @@ bleResult_t Ras_Stop
         maLostSegmRecvIdx[idx * 3U + 1U] = 0U;
         maLostSegmRecvIdx[idx * 3U + 2U] = 0U;
 
-        while(MSG_QueueGetHead(&maRasGattIndInputQueue[idx]))
+        while(MSG_QueueGetHead(&maRasGattIndInputQueue[idx]) != NULL)
         {
             (void)MSG_Free(MSG_QueueRemoveHead(&maRasGattIndInputQueue[idx]));
         }
@@ -427,7 +400,7 @@ bleResult_t Ras_Unsubscribe
         maRasDynamicCfg[clientDeviceId].pRangingDataBody = NULL;
     }
 
-    while(MSG_QueueGetHead(&maRasGattIndInputQueue[clientDeviceId]))
+    while(MSG_QueueGetHead(&maRasGattIndInputQueue[clientDeviceId]) != NULL)
     {
         (void)MSG_Free(MSG_QueueRemoveHead(&maRasGattIndInputQueue[clientDeviceId]));
     }
@@ -1641,7 +1614,7 @@ static void antennaPathFilterStepData
 
                 antPermIndex = *pStepDataAux++;
                 assert(antPermIndex < 25);
-                antIndex_p = &maAntPermNAp[antPermIndex][0];
+                antIndex_p = &gaAntPermNAp[antPermIndex][0];
 
                 if ((maModeFilters[devIdIdx] & BIT2) != 0U)
                 {
@@ -1762,7 +1735,7 @@ static void antennaPathFilterStepData
                 }
 
                 antPermIndex = *pStepDataAux;
-                antIndex_p = &maAntPermNAp[antPermIndex][0];
+                antIndex_p = &gaAntPermNAp[antPermIndex][0];
 
                 if ((maModeFilters[devIdIdx] & BIT9) != 0U)
                 {
@@ -2430,37 +2403,32 @@ static bleResult_t handleSetFilterCmd
     {
         /* Check the Mode bits and save the filter value */
         uint16_t filterVal = pRasCtrlPointCmd->cmdParameters.filterValue;
+        uint8_t modeBits = (uint8_t)(filterVal & (BIT0 | BIT1));
+        uint8_t modeIndex = 0U;
 
-        if (((filterVal & BIT0) == 0U)
-            && ((filterVal & BIT1) == 0U))
+        /* Determine mode index based on bit pattern */
+        if (modeBits == 0U)
         {
-            /* Mode 0 filter */
-            maModeFilters[deviceId * 4U + gMode0Idx_c] = filterVal;
+            /* Mode 0: BIT0=0, BIT1=0 */
+            modeIndex = gMode0Idx_c;
         }
-        else if (((filterVal & BIT0) != 0U)
-            && ((filterVal & BIT1) == 0U))
+        else if (modeBits == BIT0)
         {
-            /* Mode 1 filter */
-            maModeFilters[deviceId * 4U + gMode1Idx_c] = filterVal;
+            /* Mode 1: BIT0=1, BIT1=0 */
+            modeIndex = gMode1Idx_c;
         }
-        else if (((filterVal & BIT0) == 0U)
-                 && ((filterVal & BIT1) != 0U))
+        else if (modeBits == BIT1)
         {
-            /* Mode 2 filter */
-            maModeFilters[deviceId * 4U + gMode2Idx_c] = filterVal;
-        }
-        else if (((filterVal & BIT0) != 0U)
-                 && ((filterVal & BIT1) != 0U))
-        {
-            /* Mode 3 filter */
-            maModeFilters[deviceId * 4U + gMode3Idx_c] = filterVal;
+            /* Mode 2: BIT0=0, BIT1=1 */
+            modeIndex = gMode2Idx_c;
         }
         else
         {
-            /* Invalid mode */
-            rasStatus = gRasInvalidParameterError_c;
-            result = gBleInvalidParameter_c;
+            /* Mode 3: BIT0=1, BIT1=1 */
+            modeIndex = gMode3Idx_c;
         }
+        
+        maModeFilters[deviceId * 4U + modeIndex] = filterVal;
     }
     else
     {
