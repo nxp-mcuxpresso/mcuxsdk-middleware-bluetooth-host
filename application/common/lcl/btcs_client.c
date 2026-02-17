@@ -370,7 +370,7 @@ static bleResult_t handleRangingProcResStart
         /* Parse data */
         pRemoteData->totalSentRcvDataIndex = (packetLen-parsedDataLen);
         (void)AppLocalizationAlgo_UncompressRemoteResponseL2CAP(
-            pData, (uint32_t)(packetLen-parsedDataLen),
+            pData, (uint32_t)packetLen - (uint32_t)parsedDataLen,
             &mPeerResultData[deviceId],
             pRemoteData->aSubEventData[pRemoteData->subeventIndex].subevtHeader.numStepsReported);
          
@@ -434,7 +434,7 @@ static bleResult_t handleRangingProcResCont
         }
         else
         {
-            uint32_t remainingData = 0;
+            uint32_t remainingData = 0U;
             do
             {
                 uint8_t stepIdx = mSubEvtInfo[deviceId].crtSubEvtIdx;
@@ -469,9 +469,8 @@ static bleResult_t handleRangingProcResCont
 
                 /* Count the received number of steps */
                 remainingData = AppLocalizationAlgo_UncompressRemoteResponseL2CAP(
-                    pData, 
-                    (uint32_t)(packetLen-parsedDataLen), &mPeerResultData[deviceId],
-                    remainingSteps);
+                    pData, (uint32_t)packetLen - (uint32_t)parsedDataLen,
+                    &mPeerResultData[deviceId], remainingSteps);
                 
                 /* Advance data pointer */
                 if (remainingData != 0U)
@@ -482,7 +481,7 @@ static bleResult_t handleRangingProcResCont
                 
                 /* Count the received number of steps */
                 mSubEvtInfo[deviceId].parsedStepsCrtSubEvt += pRemoteData->crtNumSteps - crtSteps;
-            } while (remainingData != 0);
+            } while (remainingData != 0U);
 
             /* Check if we reached the end of the transfer */
             if ((mSubEvtInfo[deviceId].parsedStepsCrtSubEvt >=

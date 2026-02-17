@@ -877,9 +877,9 @@ void App_HandleShellCmds(void *pData)
 
                 if (result == gBleSuccess_c)
                 {
-                    shell_writeHex((uint8_t*)&maPeerInformation[i].deviceId, sizeof(uint8_t));
+                    shell_writeHex((uint8_t*)&maPeerInformation[i].deviceId, (uint8_t)sizeof(uint8_t));
                     shell_write("         ");
-                    shell_writeHex((uint8_t*)&outKeys.addressType, sizeof(uint8_t));
+                    shell_writeHex((uint8_t*)&outKeys.addressType, (uint8_t)sizeof(uint8_t));
                     shell_write("          ");
                     shell_writeHex((uint8_t*)&outKeys.aAddress, gcBleDeviceAddressSize_c);
                     shell_write("\r\n");

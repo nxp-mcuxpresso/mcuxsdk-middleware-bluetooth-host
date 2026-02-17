@@ -543,7 +543,7 @@ bleResult_t BtcsServer_SendData
         else
         {
             /* Build data packet */
-            dataLen = (mpSegmIdx[deviceId]->aSegmIdx[crtSegmIdx+1] - mpSegmIdx[deviceId]->aSegmIdx[crtSegmIdx]);
+            dataLen = (mpSegmIdx[deviceId]->aSegmIdx[crtSegmIdx+1U] - mpSegmIdx[deviceId]->aSegmIdx[crtSegmIdx]);
             FLib_MemCpy(pData,
                         mpRangingData[deviceId].pRangingData + mpRangingData[deviceId].pCfg->dataParsedLen,
                         dataLen);
@@ -679,7 +679,7 @@ static void packSubEvtHeader
         /* Save the position of the totalSubEvtSteps field for later updates */
         dataLen.u32 = (2U*sizeof(uint16_t)) + (4U*sizeof(uint8_t));
         mpSegmIdx[deviceId]->numStepsHdrIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex + dataLen.u16;
-        mpSegmIdx[deviceId]->numStepsIdx = mpSegmIdx[deviceId]->numStepsHdrIdx + 1;
+        mpSegmIdx[deviceId]->numStepsIdx = mpSegmIdx[deviceId]->numStepsHdrIdx + 1U;
         /* Save index for the procedure done status field for late updates */
         dataLen.u32 = sizeof(uint16_t);
         mpSegmIdx[deviceId]->procDoneStatusIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex + dataLen.u16;
@@ -696,7 +696,7 @@ static void packSubEvtHeader
 
         subEvtHeader.startACLConnEvt = mpRangingData[deviceId].pCfg->aSubEventData[subEvtIdx].subevtHeader.startACLConnEvent;
         subEvtHeader.procEvtDoneStatus = ((mpRangingData[deviceId].pCfg->aSubEventData[subEvtIdx].subevtHeader.subeventDoneStatus & 0x0FU) << 4U) |
-          (mpRangingData[deviceId].pCfg->aSubEventData[subEvtIdx].subevtHeader.procedureDoneStatus & 0x0F);
+          (mpRangingData[deviceId].pCfg->aSubEventData[subEvtIdx].subevtHeader.procedureDoneStatus & 0x0FU);
         subEvtHeader.abortReason = mpRangingData[deviceId].pCfg->aSubEventData[subEvtIdx].subevtHeader.abortReason;
         subEvtHeader.PBRFormat = gPBRFormatIQ_c;
         subEvtHeader.referencePowerLevel = mpRangingData[deviceId].pCfg->aSubEventData[subEvtIdx].subevtHeader.referencePowerLevel;
@@ -842,7 +842,7 @@ static void parseSubeventData
             case (uint8_t)gCsStepMode2_c:
             {
                 /* Mode 2 data: 1 byte quality + 3 bytes per antenna path for Tone_PCT */
-                if ((dataCopiedLen + (mpRangingData[deviceId].pCfg->numAntennaPaths*gTone_PCTSize_c) + 2U) > maxDataLen)
+                if ((dataCopiedLen + ((uint16_t)mpRangingData[deviceId].pCfg->numAntennaPaths * gTone_PCTSize_c) + 2U) > maxDataLen)
                 {
                     /* There is no more room for this step - break loop */
                     mpRangingData[deviceId].pCfg->totalSentRcvDataIndex--;
@@ -962,7 +962,7 @@ static void parseSubeventData
     }
 
     /* Reset dataParsedLen to be used for sending the L2CAP message fragments */
-    if ((mpRangingData[deviceId].pCfg->aSubEventData[subEvtIdx].subevtHeader.procedureDoneStatus == gCsCompleteResults_c)
+    if ((mpRangingData[deviceId].pCfg->aSubEventData[subEvtIdx].subevtHeader.procedureDoneStatus == (uint8_t)gCsCompleteResults_c)
         && (mpRangingData[deviceId].pCfg->dataIndex == mpRangingData[deviceId].pCfg->dataParsedLen))
     {
         mpRangingData[deviceId].pCfg->dataParsedLen = 0U;

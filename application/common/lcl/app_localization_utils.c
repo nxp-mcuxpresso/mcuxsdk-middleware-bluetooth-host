@@ -1665,12 +1665,16 @@ static bool_t ParseMode1
         ); /* Packet_NADM */
 
         /* Data includes Packet RSSI */
+#if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
         CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
             FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE);
-#if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
             rssiValue = (int8_t)(**ppEventData);
-#endif /* gAppParseRssiInfo_d */
         );
+#else
+        CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
+            FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE);
+        );
+#endif /* gAppParseRssiInfo_d */
 
         /* Data includes ToA_ToD_Initiator/ToD_ToA_Reflector information */
         CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint16_t), bIncomplete,
@@ -1898,7 +1902,7 @@ static bool_t ParseMode3
 
         /* Extract quality - 2 bits per antenna path, up to 4 antenna paths, ordered*/
         CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-            pctQuality = (uint32_t)(**(uint8_t**)ppEventData);
+            pctQuality = (uint8_t)(**(uint8_t**)ppEventData);
         );
 
         /* Re-order per antenna path index */

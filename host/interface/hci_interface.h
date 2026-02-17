@@ -937,8 +937,8 @@ typedef struct hciLeTransmitPowerReportingEvent_tag
 #endif /* gBLE52_LePowerControlSupport_d */
 #endif /* gBLE52_d */
 
-#if (gBLE53_d == TRUE)
-#if (gBLE53_ConnectionSubratingSupport_d == TRUE)
+#if defined(gBLE53_d) && (gBLE53_d == TRUE)
+#if defined(gBLE53_ConnectionSubratingSupport_d) && (gBLE53_ConnectionSubratingSupport_d == TRUE)
 /* LE Subrate Change Event : LE Meta Event : 0x3E - Sub-event Code : 0x23 */
 typedef struct hciLeSubrateChangeEvent_tag
 {
@@ -2595,8 +2595,8 @@ typedef struct
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
         hciVendorEnhancedNotificationEvent_t            hciEnhancedNotificationEvent;
         hciVendorLeSkdReportEvent_t                     hciLeSkdReportEvent;
-#if (gBLE53_d == TRUE)
-#if (gBLE53_ConnectionSubratingSupport_d == TRUE)
+#if defined(gBLE53_d) && (gBLE53_d == TRUE)
+#if defined(gBLE53_ConnectionSubratingSupport_d) && (gBLE53_ConnectionSubratingSupport_d == TRUE)
         hciLeSubrateChangeEvent_t                       hciLeSubrateChangeEvent;
 #endif /* (gBLE53_ConnectionSubratingSupport_d == TRUE) */
 #endif /* gBLE53_d */
@@ -4683,7 +4683,7 @@ bleResult_t Hci_LeExtCreateConnectionV2(hciLeExtCreateConnectionV2Command_t* pPa
 bleResult_t Hci_LeSetPeriodicAdvParamsV2(hciLeSetPeriodicAdvParamsV2Command_t* pParam);
 #endif /* defined(gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 
-#if (gBLE60_d)
+#if defined(gBLE60_d) && (gBLE60_d == TRUE)
 /*! *********************************************************************************
 * \brief        The function sends the HCI LE Read All Local Supported Features (OGF : 0x08; OCF : 0x0087) command to the Controller.
 *
@@ -4735,8 +4735,8 @@ bleResult_t HCI_LE_Set_Decision_Instructions(hciLeSetDecisionInstructionsCommand
 #endif /* gLeObserverSupported_d */
 #endif /* gBLE60_DecisionBasedAdvertisingFilteringSupport_d */
 
-#if gLeObserverSupported_d
-#if (gBLE60_MonitoredAdvertisers_d == TRUE)
+#if defined(gLeObserverSupported_d) && (gLeObserverSupported_d == TRUE)
+#if defined(gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
 /*! ********************************************************************************
 * \brief        The function sends the HCI LE Add Device To Monitored Advertisers List command to the Controller.
 *

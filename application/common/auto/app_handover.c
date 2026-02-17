@@ -1901,7 +1901,7 @@ static void addMonitorFilter(uint16_t connHandle)
         else if (maAppMonitorFilter[i].connHandle == gInvalidConnectionHandle_c)
         {
             /* Store first free index only if not already found */
-            if (firstFreeIdx == gAppMaxConnections_c)
+            if (firstFreeIdx == (uint32_t)gAppMaxConnections_c)
             {
                 firstFreeIdx = i;
             }
@@ -1912,7 +1912,7 @@ static void addMonitorFilter(uint16_t connHandle)
         }
     }
     
-    if (firstFreeIdx < (uint8_t)gAppMaxConnections_c)
+    if (firstFreeIdx < (uint32_t)gAppMaxConnections_c)
     {
         maAppMonitorFilter[firstFreeIdx].connHandle = connHandle;
         maAppMonitorFilter[firstFreeIdx].eventCount = 0U;
@@ -1961,13 +1961,13 @@ static int8_t getMonitorFilterAverageActiveRssi(uint16_t connHandle)
     {
         if (maAppMonitorFilter[i].connHandle == connHandle)
         {
-            averageRssi = (int8_t)(maAppMonitorFilter[i].rssiActiveSum / gHandoverMonitorPacketNumberFilter_c);
+            averageRssi = (int)((int)maAppMonitorFilter[i].rssiActiveSum / (int)gHandoverMonitorPacketNumberFilter_c);
             maAppMonitorFilter[i].rssiActiveSum = 0;
             break;
         }
     }
 
-    return averageRssi;
+    return (int8_t)averageRssi;
 }
 
 /*! ********************************************************************************************************************
