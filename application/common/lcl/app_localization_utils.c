@@ -1365,6 +1365,7 @@ static bool_t ParseMode3
     uint8_t tqi[ISP_MAX_NO_ANTENNAS] = {};
     uint32_t quality = 0U;
     uint8_t aRssi[CS_RSSI_SIZE] = {};
+    uint8_t aNadm[CS_NADM_SIZE] = {};
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
     int8_t rssiValue = 0;
 #endif
@@ -1385,7 +1386,9 @@ static bool_t ParseMode3
         if ((filter & BIT3) != 0U)
         {
             /* Data includes Packet NADM */
-            CheckSkipBytesDoNothing(*ppEventData, *pDataLength, 1U, bIncomplete);
+            CheckSkipBytes(*ppEventData, *pDataLength, CS_NADM_SIZE, bIncomplete,
+                FLib_MemCpy(aNadm, *ppEventData, CS_NADM_SIZE);
+            );
         }
         
         if ((filter & BIT4) != 0U)
@@ -1497,6 +1500,12 @@ static bool_t ParseMode3
     {
         /* ToF+Tone record */
         pRemoteData->step++;
+
+        if ((filter & BIT3) != 0U)
+        {
+            /* Data includes Packet NADM */
+            hciCsStoreBytesInTofBuffer(pDstAppBuffer, aNadm, (int)CS_NADM_SIZE);
+        }
 
         if ((filter & BIT4) != 0U)
         {
@@ -1840,6 +1849,7 @@ static bool_t ParseMode3
     uint32_t quality = 0u;
     uint8_t pctQuality = 0u;
     uint8_t aRssi[CS_RSSI_SIZE] = {};
+    uint8_t aNadm[CS_NADM_SIZE] = {};
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
     int8_t rssiValue = 0;
 #endif
@@ -1857,7 +1867,9 @@ static bool_t ParseMode3
         );
 
         /* Data includes Packet NADM */
-        CheckSkipBytesDoNothing(*ppEventData, *pDataLength, 1U, bIncomplete);
+        CheckSkipBytes(*ppEventData, *pDataLength, CS_NADM_SIZE, bIncomplete,
+            FLib_MemCpy(aNadm, *ppEventData, CS_NADM_SIZE);
+        ); /* Packet_NADM */
 
         /* Data includes Packet RSSI */
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
@@ -1916,6 +1928,9 @@ static bool_t ParseMode3
     {
         /* ToF+Tone record */
         pRemoteData->step++;
+
+        /* Data includes Packet NADM */
+        hciCsStoreBytesInTofBuffer(pDstAppBuffer, aNadm, (int)CS_NADM_SIZE);
 
         /* Data includes Packet RSSI */
         hciCsStoreBytesInTofBuffer(pDstAppBuffer, aRssi, (int)CS_RSSI_SIZE);
