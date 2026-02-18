@@ -95,8 +95,6 @@
 
 #define gAppMaxConnections_c                    1
 
-#define gcGapMaximumActiveConnections_c         gAppMaxConnections_c
-
 #define gAppUseSerialManager_c                  1
 
 /* Enable BLE 5.0 */

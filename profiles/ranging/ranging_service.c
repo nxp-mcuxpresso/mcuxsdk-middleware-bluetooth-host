@@ -27,7 +27,6 @@
 #include "gatt_server_interface.h"
 #include "gap_interface.h"
 #include "att_types.h"
-#include "hci_interface.h"
 #include "ranging_interface.h"
 #include "app_localization_utils.h"
 

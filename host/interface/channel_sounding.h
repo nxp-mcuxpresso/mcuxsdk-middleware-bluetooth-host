@@ -22,7 +22,6 @@
 #include "ble_general.h"
 #include "ble_utils.h"
 #include "hci_types.h"
-#include "hci_interface.h"
 
 #if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d==TRUE)
 
@@ -487,11 +486,6 @@ typedef enum {
     csLvl4RttAndCsTone10usAccEdlc_c,
 } csSecLevel_t;
 
-typedef bool_t (*csEventCallback_t) (uint8_t *pMsg);
-typedef bleResult_t (*csEventHandlerLeMetaEvent) (hciLeMetaEvent_t* pHciEvent);
-typedef bleResult_t (*csEventHandlerCmdCompleteEvent) (hciCommandCompleteEvent_t *pHciCmdCompleteEvent);
-typedef bleResult_t (*csEventHandlerCmdStatusEvent) (hciCommandStatusEvent_t* pHciEvent);
-
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -512,38 +506,6 @@ extern const uint8_t gAppHciDataLogEnabled;
 #if defined(__cplusplus)
 extern "C" {
 #endif /* __cplusplus */
-
-/*! *********************************************************************************
-* \brief  Register the application to CS callback
-*
-* \remarks This function must be called exclusively by the CS library
-*
-********************************************************************************** */
-void Host_RegisterCsEventCallback(csEventCallback_t eventCallback);
-
-/*! *********************************************************************************
-* \brief  Register the HCI to CS HCI LE Meta event callback
-*
-* \remarks This function must be called exclusively by the CS library
-*
-********************************************************************************** */
-void Host_RegisterLeCsMetaEventCallback(csEventHandlerLeMetaEvent eventCallback);
-
-/*! *********************************************************************************
-* \brief  Register the HCI to CS command complete event callback
-*
-* \remarks This function must be called exclusively by the CS library
-*
-********************************************************************************** */
-void Host_RegisterCmdCompleteEventCallback(csEventHandlerCmdCompleteEvent eventCallback);
-
-/*! *********************************************************************************
-* \brief  Register the HCI to CS command status event callback
-*
-* \remarks This function must be called exclusively by the CS library
-*
-********************************************************************************** */
-void Host_RegisterCmdStatusEventCallback(csEventHandlerCmdStatusEvent eventCallback);
 
 /*! *********************************************************************************
 * \brief  Initialize CS
@@ -586,27 +548,6 @@ bleResult_t CS_RegisterCsEventCallback(csEventCmdCompleteCallback_t csEventCallb
 *
 ********************************************************************************** */
 bleResult_t CS_RegisterCmdStatusEventCallback(csCmdStatusEventCallback_t csEventCallback);
-
-/*!*************************************************************************************************
-*\fn    static bool_t CSBuildHciCsLeMetaEvent(hciLeMetaEvent_t *pHciLeMetaEvent, const uint8_t *pPayload, hciErrorCode_t hciStatus)
-*
-*\brief HCI LE meta event callback
-*
-*\param [in]    pHciLeMetaEvent Pointer to the HCI le meta event
-*\param [in]    pPayload        Pointer to the Payload data
-*\param [in]    hciStatus       Unused
-*
-*\retval        bool_t         TRUE if opCode was handled, FALSE otherwise
-*
-* \remarks      Called from Ble_HciRecvLeMetaEvent
-*
-***************************************************************************************************/
-bool_t CSBuildHciCsLeMetaEvent
-(
-    hciLeMetaEvent_t    *pHciLeMetaEvent,
-    const uint8_t       *pPayload,
-    hciErrorCode_t      hciStatus
-);
 
 /*
 * CS API prototypes

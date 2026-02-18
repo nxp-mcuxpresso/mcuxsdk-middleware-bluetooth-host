@@ -143,8 +143,6 @@
 
 #define gAppMaxConnections_c                  1
 
-#define gcGapMaximumActiveConnections_c       gAppMaxConnections_c
-
  /* Enable Serial Manager interface */
 #if gAppHciDataLogExport_d
 #define gAppUseSerialManager_c                2

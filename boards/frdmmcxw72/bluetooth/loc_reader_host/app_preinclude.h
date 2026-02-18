@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file app_preinclude.h
 *
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -74,8 +74,6 @@
  *     BLE Stack Configuration
  ********************************************************************************** */
 #define gAppMaxConnections_c                    1
-
-#define gcGapMaximumActiveConnections_c         gAppMaxConnections_c
 
 #define gAppUseSerialManager_c                  1
 

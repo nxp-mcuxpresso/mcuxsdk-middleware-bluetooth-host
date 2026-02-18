@@ -60,8 +60,6 @@
 /* Must open an L2CAP channel for each CCC peer */
 #define gL2caMaxLeCbChannels_c          gAppMaxConnections_c
 
-#define gcGapMaximumActiveConnections_c gAppMaxConnections_c
-
 #define gAppDisableControllerLowPower_d 0
 
 #define gcScanWindow_c                  18U /* 96 ms */

@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*
- * Copyright 2020 - 2025 NXP
+ * Copyright 2020 - 2026 NXP
  *
  *
  *
@@ -48,8 +48,6 @@
 #define gAppMaxConnections_c            8
 
 #define gFsciBleTest_d                  1
-
-#define gcGapMaximumActiveConnections_c 8
 
 /* Enable Channel Sounding feature */
 #define gBLE_ChannelSounding_d          0

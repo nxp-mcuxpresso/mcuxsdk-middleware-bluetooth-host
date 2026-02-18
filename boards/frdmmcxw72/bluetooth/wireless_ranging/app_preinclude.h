@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*
-* Copyright 2020, 2022-2025 NXP
+* Copyright 2020, 2022-2026 NXP
 *
 *
 * SPDX-License-Identifier: BSD-3-Clause
@@ -87,8 +87,6 @@
  ********************************************************************************** */
 #define gMaxServicesCount_d             6
 #define gMaxServiceCharCount_d          6
-
-#define gcGapMaximumActiveConnections_c 1
 
 /* Enable 5.0 optional features */
 #define gBLE50_d                        1

@@ -60,8 +60,6 @@
 /* Must open an L2CAP channel for each CCC peer */
 #define gL2caMaxLeCbChannels_c          gAppMaxConnections_c
 
-#define gcGapMaximumActiveConnections_c gAppMaxConnections_c
-
 /*! BLE CCC Digital Key UUID */
 #define gBleSig_CCC_DK_UUID_d           0xFFF5U
 
