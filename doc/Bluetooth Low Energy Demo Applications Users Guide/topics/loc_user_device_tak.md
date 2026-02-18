@@ -4,6 +4,7 @@ Use the Bluetooth LE Localization User Device application to exercise the TAK(Tr
 First, 'gAppUseTAK_c' must be enabled and 'gConnTakMaxEntries_c' must be configured to the maximum number of keys we want to support on a device. Also 'gBleHostAutoRejectLtkRequestForUnbondedDevices_c' must be set to FALSE. 'gAppTAKAdvID_c' must be set to be the same string as in loc_reader.
 The key is stored per device ID.
 Each key is erased after it is used, as per TAK specification requirements.
+Also, due to the fact that the TAK feature does not work with encryption protected attributes, we need to manually remove any encryption flag from gatt_db.h(i.e. gPermissionFlagWriteWithEncryption_c and gPermissionFlagReadWithEncryption_c).
 
 A Transient Application Key must be set before starting the application, using the command:
 
