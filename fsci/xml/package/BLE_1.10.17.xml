@@ -101058,7 +101058,7 @@
         </CmdParms>
       </Cmd>
       <Cmd>
-        <CmdName>GAP2-GenericEventVendorSpecificDebugFatalError.Indication</CmdName>
+        <CmdName>GAP2-GenericEventVendorSpecificDebugEvent.Indication</CmdName>
         <CmdDesc>NBU Debug Fatal Error event</CmdDesc>
         <CmdHeader>4C 9F</CmdHeader>
         <CmdParms>
@@ -101072,7 +101072,7 @@
             <ParmName>Data</ParmName>
             <ParmDesc>Subcommand data</ParmDesc>
             <ParmSize>1</ParmSize>
-            <ParmType>tInt</ParmType>
+            <ParmType>tArray</ParmType>
             <ParmTypeSpecifics>
               <Depend>
                 <DependName>DataLength</DependName>
