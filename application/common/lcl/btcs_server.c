@@ -886,7 +886,7 @@ static void parseSubeventData
 
             case (uint8_t)gCsStepMode3_c:
             {
-                if ((dataCopiedLen + (mpRangingData[deviceId].pCfg->numAntennaPaths*gTone_PCTSize_c) +
+                if ((dataCopiedLen + ((uint16_t)mpRangingData[deviceId].pCfg->numAntennaPaths*gTone_PCTSize_c) +
                      2U + gMode1DataSize_c)> maxDataLen)
                 {
                     /* There is no more room for this step - break loop */

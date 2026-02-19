@@ -1693,7 +1693,7 @@ static void BleApp_ListBondingData(void)
         for (uint8_t i = 0; i < (uint8_t)gMaxBondedDevices_c; i++)
         {
             result = Gap_LoadKeys((uint8_t)i, &gAppOutKeys, &gAppOutKeyFlags, &gAppOutLeSc, &gAppOutAuth);
-            if (gBleSuccess_c == result && nrBondedDevices > 0U)
+            if (gBleSuccess_c == result)
             {
                 /* address type, address, ltk, irk */
                 shell_write("\r\nNVMIndex: ");
