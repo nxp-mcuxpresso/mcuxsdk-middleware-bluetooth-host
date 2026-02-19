@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2023-2025 NXP
+* Copyright 2023-2026 NXP
 *
 *
 * \file
@@ -262,6 +262,12 @@ static void HandleGapCmdLePeriodicAdvUpdateSync
 );
 #endif /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
 
+static void HandleGapCmdLeSetLocalPeripheralLatencyEnable
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+
 #if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
 static void HandleGapCmdAddDeviceToMonAdvList
 (
@@ -405,6 +411,7 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
     NULL,
     NULL,
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
+    HandleGapCmdLeSetLocalPeripheralLatencyEnable,                                   /* = 0x1E, gBleGapCmdLeSetLocalPeripheralLatencyEnableOpCode_c */
 };
 
 #if gFsciBleTest_d
@@ -2394,6 +2401,33 @@ static void HandleGapCmdLePeriodicAdvUpdateSync
     fsciBleGap2CallApiFunction(Gap_LePeriodicAdvUpdateSync(syncHandle, skip, syncTimeout));
 }
 #endif /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdLeSetLocalPeripheralLatencyEnable(uint8_t *pBuffer,
+*                                                 uint32_t fsciInterfaceId)
+*\brief        Handler for gBleGapCmdLeSetLocalPeripheralLatencyEnableOpCode_c.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */
+static void HandleGapCmdLeSetLocalPeripheralLatencyEnable
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+)
+{
+    uint8_t deviceId;
+    uint8_t enable;
+
+    /* Get command parameters from buffer */
+    fsciBleGetUint8ValueFromBuffer(deviceId, pBuffer);
+    fsciBleGetUint8ValueFromBuffer(enable, pBuffer);
+
+    fsciBleGap2CallApiFunction(Gap_LeSetLocalPeripheralLatencyEnable(deviceId, enable));
+}
 
 #if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
 /*! *********************************************************************************

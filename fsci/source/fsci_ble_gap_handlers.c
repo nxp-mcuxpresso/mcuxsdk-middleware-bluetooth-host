@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2022 - 2025 NXP
+* Copyright 2022 - 2026 NXP
 *
 *
 * \file
@@ -2156,6 +2156,7 @@ const pfGapGetBufferFromConnEventHandler_t maGapGetBufferFromConnEventHandlers[]
 #else
     NULL,
 #endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
+    NULL,                                               /* reserved: 0x31U */
 };
 
 /*! Array of handler functions used by fsciBleGapGetConnectionEventBufferSize */
@@ -2239,6 +2240,7 @@ const pfGapGetConnEventBufferSizeHandler_t maGapGetConnEventBufferSizeHandlers[]
 #else
     NULL,
 #endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
+    NULL,                                               /* reserved: 0x31U */
 };
 
 /*! Array of handler functions used by fsciBleGapGetGenericEventFromBuffer */
@@ -2881,7 +2883,8 @@ const pfGapOpCodeHandler_t maGapEvtOpCodeHandlers[]=
     NULL,                                                                             /* reserved: 0xF4 */
     NULL,                                                                             /* reserved: 0xF5 */
     NULL,                                                                             /* reserved: 0xF6 */
-    NULL                                                                              /* reserved: 0xF7 */
+    NULL,                                                                             /* reserved: 0xF7 */
+    gBleGapEvtConnectionEventLeSetLocalPeripheralLatencyEnableComplete_c              /*! = 0xFB, gConnEvtLeSetLocalPeripheralLatencyEnableComplete_c */
 }
 #endif /* gFsciBleHost_d */
 
@@ -3863,6 +3866,7 @@ static uint32_t GetConnEvtLeSubrateChangeEventBufferSize
     return fsciBleGapGetConnSubrateChangeEventBufferSize(&pConnectionEvent->eventData.gapSubrateChangeEvent);
 }
 #endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
+
 /*! *********************************************************************************
 *\private
 *\fn           uint32_t GetConnEvtLeSetDataLengthFailureBufferSize(

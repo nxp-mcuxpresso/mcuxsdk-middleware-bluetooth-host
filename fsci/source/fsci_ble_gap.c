@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -275,10 +275,11 @@ static const int16_t maConnectionEventToOpcode[]=
     (int16_t)gBleGapEvtConnectionEventLeSetDataLengthFailedOpCode_c,             /* = 0x2EU, gConnEvtLeDataLengthChanged_c */
     (int16_t)gBleGapEvtConnectionEventSmError_c,                                 /* = 0x2FU, gConnEvtSmError_c */
      #if defined(gBLE53_d) && (gBLE53_d == 1U)
-    (int16_t)gBleGapEvtConnectionEventSubrateChangeEvent_c                       /* = 0x30U, gConnEvtLeSubrateChange_c */
+    (int16_t)gBleGapEvtConnectionEventSubrateChangeEvent_c,                      /* = 0x30U, gConnEvtLeSubrateChange_c */
     #else
-    -1                                                                           /* reserved: 0x30U */
+    -1,                                                                          /* reserved: 0x30U */
     #endif
+    (int16_t)gBleGapEvtConnectionEventLeSetLocalPeripheralLatencyEnableComplete_c, /* 0x31U, gConnEvtLeSetLocalPeripheralLatencyEnableComplete_c */
 };
 
 

@@ -1863,6 +1863,14 @@ typedef struct hciLeSetPeriodicAdvParamsV2Command_tag
 
 #endif /* defined(gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
 
+/*! OCF 0x0090 */
+/*! HCI_LE_Set_Local_Peripheral_Latency_Enable */
+typedef struct hciVendorLeSetLocalPeripheralLatencyEnableCommand_tag
+{
+    uint16_t connectionHandle;
+    uint8_t enable;
+} hciVendorLeSetLocalPeripheralLatencyEnableCommand_t;
+
 typedef struct hciVendorSetExpmSupportedFeaturesCommand_tag
 {
     uint8_t bitNumber;
@@ -2527,6 +2535,12 @@ typedef struct hciVendorUnitaryTestCommandComplete_tag
     uint8_t             aParam[gVendorUnitaryTestSize_c];
 } hciVendorUnitaryTestCommandComplete_t;
 
+/*! HCI_Vendor_Set_Local_Peripheral_Latency_Enable - Return Parameters */
+typedef struct {
+    hciErrorCode_t      status;
+    uint16_t connectionHandle;
+} hciVendorLeSetLocalPeripheralLatencyEnableCommandComplete_t;
+
 /*! LE Meta Event : 0x3E */
 typedef struct
 {
@@ -2724,6 +2738,7 @@ typedef struct
 #if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
         hciLeReadMonAdvListSizeCommandComplete_t                 hciLeReadMonAdvListSizeCommComplete;
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
+        hciVendorLeSetLocalPeripheralLatencyEnableCommandComplete_t   hciVendorLeSetLocalPeripheralLatencyEnableCommComplete;
     }commCompleteReturnParams;
 } hciCommandCompleteEvent_t;
 
@@ -4497,6 +4512,17 @@ bleResult_t Hci_LeReadPeriodicAdvListSize(void);
 bleResult_t Hci_LePeriodicAdvUpdateSync(const hciVendorLePeriodicAdvUpdateSyncCommand_t *pParam);
 #endif /* defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE) */
 #endif
+
+/*!*************************************************************************************************
+*\fn    bleResult_t Hci_LeSetLocalPeripheralLatencyEnable(const hciVendorLeSetLocalPeripheralLatencyEnableCommand_t *pParam)
+*
+*\brief This function sends the vendor HCI LE Set Local Peripheral Latency Enable command to the Controller.
+*
+*\param [in]    pParam  pointer to a structure containing the command parameters.
+*
+*\retval  bleResult_t
+***************************************************************************************************/
+bleResult_t Hci_LeSetLocalPeripheralLatencyEnable(const hciVendorLeSetLocalPeripheralLatencyEnableCommand_t *pParam);
 
 /*! *********************************************************************************
 * \brief        The function sends the HCI Vendor BLE Advertising Index Change

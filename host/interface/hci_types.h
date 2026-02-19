@@ -275,6 +275,9 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 /* Vendor specific command LE_Set_Scheduler_Priority */
 #define gHciVendorLeSetSchedulerPriority_c                       0x00B2U
 
+/* Vendor specific command LE_Set_Local_Peripheral_Latency_Enable */
+#define gHciVendorLeSetLocalPeripheralLatencyEnable_c            0x0090U
+
 /* Vendor specific command LE_Periodic_Adv_Update_Sync */
 #define gHciVendorLePeriodicAdvUpdateSync_c                      0x00BBU
 

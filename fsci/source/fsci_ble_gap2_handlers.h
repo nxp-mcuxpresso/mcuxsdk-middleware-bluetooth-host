@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2023-2025 NXP
+* Copyright 2023-2026 NXP
 *
 *
 * \file
@@ -82,6 +82,7 @@ typedef enum
     gBleGapCmdClearMonAdvListOpCode_c                                           = 0x1B,                     /*! Gap_ClearMonAdvList command operation code */
     gBleGapCmdEnableMonAdvOpCode_c                                              = 0x1C,                     /*! Gap_EnableMonAdv command operation code */
     gBleGapCmdReadMonAdvListSizeOpCode_c                                        = 0x1D,                     /*! Gap_ReadMonAdvListSize command operation code */
+    gBleGapCmdLeSetLocalPeripheralLatencyEnableOpCode_c                         = 0x1E,                     /*! Gap_LeSetLocalPeripheralLatencyEnable command operation code */
 
     gBleGap2StatusOpCode_c                                                      = 0x80,                     /*! GAP2 status operation code */
     gBleCtrlDebugInfoOpCode_c                                                   = 0x81,                     /*! Debug data from gBleCtrlCmdGetDebugInfoCmdOpCode_c */

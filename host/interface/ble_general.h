@@ -1083,6 +1083,7 @@ typedef enum {
     gConnectionSubrateRequest_c = 0x94U,             /*!< An error occurred during the Connection Subrate procedure */
     gEncryptLinkTak_c = 0x95U,                       /*!< An error occurred during Encrypt link with TAK procedure */
     gVendorEnableExpmFeatures_c = 0x96U,             /*!< An error occurred during gHciVendorEnableExpmFeaturesCommand_c execution */
+    gLeSetLocalPeripheralLatencyEnable_c = 0x97U,    /*!< An error occurred during the Le Set Local Peripheral Latency Enable procedure */
 } gapInternalErrorSource_t;
 
 /*! Internal Error Event Data */

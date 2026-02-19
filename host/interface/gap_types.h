@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -1324,6 +1324,7 @@ typedef enum {
     gConnEvtLeSetDataLengthFailure_c                = 0x2EU, /*!< The Set Data Length command has failed. */
     gConnEvtSmError_c                               = 0x2FU, /*!< Security Manager error occured. */
     gConnEvtLeSubrateChange_c                       = 0x30U, /*!< The connection has new parameters. Data in gapConnectionEvent_t.eventData.gapSubrateChangeEvent. */
+    gConnEvtLeSetLocalPeripheralLatencyEnableComplete_c  = 0x31U, /*!< Le Set Local Peripheral Latency Enable complete. Data in gapConnectionEvent_t.eventData.leSetLocalPeripheralLatencyEnableComplete. */
 } gapConnectionEventType_t;
 
 /*! Event data structure for the gConnEvtConnected_c event. */

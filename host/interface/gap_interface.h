@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -3091,6 +3091,22 @@ bleResult_t Gap_LePeriodicAdvUpdateSync(
     uint16_t syncHandle,
     uint16_t skip,
     uint16_t syncTimeout
+);
+
+/*!*************************************************************************************************
+*\fn    bleResult_t Gap_LeSetLocalPeripheralLatencyEnable(deviceId_t deviceId, bool_t enable)
+*
+*\brief This function enables or disables local Peripheral latency for a connection.
+*
+*\param [in]    deviceId           Handle identifying the connection.
+*\param [in]    enable             FALSE to disable, TRUE to enable local Peripheral latency.
+*
+*\retval  gBleSuccess_c
+*\retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+***************************************************************************************************/
+bleResult_t Gap_LeSetLocalPeripheralLatencyEnable(
+    deviceId_t deviceId,
+    bool_t enable
 );
 
 /*!*************************************************************************************************

@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -727,7 +727,7 @@ typedef enum
     gBleGapEvtPlatformError_c                                                      = 0xF8,                       /*! platform error callback event operation code */
     gBleGapEvtConnectionEventSmError_c                                             = 0xF9,                       /*! gapConnectionCallback (type = gConnEvtSmError_c) event operation code */
     gBleGapEvtConnectionEventSubrateChangeEvent_c                                  = 0xFA,                       /*! gapConnectionCallback (type = gConnEvtLeSubrateChange_c) event operation code */
-
+    gBleGapEvtConnectionEventLeSetLocalPeripheralLatencyEnableComplete_c           = 0xFB,                       /*! gapConnectionCallback (type = gConnEvtLeSetLocalPeripheralLatencyEnableComplete_c) event operation code */
 }fsciBleGapOpCode_t;
 
 /************************************************************************************
