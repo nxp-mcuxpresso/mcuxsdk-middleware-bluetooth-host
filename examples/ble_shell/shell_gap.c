@@ -791,12 +791,101 @@ static shell_status_t ShellGap_SetAdvertisingParameters(uint8_t argc, char * arg
 }
 
 /*! *********************************************************************************
- * \brief        Adds advertising data to the already existing one.
+ * \brief        Execute the copy of advertising data.
  *
  * \param[in]    pAdvData       Pointer to the storage of advertising data
  * \param[in]    type           The type of the advertising structure
  * \param[in]    pData          Pointer to data to be added
- * \param[in]    fIsScanRsp     TRUE - if the same data is also used in scan response
+ * \param[in]    advIdx         Index of the advertising structure to be populated
+ * \param[in]    advCursor      Current offset/position in the advertising data array
+ * \param[in]    pAdvArrayData  Pointer to the advertising data array buffer
+ *
+ * \return       bool_t         TRUE - if data was successfully added, FALSE - otherwise
+ ********************************************************************************** */
+static bool_t ShellGap_CopyAdvData
+(
+    gapAdvertisingData_t *pAdvData,
+    gapAdType_t type,
+    char * pData,
+    uint8_t advIdx,
+    uint16_t advCursor,
+    uint8_t *pAdvArrayData
+)
+{
+    /* Get length of the string */
+    uint8_t length = (uint8_t)strlen(pData);
+
+    /* Copy ADV payload*/
+    pAdvData->aAdStructures[advIdx].aData = pAdvArrayData + advCursor;
+
+    switch(type)
+    {
+        /* Process string payload type */
+        case gAdShortenedLocalName_c:
+        case gAdCompleteLocalName_c:
+        {
+            /* Check if we got space. Take into account length and type octets */
+            if ((advCursor + length + 2U * (pAdvData->cNumAdStructures)) > gcGapMaxAdvertisingDataLength_c )
+            {
+                /* No more free space */
+                return FALSE;
+            }
+
+            FLib_MemCpy(pAdvArrayData + advCursor, pData, length);
+        }
+        break;
+
+        default:
+        {
+            /* Check if we got space. Take into account length and type octets */
+            uint32_t usedSize = (uint32_t)advCursor + 2U * (uint32_t)(pAdvData->cNumAdStructures);
+            uint8_t availableSize = 0U;
+
+            if (usedSize >= (uint32_t)gcGapMaxAdvertisingDataLength_c)
+            {
+                /* No more free space */
+                return FALSE;
+            }
+
+            availableSize = (uint8_t)((uint32_t)gcGapMaxAdvertisingDataLength_c - usedSize);
+
+            /* Halve length because string size is twice the hex array */
+            length = ((length % 2U) != 0U) ? (uint8_t)((length/2U) + 1U) : (uint8_t)(length/2U);
+
+            if (length > availableSize )
+            {
+                /* No more free space */
+                return FALSE;
+            }
+
+            /* Length will be updated to the actual size parsed by BleApp_ParseHexValue */
+            length = BleApp_ParseHexValue(pData);
+            if (length == 0U)
+            {
+                return FALSE;
+            }
+            FLib_MemCpy(pAdvArrayData + advCursor, pData, length);
+        }
+        break;
+    }
+
+    pAdvData->aAdStructures[advIdx].adType = type;
+    pAdvData->aAdStructures[advIdx].length = length + 1U;
+
+    pAdvData->cNumAdStructures += 1U;
+
+    return TRUE;
+}
+
+/*! *********************************************************************************
+ * \brief        Adds advertising data to the already existing one.
+ *
+ * \param[in]    pAdvData           Pointer to the storage of advertising data
+ * \param[in]    type               The type of the advertising structure
+ * \param[in]    pData              Pointer to data to be added
+ * \param[in]    fIsScanRsp         TRUE - if the same data is also used in scan response
+ * \param[in]    bIsExtAdvData      TRUE - if the data is used in Extended Advertising
+ * \param[in]    bIsPeriodicAdvData TRUE - if the data is used in Periodic Advertising
  *
  * \return       bool_t         TRUE - if data was successfully added, FALSE - otherwise
  ********************************************************************************** */
@@ -812,7 +901,6 @@ static bool_t ShellGap_AppendAdvData
 {
     uint8_t advIdx = 0;
     uint16_t advCursor = 0U;
-    uint8_t length;
     uint8_t *pAdvArrayData;
 
     if ((fIsScanRsp == TRUE) && (bIsExtAdvData == TRUE))
@@ -879,72 +967,10 @@ static bool_t ShellGap_AppendAdvData
             return TRUE;
         }
 
-        advCursor += pAdvData->aAdStructures[advIdx].length - 1U;
+        advCursor += (uint16_t)pAdvData->aAdStructures[advIdx].length - 1U;
     }
 
-    /* Get length of the string */
-    length = (uint8_t)strlen(pData);
-
-    /* Copy ADV payload*/
-    pAdvData->aAdStructures[advIdx].aData = pAdvArrayData + advCursor;
-
-    switch(type)
-    {
-        /* Process string payload type */
-        case gAdShortenedLocalName_c:
-        case gAdCompleteLocalName_c:
-        {
-            /* Check if we got space. Take into account length and type octets */
-            if ((advCursor + length + 2U * (pAdvData->cNumAdStructures)) > gcGapMaxAdvertisingDataLength_c )
-            {
-                /* No more free space */
-                return FALSE;
-            }
-
-            FLib_MemCpy(pAdvArrayData + advCursor, pData, length);
-        }
-        break;
-
-        default:
-        {
-            /* Check if we got space. Take into account length and type octets */
-            uint32_t usedSize = (uint32_t)advCursor + 2U * (uint32_t)(pAdvData->cNumAdStructures);
-            uint8_t availableSize = 0U;
-
-            if (usedSize >= (uint32_t)gcGapMaxAdvertisingDataLength_c)
-            {
-                /* No more free space */
-                return FALSE;
-            }
-
-            availableSize = (uint8_t)((uint32_t)gcGapMaxAdvertisingDataLength_c - usedSize);
-
-            /* Halve length because string size is twice the hex array */
-            length = ((length % 2U) != 0U) ? (uint8_t)((length/2U) + 1U) : (uint8_t)(length/2U);
-
-            if (length > availableSize )
-            {
-                /* No more free space */
-                return FALSE;
-            }
-
-            /* Length will be updated to the actual size parsed by BleApp_ParseHexValue */
-            length = BleApp_ParseHexValue(pData);
-            if (length == 0U)
-            {
-                return FALSE;
-            }
-            FLib_MemCpy(pAdvArrayData + advCursor, pData, length);
-        }
-        break;
-    }
-
-    pAdvData->aAdStructures[advIdx].adType = type;
-    pAdvData->aAdStructures[advIdx].length = length + 1U;
-
-    pAdvData->cNumAdStructures += 1U;
-
-    return TRUE;
+    return ShellGap_CopyAdvData(pAdvData, type, pData, advIdx, advCursor, pAdvArrayData);
 }
 
 /*! *********************************************************************************
