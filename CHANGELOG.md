@@ -4,7 +4,49 @@ All notable changes to NXP Bluetooth LE Host will be documented in this file.
 
 **NXP Bluetooth LE Host Stack** is certified **Bluetooth 6.0**
 
-## [1.10.16] – mcux v2026-03-00-pvw2
+## [1.10.17] - mcux v2026-03-00
+
+### Added
+- Test mode functionality for the Intrusion Detection System
+- GAP API for HCI LE_Set_Local_Slave_Latency_Enable vendor command
+- 'gRasUseNotifOrInd_c' to allow configuration of Indication or Notification on RAS
+- `cs_sync_phy` argument to `setcsconfig` shell command
+- `snr_control_init` and `snr_control_refl` arguments to `setcsproc` shell command
+- Detailed description for `setcsconfig` and `setcsproc` command arguments to the CCC w/ CS and Localization applications notes
+- Mode0 step information parsing for both RAS and BTCS, made available for the export module
+
+### Improved
+- ATT Write Commands can now be sent at any time, as per specification
+- Enhanced CCC Channel Sounding by incorporating real-time remote data decompression
+- Localization applications now record the PHY used for establishing the connection and incorporate it into the CS procedure parameters configuration
+- Localization applications keep the `subevtStopIdx` for the remote data and provide it to the algorithm
+- Localization applications now pass remote mode map to algorithm
+- Eliminated the dependency on `hci_interface.h` in localization files
+- Documentation updates
+- Miscellaneous minor application bug fixes
+
+### Fixed
+- Wrong data field type in `GAP2GenericEventVendorSpecificDebugFatalError`
+- Localization application now processes CS results only when local data is available
+- Digital key car anchor application issue related to setting the GAP role prior to any use
+- Error in the definition of a CCC PSM VDBT Version GATT characteristic
+- Issue with PACKET_NADM byte not being packed correctly into the TOF buffer for mode-3 steps
+- MISRA fixes
+
+### Changed
+- Modified linker section names, comments, and RAM layout in the `connectivity.icf` and `connectivity_ble_loc.ld` files for every KW47 and MCXW72 board
+- Set the default CS submode and default `rtt_type` to 3
+- Set the default radio core speed for the Channel Sounding application to 48 MHz
+- Localization applications configured to use the extended heap as the final segment of DATA1
+- Deleted the `gcGapMaximumActiveConnections_c` definition from applications
+- Eliminated unused fields related to CS Test Mode
+- Deleted initializations of range settings that were subsequently overwritten
+
+### Supported Platforms
+
+- KW45, KW47, MCXW71, MCXW72, MCXW23
+
+## [1.10.16] - mcux v2026-03-00-pvw2
 
 ### Added
 - Implemented Bluetooth LE Host Transient Application Key feature (experimental). in ble_shell, loc_reader and loc_user_device

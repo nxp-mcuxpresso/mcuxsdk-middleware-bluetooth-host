@@ -2,13 +2,13 @@
   "SPDXID": "SPDXRef-DOCUMENT",
   "spdxVersion": "SPDX-2.3",
   "creationInfo": {
-    "created": "2026-01-26T13:03:26Z",
+    "created": "2026-02-18T10:13:19Z",
     "creators": [
       "Organization: NXP"
     ],
     "licenseListVersion": "3.26"
   },
-  "name": "Bluetooth_LE_Host_Stack-1.10.16",
+  "name": "Bluetooth_LE_Host_Stack-1.10.17",
   "dataLicense": "CC0-1.0",
   "hasExtractedLicensingInfos": [
     {
@@ -17,12 +17,12 @@
       "name": "LA_OPT_Online Code Hosting NXP_Software_License - v1.4 May 2025"
     }
   ],
-  "documentNamespace": "https://nxp.com/spdx/828932e6-4a02-4755-b512-0516af07bcd4",
+  "documentNamespace": "https://nxp.com/spdx/5adabb5c-6ef9-40a2-ba72-2116bc1dc7d6",
   "packages": [
     {
-      "SPDXID": "SPDXRef-package-828932e6-4a02-4755-b512-0516af07bcd4",
+      "SPDXID": "SPDXRef-package-5adabb5c-6ef9-40a2-ba72-2116bc1dc7d6",
       "name": "Bluetooth_LE_Host_Stack",
-      "versionInfo": "1.10.16",
+      "versionInfo": "1.10.17",
       "licenseConcluded": "(LicenseRef-babf777f-042b-42df-a5bf-638993427038)",
       "licenseDeclared": "(LicenseRef-babf777f-042b-42df-a5bf-638993427038)",
       "downloadLocation": "NOASSERTION",
@@ -39,9 +39,20 @@
       "licenseDeclared": "Apache-2.0",
       "homepage": "https://github.com/ARM-software/CMSIS_5",
       "downloadLocation": "NOASSERTION",
-      "originator": "Organization: CMSIS_5",
+      "originator": "Organization: arm-software",
       "supplier": "NOASSERTION",
-      "externalRefs": [],
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:github/ARM-software/CMSIS_5@5.9.0-rc",
+          "referenceType": "purl"
+        },
+        {
+          "referenceCategory": "OTHER",
+          "referenceLocator": "41d6113a-0731-4d2f-a476-160c9f29ea93",
+          "referenceType": "BlackDuck-ComponentOrigin"
+        }
+      ],
       "filesAnalyzed": false
     }
   ],
@@ -49,10 +60,10 @@
     {
       "spdxElementId": "SPDXRef-DOCUMENT",
       "relationshipType": "DESCRIBES",
-      "relatedSpdxElement": "SPDXRef-package-828932e6-4a02-4755-b512-0516af07bcd4"
+      "relatedSpdxElement": "SPDXRef-package-5adabb5c-6ef9-40a2-ba72-2116bc1dc7d6"
     },
     {
-      "spdxElementId": "SPDXRef-package-828932e6-4a02-4755-b512-0516af07bcd4",
+      "spdxElementId": "SPDXRef-package-5adabb5c-6ef9-40a2-ba72-2116bc1dc7d6",
       "relationshipType": "CONTAINS",
       "relatedSpdxElement": "SPDXRef-package-8c422e54-f505-433c-ace8-ad3e8df30c4b"
     }
