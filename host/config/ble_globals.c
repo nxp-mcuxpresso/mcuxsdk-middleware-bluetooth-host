@@ -321,7 +321,7 @@ secLibFunctions_t gSecLibFunctions = {ECDH_P256_FreeDhKeyDataSecure,
                                      SecLib_VerifyBluetoothAhSecure, 
                                      SecLib_GenerateBluetoothEIRKBlobSecure};
 #else
-const bool_t gUseS200 = 0U;
+const bool_t gUseS200 = FALSE;
 secLibFunctions_t gSecLibFunctions = {NULL, 
                                      NULL, 
                                      NULL, 
@@ -339,9 +339,9 @@ secLibFunctions_t gSecLibFunctions = {NULL,
  *  The host lib must be compiled with gHciCommandFlowControlSupport_d set TRUE
  *  to support it.*/
 #if defined(gAppHciCommandFlowControl_d) &&  (gAppHciCommandFlowControl_d == 1U)
-const bool_t gUseHciCommandFlowControl = 1U;
+const bool_t gUseHciCommandFlowControl = TRUE;
 #else
-const bool_t gUseHciCommandFlowControl = 0U;
+const bool_t gUseHciCommandFlowControl = FALSE;
 #endif
 
 /*! Allows an advertising set to advertise with a public address (if configured as such

@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*!
- * Copyright 2019-2025 NXP
+ * Copyright 2019-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -136,7 +136,7 @@
 /* Enable 5.3 optional features */
 #define gBLE53_d                            1
 
-#define gGapSimultaneousEAChainedReports_c  2
+#define gGapSimultaneousEAChainedReports_c  2U
 
 /* Max Services - update according to the usecase */
 #define gMaxServicesCount_d             6U

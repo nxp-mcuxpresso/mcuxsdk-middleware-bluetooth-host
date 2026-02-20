@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2021-2023 NXP
+* Copyright 2016-2019, 2021-2023, 2026 NXP
 *
 *
 * \file
@@ -390,16 +390,16 @@ void fsciBleGattDbAppHandler(void* pData, void* pParam, uint32_t fsciInterfaceId
 
 void fsciBleGattDbAppStatusMonitor(bleResult_t result)
 {
-    bool_t bContinueExecution  = TRUE;
 #if gFsciBleTest_d
+    bool_t bContinueExecution  = TRUE;
     /* If GATT Database (application) is disabled the status must be not monitored */
     if(bFsciBleGattDbAppEnabled == FALSE)
     {
         bContinueExecution  = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         fsciBleStatusMonitor(gFsciBleGattDbAppOpcodeGroup_c, (uint8_t)gBleGattDbAppStatusOpCode_c, result);
     }
@@ -947,17 +947,18 @@ void fsciBleGattDbAppReadAttributeEvtMonitor(uint8_t* aOutValue, uint16_t* pOutV
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
-    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
+
     /* If GATT Database (application) is disabled the event must be not monitored */
     if(bFsciBleGattDbAppEnabled == FALSE)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
          /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)gBleGattDbAppEvtReadAttributeValueOpCode_c,
@@ -981,17 +982,17 @@ void fsciBleGattDbAppUint16ParamEvtMonitor(fsciBleGattDbAppOpCode_t opCode, cons
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
-    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
     /* If GATT Database (application) is disabled the event must be not monitored */
     if(bFsciBleGattDbAppEnabled == FALSE)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGattDbAppAllocFsciPacket((uint8_t)opCode, sizeof(uint16_t));

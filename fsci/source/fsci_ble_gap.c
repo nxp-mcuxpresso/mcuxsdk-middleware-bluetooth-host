@@ -429,11 +429,11 @@ static const int16_t maGenericEvent2ToOpcode[]= {
     -1,                                                                                      /* reserved: 0x50U */
     (int16_t)gBleGapEvtGenericEventVendorUnitaryTestCompleteOpCode_c,                        /* = 0x51U, gVendorUnitaryTestComplete_c */
     (int16_t)gBleGapEvtGenericEventSetDataRelatedAddressChangesComplete_c,                   /* = 0x52U */
-#if ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE))
+#if (defined(gBLE50_d) && (gBLE50_d == 1U) && defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE))
     (int16_t)gBleGapPeriodicAdvUpdateSyncComplete_c,                                         /* = 0x53U, gLePeriodicAdvUpdateSyncComplete_c */
-#else /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
+#else /* (defined(gBLE50_d) && (gBLE50_d == 1U) && defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
     -1,                                                                                      /* reserved: 0x53U */
-#endif /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
+#endif /* (defined(gBLE50_d) && (gBLE50_d == 1U) && defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
 #if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
     (int16_t)gBleGapEvtGenericEventDeviceAddedToMonAdvListOpCode_c,                          /* = 0x54U, gDeviceAddedToMonAdvList_c */
     (int16_t)gBleGapEvtGenericEventDeviceRemovedFromMonAdvListOpCode_c,                      /* = 0x55U, gDeviceRemovedFromMonAdvList_c */
@@ -981,16 +981,16 @@ void fsciBleGapHandler(void* pData, void* param, uint32_t fsciInterfaceId)
 
 void fsciBleGapStatusMonitor(bleResult_t result)
 {
-    bool_t bContinueExecution = TRUE;
 #if gFsciBleTest_d
+    bool_t bContinueExecution = TRUE;
     /* If GAP is disabled the status must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
        /* Send status over UART */
        fsciBleStatusMonitor(gFsciBleGapOpcodeGroup_c, (uint8_t)gBleGapStatusOpCode_c, result);
@@ -3170,17 +3170,17 @@ void fsciBleGapBoolParamEvtMonitor(fsciBleGapOpCode_t opCode, bool_t bParam)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
-    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode, sizeof(bool_t));
@@ -3202,17 +3202,18 @@ void fsciBleGapArrayAndSizeParamEvtMonitor(fsciBleGapOpCode_t opCode, const uint
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
-    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
+
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)opCode, (sizeof(uint8_t) +
@@ -3241,17 +3242,17 @@ void fsciBleGapGetBondedDevIdentityInfoEvtMonitor(const gapIdentityInformation_t
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
     uint32_t                    iCount = 0U;
-    bool_t                      bContinueExecution = TRUE;
 
  #if gFsciBleTest_d
-   /* If GAP is disabled the event must be not monitored */
+    bool_t                      bContinueExecution = TRUE;
+    /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtGetBondedDevicesIdentityInformationOpCode_c,
@@ -3283,17 +3284,17 @@ void fsciBleGapLoadCustomPeerInfoEvtMonitor(const uint8_t* aOutInfo, uint16_t in
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
-    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
          /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtLoadCustomPeerInformationOpCode_c,
@@ -3321,17 +3322,17 @@ void fsciBleGapCheckIfBondedEvtMonitor
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
-    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtCheckIfBondedOpCode_c, sizeof(bool_t) + sizeof(uint8_t));
@@ -3357,17 +3358,17 @@ void fsciBleGapCheckNvmIndexEvtMonitor
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
-    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtCheckNvmIndexOpCode_c, sizeof(bool_t));
@@ -3392,17 +3393,17 @@ void fsciBleGapGetHostVersionEvtMonitor
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
-    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtGetHostVersionOpCode_c, 
@@ -3428,17 +3429,18 @@ void fsciBleGapGetDeviceIdFromConnHandleEvtMonitor
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
-    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
+
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtGetDeviceIdFromConnHandleOpCode_c, sizeof(deviceId_t));
@@ -3463,17 +3465,17 @@ void fsciBleGapGetConnectionHandleFromDeviceIdEvtMonitor
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
-    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
          /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtGetConnectionHandleFromDeviceIdOpCode_c, sizeof(uint16_t));
@@ -3501,9 +3503,9 @@ void fsciBleGapLoadKeysEvtMonitor
 {
     clientPacketStructured_t   *pClientPacket = NULL;
     uint8_t                    *pBuffer = NULL;
-    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
 
     /* If GAP is disabled the event must be not monitored */
     if (FALSE == bFsciBleGapEnabled)
@@ -3511,9 +3513,8 @@ void fsciBleGapLoadKeysEvtMonitor
         bContinueExecution = FALSE;
     }
 
-#endif /* gFsciBleTest_d */
-
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtLoadKeysOpCode_c,
@@ -3581,18 +3582,18 @@ void fsciBleGapGenericEvtMonitor(gapGenericEvent_t* pGenericEvent)
     fsciBleGapOpCode_t          opCode = gBleGapModeSelectOpCode_c;
     opGroup_t                   opGroup = gFsciBleGapOpcodeGroup_c;
     bool_t                      earlyReturn = FALSE;
-    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
     /* If GAP is disabled the event must be not monitored */
     if ((FALSE == bFsciBleGapEnabled) &&
         (gInitializationComplete_c != pGenericEvent->eventType))
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         /* Get FSCI opCode */
         tempOpCode = maGenericEventToOpcode[pGenericEvent->eventType];
@@ -3644,7 +3645,6 @@ void fsciBleGapAdvertisingEvtMonitor(gapAdvertisingEvent_t* pAdvertisingEvent)
     uint8_t*                    pBuffer = NULL;
     opGroup_t                   opGroup = gFsciBleGapOpcodeGroup_c;
     bool_t                      earlyReturn = FALSE;
-    bool_t                      bContinueExecution = TRUE;
     union {
         fsciBleGapOpCode_t      gap1Code;
         fsciBleGap2OpCode_t     gap2Code;
@@ -3653,14 +3653,16 @@ void fsciBleGapAdvertisingEvtMonitor(gapAdvertisingEvent_t* pAdvertisingEvent)
     opCode.gap1Code = gBleGapModeSelectOpCode_c;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
+
    /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         /* Get FSCI opCode */
         switch(pAdvertisingEvent->eventType)
@@ -3756,7 +3758,6 @@ void fsciBleGapScanningEvtMonitor(gapScanningEvent_t* pScanningEvent)
     uint8_t*                    pBuffer = NULL;
     opGroup_t                   opGroup = gFsciBleGapOpcodeGroup_c;
     bool_t                      earlyReturn = FALSE;
-    bool_t                      bContinueExecution = TRUE;
     union {
         fsciBleGapOpCode_t      gap1Code;
         fsciBleGap2OpCode_t     gap2Code;
@@ -3765,14 +3766,15 @@ void fsciBleGapScanningEvtMonitor(gapScanningEvent_t* pScanningEvent)
     opCode.gap1Code = gBleGapModeSelectOpCode_c;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         /* Get FSCI opCode */
         switch(pScanningEvent->eventType)
@@ -3894,17 +3896,17 @@ void fsciBleGapConnectionEvtMonitor(deviceId_t deviceId, gapConnectionEvent_t* p
     int16_t                     tempOpCode = 0;
     fsciBleGapOpCode_t          opCode = gBleGapModeSelectOpCode_c;
     bool_t                      earlyReturn = FALSE;
-    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
     /* If GAP is disabled the event must be not monitored */
     if(FALSE == bFsciBleGapEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         /* Get FSCI opCode */
         tempOpCode = maConnectionEventToOpcode[pConnectionEvent->eventType];

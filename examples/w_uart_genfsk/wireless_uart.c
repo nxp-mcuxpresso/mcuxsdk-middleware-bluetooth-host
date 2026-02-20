@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2024-2025 NXP
+* Copyright 2024-2026 NXP
 *
 *
 * \file
@@ -2071,7 +2071,7 @@ static void GenfskApp_EventHandler2(const gfskAppEventData_t *pAppData)
 
         default:
         {
-            ;
+            ; /* No action required */
         }
         break;
     }

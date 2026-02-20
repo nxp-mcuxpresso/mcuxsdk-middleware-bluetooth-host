@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2023, 2025 NXP
+* Copyright 2016-2023, 2025-2026 NXP
 *
 *
 * \file
@@ -125,6 +125,9 @@ static void BluetoothLEHost_Initialized(void)
 #if defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0) 
     /* Add post host initialization application configuration here. */
     BleApp_ChangeLowPowerModeConstraints(gAppLowPowerModeConstraints_c);
+#else
+    /* Misra protection */
+    (void)0;    
 #endif
 }
 

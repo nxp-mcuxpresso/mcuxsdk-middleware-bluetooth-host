@@ -254,13 +254,13 @@ void HandleGapCmdLoadCustomBondedDeviceInformationOpCode
     uint32_t fsciInterfaceId
 );
 
-#if ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE))
+#if (defined(gBLE50_d) && (gBLE50_d == 1U) && defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE))
 static void HandleGapCmdLePeriodicAdvUpdateSync
 (
     uint8_t *pBuffer,
     uint32_t fsciInterfaceId
 );
-#endif /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
+#endif /* (defined(gBLE50_d) && (gBLE50_d == 1U) && defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
 
 static void HandleGapCmdLeSetLocalPeripheralLatencyEnable
 (
@@ -393,11 +393,11 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
     NULL,
 #endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_KW47B42ZB7AFTA_cm33_core0)) */
     HandleGapCmdLoadCustomBondedDeviceInformationOpCode,                        /* = 0x17, gBleGapCmdLoadCustomBondedDeviceInformationOpCode_c */
-#if ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE))
+#if (defined(gBLE50_d) && (gBLE50_d == 1U) && defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE))
     HandleGapCmdLePeriodicAdvUpdateSync,                                        /* = 0x18, gBleGapCmdLePeriodicAdvUpdateSyncOpCode_c */
-#else /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
+#else /* (defined(gBLE50_d) && (gBLE50_d == 1U) && defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
     NULL,
-#endif /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
+#endif /* (defined(gBLE50_d) && (gBLE50_d == 1U) && defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
 #if (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE)
     HandleGapCmdAddDeviceToMonAdvList,                                          /* = 0x19, gBleGapCmdAddDeviceToMonAdvListOpCode_c */
     HandleGapCmdRemoveDeviceFromMonAdvList,                                     /* = 0x1A, gBleGapCmdRemoveDeviceFromMonAdvListOpCode_c */
@@ -1654,16 +1654,16 @@ void HandleGapEvtAdvertisingEventPerAdvResponseOpCode(uint8_t *pBuffer, uint32_t
 
 void fsciBleGap2StatusMonitor(bleResult_t result)
 {
-    bool_t bContinueExecution = TRUE;
 #if gFsciBleTest_d
+    bool_t bContinueExecution = TRUE; 
     /* If GAP is disabled the status must be not monitored */
     if(FALSE == bFsciBleGap2Enabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         /* Send status over UART */
         fsciBleStatusMonitor(gFsciBleGap2OpcodeGroup_c, (uint8_t)gBleGap2StatusOpCode_c, result);
@@ -1691,17 +1691,18 @@ void fsciBleCtrlDebugInfoCmdMonitor
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
-    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
+
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if(FALSE == bFsciBleGap2Enabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
          /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlDebugInfoOpCode_c, sizeof(debugInfoSize) + debugInfoSize); /* sizeof debugInfoSize +
@@ -1745,17 +1746,17 @@ void fsciBleCtrlGetTimestampExCmdMonitor
 {
     clientPacketStructured_t   *pClientPacket;
     uint8_t                    *pBuffer;
-    bool_t                     bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                     bContinueExecution = TRUE;
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if(FALSE == bFsciBleGap2Enabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGap2AllocFsciPacket((uint8_t)gBleCtrlEvtGetTimestampExOpCode_c,
@@ -2371,7 +2372,7 @@ void HandleGapCmdLoadCustomBondedDeviceInformationOpCode(uint8_t *pBuffer, uint3
     }
 }
 
-#if ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE))
+#if (defined(gBLE50_d) && (gBLE50_d == 1U) && defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE))
 /*! *********************************************************************************
 *\private
 *\fn           void HandleGapCmdLePeriodicAdvUpdateSync(uint8_t *pBuffer,
@@ -2400,7 +2401,7 @@ static void HandleGapCmdLePeriodicAdvUpdateSync
 
     fsciBleGap2CallApiFunction(Gap_LePeriodicAdvUpdateSync(syncHandle, skip, syncTimeout));
 }
-#endif /* ((gBLE50_d == 1U) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
+#endif /* (defined(gBLE50_d) && (gBLE50_d == 1U) && defined(gBLE50_PeriodicAdvSupport_d) && (gBLE50_PeriodicAdvSupport_d == TRUE)) */
 
 /*! *********************************************************************************
 *\private

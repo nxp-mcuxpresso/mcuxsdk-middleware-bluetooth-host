@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -859,16 +859,16 @@ void fsciBleGattHandler(void* pData, void* pParam, uint32_t fsciInterfaceId)
 
 void fsciBleGattStatusMonitor(bleResult_t result)
 {
-    bool_t bContinueExecution = TRUE;
 #if gFsciBleTest_d
+    bool_t bContinueExecution = TRUE;
     /* If GATT is disabled the status must be not monitored */
     if(FALSE == bFsciBleGattEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         if(TRUE == bGattClientRequestWithOutParameters)
         {
@@ -1790,17 +1790,17 @@ void fsciBleGattGetMtuEvtMonitor(uint16_t* pOutMtu)
 {
     clientPacketStructured_t*   pClientPacket = NULL;
     uint8_t*                    pBuffer = NULL;
-    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
     /* If GATT is disabled the event must be not monitored */
     if(FALSE == bFsciBleGattEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleGattAllocFsciPacket((uint8_t)gBleGattEvtGetMtuOpCode_c, sizeof(uint16_t));
@@ -1862,17 +1862,17 @@ void fsciBleGattClientNotificationOrIndicationEvtMonitor(fsciBleGattOpCode_t opC
     uint8_t*                    pBuffer = NULL;
     uint32_t                    dataSize = fsciBleGetDeviceIdBufferSize(&deviceId) + sizeof(uint16_t) +
                                                         sizeof(uint16_t) + (uint32_t)valueLength;
-    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
     /* If GATT is disabled the event must be not monitored */
     if(FALSE == bFsciBleGattEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         if (bearerId != gUnenhancedBearerId_c)
         {
@@ -1913,16 +1913,17 @@ void fsciBleGattClientMultipleValueNotificationEvtMonitor(deviceId_t  deviceId, 
     uint8_t                     *pCrtPos = NULL;
     fsciBleGattOpCode_t         opCode = gBleGattEvtClientMultipleValueNotificationOpCode_c;
     uint16_t                    dataSize = (uint16_t)(fsciBleGetDeviceIdBufferSize(&deviceId) + sizeof(uint16_t) + totalLength);
-    bool_t                      bContinueExecution = TRUE;
+
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
     /* If GATT is disabled the event must be not monitored */
     if(FALSE == bFsciBleGattEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         if (bearerId != gUnenhancedBearerId_c)
         {
@@ -1976,17 +1977,18 @@ void fsciBleGattServerEvtMonitor(deviceId_t deviceId, bearerId_t bearerId, gattS
     uint8_t*                    pBuffer = NULL;
     fsciBleGattOpCode_t         opCode = gBleGattEvtClientNotificationOpCode_c;
     bool_t                      earlyReturn = FALSE;
-    bool_t                      bContinueExecution = TRUE;
 
 #if gFsciBleTest_d
+    bool_t                      bContinueExecution = TRUE;
+
     /* If GATT is disabled the event must be not monitored */
     if(FALSE == bFsciBleGattEnabled)
     {
         bContinueExecution = FALSE;
     }
-#endif /* gFsciBleTest_d */
 
     if (bContinueExecution)
+#endif /* gFsciBleTest_d */
     {
         /* Get the FSCI opcode */
         switch(pServerEvent->eventType)

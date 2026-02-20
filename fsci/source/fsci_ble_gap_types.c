@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -977,19 +977,16 @@ gapAdvertisingData_t* fsciBleGapAllocAdvertisingDataForBuffer(uint8_t* pBuffer)
         pAdvertisingData->aAdStructures = advertisingVars.aAdStructuresTemp;
         pData                           = (uint8_t*)pAdvertisingData->aAdStructures + nbOfAdStructures * sizeof(gapAdStructure_t);
 
-        if(nbOfAdStructures > 0U)
+        /* Set data pointer in each AdStructure */
+        for(iCount = 0U; iCount < nbOfAdStructures; iCount++)
         {
-            /* Set data pointer in each AdStructure */
-            for(iCount = 0U; iCount < nbOfAdStructures; iCount++)
-            {
-                pAdvertisingData->aAdStructures[iCount].aData = pData;
+            pAdvertisingData->aAdStructures[iCount].aData = pData;
 
-                pData += aDataSizeArray[iCount];
-            }
-
-            /* Free the buffer used to keep the AdStructures lengths */
-            (void)MEM_BufferFree(aDataSizeArray);
+            pData += aDataSizeArray[iCount];
         }
+
+        /* Free the buffer used to keep the AdStructures lengths */
+        (void)MEM_BufferFree(aDataSizeArray);
     }
     else
     {
