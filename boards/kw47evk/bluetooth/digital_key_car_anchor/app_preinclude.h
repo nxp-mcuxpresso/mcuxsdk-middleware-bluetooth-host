@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*!
- * Copyright 2020-2025 NXP
+ * Copyright 2020-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -175,6 +175,9 @@
 
 /* See documentation on how to enable experimental feature IDS */
 #define gIntrusionDetectionSystem_d                       FALSE
+
+/* Enable testing mode for Intrusion Detection System */
+#define gIntrusionDetectionSystemTestMode_d               FALSE
 /*! *********************************************************************************
  *  Auto Configuration
  ********************************************************************************** */

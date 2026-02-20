@@ -60,3 +60,13 @@ if(CONFIG_MCUX_PRJSEG_module.wireless.ble.app_common)
         COMPONENTS component.osa_bm
     )
 endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ids_test)
+    mcux_add_source(
+        SOURCES ids_test/ids_test.c
+                ids_test/ids_test.h
+    )
+    mcux_add_include(
+        INCLUDES ids_test
+    )
+endif()

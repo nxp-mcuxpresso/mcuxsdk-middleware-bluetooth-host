@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file app_digital_key_car_anchor.c
 *
-* Copyright 2021-2025 NXP
+* Copyright 2021-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -52,7 +52,6 @@
 #include "app_a2b.h"
 
 #include "controller_api.h"
-
 /************************************************************************************
 *************************************************************************************
 * Private macros
@@ -1885,8 +1884,10 @@ static void BleApp_IdsCallback(idsEventData_t *pEventData)
     shell_writeDec((uint32_t)pEventData->type);
     shell_write(" triggered by peer ");
     shell_writeHex(pEventData->aAddr, gcBleDeviceAddressSize_c);
+    shell_write("\r\n");
+    shell_cmd_finished();
 }
-#endif /* gIntrusionDetectionSystem_d */
+#endif /* defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U) */
 /*! *********************************************************************************
 * @}
 ********************************************************************************** */

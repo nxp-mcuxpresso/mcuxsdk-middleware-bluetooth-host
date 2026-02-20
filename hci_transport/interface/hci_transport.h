@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2017, 2019-2023 NXP
+* Copyright 2017, 2019-2023, 2026 NXP
 *
 *
 * \file
@@ -174,6 +174,25 @@ bleResult_t Hcit_RecvPacket(void* pPacket, uint16_t packetSize);
 ********************************************************************************** */
 bleResult_t Hcit_RegisterGfskEventCallback(hciToGenfskInterface_t pfGfskEventCallback);
 #endif /* defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1) */
+
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+/*! *********************************************************************************
+* \brief          Injects a packet into the HCI receive path for IDS testing.
+*
+* \param  [in]    packetType             HCI packet type.
+* \param  [in]    pPacket                Pointer to the packet payload.
+* \param  [in]    packetSize             Packet payload size.
+*
+* \retval         gBleSuccess_c          Packet is successfully injected.
+* \retval         gHciTransportError_c   Packet injection failed.
+********************************************************************************** */
+bleResult_t Hcit_InjectPacket
+(
+    hciPacketType_t packetType,
+    void*           pPacket,
+    uint16_t        packetSize
+);
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
 
 #endif /*gUseHciTransportDownward_d || gUseHciTransportUpward_d*/
 

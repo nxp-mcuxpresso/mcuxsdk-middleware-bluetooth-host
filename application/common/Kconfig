@@ -1,4 +1,4 @@
-# Copyright 2024 NXP
+# Copyright 2024-2026 NXP
 # SPDX-License-Identifier: BSD-3-Clause
 
 config MCUX_PRJSEG_module.wireless.ble.app_common
@@ -18,3 +18,6 @@ config MCUX_PRJSEG_module.wireless.ble.app_common
     select MCUX_COMPONENT_middleware.wireless.ble_hci_transport_rpmsg
     select MCUX_COMPONENT_middleware.wireless.controller_api
     select MCUX_COMPONENT_component.messaging
+
+config MCUX_COMPONENT_middleware.wireless.ids_test
+    bool "Test_Intrusion_Detection_System"

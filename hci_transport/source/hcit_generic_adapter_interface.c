@@ -18,6 +18,10 @@
 #include "hci_transport.h"
 #include "fsl_os_abstraction.h"
 
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+#include "ids_test.h"
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
+
 /************************************************************************************
 *************************************************************************************
 * Private macros
@@ -362,6 +366,42 @@ bleResult_t Hcit_RegisterGfskEventCallback(hciToGenfskInterface_t pfGfskEventCal
 }
 #endif /* defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1) */
 
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+/*! *********************************************************************************
+* \brief          Injects a packet into the HCI receive path for IDS testing.
+*
+* \param  [in]    packetType             HCI packet type.
+* \param  [in]    pPacket                Pointer to the packet payload.
+* \param  [in]    packetSize             Packet payload size.
+*
+* \retval         gBleSuccess_c          Packet is successfully injected.
+* \retval         gHciTransportError_c   Packet injection failed.
+********************************************************************************** */
+bleResult_t Hcit_InjectPacket
+(
+    hciPacketType_t packetType,
+    void*           pPacket,
+    uint16_t        packetSize
+)
+{
+    bleResult_t result = gBleSuccess_c;
+
+    assert(mHcitInit == TRUE);
+    assert(pPacket != NULL);
+
+    if (packetSize > HCI_BUFFER_SIZE)
+    {
+        result = gHciTransportError_c;
+    }
+    else
+    {
+        /* Call the same RX callback used for real packets from controller */
+        Hcit_RxCallBack((uint8_t)packetType, (uint8_t*)pPacket, packetSize);
+    }
+
+    return result;
+}
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
 /************************************************************************************
 *************************************************************************************
 * Private functions
@@ -384,6 +424,15 @@ static void Hcit_RxCallBack(uint8_t packetType, uint8_t *data, uint16_t len)
     assert(pHciReadBuffer != NULL);
 
     FLib_MemCpy(pHciReadBuffer, data, len);
+
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+    /* IDS Test: Intercept and modify pairing messages if hook is active */
+    if ((packetType == (uint8_t)gHciDataPacket_c) && IdsTest_IsPairingHookActive())
+    {
+        /* Process and potentially modify the pairing message in pHciReadBuffer */
+        (void)IdsTest_ProcessPairingMessage(pHciReadBuffer, len);
+    }
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
 
 #if defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1)
     bool_t found = FALSE;

@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file shell_digital_key_car_anchor.c
 *
-* Copyright 2021-2025 NXP
+* Copyright 2021-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -29,6 +29,11 @@
 #include "app_conn.h"
 #include "digital_key_car_anchor.h"
 #include "shell_digital_key_car_anchor.h"
+
+/* Intrusion Detection System */
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+#include "ids_test.h"
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
 
 /************************************************************************************
 *************************************************************************************
@@ -67,8 +72,23 @@ static shell_status_t ShellHandoverPacketMonitor_Command(shell_handle_t shellHan
 static shell_status_t ShellHandoverDevId_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 #endif /* gHandoverDemo_d */
 
+/* Intrusion Detection System*/
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+static shell_status_t ShellIdsTest_ParseEventBit(char * argv[], uint8_t* pEventBit, uint32_t* pEventBitMask);
+static void ShellIdsTest_DisplayBit6Note(uint32_t eventBitMask);
+static shell_status_t ShellIdsTest_ProcessConnectionCategory(uint8_t eventBit, uint32_t eventBitMask, deviceId_t* pDeviceId);
+static shell_status_t ShellIdsTest_ValidateDeviceId(int32_t argc, char * argv[], deviceId_t* pDeviceId);
+static shell_status_t ShellIdsTest_FindConnectedDevice(deviceId_t* pDeviceId);
+static shell_status_t ShellIdsTest_ProcessPairingEvent(uint8_t eventBit, uint32_t eventBitMask, deviceId_t deviceId);
+static shell_status_t ShellIdsTest_ProcessConnectionEvent(uint8_t eventBit, uint32_t eventBitMask, deviceId_t deviceId);
+static shell_status_t ShellIdsTest_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
+
 static uint8_t BleApp_ParseHexValue(char* pInput);
 static uint32_t BleApp_AsciiToHex(char *pString, uint32_t strLen);
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+static uint32_t BleApp_AsciiToDec(char *pString, uint32_t strLen);
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
 static void ShellResetTimeoutTimerCallback(void* pParam);
 #endif /* gAppUseShellInApplication_d */
 /************************************************************************************
@@ -196,9 +216,30 @@ static shell_command_t mHandoverDevIdCmd =
 };
 #endif /* gHandoverDemo_d */
 
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+static shell_command_t mIdsTestCmd =
+{
+    .pcCommand = "idstest",
+    .cExpectedNumberOfParameters = SHELL_IGNORE_PARAMETER_COUNT,
+    .pFuncCallBack = ShellIdsTest_Command,
+    .pcHelpString = "\r\n\"idstest\": Trigger IDS security event for testing.\r\n"
+                    "Usage: idstest <event_bit> [device_id]\r\n",
+};
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
+
 #endif /* gAppUseShellInApplication_d */
 
 static TIMER_MANAGER_HANDLE_DEFINE(mResetTmrId);
+
+/************************************************************************************
+*************************************************************************************
+* External declarations
+*************************************************************************************
+************************************************************************************/
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+/* External declaration for Host stack global - used for IDS test mode validation */
+extern bool_t gAutoRejectLtkRequestForUnbondedDevices;
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
 
 /************************************************************************************
 *************************************************************************************
@@ -242,8 +283,13 @@ void AppShellInit(char* prompt)
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mRemoveBondedDevCmd);
     assert(kStatus_SHELL_Success == status);
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mListActiveDevCmd);
-    assert(kStatus_SHELL_Success == status);   
-       
+    assert(kStatus_SHELL_Success == status);
+
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mIdsTestCmd);
+    assert(kStatus_SHELL_Success == status);
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
+
 #if defined(gHandoverDemo_d) && (gHandoverDemo_d == 1)
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mHandoverSendL2capCmd);
     assert(kStatus_SHELL_Success == status);
@@ -1009,4 +1055,392 @@ static uint32_t BleApp_AsciiToHex(char *pString, uint32_t strLen)
 
     return retValue;
 }
+
 #endif
+
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+/*!*************************************************************************************************
+ *  \brief  Converts a string into decimal.
+ *
+ *  \param  [in]    pString     pointer to string
+ *  \param  [in]    strLen      string length
+ *
+ * \return  uint32_t value in dec
+ **************************************************************************************************/
+static uint32_t BleApp_AsciiToDec(char *pString, uint32_t strLen)
+{
+    uint32_t length = strLen;
+    uint32_t retValue = 0U;
+
+    while ((length != 0U) && (pString != NULL))
+    {
+        if (*pString >= '0' && *pString <= '9')
+        {
+            retValue = (retValue * 10U) + (uint32_t)(*pString - '0');
+        }
+        else
+        {
+            break;
+        }
+
+        pString++;
+        length--;
+    }
+
+    return retValue;
+}
+
+/*! *********************************************************************************
+* \brief        Parse and validate event bit parameter.
+*
+* \param[in]    argv            Pointer to arguments
+* \param[out]   pEventBit       Pointer to store event bit
+* \param[out]   pEventBitMask   Pointer to store event bit mask
+*
+* \return       shell_status_t  Returns the command processing status
+********************************************************************************** */
+static shell_status_t ShellIdsTest_ParseEventBit(char * argv[], uint8_t* pEventBit, uint32_t* pEventBitMask)
+{
+    shell_status_t status = kStatus_SHELL_Success;
+
+    /* Convert ASCII decimal string to event bit number */
+    *pEventBit = (uint8_t)BleApp_AsciiToDec(argv[1], FLib_StrLen(argv[1]));
+
+    /* Validate event bit is within valid range (0-31) */
+    if (*pEventBit >= 32U)
+    {
+        /* Event bit exceeds maximum allowed value */
+        shell_write("\r\nInvalid event bit (must be 0-31).\r\n");
+        status = kStatus_SHELL_Error;
+    }
+
+    /* Calculate bit mask from event bit number */
+    if (status == kStatus_SHELL_Success)
+    {
+        /* Convert bit position to bit mask */
+        *pEventBitMask = (1UL << *pEventBit);
+    }
+
+    return status;
+}
+
+/*! *********************************************************************************
+* \brief        Display special notes for BIT6 event.
+*
+* \param[in]    eventBitMask    Event bit mask
+*
+* \return       void
+********************************************************************************** */
+static void ShellIdsTest_DisplayBit6Note(uint32_t eventBitMask)
+{
+    /* Check if this is the Encryption Request from Non-Bonded Device event (BIT6) */
+    if (eventBitMask == (uint32_t)gSecEvt_EncReqNonBonded_c)
+    {
+        shell_write("\r\n[Note: BIT6 can be triggered naturally: bond -> factoryreset on anchor -> reconnect]\r\n");
+
+        if (gAutoRejectLtkRequestForUnbondedDevices == FALSE)
+        {
+            shell_write("\r\nPlease set gBleHostAutoRejectLtkRequestForUnbondedDevices_c to TRUE\r\n");
+        }
+    }
+}
+
+/*! *********************************************************************************
+* \brief        Process connection category events.
+*
+* \param[in]    eventBit        Event bit number
+* \param[in]    eventBitMask    Event bit mask
+* \param[in,out] pDeviceId      Pointer to device ID
+*
+* \return       shell_status_t  Returns the command processing status
+********************************************************************************** */
+static shell_status_t ShellIdsTest_ProcessConnectionCategory(uint8_t eventBit, uint32_t eventBitMask, deviceId_t* pDeviceId)
+{
+    shell_status_t status = kStatus_SHELL_Success;
+
+    /* Check if device ID was not specified by user */
+    if (*pDeviceId == gInvalidDeviceId_c)
+    {
+        /* Find first connected device automatically */
+        status = ShellIdsTest_FindConnectedDevice(pDeviceId);
+    }
+
+    /* Trigger the connection event if device is available */
+    if (status == kStatus_SHELL_Success)
+    {
+        /* Execute the IDS test event for the connection category */
+        status = ShellIdsTest_ProcessConnectionEvent(eventBit, eventBitMask, *pDeviceId);
+    }
+
+    return status;
+}
+
+/*! *********************************************************************************
+* \brief        Validate and parse device ID from command arguments.
+*
+* \param[in]    argc            Number of arguments
+* \param[in]    argv            Pointer to arguments
+* \param[out]   pDeviceId       Pointer to store device ID
+*
+* \return       shell_status_t  Returns the command processing status
+********************************************************************************** */
+static shell_status_t ShellIdsTest_ValidateDeviceId(int32_t argc, char * argv[], deviceId_t* pDeviceId)
+{
+    shell_status_t status = kStatus_SHELL_Success;
+    uint8_t requestedDevId;
+    bool_t found = FALSE;
+
+    /* Check if device ID parameter was provided */
+    if (argc < 3)
+    {
+        /* No device ID specified - will use default or find connected device later */
+        status = kStatus_SHELL_Success;
+    }
+    else
+    {
+        /* Parse device ID from command line argument */
+        requestedDevId = (uint8_t)BleApp_AsciiToDec(argv[2], FLib_StrLen(argv[2]));
+
+        /* Validate device ID is within allowed range */
+        if (requestedDevId >= (uint8_t)gAppMaxConnections_c)
+        {
+            /* Device ID exceeds maximum connections */
+            shell_write("\r\nInvalid device_id (must be 0-");
+            shell_writeDec((uint32_t)gAppMaxConnections_c - 1U);
+            shell_write(").\r\n");
+            status = kStatus_SHELL_Error;
+        }
+
+        /* Search for the device in the peer information table */
+        if (status == kStatus_SHELL_Success)
+        {
+            /* Iterate through all possible connections */
+            for (uint8_t i = 0U; i < (uint8_t)gAppMaxConnections_c; i++)
+            {
+                /* Check if this slot has a valid device with matching ID */
+                if ((maPeerInformation[i].deviceId != gInvalidDeviceId_c) &&
+                    (maPeerInformation[i].deviceId == requestedDevId))
+                {
+                    /* Device found - store the ID */
+                    *pDeviceId = requestedDevId;
+                    found = TRUE;
+                    break;
+                }
+            }
+
+            /* Check if requested device was found */
+            if (!found)
+            {
+                /* Device ID is valid but device is not connected */
+                shell_write("\r\nDevice ");
+                shell_writeDec((uint32_t)requestedDevId);
+                shell_write(" is not connected.\r\n");
+                status = kStatus_SHELL_Error;
+            }
+        }
+    }
+
+    return status;
+}
+
+/*! *********************************************************************************
+* \brief        Find first connected device.
+*
+* \param[out]   pDeviceId       Pointer to store device ID
+*
+* \return       shell_status_t  Returns the command processing status
+********************************************************************************** */
+static shell_status_t ShellIdsTest_FindConnectedDevice(deviceId_t* pDeviceId)
+{
+    shell_status_t status = kStatus_SHELL_Success;
+    bool_t found = FALSE;
+
+    /* Search through all connection slots for an active device */
+    for (uint8_t i = 0U; i < (uint8_t)gAppMaxConnections_c; i++)
+    {
+        /* Check if this slot contains a valid connected device */
+        if (maPeerInformation[i].deviceId != gInvalidDeviceId_c)
+        {
+            /* Found a connected device - use this one */
+            *pDeviceId = maPeerInformation[i].deviceId;
+            found = TRUE;
+            break;
+        }
+    }
+
+    /* Check if any connected device was found */
+    if (!found)
+    {
+        /* No active connections available */
+        shell_write("\r\nNo active connection found.\r\n");
+        shell_write("Please connect a device first or specify device_id.\r\n");
+        status = kStatus_SHELL_Error;
+    }
+
+    return status;
+}
+
+/*! *********************************************************************************
+* \brief        Handle pairing category IDS events.
+*
+* \param[in]    eventBit        Event bit number
+* \param[in]    eventBitMask    Event bit mask
+* \param[in]    deviceId        Device ID
+*
+* \return       shell_status_t  Returns the command processing status
+********************************************************************************** */
+static shell_status_t ShellIdsTest_ProcessPairingEvent(uint8_t eventBit, uint32_t eventBitMask, deviceId_t deviceId)
+{
+    shell_status_t status = kStatus_SHELL_Success;
+    bleResult_t result;
+    deviceId_t targetDeviceId = deviceId;
+
+    /* Display pairing event activation message */
+    shell_write("\r\n[IDS TEST] Pairing event BIT");
+    shell_writeDec((uint32_t)eventBit);
+    shell_write(" (mask 0x");
+    shell_writeHex((uint8_t*)&eventBitMask, (uint8_t)sizeof(uint32_t));
+    shell_write(") will be triggered on next pairing");
+
+    /* Display target device ID if specified */
+    if (targetDeviceId != gInvalidDeviceId_c)
+    {
+        shell_write(" for device ");
+        shell_writeDec((uint32_t)targetDeviceId);
+    }
+
+    /* Display instructions for triggering the event */
+    shell_write(".\r\n");
+    shell_write("[IDS TEST] Hook activated. Now run 'sd op' to start Owner Pairing.\r\n");
+
+    /* Use default device ID if not specified */
+    if (targetDeviceId == gInvalidDeviceId_c)
+    {
+        /* Default to device 0 for pairing events */
+        targetDeviceId = 0U;
+    }
+
+    /* Activate the pairing hook for the specified event */
+    result = IdsTest_ActivatePairingHook(targetDeviceId, eventBitMask);
+
+    /* Check if hook activation was successful */
+    if (result != gBleSuccess_c)
+    {
+        /* Hook activation failed */
+        shell_write("\r\nFailed to activate pairing hook.\r\n");
+        status = kStatus_SHELL_Error;
+    }
+
+    return status;
+}
+
+/*! *********************************************************************************
+* \brief        Handle connection category IDS events.
+*
+* \param[in]    eventBit        Event bit number
+* \param[in]    eventBitMask    Event bit mask
+* \param[in]    deviceId        Device ID
+*
+* \return       shell_status_t  Returns the command processing status
+********************************************************************************** */
+static shell_status_t ShellIdsTest_ProcessConnectionEvent(uint8_t eventBit, uint32_t eventBitMask, deviceId_t deviceId)
+{
+    shell_status_t status = kStatus_SHELL_Success;
+    bleResult_t result;
+
+    /* Trigger the IDS test event immediately */
+    result = IdsTest_TriggerEvent(deviceId, eventBitMask);
+
+    /* Check if event was triggered successfully */
+    if (result == gBleSuccess_c)
+    {
+        /* Display success message with event details */
+        shell_write("\r\n[IDS TEST] Event BIT");
+        shell_writeDec((uint32_t)eventBit);
+        shell_write(" (mask 0x");
+        shell_writeHex((uint8_t*)&eventBitMask, (uint8_t)sizeof(uint32_t));
+        shell_write(") triggered for device ");
+        shell_writeDec((uint32_t)deviceId);
+        shell_write(".\r\n");
+    }
+    else
+    {
+        /* Display error message with error code */
+        shell_write("\r\nFailed to trigger IDS event. Error code: 0x");
+        shell_writeHex((uint8_t*)&result, (uint8_t)sizeof(bleResult_t));
+        shell_write("\r\n");
+        status = kStatus_SHELL_Error;
+    }
+
+    return status;
+}
+
+/*! *********************************************************************************
+* \brief        Trigger IDS test event.
+*
+* \param[in]    shellHandle     Shell handle
+* \param[in]    argc            Number of arguments
+* \param[in]    argv            Pointer to arguments
+*
+* \return       shell_status_t  Returns the command processing status
+********************************************************************************** */
+static shell_status_t ShellIdsTest_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
+{
+    shell_status_t status = kStatus_SHELL_Success;
+    uint8_t eventBit = 0U;
+    uint32_t eventBitMask = 0U;
+    deviceId_t deviceId = gInvalidDeviceId_c;
+    uint8_t category;
+
+    /* Validate minimum number of arguments */
+    if (argc < 2)
+    {
+        /* Display usage information */
+        shell_write("\r\nUsage: idstest <event_bit> [device_id]\r\n");
+        status = kStatus_SHELL_Error;
+    }
+
+    /* Parse and validate the event bit parameter */
+    if (status == kStatus_SHELL_Success)
+    {
+        /* Convert event bit string to number and calculate bit mask */
+        status = ShellIdsTest_ParseEventBit(argv, &eventBit, &eventBitMask);
+    }
+
+    /* Validate optional device ID parameter */
+    if (status == kStatus_SHELL_Success)
+    {
+        /* Check if device ID is valid and device is connected */
+        status = ShellIdsTest_ValidateDeviceId(argc, argv, &deviceId);
+    }
+
+    /* Display special notes for specific events */
+    if (status == kStatus_SHELL_Success)
+    {
+        /* Show BIT6 specific information if applicable */
+        ShellIdsTest_DisplayBit6Note(eventBitMask);
+    }
+
+    /* Process the event based on its category */
+    if (status == kStatus_SHELL_Success)
+    {
+        /* Determine if this is a pairing or connection event */
+        category = IDS_GET_EVENT_CATEGORY(eventBitMask);
+        
+        /* Handle pairing events differently from connection events */
+        if (category == IDS_EVENT_CATEGORY_PAIRING)
+        {
+            /* Activate hook for pairing events */
+            status = ShellIdsTest_ProcessPairingEvent(eventBit, eventBitMask, deviceId);
+        }
+        else
+        {
+            /* Trigger connection events immediately */
+            status = ShellIdsTest_ProcessConnectionCategory(eventBit, eventBitMask, &deviceId);
+        }
+    }
+
+    return status;
+}
+
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
