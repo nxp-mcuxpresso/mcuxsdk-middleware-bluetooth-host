@@ -158,7 +158,9 @@ static bleResult_t HandleAnchorSearchStarted(gapGenericEvent_t* pGenericEvent, a
 static void HandleAnchorSearchStopped(gapGenericEvent_t *pGenericEvent);
 static void HandleAnchorMonitorPacketContinueEvent(gapGenericEvent_t *pGenericEvent);
 static bleResult_t HandleSuspendTransmitComplete(gapGenericEvent_t *pGenericEvent, appHandoverError_t *pError);
+#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1)
 static bleResult_t HandleGetCsLlContextComplete(gapGenericEvent_t *pGenericEvent);
+#endif /* defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1) */
 static bleResult_t HandleAnchorMonitorEvent(gapGenericEvent_t* pGenericEvent, appHandoverError_t *pError);
 static bleResult_t HandleGetConnParamsComplete(gapGenericEvent_t *pGenericEvent, appHandoverError_t *pError);
 static void HandleHandoverConnParamUpdateEvent(gapGenericEvent_t *pGenericEvent);
@@ -173,8 +175,10 @@ static bleResult_t HandleSkdReportEvent(gapGenericEvent_t *pGenericEvent);
 #endif
 static void HandleError(bleResult_t result, appHandoverError_t error);
 static bleResult_t HandleStopTimeSyncCommand(appHandoverError_t *pError);
+#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1)
 static bleResult_t HandleCsLlContextCommand(uint8_t *pCmdData, appHandoverError_t *pError);
 static bleResult_t HandleCsContextCompletedCommand(appHandoverError_t *pError);
+#endif /* defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1) */
 static bleResult_t HandleLlPendingDataCommand(uint8_t *pCmdData, appHandoverError_t *pError);
 static bleResult_t HandleDataCommand(uint32_t cmdLen, uint8_t *pCmdData, appHandoverError_t *pError);
 static bleResult_t HandleAnchorStartSearchCommand(uint8_t *pCmdData, appHandoverError_t *pError);
@@ -1519,6 +1523,7 @@ static bleResult_t HandleSuspendTransmitComplete
     return result;
 }
 
+#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1)
 /*! ********************************************************************************************************************
 *\fn            static bleResult_t HandleGetCsLlContextComplete(gapGenericEvent_t *pGenericEvent)
 *\brief         Handle get CS LL context complete event
@@ -1548,6 +1553,7 @@ static bleResult_t HandleGetCsLlContextComplete
     }
     return result;
 }
+#endif /* defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1) */
 
 /*! ********************************************************************************************************************
 *\fn            static bleResult_t HandleAnchorMonitorEvent(gapGenericEvent_t* pGenericEvent, appHandoverError_t *pError)
