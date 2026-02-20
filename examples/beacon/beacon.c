@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2024, 2026 NXP
 *
 *
 * \file
@@ -549,18 +549,6 @@ static void BleApp_HandleKeys(key_event_t events)
 }
 #endif /* defined(gBeaconAE_c) && (gBeaconAE_c) */
 #endif /*(defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))*/
-
-/*! *********************************************************************************
-* \brief  This is a dummy callback to allow using app_advertiser.c without app_connection.c
-********************************************************************************** */
-void App_ConnectionCallback
-(
-    deviceId_t            peerDeviceId,
-    gapConnectionEvent_t* pConnectionEvent
-)
-{
-    return;
-}
 
 /*! *********************************************************************************
 * @}

@@ -132,6 +132,13 @@ extern const pfGap2OpCodeHandler_t maGap2EvtOpCodeHandlers[];
 extern const uint32_t maGap2EvtOpCodeHandlersArraySize;
 #endif /* gFsciBleHost_d */
 
+#if gFsciBleBBox_d || gFsciBleTest_d
+/*! Array of handlers for GAP2 command opcodes */
+extern const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[];
+
+/*! Size of maGap2CmdOpCodeHandlers array */
+extern const uint32_t maGap2CmdOpCodeHandlersArraySize;
+#endif /* gFsciBleBBox_d || gFsciBleTest_d */
 /************************************************************************************
 *************************************************************************************
 * Public prototypes

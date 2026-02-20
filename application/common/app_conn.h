@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2020-2025 NXP
+* Copyright 2020-2026 NXP
 *
 *
 *
@@ -168,6 +168,12 @@ typedef void (*appBluetoothLEInitCompleteCallback_t)(void);
 extern gapConnectionCallback_t  pfConnCallback;
 extern OSA_EVENT_HANDLE_DEFINE(mAppEvent);
 extern messaging_t mHostAppInputQueue;
+/* Advertising callback - set when advertising is used */
+extern gapAdvertisingCallback_t pfAdvCallback;
+/* Scanning callback - set when scanning is used */
+extern gapScanningCallback_t    pfScanCallback;
+/* Advertiser handler - set when advertising events need handling */
+extern appAdvertiserHandler_t   pfAdvertiserHandler;
 
 /*! *********************************************************************************
 *************************************************************************************

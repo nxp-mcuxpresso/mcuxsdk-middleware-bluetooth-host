@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2024-2025 NXP
+* Copyright 2024-2026 NXP
 *
 *
 *
@@ -41,8 +41,6 @@ typedef struct appExtAdvertisingParams_tag
 * Public memory declarations
 *************************************************************************************
 ********************************************************************************** */
-extern gapAdvertisingCallback_t pfAdvCallback;
-extern appAdvertiserHandler_t pfAdvertiserHandler;
 
 /*
 	Default value for this define - application may override it in app_preinclude.h

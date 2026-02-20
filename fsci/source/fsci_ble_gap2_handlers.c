@@ -447,9 +447,11 @@ const pfGap2OpCodeHandler_t maGap2EvtOpCodeHandlers[]=
 }
 #endif /* gFsciBleHost_d */
 
+#if gFsciBleBBox_d || gFsciBleTest_d
 /*! Size of maGap2CmdOpCodeHandlers array */
 const uint32_t maGap2CmdOpCodeHandlersArraySize =
     (sizeof(maGap2CmdOpCodeHandlers)/sizeof(maGap2CmdOpCodeHandlers[0]));
+#endif /* gFsciBleBBox_d || gFsciBleTest_d */
 
 #if gFsciBleHost_d
 /*! Size of maGap2EvtOpCodeHandlers array */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 NXP
+ * Copyright 2020-2023, 2026 NXP
  *
  *
  * SPDX-License-Identifier: BSD-3-Clause
@@ -240,7 +240,10 @@ bleResult_t Hcit_SendPacket
         totalLen = (uint32_t)packetSize + 1U;
     }
 
-    PLATFORM_SendHciMessage(pHciWriteBuffer, totalLen);
+    if (PLATFORM_SendHciMessage(pHciWriteBuffer, totalLen) != 0)
+    {
+        result = gHciTransportError_c;
+    }
 
     /* Reset static variables */
     curLen = 0U;

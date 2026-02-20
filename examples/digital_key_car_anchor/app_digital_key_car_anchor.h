@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file app_digital_key_car_anchor.h
 *
-* Copyright 2021-2024 NXP
+* Copyright 2021-2024, 2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -52,7 +52,9 @@ extern "C" {
 void App_HandleShellCmds(void *pData);
 #endif
 void APP_BleEventHandler(void *pData);
+#if defined(gA2BEnabled_d) && (gA2BEnabled_d > 0U)
 void BleApp_A2BEventHandler(appA2BEvent_t eventType, void *pData);
+#endif /* defined(gA2BEnabled_d) && (gA2BEnabled_d > 0U) */
 void APP_UserInterfaceEventHandler(void *pData);
 
 #ifdef __cplusplus
