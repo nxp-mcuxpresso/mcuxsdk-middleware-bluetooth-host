@@ -152,9 +152,6 @@
 #define gNvmErasePartitionWhenFlashing_c 1U
 #endif
 
-/*! The minimum heap size needed (measured with MEM_STATISTICS) */
-#define MinimalHeapSize_c               22000
-
 #define SHELL_BUFFER_SIZE               (128U)
 #define SHELL_TASK_STACK_SIZE           (1200U)
 
@@ -197,6 +194,7 @@
 
 #define gHost_TaskStackSize_c                   1800
 
+#define gMainThreadStackSize_c                  3000
 /*! *********************************************************************************
  *  Auto Configuration
  ********************************************************************************** */
