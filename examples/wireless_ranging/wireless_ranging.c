@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*
- * Copyright 2020-2025 NXP
+ * Copyright 2020-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -1714,7 +1714,7 @@ void AppLclCtrlCallback(wrs_app_event_t *pEvent)
                                           evt_d->remoteEventResultBuffer,
                                           evt_d->localEventDebugBuffer, evt_d->remoteEventDebugBuffer);
             /* Invoke ranging engine on client */
-            engine_response_t engine_response;
+            engine_response_t engine_response = {0};
 
             /* Do not attempt to run ranging_engine if one of:
                 - this device is the server

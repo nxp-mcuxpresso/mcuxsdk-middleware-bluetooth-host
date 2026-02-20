@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 - 2025 NXP
+ * Copyright 2022 - 2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -763,7 +763,7 @@ static void wrs_EventHandler
                 assert(gWrsConn[peerDeviceId].wrsRole != eRoleNone);
                 if (measurement_request_capabilities(peerDeviceId) == gBleSuccess_c)
                 {
-                    wrs_StartEventTimer(peerDeviceId, eEvtTimoutHCIResult, TIMEOUT_CI_MULTIPLIER*gWrsConn[deviceId].connIntervalMs);
+                    wrs_StartEventTimer(peerDeviceId, eEvtTimoutHCIResult, TIMEOUT_CI_MULTIPLIER*gWrsConn[peerDeviceId].connIntervalMs);
                     gWrsConn[peerDeviceId].state = eStateWaitEventCapabilities;
                 }
                 else
@@ -779,7 +779,7 @@ static void wrs_EventHandler
                 {
                     if (measurement_configure(peerDeviceId) == gBleSuccess_c)
                     {
-                        wrs_StartEventTimer(peerDeviceId, eEvtTimoutHCIResult, TIMEOUT_CI_MULTIPLIER*gWrsConn[deviceId].connIntervalMs);
+                        wrs_StartEventTimer(peerDeviceId, eEvtTimoutHCIResult, TIMEOUT_CI_MULTIPLIER*gWrsConn[peerDeviceId].connIntervalMs);
                         gWrsConn[peerDeviceId].state = eStateWaitEventConfig;
                     }
                     else
@@ -788,7 +788,7 @@ static void wrs_EventHandler
                 break;
             case eEvtProcedureStart:
                 wrs_ProcDataInit(peerDeviceId);
-                gWrsConn[deviceId].procIter = 0;
+                gWrsConn[peerDeviceId].procIter = 0;
                 measurement_buffer_init(meas_params.cfg.debug);
                 /* Switch to eStateWaitEventResult, start measurement */
                 if (gWrsConn[peerDeviceId].wrsRole == eRoleNone)
@@ -804,7 +804,7 @@ static void wrs_EventHandler
                 else
                 {
                     /* Time between a procedure config and the first SubeventResult HCI Event is 3 + 7 CI + time needed by the CS procedure itself */
-                    wrs_StartEventTimer(peerDeviceId, eEvtTimoutHCIResult, (10+TIMEOUT_CS_PROC_CI_MULTIPLIER)*gWrsConn[deviceId].connIntervalMs);
+                    wrs_StartEventTimer(peerDeviceId, eEvtTimoutHCIResult, (10+TIMEOUT_CS_PROC_CI_MULTIPLIER)*gWrsConn[peerDeviceId].connIntervalMs);
                 }
                 gWrsConn[peerDeviceId].state = eStateWaitEventResult;
                 break;
@@ -814,7 +814,7 @@ static void wrs_EventHandler
             case eEvtSetDefaultSettings:
                 if (gBleSuccess_c == measurement_set_default_settings(peerDeviceId, NULL))
                 {
-                    wrs_StartEventTimer(peerDeviceId, eEvtTimoutHCIResult, TIMEOUT_CI_MULTIPLIER*gWrsConn[deviceId].connIntervalMs);
+                    wrs_StartEventTimer(peerDeviceId, eEvtTimoutHCIResult, TIMEOUT_CI_MULTIPLIER*gWrsConn[peerDeviceId].connIntervalMs);
                 }
                 else
                     unexpectedEvent = TRUE;
@@ -825,7 +825,7 @@ static void wrs_EventHandler
                 break;
             case eEvtProcedureSecurityComplete:
                 /* received on the peripheral */
-                gWrsConn[deviceId].setupComplete = TRUE;
+                gWrsConn[peerDeviceId].setupComplete = TRUE;
                 break;
             default:
                 unexpectedEvent = TRUE;
@@ -840,7 +840,7 @@ static void wrs_EventHandler
                 assert(gWrsConn[peerDeviceId].wrsRole != eRoleNone);
                 if (gBleSuccess_c == measurement_start_security(peerDeviceId))
                 {
-                    wrs_StartEventTimer(peerDeviceId, eEvtTimoutHCIResult, TIMEOUT_CI_MULTIPLIER*gWrsConn[deviceId].connIntervalMs);
+                    wrs_StartEventTimer(peerDeviceId, eEvtTimoutHCIResult, TIMEOUT_CI_MULTIPLIER*gWrsConn[peerDeviceId].connIntervalMs);
                     gWrsConn[peerDeviceId].state = eStateWaitEventSecurity;
                 }
                 else
@@ -860,7 +860,7 @@ static void wrs_EventHandler
                 /* CS setup phase (optional) has completed. Return to eStateIdle to serve ranging requests */
                 wrs_StopEventTimer(peerDeviceId);
                 gWrsConn[peerDeviceId].state = eStateIdle;
-                gWrsConn[deviceId].setupComplete = TRUE;
+                gWrsConn[peerDeviceId].setupComplete = TRUE;
                 break;
 
             default:
@@ -882,7 +882,7 @@ static void wrs_EventHandler
                     {
                         DPRINTF_DBG("HCI start\n");
                         /* Time between a procedure config and the first SubeventResult HCI Event is 3 + 7 CI + time needed by the CS procedure itself */
-                        wrs_StartEventTimer(peerDeviceId, eEvtTimoutHCIResult, (10+TIMEOUT_CS_PROC_CI_MULTIPLIER)*gWrsConn[deviceId].connIntervalMs);
+                        wrs_StartEventTimer(peerDeviceId, eEvtTimoutHCIResult, (10+TIMEOUT_CS_PROC_CI_MULTIPLIER)*gWrsConn[peerDeviceId].connIntervalMs);
                         gWrsConn[peerDeviceId].state = eStateWaitEventResult;
                     }
                     else
@@ -1117,7 +1117,7 @@ static void wrs_EventHandler
         switch(ctrlEvent)
         {
             case eEvtTearDown:
-                wrs_ResetProcedureData(deviceId);
+                wrs_ResetProcedureData(peerDeviceId);
                 break;
 
             default:
