@@ -118,7 +118,8 @@
  ***********************************************************************************/
 
 /* Configure high speed NBU clock (64 MHz) */
-#define gAppHighNBUClockFrequency_d       1
+/* Set this define if limitations in channel sounding with multiple connections are observed */
+#define gAppHighNBUClockFrequency_d       0
 
 /* Include common configuration file and board configuration file */
 #include "app_preinclude_common.h"
