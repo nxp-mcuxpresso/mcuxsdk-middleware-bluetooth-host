@@ -152,7 +152,7 @@ static int8_t getMonitorFilterAverageRemoteRssi(uint16_t connHandle);
 static bleResult_t anchorMonitorStop(uint16_t connHandle);
 static void anchorMonitorRemoteStop(uint16_t connHandle);
 static bleResult_t HandleTimeSyncReceiveComplete(gapGenericEvent_t *pGenericEvent, appHandoverError_t *pError);
-static void HandleHandoverTimeSyncTransmitStateChanged();
+static void HandleHandoverTimeSyncTransmitStateChanged(void);
 static bleResult_t HandleTimeSyncEvent(gapGenericEvent_t *pGenericEvent);
 static bleResult_t HandleAnchorSearchStarted(gapGenericEvent_t* pGenericEvent, appHandoverError_t *pError);
 static void HandleAnchorSearchStopped(gapGenericEvent_t *pGenericEvent);
@@ -168,7 +168,7 @@ static bleResult_t HandleConnectionUpdateProcedureEvent(gapGenericEvent_t *pGene
 static bleResult_t HandleInternalError(gapGenericEvent_t *pGenericEvent, appHandoverError_t *pError);
 static void HandleLlPendingData(gapGenericEvent_t *pGenericEvent);
 static bleResult_t HandleGetComplete(gapGenericEvent_t* pGenericEvent);
-static void HandleFreeComplete();
+static void HandleFreeComplete(void);
 static void HandleAnchorMonitorPacketEvent(gapGenericEvent_t *pGenericEvent);
 #if defined(gA2BEnabled_d) && (gA2BEnabled_d > 0U)
 static bleResult_t HandleSkdReportEvent(gapGenericEvent_t *pGenericEvent);
@@ -585,7 +585,7 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
     {
         case gHandoverTimeSyncReceiveComplete_c:
         {
-            HandleTimeSyncReceiveComplete(pGenericEvent, &error);
+            (void)HandleTimeSyncReceiveComplete(pGenericEvent, &error);
         }
         break;
         
@@ -1332,7 +1332,7 @@ static bleResult_t HandleTimeSyncReceiveComplete
 *
 *\return        None
 ********************************************************************************************************************* */
-static void HandleHandoverTimeSyncTransmitStateChanged()
+static void HandleHandoverTimeSyncTransmitStateChanged(void)
 {
     if (mAppTimeSyncState == gTimeSyncIdle_c)
     {
@@ -1976,7 +1976,7 @@ static bleResult_t HandleGetComplete(gapGenericEvent_t* pGenericEvent)
 *
 *\return        None
 ********************************************************************************************************************* */
-static void HandleFreeComplete()
+static void HandleFreeComplete(void)
 {
     (void)MEM_BufferFree(mpHandoverData);
     mpHandoverData = NULL;
@@ -2162,16 +2162,21 @@ static bleResult_t HandleCsContextCompletedCommand(appHandoverError_t *pError)
 ********************************************************************************************************************* */
 static bleResult_t HandleLlPendingDataCommand(uint8_t *pCmdData, appHandoverError_t *pError)
 {
-    bleResult_t result = gBleSuccess_c;
+    bleResult_t result = gBleUnexpectedError_c;
     uint8_t *pMsg = NULL;
+    
     uint16_t msgSize = Utils_ExtractTwoByteValue(&pCmdData[2]) + gHciAclDataPacketHeaderLength_c;
     
-    pMsg = MSG_Alloc(msgSize);
-    
-    if (pMsg != NULL)
+    if (msgSize < 0xFFFFU)
     {
-        FLib_MemCpy(pMsg, pCmdData, msgSize);
-        (void)MSG_QueueAddTail(&mSrcLlPendingDataQueue, pMsg);
+        pMsg = MSG_Alloc(msgSize);
+        
+        if (pMsg != NULL)
+        {
+            FLib_MemCpy(pMsg, pCmdData, msgSize);
+            (void)MSG_QueueAddTail(&mSrcLlPendingDataQueue, pMsg);
+            result = gBleSuccess_c;
+        }
     }
     
     return result;
