@@ -65,7 +65,9 @@
 * Private functions prototypes
 *************************************************************************************
 ************************************************************************************/
+#if defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0)
 static void BluetoothLEHost_Initialized(void);
+#endif
 
 #if defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0) 
 static void BleApp_ChangeLowPowerModeConstraints(uint8_t lpMode);
@@ -99,8 +101,12 @@ void BluetoothLEHost_AppInit(void)
     BluetoothLEHost_SetIdsCallback(BleApp_IdsCallback, gGapIdsAllFlags_c);
 #endif
 
+#if defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0)
     /* Initialize Bluetooth Host Stack */
     BluetoothLEHost_Init(BluetoothLEHost_Initialized);
+#else
+    BluetoothLEHost_Init(NULL);
+#endif
 }
 
 /*! *********************************************************************************
@@ -120,16 +126,14 @@ void BleApp_GenericCallback(gapGenericEvent_t* pGenericEvent)
  * \brief        Configures BLE Stack after initialization
  *
  ********************************************************************************** */
+#if defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0) 
 static void BluetoothLEHost_Initialized(void)
 {
-#if defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0) 
+
     /* Add post host initialization application configuration here. */
     BleApp_ChangeLowPowerModeConstraints(gAppLowPowerModeConstraints_c);
-#else
-    /* Misra protection */
-    (void)0;    
-#endif
 }
+#endif
 
 #if defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0) 
 /*! *********************************************************************************

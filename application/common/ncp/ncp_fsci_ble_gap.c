@@ -261,7 +261,7 @@ static const int16_t maConnectionEventToOpcode[]=
     #else
     -1,                                                                          /* reserved: 0x30U */
     #endif
-	(int16_t)gBleGapEvtConnectionEventLeSetLocalPeripheralLatencyEnableComplete_c, /* 0x31U, gConnEvtLeSetLocalPeripheralLatencyEnableComplete_c */
+    (int16_t)gBleGapEvtConnectionEventLeSetLocalPeripheralLatencyEnableComplete_c, /* 0x31U, gConnEvtLeSetLocalPeripheralLatencyEnableComplete_c */
 };
 
 

@@ -2423,11 +2423,11 @@ static void HandleGapCmdLeSetLocalPeripheralLatencyEnable
 )
 {
     uint8_t deviceId;
-    uint8_t enable;
+    bool_t enable;
 
     /* Get command parameters from buffer */
     fsciBleGetUint8ValueFromBuffer(deviceId, pBuffer);
-    fsciBleGetUint8ValueFromBuffer(enable, pBuffer);
+    fsciBleGetBoolValueFromBuffer(enable, pBuffer);
 
     fsciBleGap2CallApiFunction(Gap_LeSetLocalPeripheralLatencyEnable(deviceId, enable));
 }
