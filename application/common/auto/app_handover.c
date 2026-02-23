@@ -1752,7 +1752,7 @@ static bleResult_t HandleGetConnParamsComplete
         {
             result = Gap_GetDeviceIdFromConnHandle(pGenericEvent->eventData.getConnParams.connectionHandle, &deviceId);
             
-            if (result == gBleSuccess_c)
+            if ((result == gBleSuccess_c) && (deviceId != gInvalidDeviceId_c))
             {
                 /* Overwrite search mode */
                 buf[48] = (uint8_t)(maAppMonitorData[deviceId].monitorMode);
