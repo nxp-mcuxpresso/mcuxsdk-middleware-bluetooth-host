@@ -279,9 +279,9 @@ bleResult_t Hcit_SendPacket
             uint32_t payloadLen = 0U;
             aclDataPkt = true;
             payloadLen = (((((uint32_t)buf[3U]) << 8U) | ((uint32_t)buf[2U])));
-            if (payloadLen <= (UINT32_MAX - 5U))
+            if (payloadLen <= ((uint32_t)UINT16_MAX - 5U))
             {
-              totalLen = payloadLen + 5U;
+                totalLen = payloadLen + 5U;
             }
         }
         else
