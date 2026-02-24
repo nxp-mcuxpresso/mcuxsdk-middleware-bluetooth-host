@@ -6,18 +6,6 @@ To enable the creation of a BIN file for your embedded application in IAR Embedd
 
 ![](../images/fig21new.PNG "Enabling BIN Output in IAR Embedded Workbench")
 
-In MCUXpresso IDE, go to **Project properties** -\> **Settings** -\> **Build steps** window and press the "**Edit**" button for the Post-build steps. A Post-build steps window shows up in which the following command must be added:
-
-```
-arm-none-eabi-objcopy -v -O binary --only-section=.text --only-section=.data --only-section=.ARM.exidx 
-   "${BuildArtifactFileName}"
-   "${BuildArtifactFileBaseName}.bin"
-```
-
-The [Figure](../images/fig22new.png) below shows the Build steps and Post-build steps in **Settings** window.
-
-![](../images/fig22new.png "Enabling BIN output in MCUXpresso IDE Post-build steps")
-
 The format of the BIN file is very simple. It contains the executable image in binary format as is, starting from address 0 and up to the highest address. This type of file does not have any explicit address information.
 
 To build an OTAP Image File from a BIN file, follow the procedure below:

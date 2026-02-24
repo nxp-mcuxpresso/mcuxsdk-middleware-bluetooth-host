@@ -7,7 +7,6 @@ This section describes the necessary steps for obtaining the binary files for us
 To build any of the demo applications, you need the following toolchain:
 
 -   IAR Embedded Workbench for Arm \(details in release note\)
--   MCUXpresso IDE \(details in release note\)
 -   Visual Studio Code with "*MCUXpresso for Visual Studio Code*" extension \(details in release note\)
 -   Teraterm \(version 4.105 or higher\)
 
@@ -53,10 +52,6 @@ The following sections present the steps required for building the *wireless\_UA
 
 
 ```{include} ../topics/building_and_flashing_the_ble_software_demo_applic.md
-:heading-offset: 1
-```
-
-```{include} ../topics/building_and_flashing_the_ble_software_demo_applic_01.md
 :heading-offset: 1
 ```
 

@@ -4,22 +4,9 @@ A SREC \(Motorola S-record\) file is an ASCII format file which contains binary 
 
 The steps described in this section enable the creation of a SREC file for your embedded application in IAR Embedded Workbench.
 
-For this, open the target properties and go to the **Output Converter** tab. Activate the **Generate additional output** checkbox and choose the **Motorola** option from the **Output format** drop down menu. From the same pane you can also override the name of the output file. A screenshot of the described configuration is shown in [Figure](../images/figure_19_new_srec.png).
+For this, open the target properties and go to the **Output Converter** tab. Activate the **Generate additional output** checkbox and choose the **Motorola** option from the **Output format** drop down menu. From the same pane you can also override the name of the output file. A screenshot of the described configuration is shown in the [Figure](../images/figure_19_new_srec.png) below.
 
-![](../images/figure_19_new_srec.png "Enabling Options for Node "otap_client_att_freertos" in IAR Embedded
-                Workbench")
-
-In MCUXpresso IDE, go to **Project properties** -\> **Settings** -\> **Build steps** window and press the "**Edit**" button for the Post-build steps. A Post-build steps window shows up in which the following command must be added:
-
-```
-arm-none-eabi-objcopy -v -O srec --only-section=.text --only-section=.data --only-section=.ARM.exidx 
-"${BuildArtifactFileName}" 
-"${BuildArtifactFileBaseName}.srec"
-```
-
-A snapshot of this window is shown in the [Figure](../images/figure_30_srec.png) below.
-
-![](../images/figure_30_srec.png "Enabling SREC Output in IAR Embedded Workbench")
+![](../images/figure_19_new_srec.png "Enabling Options for Node otap_client_att_freertos in IAR Embedded Workbench")
 
 The format of the SREC file is shown in table below. It contains lines of text called records which have a specific format. An example of the contents of a SREC file is shown below.
 

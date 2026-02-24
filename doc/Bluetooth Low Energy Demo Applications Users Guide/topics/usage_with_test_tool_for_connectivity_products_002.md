@@ -24,34 +24,11 @@ To run the application, follow the steps below:
 
     ![](../images/iar_bin_file_output_converter.png "IAR .bin file output converter")
 
-4.  To obtain a `.bin` file from MCUXpresso IDE, go to the **Project properties -\> Settings -\> Build steps**window and press the **Edit**button for the Post-build steps. A **Post-build steps** window shows up. In this window, add the following command:
-
-    ```
-    arm-none-eabi-objcopy -v -O binary  --only-section=.text
-      --only-section=.data
-     --only-section=.ARM.exidx "${BuildArtifactFileName}"
-     "${BuildArtifactFileBaseName}.bin"
-    ```
-
-    In case the command already exists, uncomment it by removing the '\#' character at the beginning.
-
-    To obtain a `.srec (.s19)` file, add or uncomment the following post-build command in the same window:
-
-    ```
-    arm-none-eabi-objcopy -v -O srec  --only-section=.text
-      --only-section=.data --only-section=.ARM.exidx"
-     ${BuildArtifactFileName}" "${BuildArtifactFileBaseName}.s19"
-    ```
-
-    This window is shown in the figure below. <br>
-
-    ![](../images/mcux_bin_srec_file_output1.png "MCUx .bin .srec file output")
-
-5.  Start the **Over The Air Programming** application and select "**OTAP Bluetooth LE**" from the "**Select OTA Protocol**" combo box as shown in the figure below. <br>
+4.  Start the **Over The Air Programming** application and select "**OTAP Bluetooth LE**" from the "**Select OTA Protocol**" combo box as shown in the figure below. <br>
 
     ![](../images/Figure_33a.png "Test Tool - Selecting the OTAP Bluetooth LE protocol")
 
-6.  **Load the image file into the application, then configure the image file header and start the OTAP Server:**
+5.  **Load the image file into the application, then configure the image file header and start the OTAP Server:**
     -   To select the updated image In the Over the Air Programming tool, select the “**Browse File**” button and then navigate to the `.srec` or `.bin` file containing the image to be sent to the OTAP Client. After the `.srec` or `.bin` file is chosen, a pop-up window asks to choose the target processor. In this example, the  **KW45/K32W** processor will be used. Choose the **KW45/K32W** processor and press **OK**. See the figure below. <br>
 
         ![Over the Air Programming tool Bluetooth LE Processor Selection](../images/Procesor_selection.PNG "Over the Air Programming tool Bluetooth LE Processor
@@ -118,14 +95,14 @@ To run the application, follow the steps below:
         -   Serial driver delay between PC and the OTAP Server board
         If the data rate is too high, then the OTAP Client receives a new chunk before it can process the previous one. In such a case, it sends an “**Unexpected Chunk Sequence Number**” error and restarts the transfer of the current block from where it left off. If the channel is too noisy, the transmitter can be flooded and some chunks might not reach the client triggering a similar type of error. The default data rate values should work for most configurations.
 
-7.  Start the embedded applications by pressing **ADVSW** first on the OTAP Client and then on the OTAP Server. The transfer progress and transfer-related messages and/or errors are shown in the application window. The duration of the transfer depends on the size of the image and the chosen data rate and transfer method. See the figure below. <br>
+6.  Start the embedded applications by pressing **ADVSW** first on the OTAP Client and then on the OTAP Server. The transfer progress and transfer-related messages and/or errors are shown in the application window. The duration of the transfer depends on the size of the image and the chosen data rate and transfer method. See the figure below. <br>
 
     ![Test Tool OTAP Bluetooth LE image transfer in progress](../images/transfer.PNG "Test Tool OTAP Bluetooth LE image transfer in progress")
 
-8.  After all the blocks are sent, the OTAP Client sends an `Image Transfer Complete` command to the OTAP Server. When the PC Application receives this command, it displays a `Sent Image with Success` message in the log window. See the figure below. <br>
+7.  After all the blocks are sent, the OTAP Client sends an `Image Transfer Complete` command to the OTAP Server. When the PC Application receives this command, it displays a `Sent Image with Success` message in the log window. See the figure below. <br>
     ![Test Tool OTAP Bluetooth LE Image Transfer Completed](../images/complete.PNG "Test Tool OTAP Bluetooth LE Image Transfer Completed")
 
-9.  After the image transfer is complete, the OTAP Client triggers the bootloader and resets the MCU. The bootloader takes about 30 seconds to flash the image on the board. After this time frame, the MCU resets again and runs the new image.
+8.  After the image transfer is complete, the OTAP Client triggers the bootloader and resets the MCU. The bootloader takes about 30 seconds to flash the image on the board. After this time frame, the MCU resets again and runs the new image.
 
 **Parent topic:**[Over the Air Programming \(OTAP\)](../topics/over_the_air_programming_otap.md)
 

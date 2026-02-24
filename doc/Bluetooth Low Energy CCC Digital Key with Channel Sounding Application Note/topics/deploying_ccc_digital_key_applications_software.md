@@ -12,7 +12,7 @@ The software package includes the components necessary for CCC Digital Key R3 ap
 
 `../middleware/wireless/ble-controller/bin`.
 
-The demo applications were compiled and tested with IAR Embedded Workbench for Arm and MCUXpresso IDE. Users are recommended to use one of these tools.
+The demo applications were compiled and tested with **IAR Embedded Workbench for Arm** and **ARMGCC**. Users are recommended to use one of these tools.
 
 To open, build, and run any example application, see the Bluetooth Low Energy Quick Start Guide document of the corresponding board. The CCC Digital Key R3 examples are built and run in the same fashion as Bluetooth Low Energy examples.
 

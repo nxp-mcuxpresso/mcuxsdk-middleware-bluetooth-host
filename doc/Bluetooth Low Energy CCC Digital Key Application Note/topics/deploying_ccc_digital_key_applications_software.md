@@ -13,7 +13,7 @@ Prior to loading any wireless SDK example, update your NBU image with the provid
 
 `../middleware/wireless/ble_controller/bin`.
 
-The demo applications were compiled and tested with **IAR Embedded Workbench** for Arm and **MCUXpresso IDE**. It is recommended to use one of these tools.
+The demo applications were compiled and tested with **IAR Embedded Workbench** for Arm and **ARMGCC**. It is recommended to use one of these tools.
 
 To open, build, and run any example application, see the *Bluetooth Low Energy Quick Start Guide* document of the corresponding board. The CCC Digital Key R3 examples are built and run in the same fashion as Bluetooth Low Energy examples.
 

@@ -31,14 +31,6 @@ An example linker configuration window for IAR is shown below.
 
 **Note:** The gEraseNVMLink\_d=1 IAR linker flag places some dummy bytes into the NVM region to invalidate the data and force the application to erase the entire NVM region. When generating an image for the OTA upgrade, this flag must be set to 0. This results in a smaller image size being transferred and lower power consumption. If the NVM region must be erased after the upgrade process, the "Preserve NVM" checkbox \(from the Over The Air programming tool\) should be unchecked.
 
-For MCUXpresso IDE, the linker settings required for OTAP applications can be set up from the “**SDK Import Wizard**” or from the “**Project Properties** -\>**MCU settings**”. Refer to [Figure](../images/MCUX_memory.PNG).
-
-![](../images/MCUX_memory.PNG "MCUX memory")
-
-The demo applications use internal storage by default. To enable external storage support for MCUX, set the `gAppOtaExternalStorage_c` value to \(`1`\) in the `app_preinclude.h`file. Also remove the `INT_STORAGE` section \(from **Project Properties**-\> **MCU settings**\) and extend the `PROGRAM_FLASH`section as shown in the [Figure](../images/MCUX_ext_storage.png).
-
-![](../images/MCUX_ext_storage.png "Enabling external storage")
-
 Once the application starts and bidirectional OTAP communication is established via the OTAP Service, then the OTAP Client must determine if the connected OTAP Server has a newer image than the one currently present on the device. This can be done in two ways:
 
 -   The OTAP Server knows by some application-specific means that it has a newer image and sends a New Image Notification to the OTAP Client or

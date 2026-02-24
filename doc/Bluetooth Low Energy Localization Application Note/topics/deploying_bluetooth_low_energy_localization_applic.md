@@ -10,7 +10,7 @@ The software package includes the components necessary for Bluetooth Low Energy 
 
 **Note:** Prior to loading any wireless SDK example, update your NBU image with the provided binaries, with channel sounding support, in the following folder of the SDK: `../middleware/wireless/ble-controller/bin`.
 
-The demo applications were compiled and tested with **IAR Embedded Workbench** for Arm, **ARM GCC**, and **MCUXpresso IDE**. Use one of these tools to deploy your sample application.
+The demo applications were compiled and tested with **IAR Embedded Workbench** for Arm and **ARMGCC**. Use one of these tools to deploy your sample application.
 
 To open, build, and run any sample application, see the *Bluetooth Low Energy Quick Start Guide* document of the corresponding board. The Bluetooth Low Energy Localization examples are built and run in the same manner as the Bluetooth Low Energy examples.
 
