@@ -417,7 +417,7 @@ void AppLocalizationAlgo_UncompressResponse
 
             CheckSkipBytesDoNothing(pEventData, dataSize, 1U, bIncomplete); /* Packet_Antenna, ignored */
             
-            pDstAppBuffer->tof_data.nbSteps ++;
+            pDstAppBuffer->tof_data.nbSteps++;
         }
 
         if (mciqPresent)
@@ -1165,7 +1165,7 @@ static bool_t ParseMode1
     {
         /* ToF record */
         pRemoteData->step++;
-        pDstAppBuffer->tof_data.nbSteps ++;
+        pDstAppBuffer->tof_data.nbSteps++;
 
         if ((filter & BIT3) != 0U)
         {
@@ -1541,6 +1541,7 @@ static bool_t ParseMode3
         }
 
         pDstAppBuffer->mciq_data.nbSteps++;
+        pDstAppBuffer->tof_data.nbSteps++;
     }
 
     return bIncomplete;
@@ -1690,7 +1691,7 @@ static bool_t ParseMode1
     {
         /* ToF record */
         pRemoteData->step++;
-        pDstAppBuffer->tof_data.nbSteps ++;
+        pDstAppBuffer->tof_data.nbSteps++;
 
         hciCsStoreBytesInTofBuffer(pDstAppBuffer, aNadm, (int)CS_NADM_SIZE);
         
@@ -1961,6 +1962,7 @@ static bool_t ParseMode3
         }
 
         pDstAppBuffer->mciq_data.nbSteps++;
+        pDstAppBuffer->tof_data.nbSteps++;
     }
 
     return bIncomplete;
