@@ -9,7 +9,7 @@ All notable changes to NXP Bluetooth LE Host will be documented in this file.
 ### Added
 - Test mode functionality for the Intrusion Detection System
 - GAP API for HCI LE_Set_Local_Slave_Latency_Enable vendor command
-- 'gRasUseNotifOrInd_c' to allow configuration of Indication or Notification on RAS
+- `gRasUseNotifOrInd_c` to allow configuration of Indication or Notification on RAS
 - `cs_sync_phy` argument to `setcsconfig` shell command
 - `snr_control_init` and `snr_control_refl` arguments to `setcsproc` shell command
 - Detailed description for `setcsconfig` and `setcsproc` command arguments to the CCC w/ CS and Localization applications notes
@@ -17,7 +17,7 @@ All notable changes to NXP Bluetooth LE Host will be documented in this file.
 
 ### Improved
 - ATT Write Commands can now be sent at any time, as per specification
-- Enhanced CCC Channel Sounding by incorporating real-time remote data decompression
+- Enhanced CCC and RAS Channel Sounding by incorporating real-time local and remote data decompression
 - Localization applications now record the PHY used for establishing the connection and incorporate it into the CS procedure parameters configuration
 - Localization applications keep the `subevtStopIdx` for the remote data and provide it to the algorithm
 - Localization applications now pass remote mode map to algorithm
