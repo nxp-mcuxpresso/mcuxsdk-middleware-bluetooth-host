@@ -555,6 +555,24 @@ bleResult_t App_PostCallbackMessage
 );
 
 /*! *********************************************************************************
+*\fn           bleResult_t App_PostHostCallbackMessage(
+*                  appMsgFromHost_t *pMsgIn
+*              )
+*\brief        Posts an event originated by the Host into the Host-2-Application queue.
+*
+*\param  [in]  pMsgIn          Pointer to message containing the event.
+*
+*\return       bleResult_t     Result of the operation.
+*
+*\remarks      This function should be used by the application if a callback must
+*              be executed in the context of the Application Task.
+********************************************************************************** */
+bleResult_t App_PostHostCallbackMessage
+(
+    appMsgFromHost_t *pMsgIn
+);
+
+/*! *********************************************************************************
 *\fn           bleResult_t App_NvmErase(uint8_t mEntryIdx)
 *\brief        This function erases the data corresponding to an entry.
 *

@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2021, 2024-2025 NXP
+* Copyright 2021, 2024-2026 NXP
 *
 * \file
 *
@@ -13,11 +13,8 @@
 * Include
 *************************************************************************************
 ************************************************************************************/
-#include "app_conn.h"
 #include "app_advertiser.h"
 #include "fsl_component_panic.h"
-#include "fwk_messaging.h"
-#include "fwk_mem_manager.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -235,17 +232,7 @@ static void App_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent)
         pMsgIn->msgData.advMsg.eventType = pAdvertisingEvent->eventType;
         pMsgIn->msgData.advMsg.eventData = pAdvertisingEvent->eventData;
 
-        /* Put message in the Host Stack to App queue */
-        if (MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn) == kMSG_Success)
-        {
-            /* Signal application */
-            (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
-        }
-        else
-        {
-            /* Free the message if queueing failed */
-            (void)MSG_Free(pMsgIn);
-        }
+        (void)App_PostHostCallbackMessage(pMsgIn);
     }
 
     return;

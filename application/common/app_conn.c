@@ -11,12 +11,12 @@
 * Include
 *************************************************************************************
 ************************************************************************************/
-#include "EmbeddedTypes.h"
+/* Application common */
+#include "app_conn.h"
+#include "ble_conn_manager.h"
 
 /* Components */
-#include "fsl_os_abstraction.h"
 #include "fsl_component_mem_manager.h"
-#include "fsl_component_messaging.h"
 #include "fsl_component_panic.h"
 
 #if (defined(CPU_MCXW236BIHNAR) || defined(CPU_MCXW235BIHNAR))
@@ -65,12 +65,6 @@
 #include "FreeRTOS.h"
 #include "portmacro.h"
 #endif /* SDK_OS_FREE_RTOS */
-
-/* Application common */
-#include "app_conn.h"
-#include "fsl_os_abstraction.h"
-#include "ble_conn_manager.h"
-
 /************************************************************************************
 *************************************************************************************
 * Public macros
@@ -606,6 +600,45 @@ void App_RegisterCsCallbacks
 }
 
 /*! *********************************************************************************
+*\fn           bleResult_t App_PostHostCallbackMessage(
+*                  appMsgFromHost_t *pMsgIn
+*              )
+*\brief        Posts an event originated by the Host into the Host-2-Application queue.
+*
+*\param  [in]  pMsgIn          Pointer to message containing the event.
+*
+*\return       bleResult_t     Result of the operation.
+*
+*\remarks      This function should be used by the application if a callback must
+*              be executed in the context of the Application Task.
+********************************************************************************** */
+bleResult_t App_PostHostCallbackMessage
+(
+    appMsgFromHost_t *pMsgIn
+)
+{
+    messaging_status_t queueStatus = kMSG_Success;
+    bleResult_t result = gBleUnexpectedError_c;
+
+    /* Put message in the Host Stack to App queue */
+    queueStatus = MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
+
+    /* Signal application */
+    if (queueStatus == kMSG_Success)
+    {
+        (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+        result = gBleSuccess_c;
+    }
+    else
+    {
+        /* Free the message if queue operation failed */
+        MSG_Free(pMsgIn);
+    }
+
+    return result;
+}
+
+/*! *********************************************************************************
 \fn            bleResult_t App_PostCallbackMessage(
 *                  appCallbackHandler_t   handler,
 *                  appCallbackParam_t     param
@@ -674,11 +707,7 @@ void App_GenericCallback
                 pGenericEvent,
                 sizeof(gapGenericEvent_t));
 
-    /* Put message in the Host Stack to App queue */
-    (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
-
-    /* Signal application */
-    (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+    (void)App_PostHostCallbackMessage(pMsgIn);
 }
 
 #if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
@@ -710,11 +739,7 @@ void App_IdsCallback
                 pIdsEventData,
                 sizeof(idsEventData_t));
 
-    /* Put message in the Host Stack to App queue */
-    (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
-
-    /* Signal application */
-    (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+    (void)App_PostHostCallbackMessage(pMsgIn);
 }
 #endif
 
@@ -1058,11 +1083,7 @@ STATIC void App_GattServerCallback
 
     }
 
-    /* Put message in the Host Stack to App queue */
-    (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
-
-    /* Signal application */
-    (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+    (void)App_PostHostCallbackMessage(pMsgIn);
 }
 
 /*! *********************************************************************************
@@ -1105,11 +1126,7 @@ STATIC void App_GattClientProcedureCallback
     pMsgIn->msgData.gattClientProcMsg.error = error;
     pMsgIn->msgData.gattClientProcMsg.procedureResult = procedureResult;
 
-    /* Put message in the Host Stack to App queue */
-    (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
-
-    /* Signal application */
-    (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+    (void)App_PostHostCallbackMessage(pMsgIn);
 }
 
 /*! *********************************************************************************
@@ -1168,11 +1185,7 @@ STATIC void App_GattClientNotificationCallback
                 aValue,
                 valueLength);
 
-    /* Put message in the Host Stack to App queue */
-    (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
-
-    /* Signal application */
-    (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+    (void)App_PostHostCallbackMessage(pMsgIn);
 }
 
 /*! *********************************************************************************
@@ -1231,11 +1244,7 @@ STATIC void App_GattClientIndicationCallback
                 aValue,
                 valueLength);
 
-    /* Put message in the Host Stack to App queue */
-    (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
-
-    /* Signal application */
-    (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+    (void)App_PostHostCallbackMessage(pMsgIn);
 }
 
 /*! *********************************************************************************
@@ -1284,11 +1293,7 @@ STATIC void App_L2caLeDataCallback
                 pPacket,
                 packetLength);
 
-    /* Put message in the Host Stack to App queue */
-    (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
-
-    /* Signal application */
-    (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+    (void)App_PostHostCallbackMessage(pMsgIn);
 }
 
 /*! *********************************************************************************
@@ -1385,11 +1390,7 @@ STATIC void App_L2caLeControlCallback
                 &pMessage->messageData,
                 messageLength);
 
-    /* Put message in the Host Stack to App queue */
-    (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
-
-    /* Signal application */
-    (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+    (void)App_PostHostCallbackMessage(pMsgIn);
 }
 
 
@@ -1672,8 +1673,6 @@ void App_ConnectionCallback
 
     if (pMsgIn != NULL)
     {
-        messaging_status_t queueStatus = kMSG_Success;
-
         pMsgIn->msgType = (uint32_t)gAppGapConnectionMsg_c;
         pMsgIn->msgData.connMsg.deviceId = peerDeviceId;
 
@@ -1767,19 +1766,7 @@ void App_ConnectionCallback
                         sizeof(gapConnectionEvent_t));
         }
 
-        /* Put message in the Host Stack to App queue and check status */
-        queueStatus = MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
-        
-        if (queueStatus == kMSG_Success)
-        {
-            /* Signal application */
-            (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
-        }
-        else
-        {
-            /* Free the message if queue operation failed */
-            MSG_Free(pMsgIn);
-        }
+        (void)App_PostHostCallbackMessage(pMsgIn);
     }
 
     return;

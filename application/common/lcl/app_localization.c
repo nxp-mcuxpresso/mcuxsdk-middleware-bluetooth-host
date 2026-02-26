@@ -1662,11 +1662,7 @@ static bleResult_t csMetaEventCallback
             pMsgIn->msgType = (uint32_t)gAppCsMetaEventMsg_c;
             pMsgIn->msgData.pCsEventData = pCsMetaEvent;
 
-            /* Put message in the Host Stack to App queue */
-            (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
-
-            /* Signal application */
-            (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+            (void)App_PostHostCallbackMessage(pMsgIn);
         }
         else
         {
@@ -2426,11 +2422,7 @@ static bleResult_t csEventCmdCompleteCallback
             pMsgIn->msgType = (uint32_t)gAppCsCmdCompleteEventMsg_c;
             pMsgIn->msgData.pCsEventData = pCsCmdCompleteEvent;
 
-            /* Put message in the Host Stack to App queue */
-            (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
-
-            /* Signal application */
-            (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+            (void)App_PostHostCallbackMessage(pMsgIn);
         }
         else
         {
@@ -2623,11 +2615,7 @@ static bleResult_t csEventCmdStatusCallback
             pMsgIn->msgType = (uint32_t)gAppCsCmdStatusEventMsg_c;
             pMsgIn->msgData.pCsEventData = pCsCmdStatusEvent;
 
-            /* Put message in the Host Stack to App queue */
-            (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
-
-            /* Signal application */
-            (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+            (void)App_PostHostCallbackMessage(pMsgIn);
         }
         else
         {

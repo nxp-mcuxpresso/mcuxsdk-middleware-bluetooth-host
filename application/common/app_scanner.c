@@ -15,7 +15,6 @@
 ************************************************************************************/
 #include "app_conn.h"
 #include "app_scanner.h"
-#include "fsl_component_messaging.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -350,11 +349,7 @@ STATIC void App_ScanningCallback
 
         if (pMsgIn != NULL)
         {
-            /* Put message in the Host Stack to App queue */
-            (void)MSG_QueueAddTail(&mHostAppInputQueue, pMsgIn);
-            
-            /* Signal application */
-            (void)OSA_EventSet(mAppEvent, gAppEvtMsgFromHostStack_c);
+            (void)App_PostHostCallbackMessage(pMsgIn);
         }
     }
 }
