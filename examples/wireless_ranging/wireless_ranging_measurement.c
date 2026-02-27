@@ -179,6 +179,15 @@ static uint8_t maPctRotationParams[4U * CS_MAX_NB_ANTENNAS] = {57U, 1U, 0U, 0U,
                                                                57U, 1U, 0U, 0U,
                                                                57U, 1U, 0U, 0U,
                                                                57U, 1U, 0U, 0U};
+
+/* RTT fine tuning parameters */
+/*
+   Signed half nanoseconds value to be subtracted from ToA-ToD (when initiator) or added to ToD-ToA (when reflector) - per PHY.
+   Use a positive value, to compensate for a positive zero distance.
+*/
+static int16_t maRttFineTuningParams[3U] = {0,  /* 1M PHY */
+                                            0,  /* 2M PHY */
+                                            0}; /* 2M BT2.0 PHY */
 /************************************************************************************
  *************************************************************************************
  * Public Types
@@ -1060,7 +1069,7 @@ bool_t measurement_send_vs_debug
 }
 #endif
 
-#define CS_VS_CONFIG_PARAM1_SIZE (23U)
+#define CS_VS_CONFIG_PARAM1_SIZE (29U)
 /*! *********************************************************************************
  * \brief        Send vendor specific config via HCI
  *
@@ -1072,7 +1081,7 @@ bool_t measurement_send_vs_config
 )
 {
     const uint8_t *ant2gpio_p;
-    uint32_t paramsPresence = (gCSParamAntennaConfigPresent_c | gCSParamPctPhaseRotationPresent_c);
+    uint32_t paramsPresence = (gCSParamAntennaConfigPresent_c | gCSParam0DistanceCompensationDataPresent_c | gCSParamPctPhaseRotationPresent_c);
     uint8_t  paramDataLength = CS_VS_CONFIG_PARAM1_SIZE;
     uint8_t aAppData[CS_VS_CONFIG_PARAM1_SIZE] = {0U};
     uint8_t numAntennas = 2U; /* Number of antennas (only 2 antennas on reference designs) */
@@ -1102,13 +1111,24 @@ bool_t measurement_send_vs_config
 
     if (ant2gpio_p != NULL)
     {
+        union
+        {
+            int16_t i16;
+            uint16_t u16;
+        } temp = {0};
         /* Fill message data */
         aAppData[0U] = 2U; /* Default antenna switch time */
         aAppData[1U] = 4U; /* Number of antenna paths */
         aAppData[2U] = numAntennas; /* Number of antennas */
         FLib_MemCpy((void *)(&aAppData[3U]), ant2gpio_p, CS_MAX_NB_ANTENNAS);
+        /* RTT fine tuning */
+        for (uint8_t index = 0U; index < 3U; index++)
+        {
+            temp.i16 = maRttFineTuningParams[index];
+            Utils_PackTwoByteValue(temp.u16, &aAppData[3U + CS_MAX_NB_ANTENNAS + index * sizeof(uint16_t)]);
+        }
         /* PCT rotation calibration */
-        FLib_MemCpy((void *)(&aAppData[3U + CS_MAX_NB_ANTENNAS]), maPctRotationParams, (4U * CS_MAX_NB_ANTENNAS));
+        FLib_MemCpy((void *)(&aAppData[9U + CS_MAX_NB_ANTENNAS]), maPctRotationParams, (4U * CS_MAX_NB_ANTENNAS));
         return (CS_ConfigVendorCommand(paramsPresence, paramDataLength, aAppData) == gBleSuccess_c);
     }
     else

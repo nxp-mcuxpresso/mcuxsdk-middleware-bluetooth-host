@@ -120,9 +120,10 @@
 /*
     CS_VendorConfig parameters length:
         Antenna config: 3U + APP_LOCALIZATION_MAX_NO_ANTENNAS
+        RTT fine tuning: 6U
         PCT rotation: 4U * APP_LOCALIZATION_MAX_NO_ANTENNAS
 */
-#define CS_CONFIG_VENDOR_PARAM_LENGTH   (3U + 5U * APP_LOCALIZATION_MAX_NO_ANTENNAS)
+#define CS_CONFIG_VENDOR_PARAM_LENGTH   (9U + 5U * APP_LOCALIZATION_MAX_NO_ANTENNAS)
 
 /************************************************************************************
 *************************************************************************************
@@ -193,6 +194,14 @@ static uint8_t maPctRotationParams[4U * APP_LOCALIZATION_MAX_NO_ANTENNAS] = {57U
                                                                              57U, 1U, 0U, 0U,
                                                                              57U, 1U, 0U, 0U};
 
+/* RTT fine tuning parameters */
+/*
+   Signed half nanoseconds value to be subtracted from ToA-ToD (when initiator) or added to ToD-ToA (when reflector) - per PHY.
+   Use a positive value, to compensate for a positive zero distance.
+*/
+static int16_t maRttFineTuningParams[3U] = {0,  /* 1M PHY */
+                                            0,  /* 2M PHY */
+                                            0}; /* 2M BT2.0 PHY */
 
 /* TAK support for each device */
 #if (defined(gAppUseTAK_c) && gAppUseTAK_c)
@@ -451,7 +460,7 @@ bleResult_t AppLocalization_HostInitHandler(void)
 {
     bleResult_t status = gBleSuccess_c;
     const uint8_t *ant2gpio_p = NULL;
-    uint32_t paramsPresence = (gCSParamAntennaConfigPresent_c | gCSParamPctPhaseRotationPresent_c);
+    uint32_t paramsPresence = (gCSParamAntennaConfigPresent_c | gCSParam0DistanceCompensationDataPresent_c | gCSParamPctPhaseRotationPresent_c);
     uint8_t  paramDataLength = CS_CONFIG_VENDOR_PARAM_LENGTH;
     uint8_t aAppData[CS_CONFIG_VENDOR_PARAM_LENGTH] = {0U};
 
@@ -505,6 +514,11 @@ bleResult_t AppLocalization_HostInitHandler(void)
 
     if (ant2gpio_p[0] != LCL_HAL_LOC_UNAVAILABLE)
     {
+        union
+        {
+            int16_t i16;
+            uint16_t u16;
+        } temp = {0};
         /* Fill command data */
 
         /* Antenna configuration */
@@ -513,8 +527,15 @@ bleResult_t AppLocalization_HostInitHandler(void)
         aAppData[2U] = (mGlobalRangeSettings.ant_type == CS_ANT_BOARD_ANTDIV_4_ANT) ? 4U : 2U; /* Number of antennas (only 2 antennas on reference designs) */
         FLib_MemCpy((void *)(&aAppData[3U]), ant2gpio_p, APP_LOCALIZATION_MAX_NO_ANTENNAS);
 
+        /* RTT fine tuning */
+        for (uint8_t index = 0U; index < 3U; index++)
+        {
+            temp.i16 = maRttFineTuningParams[index];
+            Utils_PackTwoByteValue(temp.u16, &aAppData[3U + APP_LOCALIZATION_MAX_NO_ANTENNAS + index * sizeof(uint16_t)]);
+        }
+
         /* PCT rotation calibration */
-        FLib_MemCpy((void *)(&aAppData[3U + APP_LOCALIZATION_MAX_NO_ANTENNAS]), maPctRotationParams, (4U * APP_LOCALIZATION_MAX_NO_ANTENNAS));
+        FLib_MemCpy((void *)(&aAppData[9U + APP_LOCALIZATION_MAX_NO_ANTENNAS]), maPctRotationParams, (4U * APP_LOCALIZATION_MAX_NO_ANTENNAS));
 
         status = CS_ConfigVendorCommand(paramsPresence, paramDataLength, aAppData);
     }

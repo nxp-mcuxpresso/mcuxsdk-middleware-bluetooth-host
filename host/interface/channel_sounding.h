@@ -51,7 +51,7 @@
 #define gCSParamAntennaConfigPresent_c                  BIT1
 #define gCSParamDistanceCalibrationModePresent_c        BIT2
 #define gCSParam0DistanceCompensationDataPresent_c      BIT3
-#define gCSParamInlinePhaseReturnPresent_c              BIT4
+/* BIT4 not used */
 #define gCSParamRttBiasPresent_c                        BIT5
 #define gCSParamPctPhaseRotationPresent_c               BIT6
 #define gCSParamPaRampingControlPresent_c               BIT7
