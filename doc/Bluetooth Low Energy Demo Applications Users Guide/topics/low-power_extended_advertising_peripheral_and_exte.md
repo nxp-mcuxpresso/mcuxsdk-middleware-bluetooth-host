@@ -1,3 +1,4 @@
+(examples__wireless_examples__bluetooth__adv_ext_central_peripheral_docs)=
 # Low-power extended advertising Peripheral and Central
 
 This section describes the implemented profiles and services, user interactions, and testing methods for the `adv_ext_peripheral` and `adv_ext_central` applications.

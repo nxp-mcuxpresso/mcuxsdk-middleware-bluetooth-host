@@ -1,3 +1,4 @@
+(examples__wireless_examples__bluetooth__fsci_bridge_docs)=
 # FSCI Bridge
 
 This section describes the functionality, user interactions, and testing methods for the FSCI Bridge demo application.

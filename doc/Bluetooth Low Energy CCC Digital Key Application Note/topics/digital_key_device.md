@@ -1,3 +1,4 @@
+(examples__wireless_examples__bluetooth__digital_key_device_docs)=
 # Digital Key Device
 
 The Digital Key Device demo application emulates a CCC Digital Key-enabled smartphone. It acts as a Bluetooth Low Energy central device, scanning for advertising coming from a Digital Key Car Anchor.

@@ -1,3 +1,4 @@
+(examples__wireless_examples__bluetooth__w_uart_host_docs)=
 # Wireless UART Host
 
 This section describes the implemented profiles and services, user interactions, and testing methods for the Wireless UART Host application.

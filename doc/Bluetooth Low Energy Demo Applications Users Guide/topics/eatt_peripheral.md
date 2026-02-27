@@ -1,3 +1,4 @@
+(examples__wireless_examples__bluetooth__eatt_peripheral_docs)=
 # EATT Peripheral
 
 This section describes the implemented profiles and services, user interactions, and testing methods for the EATT Peripheral application.

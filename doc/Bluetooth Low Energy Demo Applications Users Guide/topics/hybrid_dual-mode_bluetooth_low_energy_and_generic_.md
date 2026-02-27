@@ -1,3 +1,4 @@
+(examples__wireless_examples__bluetooth__w_uart_genfsk_docs)=
 # Hybrid \(Dual-mode\) Bluetooth Low Energy and Generic FSK
 
 The Hybrid \(Dual-mode\) Bluetooth Low Energy and Generic FSK application demonstrates Generic FSK transmission/reception and Bluetooth advertising/scanning/multiple connections coexistence.

@@ -1,3 +1,4 @@
+(examples__wireless_examples__bluetooth__ancs_c_docs)=
 # ANCS/AMS client \(ancs\_c\)
 
 This section describes the implemented profiles, services, user interactions, and testing methods for the ANCS and AMS Client application.

@@ -1,3 +1,4 @@
+(examples__wireless_examples__bluetooth__hid_host_docs)=
 # HID Host
 
 This section presents the implemented profiles and services, user interactions, and testing methods for the HID Host application.
