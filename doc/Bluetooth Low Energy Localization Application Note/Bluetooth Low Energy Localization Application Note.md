@@ -13,6 +13,7 @@ topics/deploying_bluetooth_low_energy_localization_applic.md
 topics/demo_functionality_overview.md
 topics/running_bluetooth_low_energy_localization_scenario.md
 topics/disabling_lce.md
+topics/transient_application_key.md
 topics/testing_ras_rap_pts.md
 topics/References.md
 topics/acronyms_and_abbreviations.md
