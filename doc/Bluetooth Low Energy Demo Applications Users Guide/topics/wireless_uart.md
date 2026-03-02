@@ -22,5 +22,9 @@ This section describes the implemented profiles and services, user interactions,
 :heading-offset: 2
 ```
 
+```{include} ../topics/usage_oob_gatt_c.md
+:heading-offset: 2
+```
+
 **Parent topic:**[Bluetooth LE stack and demo applications](../topics/bluetooth_le_stack_and_demo_applications.md)
 

@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2021, 2023 NXP
+* Copyright 2016-2021, 2023, 2026 NXP
 *
 *
 * \file
@@ -62,6 +62,18 @@
 
 #ifndef gWuart_AutoStartGapRole_c
 #define gWuart_AutoStartGapRole_c gGapCentral_c
+#endif
+
+/* !< Specify if the database is already known at startup, to avoid Service Discovery
+ * in order to populate it we need to set the handles required by this GATT Client
+ */
+#ifndef gDbOobPopulated_c
+#define gDbOobPopulated_c               0
+#endif
+
+#if (defined(gDbOobPopulated_c) && gDbOobPopulated_c == 1)
+#define gDbOobServiceHandle_c           0x000EU
+#define gDbOobUartStreamHandle_c        0x0010U
 #endif
 
 /************************************************************************************

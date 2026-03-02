@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2022-2025 NXP
+* Copyright 2022-2026 NXP
 *
 *
 * \file hsdk_main.c
@@ -94,6 +94,12 @@ typedef struct advState_tag
  * Private functions prototypes
  *************************************************************************************
  ************************************************************************************/
+static void BleApp_StateMachineHandleIdle
+(
+    deviceId_t peerDeviceId,
+    appEvent_t event,
+    bleUuid_t *pUuidObj
+);
 
 /*! *********************************************************************************
  * \brief    Starts the BLE application.
@@ -376,6 +382,11 @@ static void BleApp_StoreServiceHandles
     gattService_t *pService
 );
 
+static bool_t BleApp_CheckExistingServiceHandles
+(
+    deviceId_t peerDeviceId
+);
+
 static void ScanningTimerCallback
 (
     void *pParam
@@ -621,8 +632,10 @@ static void BleApp_EventCallback2
             Serial_Print(".\n\r", gAllowToBlock_d);
 
             maPeerInformation[peerDeviceId].appState = mAppIdle_c;
+#if ((!defined(gDbOobPopulated_c)) || (defined(gDbOobPopulated_c) && gDbOobPopulated_c == 0))
             maPeerInformation[peerDeviceId].clientInfo.hService = gGattDbInvalidHandleIndex_d;
             maPeerInformation[peerDeviceId].clientInfo.hUartStream = gGattDbInvalidHandleIndex_d;
+#endif
 
             /* Unsubscribe client */
             (void)Bas_Unsubscribe(&mBasServiceConfig, peerDeviceId);
@@ -1112,30 +1125,7 @@ void BleApp_StateMachineHandler
         {
         case mAppIdle_c:
         {
-            if (event == mAppEvt_PeerConnected_c ||
-                event == mAppEvt_PairingComplete_c)
-            {
-                /* Let the central device initiate the Exchange MTU procedure*/
-                if (maPeerInformation[peerDeviceId].gapRole == gGapCentral_c)
-                {
-                    /* Moving to Exchange MTU State */
-                    maPeerInformation[peerDeviceId].appState = mAppExchangeMtu_c;
-                    GATTClientExchangeMtuRequest_t req;
-                    req.DeviceId = peerDeviceId;
-                    req.Mtu = gAttMaxMtu_c;
-                    GATTClientExchangeMtuRequest(&req, gFsciInterface_c);
-                }
-                else
-                {
-                    /* Moving to Service Discovery State*/
-                    maPeerInformation[peerDeviceId].appState = mAppServiceDisc_c;
-
-                    /* Start Service Discovery*/
-                    (void)BleServDisc_FindService(peerDeviceId,
-                                                  gBleUuidType128_c,
-                                                  temp.pUuidObj);
-                }
-            }
+            BleApp_StateMachineHandleIdle(peerDeviceId, event, temp.pUuidObj);
         }
         break;
 
@@ -1466,6 +1456,68 @@ void BleApp_SendUartStream
 ************************************************************************************/
 
 /*! *********************************************************************************
+ * \brief        Handle the main application state machine
+ *
+ * \param[in]    peerDeviceId       The remote device ID.
+ * \param[in]    event              The application event.
+ * \param[in]    pUuidObj           Pointer to the UUID string.
+ ********************************************************************************** */
+static void BleApp_StateMachineHandleIdle
+(
+    deviceId_t peerDeviceId,
+    appEvent_t event,
+    bleUuid_t *pUuidObj
+)
+{
+    if (event == mAppEvt_PeerConnected_c ||
+        event == mAppEvt_PairingComplete_c)
+    {
+        /* We already know the database handles */
+        if (BleApp_CheckExistingServiceHandles(peerDeviceId) == TRUE)
+        {
+            /* Moving to Running State*/
+            maPeerInformation[peerDeviceId].appState = mAppRunning_c;
+#if gAppUseBonding_d
+            union
+            {
+                uint32_t u32;
+                uint16_t u16;
+            } tempCast;
+
+            tempCast.u32 = sizeof(wucConfig_t);
+            /* Write data in NVM */
+            (void)Gap_SaveCustomPeerInformation(maPeerInformation[peerDeviceId].deviceId,
+                    (uint8_t *) &maPeerInformation[peerDeviceId].clientInfo, 0,
+                    tempCast.u16);
+#endif
+        }
+        else
+        {
+            /* Let the central device initiate the Exchange MTU procedure*/
+            if (maPeerInformation[peerDeviceId].gapRole == gGapCentral_c)
+            {
+                /* Moving to Exchange MTU State */
+                maPeerInformation[peerDeviceId].appState = mAppExchangeMtu_c;
+                GATTClientExchangeMtuRequest_t req;
+                req.DeviceId = peerDeviceId;
+                req.Mtu = gAttMaxMtu_c;
+                GATTClientExchangeMtuRequest(&req, gFsciInterface_c);
+            }
+            else
+            {
+                /* Moving to Service Discovery State*/
+                maPeerInformation[peerDeviceId].appState = mAppServiceDisc_c;
+
+                /* Start Service Discovery*/
+                (void)BleServDisc_FindService(peerDeviceId,
+                                              gBleUuidType128_c,
+                                              pUuidObj);
+            }
+        }
+    }
+}
+
+/*! *********************************************************************************
  * \brief        Function handling the initialization complete event of the Bluetooth LE Host stack.
  *
  ********************************************************************************** */
@@ -1492,8 +1544,10 @@ static void BleApp_GenericEvtInitCompleteHandler
     {
         maPeerInformation[peerId].deviceId = gInvalidDeviceId_c;
         maPeerInformation[peerId].appState = mAppIdle_c;
+#if (defined(gDbOobPopulated_c) && (gDbOobPopulated_c == 1))
         maPeerInformation[peerId].clientInfo.hService = gGattDbInvalidHandleIndex_d;
         maPeerInformation[peerId].clientInfo.hUartStream = gGattDbInvalidHandleIndex_d;
+#endif
     }
 
 #if (gWuart_AutoStart_c == 1)
@@ -1807,6 +1861,29 @@ static void BleApp_StoreServiceHandles
         /* Found Uart Characteristic */
         maPeerInformation[peerDeviceId].clientInfo.hUartStream = pService->aCharacteristics[0].value.handle;
     }
+}
+
+/*! *********************************************************************************
+ * \brief        Check if the database handles are already set by a an out of band method
+ *
+ * \param[in]    peerDeviceId       The remote device ID.
+ * \retval       TRUE in case the required handles are found
+ * \retval       FALSE in case the required handles are not found
+  ********************************************************************************** */
+static bool_t BleApp_CheckExistingServiceHandles
+(
+    deviceId_t peerDeviceId
+)
+{
+    bool_t result = FALSE;
+
+    if ((maPeerInformation[peerDeviceId].clientInfo.hService != gGattDbInvalidHandleIndex_d) &&
+      (maPeerInformation[peerDeviceId].clientInfo.hUartStream != gGattDbInvalidHandleIndex_d))
+    {
+        result = TRUE;
+    }
+    
+    return result;
 }
 
 #if gWuart_CentralRole_c == 1
