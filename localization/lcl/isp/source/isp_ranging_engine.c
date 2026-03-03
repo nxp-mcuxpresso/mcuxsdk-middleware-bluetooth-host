@@ -52,7 +52,6 @@ static uint8_t g_ceHeap_id = 0U;
 static void isp_mciq_measurement_unpack_iqs(cs_data_t *cs_data,
                                                 mciq_data_t *data1, mciq_data_t *data2,
                                                 int16_t *pIQout1, int16_t *pIQout2,
-                                                int16_t *pMeasIQout1, int16_t *pMeasIQout2,
                                                 uint32_t freqMask[],
                                                 uint32_t tqi1Mask[],
                                                 uint32_t tqi2Mask[],
@@ -98,12 +97,6 @@ static void isp_mciq_measurement_unpack_iqs(cs_data_t *cs_data,
                 pIQ += IQ_SIZE; // TQI located after IQ
                 tqi2 = *pIQ;
 
-                /* Store unpacked measured IQs */
-                pMeasIQout1[i*2] = iSample1;
-                pMeasIQout1[i*2+1] = qSample1;
-                pMeasIQout2[i*2] = iSample2;
-                pMeasIQout2[i*2+1] = qSample2;
-
                 /* Store unpacked IQs */
                 pIQout1[channel*2] = iSample1;
                 pIQout1[channel*2+1] = qSample1;
@@ -129,8 +122,6 @@ static void isp_mciq_measurement_unpack_iqs(cs_data_t *cs_data,
         }
         pIQout1 += 2*gCsChannelsNb_c;
         pIQout2 += 2*gCsChannelsNb_c;
-        pMeasIQout1 += 2*cs_data->step_nb;
-        pMeasIQout2 += 2*cs_data->step_nb;
     }
 }
 
@@ -143,7 +134,6 @@ void isp_mciq_ranging_compute(isp_meas_response_t *meas_response, mciq_result_t 
     mciq_data_t *refl_data = &meas_response->mciq_data[1];
     uint32_t m, index = 0;
     int16_t *iq1, *iq2;
-    int16_t *meas_iq1, *meas_iq2;
 
     uint32_t nb_valid[ISP_MAX_NO_ANTENNAS];
     /* mask of CS channels that have been actually used for RTP measurements */
@@ -164,20 +154,6 @@ void isp_mciq_ranging_compute(isp_meas_response_t *meas_response, mciq_result_t 
     iq1 = (int16_t *)buf_start;
     iq2 = (int16_t *)(buf_start + item_size);
 
-    /* Allocate a buffer to keep the measured IQs from a CS pocedure */
-    uint32_t meas_iq_item_size = 2 * sizeof(int16_t) * meas_response->cs_data->step_nb * engine_config->n_ap;
-    uint8_t *meas_buf_start = (uint8_t *)MEM_BufferAlloc(2*meas_iq_item_size);
-
-    if (meas_buf_start == NULL)
-    {
-        (void)MEM_BufferFree(buf_start);
-        return;
-    }
-
-    FLib_MemSet(meas_buf_start, 0U, 2U * meas_iq_item_size);
-    meas_iq1 = (int16_t *)meas_buf_start;
-    meas_iq2 = (int16_t *)(meas_buf_start + meas_iq_item_size);
-
     mciq_result->cde_dqi = 0;
     mciq_result->cde_fp = 0;
     mciq_result->rade_error_flag = 0;
@@ -194,7 +170,6 @@ void isp_mciq_ranging_compute(isp_meas_response_t *meas_response, mciq_result_t 
     isp_mciq_measurement_unpack_iqs(meas_response->cs_data,
                                                    init_data, refl_data,
                                                    iq1, iq2,
-                                                   meas_iq1, meas_iq2,
                                                    freqMask,
                                                    tqi1Mask, tqi2Mask,
                                                    nb_valid);
@@ -265,15 +240,10 @@ void isp_mciq_ranging_compute(isp_meas_response_t *meas_response, mciq_result_t 
     {
         /* Run RADE algorithm */
         rade_result_type_t radeStatus;
-        uint32_t tqiMask[(XCVR_F_RANGE/32U)+1U];
-        for (uint32_t i = 0; i < (XCVR_F_RANGE/32U)+1U; i++)
-        {
-          tqiMask[i] = tqi1Mask[i] & tqi2Mask[i];
-        }
         float_rade_t radeResReserved;
         rade_cs_para_t radeCsPara;
         rade_result_t radeResult;
-        rade_data_t radeData;
+        rade_cs_data_t radeCsData;
 
         radeCsPara.csRole               =  meas_response->mparams->cfg.role           ;
         radeCsPara.step_nb              =  meas_response->cs_data->step_nb            ;
@@ -306,15 +276,15 @@ void isp_mciq_ranging_compute(isp_meas_response_t *meas_response, mciq_result_t 
         radeResult.rng_est_qi           =  &mciq_result->rade_dqi;
         radeResult.reserved             =  &radeResReserved;
 
-        radeData.pct_i                  =  meas_iq1;
-        radeData.pct_r                  =  meas_iq2;
-        radeData.tqi_mask               =  tqiMask;
-        radeData.chan_mask              =  freqMask;
-        radeData.n_ap                   =  engine_config->n_ap;
+        radeCsData.iq_i                     = init_data->iq;
+        radeCsData.iq_r                     = refl_data->iq;
+        radeCsData.n_ap                     = engine_config->n_ap;
+        radeCsData.csDataBufFreeCb.pfFreeCb = NULL;
+        radeCsData.csDataBufFreeCb.deviceId = 0U; 
 
         rade_para_t radePara            =  {.radeMode = kRadeNormal, .distBias = 0.0f, .ceHeap_id = g_ceHeap_id}; 
 
-        radeStatus = pde_rade(&radeData, &csAlgoBuf, &radeCsPara, &radeResult, &radePara);
+        radeStatus = pde_rade(&radeCsData, &csAlgoBuf, &radeCsPara, &radeResult, &radePara);
         if (kRadeSuccess != radeStatus)
         {
             mciq_result->rade_error_flag = radeStatus;
@@ -324,7 +294,6 @@ void isp_mciq_ranging_compute(isp_meas_response_t *meas_response, mciq_result_t 
         }
     }
 
-    MEM_BufferFree(meas_buf_start);
 }
 
 /*

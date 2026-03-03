@@ -98,17 +98,29 @@ typedef struct _rade_result
     float_rade_t *reserved;    /*!< Reserved port */
 } rade_result_t;
 
-/*! \struct rade_data_t
+/*! \typedef pfCsDataBufFreeCallback_t
+ * \brief Pointer to function for CS data source buffer freeing
+ */
+typedef void (*pfCsDataBufFreeCallback_t)(uint8_t deviceId);
+
+/*! \struct csDataBufFreeCallback_t
+ * \brief Callback configuration for CS data buffer freeing
+ */
+typedef struct _cs_data_buf_free_callback {
+    pfCsDataBufFreeCallback_t pfFreeCb;  /*!< Callback function pointer */
+    uint8_t deviceId;                   /*!< deviceId */
+} csDataBufFreeCallback_t;
+
+/*! \struct rade_cs_data_t
  * \brief RADE Algorithm Input Data Typedef
  */
-typedef struct _rade_data
+typedef struct _rade_cs_data
 {
-    int16_t *pct_i;            /*!< CS mode-2 and mode-3 PCT IQ samples from initiator */
-    int16_t *pct_r;            /*!< CS mode-2 and mode-3 PCT IQ samples from reflector */
-    uint32_t *tqi_mask;        /*!< TQI mask */
-    uint32_t *chan_mask;       /*!< Channel map mask */
-    uint8_t n_ap;              /*!< Number of antenna paths */
-} rade_data_t;
+    uint8_t *iq_i;            /*!< CS mode-2 and mode-3 PCT IQ samples from initiator */
+    uint8_t *iq_r;            /*!< CS mode-2 and mode-3 PCT IQ samples from reflector */
+    uint8_t n_ap;             /*!< Number of antenna paths */
+    csDataBufFreeCallback_t csDataBufFreeCb; /*!< Callback for CS data source buffer freeing */
+} rade_cs_data_t;
 
 #ifndef null_RNG
 /*! \def null_RNG 
@@ -141,7 +153,7 @@ typedef struct _rade_data
 *
 *\remarks      The function allocates memory for `*csAlgoBuf` and the caller is responsible for freeing it when the CS link ends.
 ********************************************************************************** */
-rade_result_type_t pde_rade(rade_data_t *radeData, void **csAlgoBuf, rade_cs_para_t *radeCsPara, rade_result_t *radeResult, rade_para_t *radePara);
+rade_result_type_t pde_rade(rade_cs_data_t *radeCsData, void **csAlgoBuf, rade_cs_para_t *radeCsPara, rade_result_t *radeResult, rade_para_t *radePara);
 
 /*! *********************************************************************************
 *\fn           void rade_deinit(
