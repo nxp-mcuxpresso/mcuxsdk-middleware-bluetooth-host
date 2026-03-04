@@ -1,11 +1,11 @@
 /*! *********************************************************************************
 * Copyright 2025-2026 NXP
 *
-* \file ranging_client_interface.h
+* NXP Confidential Proprietary
 *
-* This is a header file for the ranging client code.
-*
-* SPDX-License-Identifier: BSD-3-Clause
+* No part of this document must be reproduced in any form - including copied,
+* transcribed, printed or by any electronic means - without specific written
+* permission from NXP.
 ********************************************************************************** */
 #ifndef RANGING_CLIENT_INTERFACE_H
 #define RANGING_CLIENT_INTERFACE_H

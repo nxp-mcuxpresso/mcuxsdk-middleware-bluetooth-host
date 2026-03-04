@@ -7,7 +7,11 @@
 *
 * Copyright 2023-2025 NXP
 *
-* SPDX-License-Identifier: BSD-3-Clause
+* NXP Confidential Proprietary
+*
+* No part of this document must be reproduced in any form - including copied,
+* transcribed, printed or by any electronic means - without specific written
+* permission from NXP.
 ********************************************************************************** */
 
 #ifndef SHELL_LOC_USER_DEVICE_H

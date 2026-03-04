@@ -3,14 +3,13 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2022 - 2025 NXP
+* Copyright 2022 - 2026 NXP
 *
+* NXP Confidential Proprietary
 *
-* \file
-*
-* This is a source file for FSCI BLE management.
-*
-* SPDX-License-Identifier: BSD-3-Clause
+* No part of this document must be reproduced in any form - including copied,
+* transcribed, printed or by any electronic means - without specific written
+* permission from NXP.
 ********************************************************************************** */
 
 /************************************************************************************

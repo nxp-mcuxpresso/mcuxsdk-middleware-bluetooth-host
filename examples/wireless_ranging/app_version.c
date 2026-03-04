@@ -1,10 +1,12 @@
 /*
-
-Copyright 2020, 2025 NXP
-
-SPDX-License-Identifier: BSD-3-Clause
-
-*/
+ * Copyright 2020, 2025-2026 NXP
+ *
+ * NXP Confidential Proprietary
+ *
+ * No part of this document must be reproduced in any form - including copied,
+ * transcribed, printed or by any electronic means - without specific written
+ * permission from NXP.
+ */
 #include <stdint.h>
 #include "app_version_definitions.h"
 #include "app_version.h"

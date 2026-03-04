@@ -5,10 +5,11 @@
 /*! *********************************************************************************
 * Copyright 2022 - 2026 NXP
 *
+* NXP Confidential Proprietary
 *
-* \file
-*
-* SPDX-License-Identifier: BSD-3-Clause
+* No part of this document must be reproduced in any form - including copied,
+* transcribed, printed or by any electronic means - without specific written
+* permission from NXP.
 ********************************************************************************** */
 
 #ifndef CHANNEL_SOUNDING_H

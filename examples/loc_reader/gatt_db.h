@@ -13,7 +13,11 @@ PRIMARY_SERVICE(service_gap, gBleSig_GenericAccessProfile_d)
 /*! *********************************************************************************
 * \file gatt_db.h
 *
-* Copyright 2023-2024 NXP
+* Copyright 2023-2024, 2026 NXP
 *
-* SPDX-License-Identifier: BSD-3-Clause
+* NXP Confidential Proprietary
+*
+* No part of this document must be reproduced in any form - including copied,
+* transcribed, printed or by any electronic means - without specific written
+* permission from NXP.
 ********************************************************************************** */
