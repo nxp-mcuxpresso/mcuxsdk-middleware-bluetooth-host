@@ -27,31 +27,16 @@
  /* Maximum allowable distance result in meters
     Higher values produced by the algorithm will be discarded by the application */
 #ifndef gMaxDistanceMeters_c
-#define gMaxDistanceMeters_c  (120U)
+#define gMaxDistanceMeters_c        (120U)
 #endif
 
-#define gCsChannelsNb_c       (79U)
-
-#define gCsSubeventMax_c      (16U)
-
-/* Mode0 data size - RSSI 8 bits + Pkt Quality 4bits + CFO 20 bits */
-#define gCsMode0Sz_c          (4U)
-/* ToF(Pkt) data size - RSSI 8 bits + Pkt Quality 4bits + TS_DIFF 20 bits */
-#define gCsTofTsSz_c          (4U)
-/* Tone IQ data size - PCT 3 bytes, Tone_Quality_Indicator 1 byte */
-#define gCsMciqSz_c           (4U)
-
-#define CS_TS_SIZE            (3U)
-#define CS_RSSI_SIZE          (1U)
-#define CS_NADM_SIZE          (1U)
+/* Number of channels used by CS */
+#define gCsChannelsNb_c             (79U)
 
 /* Size of an IQ record */
-#define IQ_SIZE                 (3U)
+#define gCsIqSize_c                 (3U)
 /* Size of a Tone Quality Indicator */
-#define TQI_SIZE                (1U)
-/* Size of channel encoding */
-#define CHANNEL_SIZE            (1U)
-
+#define gCsTqiSize_c                (1U)
 /************************************************************************************
 *************************************************************************************
 * Private type definitions

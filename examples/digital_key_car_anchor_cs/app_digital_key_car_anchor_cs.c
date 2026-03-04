@@ -1190,7 +1190,7 @@ static void BleApp_SetCsConfigParams(appEventData_t* pEventData)
     csConfigParams.mode0_nb = pAppCsConfigParams->mode0Steps;
     mGlobalRangeSettings.role = pAppCsConfigParams->role;
     csConfigParams.rtt_type = pAppCsConfigParams->RTTType;
-    FLib_MemCpy(csConfigParams.ch_map, pAppCsConfigParams->channelMap, APP_LOCALIZATION_CH_MAP_LEN);
+    FLib_MemCpy(csConfigParams.ch_map, pAppCsConfigParams->channelMap, gCsChannelMapLength_c);
     csConfigParams.ch_map_repeat = pAppCsConfigParams->channelMapRepetition;
     csConfigParams.channelSelectionType = pAppCsConfigParams->channelSelectionType;
     csConfigParams.cs_sync_phy = pAppCsConfigParams->csSyncPhy;
@@ -2012,7 +2012,6 @@ static void BleApp_HandoverEventHandler(appHandoverEvent_t eventType, void *pDat
 #if defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
             AppLocalizationAlgo_ResetPeer(peerDeviceId);
 #endif /* defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U) */
-            gFilterShellVal = (uint16_t)gNoFilter_c;
 #if defined(gHandoverIncluded_d) && (gHandoverIncluded_d == 1)
             gHandoverDeviceId = gInvalidDeviceId_c;
 #endif

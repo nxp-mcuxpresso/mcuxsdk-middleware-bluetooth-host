@@ -131,7 +131,7 @@ void BtcsClient_ResetPeer
     /* Clean up ranging data */
     if (mPeerResultData[deviceId].pData != NULL)
     {
-        FLib_MemSet(mPeerResultData[deviceId].pData, 0U, gRasCsSubeventDataSize_c);
+        FLib_MemSet(mPeerResultData[deviceId].pData, 0U, gMaxCsSubeventDataSize_c);
     }
     mSubEvtInfo[deviceId].crtSubEvtIdx = 0U;
     mSubEvtInfo[deviceId].parsedStepsCrtSubEvt = 0U;
@@ -349,7 +349,7 @@ static bleResult_t handleRangingProcResStart
     {
         /* Clean up data */
         FLib_MemSet(&mPeerResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-        FLib_MemSet(pRemoteData->pData, 0U, gRasCsSubeventDataSize_c);
+        FLib_MemSet(pRemoteData->pData, 0U, gMaxCsSubeventDataSize_c);
         mSubEvtInfo[deviceId].crtSubEvtIdx = 0U;
         mSubEvtInfo[deviceId].parsedStepsCrtSubEvt = 0U;
 

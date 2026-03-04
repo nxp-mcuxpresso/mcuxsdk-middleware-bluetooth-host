@@ -21,123 +21,34 @@
 #if (defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0))
 #include "fsl_component_serial_manager.h"
 #endif /* gAppHciDataLogExport_d */
+
 #include "channel_sounding.h"
+#include "app_localization_config.h"
 
 /************************************************************************************
 *************************************************************************************
 * Public macros
 *************************************************************************************
 ************************************************************************************/
-/* Enable/Disable the linking of the CDE algorithm */
-#ifndef gAppUseCDEAlgorithm_d
-#define gAppUseCDEAlgorithm_d               1
-#endif
-
-/* Enable/Disable the linking of the RADE algorithm */
-#ifndef gAppUseRADEAlgorithm_d
-#define gAppUseRADEAlgorithm_d              1
-#endif
-
-/*
-   Defer algorithm run
-   If set to TRUE, the algorithm will not run automatically.
-   Instead it is the application's responsibility to make the call.
-*/
-#ifndef gAppDeferAlgoRun_d
-#define gAppDeferAlgoRun_d                  FALSE
-#endif
-
 /*! Types of embedded algorithms that can be configured */
 #define eMciqAlgoEmbedCDE                   BIT0
 #define eMciqAlgoEmbedRADE                  BIT1
 
-#define APP_LOCALIZATION_MAX_STEPS          160U
-#define APP_LOCALIZATION_MAX_STEPS_MODE0    3U
-#define APP_LOCALIZATION_CH_MAP_LEN         10U
-#define APP_LOCALIZATION_MAX_SUBEVENTS      10U
-/* The maximum number of antenna pairs used. */
-#define APP_LOCALIZATION_MAX_NO_ANTENNAS    (4U)
-/* Config Id used by localization app */
-#define APP_LOCALIZATION_CONFIG_ID          (0x01U)
-
 /* XCVR characteristics */
-#define XCVR_F_RANGE                        (84U)
-#define XCVR_CHAN_MAX                       (78U)
-#define XCVR_CHAN_MIN                       (0U)
-#define XCVR_TX_PWR_MAX                     (4U)
-#define XCVR_TX_PWR_MIN                     (-12)
-
-/* Proprietary debug flags encoded in RTT_PHY field */
-#define DBG_FLG_MASK                        (0xFCU)
-#define DBG_FLG_SHIFT                       (2U)
-#define CS_EVTIDX_MASK                      (0xFCU)
-#define CS_EVTIDX_SHIFT                     (2U)
-
- /* Rough estimation of worst case CS procedure duration for WR
- (depends on subevent fragmentation, n_ap ..., assumes 4 AP, 80 channels in a single subevent) */
-#define CS_PROC_DURATION_MS_MAX             40U
-
-/* Estimated print durations for procedure repeat frequency calculation */
-#define POSTPROC_VERB_DURATION_MS_MIN       20U
-
-/* Application duration offset (varies by scenario) */
-#define APPLICATION_OFFSET_DURATION_MS      500U
-
-#if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
-#define LOC_BOARD_PROC_REPEAT_DELAY         40U
-#endif
-
-/* Measurement data buffer size: ToF and IQ data for the max number of steps */
-#define gMeasurementDataSizeMax_c           (4U /* HCI data header */ + (6U + 1U + 4U * (1U + APP_LOCALIZATION_MAX_NO_ANTENNAS)) /* Mode 3 HCI length */)
-#define gMeasurementBufferSize_c            (gMeasurementDataSizeMax_c * APP_LOCALIZATION_MAX_STEPS)
-
-/* Procedure Repeat: Max Number of Procedures */
-#ifndef gCsProcRepeatMaxNumProcedures_c
-#define gCsProcRepeatMaxNumProcedures_c     (5U)
-#endif
-
-#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
-#if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
-#define mcNumCharacteristics_c              (2U)
-#define mcRasControlPointIndex_c            (0U)
-#define mcRasSubeventRangingData_c          (1U)
-#endif /* gRasRREQ_d */
-#endif /* gAppRasDataTransfer_d */
-
-/*! Index for Mode0 data in filter values array */
-#define gMode0Idx_c                         0U
-/*! Index for Mode1 data in filter values array */
-#define gMode1Idx_c                         1U
-/*! Index for Mode2 data in filter values array*/
-#define gMode2Idx_c                         2U
-/*! Index for Mode3 data in filter values array */
-#define gMode3Idx_c                         3U
-
-#if !defined(gAppRasDataTransfer_d) || (gAppRasDataTransfer_d == 0)
-/* Maximum number of subevents to be buffered */
-#define gRasMaxNumSubevents_c           10U /* 32 */
-
-/* Maximum data size for a CS subevent */
-#define gRasCsSubeventDataSize_c        2300U
-
-/* The maximum number of antenna pairs used. */
-#define ISP_MAX_NO_ANTENNAS             4U
-
-/* Size of Tone_PCT field for mode 2 data */
-#define gTone_PCTSize_c                 3U
-
-/* Size of Packet_PCT field for mode 1 and 3 data */
-#define gPacket_PCTSize_c               4U
-
-/* Default filter value - no filter applied */
-#define gNoFilter_c                     0xFFFFFFFFU
+#define XCVR_F_RANGE                           (84U)
+#define CS_EVTIDX_SHIFT                        (2U)
 
 /* Antenna Configuratin Index 2:2 */
-#define gAntennaCfgIdx7_c               7U
-#endif /* ! gAppRasDataTransfer_d */
+#define gAntennaCfgIdx7_c                      (7U)
+
+/* Channel map length */
+#define gCsChannelMapLength_c                  (10U)
+
+/* Config Id used by localization app */
+#define gAppLocalizationConfigId_c             (0x01U)
 
 /* 0x7F - RSSI is not available */
-#define gRssiNotAvailable_c             0x7F
+#define gRssiNotAvailable_c                    (0x7F)
 
 /* Macro to validate an SNR_Control value (CS Procedure Parameter) */
 #define isValidSnrControl(x) \
@@ -186,7 +97,7 @@ typedef PACKED_STRUCT rasMeasurementData_tag
     uint16_t            dataParsedLen;
     uint8_t             subeventIndex;
     uint8_t             crtNumSteps;
-    measSubEvtData_t    aSubEventData[gRasMaxNumSubevents_c];
+    measSubEvtData_t    aSubEventData[gMaxNumCsSubevents_c];
 
     uint8_t             crtStep;
     uint8_t             step;
@@ -218,9 +129,9 @@ typedef struct tof_result_tag {
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1)
 typedef struct tofRssiInfo_tag {
     uint8_t rssiLocalNo;
-    int8_t aRssiLocal[APP_LOCALIZATION_MAX_STEPS];
+    int8_t aRssiLocal[gMaxNumCsSteps_c];
     uint8_t rssiRemoteNo;
-    int8_t aRssiRemote[APP_LOCALIZATION_MAX_STEPS];
+    int8_t aRssiRemote[gMaxNumCsSteps_c];
 } tofRssiInfo_t;
 #endif /* gAppParseRssiInfo_d */
 
@@ -321,7 +232,7 @@ typedef struct appLocalization_rangeCfg_tag
     uint8_t phy;                                /*!< PHY to be used by the CS procedure */
     uint8_t cs_sync_phy;                        /*!< PHY to be used for CS_SYNC exchanges */
     uint8_t ant_cfg_index;                      /*!< Antenna configuration index 0-7 */
-    uint8_t ch_map[APP_LOCALIZATION_CH_MAP_LEN]; /*!< Bitmask for channels 0-78 */
+    uint8_t ch_map[gCsChannelMapLength_c];      /*!< Bitmask for channels 0-78 */
     uint8_t ch_map_repeat;                      /*!< channel map repetition */
     uint8_t channelSelectionType;               /*!< Channel selection type */
     uint16_t maxProcedureDuration;              /*!< Maximum duration for each CS procedure */

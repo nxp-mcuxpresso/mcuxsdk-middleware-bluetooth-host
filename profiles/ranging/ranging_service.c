@@ -47,18 +47,6 @@
 #define gAP3_c    0b0000100
 /*! Antenna Path 4 */
 #define gAP4_c    0b0001000
-
-/*! Index for Mode0 data in filter values array */
-#define gMode0Idx_c    0U
-/*! Index for Mode1 data in filter values array */
-#define gMode1Idx_c    1U
-/*! Index for Mode2 data in filter values array*/
-#define gMode2Idx_c    2U
-/*! Index for Mode3 data in filter values array */
-#define gMode3Idx_c    3U
-/*! Value indicating the subevent is aborted */
-#define gModeAborted_c BIT7
-
 /************************************************************************************
 *************************************************************************************
 * Private type definitions
@@ -924,7 +912,7 @@ bleResult_t Ras_SendRangingDataIndication
             mDataTransferState[deviceId] = (uint8_t)noTransferInProgress_c;
             gRasSubeventStepIndex = 0U;
             FLib_MemSet(maRasDynamicCfg[deviceId].pCfg, 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-            FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gRasCsSubeventDataSize_c);
+            FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gMaxCsSubeventDataSize_c);
             (void)MEM_BufferFree(maRasDynamicCfg[deviceId].pRangingDataBody);
             maRasDynamicCfg[deviceId].pRangingDataBody = NULL;
         }
@@ -1143,7 +1131,7 @@ bleResult_t Ras_SendRangingDataNotifs
             gRasSubeventStepIndex = 0U;
 
             FLib_MemSet(maRasDynamicCfg[deviceId].pCfg, 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-            FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gRasCsSubeventDataSize_c);
+            FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gMaxCsSubeventDataSize_c);
             (void)MEM_BufferFree(maRasDynamicCfg[deviceId].pRangingDataBody);
             maRasDynamicCfg[deviceId].pRangingDataBody = NULL;
         }
@@ -1203,14 +1191,14 @@ bleResult_t Ras_BuildRangingDataBody
     {
         if (maRasDynamicCfg[deviceId].pRangingDataBody == NULL)
         {
-            maRasDynamicCfg[deviceId].pRangingDataBody = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
+            maRasDynamicCfg[deviceId].pRangingDataBody = MEM_BufferAlloc(gMaxCsSubeventDataSize_c);
             if (maRasDynamicCfg[deviceId].pRangingDataBody == NULL)
             {
                 result = gBleOutOfMemory_c;
             }
             else
             {
-                FLib_MemSet(maRasDynamicCfg[deviceId].pRangingDataBody, 0U, gRasCsSubeventDataSize_c);
+                FLib_MemSet(maRasDynamicCfg[deviceId].pRangingDataBody, 0U, gMaxCsSubeventDataSize_c);
             }
         }
     }
@@ -1944,7 +1932,7 @@ static void RrspTimerCallback
     {
         if (maRasDynamicCfg[deviceId].pCfg->pData != NULL)
         {
-            FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gRasCsSubeventDataSize_c);
+            FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gMaxCsSubeventDataSize_c);
         }
         FLib_MemSet(maRasDynamicCfg[deviceId].pCfg, 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
     }
@@ -2172,7 +2160,7 @@ static bleResult_t handleAckRangingDataCmd
         if (pRasCtrlPointCmd->cmdParameters.procCounter == maRasDynamicCfg[deviceId].pCfg->procedureCounter)
         {
             FLib_MemSet(maRasDynamicCfg[deviceId].pCfg, 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-            FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gRasCsSubeventDataSize_c);
+            FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gMaxCsSubeventDataSize_c);
             (void)MEM_BufferFree(maRasDynamicCfg[deviceId].pRangingDataBody);
             maRasDynamicCfg[deviceId].pRangingDataBody = NULL;
 
@@ -2230,7 +2218,7 @@ static bleResult_t handleAbortCmd
             FLib_MemSet(maRasDynamicCfg[deviceId].pCfg, 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
             if (maRasDynamicCfg[deviceId].pCfg->pData != NULL)
             {
-                FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gRasCsSubeventDataSize_c);
+                FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gMaxCsSubeventDataSize_c);
             }
         }
 

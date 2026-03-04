@@ -119,11 +119,11 @@
 
 /*
     CS_VendorConfig parameters length:
-        Antenna config: 3U + APP_LOCALIZATION_MAX_NO_ANTENNAS
+        Antenna config: 3U + gMaxNumAntennaPaths_c
         RTT fine tuning: 6U
-        PCT rotation: 4U * APP_LOCALIZATION_MAX_NO_ANTENNAS
+        PCT rotation: 4U * gMaxNumAntennaPaths_c
 */
-#define CS_CONFIG_VENDOR_PARAM_LENGTH   (9U + 5U * APP_LOCALIZATION_MAX_NO_ANTENNAS)
+#define CS_CONFIG_VENDOR_PARAM_LENGTH   (9U + 5U * gMaxNumAntennaPaths_c)
 
 /************************************************************************************
 *************************************************************************************
@@ -157,7 +157,7 @@ static uint16_t maAlgoRunCount[gAppMaxConnections_c] = {0U};
 /* Local measurement data */
 static rasMeasurementData_t mResultData[gAppMaxConnections_c];
 
-static const uint8_t cs_ant_idx_to_GPIO[CS_NO_ANT_TYPES][APP_LOCALIZATION_MAX_NO_ANTENNAS] = {
+static const uint8_t cs_ant_idx_to_GPIO[CS_NO_ANT_TYPES][gMaxNumAntennaPaths_c] = {
     {0U, 0U, 0U, 0U}, /* 0 = None */
     {LCL_HAL_ANTDIV_EXT_1_ANT , LCL_HAL_ANTDIV_EXT_2_ANT, LCL_HAL_ANTDIV_ALL_OFF, LCL_HAL_ANTDIV_ALL_OFF}, /* 1 = ANTDIV_SMA */
     {LCL_HAL_ANTDIV_ANT_20_ANT , LCL_HAL_ANTDIV_ANT_30_ANT, LCL_HAL_ANTDIV_ALL_OFF, LCL_HAL_ANTDIV_ALL_OFF},  /* 2 = ANTDIV_PRINTED */
@@ -189,7 +189,7 @@ static TIMER_MANAGER_HANDLE_DEFINE(mTemperatureTimerId);
 
 /* PCT Rotation calibration parameters */
 /* 50cm compensation for EVK and LOC boards */
-static uint8_t maPctRotationParams[4U * APP_LOCALIZATION_MAX_NO_ANTENNAS] = {57U, 1U, 0U, 0U,
+static uint8_t maPctRotationParams[4U * gMaxNumAntennaPaths_c] = {57U, 1U, 0U, 0U,
                                                                              57U, 1U, 0U, 0U,
                                                                              57U, 1U, 0U, 0U,
                                                                              57U, 1U, 0U, 0U};
@@ -297,7 +297,7 @@ appLocalization_rangeCfgGlobal_t mGlobalRangeSettings = {};
 
 appLocalization_rangeCfg_t mDefaultRangeSettings =
 {
-    .configId = APP_LOCALIZATION_CONFIG_ID,
+    .configId = gAppLocalizationConfigId_c,
     .main_mode_type = 2, /* RTP */
     .sub_mode_type = 3, /* RTT + RTP */
     .main_mode_min = 4,
@@ -394,7 +394,7 @@ bleResult_t AppLocalization_Init
     }
     else
     {
-        const uint8_t CSChMapReal[APP_LOCALIZATION_CH_MAP_LEN] = {0xfc,0xff,0x7f,0xfc,0xff,0xff,0xff,0xff,0xff,0x1f}; /* All valid channels */
+        const uint8_t CSChMapReal[gCsChannelMapLength_c] = {0xfc,0xff,0x7f,0xfc,0xff,0xff,0xff,0xff,0xff,0x1f}; /* All valid channels */
 
         /* Start LCE */
 #ifdef LCE_KW47_MCXW72
@@ -420,7 +420,7 @@ bleResult_t AppLocalization_Init
         for (uint8_t index = 0U; index < (uint8_t)gAppMaxConnections_c; index++)
         {
             FLib_MemCpy(&mRangeSettings[index], &mDefaultRangeSettings, sizeof(appLocalization_rangeCfg_t));
-            FLib_MemCpy(mRangeSettings[index].ch_map, CSChMapReal, APP_LOCALIZATION_CH_MAP_LEN);
+            FLib_MemCpy(mRangeSettings[index].ch_map, CSChMapReal, gCsChannelMapLength_c);
 #if defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
             maPsmChannels[index] = 0U;
 #endif /* defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U) */
@@ -525,17 +525,17 @@ bleResult_t AppLocalization_HostInitHandler(void)
         aAppData[0U] = 2U; /* Default antenna switch time */
         aAppData[1U] = 4U; /* Number of antenna paths */
         aAppData[2U] = (mGlobalRangeSettings.ant_type == CS_ANT_BOARD_ANTDIV_4_ANT) ? 4U : 2U; /* Number of antennas (only 2 antennas on reference designs) */
-        FLib_MemCpy((void *)(&aAppData[3U]), ant2gpio_p, APP_LOCALIZATION_MAX_NO_ANTENNAS);
+        FLib_MemCpy((void *)(&aAppData[3U]), ant2gpio_p, gMaxNumAntennaPaths_c);
 
         /* RTT fine tuning */
         for (uint8_t index = 0U; index < 3U; index++)
         {
             temp.i16 = maRttFineTuningParams[index];
-            Utils_PackTwoByteValue(temp.u16, &aAppData[3U + APP_LOCALIZATION_MAX_NO_ANTENNAS + index * sizeof(uint16_t)]);
+            Utils_PackTwoByteValue(temp.u16, &aAppData[3U + gMaxNumAntennaPaths_c + index * sizeof(uint16_t)]);
         }
 
         /* PCT rotation calibration */
-        FLib_MemCpy((void *)(&aAppData[9U + APP_LOCALIZATION_MAX_NO_ANTENNAS]), maPctRotationParams, (4U * APP_LOCALIZATION_MAX_NO_ANTENNAS));
+        FLib_MemCpy((void *)(&aAppData[9U + gMaxNumAntennaPaths_c]), maPctRotationParams, (4U * gMaxNumAntennaPaths_c));
 
         status = CS_ConfigVendorCommand(paramsPresence, paramDataLength, aAppData);
     }
@@ -1223,7 +1223,7 @@ void* AppLocalization_AllocLocalData
 #if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U)) || (defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1U))
         mResultData[deviceId].pData = MEM_BufferAlloc(sizeof(csAppData_t));
 #elif (defined (gRasRRSP_d) && (gRasRRSP_d == 1U)) || (defined (gAppBtcsServer_d) && (gAppBtcsServer_d == 1U))
-        mResultData[deviceId].pData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
+        mResultData[deviceId].pData = MEM_BufferAlloc(gMaxCsSubeventDataSize_c);
 #else
 #warning "Not supported"
 #endif
@@ -1252,7 +1252,7 @@ void AppLocalization_ClearLocalData
 #if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U)) || (defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1U))
         FLib_MemSet(mResultData[deviceId].pData, 0U, sizeof(csAppData_t));
 #elif (defined (gRasRRSP_d) && (gRasRRSP_d == 1U)) || (defined (gAppBtcsServer_d) && (gAppBtcsServer_d == 1U))
-        FLib_MemSet(mResultData[deviceId].pData, 0U, gRasCsSubeventDataSize_c);
+        FLib_MemSet(mResultData[deviceId].pData, 0U, gMaxCsSubeventDataSize_c);
 #else
 #warning "Not supported"
 #endif
@@ -1358,7 +1358,7 @@ bleResult_t AppLocalization_CreateConfig
         createConfigParams.mode0Steps = mRangeSettings[deviceId].mode0_nb;
         createConfigParams.RTTTypes = (rttTypes_t)mRangeSettings[deviceId].rtt_type;
         createConfigParams.csSyncPhy = mRangeSettings[deviceId].cs_sync_phy;
-        FLib_MemCpy(createConfigParams.channelMap, mRangeSettings[deviceId].ch_map, APP_LOCALIZATION_CH_MAP_LEN);
+        FLib_MemCpy(createConfigParams.channelMap, mRangeSettings[deviceId].ch_map, gCsChannelMapLength_c);
         createConfigParams.channelMapRepetition = mRangeSettings[deviceId].ch_map_repeat;
         createConfigParams.channelSelectionType = mRangeSettings[deviceId].channelSelectionType;
         createConfigParams.ch3cShape = 0U; /* unused */
@@ -2814,71 +2814,75 @@ static bleResult_t processCsResultsEvent
     csSubeventResultEvent_t* pEvent
 )
 {
-    bleResult_t result = gBleSuccess_c;
+    bleResult_t result = gBleOutOfMemory_c;
     uint16_t eventIdx = 0;
     deviceId_t deviceId = pEvent->deviceId;
     uint8_t subeventIndex = mResultData[deviceId].subeventIndex;
-    csRasSubeventHeader_t *pSubevtHeader = &mResultData[deviceId].aSubEventData[subeventIndex].subevtHeader;
+
+    if (subeventIndex < gMaxNumCsSubevents_c)
+    {
+        csRasSubeventHeader_t *pSubevtHeader = &mResultData[deviceId].aSubEventData[subeventIndex].subevtHeader;
 
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
 #if defined(gRasRREQ_d) && (gRasRREQ_d == 1U)
-    rreqTimeoutData_t mRreqTimeoutData;
+        rreqTimeoutData_t mRreqTimeoutData;
 #endif /* gRasRREQ_d*/
 #endif /* gAppRasDataTransfer_d*/
 
-    if (pEvent->subeventDoneStatus == (uint8_t)gCsNoResultsProcAborted_c)
-    {
+        if (pEvent->subeventDoneStatus == (uint8_t)gCsNoResultsProcAborted_c)
+        {
 #if defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
-        maAlgoRunCount[deviceId]++;
+            maAlgoRunCount[deviceId]++;
 #endif
 
-        if (mpfAppCsCallback != NULL)
-        {
-            mpfAppCsCallback(deviceId, (void*)&pEvent->abortReason, gErrorSubeventAborted_c);
+            if (mpfAppCsCallback != NULL)
+            {
+                mpfAppCsCallback(deviceId, (void*)&pEvent->abortReason, gErrorSubeventAborted_c);
+            }
         }
-    }
 
-    /* Set results data parameters */
-    if (mResultData[deviceId].dataIndex == 0U)
-    {
-        mResultData[deviceId].deviceId = pEvent->deviceId;
-        mResultData[deviceId].configId = pEvent->configId;
-        mResultData[deviceId].procedureCounter = pEvent->procedureCounter;
-        mResultData[deviceId].numAntennaPaths = pEvent->numAntennaPaths;
+        /* Set results data parameters */
+        if (mResultData[deviceId].dataIndex == 0U)
+        {
+            mResultData[deviceId].deviceId = pEvent->deviceId;
+            mResultData[deviceId].configId = pEvent->configId;
+            mResultData[deviceId].procedureCounter = pEvent->procedureCounter;
+            mResultData[deviceId].numAntennaPaths = pEvent->numAntennaPaths;
 
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1U)
-        gCsTimeInfo.csDistMeasStart = TM_GetTimestamp();
-        gCsTimeInfo.csDistMeasDuration  = 0U;
+            gCsTimeInfo.csDistMeasStart = TM_GetTimestamp();
+            gCsTimeInfo.csDistMeasDuration  = 0U;
 #endif
 
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
 #if defined(gRasRREQ_d) && (gRasRREQ_d == 1U)
-        /* First results event - Expecting Data Ready from peer */
-        mRreqTimeoutData.deviceId = deviceId;
-        mRreqTimeoutData.reason = (uint8_t)rreqWaitingForDataReady_c;
-        /* Start Data Ready (On demad)/Real-time data timer */
-        RasClient_SartRapTimer(deviceId, mRreqTimeoutData);
+            /* First results event - Expecting Data Ready from peer */
+            mRreqTimeoutData.deviceId = deviceId;
+            mRreqTimeoutData.reason = (uint8_t)rreqWaitingForDataReady_c;
+            /* Start Data Ready (On demad)/Real-time data timer */
+            RasClient_SartRapTimer(deviceId, mRreqTimeoutData);
 #endif /* gRasRREQ_d */
 #endif /* gAppRasDataTransfer_d */
+        }
+
+        /* Update subevent information */
+        pSubevtHeader->startACLConnEvent = pEvent->startACLConnEvent;
+        pSubevtHeader->frequencyCompensation = pEvent->frequencyCompensation;
+        pSubevtHeader->referencePowerLevel = pEvent->referencePowerLevel;
+        pSubevtHeader->procedureDoneStatus = pEvent->procedureDoneStatus;
+        pSubevtHeader->subeventDoneStatus = pEvent->subeventDoneStatus;
+        pSubevtHeader->abortReason = pEvent->abortReason;
+        pSubevtHeader->numStepsReported = pEvent->numStepsReported;
+
+        mResultData[deviceId].totalNumSteps += pEvent->numStepsReported;
+
+        /* Use free bits of packet_AA_quality of first mode0 step to store eventIdx (we do not keep track of all subevent headers) */
+        eventIdx = pEvent->startACLConnEvent - pSubevtHeader->startACLConnEvent;
+        *(pEvent->pData + 3U * sizeof(uint8_t)) |= (uint8_t)(eventIdx << CS_EVTIDX_SHIFT);
+
+        result = processEventResultData(deviceId, pEvent->numStepsReported,
+                                        pEvent->subeventDoneStatus, pEvent->procedureDoneStatus, pEvent->pData);
     }
-
-    /* Update subevent information */
-    pSubevtHeader->startACLConnEvent = pEvent->startACLConnEvent;
-    pSubevtHeader->frequencyCompensation = pEvent->frequencyCompensation;
-    pSubevtHeader->referencePowerLevel = pEvent->referencePowerLevel;
-    pSubevtHeader->procedureDoneStatus = pEvent->procedureDoneStatus;
-    pSubevtHeader->subeventDoneStatus = pEvent->subeventDoneStatus;
-    pSubevtHeader->abortReason = pEvent->abortReason;
-    pSubevtHeader->numStepsReported = pEvent->numStepsReported;
-
-    mResultData[deviceId].totalNumSteps += pEvent->numStepsReported;
-
-    /* Use free bits of packet_AA_quality of first mode0 step to store eventIdx (we do not keep track of all subevent headers) */
-    eventIdx = pEvent->startACLConnEvent - pSubevtHeader->startACLConnEvent;
-    *(pEvent->pData + 3U * sizeof(uint8_t)) |= (uint8_t)(eventIdx << CS_EVTIDX_SHIFT);
-
-    result = processEventResultData(deviceId, pEvent->numStepsReported,
-                                    pEvent->subeventDoneStatus, pEvent->procedureDoneStatus, pEvent->pData);
 
     return result;
 }
@@ -2897,30 +2901,34 @@ static bleResult_t processCsResultsContinueEvent
     csSubeventResultContinueEvent_t* pEvent
 )
 {
-    bleResult_t result = gBleSuccess_c;
+    bleResult_t result = gBleOutOfMemory_c;
     deviceId_t deviceId = pEvent->deviceId;
     uint8_t subeventIndex = mResultData[deviceId].subeventIndex;
-    csRasSubeventHeader_t *pSubevtHeader = &mResultData[deviceId].aSubEventData[subeventIndex].subevtHeader;
 
-    if (pEvent->subeventDoneStatus == (uint8_t)gCsNoResultsProcAborted_c)
+    if (subeventIndex < gMaxNumCsSubevents_c)
     {
-#if defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
-        maAlgoRunCount[deviceId]++;
-#endif
-        if (mpfAppCsCallback != NULL)
+        csRasSubeventHeader_t *pSubevtHeader = &mResultData[deviceId].aSubEventData[subeventIndex].subevtHeader;
+
+        if (pEvent->subeventDoneStatus == (uint8_t)gCsNoResultsProcAborted_c)
         {
-            mpfAppCsCallback(deviceId, (void*)&pEvent->abortReason, gErrorSubeventAborted_c);
+#if defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
+            maAlgoRunCount[deviceId]++;
+#endif
+            if (mpfAppCsCallback != NULL)
+            {
+                mpfAppCsCallback(deviceId, (void*)&pEvent->abortReason, gErrorSubeventAborted_c);
+            }
         }
+
+        /* Update results data parameters */
+        mResultData[deviceId].totalNumSteps += pEvent->numStepsReported;
+        pSubevtHeader->subeventDoneStatus = pEvent->subeventDoneStatus;
+        pSubevtHeader->procedureDoneStatus = pEvent->procedureDoneStatus;
+        pSubevtHeader->numStepsReported += pEvent->numStepsReported;
+
+        result = processEventResultData(deviceId, pEvent->numStepsReported,
+                                        pEvent->subeventDoneStatus, pEvent->procedureDoneStatus, pEvent->pData);
     }
-
-    /* Update results data parameters */
-    mResultData[deviceId].totalNumSteps += pEvent->numStepsReported;
-    pSubevtHeader->subeventDoneStatus = pEvent->subeventDoneStatus;
-    pSubevtHeader->procedureDoneStatus = pEvent->procedureDoneStatus;
-    pSubevtHeader->numStepsReported += pEvent->numStepsReported;
-
-    result = processEventResultData(deviceId, pEvent->numStepsReported,
-                                    pEvent->subeventDoneStatus, pEvent->procedureDoneStatus, pEvent->pData);
 
     return result;
 }
@@ -2981,8 +2989,7 @@ static bleResult_t processEventResultData
         dataSize += ((uint32_t)*(stepDataLenPtr + dataSize)) + sizeof(uint8_t) * 3U; /* also account for mode, channel, data_length fields */
     }
 
-    if (((mResultData[deviceId].dataIndex + dataSize) >= gMeasurementBufferSize_c) ||
-        (subeventIndex >= APP_LOCALIZATION_MAX_SUBEVENTS))
+    if ((mResultData[deviceId].dataIndex + dataSize) >= gMeasurementBufferSize_c)
     {
         result = gBleOutOfMemory_c;
         AppLocalizationError(deviceId, gAppLclNoSubeventMemoryAvailable_c);
@@ -3056,7 +3063,7 @@ static bleResult_t processEventResultData
 
         if (((subEventStatus == (uint8_t)gCsCompleteResults_c) ||
              (subEventStatus == (uint8_t)gCsNoResultsProcAborted_c)) &&
-            (mResultData[deviceId].subeventIndex < APP_LOCALIZATION_MAX_SUBEVENTS)
+            (mResultData[deviceId].subeventIndex < gMaxNumCsSubevents_c)
            )
         {
             /* Subevent Done - move to next subevent */

@@ -19,7 +19,7 @@
 
 #include "channel_sounding.h"
 #include "btcs_server_interface.h"
-#include "app_localization.h"
+#include "app_localization_utils.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -190,14 +190,14 @@ bleResult_t BtcsServer_BuildRangingData
         if (mpRangingData[deviceId].pRangingData == NULL)
         {
             /* Allocate ranging data */
-            mpRangingData[deviceId].pRangingData = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
+            mpRangingData[deviceId].pRangingData = MEM_BufferAlloc(gMaxCsSubeventDataSize_c);
             if (mpRangingData[deviceId].pRangingData == NULL)
             {
                 result = gBleOutOfMemory_c;
             }
             else
             {
-                FLib_MemSet(mpRangingData[deviceId].pRangingData, 0U, gRasCsSubeventDataSize_c);
+                FLib_MemSet(mpRangingData[deviceId].pRangingData, 0U, gMaxCsSubeventDataSize_c);
             }
         }
     }
@@ -607,7 +607,7 @@ void BtcsServer_ResetPeer
     /* Clean up ranging data */
     if (mpRangingData[deviceId].pRangingData != NULL)
     {
-        FLib_MemSet(mpRangingData[deviceId].pRangingData, 0U, gRasCsSubeventDataSize_c);
+        FLib_MemSet(mpRangingData[deviceId].pRangingData, 0U, gMaxCsSubeventDataSize_c);
     }
 
     /* Clean up segment information */

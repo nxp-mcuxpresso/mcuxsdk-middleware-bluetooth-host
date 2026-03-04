@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file shell_loc_user_device.h
 *
-* Copyright 2023-2025 NXP
+* Copyright 2023-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -74,7 +74,7 @@ typedef struct appCsConfigParams_tag
     uint8_t     mode0Steps;
     uint8_t     role; /*!< 0 - Initiator, 1 - Reflector. */
     uint8_t     RTTType;
-    uint8_t     channelMap[APP_LOCALIZATION_CH_MAP_LEN];
+    uint8_t     channelMap[gCsChannelMapLength_c];
     uint8_t     channelMapRepetition;
     uint8_t     channelSelectionType;
 } appCsConfigParams_t;

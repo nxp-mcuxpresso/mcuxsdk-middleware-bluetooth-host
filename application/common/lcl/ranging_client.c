@@ -353,7 +353,7 @@ bleResult_t RasClient_StorePeerMeasurementData
                 /* Store new notifications in a temporary buffer */
                 if (mRasTransferInfo[deviceId].pNotifTempBuffer == NULL)
                 {
-                    mRasTransferInfo[deviceId].pNotifTempBuffer = MEM_BufferAlloc(gRasCsSubeventDataSize_c);
+                    mRasTransferInfo[deviceId].pNotifTempBuffer = MEM_BufferAlloc(gMaxCsSubeventDataSize_c);
                 }
 
                 if (mRasTransferInfo[deviceId].pNotifTempBuffer != NULL)
@@ -1027,7 +1027,7 @@ void RasClient_ResetPeerInfo
 #if gRasRREQ_d || gAppBtcsClient_d
         FLib_MemSet(mPeerResultData[deviceId].pData, 0U, sizeof(csAppData_t));
 #elif gRasRRSP_d || gAppBtcsServer_d
-        FLib_MemSet(mPeerResultData[deviceId].pData, 0U, gRasCsSubeventDataSize_c);
+        FLib_MemSet(mPeerResultData[deviceId].pData, 0U, gMaxCsSubeventDataSize_c);
 #else
 #warning "Not supported"
 #endif

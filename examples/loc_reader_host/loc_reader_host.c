@@ -257,7 +257,7 @@ static void unpackDataHeader
         pDstData->subeventIndex = *pSrcAux++;
         pDstData->crtNumSteps = *pSrcAux++;
 
-        for (uint8_t idx = 0U; idx < gRasMaxNumSubevents_c; idx++)
+        for (uint8_t idx = 0U; idx < gMaxNumCsSubevents_c; idx++)
         {
             pDstData->aSubEventData[idx].dataIdx = Utils_ExtractFourByteValue(pSrcAux);
             pSrcAux = &pSrcAux[4U];

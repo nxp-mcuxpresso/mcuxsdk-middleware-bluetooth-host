@@ -494,9 +494,9 @@ static shell_status_t ShellSetCsConfigParams_Command(shell_handle_t shellHandle,
 
             if (status == gBleSuccess_c)
             {
-                if (APP_LOCALIZATION_CH_MAP_LEN ==  BleApp_ParseHexValue(argv[10]))
+                if (gCsChannelMapLength_c ==  BleApp_ParseHexValue(argv[10]))
                 {
-                    FLib_MemCpy(csConfigParams.ch_map, argv[10], APP_LOCALIZATION_CH_MAP_LEN);
+                    FLib_MemCpy(csConfigParams.ch_map, argv[10], gCsChannelMapLength_c);
                 }
                 else
                 {

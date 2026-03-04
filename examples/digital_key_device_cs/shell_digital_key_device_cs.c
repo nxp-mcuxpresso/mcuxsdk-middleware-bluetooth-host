@@ -650,7 +650,7 @@ static shell_status_t ShellSetCsConfigParams_Command(shell_handle_t shellHandle,
                     {
                         if (gHCICSChannelMapSize ==  BleApp_ParseHexValue(argv[10]))
                         {
-                            FLib_MemCpy(pAppCsConfigParams->channelMap, argv[10], APP_LOCALIZATION_CH_MAP_LEN);
+                            FLib_MemCpy(pAppCsConfigParams->channelMap, argv[10], gCsChannelMapLength_c);
                         }
                         else
                         {

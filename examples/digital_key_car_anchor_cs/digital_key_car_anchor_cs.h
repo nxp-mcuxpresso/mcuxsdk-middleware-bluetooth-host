@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file digital_key_car_anchor_cs.h
 *
-* Copyright 2022 - 2025 NXP
+* Copyright 2022-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -233,10 +233,6 @@ extern bool_t mLastConnectFromHandover;
 /* Last deviceId connected to via handover */
 extern deviceId_t gLastHandedOverPeerId;
 #endif
-
-extern uint16_t gFilterShellVal;
-extern bool_t   gFilterTestSend;
-
 /************************************************************************************
 *************************************************************************************
 * Public prototypes

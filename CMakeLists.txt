@@ -1009,6 +1009,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.lcl)
                 application/common/lcl/app_localization.h
                 application/common/lcl/app_localization_utils.c
                 application/common/lcl/app_localization_utils.h
+                application/common/lcl/app_localization_config.h
                 application/common/lcl/ranging_client_interface.h
     )
     mcux_add_include(

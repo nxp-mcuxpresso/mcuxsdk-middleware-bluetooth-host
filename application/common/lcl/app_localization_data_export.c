@@ -292,11 +292,11 @@ static uint32_t convert_rtt_to_24bits(uint8_t **dataIn)
     uint8_t *ptr;
 
     /* Skip NADM & RSSI */
-    (*dataIn) += CS_NADM_SIZE + CS_RSSI_SIZE;
+    (*dataIn) += gCsNadmSize_c + gCsRssiSize_c;
     /* dataIn not aligned on uint32_t boundary, cannot cast */
     ptr = *dataIn;
     val = ((uint32_t)ptr[2])<<16 | ((uint32_t)ptr[1])<<8 | (uint32_t)ptr[0];
-    *dataIn += CS_TS_SIZE;
+    *dataIn += gCsTsSize_c;
     return val;
 }
 
@@ -309,9 +309,9 @@ static uint32_t convert_rssi(uint8_t **dataIn) {
     uint8_t val;
 
     /* Skip NADM */
-    (*dataIn) += CS_NADM_SIZE;
+    (*dataIn) += gCsNadmSize_c;
     val = (**dataIn) ^ 0x80U;
-    (*dataIn) += CS_RSSI_SIZE + CS_TS_SIZE;  /* Skip RSSI & TS */
+    (*dataIn) += gCsRssiSize_c + gCsTsSize_c;  /* Skip RSSI & TS */
     return val;
 }
 
@@ -340,7 +340,7 @@ static uint32_t convert_nadm_to_4bits(uint8_t **dataIn) {
     ptr = *dataIn;
     /* Compress data from 8 bits to 4 bits. First 4 MSB bits are not used (Unknown NADM 0xFF value will be compressed to 0x0F) */
     val = (uint32_t)(*ptr) & 0x0FU;
-    *dataIn += CS_NADM_SIZE + CS_RSSI_SIZE + CS_TS_SIZE;
+    *dataIn += gCsNadmSize_c + gCsRssiSize_c + gCsTsSize_c;
     return val;
 }
 #endif
@@ -478,20 +478,20 @@ static void app_mciq_print_node_data(mciq_data_t *mciq_data)
     for (m = 0; m < n_ap; m++)
     {
         /* CS IQs are 2 * 12 bits compressed, I is located in 12bits MSB, all antenna paths packed by step */
-        cli_sprint_base64_12b_c(pBuffer, &data->iq[(IQ_SIZE+TQI_SIZE)*m], (uint8_t)data->nbSteps, (IQ_SIZE+TQI_SIZE)*n_ap, 12);
+        cli_sprint_base64_12b_c(pBuffer, &data->iq[(gCsIqSize_c+gCsTqiSize_c)*m], (uint8_t)data->nbSteps, (gCsIqSize_c+gCsTqiSize_c)*n_ap, 12);
         (void)printf("'%s',", (char*)pBuffer);
     }
     (void)printf("],q:[");
     for (m = 0; m < n_ap; m++)
     {
         /* CS IQs are 2 * 12 bits, Q is located in 12bits LSB, all antenna paths packed by step */
-        cli_sprint_base64_12b_c(pBuffer, &data->iq[(IQ_SIZE+TQI_SIZE)*m], (uint8_t)data->nbSteps, (IQ_SIZE+TQI_SIZE)*n_ap, 0);
+        cli_sprint_base64_12b_c(pBuffer, &data->iq[(gCsIqSize_c+gCsTqiSize_c)*m], (uint8_t)data->nbSteps, (gCsIqSize_c+gCsTqiSize_c)*n_ap, 0);
         (void)printf("'%s',", (char*)pBuffer);
     }
     (void)printf("],tqi:["); /* Tone quality indicator, byte */
     for (m = 0; m < n_ap; m++)
     {
-        cli_sprint_hex8b_c(pBuffer, &data->iq[(IQ_SIZE+TQI_SIZE)*m+IQ_SIZE], (uint8_t)data->nbSteps, (IQ_SIZE+TQI_SIZE) * (uint32_t)n_ap);
+        cli_sprint_hex8b_c(pBuffer, &data->iq[(gCsIqSize_c+gCsTqiSize_c)*m+gCsIqSize_c], (uint8_t)data->nbSteps, (gCsIqSize_c+gCsTqiSize_c) * (uint32_t)n_ap);
         (void)printf("'%s',", (char*)pBuffer);
     }
     (void)MEM_BufferFree(pBuffer);

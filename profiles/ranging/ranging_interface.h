@@ -24,6 +24,7 @@
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
 #include "channel_sounding.h"
 #include "gatt_server_interface.h"
+#include "app_localization_config.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -35,21 +36,6 @@
 
 /* Default filter value - no filter applied */
 #define gNoFilter_c                     0xFFFFFFFFU
-
-/* Antenna Configuratin Index 2:2 */
-#define gAntennaCfgIdx7_c               7U
-
-/* The maximum number of antenna pairs used. */
-#define ISP_MAX_NO_ANTENNAS             4U
-
-/* Maximum number of subevents to be buffered */
-#define gRasMaxNumSubevents_c           10U /* 32 */
-
-/* Maximum number of CS steps to be buffered */
-#define gRasMaxNumSteps_c               160U
-
-/* Maximum data size for a CS subevent */
-#define gRasCsSubeventDataSize_c        2300U
 
 /* Size of the header for RAS notifications */
 #define gRasNotificationHeaderize       sizeof(uint16_t) + sizeof(uint8_t) + \
@@ -67,12 +53,6 @@
 /* Maximum number of segments */
 #define gRASMaxNoOfSegments_c           12U
 
-/* Size of Tone_PCT field for mode 2 data */
-#define gTone_PCTSize_c                 3U
-
-/* Size of Packet_PCT field for mode 1 and 3 data */
-#define gPacket_PCTSize_c               4U
-
 /* Timeout for Data Ready indication after starting CS procedure */
 #define gRreqTimeoutDataReadySeconds_c  3U
 
@@ -88,6 +68,17 @@
 /* PCT phase format */
 #define gPctFormatPhase_c               1U
 
+/*! Index for Mode0 data in filter values array */
+#define gMode0Idx_c                            (0U)
+/*! Index for Mode1 data in filter values array */
+#define gMode1Idx_c                            (1U)
+/*! Index for Mode2 data in filter values array*/
+#define gMode2Idx_c                            (2U)
+/*! Index for Mode3 data in filter values array */
+#define gMode3Idx_c                            (3U)
+
+/*! Value indicating the subevent is aborted */
+#define gModeAborted_c                         (BIT7)
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -156,7 +147,7 @@ typedef PACKED_STRUCT rasMeasurementData_tag
     uint16_t            dataParsedLen;
     uint8_t             subeventIndex;
     uint8_t             crtNumSteps;
-    measSubEvtData_t    aSubEventData[gRasMaxNumSubevents_c];
+    measSubEvtData_t    aSubEventData[gMaxNumCsSubevents_c];
 
     uint8_t             crtStep;
     int                 step;

@@ -1002,9 +1002,9 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
             algoDurationMs += 20U;
 #endif /* gAppUseCDEAlgorithm_d */
 
-            uint32_t procInterval = CS_PROC_DURATION_MS_MAX + POSTPROC_VERB_DURATION_MS_MIN + APPLICATION_OFFSET_DURATION_MS + algoDurationMs;
+            uint32_t procInterval = gMaxCsProcDurationMs_c + gPostProcVerbDurationMs_c + gAppOffsetDurationMs_c + algoDurationMs;
 #if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
-            procInterval +=  LOC_BOARD_PROC_REPEAT_DELAY;
+            procInterval +=  gLocBoardDelayMs_c;
 #endif
             /* Convert ms to connection intervals */
             procInterval = 1U + (procInterval * 1000U)/(((uint32_t)(pConnectionEvent->eventData.connectedEvent.connParameters.connInterval)) * 1250U);

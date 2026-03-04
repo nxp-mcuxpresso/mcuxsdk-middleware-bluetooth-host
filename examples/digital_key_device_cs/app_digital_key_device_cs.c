@@ -1358,9 +1358,9 @@ static void App_HandleConnectionCallback(appEventData_t *pEventData)
             algoDurationMs += 25U;
 #endif /* gAppUseCDEAlgorithm_d */
 
-            uint32_t procInterval = (uint32_t)(CS_PROC_DURATION_MS_MAX + POSTPROC_VERB_DURATION_MS_MIN + APPLICATION_OFFSET_DURATION_MS + algoDurationMs);
+            uint32_t procInterval = (uint32_t)(gMaxCsProcDurationMs_c + gPostProcVerbDurationMs_c + gAppOffsetDurationMs_c + algoDurationMs);
 #if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
-            procInterval +=  LOC_BOARD_PROC_REPEAT_DELAY;
+            procInterval +=  gLocBoardDelayMs_c;
 #endif
             /* Convert ms to connection intervals */
             uint32_t connInterval = (uint32_t)(pConnectedEventData->eventData.pConnectedEvent.connParameters.connInterval);
@@ -1809,7 +1809,7 @@ static void BleApp_SetCsConfigParams(appEventData_t* pEventData)
     csConfigParams.mode0_nb = pAppCsConfigParams->mode0Steps;
     mGlobalRangeSettings.role = pAppCsConfigParams->role;
     csConfigParams.rtt_type = pAppCsConfigParams->RTTType;
-    FLib_MemCpy(csConfigParams.ch_map, pAppCsConfigParams->channelMap, APP_LOCALIZATION_CH_MAP_LEN);
+    FLib_MemCpy(csConfigParams.ch_map, pAppCsConfigParams->channelMap, gCsChannelMapLength_c);
     csConfigParams.ch_map_repeat = pAppCsConfigParams->channelMapRepetition;
     csConfigParams.channelSelectionType = pAppCsConfigParams->channelSelectionType;
     csConfigParams.cs_sync_phy = pAppCsConfigParams->csSyncPhy;

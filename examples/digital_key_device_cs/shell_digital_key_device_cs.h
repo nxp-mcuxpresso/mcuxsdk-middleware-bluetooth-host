@@ -74,7 +74,7 @@ typedef struct appCsConfigParams_tag
     uint8_t     mode0Steps;
     uint8_t     role; /*!< 0 - Initiator, 1 - Reflector. */
     uint8_t     RTTType;
-    uint8_t     channelMap[APP_LOCALIZATION_CH_MAP_LEN];
+    uint8_t     channelMap[gCsChannelMapLength_c];
     uint8_t     channelMapRepetition;
     uint8_t     channelSelectionType;
     uint8_t     csSyncPhy;

@@ -48,10 +48,6 @@
 
 #define ISP_MCIQ_SIGN_EXTEND_12_16(x)     ((x) | ((((x) & 0x800U) != 0U) ? 0xF000U : 0x0U))
 #define FREQMASK_SET(pFreqMask, i) (pFreqMask[(i) >> 5U] |= ((uint32_t)1U << ((i) & 0x1FU)))
-
-#define gIQSampleSize_c         12U
-#define gTimeStampDiffSize_c    20U
-
 /************************************************************************************
 *************************************************************************************
 * Private type definitions
@@ -176,8 +172,8 @@ void AppLocalizationAlgo_RunMeasurement
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1)
     pResult->rssiInfo.rssiLocalNo = 0U;
     pResult->rssiInfo.rssiRemoteNo = 0U;
-    FLib_MemSet(pResult->rssiInfo.aRssiLocal, gRssiNotAvailable_c, APP_LOCALIZATION_MAX_STEPS);
-    FLib_MemSet(pResult->rssiInfo.aRssiRemote, gRssiNotAvailable_c, APP_LOCALIZATION_MAX_STEPS);
+    FLib_MemSet(pResult->rssiInfo.aRssiLocal, gRssiNotAvailable_c, gMaxNumCsSteps_c);
+    FLib_MemSet(pResult->rssiInfo.aRssiRemote, gRssiNotAvailable_c, gMaxNumCsSteps_c);
 #endif /* gAppParseRssiInfo_d */
 
     if (pResult != NULL)
@@ -223,15 +219,15 @@ void AppLocalizationAlgo_RunMeasurement
         {
             csDataBuffer0 = pLocalCsAppData;
             csDataBuffer1 = pRemoteCsAppData;
-            FLib_MemCpy(response.cs_data->subevtRefPowerLevelInit, pLocalCsAppData->csData.subevtRefPowerLevelInit, gCsSubeventMax_c);
-            FLib_MemCpy(response.cs_data->subevtRefPowerLevelRefl, pRemoteCsAppData->csData.subevtRefPowerLevelInit, gCsSubeventMax_c);
+            FLib_MemCpy(response.cs_data->subevtRefPowerLevelInit, pLocalCsAppData->csData.subevtRefPowerLevelInit, gMaxNumCsSubevents_c);
+            FLib_MemCpy(response.cs_data->subevtRefPowerLevelRefl, pRemoteCsAppData->csData.subevtRefPowerLevelInit, gMaxNumCsSubevents_c);
         }
         else
         {
             csDataBuffer1 = pLocalCsAppData;
             csDataBuffer0 = pRemoteCsAppData;
-            FLib_MemCpy(response.cs_data->subevtRefPowerLevelRefl, pLocalCsAppData->csData.subevtRefPowerLevelInit, gCsSubeventMax_c);
-            FLib_MemCpy(response.cs_data->subevtRefPowerLevelInit, pRemoteCsAppData->csData.subevtRefPowerLevelInit, gCsSubeventMax_c);
+            FLib_MemCpy(response.cs_data->subevtRefPowerLevelRefl, pLocalCsAppData->csData.subevtRefPowerLevelInit, gMaxNumCsSubevents_c);
+            FLib_MemCpy(response.cs_data->subevtRefPowerLevelInit, pRemoteCsAppData->csData.subevtRefPowerLevelInit, gMaxNumCsSubevents_c);
         }
 
         if (pLocalCsAppData->mciq_data.nbSteps != 0U)
@@ -252,9 +248,9 @@ void AppLocalizationAlgo_RunMeasurement
         }
 
         /* Store remote mode0 step data - local already set */
-        FLib_MemCpy(&response.cs_data->mode0Data[APP_LOCALIZATION_MAX_STEPS_MODE0],
+        FLib_MemCpy(&response.cs_data->mode0Data[gMaxNumCsStepsMode0_c],
                     pRemoteCsAppData->csData.mode0Data,
-                    APP_LOCALIZATION_MAX_STEPS_MODE0 * sizeof(mode0_data_t));
+                    gMaxNumCsStepsMode0_c * sizeof(mode0_data_t));
 
         /* Invoke ranging engine on client */
         engine_response_t engine_response = {0};
@@ -393,10 +389,10 @@ void AppLocalizationAlgo_RunMeasurement
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1)
         /* Copy local RSSI info */
         pResult->rssiInfo.rssiLocalNo = pLocalCsAppData->rssiStepNo;
-        FLib_MemCpy(pResult->rssiInfo.aRssiLocal, pLocalCsAppData->aRssiValue, APP_LOCALIZATION_MAX_STEPS);
+        FLib_MemCpy(pResult->rssiInfo.aRssiLocal, pLocalCsAppData->aRssiValue, gMaxNumCsSteps_c);
         /* Copy remote RSSI info */
         pResult->rssiInfo.rssiRemoteNo = pRemoteCsAppData->rssiStepNo;
-        FLib_MemCpy(pResult->rssiInfo.aRssiRemote, pRemoteCsAppData->aRssiValue, APP_LOCALIZATION_MAX_STEPS);
+        FLib_MemCpy(pResult->rssiInfo.aRssiRemote, pRemoteCsAppData->aRssiValue, gMaxNumCsSteps_c);
 #endif /* gAppParseRssiInfo_d */
 
         /* Clear local data and peer data */
@@ -441,7 +437,7 @@ static void isp_mciq_ranging_compute
     uint32_t m, index = 0;
 #endif
 
-    uint32_t nb_valid[ISP_MAX_NO_ANTENNAS] = {0};
+    uint32_t nb_valid[gMaxNumAntennaPaths_c] = {0};
     /* mask of CS channels that have been actually used for RTP measurements */
     uint32_t freqMask[(XCVR_F_RANGE/32)+1];
     /* mask of CS channels that have been actually used for RTP measurements and for which TQI was GOOD */
@@ -491,7 +487,7 @@ static void isp_mciq_ranging_compute
         dm_cde_estimate_t estimate = {0};
         uint32_t cde_threshold = engine_config->n_ap == 1U ? engine_config->cde_threshold : engine_config->cde_div_threshold;
         int32_t d_min = 1024 * Q10_SCALING_FACTOR;   /* in Q21.10 format */
-        bool success[ISP_MAX_NO_ANTENNAS];
+        bool success[gMaxNumAntennaPaths_c];
 
         for(m = 0; m < engine_config->n_ap; m++)
         {
@@ -644,8 +640,8 @@ static void isp_tof_ranging_compute
         uint8_t init_aa_quality = 0U;
         uint8_t refl_aa_quality = 0U;
 
-        init_ts += CS_NADM_SIZE + CS_RSSI_SIZE;
-        refl_ts += CS_NADM_SIZE + CS_RSSI_SIZE;
+        init_ts += gCsNadmSize_c + gCsRssiSize_c;
+        refl_ts += gCsNadmSize_c + gCsRssiSize_c;
         CS_GET_RTT_TS_DIFF(init_ts, init_ns, init_aa_quality);
         CS_GET_RTT_TS_DIFF(refl_ts, refl_ns, refl_aa_quality);
 
@@ -655,8 +651,8 @@ static void isp_tof_ranging_compute
             sum_rtt_ns += (int32_t)init_ns - (int32_t)refl_ns;
             nb_steps_valid++;
         }
-        init_ts += CS_TS_SIZE;
-        refl_ts += CS_TS_SIZE;
+        init_ts += gCsTsSize_c;
+        refl_ts += gCsTsSize_c;
     }
 
     tof_result->dm_sr = 0;
@@ -731,23 +727,23 @@ static void isp_mciq_measurement_unpack_iqs
                 uint16_t qSample1u, qSample2u, iSample1u, iSample2u;
                 channel = cs_data->channelMap[i];
                 assert(channel < gCsChannelsNb_c);
-                pIQ = pIQin1 + (IQ_SIZE+TQI_SIZE)*apIdx;
+                pIQ = pIQin1 + (gCsIqSize_c+gCsTqiSize_c)*apIdx;
                 qSample1u = (uint16_t)pIQ[0] | ((uint16_t)pIQ[1] & 0xFU) << 8U;
                 qSample1u = ISP_MCIQ_SIGN_EXTEND_12_16((uint16_t)qSample1u);
                 qSample1 = (int16_t)qSample1u;
                 iSample1u = (((uint16_t)pIQ[1] & 0xF0U) >> 4U) | (pIQ[2] << 4U);
                 iSample1u = ISP_MCIQ_SIGN_EXTEND_12_16((uint16_t)iSample1u);
                 iSample1 = (int16_t)iSample1u;
-                pIQ += IQ_SIZE;
+                pIQ += gCsIqSize_c;
                 tqi1 = (int16_t)*pIQ;
-                pIQ = pIQin2 + (IQ_SIZE+TQI_SIZE)*apIdx;
+                pIQ = pIQin2 + (gCsIqSize_c+gCsTqiSize_c)*apIdx;
                 qSample2u = (uint16_t)pIQ[0] | ((uint16_t)pIQ[1] & 0xFU) << 8U;
                 qSample2u = ISP_MCIQ_SIGN_EXTEND_12_16((uint16_t)qSample2u);
                 qSample2 = (int16_t)qSample2u;
                 iSample2u = (((uint16_t)pIQ[1] & 0xF0U) >> 4U) | (pIQ[2] << 4U);
                 iSample2u = ISP_MCIQ_SIGN_EXTEND_12_16((uint16_t)iSample2u);
                 iSample2 = (int16_t)iSample2u;
-                pIQ += IQ_SIZE;
+                pIQ += gCsIqSize_c;
                 tqi2 = (int16_t)*pIQ;
 
                 /* Store unpacked IQs */
@@ -768,8 +764,8 @@ static void isp_mciq_measurement_unpack_iqs
                 FREQMASK_SET(freqMask, channel); /* channel has been used */
                 nbValid[apIdx]++;
 
-                pIQin1 += (IQ_SIZE + TQI_SIZE)*apNb;
-                pIQin2 += (IQ_SIZE + TQI_SIZE)*apNb;
+                pIQin1 += (gCsIqSize_c + gCsTqiSize_c)*apNb;
+                pIQin2 += (gCsIqSize_c + gCsTqiSize_c)*apNb;
             }
         }
         pIQout1 += 2U*gCsChannelsNb_c;

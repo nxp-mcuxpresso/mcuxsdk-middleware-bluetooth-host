@@ -20,19 +20,24 @@
 * Public macros
 *************************************************************************************
 ************************************************************************************/
-#define CS_TS_SIZE            (3U)
-#define CS_RSSI_SIZE          (1U)
-#define CS_NADM_SIZE          (1U)
-
-#define gCsSubeventMax_c      (16U)
+/* Sizes of fields in mode-1 CS steps */
+#define gCsTsSize_c             (3U)
+#define gCsRssiSize_c           (1U)
+#define gCsNadmSize_c           (1U)
 
 /* ToF(Pkt) data size - RSSI 8 bits + Pkt Quality 4bits + TS_DIFF 20 bits */
-#define gCsTofTsSz_c          (4U)
+#define gCsTofTsSize_c          (4U)
 /* Tone IQ data size - PCT 3 bytes, Tone_Quality_Indicator 1 byte */
-#define gCsMciqSz_c           (4U)
+#define gCsMciqSize_c           (4U)
 
-#define gIQSampleSize_c         12U
-#define gTimeStampDiffSize_c    20U
+#define gIQSampleSize_c         (12U)
+#define gTimeStampDiffSize_c    (20U)
+
+/* Size of Tone_PCT field for mode 2 data */
+#define gTone_PCTSize_c         (3U)
+
+/* Size of Packet_PCT field for mode 1 and 3 data */
+#define gPacket_PCTSize_c       (4U)
 /************************************************************************************
 *************************************************************************************
 * Private type definitions
@@ -49,9 +54,9 @@ typedef struct mciq_result_tag {
     uint16_t nb_valid_freq;     /*!< Number of frequencies for which IQ samples are not saturated */
     int32_t cde_fp;             /*!< CDE distance estimation, fixed-point Q2.10 */
     int16_t cde_dqi;            /*!< CDE distance quality indicator, fixed-point Q2.14 */
-    int32_t cde_dist_array[ISP_MAX_NO_ANTENNAS]; /*!< Distance per antenna path, fixed-point Q2.10 */
-    int16_t cde_dqi_array[ISP_MAX_NO_ANTENNAS];  /*!< DQI per antenna path, fixed-point Q2.14 */
-    uint16_t cde_nb_valid[ISP_MAX_NO_ANTENNAS];  /*!< Number of valid frequencies per antenna path */
+    int32_t cde_dist_array[gMaxNumAntennaPaths_c]; /*!< Distance per antenna path, fixed-point Q2.10 */
+    int16_t cde_dqi_array[gMaxNumAntennaPaths_c];  /*!< DQI per antenna path, fixed-point Q2.14 */
+    uint16_t cde_nb_valid[gMaxNumAntennaPaths_c];  /*!< Number of valid frequencies per antenna path */
     float rade_dist;           /*!< RADE distance estimation */
     float rade_dist_trk;       /*!< RADE tracking distance estimation */
     float rade_dqi;            /*!< RADE distance distance quality indicator */
@@ -105,17 +110,17 @@ typedef struct cs_data_tag {
     uint8_t t_sw;
     uint16_t conn_interval;
     void *csAlgoBuf;
-    uint8_t channelMap[APP_LOCALIZATION_MAX_STEPS];
-    uint8_t modeMap[APP_LOCALIZATION_MAX_STEPS];
+    uint8_t channelMap[gMaxNumCsSteps_c];
+    uint8_t modeMap[gMaxNumCsSteps_c];
     uint8_t *modeMapRemote;
-    uint8_t subevtStopIdxLocal[gCsSubeventMax_c];
-    uint8_t subevtStopIdxRemote[gCsSubeventMax_c];
-    uint8_t subevtConnEvent[gCsSubeventMax_c]; /* Delta regarding ACL counter of first subevent */
-    int8_t subevtRefPowerLevelInit[gCsSubeventMax_c]; /* Reference power level per subevent */
-    int8_t subevtRefPowerLevelRefl[gCsSubeventMax_c]; /* Reference power level per subevent */
-    uint8_t subevtDoneStatusLocal[gCsSubeventMax_c]; /* Status for each subevent - local data */
-    uint8_t subevtDoneStatusRemote[gCsSubeventMax_c]; /* Status for each subevent - remote data */
-    mode0_data_t mode0Data[2U * APP_LOCALIZATION_MAX_STEPS_MODE0]; /* Mode0 step data - local and remote */
+    uint8_t subevtStopIdxLocal[gMaxNumCsSubevents_c];
+    uint8_t subevtStopIdxRemote[gMaxNumCsSubevents_c];
+    uint8_t subevtConnEvent[gMaxNumCsSubevents_c]; /* Delta regarding ACL counter of first subevent */
+    int8_t subevtRefPowerLevelInit[gMaxNumCsSubevents_c]; /* Reference power level per subevent */
+    int8_t subevtRefPowerLevelRefl[gMaxNumCsSubevents_c]; /* Reference power level per subevent */
+    uint8_t subevtDoneStatusLocal[gMaxNumCsSubevents_c]; /* Status for each subevent - local data */
+    uint8_t subevtDoneStatusRemote[gMaxNumCsSubevents_c]; /* Status for each subevent - remote data */
+    mode0_data_t mode0Data[2U * gMaxNumCsStepsMode0_c]; /* Mode0 step data - local and remote */
 } cs_data_t;
 
 /* Buffer storing last captured IQ and corresponding params */
@@ -126,7 +131,7 @@ typedef struct debug_data_tag {
     uint16_t samplesPerStepMode0;
     uint16_t iqBufLength;
     uint8_t *iq;
-    uint16_t samples_nb[APP_LOCALIZATION_MAX_STEPS];
+    uint16_t samples_nb[gMaxNumCsSteps_c];
 } debug_data_t;
 
 typedef PACKED_STRUCT event_internal_tag {
@@ -173,12 +178,12 @@ typedef struct csAppData_tag {
     uint16_t mciqBufferOffset;
 
     /* Buffers */
-    uint8_t tofBuffer[gCsTofTsSz_c * APP_LOCALIZATION_MAX_STEPS];
-    uint8_t mciqBuffer[gCsMciqSz_c * ISP_MAX_NO_ANTENNAS * APP_LOCALIZATION_MAX_STEPS];
+    uint8_t tofBuffer[gCsTofTsSize_c * gMaxNumCsSteps_c];
+    uint8_t mciqBuffer[gCsMciqSize_c * gMaxNumAntennaPaths_c * gMaxNumCsSteps_c];
 
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1)
     uint8_t rssiStepNo;
-    int8_t aRssiValue[APP_LOCALIZATION_MAX_STEPS];
+    int8_t aRssiValue[gMaxNumCsSteps_c];
 #endif /* gAppParseRssiInfo_d */
 } csAppData_t;
 

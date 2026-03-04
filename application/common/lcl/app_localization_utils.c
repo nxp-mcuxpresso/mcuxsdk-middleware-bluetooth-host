@@ -12,7 +12,6 @@
  * Include
  *************************************************************************************/
 #include "EmbeddedTypes.h"
-#include "app_localization.h"
 #include "app_localization_utils.h"
 #if defined(gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1U)
 #include "ranging_interface.h"
@@ -388,12 +387,12 @@ void AppLocalizationAlgo_UncompressResponse
                 quality = (uint32_t)(*pEventData); /* Packet_AA_Quality */
             );
             
-            CheckSkipBytes(pEventData, dataSize, CS_NADM_SIZE, bIncomplete, 
-                hciCsStoreBytesInTofBuffer(pDstAppBuffer, pEventData, (int)CS_NADM_SIZE); /* Packet_NADM */
+            CheckSkipBytes(pEventData, dataSize, gCsNadmSize_c, bIncomplete, 
+                hciCsStoreBytesInTofBuffer(pDstAppBuffer, pEventData, (int)gCsNadmSize_c); /* Packet_NADM */
             );
 
-            CheckSkipBytes(pEventData, dataSize, CS_RSSI_SIZE, bIncomplete, 
-                hciCsStoreBytesInTofBuffer(pDstAppBuffer, pEventData, (int)CS_RSSI_SIZE); /* Packet_RSSI */
+            CheckSkipBytes(pEventData, dataSize, gCsRssiSize_c, bIncomplete, 
+                hciCsStoreBytesInTofBuffer(pDstAppBuffer, pEventData, (int)gCsRssiSize_c); /* Packet_RSSI */
             );
 
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
@@ -412,7 +411,7 @@ void AppLocalizationAlgo_UncompressResponse
                 ts_diff = (uint32_t)(temp1); /* HCI reports half ns, application expects ns in Tof Buffer */
                 ts_diff &= 0x00FFFFU;
                 ts_diff |= (quality&0x0FU)<<gTimeStampDiffSize_c;
-                hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)CS_TS_SIZE);
+                hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)gCsTsSize_c);
             );
 
             CheckSkipBytesDoNothing(pEventData, dataSize, 1U, bIncomplete); /* Packet_Antenna, ignored */
@@ -425,8 +424,8 @@ void AppLocalizationAlgo_UncompressResponse
             /* Tone record */
             uint8_t antPermIndex = 0U;
             const uint8_t *antIndex_p = NULL;
-            int32_t iq_dec[ISP_MAX_NO_ANTENNAS];
-            uint8_t tqi[ISP_MAX_NO_ANTENNAS];
+            int32_t iq_dec[gMaxNumAntennaPaths_c];
+            uint8_t tqi[gMaxNumAntennaPaths_c];
 
             CheckSkipBytes(pEventData, dataSize, 1U, bIncomplete,
                 antPermIndex = *pEventData; /* Antenna_Permutation_Index */
@@ -1088,8 +1087,8 @@ static bool_t ParseMode1
     bool_t bIncomplete = FALSE;
     
     uint32_t quality = 0U;
-    uint8_t aNadm[CS_NADM_SIZE] = {};
-    uint8_t aRssi[CS_RSSI_SIZE] = {};
+    uint8_t aNadm[gCsNadmSize_c] = {};
+    uint8_t aRssi[gCsRssiSize_c] = {};
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
     int8_t rssiValue = 0;
 #endif
@@ -1109,8 +1108,8 @@ static bool_t ParseMode1
         if ((filter & BIT3) != 0U)
         {
             /* Data includes Packet NADM */
-            CheckSkipBytes(*ppEventData, *pDataLength, CS_NADM_SIZE, bIncomplete,
-                FLib_MemCpy(aNadm, *ppEventData, CS_NADM_SIZE); /* Packet_NADM */
+            CheckSkipBytes(*ppEventData, *pDataLength, gCsNadmSize_c, bIncomplete,
+                FLib_MemCpy(aNadm, *ppEventData, gCsNadmSize_c); /* Packet_NADM */
             );
         }
 
@@ -1118,13 +1117,13 @@ static bool_t ParseMode1
         {
             /* Data includes Packet RSSI */
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
-            CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
-                FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE);
+            CheckSkipBytes(*ppEventData, *pDataLength, gCsRssiSize_c, bIncomplete,
+                FLib_MemCpy(aRssi, *ppEventData, gCsRssiSize_c);
                 rssiValue = (int8_t)(**ppEventData);
             );
 #else
-            CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
-                FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE);
+            CheckSkipBytes(*ppEventData, *pDataLength, gCsRssiSize_c, bIncomplete,
+                FLib_MemCpy(aRssi, *ppEventData, gCsRssiSize_c);
             );
 #endif /* gAppParseRssiInfo_d */
         }
@@ -1169,12 +1168,12 @@ static bool_t ParseMode1
 
         if ((filter & BIT3) != 0U)
         {
-            hciCsStoreBytesInTofBuffer(pDstAppBuffer, aNadm, (int)CS_NADM_SIZE);
+            hciCsStoreBytesInTofBuffer(pDstAppBuffer, aNadm, (int)gCsNadmSize_c);
         }
         if ((filter & BIT4) != 0U)
         {
             /* Data includes Packet RSSI */
-            hciCsStoreBytesInTofBuffer(pDstAppBuffer, aRssi, (int)CS_RSSI_SIZE);
+            hciCsStoreBytesInTofBuffer(pDstAppBuffer, aRssi, (int)gCsRssiSize_c);
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
             if (rssiValue != gRssiNotAvailable_c)
             {
@@ -1187,7 +1186,7 @@ static bool_t ParseMode1
         else
         {
             uint8_t rssi = 0U;
-            hciCsStoreBytesInTofBuffer(pDstAppBuffer, &rssi, (int)CS_RSSI_SIZE);
+            hciCsStoreBytesInTofBuffer(pDstAppBuffer, &rssi, (int)gCsRssiSize_c);
         }
         if ((filter & BIT5) != 0U)
         {
@@ -1199,7 +1198,7 @@ static bool_t ParseMode1
             ts_diff = (uint32_t)(temp1); /* HCI reports half ns, application expects ns in Tof Buffer */
             ts_diff &= 0x00FFFFU;
             ts_diff |= (quality & 0x0FU) << gTimeStampDiffSize_c;
-            hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)CS_TS_SIZE);
+            hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)gCsTsSize_c);
         }
     }
 
@@ -1242,8 +1241,8 @@ static bool_t ParseMode2
     uint8_t antPermIndex = 0u;
     uint8_t antIdx = 0u;
     uint8_t const *pAntIndex = NULL;
-    int32_t iq_dec[ISP_MAX_NO_ANTENNAS] = {};
-    uint8_t tqi[ISP_MAX_NO_ANTENNAS] = {};
+    int32_t iq_dec[gMaxNumAntennaPaths_c] = {};
+    uint8_t tqi[gMaxNumAntennaPaths_c] = {};
     
     /* First parse all bytes, based on filter bits, and store data in temporary variables */
     do
@@ -1361,11 +1360,11 @@ static bool_t ParseMode3
     uint8_t antPermIndex = 0u;
     uint8_t antIdx = 0u;
     uint8_t const *pAntIndex;
-    int32_t iq_dec[ISP_MAX_NO_ANTENNAS] = {};
-    uint8_t tqi[ISP_MAX_NO_ANTENNAS] = {};
+    int32_t iq_dec[gMaxNumAntennaPaths_c] = {};
+    uint8_t tqi[gMaxNumAntennaPaths_c] = {};
     uint32_t quality = 0U;
-    uint8_t aRssi[CS_RSSI_SIZE] = {};
-    uint8_t aNadm[CS_NADM_SIZE] = {};
+    uint8_t aRssi[gCsRssiSize_c] = {};
+    uint8_t aNadm[gCsNadmSize_c] = {};
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
     int8_t rssiValue = 0;
 #endif
@@ -1386,8 +1385,8 @@ static bool_t ParseMode3
         if ((filter & BIT3) != 0U)
         {
             /* Data includes Packet NADM */
-            CheckSkipBytes(*ppEventData, *pDataLength, CS_NADM_SIZE, bIncomplete,
-                FLib_MemCpy(aNadm, *ppEventData, CS_NADM_SIZE);
+            CheckSkipBytes(*ppEventData, *pDataLength, gCsNadmSize_c, bIncomplete,
+                FLib_MemCpy(aNadm, *ppEventData, gCsNadmSize_c);
             );
         }
         
@@ -1395,13 +1394,13 @@ static bool_t ParseMode3
         {
             /* Data includes Packet RSSI */
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
-            CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
-                FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE);
+            CheckSkipBytes(*ppEventData, *pDataLength, gCsRssiSize_c, bIncomplete,
+                FLib_MemCpy(aRssi, *ppEventData, gCsRssiSize_c);
                 rssiVal = (int8_t)(**ppEventData);
             );
 #else
-            CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
-                FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE);
+            CheckSkipBytes(*ppEventData, *pDataLength, gCsRssiSize_c, bIncomplete,
+                FLib_MemCpy(aRssi, *ppEventData, gCsRssiSize_c);
             );
 #endif /* gAppParseRssiInfo_d */
         }
@@ -1504,13 +1503,13 @@ static bool_t ParseMode3
         if ((filter & BIT3) != 0U)
         {
             /* Data includes Packet NADM */
-            hciCsStoreBytesInTofBuffer(pDstAppBuffer, aNadm, (int)CS_NADM_SIZE);
+            hciCsStoreBytesInTofBuffer(pDstAppBuffer, aNadm, (int)gCsNadmSize_c);
         }
 
         if ((filter & BIT4) != 0U)
         {
             /* Data includes Packet RSSI */
-            hciCsStoreBytesInTofBuffer(pDstAppBuffer, aRssi, (int)CS_RSSI_SIZE);
+            hciCsStoreBytesInTofBuffer(pDstAppBuffer, aRssi, (int)gCsRssiSize_c);
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
             if (rssiValue != gRssiNotAvailable_c)
             {
@@ -1531,7 +1530,7 @@ static bool_t ParseMode3
             ts_diff = (uint32_t)(temp1); /* HCI reports half ns, application expects ns in Tof Buffer */
             ts_diff &= 0x00FFFFU;
             ts_diff |= (quality & 0x0FU) << gTimeStampDiffSize_c;
-            hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)CS_TS_SIZE);
+            hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)gCsTsSize_c);
         }
         
         for (uint8_t idx = 0U; idx < pDstAppBuffer->mciq_data.n_ap; idx++)
@@ -1646,8 +1645,8 @@ static bool_t ParseMode1
 )
 {
     uint32_t quality = 0U;
-    uint8_t aNadm[CS_NADM_SIZE] = {};
-    uint8_t aRssi[CS_RSSI_SIZE] = {};
+    uint8_t aNadm[gCsNadmSize_c] = {};
+    uint8_t aRssi[gCsRssiSize_c] = {};
     int16_t ts_diff_hci = 0;
     
     bool_t bIncomplete = FALSE;
@@ -1661,19 +1660,19 @@ static bool_t ParseMode1
         );
 
         /* Data includes Packet NADM */
-        CheckSkipBytes(*ppEventData, *pDataLength, CS_NADM_SIZE, bIncomplete,
-            FLib_MemCpy(aNadm, *ppEventData, CS_NADM_SIZE);
+        CheckSkipBytes(*ppEventData, *pDataLength, gCsNadmSize_c, bIncomplete,
+            FLib_MemCpy(aNadm, *ppEventData, gCsNadmSize_c);
         ); /* Packet_NADM */
 
         /* Data includes Packet RSSI */
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
-        CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
-            FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE);
+        CheckSkipBytes(*ppEventData, *pDataLength, gCsRssiSize_c, bIncomplete,
+            FLib_MemCpy(aRssi, *ppEventData, gCsRssiSize_c);
             rssiValue = (int8_t)(**ppEventData);
         );
 #else
-        CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
-            FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE);
+        CheckSkipBytes(*ppEventData, *pDataLength, gCsRssiSize_c, bIncomplete,
+            FLib_MemCpy(aRssi, *ppEventData, gCsRssiSize_c);
         );
 #endif /* gAppParseRssiInfo_d */
 
@@ -1693,10 +1692,10 @@ static bool_t ParseMode1
         pRemoteData->step++;
         pDstAppBuffer->tof_data.nbSteps++;
 
-        hciCsStoreBytesInTofBuffer(pDstAppBuffer, aNadm, (int)CS_NADM_SIZE);
+        hciCsStoreBytesInTofBuffer(pDstAppBuffer, aNadm, (int)gCsNadmSize_c);
         
         /* Data includes Packet RSSI */
-        hciCsStoreBytesInTofBuffer(pDstAppBuffer, aRssi, (int)CS_RSSI_SIZE);
+        hciCsStoreBytesInTofBuffer(pDstAppBuffer, aRssi, (int)gCsRssiSize_c);
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
         if (rssiValue != gRssiNotAvailable_c)
         {
@@ -1714,7 +1713,7 @@ static bool_t ParseMode1
         ts_diff = (uint32_t)(temp1); /* HCI reports half ns, application expects ns in Tof Buffer */
         ts_diff &= 0x00FFFFU;
         ts_diff |= (quality & 0x0FU) << gTimeStampDiffSize_c;
-        hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)CS_TS_SIZE);
+        hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)gCsTsSize_c);
     }
 
     return bIncomplete;
@@ -1756,8 +1755,8 @@ static bool_t ParseMode2
     uint8_t antPermIndex = 0u;
     uint8_t antIdx = 0u;
     uint8_t const *pAntIndex = NULL;
-    int32_t iq_dec[ISP_MAX_NO_ANTENNAS] = {};
-    uint8_t tqi[ISP_MAX_NO_ANTENNAS] = {};
+    int32_t iq_dec[gMaxNumAntennaPaths_c] = {};
+    uint8_t tqi[gMaxNumAntennaPaths_c] = {};
     uint8_t quality = 0U;
     
     /* First parse all bytes, based on filter bits, and store data in temporary variables */
@@ -1849,12 +1848,12 @@ static bool_t ParseMode3
     uint8_t antPermIndex = 0u;
     uint8_t antIdx = 0u;
     uint8_t const *pAntIndex;
-    int32_t iq_dec[ISP_MAX_NO_ANTENNAS] = {};
-    uint8_t tqi[ISP_MAX_NO_ANTENNAS] = {};
+    int32_t iq_dec[gMaxNumAntennaPaths_c] = {};
+    uint8_t tqi[gMaxNumAntennaPaths_c] = {};
     uint32_t quality = 0u;
     uint8_t pctQuality = 0u;
-    uint8_t aRssi[CS_RSSI_SIZE] = {};
-    uint8_t aNadm[CS_NADM_SIZE] = {};
+    uint8_t aRssi[gCsRssiSize_c] = {};
+    uint8_t aNadm[gCsNadmSize_c] = {};
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
     int8_t rssiValue = 0;
 #endif
@@ -1872,19 +1871,19 @@ static bool_t ParseMode3
         );
 
         /* Data includes Packet NADM */
-        CheckSkipBytes(*ppEventData, *pDataLength, CS_NADM_SIZE, bIncomplete,
-            FLib_MemCpy(aNadm, *ppEventData, CS_NADM_SIZE);
+        CheckSkipBytes(*ppEventData, *pDataLength, gCsNadmSize_c, bIncomplete,
+            FLib_MemCpy(aNadm, *ppEventData, gCsNadmSize_c);
         ); /* Packet_NADM */
 
         /* Data includes Packet RSSI */
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
-        CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
-            FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE);
+        CheckSkipBytes(*ppEventData, *pDataLength, gCsRssiSize_c, bIncomplete,
+            FLib_MemCpy(aRssi, *ppEventData, gCsRssiSize_c);
             rssiVal = (int8_t)(**ppEventData);
         );
 #else
-        CheckSkipBytes(*ppEventData, *pDataLength, CS_RSSI_SIZE, bIncomplete,
-            FLib_MemCpy(aRssi, *ppEventData, CS_RSSI_SIZE);
+        CheckSkipBytes(*ppEventData, *pDataLength, gCsRssiSize_c, bIncomplete,
+            FLib_MemCpy(aRssi, *ppEventData, gCsRssiSize_c);
         );    
 #endif /* gAppParseRssiInfo_d */
         
@@ -1935,10 +1934,10 @@ static bool_t ParseMode3
         pRemoteData->step++;
 
         /* Data includes Packet NADM */
-        hciCsStoreBytesInTofBuffer(pDstAppBuffer, aNadm, (int)CS_NADM_SIZE);
+        hciCsStoreBytesInTofBuffer(pDstAppBuffer, aNadm, (int)gCsNadmSize_c);
 
         /* Data includes Packet RSSI */
-        hciCsStoreBytesInTofBuffer(pDstAppBuffer, aRssi, (int)CS_RSSI_SIZE);
+        hciCsStoreBytesInTofBuffer(pDstAppBuffer, aRssi, (int)gCsRssiSize_c);
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
         if (rssiValue != gRssiNotAvailable_c)
         {
@@ -1953,7 +1952,7 @@ static bool_t ParseMode3
         ts_diff = (uint32_t)(temp); /* HCI reports half ns, application expects ns in Tof Buffer */
         ts_diff &= 0x00FFFFU;
         ts_diff |= (quality & 0x0FU) << gTimeStampDiffSize_c;
-        hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)CS_TS_SIZE);
+        hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)gCsTsSize_c);
 
         for (uint8_t idx = 0U; idx < pDstAppBuffer->mciq_data.n_ap; idx++)
         {
