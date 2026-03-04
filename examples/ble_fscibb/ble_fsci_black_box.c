@@ -73,7 +73,7 @@ static void BluetoothLEHost_Initialized(void);
 static void BleApp_ChangeLowPowerModeConstraints(uint8_t lpMode);
 #endif
 
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
 static void BleApp_IdsCallback(idsEventData_t *pEventData);
 #endif
 
@@ -97,7 +97,7 @@ void BluetoothLEHost_AppInit(void)
     /* Register generic callback */
     BluetoothLEHost_SetGenericCallback(BleApp_GenericCallback);
 
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
     BluetoothLEHost_SetIdsCallback(BleApp_IdsCallback, gGapIdsAllFlags_c);
 #endif
 
@@ -156,7 +156,7 @@ static void BleApp_ChangeLowPowerModeConstraints(uint8_t lpMode)
 }
 #endif
 
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
 /*! *********************************************************************************
 * \brief        Application callback for handling intrusion events reported by
 *               the Host stack.

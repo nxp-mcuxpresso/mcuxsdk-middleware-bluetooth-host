@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*!
- * Copyright 2025 NXP
+ * Copyright 2025-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -94,7 +94,7 @@
 #endif /* defined(gBLE51_d) && (gBLE51_d == 1U) */
 
 #ifndef gGattUseUpdateDatabaseCopyProc_c
-#define gGattUseUpdateDatabaseCopyProc_c        FALSE
+#define gGattUseUpdateDatabaseCopyProc_c        0
 #endif
 
 /* Enable/Disable application secure mode */

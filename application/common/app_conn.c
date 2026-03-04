@@ -129,7 +129,7 @@ static void App_GenericHandler
     gapGenericEvent_t *pGenericEvent
 );
 
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
 static void App_IdsHandler
 (
     idsEventData_t *pIdsEvent
@@ -195,7 +195,7 @@ static gattClientNotificationCallback_t     pfGattClientIndCallback   = NULL;
 static l2caLeCbDataCallback_t               pfL2caLeCbDataCallback    = NULL;
 static l2caLeCbControlCallback_t            pfL2caLeCbControlCallback = NULL;
 
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
 static idsCallback_t                        mpfIdsHandler             = NULL;
 static idsCallback_t                        mpfAppIdsCallback         = NULL;
 #endif
@@ -291,13 +291,13 @@ void BluetoothLEHost_Init
         /* BLE common part */
         mpfInitDoneCallback = pCallback;
         mpfGenericHandler = App_GenericHandler;
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
         mpfIdsHandler = App_IdsHandler;
 #endif
 
-#if defined(gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == 1U)
+#if defined(gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == 1)
         (void)Gap_InitMonitoringAdvertisers();
-#endif /* gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == 1U) */
+#endif /* gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == 1) */
 
         /* BLE Host Stack Init */
         if (Ble_Initialize(App_GenericCallback) != gBleSuccess_c)
@@ -434,7 +434,7 @@ void BluetoothLEHost_SetGenericCallback
     mpfAppGenericCallback = pfGenericCallback;
 }
 
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
 /*! *********************************************************************************
 *\fn           void BluetoothLEHost_SetIdsCallback(ids pfIdsCallback)
 *
@@ -710,7 +710,7 @@ void App_GenericCallback
     (void)App_PostHostCallbackMessage(pMsgIn);
 }
 
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
 /*! *********************************************************************************
 *\fn           bleResult_t App_IdsCallback(idsEventData_t *pIdsEventData)
 *\brief        Callback used by the Host Stack to propagate IDS security
@@ -800,7 +800,7 @@ static bool_t App_HandleHostMessageInput_Gap
     bool_t matchFound = TRUE;
     switch ( pMsg->msgType )
     {
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
         case (uint32_t)gAppIdsEventMsg_c:
         {
             if (mpfIdsHandler != NULL)
@@ -1458,7 +1458,7 @@ static void App_GenericHandler
     }
 }
 
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
 /*! *********************************************************************************
 *\private
 *\fn           void App_IdsHandler(idsEventData_t *pIdsEvent)

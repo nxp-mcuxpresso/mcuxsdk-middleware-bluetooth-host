@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*
- * Copyright 2021 - 2025 NXP
+ * Copyright 2021 - 2026 NXP
  *
  *
  *
@@ -124,9 +124,9 @@
 #define gAppUseSerialManager_c                  1
 
 /* See documentation on how to enable DBAF */
-#define gBLE60_DecisionBasedAdvertisingFilteringSupport_d FALSE
-#define gAppPAWRSupport_d                                 FALSE
-#define gAppEADSupport_d                                  FALSE
+#define gBLE60_DecisionBasedAdvertisingFilteringSupport_d 0
+#define gAppPAWRSupport_d                                 0
+#define gAppEADSupport_d                                  0
 /*! *********************************************************************************
  *  Auto Configuration
  ********************************************************************************** */

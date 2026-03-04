@@ -53,10 +53,10 @@
 /* Enable Channel Sounding feature */
 #define gBLE_ChannelSounding_d          0
 
-#define gBLE54_d                                            TRUE
-#define gBLE54_AdvertisingCodingSelectionSupport_d          FALSE
-#define gBLE60_d                                            TRUE
-#define gBLE60_DecisionBasedAdvertisingFilteringSupport_d   FALSE
+#define gBLE54_d                                            1
+#define gBLE54_AdvertisingCodingSelectionSupport_d          0
+#define gBLE60_d                                            1
+#define gBLE60_DecisionBasedAdvertisingFilteringSupport_d   0
 #define gPlatResetMethod_c gUseResetByNvicReset_c
 /*! *********************************************************************************
  *     Framework Configuration
@@ -176,7 +176,7 @@
     TRUE - forward to EATT layer callbacks (default behavior)
     FALSE - forward to application callbacks (testing purposes)
 */
-#define gSendEattPsmToEattLayer_c        TRUE
+#define gSendEattPsmToEattLayer_c        1
 
 #define gGapSimultaneousEAChainedReports_c  (2U)
 

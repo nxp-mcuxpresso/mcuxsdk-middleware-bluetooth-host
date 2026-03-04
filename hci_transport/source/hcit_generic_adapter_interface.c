@@ -18,9 +18,9 @@
 #include "hci_transport.h"
 #include "fsl_os_abstraction.h"
 
-#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE)
 #include "ids_test.h"
-#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE) */
 
 /************************************************************************************
 *************************************************************************************
@@ -366,7 +366,7 @@ bleResult_t Hcit_RegisterGfskEventCallback(hciToGenfskInterface_t pfGfskEventCal
 }
 #endif /* defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1) */
 
-#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE)
 /*! *********************************************************************************
 * \brief          Injects a packet into the HCI receive path for IDS testing.
 *
@@ -401,7 +401,7 @@ bleResult_t Hcit_InjectPacket
 
     return result;
 }
-#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE) */
 /************************************************************************************
 *************************************************************************************
 * Private functions
@@ -425,14 +425,14 @@ static void Hcit_RxCallBack(uint8_t packetType, uint8_t *data, uint16_t len)
 
     FLib_MemCpy(pHciReadBuffer, data, len);
 
-#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE)
     /* IDS Test: Intercept and modify pairing messages if hook is active */
     if ((packetType == (uint8_t)gHciDataPacket_c) && IdsTest_IsPairingHookActive())
     {
         /* Process and potentially modify the pairing message in pHciReadBuffer */
         (void)IdsTest_ProcessPairingMessage(pHciReadBuffer, len);
     }
-#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE) */
 
 #if defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1)
     bool_t found = FALSE;

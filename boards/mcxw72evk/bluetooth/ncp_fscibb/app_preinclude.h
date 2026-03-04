@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*!
- * Copyright 2019-2025 NXP
+ * Copyright 2019-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -194,7 +194,7 @@
      /*! Size of bond data structures for a bonded device  */
 #define gBleBondIdentityHeaderSize_c     (56U)
 
-#define gGattUseUpdateDatabaseCopyProc_c FALSE
+#define gGattUseUpdateDatabaseCopyProc_c 0
 
 /*! Automatically enable Bluetooth optional features. The _OPT version of the Bluetooth
  * LE Host library enables all the features below. _OPT version of the library
@@ -280,7 +280,7 @@
 #endif /* defined(gBLE51_d) && (gBLE51_d == 1U) */
 
 #ifndef gGattUseUpdateDatabaseCopyProc_c
-#define gGattUseUpdateDatabaseCopyProc_c FALSE
+#define gGattUseUpdateDatabaseCopyProc_c 0
 #endif
 
 /* Enable/Disable application secure mode */

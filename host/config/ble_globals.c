@@ -132,7 +132,7 @@ const uint16_t gGapControllerPrivacyTimeoutMin = gBleControllerPrivacyTimeoutMin
 extern const uint16_t gGapControllerPrivacyTimeoutMax;
 const uint16_t gGapControllerPrivacyTimeoutMax = gBleControllerPrivacyTimeoutMax_c;
 extern const bool_t gGapLeScOobHasMitmProtection;
-const bool_t gGapLeScOobHasMitmProtection = gBleLeScOobHasMitmProtection_c;
+const bool_t gGapLeScOobHasMitmProtection = (bool_t)gBleLeScOobHasMitmProtection_c;
 extern const uint8_t gGapSimultaneousEAChainedReports;
 const uint8_t gGapSimultaneousEAChainedReports = gGapSimultaneousEAChainedReports_c;
 
@@ -210,7 +210,7 @@ uint16_t mServerServiceChangedCCCDHandle;
 /* Indicate to the GATT Client if it should trigger a database update procedure upon receiving
    a database out of sync error response from a server */
 extern bool_t mbGattUseUpdateDatabaseCopyProc;
-bool_t mbGattUseUpdateDatabaseCopyProc = gGattUseUpdateDatabaseCopyProc_c;
+bool_t mbGattUseUpdateDatabaseCopyProc = (bool_t)gGattUseUpdateDatabaseCopyProc_c;
 
 #if defined(gBLE51_d) && (gBLE51_d == 1U) && defined(gGattCaching_d) && (gGattCaching_d == 1U)
 /* client saved values for service changed characteristic and CCCD handles for each possible server */
@@ -363,14 +363,14 @@ const uint8_t gAppHciDataLogEnabled = gAppHciDataLogExport_d;
 
 /*! Enable the reporting of intrusion detection events from the Host stack */
 extern const bool_t gEnableIntrusionDetectionSystem;
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
 const bool_t gEnableIntrusionDetectionSystem = TRUE;
 #else
 const bool_t gEnableIntrusionDetectionSystem = FALSE;
 #endif
 
 /*Enable experimental features in Controller*/
-bool_t gHostInitEnableExpmFeatures = gHostInitEnableExpmFeatures_c;
+bool_t gHostInitEnableExpmFeatures = (bool_t)gHostInitEnableExpmFeatures_c;
 /************************************************************************************
 *************************************************************************************
 * Public functions

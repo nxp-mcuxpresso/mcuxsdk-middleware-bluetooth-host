@@ -1819,7 +1819,7 @@ void fsciBleGapLoadKeysEvtMonitor
     bool_t*           pOutAuth
 );
 
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
 /*! *********************************************************************************
 * \brief  IDS event monitoring function.
 *

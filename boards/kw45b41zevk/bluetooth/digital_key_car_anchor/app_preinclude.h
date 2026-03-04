@@ -72,7 +72,7 @@
   #define gAppLpuart0WakeUpSourceEnable_d 1
 #endif
 
-#define gBleLeScOobHasMitmProtection_c    (TRUE)
+#define gBleLeScOobHasMitmProtection_c    1
 /*! *********************************************************************************
  *     CCC Configuration
  ********************************************************************************** */
@@ -171,13 +171,13 @@
 #define gGattAutomaticRobustCachingSupport_d  0
 
 /* See documentation on how to enable DBAF */
-#define gBLE60_DecisionBasedAdvertisingFilteringSupport_d FALSE
+#define gBLE60_DecisionBasedAdvertisingFilteringSupport_d 0
 
-/* See documentation on how to enable experimental feature IDS */
-#define gIntrusionDetectionSystem_d                       FALSE
+/* Enable/Disable IDS functionality */
+#define gIntrusionDetectionSystem_d                       0
 
 /* Enable testing mode for Intrusion Detection System */
-#define gIntrusionDetectionSystemTestMode_d               FALSE
+#define gIntrusionDetectionSystemTestMode_d               0
 /*! *********************************************************************************
  *  Auto Configuration
  ********************************************************************************** */

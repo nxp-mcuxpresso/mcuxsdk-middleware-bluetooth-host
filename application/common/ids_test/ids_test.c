@@ -11,7 +11,7 @@
 ************************************************************************************/
 #include "ids_test.h"
 
-#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE)
 #include "att_types.h"
 #include "gap_interface.h"
 #include "gap_ids_interface.h"
@@ -1014,4 +1014,4 @@ static bleResult_t IdsTest_ModifyDHKeyCheckFailed(uint8_t* pPacket, uint16_t pac
 
     return result;
 }
-#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE) */

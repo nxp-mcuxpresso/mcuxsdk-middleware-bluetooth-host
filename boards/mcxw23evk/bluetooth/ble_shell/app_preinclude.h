@@ -89,7 +89,7 @@
 
 #if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
 
-#define gBLE54_PawrSupport_d            TRUE
+#define gBLE54_PawrSupport_d                    1
 
 #define SHELL_PER_ADV_MAX_NUM_SUBEVENTS         3U
 #define SHELL_EXT_ADV_DATA_MAX_AD_STRUCTURES    5U
@@ -97,19 +97,19 @@
 #endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 
 /* Enable Monitoring Advertisers shell commands */
-#define BLE_SHELL_MONADV_SUPPORT                0U
+#define BLE_SHELL_MONADV_SUPPORT                0
 /* Enable Connection Subrating shell commands */
-#define BLE_SHELL_CONN_SBR_SUPPORT              0U
+#define BLE_SHELL_CONN_SBR_SUPPORT              0
 
 /* Experimental features require special initialization */
-#if ((defined(BLE_SHELL_MONADV_SUPPORT)) && (BLE_SHELL_MONADV_SUPPORT == 1U)) || \
-    ((defined(BLE_SHELL_CONN_SBR_SUPPORT)) && (BLE_SHELL_CONN_SBR_SUPPORT == 1U))
-#define gHostInitEnableExpmFeatures_c      TRUE
+#if ((defined(BLE_SHELL_MONADV_SUPPORT)) && (BLE_SHELL_MONADV_SUPPORT == 1)) || \
+    ((defined(BLE_SHELL_CONN_SBR_SUPPORT)) && (BLE_SHELL_CONN_SBR_SUPPORT == 1))
+#define gHostInitEnableExpmFeatures_c      1
 #endif
 
 #if defined(BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT)
 #define gBLE60_d                                1
-#define gBLE60_MonitoredAdvertisers_d           TRUE
+#define gBLE60_MonitoredAdvertisers_d           1
 #endif /* BLE_SHELL_MONADV_SUPPORT */
 
 #if (((defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)) || \

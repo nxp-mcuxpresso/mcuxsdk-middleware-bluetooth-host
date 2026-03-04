@@ -270,7 +270,7 @@ void BluetoothLEHost_SetGenericCallback
     gapGenericCallback_t pfGenericCallback
 );
 
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
 /*! *********************************************************************************
 *\fn           void BluetoothLEHost_SetIdsCallback(ids pfIdsCallback, uint32_t bitMask)
 *

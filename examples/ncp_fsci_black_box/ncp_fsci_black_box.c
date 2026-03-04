@@ -120,7 +120,7 @@ static bleResult_t BleApp_ReadPublicDeviceAddress(void);
 static void BleApp_HandleWritePublicDeviceAddress(void *pParam);
 static void AppFSCI_Send( uint8_t *pPacket, uint16_t packetLen, bool_t freePacket);
 
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
 static void BleApp_IdsCallback(idsEventData_t *pEventData);
 #endif
 /************************************************************************************
@@ -194,7 +194,7 @@ void BluetoothLEHost_AppInit(void)
     /* Register generic callback */
     BluetoothLEHost_SetGenericCallback(BleApp_GenericCallback);
 
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
     BluetoothLEHost_SetIdsCallback(BleApp_IdsCallback, gGapIdsAllFlags_c);
 #endif
 
@@ -215,7 +215,7 @@ void BleApp_GenericCallback(gapGenericEvent_t* pGenericEvent)
     fsciBleGapGenericEvtMonitor(pGenericEvent);
 }
 
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
 /*! *********************************************************************************
 * \brief        Application callback for handling intrusion events reported by
 *               the Host stack.

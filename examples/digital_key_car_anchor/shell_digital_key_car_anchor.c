@@ -31,9 +31,9 @@
 #include "shell_digital_key_car_anchor.h"
 
 /* Intrusion Detection System */
-#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE)
 #include "ids_test.h"
-#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE) */
 
 /************************************************************************************
 *************************************************************************************
@@ -73,7 +73,7 @@ static shell_status_t ShellHandoverDevId_Command(shell_handle_t shellHandle, int
 #endif /* gHandoverDemo_d */
 
 /* Intrusion Detection System*/
-#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE)
 static shell_status_t ShellIdsTest_ParseEventBit(char * argv[], uint8_t* pEventBit, uint32_t* pEventBitMask);
 static void ShellIdsTest_DisplayBit6Note(uint32_t eventBitMask);
 static shell_status_t ShellIdsTest_ProcessConnectionCategory(uint8_t eventBit, uint32_t eventBitMask, deviceId_t* pDeviceId);
@@ -82,13 +82,13 @@ static shell_status_t ShellIdsTest_FindConnectedDevice(deviceId_t* pDeviceId);
 static shell_status_t ShellIdsTest_ProcessPairingEvent(uint8_t eventBit, uint32_t eventBitMask, deviceId_t deviceId);
 static shell_status_t ShellIdsTest_ProcessConnectionEvent(uint8_t eventBit, uint32_t eventBitMask, deviceId_t deviceId);
 static shell_status_t ShellIdsTest_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
-#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE) */
 
 static uint8_t BleApp_ParseHexValue(char* pInput);
 static uint32_t BleApp_AsciiToHex(char *pString, uint32_t strLen);
-#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE)
 static uint32_t BleApp_AsciiToDec(char *pString, uint32_t strLen);
-#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE) */
 static void ShellResetTimeoutTimerCallback(void* pParam);
 #endif /* gAppUseShellInApplication_d */
 /************************************************************************************
@@ -216,7 +216,7 @@ static shell_command_t mHandoverDevIdCmd =
 };
 #endif /* gHandoverDemo_d */
 
-#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE)
 static shell_command_t mIdsTestCmd =
 {
     .pcCommand = "idstest",
@@ -225,7 +225,7 @@ static shell_command_t mIdsTestCmd =
     .pcHelpString = "\r\n\"idstest\": Trigger IDS security event for testing.\r\n"
                     "Usage: idstest <event_bit> [device_id]\r\n",
 };
-#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE) */
 
 #endif /* gAppUseShellInApplication_d */
 
@@ -236,10 +236,10 @@ static TIMER_MANAGER_HANDLE_DEFINE(mResetTmrId);
 * External declarations
 *************************************************************************************
 ************************************************************************************/
-#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE)
 /* External declaration for Host stack global - used for IDS test mode validation */
 extern bool_t gAutoRejectLtkRequestForUnbondedDevices;
-#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE) */
 
 /************************************************************************************
 *************************************************************************************
@@ -285,10 +285,10 @@ void AppShellInit(char* prompt)
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mListActiveDevCmd);
     assert(kStatus_SHELL_Success == status);
 
-#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE)
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mIdsTestCmd);
     assert(kStatus_SHELL_Success == status);
-#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE) */
 
 #if defined(gHandoverDemo_d) && (gHandoverDemo_d == 1)
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mHandoverSendL2capCmd);
@@ -1058,7 +1058,7 @@ static uint32_t BleApp_AsciiToHex(char *pString, uint32_t strLen)
 
 #endif
 
-#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE)
 /*!*************************************************************************************************
  *  \brief  Converts a string into decimal.
  *
@@ -1443,4 +1443,4 @@ static shell_status_t ShellIdsTest_Command(shell_handle_t shellHandle, int32_t a
     return status;
 }
 
-#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE) */

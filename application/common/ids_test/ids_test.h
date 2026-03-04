@@ -20,7 +20,7 @@
 * Public macros
 *************************************************************************************
 ************************************************************************************/
-#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE)
 
 /************************************************************************************
 *************************************************************************************
@@ -109,6 +109,6 @@ bleResult_t IdsTest_TriggerEvent
     uint32_t eventBitMask
 );
 
-#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE) */
 
 #endif /* IDS_TEST_H */

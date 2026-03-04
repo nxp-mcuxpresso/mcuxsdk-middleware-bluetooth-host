@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*!
- * Copyright 2020-2025 NXP
+ * Copyright 2020-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -69,7 +69,7 @@
   #define gAppLedCnt_c                    0
 #endif
 
-#define gBleLeScOobHasMitmProtection_c    (TRUE)
+#define gBleLeScOobHasMitmProtection_c    1
 /*! *********************************************************************************
  *     CCC Configuration
  ********************************************************************************** */
@@ -130,7 +130,7 @@
 #define gGattAutomaticRobustCachingSupport_d  0
 
 /* See documentation on how to enable DBAF */
-#define gBLE60_DecisionBasedAdvertisingFilteringSupport_d FALSE
+#define gBLE60_DecisionBasedAdvertisingFilteringSupport_d 0
 /*! *********************************************************************************
  *  Auto Configuration
  ********************************************************************************** */

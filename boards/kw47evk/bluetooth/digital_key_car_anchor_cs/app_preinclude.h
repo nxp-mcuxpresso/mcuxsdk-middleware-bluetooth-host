@@ -83,7 +83,7 @@
   #define gAppLpuart0WakeUpSourceEnable_d 1
 #endif
 
-#define gBleLeScOobHasMitmProtection_c    (TRUE)
+#define gBleLeScOobHasMitmProtection_c    1
 
 /* Enable/Disable the BTCS Server for L2CAP transfer functionality */
 #define gAppBtcsServer_d                  0

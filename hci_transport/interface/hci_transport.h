@@ -175,7 +175,7 @@ bleResult_t Hcit_RecvPacket(void* pPacket, uint16_t packetSize);
 bleResult_t Hcit_RegisterGfskEventCallback(hciToGenfskInterface_t pfGfskEventCallback);
 #endif /* defined(gAppEnableHybridGenfsk_d) && (gAppEnableHybridGenfsk_d == 1) */
 
-#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U)
+#if defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE)
 /*! *********************************************************************************
 * \brief          Injects a packet into the HCI receive path for IDS testing.
 *
@@ -192,7 +192,7 @@ bleResult_t Hcit_InjectPacket
     void*           pPacket,
     uint16_t        packetSize
 );
-#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == 1U) */
+#endif /* defined(gIntrusionDetectionSystemTestMode_d) && (gIntrusionDetectionSystemTestMode_d == TRUE) */
 
 #endif /*gUseHciTransportDownward_d || gUseHciTransportUpward_d*/
 

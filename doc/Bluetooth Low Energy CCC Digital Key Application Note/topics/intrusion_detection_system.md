@@ -9,7 +9,7 @@ The IDS feature is supported on the following platforms:
 
 To enable IDS, modify the Digital Key Car Anchor as per the steps listed below:
 
--   In `app_preinclude.h` file, set `gIntrusionDetectionSystem_d` to `TRUE`.
+-   In `app_preinclude.h` file, set `gIntrusionDetectionSystem_d` to `1`.
 
 # Intrusion Detection System Test Mode
 
@@ -17,7 +17,7 @@ The IDS Test Mode is a development and testing feature that allows developers to
 
 ### Enabling Test Mode
 
-To enable IDS Test Mode, set `gIntrusionDetectionSystemTestMode_d` to `TRUE` in `app_preinclude.h`.
+To enable IDS Test Mode, set `gIntrusionDetectionSystemTestMode_d` to `1` in `app_preinclude.h`.
 
 This enables:
 - Shell command `idstest` for triggering security events

@@ -178,7 +178,7 @@ static void BleApp_OP_StartCaller(appCallbackParam_t param);
 static void BleApp_PE_StartCaller(appCallbackParam_t param);
 #endif /* (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 1)) */
 
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
 static void BleApp_IdsCallback(idsEventData_t *pEventData);
 #endif
 /************************************************************************************
@@ -258,7 +258,7 @@ void BluetoothLEHost_AppInit(void)
     (void)A2A_Init(gSerMgrIf2, A2A_ProcessCommand);
 #endif /* defined(gA2ASerialInterface_d) && (gA2ASerialInterface_d == 1) */
 
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
     BluetoothLEHost_SetIdsCallback(BleApp_IdsCallback, gGapIdsAllFlags_c);
 #endif
 }
@@ -1872,7 +1872,7 @@ static void BleApp_PE_StartCaller(appCallbackParam_t param)
 }
 #endif /* (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 1)) */
 
-#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U)
+#if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)
 /*! *********************************************************************************
 * \brief        Application callback for handling intrusion events reported by
 *               the Host stack.
@@ -1887,7 +1887,7 @@ static void BleApp_IdsCallback(idsEventData_t *pEventData)
     shell_write("\r\n");
     shell_cmd_finished();
 }
-#endif /* defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == 1U) */
+#endif /* defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE) */
 /*! *********************************************************************************
 * @}
 ********************************************************************************** */
