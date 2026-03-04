@@ -212,8 +212,6 @@ void BluetoothLEHost_AppInit(void)
     /* Initialize Bluetooth Host Stack */
     BluetoothLEHost_Init(BluetoothLEHost_Initialized);
 
-    (void)Gap_ControllerEnhancedNotification(((uint32_t)gNotifConnCreated_c | (uint32_t)gNotifPhyUpdateInd_c), 0U);
-
     /* UI */
     shellPrompt.constPrompt = "Device>";
     AppShellInit(shellPrompt.prompt);
@@ -1319,6 +1317,9 @@ static void BluetoothLEHost_Initialized(void)
 
     /* Continue CS initialization */
     (void)AppLocalization_HostInitHandler();
+
+    /* Enable enhanced notifications */
+    (void)Gap_ControllerEnhancedNotification(((uint32_t)gNotifConnCreated_c | (uint32_t)gNotifPhyUpdateInd_c), 0U);
 
     shell_write("\r\nDigital Key Device.\r\n");
     shell_cmd_finished();
