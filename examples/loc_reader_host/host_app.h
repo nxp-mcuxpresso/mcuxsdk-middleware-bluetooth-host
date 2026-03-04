@@ -1,11 +1,11 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
-* \file btcs_server_interface.h
+* NXP Confidential Proprietary
 *
-* This is a header file for the connection common application code.
-*
-* SPDX-License-Identifier: BSD-3-Clause
+* No part of this document must be reproduced in any form - including copied,
+* transcribed, printed or by any electronic means - without specific written
+* permission from NXP.
 ********************************************************************************** */
 
 #ifndef HOST_APP_H

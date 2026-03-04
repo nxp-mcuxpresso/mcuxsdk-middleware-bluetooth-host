@@ -1,11 +1,11 @@
 /*! *********************************************************************************
 * Copyright 2025-2026 NXP
 *
-* \file ranging_client.c
+* NXP Confidential Proprietary
 *
-* This is a source file for the ranging client code.
-*
-* SPDX-License-Identifier: BSD-3-Clause
+* No part of this document must be reproduced in any form - including copied,
+* transcribed, printed or by any electronic means - without specific written
+* permission from NXP.
 ********************************************************************************** */
 
 /************************************************************************************

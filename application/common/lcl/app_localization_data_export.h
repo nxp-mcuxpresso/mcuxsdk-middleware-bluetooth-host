@@ -1,11 +1,11 @@
 /*! *********************************************************************************
 * Copyright 2025-2026 NXP
 *
-* \file app_localization_data_export.h
+* NXP Confidential Proprietary
 *
-* This is a source file for the connection common application code.
-*
-* SPDX-License-Identifier: BSD-3-Clause
+* No part of this document must be reproduced in any form - including copied,
+* transcribed, printed or by any electronic means - without specific written
+* permission from NXP.
 ********************************************************************************** */
 #ifndef __APP_LOCALIZATION_DATA_EXPORT_H__
 #define __APP_LOCALIZATION_DATA_EXPORT_H__

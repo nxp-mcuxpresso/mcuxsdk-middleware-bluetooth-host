@@ -1,9 +1,11 @@
 /*! *********************************************************************************
 * Copyright 2026 NXP
 *
-* \file app_localization_config.h
+* NXP Confidential Proprietary
 *
-* SPDX-License-Identifier: BSD-3-Clause
+* No part of this document must be reproduced in any form - including copied,
+* transcribed, printed or by any electronic means - without specific written
+* permission from NXP.
 ********************************************************************************** */
 #ifndef APP_LOCALIZATION_CONFIG_H
 #define APP_LOCALIZATION_CONFIG_H

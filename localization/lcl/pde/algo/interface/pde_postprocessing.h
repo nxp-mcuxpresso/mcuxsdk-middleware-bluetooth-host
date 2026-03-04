@@ -1,7 +1,11 @@
 /*
- * Copyright 2019-2020, 2023 NXP
+ * Copyright 2019-2020, 2023, 2026 NXP
  *
- * SPDX-License-Identifier: BSD-3-Clause
+ * NXP Confidential Proprietary
+ *
+ * No part of this document must be reproduced in any form - including copied,
+ * transcribed, printed or by any electronic means - without specific written
+ * permission from NXP.
  */
 
 /* This file is deprecated in favor of dm_phasebased.h.
