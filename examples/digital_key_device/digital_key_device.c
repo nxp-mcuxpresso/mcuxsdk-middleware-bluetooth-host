@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file digital_key_device.c
 *
-* Copyright 2020-2025 NXP
+* Copyright 2020-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -191,8 +191,6 @@ void BluetoothLEHost_AppInit(void)
     /* Initialize Bluetooth Host Stack */
     BluetoothLEHost_Init(BluetoothLEHost_Initialized);
 
-    (void)Gap_ControllerEnhancedNotification(((uint32_t)gNotifConnCreated_c | (uint32_t)gNotifPhyUpdateInd_c), 0U);
-    
     /* UI */
     shellPrompt.constPrompt = "Device>";
     AppShellInit(shellPrompt.prompt);
@@ -1252,6 +1250,8 @@ static void BluetoothLEHost_Initialized(void)
 
     /* Register stack callbacks */
     (void)App_RegisterLeCbCallbacks(BleApp_L2capPsmDataCallback, BleApp_L2capPsmControlCallback);
+    /* Enable enhanced notifications */
+    (void)Gap_ControllerEnhancedNotification(((uint32_t)gNotifConnCreated_c | (uint32_t)gNotifPhyUpdateInd_c), 0U);
 
     shell_write("\r\nDigital Key Device.\r\n");
     shell_cmd_finished();
