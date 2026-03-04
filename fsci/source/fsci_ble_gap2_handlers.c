@@ -300,6 +300,19 @@ static void HandleGapCmdReadMonAdvListSize
 );
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
 
+#if defined(gAppUseTAK_c) && (gAppUseTAK_c == TRUE)
+static void HandleGapCmdEncryptLinkTakOpCode
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+static void HandleGapCmdProvideLongTermKeyTakOpCode
+(
+    uint8_t *pBuffer, 
+    uint32_t fsciInterfaceId
+);
+#endif /* defined(gAppUseTAK_c) && (gAppUseTAK_c == TRUE) */
+
 /*! *********************************************************************************
 *\private
 *\fn           void HandleCtrlCmdGetTimestampExOpCode(uint8_t *pBuffer,
@@ -412,6 +425,13 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
     NULL,
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
     HandleGapCmdLeSetLocalPeripheralLatencyEnable,                                   /* = 0x1E, gBleGapCmdLeSetLocalPeripheralLatencyEnableOpCode_c */
+#if defined(gAppUseTAK_c) && (gAppUseTAK_c == TRUE)
+    HandleGapCmdEncryptLinkTakOpCode,                                           /* = 0x1F, gBleGapCmdEncryptLinkTakOpCode_c */
+    HandleGapCmdProvideLongTermKeyTakOpCode,                                    /* = 0x20, gBleGapCmdProvideLongTermKeyTakOpCode_c */
+#else
+    NULL,                                                                       /* = 0x1F */
+    NULL,                                                                       /* = 0x20 */
+#endif /* defined(gAppUseTAK_c) && (gAppUseTAK_c == TRUE) */
 };
 
 #if gFsciBleTest_d
@@ -2566,6 +2586,55 @@ static void HandleGapCmdReadMonAdvListSize
     fsciBleGap2CallApiFunction(Gap_ReadMonAdvListSize());
 }
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
+
+#if defined(gAppUseTAK_c) && (gAppUseTAK_c == TRUE)
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdEncryptLinkTakOpCode(uint8_t *pBuffer,
+*                                                 uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleGapCmdEncryptLinkOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */   
+static void HandleGapCmdEncryptLinkTakOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
+{
+    deviceId_t deviceId = gInvalidDeviceId_c;
+    uint8_t aKey[gcSmpMaxLtkSize_c] = {};
+
+    /* Get parameters from buffer */
+    fsciBleGetDeviceIdFromBuffer(&deviceId, &pBuffer);
+    FLib_MemCpyReverseOrder(aKey, pBuffer, gcSmpMaxLtkSize_c);
+
+    fsciBleGap2CallApiFunction(Gap_EncryptLinkTak(deviceId, aKey));
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdProvideLongTermKeyTakOpCode(uint8_t *pBuffer,
+*                                                        uint32_t fsciInterfaceId)
+*\brief        Handler for the gBleGapCmdProvideLongTermKeyOpCode_c opCode.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+********************************************************************************** */   
+void HandleGapCmdProvideLongTermKeyTakOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
+{
+    deviceId_t  deviceId = gInvalidDeviceId_c;
+    uint8_t     aKey[gcSmpMaxLtkSize_c] = {};
+
+    /* Get command parameters from buffer */
+    fsciBleGetDeviceIdFromBuffer(&deviceId, &pBuffer);
+    FLib_MemCpyReverseOrder(aKey, pBuffer, gcSmpMaxLtkSize_c);
+    
+    fsciBleGap2CallApiFunction(Gap_ProvideLongTermKeyTak(deviceId, aKey, gcSmpMaxLtkSize_c));
+}
+#endif /* defined(gAppUseTAK_c) && (gAppUseTAK_c == TRUE) */
+
 #endif /* gFsciBleGap2LayerEnabled_d */
 /*! *********************************************************************************
 * @}

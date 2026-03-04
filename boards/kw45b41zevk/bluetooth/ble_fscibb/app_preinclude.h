@@ -34,6 +34,9 @@
 /*! Maximum number of connections supported for this application */
 #define gAppMaxConnections_c            8U
 
+/*! Transient application key demo */
+#define gAppUseTAK_c                    0
+
 /*! *********************************************************************************
  *     Framework Configuration
  ********************************************************************************** */

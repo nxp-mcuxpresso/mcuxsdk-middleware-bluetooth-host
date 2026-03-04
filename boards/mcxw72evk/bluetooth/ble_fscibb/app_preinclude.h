@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*!
- * Copyright 2019-2025 NXP
+ * Copyright 2019-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
@@ -33,6 +33,9 @@
  ********************************************************************************** */
 /*! Maximum number of connections supported for this application */
 #define gAppMaxConnections_c            8U
+
+/*! Transient application key demo */
+#define gAppUseTAK_c                    0
 
 /*! *********************************************************************************
  *     Framework Configuration

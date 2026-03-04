@@ -83,6 +83,8 @@ typedef enum
     gBleGapCmdEnableMonAdvOpCode_c                                              = 0x1C,                     /*! Gap_EnableMonAdv command operation code */
     gBleGapCmdReadMonAdvListSizeOpCode_c                                        = 0x1D,                     /*! Gap_ReadMonAdvListSize command operation code */
     gBleGapCmdLeSetLocalPeripheralLatencyEnableOpCode_c                         = 0x1E,                     /*! Gap_LeSetLocalPeripheralLatencyEnable command operation code */
+    gBleGapCmdLeGap_EncryptLinkTakOpCode_c                                      = 0x1F,                     /*! Gap_EncryptLinkTak command operation code */
+    gBleGapCmdLeGap_ProvideLongTermKeyTakOpCode_c                               = 0x20,                     /*! Gap_ProvideLongTermKeyTak command operation code */
 
     gBleGap2StatusOpCode_c                                                      = 0x80,                     /*! GAP2 status operation code */
     gBleCtrlDebugInfoOpCode_c                                                   = 0x81,                     /*! Debug data from gBleCtrlCmdGetDebugInfoCmdOpCode_c */

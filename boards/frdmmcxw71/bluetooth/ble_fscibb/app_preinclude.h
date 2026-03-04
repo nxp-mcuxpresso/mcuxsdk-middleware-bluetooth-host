@@ -28,6 +28,9 @@
 /* Number of LED required by the application */
 #define gAppLedCnt_c                    0
 
+/*! Transient application key demo */
+#define gAppUseTAK_c                    0
+
 /*! *********************************************************************************
  * 	App Configuration
  ********************************************************************************** */
