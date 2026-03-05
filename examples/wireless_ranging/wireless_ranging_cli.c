@@ -3249,18 +3249,8 @@ static void cli_cs_measurement_print
     /* Configuration */
     (void)printf("cfg:{");
     (void)printf("rtyp:%u,rphy:%u,txpwr:%d,", mparams->cfg.rtt_type, mparams->cfg.rtt_phy, mparams->cfg.tx_pwr);
-    if (mparams->cfg.test_mode)
-    {
-        (void)printf("fcs:%u,ip1:%u,ip2:%u,tpm:%u,ant:%d",
-               mparams->cfg.t_fcs, mparams->cfg.t_ip1, mparams->cfg.t_ip2, mparams->cfg.t_pm, mparams->cfg.ant_cfg_index);
-    }
-    else
-    {
-        /* In connected mode, CS timings are not configurable nor exposed by the controller,
-           but we know which timings are used by wireless controller */
-        (void)printf("fcs:%u,ip1:%u,ip2:%u,tpm:%u,ant:%d",
-               50, 40, 40, 20, mparams->cfg.ant_cfg_index);
-    }
+    (void)printf("fcs:%u,ip1:%u,ip2:%u,tpm:%u,ant:%d",
+                 mparams->cfg.t_fcs, mparams->cfg.t_ip1, mparams->cfg.t_ip2, mparams->cfg.t_pm, mparams->cfg.ant_cfg_index);
     (void)printf("},");
 
     /* Status */
