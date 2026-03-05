@@ -86,6 +86,12 @@
 #define gMainThreadStackSize_c                          4500
 #endif
 
+/* Enable debug signals for the debug target */
+#if !defined(NDEBUG)
+#define FWK_LCL_ENABLE_DTEST
+#define FWK_LCL_ENABLE_GPIO_DEBUG
+#endif /* !defined(NDEBUG) */
+
 /*! *********************************************************************************
  *     BLE Stack Configuration
  ********************************************************************************** */
