@@ -1815,6 +1815,13 @@ extern const bool_t gUseHciCommandFlowControl;
 
 extern bool_t gHostInitEnableExpmFeatures;
 
+#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == TRUE)
+#define gCsReadLocalSupportedCapabilitiesV2Support_c         (BIT0)
+#define gCsWriteCachedRemoteSupportedCapabilitiesV2Support_c (BIT1)
+/* Bitmask to memorize which enhanced CS commands are supported by the controller */
+extern uint8_t gCsEnhancedCommandsMask;
+#endif
+
 /************************************************************************************
 *************************************************************************************
 * Public prototypes

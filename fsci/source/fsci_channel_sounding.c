@@ -872,8 +872,7 @@ static void fsciCSConfigCompleteEvtMonitor
     fsciBleGetBufferFromUint8Value(pEvent->TIP2time, pBuffer);
     fsciBleGetBufferFromUint8Value(pEvent->TFCStime, pBuffer);
     fsciBleGetBufferFromUint8Value(pEvent->TPMtime, pBuffer);
-    /* Set RFU value to 0 */
-    pEvent->rfu = 0U;
+    fsciBleGetBufferFromUint8Value(pEvent->csEnhancements, pBuffer);
 
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
@@ -1100,7 +1099,7 @@ static void fsciCSReadLocalSupportedCapabilitiesEvtMonitor
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
-    uint32_t dataLength = 11U * sizeof(uint8_t) + 9U * sizeof(uint16_t);
+    uint32_t dataLength = 15U * sizeof(uint8_t) + 10U * sizeof(uint16_t);
 
     /* Allocate the packet to be sent over UART */
     pClientPacket = fsciCSAllocFsciPacket((uint8_t)gCSEventReadLocalSupportedCapabilitiesOpCode_c, dataLength);
@@ -1120,9 +1119,9 @@ static void fsciCSReadLocalSupportedCapabilitiesEvtMonitor
     fsciBleGetBufferFromUint8Value(pEvent->rolesSupported, pBuffer);
     fsciBleGetBufferFromUint8Value(pEvent->optionalModesSupported, pBuffer);
     fsciBleGetBufferFromUint8Value(pEvent->RTTCapability, pBuffer);
-    fsciBleGetBufferFromUint8Value(pEvent->RTTAAOnly, pBuffer);
+    fsciBleGetBufferFromUint8Value(pEvent->RTTAAOnlyN, pBuffer);
     fsciBleGetBufferFromUint8Value(pEvent->RTTSoundingN, pBuffer);
-    fsciBleGetBufferFromUint8Value(pEvent->RTTRandomPayloadN, pBuffer);
+    fsciBleGetBufferFromUint8Value(pEvent->RTTRandomSequenceN, pBuffer);
     fsciBleGetBufferFromUint16Value(pEvent->optionalNADMSoundingCapability, pBuffer);
     fsciBleGetBufferFromUint16Value(pEvent->optionalNADMRandomCapability, pBuffer);
     fsciBleGetBufferFromUint8Value(pEvent->optionalSyncPhysSupported, pBuffer);
@@ -1133,6 +1132,11 @@ static void fsciCSReadLocalSupportedCapabilitiesEvtMonitor
     fsciBleGetBufferFromUint16Value(pEvent->optionalTPMtimesSupported, pBuffer);
     fsciBleGetBufferFromUint8Value(pEvent->TSWtimeSupported, pBuffer);
     fsciBleGetBufferFromUint8Value(pEvent->optionalTxSNRCapability, pBuffer);
+    fsciBleGetBufferFromUint16Value(pEvent->tIp2IptTimesSupported, pBuffer);
+    fsciBleGetBufferFromUint8Value(pEvent->tSwIptTimesSupported, pBuffer);
+    fsciBleGetBufferFromUint8Value(pEvent->RTT2MAAOnlyN, pBuffer);
+    fsciBleGetBufferFromUint8Value(pEvent->RTT2MSoundingN, pBuffer);
+    fsciBleGetBufferFromUint8Value(pEvent->RTT2MRandomSequenceN, pBuffer);
 
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
@@ -1151,7 +1155,7 @@ static void fsciCSReadRemoteSupportedCapabilitiesEvtMonitor
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
-    uint32_t dataLength = sizeof(deviceId_t) + 12U * sizeof(uint8_t) + 8U * sizeof(uint16_t);
+    uint32_t dataLength = sizeof(deviceId_t) + 16U * sizeof(uint8_t) + 9U * sizeof(uint16_t);
 
     /* Allocate the packet to be sent over UART */
     pClientPacket = fsciCSAllocFsciPacket((uint8_t)gCSEvtReadRemoteSupportedCapabilitiesOpCode_c, dataLength);
@@ -1172,9 +1176,9 @@ static void fsciCSReadRemoteSupportedCapabilitiesEvtMonitor
     fsciBleGetBufferFromUint8Value(pEvent->rolesSupported, pBuffer);
     fsciBleGetBufferFromUint8Value(pEvent->optionalModesSupported, pBuffer);
     fsciBleGetBufferFromUint8Value(pEvent->RTTCapability, pBuffer);
-    fsciBleGetBufferFromUint8Value(pEvent->RTTAAOnly, pBuffer);
+    fsciBleGetBufferFromUint8Value(pEvent->RTTAAOnlyN, pBuffer);
     fsciBleGetBufferFromUint8Value(pEvent->RTTSoundingN, pBuffer);
-    fsciBleGetBufferFromUint8Value(pEvent->RTTRandomPayload, pBuffer);
+    fsciBleGetBufferFromUint8Value(pEvent->RTTRandomSequenceN, pBuffer);
     fsciBleGetBufferFromUint16Value(pEvent->optionalNADMSoundingCapability, pBuffer);
     fsciBleGetBufferFromUint16Value(pEvent->optionalNADMRandomCapability, pBuffer);
     fsciBleGetBufferFromUint8Value(pEvent->optionalSyncPhysSupported, pBuffer);
@@ -1185,6 +1189,11 @@ static void fsciCSReadRemoteSupportedCapabilitiesEvtMonitor
     fsciBleGetBufferFromUint16Value(pEvent->optionalTPMtimesSupported, pBuffer);
     fsciBleGetBufferFromUint8Value(pEvent->TSWtimeSupported, pBuffer);
     fsciBleGetBufferFromUint8Value(pEvent->optionalTxSNRCapability, pBuffer);
+    fsciBleGetBufferFromUint16Value(pEvent->tIp2IptTimesSupported, pBuffer);
+    fsciBleGetBufferFromUint8Value(pEvent->tSwIptTimesSupported, pBuffer);
+    fsciBleGetBufferFromUint8Value(pEvent->RTT2MAAOnlyN, pBuffer);
+    fsciBleGetBufferFromUint8Value(pEvent->RTT2MSoundingN, pBuffer);
+    fsciBleGetBufferFromUint8Value(pEvent->RTT2MRandomSequenceN, pBuffer);
 
     /* Transmit the packet over UART */
     fsciBleTransmitFormatedPacket(pClientPacket, fsciBleInterfaceId);
@@ -1296,8 +1305,11 @@ static void fsciCSCreateConfigFromBuffer
     fsciBleGetUint8ValueFromBuffer(pCreateConfigParams->channelSelectionType, *ppBuffer);
     fsciBleGetEnumValueFromBuffer(pCreateConfigParams->ch3cShape, *ppBuffer, hoppingAlgorithmTypes_t);
     fsciBleGetUint8ValueFromBuffer(pCreateConfigParams->ch3cJump, *ppBuffer);
-    /* Set RFU value to 0 */
-    pCreateConfigParams->rfu = 0U;
+#if defined(gHostInitEnableExpmFeatures_c) && (gHostInitEnableExpmFeatures_c == TRUE)
+    fsciBleGetUint8ValueFromBuffer(pCreateConfigParams->csEnhancements, *ppBuffer);
+#else
+    pCreateConfigParams->csEnhancements = 0U;
+#endif
 }
 
 /*! *********************************************************************************
@@ -1368,8 +1380,11 @@ static void fsciCSTestFromBuffer
     fsciBleGetArrayFromBuffer(pTestCmdParams->overrideParametersData,
                               *ppBuffer,
                               pTestCmdParams->overrideParametersLength);
-    /* Set RFU value to 0 */
-    pTestCmdParams->rfu = 0U;
+#if defined(gHostInitEnableExpmFeatures_c) && (gHostInitEnableExpmFeatures_c == TRUE)
+    fsciBleGetUint8ValueFromBuffer(pTestCmdParams->csEnhancements, *ppBuffer);
+#else
+    pTestCmdParams->csEnhancements = 0U;
+#endif
 }
 
 /*! *********************************************************************************
@@ -1394,9 +1409,9 @@ static void fsciCSWriteCachedRemoteSupportedCapabilitiesFromBuffer
     fsciBleGetUint8ValueFromBuffer(pCmdParams->rolesSupported, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pCmdParams->optionalModesSupported, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pCmdParams->RTTCapability, *ppBuffer);
-    fsciBleGetUint8ValueFromBuffer(pCmdParams->RTTAAOnly, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pCmdParams->RTTAAOnlyN, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pCmdParams->RTTSoundingN, *ppBuffer);
-    fsciBleGetUint8ValueFromBuffer(pCmdParams->RTTRandomPayload, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pCmdParams->RTTRandomSequenceN, *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pCmdParams->optionalNADMRandomCapability, *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pCmdParams->optionalNADMSoundingCapability, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pCmdParams->optionalSyncPhysSupported, *ppBuffer);
@@ -1407,6 +1422,11 @@ static void fsciCSWriteCachedRemoteSupportedCapabilitiesFromBuffer
     fsciBleGetUint16ValueFromBuffer(pCmdParams->optionalTPMtimesSupported, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pCmdParams->TSWtimeSupported, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pCmdParams->optionalTxSNRCapability, *ppBuffer);
+    fsciBleGetUint16ValueFromBuffer(pCmdParams->tIp2IptTimesSupported, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pCmdParams->tSwIptTimesSupported, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pCmdParams->RTT2MAAOnlyN, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pCmdParams->RTT2MSoundingN, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pCmdParams->RTT2MRandomSequenceN, *ppBuffer);
 }
 
 /*! *********************************************************************************
@@ -1430,9 +1450,9 @@ static void fsciCSReadRemoteSupportedCapabilitiesFromBuffer
     fsciBleGetUint8ValueFromBuffer(pEvent->rolesSupported, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pEvent->optionalModesSupported, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pEvent->RTTCapability, *ppBuffer);
-    fsciBleGetUint8ValueFromBuffer(pEvent->RTTAAOnly, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pEvent->RTTAAOnlyN, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pEvent->RTTSoundingN, *ppBuffer);
-    fsciBleGetUint8ValueFromBuffer(pEvent->RTTRandomPayload, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pEvent->RTTRandomSequenceN, *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pEvent->optionalNADMSoundingCapability, *ppBuffer);
     fsciBleGetUint16ValueFromBuffer(pEvent->optionalNADMRandomCapability, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pEvent->optionalSyncPhysSupported, *ppBuffer);
@@ -1443,6 +1463,11 @@ static void fsciCSReadRemoteSupportedCapabilitiesFromBuffer
     fsciBleGetUint16ValueFromBuffer(pEvent->optionalTPMtimesSupported, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pEvent->TSWtimeSupported, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pEvent->optionalTxSNRCapability, *ppBuffer);
+    fsciBleGetUint16ValueFromBuffer(pEvent->tIp2IptTimesSupported, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pEvent->tSwIptTimesSupported, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pEvent->RTT2MAAOnlyN, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pEvent->RTT2MSoundingN, *ppBuffer);
+    fsciBleGetUint8ValueFromBuffer(pEvent->RTT2MRandomSequenceN, *ppBuffer);
 }
 
 /*! *********************************************************************************
@@ -1513,8 +1538,7 @@ static void fsciCSConfigCompleteFromBuffer
     fsciBleGetUint8ValueFromBuffer(pEvent->TIP2time, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pEvent->TFCStime, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pEvent->TPMtime, *ppBuffer);
-    /* Set RFU value to 0 */
-    pEvent->rfu = 0U;
+    fsciBleGetUint8ValueFromBuffer(pEvent->csEnhancements, *ppBuffer);
 }
 
 /*! *********************************************************************************

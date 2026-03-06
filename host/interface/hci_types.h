@@ -255,6 +255,8 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 #define gHciLeReadMonAdvListSize_c                          0x009BU
 #define gHciLeEnableMonAdv_c                                0x009CU
 #define gHciLeSetResolvablePrivateAddressTimeoutV2_c        0x009EU
+#define gHciLeCsReadLocalSupportedCapabilitiesV2_c          0x00A5U
+#define gHciLeCsWriteRemoteCachedCapabilitiesV2_c           0x00A6U
 
      /*! HCI OGF : 0x3F : Vendor Specific Debug Commands */
 #define gHciVendorSpecificDebugCommands_c                       0x03FU
@@ -422,16 +424,17 @@ typedef enum
     gHciLeSkdReportEvent_c                          = 0x40,
 
     /* BLE v6.0 - Channel Sounding */
-    gHciLeCsReadRemoteSupportedCapabilitiesCompleteEvent_c = 0x2C,
-    gHciLeCsReadRemoteFaeTableCompleteEvent_c              = 0x2D,
-    gHciLeCsSetSecurityEnableCompleteEvent_c               = 0x2E,
-    gHciLeCsConfigCompleteEvent_c                          = 0x2F,
-    gHciLeCsProcedureEnableCompleteEvent_c                 = 0x30,
-    gHciLeCsSubeventResultEvent_c                          = 0x31,
-    gHciLeCsSubeventResultContinueEvent_c                  = 0x32,
-    gHciLeCsTestEndCompleteEvent_c                         = 0x33,
-    gHciLeMonAdvReportEvent_c                              = 0x34,
-    gHciLeCsSubeventDebugResultEvent_c                     = 0xF0,
+    gHciLeCsReadRemoteSupportedCapabilitiesCompleteEvent_c   = 0x2C,
+    gHciLeCsReadRemoteFaeTableCompleteEvent_c                = 0x2D,
+    gHciLeCsSetSecurityEnableCompleteEvent_c                 = 0x2E,
+    gHciLeCsConfigCompleteEvent_c                            = 0x2F,
+    gHciLeCsProcedureEnableCompleteEvent_c                   = 0x30,
+    gHciLeCsSubeventResultEvent_c                            = 0x31,
+    gHciLeCsSubeventResultContinueEvent_c                    = 0x32,
+    gHciLeCsTestEndCompleteEvent_c                           = 0x33,
+    gHciLeMonAdvReportEvent_c                                = 0x34,
+    gHciLeCsReadRemoteSupportedCapabilitiesCompleteV2Event_c = 0x38,
+    gHciLeCsSubeventDebugResultEvent_c                       = 0xF0,
 
     gHciLeVendorEnhancedNotificationEvent_c                  = 0xFF,
 } hciLeMetaSubEventCode_tag;

@@ -1889,9 +1889,9 @@ typedef struct hciLeCsReadRemoteSupportedCapabilitiesEvent_tag
     uint8_t         rolesSupported;
     uint8_t         optionalModesSupported;
     uint8_t         RTTCapability;
-    uint8_t         RTTAAOnly;
+    uint8_t         RTTAAOnlyN;
     uint8_t         RTTSoundingN;
-    uint8_t         RTTRandomPayload;
+    uint8_t         RTTRandomSequenceN;
     uint16_t        optionalNADMSoundingCapability;
     uint16_t        optionalNADMRandomCapability;
     uint8_t         optionalSyncPhysSupported;
@@ -1902,6 +1902,11 @@ typedef struct hciLeCsReadRemoteSupportedCapabilitiesEvent_tag
     uint16_t        optionalTPMtimesSupported;
     uint8_t         TSWtimeSupported;
     uint8_t         optionalTxSNRCapability;
+    uint16_t        tIp2IptTimesSupported;
+    uint8_t         tSwIptTimesSupported;
+    uint8_t         RTT2MAAOnlyN;
+    uint8_t         RTT2MSoundingN;
+    uint8_t         RTT2MRandomSequenceN;
 } hciLeCsReadRemoteSupportedCapabilitiesEvent_t;
 
 typedef struct hciLeCsReadRemoteFAETableCompleteEvent_tag
@@ -1937,7 +1942,7 @@ typedef struct hciLeCsConfigCompleteEvent_tag
     uint8_t         channelSelectionType;
     uint8_t         ch3cShape;
     uint8_t         ch3cJump;
-    uint8_t         rfu;
+    uint8_t         csEnhancements;
     uint8_t         TIP1time;
     uint8_t         TIP2time;
     uint8_t         TFCStime;
@@ -2374,9 +2379,9 @@ typedef struct hciLeCsReadLocalSupportedCapabilities_tag
     uint8_t         rolesSupported;
     uint8_t         optionalModesSupported;
     uint8_t         RTTCapability;
-    uint8_t         RTTAAOnly;
+    uint8_t         RTTAAOnlyN;
     uint8_t         RTTSoundingN;
-    uint8_t         RTTRandomPayloadN;
+    uint8_t         RTTRandomSequenceN;
     uint16_t        optionalNADMSoundingCapability;
     uint16_t        optionalNADMRandomCapability;
     uint8_t         optionalSyncPhysSupported;
@@ -2387,6 +2392,11 @@ typedef struct hciLeCsReadLocalSupportedCapabilities_tag
     uint16_t        optionalTPMtimesSupported;
     uint8_t         TSWtimeSupported;
     uint8_t         optionalTxSNRCapability;
+    uint16_t        tIp2IptTimesSupported;
+    uint8_t         tSwIptTimesSupported;
+    uint8_t         RTT2MAAOnlyN;
+    uint8_t         RTT2MSoundingN;
+    uint8_t         RTT2MRandomSequenceN;
 } hciLeCsReadLocalSupportedCapabilities_t;
 
 typedef struct hciLeCsSetDefaultSettings_tag

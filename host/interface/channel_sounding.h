@@ -72,6 +72,16 @@
 #define gCsRoleInitiator_c                   0U
 #define gCsRoleReflector_c                   1U
 
+/* CS Enhancements */
+#define gCsEnhancementsIptEnabledInReflector_c (BIT0)
+
+/* Subfeatures supported */
+#define gCsSubfeatureNoTransmitterFae_c        (BIT1) /*! CS with no transmitter Frequency Actuation Error */
+#define gCsSubfeatureChanSelAlgo3c_c           (BIT2) /*! CS Channel Selection Algorithm #3c */
+#define gCsSubfeaturePbrFromRttSoundingSeq_c   (BIT3) /*! CS phase-based ranging from RTT sounding sequence */
+#define gCsSubfeatureIptInReflector_c          (BIT4) /*! IPT in the CS reflector */
+#define gCsSubfeatureRttAccuracyPerPhy_c       (BIT5) /*! CS RTT accuracy specified on a per PHY basis */
+
 /* CS HCI data logging support */
 #ifndef gAppHciDataLogExport_d
 #define gAppHciDataLogExport_d               0U
@@ -117,9 +127,9 @@ typedef struct csReadRemoteSupportedCapabilitiesCompleteEvent_tag
     uint8_t         rolesSupported;
     uint8_t         optionalModesSupported;
     uint8_t         RTTCapability;
-    uint8_t         RTTAAOnly;
+    uint8_t         RTTAAOnlyN;
     uint8_t         RTTSoundingN;
-    uint8_t         RTTRandomPayload;
+    uint8_t         RTTRandomSequenceN;
     uint16_t        optionalNADMSoundingCapability;
     uint16_t        optionalNADMRandomCapability;
     uint8_t         optionalSyncPhysSupported;
@@ -130,6 +140,11 @@ typedef struct csReadRemoteSupportedCapabilitiesCompleteEvent_tag
     uint16_t        optionalTPMtimesSupported;
     uint8_t         TSWtimeSupported;
     uint8_t         optionalTxSNRCapability;
+    uint16_t        tIp2IptTimesSupported;
+    uint8_t         tSwIptTimesSupported;
+    uint8_t         RTT2MAAOnlyN;
+    uint8_t         RTT2MSoundingN;
+    uint8_t         RTT2MRandomSequenceN;
 } csReadRemoteSupportedCapabilitiesCompleteEvent_t;
 
 typedef struct csReadRemoteFAETableCompleteEvent_tag
@@ -163,7 +178,7 @@ typedef struct csConfigCompleteEvent_tag
     uint8_t         channelSelectionType;
     uint8_t         ch3cShape;
     uint8_t         ch3cJump;
-    uint8_t         rfu;
+    uint8_t         csEnhancements;
     uint8_t         TIP1time;
     uint8_t         TIP2time;
     uint8_t         TFCStime;
@@ -317,9 +332,9 @@ typedef struct csReadLocalSupportedCapabilities_tag
     uint8_t         rolesSupported;
     uint8_t         optionalModesSupported;
     uint8_t         RTTCapability;
-    uint8_t         RTTAAOnly;
+    uint8_t         RTTAAOnlyN;
     uint8_t         RTTSoundingN;
-    uint8_t         RTTRandomPayloadN;
+    uint8_t         RTTRandomSequenceN;
     uint16_t        optionalNADMSoundingCapability;
     uint16_t        optionalNADMRandomCapability;
     uint8_t         optionalSyncPhysSupported;
@@ -330,6 +345,11 @@ typedef struct csReadLocalSupportedCapabilities_tag
     uint16_t        optionalTPMtimesSupported;
     uint8_t         TSWtimeSupported;
     uint8_t         optionalTxSNRCapability;
+    uint16_t        tIp2IptTimesSupported;
+    uint8_t         tSwIptTimesSupported;
+    uint8_t         RTT2MAAOnlyN;
+    uint8_t         RTT2MSoundingN;
+    uint8_t         RTT2MRandomSequenceN;
 } csReadLocalSupportedCapabilities_t;
 
 typedef struct csCommandCompleteEvent_tag
@@ -430,7 +450,7 @@ typedef struct gCsCreateConfigCommandParams_tag
     uint8_t                     channelSelectionType;
     uint8_t                     ch3cShape;
     uint8_t                     ch3cJump;
-    uint8_t                     rfu;
+    uint8_t                     csEnhancements;
 } gCsCreateConfigCommandParams_t;
 
 typedef struct gCsSetProcedureParamsCommandParams_tag
@@ -470,7 +490,7 @@ typedef struct gCsTestCommandParams_tag
     uint8_t                     TPMtime;
     uint8_t                     TSWtime;
     uint8_t                     toneAntennaConfig;
-    uint8_t                     rfu;
+    uint8_t                     csEnhancements;
     uint8_t                     SNRCtrlInitiator;
     uint8_t                     SNRCtrlReflector;
     uint16_t                    DRBG_Nonce;

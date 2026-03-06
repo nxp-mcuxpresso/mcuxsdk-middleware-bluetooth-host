@@ -612,7 +612,7 @@ void measurement_buffer_init
  ********************************************************************************** */
 bleResult_t measurement_configure(deviceId_t deviceId)
 {
-    gCsCreateConfigCommandParams_t createConfigParams;
+    gCsCreateConfigCommandParams_t createConfigParams = {};
     assert(deviceId != CS_TEST_DEVICEID);
 
     isp_configuration_range_t *config = &meas_params.cfg;
@@ -635,6 +635,7 @@ bleResult_t measurement_configure(deviceId_t deviceId)
     createConfigParams.channelSelectionType = (hoppingAlgorithmTypes_t)config->ch_sel_algo;
     createConfigParams.ch3cShape = (userShape_t)config->ch_sel_shape;
     createConfigParams.ch3cJump = config->ch_sel_jump;
+    createConfigParams.csEnhancements = 0U;
 
     return CS_CreateConfig(deviceId, &createConfigParams);
 }
@@ -772,6 +773,7 @@ bleResult_t measurement_run(deviceId_t deviceId)
             pCommand->TSWtime = meas_params.cfg.ant_cfg_index == 0 ? 0 : meas_params.cfg.t_sw_local;      /* T_SW in us */
             pCommand->channelMapRepetition = meas_params.cfg.ch_map_repeat;/* channel map repetition */
             pCommand->toneAntennaConfig = meas_params.cfg.ant_cfg_index;/* Antenna configuration index */
+            pCommand->csEnhancements = 0U;
             pCommand->DRBG_Nonce = 0; /* not used */
             pCommand->SNRCtrlInitiator = gSNRControlNotApplied_c;
             pCommand->SNRCtrlReflector = gSNRControlNotApplied_c;

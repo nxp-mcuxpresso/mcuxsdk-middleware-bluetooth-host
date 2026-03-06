@@ -1347,7 +1347,7 @@ bleResult_t AppLocalization_CreateConfig
 
     if (maAppLclState[deviceId] == gAppLclIdle_c)
     {
-        gCsCreateConfigCommandParams_t createConfigParams;
+        gCsCreateConfigCommandParams_t createConfigParams = {};
 
         createConfigParams.configId = configId;
         createConfigParams.mainModeType = mRangeSettings[deviceId].main_mode_type;
@@ -1364,6 +1364,7 @@ bleResult_t AppLocalization_CreateConfig
         createConfigParams.ch3cShape = 0U; /* unused */
         createConfigParams.ch3cJump = 3; /* unused */
         createConfigParams.role = mGlobalRangeSettings.role;
+        createConfigParams.csEnhancements = 0U;
 
         /* If TRUE, create CS configuration in both local and remote Controller */
         createConfigParams.createContext = (uint8_t)createContextRemote;
@@ -2482,7 +2483,8 @@ static void AppLocalization_CSCmdCompleteCallback
 
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
 #if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
-            rttSoundingSupported = (pPacket->eventData.csReadLocalSupportedCapabilities.RTTSoundingN != 0U) ? TRUE:FALSE;
+            rttSoundingSupported = ((pPacket->eventData.csReadLocalSupportedCapabilities.RTTSoundingN != 0U) ||
+                                    (pPacket->eventData.csReadLocalSupportedCapabilities.RTT2MSoundingN != 0U)) ? TRUE : FALSE;
 #endif /* gRasRREQ_d */
 #endif /* gAppRasDataTransfer_d */
         }
