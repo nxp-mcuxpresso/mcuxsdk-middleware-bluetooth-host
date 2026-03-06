@@ -279,7 +279,7 @@ bleResult_t RasClient_StorePeerMeasurementData
 
                 if (mbRealTimeTransfer[deviceId] == TRUE)
                 {
-                    AppLocalization_ClearLocalData(deviceId);
+                    RasClient_ResetPeerInfo(deviceId);
                 }
 
                 /* Get first header and subevent here */
