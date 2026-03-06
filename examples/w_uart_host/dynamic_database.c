@@ -130,7 +130,7 @@ void GATTDBDynamicAddPrimaryServiceDeclaration
         break;
     }
 
-    GATTDBDynamicAddPrimaryServiceDeclarationRequest(&req, gFsciInterface_c);
+    (void)GATTDBDynamicAddPrimaryServiceDeclarationRequest(&req, gFsciInterface_c);
 }
 
 /*!*************************************************************************************************

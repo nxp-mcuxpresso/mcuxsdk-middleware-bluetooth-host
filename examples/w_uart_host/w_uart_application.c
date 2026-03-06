@@ -41,6 +41,7 @@
 #include "w_uart_application.h"
 #include "host_ble_conn_manager.h"
 #include "host_ble_init.h"
+#include "dynamic_database.h"
 
 #if defined(MCXW727C_cm33_core0_SERIES)
 #include "sensors.h"
@@ -308,16 +309,15 @@ static void BleApp_GapStopScanningRequest
 * Private memory declarations
 *************************************************************************************
 ************************************************************************************/
-extern servDiscInfo_t maServDiscInfo[gAppMaxConnections_c];
 
 /* Role of the device */
-gapRole_t mGapRole;
+static gapRole_t mGapRole;
 
 /* Counter of the active connections */
 static uint8_t mcActiveConnNo;
 
 /* Application specific information */
-appPeerInfo_t maPeerInformation[gAppMaxConnections_c];
+static appPeerInfo_t maPeerInformation[gAppMaxConnections_c];
 
 /* Service Data*/
 static bool_t      mBasValidClientList[gAppMaxConnections_c] = {FALSE};
@@ -457,7 +457,7 @@ static void BleApp_EventCallback3
 
     switch (pMsg->id)
     {
-        case GATTServerAttributeWrittenWithoutResponseIndication_FSCI_ID:
+        case (uint16_t)GATTServerAttributeWrittenWithoutResponseIndication_FSCI_ID:
         {
             /* Check for the wireless uart stream value handle */
             if (pMsg->Data.GATTServerAttributeWrittenWithoutResponseIndication.AttributeWrittenEvent.Handle == mWUartServiceHandle_c + 2U)
@@ -469,13 +469,13 @@ static void BleApp_EventCallback3
         }
         break;
 
-        case GATTClientProcedureDiscoverAllPrimaryServicesIndication_FSCI_ID:
-        case GATTClientProcedureDiscoverPrimaryServicesByUuidIndication_FSCI_ID:
-        case GATTClientProcedureFindIncludedServicesIndication_FSCI_ID:
-        case GATTClientProcedureDiscoverAllCharacteristicsIndication_FSCI_ID:
-        case GATTClientProcedureDiscoverCharacteristicByUuidIndication_FSCI_ID:
-        case GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication_FSCI_ID:
-        case GATTClientProcedureReadCharacteristicValueIndication_FSCI_ID:
+        case (uint16_t)GATTClientProcedureDiscoverAllPrimaryServicesIndication_FSCI_ID:
+        case (uint16_t)GATTClientProcedureDiscoverPrimaryServicesByUuidIndication_FSCI_ID:
+        case (uint16_t)GATTClientProcedureFindIncludedServicesIndication_FSCI_ID:
+        case (uint16_t)GATTClientProcedureDiscoverAllCharacteristicsIndication_FSCI_ID:
+        case (uint16_t)GATTClientProcedureDiscoverCharacteristicByUuidIndication_FSCI_ID:
+        case (uint16_t)GATTClientProcedureDiscoverAllCharacteristicDescriptorsIndication_FSCI_ID:
+        case (uint16_t)GATTClientProcedureReadCharacteristicValueIndication_FSCI_ID:
         {
             /* deviceId is at the same position in the union */
             deviceId = pMsg->Data.GATTClientProcedureDiscoverAllPrimaryServicesIndication.DeviceId;
@@ -483,7 +483,7 @@ static void BleApp_EventCallback3
         }
         break;
 
-        case GATTClientProcedureWriteCharacteristicValueIndication_FSCI_ID:
+        case (uint16_t)GATTClientProcedureWriteCharacteristicValueIndication_FSCI_ID:
         {
             /* deviceId is at the same position in the union */
             deviceId = pMsg->Data.GATTClientProcedureWriteCharacteristicValueIndication.DeviceId;
@@ -545,13 +545,13 @@ static void BleApp_EventCallback3
         }
         break;
 
-        case GATTServerErrorIndication_FSCI_ID:
+        case (uint16_t)GATTServerErrorIndication_FSCI_ID:
         {
             BleApp_StateMachineHandler(pMsg->Data.GATTServerErrorIndication.DeviceId, mAppEvt_GattProcError_c);
         }
         break;
 
-        case GAPGenericEventInternalErrorIndication_FSCI_ID:
+        case (uint16_t)GAPGenericEventInternalErrorIndication_FSCI_ID:
         {
             if((pMsg->Data.GAPGenericEventInternalErrorIndication.ErrorCode == GAPGenericEventInternalErrorIndication_ErrorCode_gBleOverflow_c) && 
                (pMsg->Data.GAPGenericEventInternalErrorIndication.ErrorSource == GAPGenericEventInternalErrorIndication_ErrorSource_gAddNewConnection_c))
@@ -576,19 +576,19 @@ static void BleApp_EventCallback3
         break;
 
 #if defined(gUseControllerNotifications_c) && (gUseControllerNotifications_c)
-        case GAPControllerNotificationIndication_FSCI_ID:
+        case (uint16_t)GAPControllerNotificationIndication_FSCI_ID:
         {
             BleApp_HandleControllerNotification(pMsg);
         }
         break;
 #endif
-        case GAPAdvertisingEventCommandFailedIndication_FSCI_ID:
+        case (uint16_t)GAPAdvertisingEventCommandFailedIndication_FSCI_ID:
         {
             panic(0, 0, 0, 0);
         }
         break;
 
-        case GAPScanningEventCommandFailedIndication_FSCI_ID:
+        case (uint16_t)GAPScanningEventCommandFailedIndication_FSCI_ID:
         {
             panic(0, 0, 0, 0);
         }
@@ -612,17 +612,13 @@ static void BleApp_EventCallback2
 )
 {
     uint16_t tempMtu = 0;
-    union
-    {
-        uint8_t     *pUuidArray;
-        bleUuid_t   *pUuidObj;
-    } temp; /* MISRA rule 11.3 */
+    
 
-    temp.pUuidArray = uuid_service_wireless_uart;
+
 
     switch (pMsg->id)
     {
-        case GAPConnectionEventDisconnectedIndication_FSCI_ID:
+        case (uint16_t)GAPConnectionEventDisconnectedIndication_FSCI_ID:
         {
             deviceId_t peerDeviceId = pMsg->Data.GAPConnectionEventDisconnectedIndication.DeviceId;
             Serial_Print("Disconnected from device ", gAllowToBlock_d);
@@ -653,7 +649,6 @@ static void BleApp_EventCallback2
             {
                 (void)TM_Stop((timer_handle_t)mBatteryMeasurementTimerId);
             }
-            peerDeviceId = gInvalidDeviceId_c;
 
             mAppUartNewLine = TRUE;
 
@@ -664,7 +659,7 @@ static void BleApp_EventCallback2
         }
         break;
 
-        case GATTClientProcedureExchangeMtuIndication_FSCI_ID:
+        case (uint16_t)GATTClientProcedureExchangeMtuIndication_FSCI_ID:
         {
             BleApp_StateMachineHandler(pMsg->Data.GATTClientProcedureExchangeMtuIndication.DeviceId,
                                        mAppEvt_GattProcComplete_c);
@@ -672,8 +667,15 @@ static void BleApp_EventCallback2
         }
         break;
 
-        case GATTGetMtuIndication_FSCI_ID:
+        case (uint16_t)GATTGetMtuIndication_FSCI_ID:
         {
+            union
+            {
+                uint8_t     *pUuidArray;
+                bleUuid_t   *pUuidObj;
+            } temp; /* MISRA rule 11.3 */
+
+            temp.pUuidArray = uuid_service_wireless_uart;
             tempMtu = pMsg->Data.GATTGetMtuIndication.Mtu;
 
             if (tempMtu >= gAttDefaultMtu_c)
@@ -694,7 +696,7 @@ static void BleApp_EventCallback2
         break;
 
 #if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
-        case GAPConnectionEventPairingCompleteIndication_FSCI_ID:
+        case (uint16_t)GAPConnectionEventPairingCompleteIndication_FSCI_ID:
         {
             if (pMsg->Data.GAPConnectionEventPairingCompleteIndication.PairingStatus
                 == GAPConnectionEventPairingCompleteIndication_PairingStatus_PairingSuccessful)
@@ -715,7 +717,7 @@ static void BleApp_EventCallback2
         }
         break;
 
-        case GAPConnectionEventAuthenticationRejectedIndication_FSCI_ID:
+        case (uint16_t)GAPConnectionEventAuthenticationRejectedIndication_FSCI_ID:
         {
             deviceId_t peerDeviceId = pMsg->Data.GAPConnectionEventPeripheralSecurityRequestIndication.DeviceId;
 
@@ -740,7 +742,7 @@ static void BleApp_EventCallback2
         }
         break;
 
-        case GAPPairingEventNoLTKIndication_FSCI_ID:
+        case (uint16_t)GAPPairingEventNoLTKIndication_FSCI_ID:
         {
             deviceId_t peerDeviceId = (deviceId_t)pMsg->Data.GAPPairingEventNoLTKIndication.DeviceId;
 
@@ -766,7 +768,7 @@ static void BleApp_EventCallback2
         break;
 
 #if (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
-        case GAPCheckIfBondedIndication_FSCI_ID:
+        case (uint16_t)GAPCheckIfBondedIndication_FSCI_ID:
         {
             if (pMsg->Data.GAPCheckIfBondedIndication.IsBonded == TRUE)
             {
@@ -804,7 +806,7 @@ static void BleApp_EventCallback2
         }
         break;
 
-        case GAPLoadCustomPeerInformationIndication_FSCI_ID:
+        case (uint16_t)GAPLoadCustomPeerInformationIndication_FSCI_ID:
         {
             /* Restored custom connection information. Encrypt link */
             if (pMsg->Data.GAPLoadCustomPeerInformationIndication.Info != NULL)
@@ -827,7 +829,7 @@ static void BleApp_EventCallback2
         }
         break;
 
-        case GAPConnectionEventEncryptionChangedIndication_FSCI_ID:
+        case (uint16_t)GAPConnectionEventEncryptionChangedIndication_FSCI_ID:
         {
             if (pMsg->Data.GAPConnectionEventEncryptionChangedIndication.NewEncryptionState == TRUE)
             {
@@ -858,19 +860,19 @@ void BleApp_EventCallback
 
     switch (pMsg->id)
     {
-        case GAPGenericEventInitializationCompleteIndication_FSCI_ID:
+        case (uint16_t)GAPGenericEventInitializationCompleteIndication_FSCI_ID:
         {
             BleApp_GenericEvtInitCompleteHandler();
         }
         break;
 
-        case GAPAdvertisingEventStateChangedIndication_FSCI_ID:
+        case (uint16_t)GAPAdvertisingEventStateChangedIndication_FSCI_ID:
         {
             BleApp_AdvertisingEvtStateChangedHandler();
         }
         break;
 
-        case GAPScanningEventStateChangedIndication_FSCI_ID:
+        case (uint16_t)GAPScanningEventStateChangedIndication_FSCI_ID:
         {
             mScanningOn = !mScanningOn;
 
@@ -907,7 +909,7 @@ void BleApp_EventCallback
                     FLib_MemCpy(req.PeerAddress, gConnReqParams.peerAddress, gcBleDeviceAddressSize_c);
                     req.PeerAddressType = (GAPConnectRequest_PeerAddressType_t)gConnReqParams.peerAddressType;
                     req.usePeerIdentityAddress = gConnReqParams.usePeerIdentityAddress;
-                    GAPConnectRequest(&req, gFsciInterface_c);
+                    (void)GAPConnectRequest(&req, gFsciInterface_c);
                 }
 
                 /* Node is not scanning */
@@ -918,28 +920,30 @@ void BleApp_EventCallback
         }
         break;
 
-        case GAPScanningEventDeviceScannedIndication_FSCI_ID:
+        case (uint16_t)GAPScanningEventDeviceScannedIndication_FSCI_ID:
         {
             /* Checks Scan data for a device to connect */
-            if (checkScanEvent((gapScannedDevice_t*)(&pMsg->Data.GAPScanningEventDeviceScannedIndication)) &&
+            if (checkScanEvent((gapScannedDevice_t*)(void*)(&pMsg->Data.GAPScanningEventDeviceScannedIndication)) &&
                 (mcActiveConnNo < gAppMaxConnections_c))
             {
+                uint8_t tempAddressType;
                 /* Found device - stop scanning and initiate connection */
                 mInitiatingConnection = TRUE;
                 /* save peer address information for connection request */
                 FLib_MemCpy(gConnReqParams.peerAddress,
                             &pMsg->Data.GAPScanningEventDeviceScannedIndication.Address,
                             gcBleDeviceAddressSize_c);
-                gConnReqParams.peerAddressType = (GAPConnectRequest_PeerAddressType_t)pMsg->Data.GAPScanningEventDeviceScannedIndication.AddressType;
+                tempAddressType = (uint8_t)pMsg->Data.GAPScanningEventDeviceScannedIndication.AddressType;
+                gConnReqParams.peerAddressType = tempAddressType;
 #if gAppUsePrivacy_d
                 gConnReqParams.usePeerIdentityAddress = pMsg->Data.GAPScanningEventDeviceScannedIndication.advertisingAddressResolved;
 #endif
-                GAPStopScanningRequest(gFsciInterface_c);
+                (void)GAPStopScanningRequest(gFsciInterface_c);
             }
         }
         break;
 
-        case GAPConnectionEventConnectedIndication_FSCI_ID:
+        case (uint16_t)GAPConnectionEventConnectedIndication_FSCI_ID:
         {
             deviceId = pMsg->Data.GAPConnectionEventConnectedIndication.DeviceId;
 
@@ -1012,7 +1016,7 @@ void BleApp_EventCallback
         }
         break;
 
-        case GAPConnectionEventLeDataLengthChangedIndication_FSCI_ID:
+        case (uint16_t)GAPConnectionEventLeDataLengthChangedIndication_FSCI_ID:
         {
 #if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
 #if (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
@@ -1138,7 +1142,7 @@ void BleApp_StateMachineHandler
                 /* update stream length with minimum of maximum MTU's of connected devices */
                 GATTGetMtuRequest_t req;
                 req.DeviceId = peerDeviceId;
-                GATTGetMtuRequest(&req, gFsciInterface_c);
+                (void)GATTGetMtuRequest(&req, gFsciInterface_c);
             }
             else
             {
@@ -1146,7 +1150,7 @@ void BleApp_StateMachineHandler
                 {
                     GAPDisconnectRequest_t req;
                     req.DeviceId = peerDeviceId;
-                    GAPDisconnectRequest(&req, gFsciInterface_c);
+                    (void)GAPDisconnectRequest(&req, gFsciInterface_c);
                 }
             }
         }
@@ -1186,7 +1190,7 @@ void BleApp_StateMachineHandler
             {
                 GAPDisconnectRequest_t req;
                 req.DeviceId = peerDeviceId;
-                GAPDisconnectRequest(&req, gFsciInterface_c);
+                (void)GAPDisconnectRequest(&req, gFsciInterface_c);
             }
             else
             {
@@ -1207,7 +1211,7 @@ void BleApp_StateMachineHandler
             {
                 GAPDisconnectRequest_t req;
                 req.DeviceId = peerDeviceId;
-                GAPDisconnectRequest(&req, gFsciInterface_c);
+                (void)GAPDisconnectRequest(&req, gFsciInterface_c);
             }
             else
             {
@@ -1348,7 +1352,7 @@ static void BleApp_FlushUartStream
  * \param[in]    pStream            Pointer to the received stream.
  * \param[in]    streamLength       Number of bytes in the strem.
  ********************************************************************************** */
-void BleApp_ReceivedUartStream
+static void BleApp_ReceivedUartStream
 (
     deviceId_t peerDeviceId,
     uint8_t *pStream,
@@ -1368,7 +1372,8 @@ void BleApp_ReceivedUartStream
     }
 
     /* Allocate buffer for asynchronous write */
-    pBuffer = MEM_BufferAlloc(streamLength + 1U);
+    uint32_t bufferSize = (uint32_t)streamLength + 1U;
+    pBuffer = MEM_BufferAlloc(bufferSize);
 
     if (pBuffer != NULL)
     {
@@ -1437,14 +1442,14 @@ void BleApp_SendUartStream
             req.Characteristic.Properties = gCharPropNone_c;
             req.Characteristic.NbOfDescriptors = 0;
             req.Characteristic.Descriptors = NULL;
-            req.ValueLength = streamSize;
+            req.ValueLength = (uint16_t)streamSize;
             req.Value = (uint8_t*)pRecvStream;
             req.WithoutResponse = TRUE;
             req.SignedWrite = FALSE;
             req.ReliableLongCharWrites = FALSE;
             req.Characteristic.Value.UuidType = Uuid16Bits;
             req.Characteristic.Value.Handle = maPeerInformation[mPeerId].clientInfo.hUartStream;
-            GATTClientWriteCharacteristicValueRequest(&req, gFsciInterface_c);
+            (void)GATTClientWriteCharacteristicValueRequest(&req, gFsciInterface_c);
         }
     }
 }
@@ -1501,7 +1506,7 @@ static void BleApp_StateMachineHandleIdle
                 GATTClientExchangeMtuRequest_t req;
                 req.DeviceId = peerDeviceId;
                 req.Mtu = gAttMaxMtu_c;
-                GATTClientExchangeMtuRequest(&req, gFsciInterface_c);
+                (void)GATTClientExchangeMtuRequest(&req, gFsciInterface_c);
             }
             else
             {
@@ -1550,7 +1555,7 @@ static void BleApp_GenericEvtInitCompleteHandler
 #endif
     }
 
-#if (gWuart_AutoStart_c == 1)
+#if defined(gWuart_AutoStart_c) && (gWuart_AutoStart_c == 1)
     mGapRole = gWuart_AutoStartGapRole_c;
 #else
     /* By default, always start node as GAP central */
@@ -1599,7 +1604,7 @@ static void BleApp_GenericEvtInitCompleteHandler
 
     LedStartFlashingAllLeds();
 
-#if (gWuart_AutoStart_c == 1)
+#if defined(gWuart_AutoStart_c) && (gWuart_AutoStart_c == 1)
     BleApp_Start(mGapRole);
 #endif
 
@@ -1611,7 +1616,7 @@ static void BleApp_GenericEvtInitCompleteHandler
     req.DesiredHandle = mcGenericAccessProfileHandle_c;
     req.UuidType = Uuid16Bits;
     Utils_PackTwoByteValue(uuid.uuid16, req.Uuid.Uuid16Bits);
-    GATTDBDynamicAddPrimaryServiceDeclarationRequest(&req, gFsciInterface_c);
+    (void)GATTDBDynamicAddPrimaryServiceDeclarationRequest(&req, gFsciInterface_c);
 }
 
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
@@ -1662,7 +1667,7 @@ static button_status_t BleApp_HandleKeys0
                     GAPDisconnectRequest_t req;
                     req.DeviceId = maPeerInformation[mPeerId].deviceId;
 
-                    GAPDisconnectRequest(&req, gFsciInterface_c);
+                    (void)GAPDisconnectRequest(&req, gFsciInterface_c);
                 }
             }
 
@@ -1759,9 +1764,9 @@ static void BleApp_Start
                 /* Register GATT Callbacks and start scanning */
                 if (mGattCallbacksInitialized == FALSE)
                 {
-                    RegisterRemovableObserver(GATTConfirm_FSCI_ID,
+                    (void)RegisterRemovableObserver(GATTConfirm_FSCI_ID,
                                               hsdkObserverGATTClientRegisterProcedureCallback);
-                    GATTClientRegisterProcedureCallbackRequest(gFsciInterface_c);
+                    (void)GATTClientRegisterProcedureCallbackRequest(gFsciInterface_c);
                 }
                 else
                 {
@@ -1785,9 +1790,9 @@ static void BleApp_Start
                 /* Register GATT Callbacks. When done set advertising parameters and data and start Advertising */
                 if (mGattCallbacksInitialized == FALSE)
                 {
-                    RegisterRemovableObserver(GATTConfirm_FSCI_ID,
+                    (void)RegisterRemovableObserver(GATTConfirm_FSCI_ID,
                                               hsdkObserverGATTClientRegisterProcedureCallback);
-                    GATTClientRegisterProcedureCallbackRequest(gFsciInterface_c);
+                    (void)GATTClientRegisterProcedureCallbackRequest(gFsciInterface_c);
                 }
                 else
                 {
@@ -1802,7 +1807,7 @@ static void BleApp_Start
                     req.ChannelMap = (uint8_t)gAdvParams.channelMap;
                     req.FilterPolicy = (GAPSetAdvertisingParametersRequest_FilterPolicy_t)gAdvParams.filterPolicy;
                     /* Set advertising parameters, data and start Advertising */
-                    GAPSetAdvertisingParametersRequest(&req, gFsciInterface_c);
+                    (void)GAPSetAdvertisingParametersRequest(&req, gFsciInterface_c);
                 }
             }
             break;
@@ -2205,9 +2210,9 @@ static void hsdkObserverGATTClientRegisterProcedureCallback
     bleEvtContainer_t *pContainer
 )
 {
-    RegisterRemovableObserver(GATTConfirm_FSCI_ID,
+    (void)RegisterRemovableObserver(GATTConfirm_FSCI_ID,
                               hsdkObserverGATTClientRegisterNotificationCallback);
-    GATTClientRegisterNotificationCallbackRequest(gFsciInterface_c);
+    (void)GATTClientRegisterNotificationCallbackRequest(gFsciInterface_c);
 }
 
 /*! *********************************************************************************
@@ -2220,9 +2225,9 @@ static void hsdkObserverGATTClientRegisterNotificationCallback
     bleEvtContainer_t *pContainer
 )
 {
-     RegisterRemovableObserver(GATTConfirm_FSCI_ID,
+     (void)RegisterRemovableObserver(GATTConfirm_FSCI_ID,
                               hsdkObserverGATTClientRegisterIndicationCallback);
-     GATTClientRegisterIndicationCallbackRequest(gFsciInterface_c);
+     (void)GATTClientRegisterIndicationCallbackRequest(gFsciInterface_c);
 }
 
 /*! *********************************************************************************
@@ -2235,9 +2240,9 @@ static void hsdkObserverGATTClientRegisterIndicationCallback
     bleEvtContainer_t *pContainer
 )
 {
-    RegisterRemovableObserver(GATTConfirm_FSCI_ID,
+    (void)RegisterRemovableObserver(GATTConfirm_FSCI_ID,
                               hsdkObserverGATTServerRegisterCallbackRequest);
-    GATTServerRegisterCallbackRequest(gFsciInterface_c);
+    (void)GATTServerRegisterCallbackRequest(gFsciInterface_c);
 }
 
 /*! *********************************************************************************
@@ -2273,7 +2278,7 @@ static void hsdkObserverGATTServerRegisterCallbackRequest
         req.ChannelMap = (uint8_t)gAdvParams.channelMap;
         req.FilterPolicy = (GAPSetAdvertisingParametersRequest_FilterPolicy_t)gAdvParams.filterPolicy;
         /* Set advertising parameters and data and start Advertising */
-        GAPSetAdvertisingParametersRequest(&req, gFsciInterface_c);
+        (void)GAPSetAdvertisingParametersRequest(&req, gFsciInterface_c);
 #endif
     }
     else
@@ -2348,7 +2353,7 @@ static void GapStartScanningRequest
     req.FilterDuplicates = GAPStartScanningRequest_FilterDuplicates_Enable;
     req.Duration = gGapScanContinuously_d;
     req.Period = gGapScanPeriodicDisabled_d;
-    GAPStartScanningRequest(&req, gFsciInterface_c);
+    (void)GAPStartScanningRequest(&req, gFsciInterface_c);
 }
 
 /*! *********************************************************************************
@@ -2361,7 +2366,7 @@ static void BleApp_GapStopScanningRequest
 )
 {
      /* Stop scanning */
-    GAPStopScanningRequest(gFsciInterface_c);
+    (void)GAPStopScanningRequest(gFsciInterface_c);
 }
 /*! *********************************************************************************
 * @}

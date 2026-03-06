@@ -393,7 +393,7 @@ static void gapCheckNotificationStatusHandler
             if (TRUE == isNotifActive)
             {
                 /* Register callback to be used when the expected indication is received */
-                RegisterRemovableObserver(GATTConfirm_FSCI_ID,
+                (void)RegisterRemovableObserver(GATTConfirm_FSCI_ID,
                                           gattDbFindCccdHandleForCharValueHandleHandler);
 
                 /* Send notification with the battery level */
