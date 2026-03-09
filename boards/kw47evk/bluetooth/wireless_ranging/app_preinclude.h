@@ -62,6 +62,9 @@
 
 #define gAppDisableControllerLowPower_d     0
 
+/* Enable experimental features on controller for advanced testing */
+#define gHostInitEnableExpmFeatures_c      TRUE
+
 /*! *********************************************************************************
  * 	Framework Configuration
  ********************************************************************************** */

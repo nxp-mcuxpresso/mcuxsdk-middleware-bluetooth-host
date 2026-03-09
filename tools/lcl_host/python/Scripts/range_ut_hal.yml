@@ -44,6 +44,12 @@ testcases:
     name: RTT&RTP 2Mbps 150/145/40
     cat: core, rtt, rtt1, rtp
     params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings intervals 150 145 145" --dutconfig "param timings t_pm 40" --dutconfig "param rtt_phy 1"
+-
+    id: 10
+    name: RTT&RTP 2Mbps 150/145/10
+    cat: core, rtt, rtt1, rtp
+    params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings intervals 150 145 145" --dutconfig "param timings t_pm 10" --dutconfig "param rtt_phy 1"
+
 
 ## T_FCS=80
 -
@@ -73,6 +79,11 @@ testcases:
     name: RTP 50/40/20
     cat: core, rtp
     params: --mainmode 2 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20"
+-
+    id: 27
+    name: RTT&RTP 50/40/10
+    cat: core, rtp, rtt
+    params: --mainmode 2 --submode 1 -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 10"
 
 ## 2Mbps
 -
@@ -110,6 +121,12 @@ testcases:
     name: RTT/RTP 2Mbps
     cat: core, rtp, rtt, rtt2
     params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param rtt_phy 1"
+-
+    id: 37
+    name: RTT&RTP 2Mbps 50/40/10
+    cat: core, rtp, rtt
+    params: --mainmode 2 --submode 1 -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 10" --dutconfig "param rtt_phy 1"
+
 ## Misc
 -
     id: 40
@@ -121,6 +138,8 @@ testcases:
     name: RTT 50/40/20 single mode0
     cat: core, rtt, rtt1
     params: --mainmode 1 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20" --dutconfig "param mode0_nb 1"
+
+
 ## Specific timing configs: T_FCS < T_IP and T_IP1 != T_IP2
 -
     id: 45
@@ -194,6 +213,7 @@ testcases:
     name: N_AP=2 T_SW=10 RTT&RTP 150/145/20
     cat: core, rtp
     params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param ant 1 255" --dutconfig "param tone_ext 4" --dutconfig "param timings t_sw 10" --dutconfig "param timings int 150 145" --dutconfig "param timings t_pm 20"
+
 ## CFO
 -
     id: 70
@@ -276,7 +296,14 @@ testcases:
     descr: connected mode, cs3c shape X, 3 repetitions
     cat: core, rtt, rtt1, rtp
     params: --mainmode 2 --submode 1 -n 5 --dutconfig "param cs_algo 1 1 8" --dutconfig "param ch_map 0x1FFFFFFFFFFFFFFFFFFF 3"
-##################
+
+-
+    id: 107
+    name: N_AP=4 T_SW=2 RTT&RTP 80/40/10
+    cat: core, rtp, rtt
+    params: --mainmode 2 --submode 1 -n 5 --dutconfig "param ant 7" --dutconfig "param timings t_sw 2" --dutconfig "param timings int 80 40" --dutconfig "param timings t_pm 10"
+
+    ##################
 ## LL (Fragmentation, repeat, ...)
 ## Tests 150 and 151 also checks combine phase continuity across subevents
 -

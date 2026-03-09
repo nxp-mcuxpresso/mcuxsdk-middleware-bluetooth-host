@@ -238,12 +238,12 @@ const command_t sub_misc_tbl[] = {
 
 const command_t sub_timings_tbl[] = {
     {
-        "intervals <150|80|50> <145|80|40> [<145|80|40> ] | Set/show CS interval timings T_FCS, T_IP1, T_IP2 (us)",
+        "intervals <150|120|100|80|60|50|40> <145|80|60|50|40|30> [ <145|80|60|50|40|30> ] | Set/show CS interval timings T_FCS, T_IP1, T_IP2 (us)",
         {cli_cmd_parameter_timings_intervals},
         eFlag1Args | eFlagRead
     },
     {
-        "t_pm <20|40> | Set/show CS T_PM timing (us)",
+        "t_pm <10|20|40> | Set/show CS T_PM timing (us)",
         {cli_cmd_parameter_timings_tpm},
         eFlag1Args | eFlagRead
     },
@@ -1690,18 +1690,18 @@ void cli_cmd_parameter_timings_intervals(int argc, char *argv[])
     uint8_t inp1, inp2, inp3;
     if(argc == 2 || argc == 3)
     {
-        inp1 = (uint8_t)atoi(argv[0]);
-        inp2 = (uint8_t)atoi(argv[1]);
+        inp1 = (uint8_t)atoi(argv[0]); /* T_FCS */
+        inp2 = (uint8_t)atoi(argv[1]); /* T_IP1 */
         if (argc == 3) {
-            inp3 = (uint8_t)atoi(argv[2]);
+            inp3 = (uint8_t)atoi(argv[2]); /* T_IP2 */
         } else {
             /* if not specified, T_IP2 equals T_IP1 */
             inp3 = inp2;
         }
         /* Check allowed values */
-        if ((inp1 == 150U || inp1 == 80U || inp1 == 50U) &&
-            (inp2 == 145U || inp2 == 80U || inp2 == 40U) &&
-            (inp3 == 145U || inp3 == 80U || inp3 == 40U))
+        if ((inp1 == 150U || inp1 == 120U || inp1 == 100U || inp1 == 80U || inp1 == 60U || inp1 == 50U || inp1 == 40U) &&
+            (inp2 == 145U || inp2 == 80U || inp2 == 60U || inp2 == 50U || inp2 == 40U || inp2 == 30U) &&
+            (inp3 == 145U || inp3 == 80U || inp3 == 60U || inp3 == 50U || inp3 == 40U || inp3 == 30U))
         {
             gRangeSettings->t_fcs = inp1;
             gRangeSettings->t_ip1 = inp2;
@@ -1725,7 +1725,7 @@ void cli_cmd_parameter_timings_tpm(int argc, char *argv[])
     if(argc == 1)
     {
         inp = (uint8_t)atoi(argv[0]);
-        if (inp == 20U || inp == 40U || inp == 80U)
+        if (inp == 10U || inp == 20U || inp == 40U)
         {
             gRangeSettings->t_pm = inp;
         }
