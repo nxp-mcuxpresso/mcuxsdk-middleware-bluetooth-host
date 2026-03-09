@@ -593,11 +593,11 @@ bleResult_t AppLocalization_Config
     }
     else
     {
-        if ((isBonded == TRUE 
+        if (
 #if (defined(gAppUseTAK_c) && gAppUseTAK_c)
-             || bHasTAK == TRUE
+            (bHasTAK == TRUE) ||
 #endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
-             ) && (mpCachedRemoteCaps[nvmIndex] == NULL))
+            ((isBonded == TRUE) && (mpCachedRemoteCaps[nvmIndex] == NULL)))
         {
             result = CS_ReadRemoteSupportedCapabilities(deviceId);
         }
@@ -612,11 +612,11 @@ bleResult_t AppLocalization_Config
 
     if (result == gBleSuccess_c)
     {
-        if ((isBonded == TRUE
+        if (
 #if (defined(gAppUseTAK_c) && gAppUseTAK_c)
-             || bHasTAK == TRUE
+            (bHasTAK == TRUE) ||
 #endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
-             ) && (mpCachedRemoteCaps[nvmIndex] == NULL))
+            ((isBonded == TRUE) && (mpCachedRemoteCaps[nvmIndex] == NULL)))
         {
             maAppLclState[deviceId] = gAppLclWaitingForRRSC_c;
         }
