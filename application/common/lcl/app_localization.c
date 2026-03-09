@@ -291,6 +291,10 @@ static void TemperatureTimerCallback
     void *pParam
 );
 
+static void TemperatureTimerStopCheck
+(
+    void
+);
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -552,10 +556,9 @@ bleResult_t AppLocalization_HostInitHandler(void)
         status = CS_ReadLocalSupportedCapabilities();
     }
 
-    /* Start interval timer for temperature updates */
+    /* Initialize timer for temperature updates */
     (void)TM_Open((timer_handle_t)mTemperatureTimerId);
     (void)TM_InstallCallback((timer_handle_t)mTemperatureTimerId, TemperatureTimerCallback, NULL);
-    (void)TM_Start((timer_handle_t)mTemperatureTimerId, kTimerModeSingleShot | kTimerModeLowPowerTimer, gTemperaturePollingInterval_c);
 
     return status;
 }
@@ -884,7 +887,7 @@ void AppLocalization_ResetPeer
 
     if ( maAppLclState[deviceId] != gAppLclIdle_c )
     {
-        maAppLclState[deviceId] = gAppLclIdle_c;
+        AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
     }
 
     /* Reset mResultData */
@@ -1080,6 +1083,10 @@ void AppLocalization_SetLocState
 )
 {
     maAppLclState[deviceId] = recvState;
+    if (recvState == gAppLclIdle_c)
+    {
+        TemperatureTimerStopCheck();
+    }
 }
 
 /*! *********************************************************************************
@@ -1375,7 +1382,7 @@ bleResult_t AppLocalization_CreateConfig
         result = CS_CreateConfig(deviceId, &createConfigParams);
         if (result != gBleSuccess_c)
         {
-            maAppLclState[deviceId] = gAppLclIdle_c;
+            AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
             AppLocalizationError(deviceId, gAppLclCCConfigError_c);
         }
         else
@@ -1758,7 +1765,7 @@ static void AppLocalization_CSMetaEventCallback
 
                 if (result != gBleSuccess_c)
                 {
-                    maAppLclState[deviceId] = gAppLclIdle_c;
+                    AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
                     AppLocalizationError(deviceId, gAppLclSDSConfigError_c);
                 }
                 else
@@ -1834,12 +1841,12 @@ static void AppLocalization_CSMetaEventCallback
                 {
                     if (maAppLclState[deviceId] == gAppLclWaitingForCC_c)
                     {
-                        maAppLclState[deviceId] = gAppLclIdle_c;
+                        AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
                         mpfAppCsCallback(deviceId, NULL, gConfigComplete_c);
                     }
                     else
                     {
-                        maAppLclState[deviceId] = gAppLclIdle_c;
+                        AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
                         mpfAppCsCallback(deviceId, NULL, gLocalConfigWritten_c);
                     }
                 }
@@ -2010,7 +2017,7 @@ static void AppLocalization_CSMetaEventCallback
     (defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U))
                                 if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
                                 {
-                                    maAppLclState[deviceId] = gAppLclIdle_c;
+                                    AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
                                 }
                                 else
                                 {
@@ -2029,7 +2036,7 @@ static void AppLocalization_CSMetaEventCallback
                                 /* Check if we reached the last procedure */
                                 if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
                                 {
-                                    maAppLclState[deviceId] = gAppLclIdle_c;
+                                    AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
                                 }
                                 else
                                 {
@@ -2054,7 +2061,8 @@ static void AppLocalization_CSMetaEventCallback
 
                             /* All subsequent CS procedures aborted */
                             maCsProcCount[deviceId] = 0U;
-                            maAppLclState[deviceId] = gAppLclIdle_c;
+                            AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+
                             if (mpfAppCsCallback != NULL)
                             {
                                 mpfAppCsCallback(deviceId, (void*)&pSubeventResult->abortReason, gErrorProcedureAborted_c);
@@ -2072,7 +2080,7 @@ static void AppLocalization_CSMetaEventCallback
                             /* Check if we reached the last procedure */
                             if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
                             {
-                                maAppLclState[deviceId] = gAppLclIdle_c;
+                                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
                             }
                             else
                             {
@@ -2190,7 +2198,7 @@ static void AppLocalization_CSMetaEventCallback
     (defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U))
                             if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
                             {
-                                maAppLclState[deviceId] = gAppLclIdle_c;
+                                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
                             }
                             else
                             {
@@ -2220,7 +2228,8 @@ static void AppLocalization_CSMetaEventCallback
 
                             /* All subsequent CS procedures aborted */
                             maCsProcCount[deviceId] = 0U;
-                            maAppLclState[deviceId] = gAppLclIdle_c;
+                            AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+
                             if (mpfAppCsCallback != NULL)
                             {
                                 mpfAppCsCallback(deviceId, (void*)&pSubeventResultContinue->abortReason, gErrorProcedureAborted_c);
@@ -2238,7 +2247,7 @@ static void AppLocalization_CSMetaEventCallback
                             /* Procedure error! */
                             if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
                             {
-                                maAppLclState[deviceId] = gAppLclIdle_c;
+                                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
                             }
                             else
                             {
@@ -2283,6 +2292,11 @@ static void AppLocalization_CSMetaEventCallback
                 /* Update number of procedures and reset internal counters */
                 mRangeSettings[deviceId].maxNumProcedures = pProcEnableComplete->procedureCount;
 
+                /* Start temperature refresh timer if not started already */
+                if (TM_IsTimerActive((timer_handle_t)mTemperatureTimerId) == 0U)
+                {
+                    (void)TM_Start((timer_handle_t)mTemperatureTimerId, kTimerModeSingleShot | kTimerModeLowPowerTimer, gTemperaturePollingInterval_c);
+                }
 
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
                 gCsTimeInfo.subeventInterval = pProcEnableComplete->subeventInterval;
@@ -2312,6 +2326,7 @@ static void AppLocalization_CSMetaEventCallback
                 /* Reset measurement data */
                 AppLocalization_FreeLocalData(deviceId);
                 FLib_MemSet(&mResultData[deviceId], 0x00, sizeof(rasMeasurementData_t));
+                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
 
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
 #if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
@@ -2328,7 +2343,7 @@ static void AppLocalization_CSMetaEventCallback
             deviceId = pCsMetaEvtError->deviceId;
 
             /* Set idle state once for all error cases */
-            maAppLclState[deviceId] = gAppLclIdle_c;
+            AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
 
             switch (pCsMetaEvtError->csErrorSource)
             {
@@ -2504,7 +2519,7 @@ static void AppLocalization_CSCmdCompleteCallback
             }
             else
             {
-                maAppLclState[deviceId] = gAppLclIdle_c;
+                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
 
                 if (mpfAppCsCallback != NULL)
                 {
@@ -2521,7 +2536,7 @@ static void AppLocalization_CSCmdCompleteCallback
             if (mGlobalRangeSettings.role == gCsRoleInitiator_c)
             {
                 appLocalization_State_t prevState = maAppLclState[deviceId];
-                maAppLclState[deviceId] = gAppLclIdle_c;
+                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
 
                 if (prevState == gAppLclWaitingForSDSCC_c)
                 {
@@ -2556,7 +2571,7 @@ static void AppLocalization_CSCmdCompleteCallback
 
                 if (result != gBleSuccess_c)
                 {
-                    maAppLclState[deviceId] = gAppLclIdle_c;
+                    AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
                     AppLocalizationError(deviceId, gAppLclSDSConfigError_c);
                 }
                 else
@@ -2687,7 +2702,7 @@ static void AppLocalization_CSCmdStatusCallback
             else if (pPacket->status != gHciSuccess_c)
             {
                 /* An error occured during the configuration phase. */
-                maAppLclState[deviceId] = gAppLclIdle_c;
+                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
                 AppLocalizationError(deviceId, gAppLclRRSCError_c);
             }
             else
@@ -2712,7 +2727,7 @@ static void AppLocalization_CSCmdStatusCallback
             else if (pPacket->status != gHciSuccess_c)
             {
                 /* An error occured during the configuration phase. */
-                maAppLclState[deviceId] = gAppLclIdle_c;
+                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
                 AppLocalizationError(deviceId, gAppLclSEError_c);
             }
             else
@@ -2741,7 +2756,7 @@ static void AppLocalization_CSCmdStatusCallback
                 else if (pPacket->status != gHciSuccess_c)
                 {
                     /* An error occured during the configuration phase. */
-                    maAppLclState[deviceId] = gAppLclIdle_c;
+                    AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
                     AppLocalizationError(deviceId, gAppLclCCError_c);
                 }
                 else
@@ -2754,7 +2769,7 @@ static void AppLocalization_CSCmdStatusCallback
                 if (pPacket->status != gHciSuccess_c)
                 {
                     /* An error occured during the configuration phase. */
-                    maAppLclState[deviceId] = gAppLclIdle_c;
+                    AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
                     AppLocalizationError(deviceId, gAppLclCCError_c);
                 }
                 else
@@ -2779,7 +2794,7 @@ static void AppLocalization_CSCmdStatusCallback
             else if (pPacket->status != gHciSuccess_c)
             {
                 /* An error occured during procedure enable. */
-                maAppLclState[deviceId] = gAppLclIdle_c;
+                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
                 AppLocalizationError(deviceId, gAppLclStartMeasurementFail_c);
             }
             else
@@ -3158,6 +3173,38 @@ static deviceId_t GetDeviceIdInState
 }
 
 /*! *********************************************************************************
+*\fn           static bool_t TemperatureTimerStopCheck(void)
+*
+*\brief        Stops temperature timer if all peers are in the Idle state.
+*
+*\return       None
+********************************************************************************** */
+static void TemperatureTimerStopCheck
+(
+    void
+)
+{
+    bool_t result = TRUE;
+
+    for (uint8_t i = 0U; i < (uint8_t)gAppMaxConnections_c; i++)
+    {
+        if (maAppLclState[i] != gAppLclIdle_c)
+        {
+            result = FALSE;
+            break;
+        }
+    }
+
+    if (result == TRUE)
+    {
+        if (TM_IsTimerActive((timer_handle_t)mTemperatureTimerId) == 1U)
+        {
+            (void)TM_Stop((timer_handle_t)mTemperatureTimerId);
+        }
+    }
+}
+
+/*! *********************************************************************************
 *\fn           static  void TemperatureTimerCallback(void *pParam)
 *
 *\brief        Timer callback. Refreshes the temperature value and informs the NBU.
@@ -3273,7 +3320,7 @@ void AppLocalization_RunAlgorithm
         /* Update state */
         if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
         {
-            maAppLclState[deviceId] = gAppLclIdle_c;
+            AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
         }
         else
         {
