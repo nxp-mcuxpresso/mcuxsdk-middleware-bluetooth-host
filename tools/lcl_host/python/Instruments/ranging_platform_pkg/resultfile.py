@@ -186,7 +186,7 @@ class ResultFile:
                     log.error("CSV file could not be filtered, this could be caused by modified resultschema file structure because columns are not found")
                 df.to_csv(filename, sep=',', index=False, line_terminator='\n', encoding='ascii')
             elif ext == '.xlsx':
-                df.to_excel(filename, sheet_name='resultfile', index=False, encoding='ascii')
+                df.to_excel(filename, sheet_name='resultfile', index=False)
                 # Convert results
                 cmd = 'convert_to_excel.py --silent --pattern ' + filepath + '.npz'
                 # New function take same arguments of call system of convert_to_excel.py

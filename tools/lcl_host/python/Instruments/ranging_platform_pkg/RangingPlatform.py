@@ -764,7 +764,7 @@ class RangingPlatformBase:
         nPairs, nTones = cr_out['IQ_A'].shape
         slope_rmse = []
         slope = []
-        slope_dist = np.NaN
+        slope_dist = np.nan
         for pair in range(nPairs):
             combined_phase = np.angle(cr_out['IQ_A'][pair]) + np.angle(cr_out['IQ_B'][pair])
             combined_phase = combined_phase[np.where(cr_out['freq_valid'][pair] == 1)]
@@ -816,7 +816,7 @@ class RangingPlatformBase:
             chanDict = {k: v for v, k in enumerate(chanListIq)}
             tmp_IQ_A = np.zeros(shape=(nPairs, chanMax - chanMin + 1), dtype=np.csingle)
             tmp_IQ_B = np.zeros(shape=(nPairs, chanMax - chanMin + 1), dtype=np.csingle)
-            tmp_freq_valid = np.zeros(shape=(nPairs, chanMax - chanMin + 1), dtype=np.integer)
+            tmp_freq_valid = np.zeros(shape=(nPairs, chanMax - chanMin + 1), dtype=int)
 
             for pair in range(nPairs):
                 # Store IQ per channel (may override previous IQ value if channel is used twice)

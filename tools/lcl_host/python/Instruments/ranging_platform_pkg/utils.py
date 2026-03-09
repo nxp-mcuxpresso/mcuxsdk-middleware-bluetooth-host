@@ -863,7 +863,7 @@ def platform_measurement(parameters, **kwargs):
                 rf_filename = f'{filename}.{ext}'
                 try:
                     dut.resultfile.save(rf_filename)
-                except:
+                except Exception as e:
                     log.error('Failed saving %s (target = %s)' % (rf_filename, ext))
                 else:
                     log.info('Saved %s (target = %s)' % (rf_filename, ext))

@@ -60,7 +60,7 @@ class MyValidator(Validator):
         elif hastype == 'natural':
             type = np.int_
         elif hastype == 'complex':
-            type = np.complex_
+            type = np.complex128
         if value.dtype.type != type:
             self._error(field, "Incorrect type")
 
