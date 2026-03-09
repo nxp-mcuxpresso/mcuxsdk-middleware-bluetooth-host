@@ -684,13 +684,22 @@ static void BleApp_EventCallback2
 
                 mAppUartBufferSize = mAppUartBufferSize <= tempMtu ? mAppUartBufferSize : tempMtu;
 
-                /* Moving to Service Discovery State*/
-                maPeerInformation[mLastGetMtuDeviceId].appState = mAppServiceDisc_c;
+                /* Check if we already have valid handles */
+                if (BleApp_CheckExistingServiceHandles(mLastGetMtuDeviceId))
+                {
+                    /* Have handles - go to Running */
+                    maPeerInformation[mLastGetMtuDeviceId].appState = mAppRunning_c;
+                }
+                else
+                {
+                    /* No handles - Moving to Service Discovery State */
+                    maPeerInformation[mLastGetMtuDeviceId].appState = mAppServiceDisc_c;
 
-                /* Start Service Discovery*/
-                (void)BleServDisc_FindService(mLastGetMtuDeviceId,
-                                            gBleUuidType128_c,
-                                            temp.pUuidObj);
+                    /* Start Service Discovery */
+                    (void)BleServDisc_FindService(mLastGetMtuDeviceId,
+                                                gBleUuidType128_c,
+                                                temp.pUuidObj);
+                }
             }
         }
         break;
@@ -1474,49 +1483,36 @@ static void BleApp_StateMachineHandleIdle
     bleUuid_t *pUuidObj
 )
 {
-    if (event == mAppEvt_PeerConnected_c ||
-        event == mAppEvt_PairingComplete_c)
+    if ((event == mAppEvt_PeerConnected_c) ||
+        (event == mAppEvt_PairingComplete_c))
     {
-        /* We already know the database handles */
-        if (BleApp_CheckExistingServiceHandles(peerDeviceId) == TRUE)
+        /* Central: Always perform MTU Exchange */
+        if (mGapRole == gGapCentral_c)
         {
-            /* Moving to Running State*/
-            maPeerInformation[peerDeviceId].appState = mAppRunning_c;
-#if gAppUseBonding_d
-            union
-            {
-                uint32_t u32;
-                uint16_t u16;
-            } tempCast;
-
-            tempCast.u32 = sizeof(wucConfig_t);
-            /* Write data in NVM */
-            (void)Gap_SaveCustomPeerInformation(maPeerInformation[peerDeviceId].deviceId,
-                    (uint8_t *) &maPeerInformation[peerDeviceId].clientInfo, 0,
-                    tempCast.u16);
-#endif
+            /* Moving to Exchange MTU State */
+            maPeerInformation[peerDeviceId].appState = mAppExchangeMtu_c;
+            GATTClientExchangeMtuRequest_t req;
+            req.DeviceId = peerDeviceId;
+            req.Mtu = gAttMaxMtu_c;
+            (void)GATTClientExchangeMtuRequest(&req, gFsciInterface_c);
         }
         else
         {
-            /* Let the central device initiate the Exchange MTU procedure*/
-            if (maPeerInformation[peerDeviceId].gapRole == gGapCentral_c)
+            /* Check if we already know the database handles */
+            if (BleApp_CheckExistingServiceHandles(peerDeviceId) == TRUE)
             {
-                /* Moving to Exchange MTU State */
-                maPeerInformation[peerDeviceId].appState = mAppExchangeMtu_c;
-                GATTClientExchangeMtuRequest_t req;
-                req.DeviceId = peerDeviceId;
-                req.Mtu = gAttMaxMtu_c;
-                (void)GATTClientExchangeMtuRequest(&req, gFsciInterface_c);
+                /* Have handles - go to Running (Central will initiate MTU) */
+                maPeerInformation[peerDeviceId].appState = mAppRunning_c;
             }
             else
             {
-                /* Moving to Service Discovery State*/
+                /* No handles - need Service Discovery */
                 maPeerInformation[peerDeviceId].appState = mAppServiceDisc_c;
 
-                /* Start Service Discovery*/
+                /* Start Service Discovery */
                 (void)BleServDisc_FindService(peerDeviceId,
-                                              gBleUuidType128_c,
-                                              pUuidObj);
+                        gBleUuidType128_c,
+                        pUuidObj);
             }
         }
     }
@@ -1549,7 +1545,11 @@ static void BleApp_GenericEvtInitCompleteHandler
     {
         maPeerInformation[peerId].deviceId = gInvalidDeviceId_c;
         maPeerInformation[peerId].appState = mAppIdle_c;
+
 #if (defined(gDbOobPopulated_c) && (gDbOobPopulated_c == 1))
+        maPeerInformation[peerId].clientInfo.hService = gDbOobServiceHandle_c;
+        maPeerInformation[peerId].clientInfo.hUartStream = gDbOobUartStreamHandle_c;
+#else
         maPeerInformation[peerId].clientInfo.hService = gGattDbInvalidHandleIndex_d;
         maPeerInformation[peerId].clientInfo.hUartStream = gGattDbInvalidHandleIndex_d;
 #endif
