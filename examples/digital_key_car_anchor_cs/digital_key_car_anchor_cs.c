@@ -1626,6 +1626,11 @@ static void BleApp_L2capPsmControlCallback(l2capControlMessage_t* pMessage)
             /* Save L2CAP channel ID */
             maPeerInformation[pMessage->messageData.handoverConnectionComplete.deviceId].customInfo.psmChannelId =
                 pMessage->messageData.handoverConnectionComplete.cId;
+            /* Set the L2CAP channel into the localization module if BTCS server */
+#if defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
+            AppLocalization_SetPsmChannelId(pMessage->messageData.handoverConnectionComplete.deviceId,
+                                            pMessage->messageData.handoverConnectionComplete.cId);
+#endif
         }
         break;
 
