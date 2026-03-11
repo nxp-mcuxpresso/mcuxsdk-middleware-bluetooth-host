@@ -45,8 +45,9 @@
 ************************************************************************************/
 #define  CS_GET_RTT_TS_DIFF(report_p, ts_diff, aa_quality) \
     { \
-        ts_diff = ((uint16_t)((report_p)[1]) << 8) + (report_p)[0]; \
-        aa_quality = ((report_p)[2] >> 4) & 0xFU; \
+        uint16_t ts_diff_tmp = ((uint16_t)(report_p)[1] << 8U) | (uint16_t)(report_p)[0]; \
+        ts_diff = (int16_t)ts_diff_tmp; \
+        aa_quality = (uint8_t)(((report_p)[2] >> 4U) & 0xFU); \
     }
 
 #define ISP_MCIQ_SIGN_EXTEND_12_16(x)     ((x) | ((((x) & 0x800U) != 0U) ? 0xF000U : 0x0U))
@@ -632,14 +633,14 @@ static void isp_tof_ranging_compute
 {
     uint8_t *init_ts = meas_response->tof_data[0].ts;
     uint8_t *refl_ts = meas_response->tof_data[1].ts;
-    uint32_t nb_steps = meas_response->tof_data[0].nbSteps;
+    uint16_t nb_steps = meas_response->tof_data[0].nbSteps;
     int32_t sum_rtt_ns = 0;
     uint16_t nb_steps_valid = 0U;
 
-    for (uint32_t tone = 0; tone < nb_steps; tone++)
+    for (uint16_t tone = 0; tone < nb_steps; tone++)
     {
-        uint16_t init_ns = 0U;
-        uint16_t refl_ns = 0U;
+        int16_t init_ns = 0;
+        int16_t refl_ns = 0;
         uint8_t init_aa_quality = 0U;
         uint8_t refl_aa_quality = 0U;
 
