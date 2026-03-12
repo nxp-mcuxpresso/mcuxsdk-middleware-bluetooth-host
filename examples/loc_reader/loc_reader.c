@@ -1960,225 +1960,228 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
 
         case gErrorEvent_c:
         {
-            appLocalizationError_t *pError = (appLocalizationError_t*)pData;
-
-            shell_write("Error event for deviceId ");
-            shell_writeDec((uint8_t)deviceId);
-            shell_write(":\r\n");
-
-            switch (*pError)
+            if (pData != NULL)
             {
-                case gAppLclErrorRLSC_c:
-                {
-                    shell_write("Error occured! Source: csReadLocalSupportedCapabilities!\r\n");
-                }
-                break;
+                appLocalizationError_t *pError = (appLocalizationError_t*)pData;
 
-                case gAppLclUnexpectedCC_c:
-                {
-                    shell_write("Received an unexpected Config Complete Event!\r\n");
-                }
-                break;
+                shell_write("Error event for deviceId ");
+                shell_writeDec((uint8_t)deviceId);
+                shell_write(":\r\n");
 
-                case gAppLclUnexpectedRRSCC_c:
+                switch (*pError)
                 {
-                    shell_write("Received an unexpected Read Remote Supported Capabilities Complete Event!\r\n");
-                }
-                break;
+                    case gAppLclErrorRLSC_c:
+                    {
+                        shell_write("Error occured! Source: csReadLocalSupportedCapabilities!\r\n");
+                    }
+                    break;
 
-                case gAppLclUnexpectedPEC_c:
-                {
-                    shell_write("Received an unexpected Procedure Enable Complete Event!\r\n");
-                }
-                break;
+                    case gAppLclUnexpectedCC_c:
+                    {
+                        shell_write("Received an unexpected Config Complete Event!\r\n");
+                    }
+                    break;
 
-                case gAppLclUnexpectedSRE_c:
-                {
-                    shell_write("Received an unexpected Subevent Result Event!\r\n");
-                }
-                break;
+                    case gAppLclUnexpectedRRSCC_c:
+                    {
+                        shell_write("Received an unexpected Read Remote Supported Capabilities Complete Event!\r\n");
+                    }
+                    break;
 
-                case gAppLclUnexpectedSDS_c:
-                {
-                    shell_write("Received an unexpected Set Default Settings Event!\r\n");
-                }
-                break;
+                    case gAppLclUnexpectedPEC_c:
+                    {
+                        shell_write("Received an unexpected Procedure Enable Complete Event!\r\n");
+                    }
+                    break;
+
+                    case gAppLclUnexpectedSRE_c:
+                    {
+                        shell_write("Received an unexpected Subevent Result Event!\r\n");
+                    }
+                    break;
+
+                    case gAppLclUnexpectedSDS_c:
+                    {
+                        shell_write("Received an unexpected Set Default Settings Event!\r\n");
+                    }
+                    break;
 
 
-                case gAppLclUnexpectedSRCE_c:
-                {
-                    shell_write("Received an unexpected Subevent Result Continue Event!\r\n");
-                }
-                break;
+                    case gAppLclUnexpectedSRCE_c:
+                    {
+                        shell_write("Received an unexpected Subevent Result Continue Event!\r\n");
+                    }
+                    break;
 
-                case gAppLclErrorRRSCCC_c:
-                {
-                    shell_write("Error occured! Source: readRemoteSupportedCapabilitiesComplete!\r\n");
-                }
-                break;
+                    case gAppLclErrorRRSCCC_c:
+                    {
+                        shell_write("Error occured! Source: readRemoteSupportedCapabilitiesComplete!\r\n");
+                    }
+                    break;
 
-                case gAppLclErrorRRFAETC_c:
-                {
-                    shell_write("Error occured! Source: readRemoteFAETableComplete!\r\n");
-                }
-                break;
+                    case gAppLclErrorRRFAETC_c:
+                    {
+                        shell_write("Error occured! Source: readRemoteFAETableComplete!\r\n");
+                    }
+                    break;
 
-                case gAppLclErrorSEC_c:
-                {
-                    shell_write("Error occured! Source: securityEnableComplete!\r\n");
-                }
-                break;
+                    case gAppLclErrorSEC_c:
+                    {
+                        shell_write("Error occured! Source: securityEnableComplete!\r\n");
+                    }
+                    break;
 
-                case gAppLclErrorCC_c:
-                {
-                    shell_write("Error occured! Source: configComplete!\r\n");
-                }
-                break;
+                    case gAppLclErrorCC_c:
+                    {
+                        shell_write("Error occured! Source: configComplete!\r\n");
+                    }
+                    break;
 
-                case gAppLclErrorPEC_c:
-                {
-                    shell_write("Error occured! Source: procedureEnableComplete!\r\n");
-                }
-                break;
+                    case gAppLclErrorPEC_c:
+                    {
+                        shell_write("Error occured! Source: procedureEnableComplete!\r\n");
+                    }
+                    break;
 
-                case gAppLclErrorERE_c:
-                {
-                    shell_write("Error occured! Source: eventResult!\r\n");
-                }
-                break;
+                    case gAppLclErrorERE_c:
+                    {
+                        shell_write("Error occured! Source: eventResult!\r\n");
+                    }
+                    break;
 
-                case gAppLclErrorERCE_c:
-                {
-                    shell_write("Error occured! Source: eventResultContinue!\r\n");
-                }
-                break;
+                    case gAppLclErrorERCE_c:
+                    {
+                        shell_write("Error occured! Source: eventResultContinue!\r\n");
+                    }
+                    break;
 
-                case gAppLclInvalidDeviceId_c:
-                {
-                    shell_write("Received an invalid device Id!\r\n");
-                }
-                break;
+                    case gAppLclInvalidDeviceId_c:
+                    {
+                        shell_write("Received an invalid device Id!\r\n");
+                    }
+                    break;
 
-                case gAppLclSDSConfigError_c:
-                {
-                    shell_write("CS_SetDefaultSettings command failed!\r\n");
-                }
-                break;
+                    case gAppLclSDSConfigError_c:
+                    {
+                        shell_write("CS_SetDefaultSettings command failed!\r\n");
+                    }
+                    break;
 
-                case gAppLclCCConfigError_c:
-                {
-                    shell_write("CS_CreateConfig command failed!\r\n");
-                }
-                break;
+                    case gAppLclCCConfigError_c:
+                    {
+                        shell_write("CS_CreateConfig command failed!\r\n");
+                    }
+                    break;
 
-                case gAppLclRRSCError_c:
-                {
-                    shell_write("Error status received! csReadRemoteSupportedCsCapabilities command status event!\r\n");
-                }
-                break;
+                    case gAppLclRRSCError_c:
+                    {
+                        shell_write("Error status received! csReadRemoteSupportedCsCapabilities command status event!\r\n");
+                    }
+                    break;
 
-                case gAppLclSEError_c:
-                {
-                    shell_write("Error status received! csSecurityEnable command status event!\r\n");
-                }
-                break;
+                    case gAppLclSEError_c:
+                    {
+                        shell_write("Error status received! csSecurityEnable command status event!\r\n");
+                    }
+                    break;
 
-                case gAppLclCCError_c:
-                {
-                    shell_write("Error status received! csCreateConfig command status event!\r\n");
-                }
-                break;
+                    case gAppLclCCError_c:
+                    {
+                        shell_write("Error status received! csCreateConfig command status event!\r\n");
+                    }
+                    break;
 
-                case gAppLclAlgoNotRun_c:
-                {
-                    shell_write("\r\nAlgorithm did not run, procedure likely failed on peer.\r\n");
-                }
-                break;
+                    case gAppLclAlgoNotRun_c:
+                    {
+                        shell_write("\r\nAlgorithm did not run, procedure likely failed on peer.\r\n");
+                    }
+                    break;
 
-                case gAppLclStartMeasurementFail_c:
-                {
-                    shell_write("Start measurement failed!\r\n");
-                }
-                break;
+                    case gAppLclStartMeasurementFail_c:
+                    {
+                        shell_write("Start measurement failed!\r\n");
+                    }
+                    break;
 
-                case gAppLclProcStatusFailed_c:
-                {
-                    shell_write("Procedure done status error received!\r\n");
-                }
-                break;
+                    case gAppLclProcStatusFailed_c:
+                    {
+                        shell_write("Procedure done status error received!\r\n");
+                    }
+                    break;
 
-                case gAppLclProcedureAborted_c:
-                {
-                    shell_write("All subsequent CS procedures aborted!\r\n");
-                }
-                break;
+                    case gAppLclProcedureAborted_c:
+                    {
+                        shell_write("All subsequent CS procedures aborted!\r\n");
+                    }
+                    break;
 
-                case gAppLclRasTransferFailed_c:
-                {
-                    shell_write("RAS - Received an error response from RAS server!\r\n");
-                }
-                break;
+                    case gAppLclRasTransferFailed_c:
+                    {
+                        shell_write("RAS - Received an error response from RAS server!\r\n");
+                    }
+                    break;
 
-                case gAppLclInvalidProcCounter_c:
-                {
-                    shell_write("RAS - Received an invalid procedure index!\r\n");
-                }
-                break;
+                    case gAppLclInvalidProcCounter_c:
+                    {
+                        shell_write("RAS - Received an invalid procedure index!\r\n");
+                    }
+                    break;
 
-		        case gAppLclInvalidProcIndex_c:
-                {
-                    shell_write("RAS - Received a data ready indication for a procedure index different from the local one!\r\n");
-                }
-                break;
+                    case gAppLclInvalidProcIndex_c:
+                    {
+                        shell_write("RAS - Received a data ready indication for a procedure index different from the local one!\r\n");
+                    }
+                    break;
 
-                case gAppLclInvalidSegmentCounter_c:
-                {
-                    shell_write("RAS - Received an invalid segment counter in data notification!\r\n");
-                }
-                break;
+                    case gAppLclInvalidSegmentCounter_c:
+                    {
+                        shell_write("RAS - Received an invalid segment counter in data notification!\r\n");
+                    }
+                    break;
 
-                case gAppLclSubeventStatusFailed_c:
-                {
-                    shell_write("Subevent status failed!\r\n");
-                }
-                break;
+                    case gAppLclSubeventStatusFailed_c:
+                    {
+                        shell_write("Subevent status failed!\r\n");
+                    }
+                    break;
 
-                case gAppLclNoSubeventMemoryAvailable_c:
-                {
-                    shell_write("No more memory available for a local subevent!\r\n");
-                }
-                break;
+                    case gAppLclNoSubeventMemoryAvailable_c:
+                    {
+                        shell_write("No more memory available for a local subevent!\r\n");
+                    }
+                    break;
 
-                case gAppLclErrorProcessingSubevent_c:
-                {
-                    shell_write("An error occured in the processing of subevent data!\r\n");
-                }
-                break;
+                    case gAppLclErrorProcessingSubevent_c:
+                    {
+                        shell_write("An error occured in the processing of subevent data!\r\n");
+                    }
+                    break;
 
-                case gAppLclAlgoNotRunNoDataReady_c:
-                {
-                    shell_write("Algorithm did not run - No Data Ready from peer!\r\n");
-                }
-                break;
+                    case gAppLclAlgoNotRunNoDataReady_c:
+                    {
+                        shell_write("Algorithm did not run - No Data Ready from peer!\r\n");
+                    }
+                    break;
 
-                case gAppLclAlgoNotRunNoRangingData_c:
-                {
-                    shell_write("Algorithm did not run - Ranging Data not complete!\r\n");
-                }
-                break;
+                    case gAppLclAlgoNotRunNoRangingData_c:
+                    {
+                        shell_write("Algorithm did not run - Ranging Data not complete!\r\n");
+                    }
+                    break;
 
-                case gAppLclAlgoNotRunNoRealTimeData_c:
-                {
-                    shell_write("Algorithm did not run - Real Time Ranging Data not complete!\r\n");
-                    maPeerInformation[deviceId].isSubscribed = FALSE;
-                }
-                break;
+                    case gAppLclAlgoNotRunNoRealTimeData_c:
+                    {
+                        shell_write("Algorithm did not run - Real Time Ranging Data not complete!\r\n");
+                        maPeerInformation[deviceId].isSubscribed = FALSE;
+                    }
+                    break;
 
-                default:
-                {
-                    shell_write("Unknown error!\r\n");
+                    default:
+                    {
+                        shell_write("Unknown error!\r\n");
+                    }
+                    break;
                 }
-                break;
             }
         }
         break;

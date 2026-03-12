@@ -543,7 +543,7 @@ bleResult_t Ras_ControlPointHandler
     gattServerAttributeWrittenEvent_t*  pEvent
 )
 {
-    rasControlPointReq_t rasCtrlPointCmd;
+    rasControlPointReq_t rasCtrlPointCmd = {0U};
     rasControlPointRspCodeValues_tag rasStatus = gRasSuccess_c;
     bleResult_t result = gBleSuccess_c;
 
@@ -1110,9 +1110,17 @@ bleResult_t Ras_SendRangingDataNotifs
 
             if (mbServRealTimeTransfer[deviceId] == FALSE)
             {
-                maSegmentData[segmDataIdx].segmentIdx = segmentationHeader;
-                maSegmentData[segmDataIdx].dataSize = notifDataLen - 1U;
-                segmDataIdx++;
+                if (segmDataIdx < gRASMaxNoOfSegments_c)
+                {
+                    maSegmentData[segmDataIdx].segmentIdx = segmentationHeader;
+                    maSegmentData[segmDataIdx].dataSize = notifDataLen - 1U;
+                    segmDataIdx++;
+                }
+                else
+                {
+                    result = gBleOutOfMemory_c;
+                    break;
+                }
             }
 
             if ((segmentCounter == (uint8_t)gRasSegmentCounterMaxValue_c) ||
@@ -1869,10 +1877,18 @@ static bleResult_t handleGetRangingDataSegmNotif
         noOfSegm++;
     }
 
-    if (endAbsSegment == 0xFFU)
+    if (noOfSegm == 0U)
+    {
+        result = gBleInvalidState_c;
+    }
+    else if (endAbsSegment == 0xFFU)
     {
         endAbsSegment = (uint8_t)(noOfSegm - 1U);
         maLostSegmRecvIdx[deviceId*3U + 1U] = endAbsSegment;
+    }
+    else
+    {
+        /*Misra Rule 15.7*/
     }
 
     if (Ras_CheckIfSubscribed(deviceId) == FALSE)

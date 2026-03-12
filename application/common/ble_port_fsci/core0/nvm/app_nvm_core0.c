@@ -642,7 +642,7 @@ static bleResult_t App_NvmRead
                                 FLib_MemCpy(pRamData, *ppNvmData, mSize);
                                 pRamData = (void *)((uint8_t *)pRamData + mSize);
                                 *pDataSetBitmask |= nvmId_BondingDataDescriptorBit_c;
-                                *pDescriptorBitmask |= (uint8_t)(1U << descIdx);
+                                *pDescriptorBitmask |= (1UL << descIdx);
                             }
 
                             tempDescBitmask &= tempDescBitmask - 1U;
