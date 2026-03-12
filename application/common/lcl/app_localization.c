@@ -1232,10 +1232,6 @@ void* AppLocalization_AllocLocalData
     {
 #if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U)) || (defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1U))
         mResultData[deviceId].pData = MEM_BufferAlloc(sizeof(csAppData_t));
-#elif (defined (gRasRRSP_d) && (gRasRRSP_d == 1U)) || (defined (gAppBtcsServer_d) && (gAppBtcsServer_d == 1U))
-        mResultData[deviceId].pData = MEM_BufferAlloc(gMaxCsSubeventDataSize_c);
-#else
-#warning "Not supported"
 #endif
     }
 
@@ -1261,10 +1257,6 @@ void AppLocalization_ClearLocalData
     {
 #if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U)) || (defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1U))
         FLib_MemSet(mResultData[deviceId].pData, 0U, sizeof(csAppData_t));
-#elif (defined (gRasRRSP_d) && (gRasRRSP_d == 1U)) || (defined (gAppBtcsServer_d) && (gAppBtcsServer_d == 1U))
-        FLib_MemSet(mResultData[deviceId].pData, 0U, gMaxCsSubeventDataSize_c);
-#else
-#warning "Not supported"
 #endif
     }
 }
@@ -1878,32 +1870,32 @@ static void AppLocalization_CSMetaEventCallback
                     maAppLclState[deviceId] = gAppLclReceivingMeasData_c;
                 }
 
-                if (AppLocalization_AllocLocalData(deviceId) != NULL)
-                {
-                    /* Clear local data */
-                    AppLocalization_ClearLocalData(deviceId);
+                /* Make sure local csAppData_t is allocated */
+                (void)AppLocalization_AllocLocalData(deviceId);
+
+                /* Clear local data */
+                AppLocalization_ClearLocalData(deviceId);
 
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
 #if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
-                    /* clear any leftover peer data */
-                    RasClient_ResetPeerInfo(deviceId);
+                /* clear any leftover peer data */
+                RasClient_ResetPeerInfo(deviceId);
 #endif /* gRasRREQ_d */
 
 #if defined (gRasRRSP_d) && (gRasRRSP_d == 1U)
-                    /* If a transfer was in progress send data overwritten indication */
-                    if ((Ras_CheckRealTimeData(deviceId) == FALSE) && (Ras_CheckTransferInProgress(deviceId) == TRUE))
+                /* If a transfer was in progress send data overwritten indication */
+                if ((Ras_CheckRealTimeData(deviceId) == FALSE) && (Ras_CheckTransferInProgress(deviceId) == TRUE))
+                {
+                    (void)Ras_SendDataOverwritten(deviceId);
+                    if (mpfAppCsCallback != NULL)
                     {
-                        (void)Ras_SendDataOverwritten(deviceId);
-                        if (mpfAppCsCallback != NULL)
-                        {
-                            mpfAppCsCallback(deviceId, NULL, gDataOverwritten_c);
-                        }
+                        mpfAppCsCallback(deviceId, NULL, gDataOverwritten_c);
                     }
-                    /* Clear RAS data pointer to avoid reading of incomplete data. */
-                    Ras_SetDataPointer(deviceId, NULL);
+                }
+                /* Clear RAS data pointer to avoid reading of incomplete data. */
+                Ras_SetDataPointer(deviceId, NULL);
 #endif /* gRasRRSP_d */
 #endif /* gAppRasDataTransfer_d */
-                }
             }
 
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
@@ -3022,11 +3014,6 @@ static bleResult_t processEventResultData
 #if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U)) || (defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1U))
         /* Uncompress local data on-the-fly */
         AppLocalizationAlgo_UncompressResponse(pEventData, dataSize, &mResultData[deviceId]);
-#elif (defined (gRasRRSP_d) && (gRasRRSP_d == 1U)) || (defined (gAppBtcsServer_d) && (gAppBtcsServer_d == 1U))
-        /* Accumulate data for Responder */
-        FLib_MemCpy(&mResultData[deviceId].pData[mResultData[deviceId].dataIndex], pEventData, dataSize);
-#else
-#warning "Not permitted"
 #endif
         mResultData[deviceId].dataIndex += dataSize;
 
@@ -3068,16 +3055,16 @@ static bleResult_t processEventResultData
         if ((subeventIndex == 0U) &&
             (mResultData[deviceId].aSubEventData[subeventIndex].dataSize == (uint16_t)dataSize))
         {
-            result = BtcsServer_BuildRangingData(deviceId, nbSteps, gCsProcHeader_c);
+            result = BtcsServer_BuildRangingData(deviceId, pEventData, nbSteps, gCsProcHeader_c);
         }
         else if ((subeventIndex > 0U) &&
             (mResultData[deviceId].aSubEventData[subeventIndex].dataSize == (uint16_t)dataSize))
         {
-            result = BtcsServer_BuildRangingData(deviceId, nbSteps, gCsSubEvtHeader_c);
+            result = BtcsServer_BuildRangingData(deviceId, pEventData, nbSteps, gCsSubEvtHeader_c);
         }
         else
         {
-            result = BtcsServer_BuildRangingData(deviceId, nbSteps, gCsSubEvtContHeader_c);
+            result = BtcsServer_BuildRangingData(deviceId, pEventData, nbSteps, gCsSubEvtContHeader_c);
         }
 #endif /* gAppRasDataTransfer_d */
 

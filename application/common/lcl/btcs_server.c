@@ -101,7 +101,7 @@ static const uint8_t maAntPermNAp[24][4] = {
 * Private prototypes
 *************************************************************************************
 ************************************************************************************/
-static void parseSubeventData
+static uint16_t parseSubeventData
 (
     deviceId_t deviceId,
     uint8_t    subEvtIdx,
@@ -161,6 +161,7 @@ void BtcsServer_SetServerCfg
 * \brief        Build the ranging data information for the given peer
 *
 * \param[in]    deviceId    Peer device ID.
+* \param[in]    pEventData  Pointer to Channel Souding measurement data.
 * \param[in]    numSteps    Number of steps included in the subevent
 * \param[in]    fragmType   CSProcedureData Message Fragment type
 *
@@ -169,6 +170,7 @@ void BtcsServer_SetServerCfg
 bleResult_t BtcsServer_BuildRangingData
 (
     deviceId_t             deviceId,
+    uint8_t                *pEventData,
     uint8_t                numSteps,
     btcsProcDataMsgFragm_t fragmType
 )
@@ -258,9 +260,7 @@ bleResult_t BtcsServer_BuildRangingData
                 packSubEvtHeader(deviceId, &maxDataSize);
 
                 /* Pack subevent data */
-                parseSubeventData(deviceId, subEvtIdx, maxDataSize,
-                                  mpRangingData[deviceId].pCfg->pData + mpRangingData[deviceId].pCfg->dataParsedLen,
-                                  &numStepsParsed);
+                (void)parseSubeventData(deviceId, subEvtIdx, maxDataSize, pEventData, &numStepsParsed);
 
                 /* Update total number of steps in the header */
                 mpRangingData[deviceId].pRangingData[mpSegmIdx[deviceId]->numStepsHdrIdx] += numStepsParsed;
@@ -277,6 +277,8 @@ bleResult_t BtcsServer_BuildRangingData
 
             case gCsSubEvtContHeader_c:
             {
+                uint16_t parsedLen = 0U;
+
                 /* Continuedata from a previous subevent */
                 gCsProcContHeaderData_t   procContHeader;
                 gCsSubEvtContHeaderData_t subEvtContHeader;
@@ -287,9 +289,8 @@ bleResult_t BtcsServer_BuildRangingData
                 if ((currentLen + gMode0DataSize_c) < gMaxPayloadSize_c)
                 {
                     numStepsParsed = 0U;
-                    parseSubeventData(deviceId, subEvtIdx, (gMaxPayloadSize_c - currentLen),
-                                      mpRangingData[deviceId].pCfg->pData + mpRangingData[deviceId].pCfg->dataParsedLen,
-                                      &numStepsParsed);
+                    parsedLen = parseSubeventData(deviceId, subEvtIdx, (gMaxPayloadSize_c - currentLen), pEventData,
+                                                  &numStepsParsed);
 
                     /* Update number of steps in the header */
                     mpRangingData[deviceId].pRangingData[mpSegmIdx[deviceId]->numStepsHdrIdx] += numStepsParsed;
@@ -335,9 +336,7 @@ bleResult_t BtcsServer_BuildRangingData
                     mpSegmIdx[deviceId]->numStepsIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex - 1U;
 
                     numStepsParsed = 0U;
-                    parseSubeventData(deviceId, subEvtIdx, maxDataSize,
-                                      mpRangingData[deviceId].pCfg->pData + mpRangingData[deviceId].pCfg->dataParsedLen,
-                                      &numStepsParsed);
+                    (void)parseSubeventData(deviceId, subEvtIdx, maxDataSize, pEventData + parsedLen, &numStepsParsed);
 
                     /* Update number of steps in subevent header */
                     mpRangingData[deviceId].pRangingData[mpSegmIdx[deviceId]->numStepsHdrIdx] += numStepsParsed;
@@ -365,6 +364,8 @@ bleResult_t BtcsServer_BuildRangingData
                 gCsProcContHeaderData_t procContHeader;
                 gCsSubEvtContHeaderData_t subEvtContHeader;
                 bool_t bBuiltHeader = FALSE;
+                uint16_t parsedLen = 0U;
+                
                 subEvtIdx = mpRangingData[deviceId].pCfg->subeventIndex;
 
                 /* Check if there is room left to add more data in the current payload size */
@@ -407,9 +408,7 @@ bleResult_t BtcsServer_BuildRangingData
                 if ((remaininLen > 0U) && (bBuiltHeader == TRUE))
                 {
                     numStepsParsed = 0U;
-                    parseSubeventData(deviceId, subEvtIdx, remaininLen,
-                                      mpRangingData[deviceId].pCfg->pData + mpRangingData[deviceId].pCfg->dataParsedLen,
-                                      &numStepsParsed);
+                    parsedLen = parseSubeventData(deviceId, subEvtIdx, remaininLen, pEventData, &numStepsParsed);
 
                     /* Update number of steps in the header */
                     mpRangingData[deviceId].pRangingData[mpSegmIdx[deviceId]->numStepsHdrIdx] += numStepsParsed;
@@ -460,9 +459,7 @@ bleResult_t BtcsServer_BuildRangingData
                         mpSegmIdx[deviceId]->numStepsIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex - 1U;
                     }
 
-                    parseSubeventData(deviceId, subEvtIdx, maxDataSize,
-                                      mpRangingData[deviceId].pCfg->pData + mpRangingData[deviceId].pCfg->dataParsedLen,
-                                      &numStepsParsed);
+                    (void)parseSubeventData(deviceId, subEvtIdx, maxDataSize, pEventData + parsedLen, &numStepsParsed);
 
                     /* Update number of steps for this segment */
                     mpRangingData[deviceId].pRangingData[mpSegmIdx[deviceId]->numStepsIdx] = numStepsParsed;
@@ -739,7 +736,7 @@ static void packSubEvtHeader
 *
 *\retval     none
 ********************************************************************************** */
-static void parseSubeventData
+static uint16_t parseSubeventData
 (
     deviceId_t deviceId,
     uint8_t    subEvtIdx,
@@ -766,6 +763,7 @@ static void parseSubeventData
         uint16_t stepLen16;
         uint32_t stepLen32;
     } stepLen = {0U};
+    uint16_t parsedLen = mpRangingData[deviceId].pCfg->dataParsedLen;
 
     while (dataCopiedLen < maxDataLen)
     {
@@ -975,5 +973,7 @@ static void parseSubeventData
         /* Reset segment index */
         mpSegmIdx[deviceId]->crtIdx = 0U;
     }
+    
+    return (mpRangingData[deviceId].pCfg->dataParsedLen - parsedLen);
 }
 #endif /* defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U) */

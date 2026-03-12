@@ -57,9 +57,12 @@
 #include "app_localization.h"
 #include "app_localization_algo.h"
 #include "channel_sounding.h"
+
 #if defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
 #include "btcs_server_interface.h"
-#elif defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
+#endif
+
+#if defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
 #include "btcs_client_interface.h"
 #endif
 
@@ -288,10 +291,16 @@ void BleApp_StateMachineHandler(deviceId_t peerDeviceId, appEvent_t event)
 
         case mAppLocalizationSetup_c:
         {
+            bool_t bProceedToLocalization = FALSE;
+
 #if defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
-            if ((event == mAppEvt_GattServerCallback_CCCDWrittenComplete_c) ||
-                (event == mAppEvt_BtcsRangingProcResCfg_c))
-#elif defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
+            if (event == mAppEvt_GattServerCallback_CCCDWrittenComplete_c)
+            {
+                bProceedToLocalization = TRUE;
+            }
+#endif
+
+#if defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
             if (event == mAppEvt_GattProcComplete_c)
             {
                 /* Send BTCS Ranging Procedure Results Config message */
@@ -306,7 +315,20 @@ void BleApp_StateMachineHandler(deviceId_t peerDeviceId, appEvent_t event)
                     shell_write("BTCS Ranging Procedure Results Config failed!\r\n");
                 }
                 else
+                {
+                    bProceedToLocalization = TRUE;
+                }
+            }
 #endif
+
+#if defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
+            if (event == mAppEvt_BtcsRangingProcResCfg_c)
+            {
+                bProceedToLocalization = TRUE;
+            }
+#endif
+
+            if (bProceedToLocalization == TRUE)
             {
                 /* Start CS localization */
                 if (mVerbosityLevel == 2U)
@@ -326,9 +348,6 @@ void BleApp_StateMachineHandler(deviceId_t peerDeviceId, appEvent_t event)
                     }
                 }
             }
-#if defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
-            }
-#endif /* defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U) */
         }
         break;
 
@@ -1570,9 +1589,10 @@ static void App_HandleL2capPsmDataCallback(appEventData_t *pEventData)
             }
             break;
 
-#if defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
             case gDKMessageTypeBTCSRangingServiceMessage_c:
             {
+#if defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
+                /* Handle client logic */
                 bleResult_t result = BtcsClient_HandleRangingServiceMsg(deviceId, pPacket);
                 if (result != gBleSuccess_c)
                 {
@@ -1580,13 +1600,10 @@ static void App_HandleL2capPsmDataCallback(appEventData_t *pEventData)
                     shell_writeDec((uint32_t)result);
                     SHELL_NEWLINE();
                 }
-            }
-            break;
-#endif
+#endif /* defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U) */
 
 #if defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
-            case gDKMessageTypeBTCSRangingServiceMessage_c:
-            {
+                /* Handle server logic */
                 if (msgId == (uint8_t)gRangingProcResCfg_c)
                 {
                     uint8_t *pData = &pPacket[gMessageHeaderSize_c + gPayloadHeaderSize_c + gLengthFieldSize_c];
@@ -1598,9 +1615,9 @@ static void App_HandleL2capPsmDataCallback(appEventData_t *pEventData)
                         BleApp_StateMachineHandler(deviceId, mAppEvt_BtcsRangingProcResCfg_c);
                     }
                 }
+#endif /* defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U) */
             }
             break;
-#endif /* defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U) */
 
             default:
             {

@@ -19,5 +19,9 @@ The figure below shows the Device output after BTCS is enabled.
 
 ![](../images/dev_cs_btcs.png "BTCS transfer - Device output")
 
+Both `digital_key_car_anchor_cs` and `digital_key_device_cs` applications support `gAppBtcsClient_d` and `gAppBtcsServer_d` configuration options at the same time. Also, the algorithm can be run on both (`gAppRunAlgo_d` can be set on both applicaitons at the same time). Here is a picture showing both applications running the algorithm.
+
+![](../images/dev_cs_btcs_both.png "BTCS transfer - Algo run on both sides")
+
 **Parent topic:**[Localization scenarios](../topics/localization_scenarios.md)
 

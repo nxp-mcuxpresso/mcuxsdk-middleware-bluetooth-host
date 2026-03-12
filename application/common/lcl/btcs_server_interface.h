@@ -92,6 +92,7 @@ void BtcsServer_SetServerCfg
 * \brief        Build the ranging data information for the given peer
 *
 * \param[in]    deviceId    Peer device ID.
+* \param[in]    pEventData  Pointer to Channel Souding measurement data.
 * \param[in]    numSteps    Number of steps included in the subevent
 * \param[in]    fragmType   CSProcedureData Message Fragment type
 *
@@ -100,6 +101,7 @@ void BtcsServer_SetServerCfg
 bleResult_t BtcsServer_BuildRangingData
 (
     deviceId_t             deviceId,
+    uint8_t                *pEventData,
     uint8_t                numSteps,
     btcsProcDataMsgFragm_t fragmType
 );

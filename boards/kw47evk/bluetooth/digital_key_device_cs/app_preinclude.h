@@ -83,17 +83,8 @@
 /* Enable/Disable the BTCS Client for L2CAP transfer functionality */
 #define gAppBtcsClient_d                0
 
-#if defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U) && \
-    defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
-#error "Only choose gAppBtcsClient_d or gAppBtcsClient_d"
-#endif
-
 /* Enable/Disable running the selected localization algorithm */
-#if defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
 #define gAppRunAlgo_d                   0
-#elif defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
-#define gAppRunAlgo_d                   1
-#endif
 
 /* Enable/Disable the saving of RSSI information for mode 1 data.
    Information available in algorithm result structure */

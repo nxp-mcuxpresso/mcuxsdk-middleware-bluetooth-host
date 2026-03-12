@@ -1313,7 +1313,8 @@ static void BleApp_StateMachineHandler_LocalizationSetup
             bProceedToLocalization = TRUE;
         }
     }
-#elif defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
+#endif
+#if defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
     if (event == mAppEvt_PsmChannelCreated_c)
     {
         AppLocalization_SetPsmChannelId(peerDeviceId,
