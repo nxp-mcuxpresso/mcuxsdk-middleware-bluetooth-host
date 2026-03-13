@@ -1014,12 +1014,12 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
 #if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
             procInterval +=  gLocBoardDelayMs_c;
 #endif
-            AppLocalization_ComputeMaxProcedureDuration(procInterval, connInterval, &locConfig.maxProcedureDuration);
 
             /* Convert ms to connection intervals */
             procInterval = 1U + (procInterval * 1000U)/(((uint32_t)(connInterval)) * 1250U);
             locConfig.minPeriodBetweenProcedures = (uint16_t)procInterval;
             locConfig.maxPeriodBetweenProcedures = (uint16_t)procInterval;
+            AppLocalization_ComputeMaxProcedureDuration(procInterval, connInterval, &locConfig.maxProcedureDuration);
 
             (void)AppLocalization_WriteConfig(peerDeviceId, &locConfig);
             AppLocalization_SetConnectionInterval(peerDeviceId, connInterval);

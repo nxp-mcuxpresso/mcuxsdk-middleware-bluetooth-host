@@ -912,7 +912,7 @@ uint16_t AppLocalization_GetProcedureCount
 *\brief         Helper function. Compute the CS Max Procedure Duration based on Proc
 *               Interval and the connection interval.
 *
-*\param[in]     procInterval         CS Procedure Interval in ms.
+*\param[in]     procInterval         CS Procedure Interval in number of connection intervals.
 *\param[in]     connInterval         Bluetooth LE connection interval in units of 1.25ms.
 *\param[out]    pOutMaxProcDuration  Pointer to computed Max Proc Duration value.
 *
