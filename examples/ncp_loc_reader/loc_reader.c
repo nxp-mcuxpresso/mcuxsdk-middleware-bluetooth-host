@@ -977,6 +977,7 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
     {
         case gConnEvtConnected_c:
         {
+            uint16_t connInterval = pConnectionEvent->eventData.connectedEvent.connParameters.connInterval;
             appLocalization_rangeCfg_t locConfig;
 
             /* Advertising stops when connected */
@@ -1013,15 +1014,17 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
 #if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
             procInterval +=  gLocBoardDelayMs_c;
 #endif
+            AppLocalization_ComputeMaxProcedureDuration(procInterval, connInterval, &locConfig.maxProcedureDuration);
+
             /* Convert ms to connection intervals */
-            procInterval = 1U + (procInterval * 1000U)/(((uint32_t)(pConnectionEvent->eventData.connectedEvent.connParameters.connInterval)) * 1250U);
+            procInterval = 1U + (procInterval * 1000U)/(((uint32_t)(connInterval)) * 1250U);
             locConfig.minPeriodBetweenProcedures = (uint16_t)procInterval;
             locConfig.maxPeriodBetweenProcedures = (uint16_t)procInterval;
 
             (void)AppLocalization_WriteConfig(peerDeviceId, &locConfig);
-            AppLocalization_SetConnectionInterval(peerDeviceId, pConnectionEvent->eventData.connectedEvent.connParameters.connInterval);
+            AppLocalization_SetConnectionInterval(peerDeviceId, connInterval);
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-            AppLocalization_TimeInfoSetConnInterval(pConnectionEvent->eventData.connectedEvent.connParameters.connInterval);
+            AppLocalization_TimeInfoSetConnInterval(connInterval);
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
             /* Read PHY on which connection was established */
             (void)Gap_LeReadPhy(peerDeviceId);

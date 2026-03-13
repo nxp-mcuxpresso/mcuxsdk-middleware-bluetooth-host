@@ -905,6 +905,26 @@ uint16_t AppLocalization_GetProcedureCount
     deviceId_t deviceId
 );
 
+/*! *********************************************************************************
+*\fn            void AppLocalization_ComputeMaxProcedureDuration(uint32_t procInterval,
+*                               uint16_t connInterval, uint16_t *pOutMaxProcDuration);
+*
+*\brief         Helper function. Compute the CS Max Procedure Duration based on Proc
+*               Interval and the connection interval.
+*
+*\param[in]     procInterval         CS Procedure Interval in ms.
+*\param[in]     connInterval         Bluetooth LE connection interval in units of 1.25ms.
+*\param[out]    pOutMaxProcDuration  Pointer to computed Max Proc Duration value.
+*
+*\retval        None
+********************************************************************************** */
+void AppLocalization_ComputeMaxProcedureDuration
+(
+    uint32_t procInterval,
+    uint16_t connInterval,
+    uint16_t *pOutMaxProcDuration
+);
+
 #if defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
 /*! *********************************************************************************
 *\fn            bool_t AppLocalization_RunAlgorithm(deviceId_t deviceId);

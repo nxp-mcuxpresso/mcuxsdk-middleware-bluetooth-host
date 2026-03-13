@@ -1388,6 +1388,10 @@ static void App_HandleConnectionCallback(appEventData_t *pEventData)
 #if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
             procInterval +=  gLocBoardDelayMs_c;
 #endif
+            AppLocalization_ComputeMaxProcedureDuration(procInterval,
+                                                        pConnectedEventData->eventData.pConnectedEvent.connParameters.connInterval,
+                                                        &locConfig.maxProcedureDuration);
+
             /* Convert ms to connection intervals */
             uint32_t connInterval = (uint32_t)(pConnectedEventData->eventData.pConnectedEvent.connParameters.connInterval);
             if (connInterval >= gGapConnIntervalMin_d && connInterval <= gGapConnIntervalMax_d)

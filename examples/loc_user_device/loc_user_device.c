@@ -1126,6 +1126,7 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
     {
         case gConnEvtConnected_c:
         {
+            uint16_t connInterval = pConnectionEvent->eventData.connectedEvent.connParameters.connInterval;
             appLocalization_rangeCfg_t locConfig;
             /* Update UI */
             LedStopFlashingAllLeds();
@@ -1152,8 +1153,10 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
 #if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
             procInterval +=  gLocBoardDelayMs_c;
 #endif
+            AppLocalization_ComputeMaxProcedureDuration(procInterval, connInterval, &locConfig.maxProcedureDuration);
+
             /* Convert ms to connection intervals */
-            procInterval = 1U + (procInterval * 1000U)/(((uint32_t)(pConnectionEvent->eventData.connectedEvent.connParameters.connInterval)) * 1250U);
+            procInterval = 1U + (procInterval * 1000U)/(((uint32_t)(connInterval)) * 1250U);
             locConfig.minPeriodBetweenProcedures = (uint16_t)procInterval;
             locConfig.maxPeriodBetweenProcedures = (uint16_t)procInterval;
 
