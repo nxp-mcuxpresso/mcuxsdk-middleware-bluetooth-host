@@ -152,7 +152,7 @@ static int8_t getMonitorFilterAverageRemoteRssi(uint16_t connHandle);
 static bleResult_t anchorMonitorStop(uint16_t connHandle);
 static void anchorMonitorRemoteStop(uint16_t connHandle);
 static bleResult_t HandleTimeSyncReceiveComplete(gapGenericEvent_t *pGenericEvent, appHandoverError_t *pError);
-static void HandleHandoverTimeSyncTransmitStateChanged(void);
+static bleResult_t HandleHandoverTimeSyncTransmitStateChanged(void);
 static bleResult_t HandleTimeSyncEvent(gapGenericEvent_t *pGenericEvent);
 static bleResult_t HandleAnchorSearchStarted(gapGenericEvent_t* pGenericEvent, appHandoverError_t *pError);
 static void HandleAnchorSearchStopped(gapGenericEvent_t *pGenericEvent);
@@ -191,6 +191,7 @@ static bleResult_t HandleAnchMonStoppedCommand(uint8_t *pCmdData, appHandoverErr
 static bleResult_t HandleInformConnectCommand(appHandoverError_t *pError);
 static bleResult_t HandleInformFailureCommand(appHandoverError_t *pError);
 static bleResult_t HandleStartTimeSyncCommand(uint8_t *pCmdData, appHandoverError_t *pError);
+static bleResult_t HandleTimeSyncStartedCommand(uint8_t *pCmdData, appHandoverError_t *pError);
 static bleResult_t HandleSetSkdCommand(uint8_t *pCmdData, appHandoverError_t *pError);
 static bleResult_t HandleConnectionUpdateParamsCommand(uint8_t *pCmdData, appHandoverError_t *pError);
 
@@ -297,29 +298,19 @@ bleResult_t AppHandover_TimeSyncReceive
 }
 
 /*! ********************************************************************************************************************
-*\fn           bleResult_t AppHandover_StartTimeSync(bool_t bTimeSyncForHandover)
+*\fn           void AppHandover_StartTimeSync(bool_t bTimeSyncForHandover)
 *\brief        Trigger handover time synchronization.
 *
 *\param  [in]  bTimeSyncForHandover TRUE if handover is following, FALSE is RSSI sniffing is following.
 *
-*\return       bleResult_t    Result of the operation.
+*\return       None
 ********************************************************************************************************************* */
-bleResult_t AppHandover_StartTimeSync(bool_t bTimeSyncForHandover)
+void AppHandover_StartTimeSync(bool_t bTimeSyncForHandover)
 {
-    bleResult_t result = gBleSuccess_c;
-
     gTimeSyncForHandover = bTimeSyncForHandover;
 
-    /* Start scanning for handover time sync */
-    result = AppHandover_TimeSyncReceive(gTimeSyncEnable_c);
-    
-    if (result == gBleSuccess_c)
-    {
-        /* Tell other anchor to start advertising for time sync */
-        notifyRemoteDevice(gHandoverStartTimeSyncCommandOpCode_c, 1U, (uint8_t*)&bTimeSyncForHandover);
-    }
-    
-    return result;
+    /* Tell other anchor to start advertising for time sync */
+    notifyRemoteDevice(gHandoverStartTimeSyncCommandOpCode_c, 1U, (uint8_t*)&bTimeSyncForHandover);
 }
 
 /*! ********************************************************************************************************************
@@ -482,7 +473,13 @@ void AppHandover_ProcessA2ACommand
             result = HandleStartTimeSyncCommand(pCmdData, &error);
         }
         break;
-        
+
+        case gHandoverTimeSyncStartedCommandOpCode_c:
+        {
+            result = HandleTimeSyncStartedCommand(pCmdData, &error);
+        }
+        break;
+
         case gHandoverSetSkdCommandOpCode_c:
         {
             result = HandleSetSkdCommand(pCmdData, &error);
@@ -585,13 +582,13 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
     {
         case gHandoverTimeSyncReceiveComplete_c:
         {
-            (void)HandleTimeSyncReceiveComplete(pGenericEvent, &error);
+            result = HandleTimeSyncReceiveComplete(pGenericEvent, &error);
         }
         break;
         
         case gHandoverTimeSyncTransmitStateChanged_c:
         {
-            HandleHandoverTimeSyncTransmitStateChanged();
+            result = HandleHandoverTimeSyncTransmitStateChanged();
         }
         break;
         
@@ -1311,6 +1308,9 @@ static bleResult_t HandleTimeSyncReceiveComplete
     if (mAppTimeSyncState == gTimeSyncIdle_c)
     {
         mAppTimeSyncState = gTimeSyncRx_c;
+
+        /* Notify the connected anchor that we are ready to receive the time synchronization information. */
+        notifyRemoteDevice(gHandoverTimeSyncStartedCommandOpCode_c, 0U, NULL);
     }
     /* Handover was aborted while time sync was in progress */
     else if (mAppTimeSyncState == gTimeSyncRx_c)
@@ -1320,28 +1320,41 @@ static bleResult_t HandleTimeSyncReceiveComplete
     else
     {
         /* Should not get here */
-        result = gBleUnexpectedError_c;
+        result = gBleInvalidState_c;
         *pError = mAppHandover_UnexpectedError_c;
     }
     return result;
 }
 
 /*! ********************************************************************************************************************
-*\fn            static void HandleHandoverTimeSyncTransmitStateChanged(void)
+*\fn            static bleResult_t HandleHandoverTimeSyncTransmitStateChanged(void)
 *\brief         Handle handover time sync transmit state changed event
 *
-*\return        None
+*\return        bleResult_t    Status of the operation.
 ********************************************************************************************************************* */
-static void HandleHandoverTimeSyncTransmitStateChanged(void)
+static bleResult_t HandleHandoverTimeSyncTransmitStateChanged(void)
 {
+    bleResult_t result = gBleSuccess_c;
+    
     if (mAppTimeSyncState == gTimeSyncIdle_c)
     {
         mAppTimeSyncState = gTimeSyncTx_c;
     }
     else
     {
+        if (gTimeSyncForHandover == TRUE)
+        {
+            /* Suspend Tx before retrieving the Handover Data. */
+            result = Gap_HandoverSuspendTransmit(mHandoverCentralDeviceId, gSafeStopLlTx_c, 0U, 0U);
+        }
+        else
+        {
+            result = AppHandover_AnchorMonitorStart(mHandoverCentralDeviceId);
+        }
         mAppTimeSyncState = gTimeSyncIdle_c;
     }
+
+    return result;
 }
 
 /*! ********************************************************************************************************************
@@ -1355,30 +1368,20 @@ static void HandleHandoverTimeSyncTransmitStateChanged(void)
 static bleResult_t HandleTimeSyncEvent(gapGenericEvent_t *pGenericEvent)
 {
     bleResult_t result = gBleSuccess_c;
-    
+
     if (mAppTimeSyncState == gTimeSyncRx_c)
     {
         mSlotLocal = pGenericEvent->eventData.handoverTimeSync.rxClkSlot;
         mOffsetLocal = pGenericEvent->eventData.handoverTimeSync.rxUs;
         mSlotRemote = pGenericEvent->eventData.handoverTimeSync.txClkSlot;
         mOffsetRemote = pGenericEvent->eventData.handoverTimeSync.txUs;
-        
+        mAppHandoverState = gContextRx_c;
+
         /* Notify the other device to stop handover Time Sync. */
         notifyRemoteDevice(gHandoverStopTimeSyncCommandOpCode_c, 0U, NULL);
-        
-        if (gTimeSyncForHandover == TRUE)
-        {
-            /* Suspend Tx before retrieving the Handover Data. */
-            result = Gap_HandoverSuspendTransmit(mHandoverCentralDeviceId, gSafeStopLlTx_c, 0U, 0U);
-        }
-        else
-        {
-            (void)AppHandover_AnchorMonitorStart(mHandoverCentralDeviceId);
-        }
-
         mAppTimeSyncState = gTimeSyncIdle_c;
     }
-    
+
     return result;
 }
 
@@ -1719,10 +1722,8 @@ static bleResult_t HandleGetConnParamsComplete
         deviceId_t deviceId = gInvalidDeviceId_c;
         /* Send command to start Anchor Search */
         uint8_t buf[gHandoverAnchorStartSearchCommandLen_c] = {0U};
-        uint32_t timingDiffSlot = mSlotRemote - mSlotLocal;
-        uint16_t timingDiffOffset = mOffsetRemote - mOffsetLocal;
         uint16_t eventCounterAdvance = 0U;
-        
+
         buf[0] = nvmIndex;
         FLib_MemCpy(&buf[1], &pGenericEvent->eventData.getConnParams.ulTxAccCode, 4U);
         FLib_MemCpy(&buf[5], pGenericEvent->eventData.getConnParams.aCrcInitVal, 3U);
@@ -1742,11 +1743,10 @@ static bleResult_t HandleGetConnParamsComplete
         FLib_MemCpy(&buf[32], &pGenericEvent->eventData.getConnParams.uiAnchorDelay, 2U);
         FLib_MemCpy(&buf[34], &pGenericEvent->eventData.getConnParams.ulRxInstant, 4U);
         FLib_MemCpy(&buf[38], &eventCounterAdvance, 2U);
-        FLib_MemCpy(&buf[40], &timingDiffSlot, 4U);
-        FLib_MemCpy(&buf[44], &timingDiffOffset, 2U);
-        buf[46] = 0U;
-        buf[47] = 0U;
-        buf[48] = (uint8_t)gSuspendTxMode_c;
+
+        buf[40] = 0U;
+        buf[41] = 0U;
+        buf[42] = (uint8_t)gSuspendTxMode_c;
 
         if (mAppHandoverState == gAnchorMonitorRemoteStarting_c)
         {
@@ -1755,7 +1755,7 @@ static bleResult_t HandleGetConnParamsComplete
             if ((result == gBleSuccess_c) && (deviceId != gInvalidDeviceId_c))
             {
                 /* Overwrite search mode */
-                buf[48] = (uint8_t)(maAppMonitorData[deviceId].monitorMode);
+                buf[42] = (uint8_t)(maAppMonitorData[deviceId].monitorMode);
                 maAppMonitorData[deviceId].monitorConnHandle = gMonitorConnectionHandlePending;
             }
             mAppHandoverState = gIdle_c;
@@ -1763,7 +1763,7 @@ static bleResult_t HandleGetConnParamsComplete
         else
         {
             /* Default value for the Anchor Search ucNbReports parameter */
-            buf[47] = gHandoverAnchorSearchIntervals_c;
+            buf[41] = gHandoverAnchorSearchIntervals_c;
         }
         
         notifyRemoteDevice(gHandoverAnchorStartSearchCommandOpCode_c, gHandoverAnchorStartSearchCommandLen_c, buf);
@@ -2097,10 +2097,9 @@ static void HandleError(bleResult_t result, appHandoverError_t error)
 static bleResult_t HandleStopTimeSyncCommand(appHandoverError_t *pError)
 {
     bleResult_t result = gBleSuccess_c;
-    
-    mAppHandoverState = gContextRx_c;
+
     result = AppHandover_TimeSyncTransmit(gTimeSyncDisable_c);
-    
+
     return result;
 }
 
@@ -2280,16 +2279,15 @@ static bleResult_t HandleAnchorStartSearchCommand(uint8_t *pCmdData, appHandover
     pCmdData = &pCmdData[4];
     searchParams.uiEventCounterAdvance = Utils_ExtractTwoByteValue(pCmdData);
     pCmdData = &pCmdData[2];
-    searchParams.timingDiffSlot = Utils_ExtractFourByteValue(pCmdData);
-    pCmdData = &pCmdData[4];
-    searchParams.timingDiffOffset = Utils_ExtractTwoByteValue(pCmdData);
-    pCmdData = &pCmdData[2];
     searchParams.timeout = *pCmdData;
     pCmdData++;
     searchParams.ucNbReports = *pCmdData;
     pCmdData++;
     temp.mode8 = *pCmdData;
     searchParams.mode = temp.mode;
+
+    searchParams.timingDiffSlot = mSlotLocal - mSlotRemote;
+    searchParams.timingDiffOffset = mOffsetLocal - mOffsetRemote;
     
     /* Do not start anchor monitoring if connection handover is in progress. */
     if ((searchParams.mode == gRssiSniffingMode_c) || (searchParams.mode == gPacketMode_c))
@@ -2618,20 +2616,43 @@ static bleResult_t HandleStartTimeSyncCommand(uint8_t *pCmdData, appHandoverErro
 {
     bleResult_t result = gBleSuccess_c;
     bool_t bTimeSyncForHandover = (bool_t)*pCmdData;
-    
-    /* Request to start time sync received, start handover time sync. */
-    result = AppHandover_TimeSyncTransmit(gTimeSyncEnable_c);
-    
+
+    /* Start scanning for handover time sync */
+    result = AppHandover_TimeSyncReceive(gTimeSyncEnable_c);
+
     if (result != gBleSuccess_c)
     {
-        *pError = mAppHandover_TimeSyncTx_c;
+        *pError = mAppHandover_TimeSyncRx_c;
     }
-    
+
     if ((mpfAppEventCb != NULL) && (result == gBleSuccess_c))
     {
         mpfAppEventCb(mAppHandover_TimeSyncStarted_c, &bTimeSyncForHandover);
     }
-    
+
+    return result;
+}
+
+/*! ********************************************************************************************************************
+*\fn            static bleResult_t HandleTimeSyncStartedCommand(uint8_t *pCmdData, appHandoverError_t *pError)
+*\brief         Handle start time sync started command
+*
+*\param  [in]   pCmdData  Pointer to command data.
+*\param  [out]  pError    Pointer to error status.
+*
+*\return        bleResult_t  Status of the operation.
+********************************************************************************************************************* */
+static bleResult_t HandleTimeSyncStartedCommand(uint8_t *pCmdData, appHandoverError_t *pError)
+{
+    bleResult_t result = gBleSuccess_c;
+
+    result = AppHandover_TimeSyncTransmit(gTimeSyncEnable_c);
+
+    if (result != gBleSuccess_c)
+    {
+        *pError = mAppHandover_TimeSyncTx_c;
+    }
+
     return result;
 }
 

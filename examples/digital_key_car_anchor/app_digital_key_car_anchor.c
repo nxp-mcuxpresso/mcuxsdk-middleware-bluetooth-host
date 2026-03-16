@@ -345,7 +345,7 @@ button_status_t BleApp_HandleKeys1(void *buttonHandle, button_callback_message_t
             else
             {
                 AppHandover_SetPeerDevice(handoverDeviceId);
-                status = AppHandover_StartTimeSync(TRUE);
+                AppHandover_StartTimeSync(TRUE);
             }
             
             if (status != gBleSuccess_c)
@@ -920,7 +920,7 @@ void App_HandleShellCmds(void *pData)
                 if (result == gBleSuccess_c)
                 {
                     AppHandover_SetPeerDevice(pEventData->eventData.monitorStart.deviceId);
-                    result = AppHandover_StartTimeSync(FALSE);
+                    AppHandover_StartTimeSync(FALSE);
                 }
                 
                 if (result != gBleSuccess_c)
@@ -947,7 +947,7 @@ void App_HandleShellCmds(void *pData)
         
         case mAppEvt_Shell_Handover_Command_c:
         {
-            bleResult_t result = gBleInvalidParameter_c;
+            bleResult_t result = gBleSuccess_c;
             deviceId_t handoverDeviceId = pEventData->eventData.peerDeviceId;
             shell_write("\r\nHandover started.\r\n");
 
@@ -959,7 +959,7 @@ void App_HandleShellCmds(void *pData)
             else
             {
                 AppHandover_SetPeerDevice(maPeerInformation[handoverDeviceId].deviceId);
-                result = AppHandover_StartTimeSync(TRUE);
+                AppHandover_StartTimeSync(TRUE);
             }
 
             if (result != gBleSuccess_c)

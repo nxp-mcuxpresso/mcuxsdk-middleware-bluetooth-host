@@ -403,7 +403,7 @@ button_status_t BleApp_HandleKeys1(void *buttonHandle, button_callback_message_t
                 if (locState == gAppLclIdle_c)
                 {
                     AppHandover_SetPeerDevice(gHandoverDeviceId);
-                    status = AppHandover_StartTimeSync(TRUE);
+                    AppHandover_StartTimeSync(TRUE);
                     shell_write("\r\nHandover started.\r\n");
                 }
                 else
@@ -1002,7 +1002,7 @@ void App_HandleShellCmds(void *pData)
                 if (result == gBleSuccess_c)
                 {
                     AppHandover_SetPeerDevice(pEventData->eventData.monitorStart.deviceId);
-                    result = AppHandover_StartTimeSync(FALSE);
+                    AppHandover_StartTimeSync(FALSE);
                 }
 
                 if (result != gBleSuccess_c)
@@ -1041,7 +1041,7 @@ void App_HandleShellCmds(void *pData)
             {
                 gHandoverDeviceId = handoverDeviceId;
                 AppHandover_SetPeerDevice(handoverDeviceId);
-                result = AppHandover_StartTimeSync(TRUE);
+                AppHandover_StartTimeSync(TRUE);
             }
             
             if (result != gBleSuccess_c)
@@ -2896,7 +2896,7 @@ static void BleApp_PrintMeasurementResults(deviceId_t deviceId, localizationAlgo
         if (locState == gAppLclIdle_c)
         {
             AppHandover_SetPeerDevice(gHandoverDeviceId);
-            status = AppHandover_StartTimeSync(TRUE);
+            AppHandover_StartTimeSync(TRUE);
             shell_write("\r\nHandover started.\r\n");
         }
 

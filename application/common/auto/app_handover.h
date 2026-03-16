@@ -3,7 +3,7 @@
  * @{
 ********************************************************************************************************************* */
 /*! ********************************************************************************************************************
-* Copyright 2022-2025 NXP
+* Copyright 2022-2026 NXP
 *
 *
 * \file app_handover.h
@@ -64,8 +64,8 @@ constantly. */
 #define gHandoverDataCommandOpCode_c                    0x00    /* S1 -> S2 - Send Handover Data (Host and LL context) */
 #define gHandoverAnchorStartSearchCommandOpCode_c       0x01    /* S1 -> S2 - Tell S2 to start the anchor search process */
 #define gHandoverInformConnectCommandOpCode_c           0x02    /* S2 -> S1 - Inform S1 that S2 is connected and S1 should disconnect */
-#define gHandoverStartTimeSyncCommandOpCode_c           0x03    /* S1 -> S2 - Tell S2 to start advertising for time sync procedure (S1 will scan) */
-#define gHandoverStopTimeSyncCommandOpCode_c            0x04    /* S1 -> S2 - Tell S2 to stop advertising for time sync procedure */
+#define gHandoverStartTimeSyncCommandOpCode_c           0x03    /* S1 -> S2 - Tell S2 to start receiving for time sync procedure (S1 will advertise) */
+#define gHandoverStopTimeSyncCommandOpCode_c            0x04    /* S2 -> S1 - Tell S1 to stop advertising for time sync procedure */
 #define gHandoverInformFailureCommandOpCode_c           0x05    /* S2 -> S1 - Inform S1 that S2's anchor search was unsuccessful and S1 should resume transmitting */
 #define gHandoverAnchorMonitorCommandOpCode_c           0x06    /* Report anchor monitor information to remote anchor */
 #define gHandoverStopAnchorMonitorCommandOpCode_c       0x07    /* Stop anchor monitoring on remote anchor */
@@ -78,9 +78,10 @@ constantly. */
 #define gHandoverAnchMonStoppedCommandOpCode_c          0x0E    /* S2 -> S1 - Inform S1 that Anchor/Packet monitoring has been stopped for the included connection handle */
 #define gHandoverLlPendingDataCommandOpCode_c           0x0F    /* S1 -> S2 - Inform S2 of the pending LL data */
 #define gHandoverLConnectionUpdateParamsCommandOpCode_c 0x10    /* S1 -> S2 - Inform S2 of new connection parameters */
+#define gHandoverTimeSyncStartedCommandOpCode_c         0x11    /* S2 -> S1 - Tell S1 to start advertising for time sync procedure */
 
 /* Handover commands length */
-#define gHandoverAnchorStartSearchCommandLen_c          49U
+#define gHandoverAnchorStartSearchCommandLen_c          43U
 #define gHandoverSetSkdCommandLen_c                     17U
 #define gHandoverCsLlContextCommandLen_c                260U /* temporary value */
 #define gHandoverAnchorMonitorLen_c                     20U
@@ -132,6 +133,7 @@ typedef enum appHandoverEvent_tag {
 typedef enum appHandoverError_tag {
     mAppHandover_NoActiveConnection_c,
     mAppHandover_TimeSyncTx_c,
+    mAppHandover_TimeSyncRx_c,
     mAppHandover_AnchorSearchStartFailed_c,
     mAppHandover_PeerBondingDataInvalid_c,
     mAppHandover_UnexpectedError_c,
@@ -205,14 +207,14 @@ bleResult_t AppHandover_TimeSyncReceive
 );
 
 /*! ********************************************************************************************************************
-*\fn           bleResult_t AppHandover_StartTimeSync(bool_t bTimeSyncForHandover)
+*\fn           void AppHandover_StartTimeSync(bool_t bTimeSyncForHandover)
 *\brief        Trigger handover time synchronization.
 *
 *\param  [in]  bTimeSyncForHandover TRUE if handover is following, FALSE is RSSI sniffing is following.
 *
-*\return       bleResult_t    Result of the operation.
+*\return       None
 ********************************************************************************************************************* */
-bleResult_t AppHandover_StartTimeSync(bool_t bTimeSyncForHandover);
+void AppHandover_StartTimeSync(bool_t bTimeSyncForHandover);
 
 /*! ********************************************************************************************************************
 *\fn           void AppHandover_TimeSyncTransmitSetParams(gapHandoverTimeSyncTransmitParams_t *pParams)
