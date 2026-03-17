@@ -1,6 +1,5 @@
 #------------------------------------------------------------------------------
-#  Copyright 2025 NXP
-#  All rights reserved.
+#  Copyright 2025-2026 NXP
 #
 #  SPDX-License-Identifier: BSD-3-Clause
 #------------------------------------------------------------------------------
@@ -15,7 +14,7 @@ import sys
 import os
 
 BaseDir = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(BaseDir, '..\..', 'Generic'))
+sys.path.append(os.path.join(BaseDir, '..', '..', 'Generic'))
 from nesteddict import NestedDict
 
 
@@ -84,7 +83,7 @@ class ResultPlot:
         else:
             self.fig.tight_layout(pad=4, h_pad=4)
             self.fig.subplots_adjust(bottom=0.01)
-        self.fig.canvas.set_window_title('NXP Channel Sounding')
+        self.fig.canvas.manager.set_window_title('NXP Channel Sounding')
         x = list(range(0,self.snapshot_len))
         if self.plot_x_type == 1:
             x = [t*rng_time_interval for t in x]
@@ -161,9 +160,9 @@ class ResultPlot:
         self.rng_plt_ax.set_ylim([-1, self.plot_y_lim])
         self.rng_plt_ax.set_ylabel("Distance (m)", fontsize = 14)
         self.rng_plt_ax.legend()
-        self.rng_plt_ax.grid(b=True, color='#A9A9A9')
+        self.rng_plt_ax.grid(visible=True, color='#A9A9A9')
         self.rng_plt_ax.minorticks_on()
-        self.rng_plt_ax.grid(b=True, which='minor', color='#DCDCDC')  
+        self.rng_plt_ax.grid(visible=True, which='minor', color='#DCDCDC')
 
     def update_data_to_distance_plotter(self, new_result:NestedDict, meas_cnt, meas_num):
         try:
@@ -266,12 +265,11 @@ class ResultPlot:
                 self.rssi_r     = []
         except Exception as e:
             print(f"Error accessing result data: {e}")
-
     def on_close(self, event):
-        if self.ani.event_source:
-                self.ani.event_source.stop()
+        if self.ani is not None and self.ani.event_source:
+            self.ani.event_source.stop()
         else:
-            print("self.ani.event_source is none")
+            print("Animation not initialized or event_source is None")
     
     def start_distance_plotter(self, func_called:callable, interval:int=200): #smaller animation intervals will affect the time slices available to other threads
         # Need to check if self.event_source is none in the line 1469 of the animation.py of the matplotlib 3.10.5.

@@ -1,6 +1,5 @@
 #------------------------------------------------------------------------------
-#  Copyright 2025 NXP
-#  All rights reserved.
+#  Copyright 2025-2026 NXP
 #
 #  SPDX-License-Identifier: BSD-3-Clause
 #------------------------------------------------------------------------------
@@ -93,7 +92,7 @@ class CSDataProcessing:
                                     except Exception as e:
                                         print(f"Error deleting LocDataLog_{self.start_time}.json: {e}")
                             if len(self.raw_results) != 0 and ('npz' in self.target):
-                                np.savez_compressed(os.path.join(f"{self.result_store_folder}\{self.start_time}\\LocDataLog_{self.start_time}.npz"), raw_results=self.raw_results)
+                                np.savez_compressed(os.path.join(self.result_store_folder, self.start_time, f"LocDataLog_{self.start_time}.npz"), raw_results=self.raw_results)
                             if self.meas_cnt == self.meas_num:
                                 print("Data log saved. Test completed!")
                             else:
@@ -207,7 +206,7 @@ class RecordCSData:
                         if (self.meas_cnt % self.snapshot_len) == 0 or self.meas_cnt == self.meas_num:
                             os.makedirs(self.result_store_folder, exist_ok=True)
                             if len(self.data_store_buffer) != 0 and ('json' in self.target):
-                                with open(os.path.join(f"{self.result_store_folder}\\LocDataLog_{self.start_time}.json"), 'w', encoding='utf-8') as f:
+                                with open(os.path.join(self.result_store_folder, f"LocDataLog_{self.start_time}.json"), 'w', encoding='utf-8') as f:
                                     json.dump(self.data_store_buffer, f, ensure_ascii=False, indent=4)
                             if len(self.raw_results) != 0 and ('npz' in self.target):
                                 np.savez_compressed(os.path.join(f"{self.result_store_folder}\\LocDataLog_{self.start_time}.npz"), raw_results=self.raw_results)
