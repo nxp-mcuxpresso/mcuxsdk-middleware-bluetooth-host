@@ -352,7 +352,7 @@ void BluetoothLEHost_HandleMessages(void)
     if (MSG_QueueGetHead(&mHostAppInputQueue) != NULL)
     {
         /* Pointer for storing the messages from host. */
-        appMsgFromHost_t *pMsgIn = MSG_QueueRemoveHead(&mHostAppInputQueue);
+        appMsgFromHost_t *pMsgIn = MSG_QueueGetHead(&mHostAppInputQueue);
 
         if (pMsgIn != NULL)
         {

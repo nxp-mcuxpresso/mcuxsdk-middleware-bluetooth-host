@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2020-2025 NXP
+* Copyright 2020-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -263,7 +263,7 @@ void BluetoothLEHost_HandleMessages(void)
     if (MSG_QueueGetHead(&mHostAppInputQueue) != NULL)
     {
         /* Pointer for storing the messages from host. */
-        appMsgFromHost_t *pMsgIn = MSG_QueueRemoveHead(&mHostAppInputQueue);
+        appMsgFromHost_t *pMsgIn = MSG_QueueGetHead(&mHostAppInputQueue);
 
         if (pMsgIn != NULL)
         {
