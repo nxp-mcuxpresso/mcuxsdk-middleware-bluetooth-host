@@ -576,6 +576,7 @@ bleResult_t Ras_SendRangingDataNotifs
 * \brief        Build the ranging data body from local HCI data
 *
 * \param[in]    deviceId         Identifier of the peer
+* \param[in]    pEventData       Pointer to Channel Sounding measurement data
 * \param[in]    packProcHdr      TRUE if the ranging data body should include the procedure
 *                                header, FALSE otherwise
 * \param[in]    packSubevtHdr    TRUE if the ranging data body should include the subevent
@@ -585,9 +586,10 @@ bleResult_t Ras_SendRangingDataNotifs
 ************************************************************************************/
 bleResult_t Ras_BuildRangingDataBody
 (
-  deviceId_t deviceId,
-  bool_t     packProcHdr,
-  bool_t     packSubevtHdr
+    deviceId_t deviceId,
+    uint8_t    *pEventData,
+    bool_t     packProcHdr,
+    bool_t     packSubevtHdr
 );
 
 /*!**********************************************************************************

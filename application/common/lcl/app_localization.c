@@ -3280,24 +3280,24 @@ static bleResult_t processEventResultData
                 subEventStatus == (uint8_t)gCsNoResultsProcAborted_c)
             {
                 /* The first chunk includes a complete subevent, pack its header as well */
-                result = Ras_BuildRangingDataBody(deviceId, TRUE, TRUE);
+                result = Ras_BuildRangingDataBody(deviceId, pEventData, TRUE, TRUE);
             }
             else
             {
                 /* The first chunk does not include a complete subevent, pack only the procedure header */
-                result = Ras_BuildRangingDataBody(deviceId, TRUE, FALSE);
+                result = Ras_BuildRangingDataBody(deviceId, pEventData, TRUE, FALSE);
             }
         }
         else if (subEventStatus == (uint8_t)gCsCompleteResults_c ||
                  subEventStatus == (uint8_t)gCsNoResultsProcAborted_c)
         {
             /* The subevent is complete, can pack its header */
-            result = Ras_BuildRangingDataBody(deviceId, FALSE, TRUE);
+            result = Ras_BuildRangingDataBody(deviceId, pEventData, FALSE, TRUE);
         }
         else
         {
             /* Intermediate chunk, no header to be packed */
-            result = Ras_BuildRangingDataBody(deviceId, FALSE, FALSE);
+            result = Ras_BuildRangingDataBody(deviceId, pEventData, FALSE, FALSE);
         }
 #endif /* gRasRRSP_d */
 #elif defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)

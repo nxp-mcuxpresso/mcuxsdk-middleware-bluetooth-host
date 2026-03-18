@@ -756,7 +756,6 @@ bleResult_t Ras_HandleGetRangingDataSegmInd
     uint8_t *pNotificationData = MEM_BufferAlloc(dataLen.dataLen32);
 
     if ((maRasDynamicCfg[deviceId].pCfg == NULL) ||
-        (maRasDynamicCfg[deviceId].pCfg->pData == NULL) ||
         (Ras_CheckIfSubscribed(deviceId) == FALSE))
     {
         /* Client has unsubscribed */
@@ -916,7 +915,6 @@ bleResult_t Ras_SendRangingDataIndication
             mDataTransferState[deviceId] = (uint8_t)noTransferInProgress_c;
             gRasSubeventStepIndex = 0U;
             FLib_MemSet(maRasDynamicCfg[deviceId].pCfg, 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-            FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gMaxCsSubeventDataSize_c);
             (void)MEM_BufferFree(maRasDynamicCfg[deviceId].pRangingDataBody);
             maRasDynamicCfg[deviceId].pRangingDataBody = NULL;
         }
@@ -1143,7 +1141,6 @@ bleResult_t Ras_SendRangingDataNotifs
             gRasSubeventStepIndex = 0U;
 
             FLib_MemSet(maRasDynamicCfg[deviceId].pCfg, 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-            FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gMaxCsSubeventDataSize_c);
             (void)MEM_BufferFree(maRasDynamicCfg[deviceId].pRangingDataBody);
             maRasDynamicCfg[deviceId].pRangingDataBody = NULL;
         }
@@ -1176,6 +1173,7 @@ bool_t Ras_CheckRealTimeData
 * \brief        Build the ranging data body from local HCI data
 *
 * \param[in]    deviceId         Identifier of the peer
+* \param[in]    pEventData       Pointer to Channel Sounding measurement data
 * \param[in]    packProcHdr      TRUE if the ranging data body should include the procedure
 *                                header, FALSE otherwise
 * \param[in]    packSubevtHdr    TRUE if the ranging data body should include the subevent
@@ -1185,9 +1183,10 @@ bool_t Ras_CheckRealTimeData
 ************************************************************************************/
 bleResult_t Ras_BuildRangingDataBody
 (
-  deviceId_t deviceId,
-  bool_t     packProcHdr,
-  bool_t     packSubevtHdr
+    deviceId_t deviceId,
+    uint8_t    *pEventData,
+    bool_t     packProcHdr,
+    bool_t     packSubevtHdr
 )
 {
     uint16_t currentDataIdx = 0U;
@@ -1219,7 +1218,6 @@ bleResult_t Ras_BuildRangingDataBody
     {
         /* pack procedure header */
         rasRangingDataHeader_t procHeader;
-        uint16_t dataIdxInit = maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex;
 
         if (packProcHdr == TRUE)
         {
@@ -1251,7 +1249,7 @@ bleResult_t Ras_BuildRangingDataBody
         subEvtIdx = (uint8_t)gRasSubeventStepIndex;
 
         /* Pack rangin data body */
-        antennaPathFilterStepData(deviceId, maRasDynamicCfg[deviceId].pCfg->pData + dataIdxInit,
+        antennaPathFilterStepData(deviceId, pEventData,
                                   maRasDynamicCfg[deviceId].pRangingDataBody + maRasDynamicCfg[deviceId].pCfg->dataParsedLen,
                                   &currentDataIdx);
  
@@ -1950,10 +1948,6 @@ static void RrspTimerCallback
 
     if (maRasDynamicCfg[deviceId].pCfg != NULL)
     {
-        if (maRasDynamicCfg[deviceId].pCfg->pData != NULL)
-        {
-            FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gMaxCsSubeventDataSize_c);
-        }
         FLib_MemSet(maRasDynamicCfg[deviceId].pCfg, 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
     }
 
@@ -2070,7 +2064,7 @@ static bleResult_t handleGetRangingDataCmd
         rasStatus = gRasInvalidParameterError_c;
         result = gBleInvalidParameter_c;
     }
-    else if ((maRasDynamicCfg[deviceId].pCfg == NULL) || (maRasDynamicCfg[deviceId].pCfg->pData == NULL) ||
+    else if ((maRasDynamicCfg[deviceId].pCfg == NULL) ||
         (pRasCtrlPointCmd->cmdParameters.procCounter != maRasDynamicCfg[deviceId].pCfg->procedureCounter))
     {
         /* Check that the received procedure counter matches the local one */
@@ -2147,7 +2141,7 @@ static bleResult_t handleAckRangingDataCmd
     rasControlPointRspCodeValues_tag rasStatus = gRasSuccess_c;
     bleResult_t result = gBleSuccess_c;
 
-    if ((maRasDynamicCfg[deviceId].pCfg == NULL) || (maRasDynamicCfg[deviceId].pCfg->pData == NULL))
+    if (maRasDynamicCfg[deviceId].pCfg == NULL)
     {
         rasStatus = gRasNoRecordsFoundError_c;
         result = gBleInvalidParameter_c;
@@ -2180,7 +2174,6 @@ static bleResult_t handleAckRangingDataCmd
         if (pRasCtrlPointCmd->cmdParameters.procCounter == maRasDynamicCfg[deviceId].pCfg->procedureCounter)
         {
             FLib_MemSet(maRasDynamicCfg[deviceId].pCfg, 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-            FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gMaxCsSubeventDataSize_c);
             (void)MEM_BufferFree(maRasDynamicCfg[deviceId].pRangingDataBody);
             maRasDynamicCfg[deviceId].pRangingDataBody = NULL;
 
@@ -2236,10 +2229,6 @@ static bleResult_t handleAbortCmd
         if (maRasDynamicCfg[deviceId].pCfg != NULL)
         {
             FLib_MemSet(maRasDynamicCfg[deviceId].pCfg, 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-            if (maRasDynamicCfg[deviceId].pCfg->pData != NULL)
-            {
-                FLib_MemSet(maRasDynamicCfg[deviceId].pCfg->pData, 0U, gMaxCsSubeventDataSize_c);
-            }
         }
 
         if (maRasDynamicCfg[deviceId].pRangingDataBody != NULL)
