@@ -1466,6 +1466,391 @@ void AppLocalization_SetDefaultConfig
 ************************************************************************************/
 
 /*! *********************************************************************************
+*\fn           static bleResult_t handleReadRemoteSupportedCapabilities(
+*              csMetaEvent_t* pPacket, csMetaEventData_t* pCsMetaEvent)
+*
+*\brief        Handle Read Remote Supported Capabilities Complete event.
+*
+*\param[in]    pPacket          Pointer to CS meta event packet
+*\param[out]   pCsMetaEvent     Pointer to CS meta event data structure
+*
+*\retval       bleResult_t      Result of the operation.
+********************************************************************************** */
+static bleResult_t handleReadRemoteSupportedCapabilities
+(
+    csMetaEvent_t* pPacket,
+    csMetaEventData_t* pCsMetaEvent
+)
+{
+    bleResult_t result = gBleSuccess_c;
+    
+    pCsMetaEvent->eventType = gCsMetaEvtReadRemoteSupportedCapabilities_c;
+    csReadRemoteSupportedCapabilitiesCompleteEvent_t* pRemoteCapabilities =
+        MEM_BufferAlloc(sizeof(csReadRemoteSupportedCapabilitiesCompleteEvent_t));
+
+    if (pRemoteCapabilities != NULL)
+    {
+        pCsMetaEvent->pEventData = (void*)pRemoteCapabilities;
+        FLib_MemCpy(pCsMetaEvent->pEventData,
+                    &pPacket->eventData.csReadRemoteSupportedCapabilitiesComplete,
+                    sizeof(csReadRemoteSupportedCapabilitiesCompleteEvent_t));
+    }
+    else
+    {
+        result = gBleOutOfMemory_c;
+    }
+
+    return result;
+}
+
+/*! *********************************************************************************
+*\fn           static bleResult_t handleSecurityEnableComplete(
+*              csMetaEvent_t* pPacket, csMetaEventData_t* pCsMetaEvent)
+*
+*\brief        Handle Security Enable Complete event.
+*
+*\param[in]    pPacket          Pointer to CS meta event packet
+*\param[out]   pCsMetaEvent     Pointer to CS meta event data structure
+*
+*\retval       bleResult_t      Result of the operation.
+********************************************************************************** */
+static bleResult_t handleSecurityEnableComplete
+(
+    csMetaEvent_t* pPacket,
+    csMetaEventData_t* pCsMetaEvent
+)
+{
+    bleResult_t result = gBleSuccess_c;
+
+    pCsMetaEvent->eventType = gCsMetaEvtSecurityEnableComplete_c;
+    csSecurityEnableCompleteEvent_t* pSecurityEnable = 
+        MEM_BufferAlloc(sizeof(csSecurityEnableCompleteEvent_t));
+
+    if (pSecurityEnable != NULL)
+    {
+        pCsMetaEvent->pEventData = (void*)pSecurityEnable;
+        FLib_MemCpy(pCsMetaEvent->pEventData,
+                    &pPacket->eventData.csSecurityEnableComplete,
+                    sizeof(csSecurityEnableCompleteEvent_t));
+    }
+    else
+    {
+        result = gBleOutOfMemory_c;
+    }
+    
+    return result;
+}
+
+/*! *********************************************************************************
+*\fn           static bleResult_t handleConfigComplete(
+*              csMetaEvent_t* pPacket, csMetaEventData_t* pCsMetaEvent)
+*
+*\brief        Handle Config Complete event.
+*
+*\param[in]    pPacket          Pointer to CS meta event packet
+*\param[out]   pCsMetaEvent     Pointer to CS meta event data structure
+*
+*\retval       bleResult_t      Result of the operation.
+********************************************************************************** */
+static bleResult_t handleConfigComplete
+(
+    csMetaEvent_t* pPacket,
+    csMetaEventData_t* pCsMetaEvent
+)
+{
+    bleResult_t result = gBleSuccess_c;
+
+    pCsMetaEvent->eventType = gCsMetaEvtConfigComplete_c;
+    csConfigCompleteEvent_t* pConfigComplete = 
+        MEM_BufferAlloc(sizeof(csConfigCompleteEvent_t));
+
+    if (pConfigComplete != NULL)
+    {
+        pCsMetaEvent->pEventData = (void*)pConfigComplete;
+        FLib_MemCpy(pCsMetaEvent->pEventData,
+                    &pPacket->eventData.csConfigComplete,
+                    sizeof(csConfigCompleteEvent_t));
+    }
+    else
+    {
+        result = gBleOutOfMemory_c;
+    }
+
+    return result;
+}
+
+/*! *********************************************************************************
+*\fn           static bleResult_t handleProcedureEnableComplete(
+*              csMetaEvent_t* pPacket, csMetaEventData_t* pCsMetaEvent)
+*
+*\brief        Handle Procedure Enable Complete event.
+*
+*\param[in]    pPacket          Pointer to CS meta event packet
+*\param[out]   pCsMetaEvent     Pointer to CS meta event data structure
+*
+*\retval       bleResult_t      Result of the operation.
+********************************************************************************** */
+static bleResult_t handleProcedureEnableComplete
+(
+    csMetaEvent_t* pPacket,
+    csMetaEventData_t* pCsMetaEvent
+)
+{
+    bleResult_t result = gBleSuccess_c;
+    
+    pCsMetaEvent->eventType = gCsMetaEvtProcedureEnableComplete_c;
+    csProcedureEnableCompleteEvent_t* pProcEnableComplete = 
+        MEM_BufferAlloc(sizeof(csProcedureEnableCompleteEvent_t));
+
+    if (pProcEnableComplete != NULL)
+    {
+        pCsMetaEvent->pEventData = (void*)pProcEnableComplete;
+        FLib_MemCpy(pCsMetaEvent->pEventData,
+                    &pPacket->eventData.csProcedureEnableCompleteEvent,
+                    sizeof(csProcedureEnableCompleteEvent_t));
+    }
+    else
+    {
+        result = gBleOutOfMemory_c;
+    }
+
+    return result;
+}
+
+/*! *********************************************************************************
+*\fn           static bleResult_t handleSubeventResult(
+*              csMetaEvent_t* pPacket, csMetaEventData_t* pCsMetaEvent)
+*
+*\brief        Handle Subevent Result event.
+*
+*\param[in]    pPacket          Pointer to CS meta event packet
+*\param[out]   pCsMetaEvent     Pointer to CS meta event data structure
+*
+*\retval       bleResult_t      Result of the operation.
+********************************************************************************** */
+static bleResult_t handleSubeventResult
+(
+    csMetaEvent_t* pPacket,
+    csMetaEventData_t* pCsMetaEvent
+)
+{
+    bleResult_t result = gBleSuccess_c;
+
+    pCsMetaEvent->eventType = gCsMetaEvtSubeventResult_c;
+    csSubeventResultEvent_t* pResultEvent = 
+        MEM_BufferAlloc(sizeof(csSubeventResultEvent_t));
+
+    if (pResultEvent != NULL)
+    {
+        /* Compute length of received CS data */
+        uint32_t dataSize = 0;
+        
+        if (pPacket->eventData.csSubeventResultEvent.pData != NULL)
+        {
+            uint8_t *stepDataLenPtr = &pPacket->eventData.csSubeventResultEvent.pData[2U * sizeof(uint8_t)]; /* Skip mode, channel */
+
+            for (uint32_t i = 0; i < pPacket->eventData.csSubeventResultEvent.numStepsReported; i++)
+            {
+                dataSize += ((uint32_t)*(&stepDataLenPtr[dataSize])) + sizeof(uint8_t) * 3U;
+            }
+
+            pCsMetaEvent->pEventData = (void*)pResultEvent;
+            pResultEvent->pData = MEM_BufferAlloc(dataSize);
+            if (pResultEvent->pData != NULL)
+            {
+                /* Copy header information */
+                FLib_MemCpy(pResultEvent,
+                            &pPacket->eventData.csSubeventResultEvent,
+                            sizeof(csSubeventResultEvent_t) - sizeof(uint8_t*));
+
+                /* Copy event data */
+                FLib_MemCpy(pResultEvent->pData,
+                            pPacket->eventData.csSubeventResultEvent.pData,
+                            dataSize);
+            }
+            else
+            {
+                result = gBleOutOfMemory_c;
+            }
+        }
+        else
+        {
+            result = gBleInvalidParameter_c;
+        }
+    }
+    else
+    {
+        result = gBleOutOfMemory_c;
+    }
+
+    /* Free Event Data */
+    (void)MEM_BufferFree(pPacket->eventData.csSubeventResultEvent.pData);
+
+    return result;
+}
+
+/*! *********************************************************************************
+*\fn           static bleResult_t handleSubeventResultContinue(
+*              csMetaEvent_t* pPacket, csMetaEventData_t* pCsMetaEvent)
+*
+*\brief        Handle Subevent Result Continue event.
+*
+*\param[in]    pPacket          Pointer to CS meta event packet
+*\param[out]   pCsMetaEvent     Pointer to CS meta event data structure
+*
+*\retval       bleResult_t      Result of the operation.
+********************************************************************************** */
+static bleResult_t handleSubeventResultContinue
+(
+    csMetaEvent_t* pPacket,
+    csMetaEventData_t* pCsMetaEvent
+)
+{
+    bleResult_t result = gBleSuccess_c;
+
+    pCsMetaEvent->eventType = gCsMetaEvtSubeventResultContinue_c;
+    csSubeventResultContinueEvent_t* pResultContinueEvt = 
+        MEM_BufferAlloc(sizeof(csSubeventResultContinueEvent_t));
+
+    if (pResultContinueEvt != NULL)
+    {
+        /* Compute length of received CS data */
+        uint32_t dataSize = 0;
+        
+        if (pPacket->eventData.csSubeventResultContinueEvent.pData != NULL)
+        {
+            uint8_t *stepDataLenPtr = &pPacket->eventData.csSubeventResultContinueEvent.pData[2U * sizeof(uint8_t)]; /* Skip mode, channel */
+
+            for (uint32_t i = 0; i < pPacket->eventData.csSubeventResultContinueEvent.numStepsReported; i++)
+            {
+                dataSize += ((uint32_t)*(&stepDataLenPtr[dataSize])) + sizeof(uint8_t) * 3U;
+            }
+
+            pCsMetaEvent->pEventData = (void*)pResultContinueEvt;
+            pResultContinueEvt->pData = MEM_BufferAlloc(dataSize);
+            if (pResultContinueEvt->pData != NULL)
+            {
+                /* Copy header information */
+                FLib_MemCpy(pResultContinueEvt,
+                            &pPacket->eventData.csSubeventResultContinueEvent,
+                            sizeof(csSubeventResultContinueEvent_t) - sizeof(uint8_t*));
+
+                /* Copy event data */
+                FLib_MemCpy(pResultContinueEvt->pData,
+                            pPacket->eventData.csSubeventResultContinueEvent.pData,
+                            dataSize);
+            }
+            else
+            {
+                result = gBleOutOfMemory_c;
+            }
+        }
+        else
+        {
+            result = gBleInvalidParameter_c;
+        }
+    }
+    else
+    {
+        result = gBleOutOfMemory_c;
+    }
+
+    /* Free Event Data */
+    (void)MEM_BufferFree(pPacket->eventData.csSubeventResultContinueEvent.pData);
+
+    return result;
+}
+
+/*! *********************************************************************************
+*\fn           static bleResult_t handleCsError(
+*              csMetaEvent_t* pPacket, csMetaEventData_t* pCsMetaEvent)
+*
+*\brief        Handle CS Error event.
+*
+*\param[in]    pPacket          Pointer to CS meta event packet
+*\param[out]   pCsMetaEvent     Pointer to CS meta event data structure
+*
+*\retval       bleResult_t      Result of the operation.
+********************************************************************************** */
+static bleResult_t handleCsError
+(
+    csMetaEvent_t* pPacket,
+    csMetaEventData_t* pCsMetaEvent
+)
+{
+    bleResult_t result = gBleSuccess_c;
+
+    pCsMetaEvent->eventType = gCsMetaEvtError_c;
+    csErrorEvent_t* pError = MEM_BufferAlloc(sizeof(csErrorEvent_t));
+
+    if (pError != NULL)
+    {
+        pCsMetaEvent->pEventData = (void*)pError;
+        FLib_MemCpy(pCsMetaEvent->pEventData,
+                    &pPacket->eventData.csError,
+                    sizeof(csErrorEvent_t));
+    }
+    else
+    {
+        result = gBleOutOfMemory_c;
+    }
+
+    return result;
+}
+
+#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
+/*! *********************************************************************************
+*\fn           static bleResult_t handleHciDataLog(
+*              csMetaEvent_t* pPacket, csMetaEventData_t* pCsMetaEvent)
+*
+*\brief        Handle HCI Data Log event.
+*
+*\param[in]    pPacket          Pointer to CS meta event packet
+*\param[out]   pCsMetaEvent     Pointer to CS meta event data structure
+*
+*\retval       bleResult_t      Result of the operation.
+********************************************************************************** */
+static bleResult_t handleHciDataLog
+(
+    csMetaEvent_t* pPacket,
+    csMetaEventData_t* pCsMetaEvent
+)
+{
+    bleResult_t result = gBleSuccess_c;
+    
+    pCsMetaEvent->eventType = gCsMetaEvtHciDataLog_c;
+    csHciDataLogEvent_t *pHciDataLog = MEM_BufferAlloc(sizeof(csHciDataLogEvent_t));
+
+    if (pHciDataLog != NULL)
+    {
+        pCsMetaEvent->pEventData = (void*)pHciDataLog;
+        pHciDataLog->opCode = pPacket->eventData.csHciDataLogEvent.opCode;
+        pHciDataLog->packetSize = pPacket->eventData.csHciDataLogEvent.packetSize;
+        uint8_t *hciPacket = MEM_BufferAlloc(pPacket->eventData.csHciDataLogEvent.packetSize);
+
+        if (hciPacket != NULL)
+        {
+            /* Copy HCI data packet into event data */
+            FLib_MemCpy(hciPacket,
+                        pPacket->eventData.csHciDataLogEvent.pPacket,
+                        pPacket->eventData.csHciDataLogEvent.packetSize);
+            pHciDataLog->pPacket = hciPacket;
+        }
+        else
+        {
+            result = gBleOutOfMemory_c;
+        }
+    }
+    else
+    {
+        result = gBleOutOfMemory_c;
+    }
+    
+    return result;
+}
+#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */
+
+/*! *********************************************************************************
 *\fn           bleResult_t csMetaEventCallback(csMetaEvent_t* pPacket)
 *
 *\brief        Send CS Meta Events from the channel sounding lib to the application.
@@ -1489,219 +1874,50 @@ static bleResult_t csMetaEventCallback
         {
             case csReadRemoteSupportedCapabilitiesComplete_c:
             {
-                pCsMetaEvent->eventType = gCsMetaEvtReadRemoteSupportedCapabilities_c;
-                csReadRemoteSupportedCapabilitiesCompleteEvent_t* pRemoteCapabilities =
-                    MEM_BufferAlloc(sizeof(csReadRemoteSupportedCapabilitiesCompleteEvent_t));
-
-                if (pRemoteCapabilities != NULL)
-                {
-                    pCsMetaEvent->pEventData = (void*)pRemoteCapabilities;
-                    FLib_MemCpy(pCsMetaEvent->pEventData,
-                                &pPacket->eventData.csReadRemoteSupportedCapabilitiesComplete,
-                                sizeof(csReadRemoteSupportedCapabilitiesCompleteEvent_t));
-                }
-                else
-                {
-                    result = gBleOutOfMemory_c;
-                }
+                result = handleReadRemoteSupportedCapabilities(pPacket, pCsMetaEvent);
             }
             break;
 
             case csSecurityEnableComplete_c:
             {
-                pCsMetaEvent->eventType = gCsMetaEvtSecurityEnableComplete_c;
-                csSecurityEnableCompleteEvent_t* pSecurityEnable = MEM_BufferAlloc(sizeof(csSecurityEnableCompleteEvent_t));
-
-                if (pSecurityEnable != NULL)
-                {
-                    pCsMetaEvent->pEventData = (void*)pSecurityEnable;
-                    FLib_MemCpy(pCsMetaEvent->pEventData,
-                                &pPacket->eventData.csSecurityEnableComplete,
-                                sizeof(csSecurityEnableCompleteEvent_t));
-                }
-                else
-                {
-                    result = gBleOutOfMemory_c;
-                }
+                result = handleSecurityEnableComplete(pPacket, pCsMetaEvent);
             }
             break;
 
             case csConfigComplete_c:
             {
-                pCsMetaEvent->eventType = gCsMetaEvtConfigComplete_c;
-                csConfigCompleteEvent_t* pConfigComplete = MEM_BufferAlloc(sizeof(csConfigCompleteEvent_t));
-
-                if (pConfigComplete != NULL)
-                {
-                    pCsMetaEvent->pEventData = (void*)pConfigComplete;
-                    FLib_MemCpy(pCsMetaEvent->pEventData,
-                                &pPacket->eventData.csConfigComplete,
-                                sizeof(csConfigCompleteEvent_t));
-                }
-                else
-                {
-                    result = gBleOutOfMemory_c;
-                }
+                result = handleConfigComplete(pPacket, pCsMetaEvent);
             }
             break;
 
             case csProcedureEnableCompleteEvent_c:
             {
-                pCsMetaEvent->eventType = gCsMetaEvtProcedureEnableComplete_c;
-                csProcedureEnableCompleteEvent_t* pProcEnableComplete = MEM_BufferAlloc(sizeof(csProcedureEnableCompleteEvent_t));
-
-                if (pProcEnableComplete != NULL)
-                {
-                    pCsMetaEvent->pEventData = (void*)pProcEnableComplete;
-                    FLib_MemCpy(pCsMetaEvent->pEventData,
-                                &pPacket->eventData.csProcedureEnableCompleteEvent,
-                                sizeof(csProcedureEnableCompleteEvent_t));
-                }
-                else
-                {
-                    result = gBleOutOfMemory_c;
-                }
+                result = handleProcedureEnableComplete(pPacket, pCsMetaEvent);
             }
             break;
 
             case csSubeventResultEvent_c:
             {
-                pCsMetaEvent->eventType = gCsMetaEvtSubeventResult_c;
-                csSubeventResultEvent_t* pResultEvent = MEM_BufferAlloc(sizeof(csSubeventResultEvent_t));
-
-                if (pResultEvent != NULL)
-                {
-                    /* Compute length of received CS data */
-                    uint32_t dataSize = 0;
-                    uint8_t *stepDataLenPtr = &pPacket->eventData.csSubeventResultEvent.pData[2U * sizeof(uint8_t)]; /* Skip mode, channel */
-
-                    for (uint32_t i = 0; i < pPacket->eventData.csSubeventResultEvent.numStepsReported; i++)
-                    {
-                        dataSize += ((uint32_t)*(&stepDataLenPtr[dataSize])) + sizeof(uint8_t) * 3U;
-                    }
-
-                    pCsMetaEvent->pEventData = (void*)pResultEvent;
-                    pResultEvent->pData = MEM_BufferAlloc(dataSize);
-                    if (pResultEvent->pData != NULL)
-                    {
-                        /* Copy header information */
-                        FLib_MemCpy(pResultEvent,
-                                    &pPacket->eventData.csSubeventResultEvent,
-                                    sizeof(csSubeventResultEvent_t) - sizeof(uint8_t*));
-
-                        /* Copy event data */
-                        FLib_MemCpy(pResultEvent->pData,
-                                    pPacket->eventData.csSubeventResultEvent.pData,
-                                    dataSize);
-                    }
-                    else
-                    {
-                        result = gBleOutOfMemory_c;
-                    }
-                }
-                else
-                {
-                    result = gBleOutOfMemory_c;
-                }
-
-                /* Free Event Data */
-                (void)MEM_BufferFree(pPacket->eventData.csSubeventResultEvent.pData);
+                result = handleSubeventResult(pPacket, pCsMetaEvent);
             }
             break;
 
             case csSubeventResultContinueEvent_c:
             {
-                pCsMetaEvent->eventType = gCsMetaEvtSubeventResultContinue_c;
-                csSubeventResultContinueEvent_t* pResultContinueEvt = MEM_BufferAlloc(sizeof(csSubeventResultContinueEvent_t));
-
-                if (pResultContinueEvt != NULL)
-                {
-                    /* Compute length of received CS data */
-                    uint32_t dataSize = 0;
-                    uint8_t *stepDataLenPtr = &pPacket->eventData.csSubeventResultContinueEvent.pData[2U * sizeof(uint8_t)]; /* Skip mode, channel */
-
-                    for (uint32_t i = 0; i < pPacket->eventData.csSubeventResultContinueEvent.numStepsReported; i++)
-                    {
-                        dataSize += ((uint32_t)*(&stepDataLenPtr[dataSize])) + sizeof(uint8_t) * 3U;
-                    }
-
-                    pCsMetaEvent->pEventData = (void*)pResultContinueEvt;
-                    pResultContinueEvt->pData = MEM_BufferAlloc(dataSize);
-                    if (pResultContinueEvt->pData != NULL)
-                    {
-                        /* Copy header information */
-                        FLib_MemCpy(pResultContinueEvt,
-                                    &pPacket->eventData.csSubeventResultContinueEvent,
-                                    sizeof(csSubeventResultContinueEvent_t) - sizeof(uint8_t*));
-
-                        /* Copy event data */
-                        FLib_MemCpy(pResultContinueEvt->pData,
-                                    pPacket->eventData.csSubeventResultContinueEvent.pData,
-                                    dataSize);
-                    }
-                    else
-                    {
-                        result = gBleOutOfMemory_c;
-                    }
-                }
-                else
-                {
-                    result = gBleOutOfMemory_c;
-                }
-                /* Free Event Data */
-                (void)MEM_BufferFree(pPacket->eventData.csSubeventResultContinueEvent.pData);
+                result = handleSubeventResultContinue(pPacket, pCsMetaEvent);
             }
             break;
 
             case csError_c:
             {
-                pCsMetaEvent->eventType = gCsMetaEvtError_c;
-                csErrorEvent_t* pError = MEM_BufferAlloc(sizeof(csErrorEvent_t));
-
-                if (pError != NULL)
-                {
-                    pCsMetaEvent->pEventData = (void*)pError;
-                    FLib_MemCpy(pCsMetaEvent->pEventData,
-                                &pPacket->eventData.csError,
-                                sizeof(csErrorEvent_t));
-                }
-                else
-                {
-                    result = gBleOutOfMemory_c;
-                }
+                result = handleCsError(pPacket, pCsMetaEvent);
             }
             break;
 
 #if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
             case csHciDataLog_c:
             {
-                pCsMetaEvent->eventType = gCsMetaEvtHciDataLog_c;
-                csHciDataLogEvent_t *pHciDataLog = MEM_BufferAlloc(sizeof(csHciDataLogEvent_t));
-
-                if (pHciDataLog != NULL)
-                {
-                    pCsMetaEvent->pEventData = (void*)pHciDataLog;
-                    pHciDataLog->opCode = pPacket->eventData.csHciDataLogEvent.opCode;
-                    pHciDataLog->packetSize = pPacket->eventData.csHciDataLogEvent.packetSize;
-                    uint8_t *hciPacket = MEM_BufferAlloc(pPacket->eventData.csHciDataLogEvent.packetSize);
-
-                    if (hciPacket != NULL)
-                    {
-                        /* Copy HCI data packet into event data */
-                        FLib_MemCpy(hciPacket,
-                                    pPacket->eventData.csHciDataLogEvent.pPacket,
-                                    pPacket->eventData.csHciDataLogEvent.packetSize);
-                        pHciDataLog->pPacket = hciPacket;
-                    }
-                    else
-                    {
-                        result = gBleOutOfMemory_c;
-                    }
-                }
-                else
-                {
-                    result = gBleOutOfMemory_c;
-                }
+                result = handleHciDataLog(pPacket, pCsMetaEvent);
             }
             break;
 #endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */

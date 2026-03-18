@@ -264,6 +264,124 @@ bool_t BleApp_CheckActiveConnections(void)
     return bActiveConn;
 }
 
+#if defined(gHandoverIncluded_d) && (gHandoverIncluded_d == 1)
+#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1)
+/*! *********************************************************************************
+* \brief        Handler of gHandoverGetCsLlContextComplete_c from BleApp_GenericCallback.
+*
+* \param[in]    pGenericEvent    Pointer to gapGenericEvent_t.
+********************************************************************************** */
+static void BleApp_GenericCallback_HandoverGetCsLlContextComplete(gapGenericEvent_t* pGenericEvent)
+{
+    for (uint8_t idx = 0U; idx < ((uint8_t)gAppMaxConnections_c); idx++)
+    {
+        if (maPeerInformation[idx].deviceId == gHandoverDeviceId)
+        {
+            A2A_SendApplicationData(maPeerInformation[idx].deviceId);
+            break;
+        }
+    }
+
+    AppHandover_GenericCallback(pGenericEvent);
+}
+
+/*! *********************************************************************************
+* \brief        Handler of gHandoverSetCsLlContextComplete_c from BleApp_GenericCallback.
+*
+* \param[in]    pGenericEvent    Pointer to gapGenericEvent_t.
+********************************************************************************** */
+static void BleApp_GenericCallback_HandoverSetCsLlContextComplete(gapGenericEvent_t* pGenericEvent)
+{
+    AppHandover_GenericCallback(pGenericEvent);
+    /* Set CS configuration locally and start procedure if initiator */
+    if (gLastHandedOverPeerId != gInvalidDeviceId_c)
+    {
+        uint8_t nvmIndex = gInvalidNvmIndex_c;
+        bool_t isBonded = FALSE;
+
+        (void)Gap_CheckIfBonded(gLastHandedOverPeerId, &isBonded, &nvmIndex);
+
+        if (nvmIndex != gInvalidNvmIndex_c)
+        {
+            (void)AppLocalization_WriteCachedRemoteCapabilities(gLastHandedOverPeerId, nvmIndex);
+        }
+    }
+}
+#endif /* gBLE_ChannelSounding_d */
+#endif /* defined(gHandoverIncluded_d) && (gHandoverIncluded_d == 1) */
+
+/*! *********************************************************************************
+* \brief        Handler of gLePhyEvent_c from BleApp_GenericCallback.
+*
+* \param[in]    pGenericEvent    Pointer to gapGenericEvent_t.
+********************************************************************************** */
+static void BleApp_GenericCallback_LePhyEvent(gapGenericEvent_t* pGenericEvent)
+{
+    /* Inform application about Le Phy user interface event */
+    if (mpfBleUserInterfaceEventHandler != NULL)
+    {
+        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(gapPhyEvent_t));
+        if (pEventData != NULL)
+        {
+            pEventData->appEvent = mAppEvt_LePhyEvent_c;
+            pEventData->eventData.pData = &pEventData[1];
+            FLib_MemCpy(pEventData->eventData.pData, &pGenericEvent->eventData.phyEvent, sizeof(gapPhyEvent_t));
+            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleUserInterfaceEventHandler, pEventData))
+            {
+                (void)MEM_BufferFree(pEventData);
+            }
+        }
+    }
+}
+
+/*! *********************************************************************************
+* \brief        Handler of gLeScLocalOobData_c from BleApp_GenericCallback.
+*
+* \param[in]    pGenericEvent    Pointer to gapGenericEvent_t.
+********************************************************************************** */
+static void BleApp_GenericCallback_LeScLocalOobData(gapGenericEvent_t* pGenericEvent)
+{
+    /* Inform application about LE SC Local OOB Data event */
+    if(mpfBleEventHandler != NULL)
+    {
+        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(gapLeScOobData_t));
+        if(pEventData != NULL)
+        {
+            pEventData->appEvent = mAppEvt_GenericCallback_LeScLocalOobData_c;
+            pEventData->eventData.pData = &pEventData[1];
+            FLib_MemCpy(pEventData->eventData.pData, &pGenericEvent->eventData.localOobData, sizeof(gapLeScOobData_t));
+            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
+            {
+                (void)MEM_BufferFree(pEventData);
+            }
+        }
+    }
+}
+
+/*! *********************************************************************************
+* \brief        Handler of gBondCreatedEvent_c from BleApp_GenericCallback.
+*
+* \param[in]    pGenericEvent    Pointer to gapGenericEvent_t.
+********************************************************************************** */
+static void BleApp_GenericCallback_BondCreatedEvent(gapGenericEvent_t* pGenericEvent)
+{
+    /* Inform application about bond created event */
+    if(mpfBleEventHandler != NULL)
+    {
+        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(bleBondCreatedEvent_t));
+        if(pEventData != NULL)
+        {
+            pEventData->appEvent = mAppEvt_GenericCallback_BondCreatedEvent_c;
+            pEventData->eventData.pData = &pEventData[1];
+            FLib_MemCpy(pEventData->eventData.pData, &pGenericEvent->eventData.bondCreatedEvent, sizeof(bleBondCreatedEvent_t));
+            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
+            {
+                (void)MEM_BufferFree(pEventData);
+            }
+        }
+    }
+}
+
 /*! *********************************************************************************
 * \brief        Handles BLE generic callback.
 *
@@ -329,96 +447,32 @@ void BleApp_GenericCallback (gapGenericEvent_t* pGenericEvent)
 #if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1)
         case gHandoverGetCsLlContextComplete_c:
         {
-            for (uint8_t idx = 0U; idx < ((uint8_t)gAppMaxConnections_c); idx++)
-            {
-                if (maPeerInformation[idx].deviceId == gHandoverDeviceId)
-                {
-                    A2A_SendApplicationData(maPeerInformation[idx].deviceId);
-                    break;
-                }
-            }
-
-            AppHandover_GenericCallback(pGenericEvent);
+            BleApp_GenericCallback_HandoverGetCsLlContextComplete(pGenericEvent);
         }
         break;
 
         case gHandoverSetCsLlContextComplete_c:
         {
-            AppHandover_GenericCallback(pGenericEvent);
-            /* Set CS configuration locally and start procedure if initiator */
-            if (gLastHandedOverPeerId != gInvalidDeviceId_c)
-            {
-                uint8_t nvmIndex = gInvalidNvmIndex_c;
-                bool_t isBonded = FALSE;
-
-                (void)Gap_CheckIfBonded(gLastHandedOverPeerId, &isBonded, &nvmIndex);
-
-                if (nvmIndex != gInvalidNvmIndex_c)
-                {
-                    (void)AppLocalization_WriteCachedRemoteCapabilities(gLastHandedOverPeerId, nvmIndex);
-                }
-            }
+            BleApp_GenericCallback_HandoverSetCsLlContextComplete(pGenericEvent);
         }
         break;
 #endif /* gBLE_ChannelSounding_d */
 #endif /* defined(gHandoverIncluded_d) && (gHandoverIncluded_d == 1) */
         case gLePhyEvent_c:
         {
-            /* Inform application about Le Phy user interface event */
-            if (mpfBleUserInterfaceEventHandler != NULL)
-            {
-                appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(gapPhyEvent_t));
-                if (pEventData != NULL)
-                {
-                    pEventData->appEvent = mAppEvt_LePhyEvent_c;
-                    pEventData->eventData.pData = &pEventData[1];
-                    FLib_MemCpy(pEventData->eventData.pData, &pGenericEvent->eventData.phyEvent, sizeof(gapPhyEvent_t));
-                    if (gBleSuccess_c != App_PostCallbackMessage(mpfBleUserInterfaceEventHandler, pEventData))
-                    {
-                        (void)MEM_BufferFree(pEventData);
-                    }
-                }
-            }
+            BleApp_GenericCallback_LePhyEvent(pGenericEvent);
         }
         break;
 
         case gLeScLocalOobData_c:
         {
-            /* Inform application about LE SC Local OOB Data event */
-            if(mpfBleEventHandler != NULL)
-            {
-                appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(gapLeScOobData_t));
-                if(pEventData != NULL)
-                {
-                    pEventData->appEvent = mAppEvt_GenericCallback_LeScLocalOobData_c;
-                    pEventData->eventData.pData = &pEventData[1];
-                    FLib_MemCpy(pEventData->eventData.pData, &pGenericEvent->eventData.localOobData, sizeof(gapLeScOobData_t));
-                    if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
-                    {
-                        (void)MEM_BufferFree(pEventData);
-                    }
-                }
-            }
+            BleApp_GenericCallback_LeScLocalOobData(pGenericEvent);
         }
         break;
 
         case gBondCreatedEvent_c:
         {
-            /* Inform application about bond created event */
-            if(mpfBleEventHandler != NULL)
-            {
-                appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(bleBondCreatedEvent_t));
-                if(pEventData != NULL)
-                {
-                    pEventData->appEvent = mAppEvt_GenericCallback_BondCreatedEvent_c;
-                    pEventData->eventData.pData = &pEventData[1];
-                    FLib_MemCpy(pEventData->eventData.pData, &pGenericEvent->eventData.bondCreatedEvent, sizeof(bleBondCreatedEvent_t));
-                    if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
-                    {
-                        (void)MEM_BufferFree(pEventData);
-                    }
-                }
-            }
+            BleApp_GenericCallback_BondCreatedEvent(pGenericEvent);
         }
         break;
 

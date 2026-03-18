@@ -55,6 +55,7 @@
 *************************************************************************************
 ************************************************************************************/
 #if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
+static void AppShellInit_CsHandoverCommands(void);
 SHELL_HANDLE_DEFINE(g_shellHandle);
 /* Shell */
 static shell_status_t ShellReset_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
@@ -312,29 +313,11 @@ void AppShellInit(char* prompt)
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mRemoveBondedDevCmd);
     assert(kStatus_SHELL_Success == status);
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mListActiveDevCmd);
-    assert(kStatus_SHELL_Success == status);   
-    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSetCsConfigParamsCmd);
-    assert(kStatus_SHELL_Success == status);
-    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSetCsProcParamsCmd);
-    assert(kStatus_SHELL_Success == status);
-    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mTriggerCsDistMeasCmd);
-    assert(kStatus_SHELL_Success == status);
-    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mHandoverSendL2capCmd);
-    assert(kStatus_SHELL_Success == status);
-    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mHandoverAnchorMonitorCmd);
-    assert(kStatus_SHELL_Success == status);
-    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mHandoverPacketMonitorCmd);
-    assert(kStatus_SHELL_Success == status);
-    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mHandoverDevIdCmd);
     assert(kStatus_SHELL_Success == status);
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSetVerbosityCmd);
     assert(kStatus_SHELL_Success == status);
-    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSelectalgoCmd);
-    assert(kStatus_SHELL_Success == status);
-    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSetCsRoleCmd);
-    assert(kStatus_SHELL_Success == status);
-    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSetNumProcsCmd);
-    assert(kStatus_SHELL_Success == status);
+
+    AppShellInit_CsHandoverCommands();
 #endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 }
 
@@ -383,8 +366,34 @@ void BleApp_PrintHexLe(uint8_t *pHex, uint8_t len)
 * Private functions
 *************************************************************************************
 ************************************************************************************/
-
 #if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
+static void AppShellInit_CsHandoverCommands(void)
+{
+    shell_status_t status = kStatus_SHELL_Error;
+
+    (void)status;
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSetCsConfigParamsCmd);
+    assert(kStatus_SHELL_Success == status);
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSetCsProcParamsCmd);
+    assert(kStatus_SHELL_Success == status);
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mTriggerCsDistMeasCmd);
+    assert(kStatus_SHELL_Success == status);
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mHandoverSendL2capCmd);
+    assert(kStatus_SHELL_Success == status);
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mHandoverAnchorMonitorCmd);
+    assert(kStatus_SHELL_Success == status);
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mHandoverPacketMonitorCmd);
+    assert(kStatus_SHELL_Success == status);
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mHandoverDevIdCmd);
+    assert(kStatus_SHELL_Success == status);
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSelectalgoCmd);
+    assert(kStatus_SHELL_Success == status);
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSetCsRoleCmd);
+    assert(kStatus_SHELL_Success == status);
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSetNumProcsCmd);
+    assert(kStatus_SHELL_Success == status);
+}
+
 /*! *********************************************************************************
 * \brief        Reset MCU.
 *
@@ -786,6 +795,223 @@ static shell_status_t ShellRemoveBondedDev_Command(shell_handle_t shellHandle, i
 }
 
 /*! *********************************************************************************
+* \brief        Validates and sets the CS submode type parameter.
+*
+* \param[in/out] pAppCsConfigParams  Pointer to CS config parameters structure
+* \param[in]     pArgv               Pointer to argument string
+*
+* \return       bleResult_t          gBleSuccess_c if valid, gBleInvalidParameter_c otherwise
+********************************************************************************** */
+static bleResult_t ShellSetCsConfigParams_CheckSubmodeType(appCsConfigParams_t *pAppCsConfigParams, char *pArgv)
+{
+    bleResult_t status = gBleSuccess_c;
+    pAppCsConfigParams->subModeType = (uint8_t)BleApp_atoi(pArgv);
+
+    if ((pAppCsConfigParams->subModeType == 0U) || (pAppCsConfigParams->subModeType > 3U))
+    {
+        status = gBleInvalidParameter_c;
+    }
+    
+    return status;
+}
+
+/*! *********************************************************************************
+* \brief        Validates and sets the CS main mode parameters.
+*
+* \param[in/out] pAppCsConfigParams  Pointer to CS config parameters structure
+* \param[in]     argv                Array of argument strings
+*
+* \return       bleResult_t          gBleSuccess_c if valid, gBleInvalidParameter_c otherwise
+********************************************************************************** */
+static bleResult_t ShellSetCsConfigParams_CheckMainMode(appCsConfigParams_t *pAppCsConfigParams, char * argv[])
+{
+    bleResult_t status = gBleSuccess_c;
+    
+    pAppCsConfigParams->mainModeMinSteps = (uint8_t)BleApp_atoi(argv[4]);
+    pAppCsConfigParams->mainModeMaxSteps = (uint8_t)BleApp_atoi(argv[5]);
+    pAppCsConfigParams->mainModeRepetition = (uint8_t)BleApp_atoi(argv[6]);
+
+    if (pAppCsConfigParams->mainModeRepetition > 3U)
+    {
+        status = gBleInvalidParameter_c;
+    }
+    
+    return status;
+}
+
+/*! *********************************************************************************
+* \brief        Validates and sets the CS mode 0 steps parameter.
+*
+* \param[in/out] pAppCsConfigParams  Pointer to CS config parameters structure
+* \param[in]     pArgv               Pointer to argument string
+*
+* \return       bleResult_t          gBleSuccess_c if valid, gBleInvalidParameter_c otherwise
+********************************************************************************** */
+static bleResult_t ShellSetCsConfigParams_CheckMode0Steps(appCsConfigParams_t *pAppCsConfigParams, char *pArgv)
+{
+    bleResult_t status = gBleSuccess_c;
+
+    pAppCsConfigParams->mode0Steps = (uint8_t)BleApp_atoi(pArgv);
+
+    if ((pAppCsConfigParams->mode0Steps == 0U) || (pAppCsConfigParams->mode0Steps > 3U))
+    {
+        status = gBleInvalidParameter_c;
+    }
+    
+    return status;
+}
+
+/*! *********************************************************************************
+* \brief        Validates and sets the CS role parameter.
+*
+* \param[in/out] pAppCsConfigParams  Pointer to CS config parameters structure
+* \param[in]     pArgv               Pointer to argument string
+*
+* \return       bleResult_t          gBleSuccess_c if valid, gBleInvalidParameter_c otherwise
+********************************************************************************** */
+static bleResult_t ShellSetCsConfigParams_CheckRole(appCsConfigParams_t *pAppCsConfigParams, char *pArgv)
+{
+    bleResult_t status = gBleSuccess_c;
+    pAppCsConfigParams->role = (uint8_t)BleApp_atoi(pArgv);
+
+    if (pAppCsConfigParams->role > 1U)
+    {
+        status = gBleInvalidParameter_c;
+    }
+    
+    return status;
+}
+
+/*! *********************************************************************************
+* \brief        Validates and sets the CS RTT type parameter.
+*
+* \param[in/out] pAppCsConfigParams  Pointer to CS config parameters structure
+* \param[in]     pArgv               Pointer to argument string
+*
+* \return       bleResult_t          gBleSuccess_c if valid, gBleInvalidParameter_c otherwise
+********************************************************************************** */
+static bleResult_t ShellSetCsConfigParams_CheckRTTType(appCsConfigParams_t *pAppCsConfigParams, char *pArgv)
+{
+    bleResult_t status = gBleSuccess_c;
+    pAppCsConfigParams->RTTType = (uint8_t)BleApp_atoi(pArgv);
+
+    if (pAppCsConfigParams->RTTType > 6U)
+    {
+        status = gBleInvalidParameter_c;
+    }
+    return status;
+}
+
+/*! *********************************************************************************
+* \brief        Handles the CS config parameters command processing.
+*
+* \param[in]    deviceId    Device ID for the CS configuration
+* \param[in]    pEventData  Pointer to event data structure
+* \param[in]    argv        Array of argument strings
+*
+* \return       bleResult_t gBleSuccess_c if successful, error code otherwise
+********************************************************************************** */
+static bleResult_t ShellSetCsConfigParams_CommandHandler(deviceId_t deviceId, appEventData_t *pEventData, char * argv[])
+{
+    bleResult_t status = gBleSuccess_c;
+
+    pEventData->appEvent = mAppEvt_Shell_SetCsConfigParams_Command_c;
+    pEventData->peerDeviceId = deviceId;
+    pEventData->eventData.pData = pEventData + 1;
+    appCsConfigParams_t *pAppCsConfigParams = pEventData->eventData.pData;
+
+    pAppCsConfigParams->mainModeType = (uint8_t)BleApp_atoi(argv[2]);
+
+    if ((pAppCsConfigParams->mainModeType == 0U) || (pAppCsConfigParams->mainModeType > 3U))
+    {
+        status = gBleInvalidParameter_c;
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        status = ShellSetCsConfigParams_CheckSubmodeType(pAppCsConfigParams, argv[3]);
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        status = ShellSetCsConfigParams_CheckMainMode(pAppCsConfigParams, argv);
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        status = ShellSetCsConfigParams_CheckMode0Steps(pAppCsConfigParams, argv[7]);
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        status = ShellSetCsConfigParams_CheckRole(pAppCsConfigParams, argv[8]);
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        status = ShellSetCsConfigParams_CheckRTTType(pAppCsConfigParams, argv[9]);
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        if (gHCICSChannelMapSize ==  BleApp_ParseHexValue(argv[10]))
+        {
+            FLib_MemCpy(pAppCsConfigParams->channelMap, argv[10], gCsChannelMapLength_c);
+        }
+        else
+        {
+            status = gBleInvalidParameter_c;
+        }
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        pAppCsConfigParams->channelMapRepetition = (uint8_t)BleApp_atoi(argv[11]);
+
+        if (pAppCsConfigParams->channelMapRepetition == 0U)
+        {
+            status = gBleInvalidParameter_c;
+        }
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        pAppCsConfigParams->channelSelectionType = (uint8_t)BleApp_atoi(argv[12]);
+
+        if (pAppCsConfigParams->channelSelectionType > 1U)
+        {
+            status = gBleInvalidParameter_c;
+        }
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        pAppCsConfigParams->csSyncPhy = (uint8_t)BleApp_atoi(argv[13]);
+
+        if ((pAppCsConfigParams->csSyncPhy < 1U) || (pAppCsConfigParams->csSyncPhy > 3U))
+        {
+            status = gBleInvalidParameter_c;
+        }
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        status = App_PostCallbackMessage(mpfShellEventHandler, pEventData);
+    }
+
+    if (status != gBleSuccess_c)
+    {
+        (void)MEM_BufferFree(pEventData);
+    }
+    else
+    {
+        shell_write("\r\nConfig parameters set successfully.\r\n");
+    }
+
+    return status;
+}
+
+/*! *********************************************************************************
 * \brief        Set CS Create Config default parameters.
 *
 * \param[in]    argc           Number of arguments
@@ -813,125 +1039,7 @@ static shell_status_t ShellSetCsConfigParams_Command(shell_handle_t shellHandle,
                 appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(appCsConfigParams_t));
                 if(pEventData != NULL)
                 {
-                    pEventData->appEvent = mAppEvt_Shell_SetCsConfigParams_Command_c;
-                    pEventData->peerDeviceId = deviceId;
-                    pEventData->eventData.pData = pEventData + 1;
-                    appCsConfigParams_t *pAppCsConfigParams = pEventData->eventData.pData;
-
-                    pAppCsConfigParams->mainModeType = (uint8_t)BleApp_atoi(argv[2]);
-
-                    if ((pAppCsConfigParams->mainModeType == 0U) || (pAppCsConfigParams->mainModeType > 3U))
-                    {
-                        status = gBleInvalidParameter_c;
-                    }
-
-                    if (status == gBleSuccess_c)
-                    {
-                        pAppCsConfigParams->subModeType = (uint8_t)BleApp_atoi(argv[3]);
-
-                        if ((pAppCsConfigParams->subModeType == 0U) || (pAppCsConfigParams->subModeType > 3U))
-                        {
-                            status = gBleInvalidParameter_c;
-                        }
-                    }
-
-                    if (status == gBleSuccess_c)
-                    {
-                        pAppCsConfigParams->mainModeMinSteps = (uint8_t)BleApp_atoi(argv[4]);
-                        pAppCsConfigParams->mainModeMaxSteps = (uint8_t)BleApp_atoi(argv[5]);
-                        pAppCsConfigParams->mainModeRepetition = (uint8_t)BleApp_atoi(argv[6]);
-
-                        if (pAppCsConfigParams->mainModeRepetition > 3U)
-                        {
-                            status = gBleInvalidParameter_c;
-                        }
-                    }
-
-                    if (status == gBleSuccess_c)
-                    {
-                        pAppCsConfigParams->mode0Steps = (uint8_t)BleApp_atoi(argv[7]);
-
-                        if ((pAppCsConfigParams->mode0Steps == 0U) || (pAppCsConfigParams->mode0Steps > 3U))
-                        {
-                            status = gBleInvalidParameter_c;
-                        }
-                    }
-
-                    if (status == gBleSuccess_c)
-                    {
-                        pAppCsConfigParams->role = (uint8_t)BleApp_atoi(argv[8]);
-
-                        if (pAppCsConfigParams->role > 1U)
-                        {
-                            status = gBleInvalidParameter_c;
-                        }
-                    }
-
-                    if (status == gBleSuccess_c)
-                    {
-                        pAppCsConfigParams->RTTType = (uint8_t)BleApp_atoi(argv[9]);
-
-                        if (pAppCsConfigParams->RTTType > 6U)
-                        {
-                            status = gBleInvalidParameter_c;
-                        }
-                    }
-
-                    if (status == gBleSuccess_c)
-                    {
-                        if (gHCICSChannelMapSize ==  BleApp_ParseHexValue(argv[10]))
-                        {
-                            FLib_MemCpy(pAppCsConfigParams->channelMap, argv[10], gCsChannelMapLength_c);
-                        }
-                        else
-                        {
-                            status = gBleInvalidParameter_c;
-                        }
-                    }
-
-                    if (status == gBleSuccess_c)
-                    {
-                        pAppCsConfigParams->channelMapRepetition = (uint8_t)BleApp_atoi(argv[11]);
-
-                        if (pAppCsConfigParams->channelMapRepetition == 0U)
-                        {
-                            status = gBleInvalidParameter_c;
-                        }
-                    }
-
-                    if (status == gBleSuccess_c)
-                    {
-                        pAppCsConfigParams->channelSelectionType = (uint8_t)BleApp_atoi(argv[12]);
-
-                        if (pAppCsConfigParams->channelSelectionType > 1U)
-                        {
-                            status = gBleInvalidParameter_c;
-                        }
-                    }
-
-                    if (status == gBleSuccess_c)
-                    {
-                        pAppCsConfigParams->csSyncPhy = (uint8_t)BleApp_atoi(argv[13]);
-
-                        if ((pAppCsConfigParams->csSyncPhy < 1U) || (pAppCsConfigParams->csSyncPhy > 3U))
-                        {
-                            status = gBleInvalidParameter_c;
-                        }
-                    }
-
-                    if (status == gBleSuccess_c)
-                    {
-                        status = App_PostCallbackMessage(mpfShellEventHandler, pEventData);
-                    }
-
-                    if (status != gBleSuccess_c)
-                    {
-                        (void)MEM_BufferFree(pEventData);
-                    }
-                    else
-                    {
-                        shell_write("\r\nConfig parameters set successfully.\r\n");
-                    }
+                    status = ShellSetCsConfigParams_CommandHandler(deviceId, pEventData, argv);
                 }
                 else
                 {
@@ -960,6 +1068,69 @@ static shell_status_t ShellSetCsConfigParams_Command(shell_handle_t shellHandle,
 }
 
 /*! *********************************************************************************
+* \brief        Handles the CS procedure parameters command processing.
+*
+* \param[in]    pEventData  Pointer to event data structure
+* \param[in]    deviceId    Device ID for the CS procedure
+* \param[in]    argv        Array of argument strings
+*
+* \return       bleResult_t gBleSuccess_c if successful, error code otherwise
+********************************************************************************** */
+static bleResult_t ShellSetCsProcedureParams_CommandHandler(appEventData_t *pEventData, deviceId_t deviceId, char *argv[])
+{
+    bleResult_t status = gBleSuccess_c;
+    pEventData->appEvent = mAppEvt_Shell_SetCsProcedureParams_Command_c;
+    pEventData->peerDeviceId = deviceId;
+    pEventData->eventData.pData = pEventData + 1;
+    appCsProcedureParams_t *pAppCsProcedureParams = pEventData->eventData.pData;
+
+    pAppCsProcedureParams->maxProcedureDuration = (uint16_t)BleApp_atoi(argv[2]);
+
+    if (pAppCsProcedureParams->maxProcedureDuration == 0U)
+    {
+        status = gBleInvalidParameter_c;
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        pAppCsProcedureParams->minPeriodBetweenProcedures = (uint16_t)BleApp_atoi(argv[3]);
+        pAppCsProcedureParams->maxPeriodBetweenProcedures = (uint16_t)BleApp_atoi(argv[4]);
+        pAppCsProcedureParams->maxNumProcedures = (uint16_t)BleApp_atoi(argv[5]);
+        pAppCsProcedureParams->minSubeventLen = (uint32_t)BleApp_atoi(argv[6]);
+        pAppCsProcedureParams->maxSubeventLen = (uint32_t)BleApp_atoi(argv[7]);
+        pAppCsProcedureParams->antCfgIndex = (uint8_t)BleApp_atoi(argv[8]);
+        pAppCsProcedureParams->snrControlInit = (uint8_t)BleApp_atoi(argv[9]);
+        pAppCsProcedureParams->snrControlRefl = (uint8_t)BleApp_atoi(argv[10]);
+
+        if (pAppCsProcedureParams->antCfgIndex > 7U)
+        {
+            status = gBleInvalidParameter_c;
+        }
+
+        if(!isValidSnrControl(pAppCsProcedureParams->snrControlInit) || !isValidSnrControl(pAppCsProcedureParams->snrControlRefl))
+        {
+            status = gBleInvalidParameter_c;
+        }
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        status = App_PostCallbackMessage(mpfShellEventHandler, pEventData);
+    }
+
+    if (status != gBleSuccess_c)
+    {
+        (void)MEM_BufferFree(pEventData);
+    }
+    else
+    {
+        shell_write("\r\nProcedure parameters set successfully.\r\n");
+    }
+    
+    return status;
+}
+                    
+/*! *********************************************************************************
 * \brief        Set CS Procedure default parameters.
 *
 * \param[in]    argc           Number of arguments
@@ -987,53 +1158,7 @@ static shell_status_t ShellSetCsProcedureParams_Command(shell_handle_t shellHand
                 appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(appCsProcedureParams_t));
                 if(pEventData != NULL)
                 {
-                    pEventData->appEvent = mAppEvt_Shell_SetCsProcedureParams_Command_c;
-                    pEventData->peerDeviceId = deviceId;
-                    pEventData->eventData.pData = pEventData + 1;
-                    appCsProcedureParams_t *pAppCsProcedureParams = pEventData->eventData.pData;
-
-                    pAppCsProcedureParams->maxProcedureDuration = (uint16_t)BleApp_atoi(argv[2]);
-
-                    if (pAppCsProcedureParams->maxProcedureDuration == 0U)
-                    {
-                        status = gBleInvalidParameter_c;
-                    }
-
-                    if (status == gBleSuccess_c)
-                    {
-                        pAppCsProcedureParams->minPeriodBetweenProcedures = (uint16_t)BleApp_atoi(argv[3]);
-                        pAppCsProcedureParams->maxPeriodBetweenProcedures = (uint16_t)BleApp_atoi(argv[4]);
-                        pAppCsProcedureParams->maxNumProcedures = (uint16_t)BleApp_atoi(argv[5]);
-                        pAppCsProcedureParams->minSubeventLen = (uint32_t)BleApp_atoi(argv[6]);
-                        pAppCsProcedureParams->maxSubeventLen = (uint32_t)BleApp_atoi(argv[7]);
-                        pAppCsProcedureParams->antCfgIndex = (uint8_t)BleApp_atoi(argv[8]);
-                        pAppCsProcedureParams->snrControlInit = (uint8_t)BleApp_atoi(argv[9]);
-                        pAppCsProcedureParams->snrControlRefl = (uint8_t)BleApp_atoi(argv[10]);
-
-                        if (pAppCsProcedureParams->antCfgIndex > 7U)
-                        {
-                            status = gBleInvalidParameter_c;
-                        }
-
-                        if(!isValidSnrControl(pAppCsProcedureParams->snrControlInit) || !isValidSnrControl(pAppCsProcedureParams->snrControlRefl))
-                        {
-                            status = gBleInvalidParameter_c;
-                        }
-                    }
-
-                    if (status == gBleSuccess_c)
-                    {
-                        status = App_PostCallbackMessage(mpfShellEventHandler, pEventData);
-                    }
-
-                    if (status != gBleSuccess_c)
-                    {
-                        (void)MEM_BufferFree(pEventData);
-                    }
-                    else
-                    {
-                        shell_write("\r\nProcedure parameters set successfully.\r\n");
-                    }
+                    status = ShellSetCsProcedureParams_CommandHandler(pEventData, deviceId, argv);
                 }
             }
             else

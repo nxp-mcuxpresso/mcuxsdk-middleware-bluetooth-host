@@ -167,6 +167,12 @@ static button_status_t BleApp_HandleKeys0(void *buttonHandle, button_callback_me
 static void App_ExportHciDataLog(void *pData);
 #endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
 
+static void HandlePhyEvent(gapGenericEvent_t* pGenericEvent);
+static void HandleLocalOobData(gapGenericEvent_t* pGenericEvent);
+static void HandleRandomAddressReady(gapGenericEvent_t* pGenericEvent);
+static void HandleControllerNotificationEvent(gapGenericEvent_t* pGenericEvent);
+static void HandleBondCreatedEvent(gapGenericEvent_t* pGenericEvent);
+
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -286,96 +292,31 @@ void BleApp_GenericCallback (gapGenericEvent_t* pGenericEvent)
     {
         case gLePhyEvent_c:
             {
-                if(mpfBleEventHandler != NULL)
-                {
-                    appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(gapPhyEvent_t));
-                    if(pEventData != NULL)
-                    {
-                        pEventData->appEvent = mAppEvt_GenericCallback_LePhyEvent_c;
-                        pEventData->eventData.pData = pEventData + 1;
-                        FLib_MemCpy(pEventData->eventData.pData, &pGenericEvent->eventData.phyEvent, sizeof(gapPhyEvent_t));
-                        if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
-                        {
-                            (void)MEM_BufferFree(pEventData);
-                        }
-                    }
-                }
+                HandlePhyEvent(pGenericEvent);
             }
             break;
 
         case gLeScLocalOobData_c:
             {
-                if(mpfBleEventHandler != NULL)
-                {
-                    appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(gapLeScOobData_t));
-                    if(pEventData != NULL)
-                    {
-                        pEventData->appEvent = mAppEvt_GenericCallback_LeScLocalOobData_c;
-                        pEventData->eventData.pData = pEventData + 1;
-                        FLib_MemCpy(pEventData->eventData.pData, &pGenericEvent->eventData.localOobData, sizeof(gapLeScOobData_t));
-                        if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
-                        {
-                            (void)MEM_BufferFree(pEventData);
-                        }
-                    }
-                }
+                HandleLocalOobData(pGenericEvent);
             }
             break;
 
         case gRandomAddressReady_c:
             {
-                if(mpfBleEventHandler != NULL)
-                {
-                    appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + gcBleDeviceAddressSize_c);
-                    if(pEventData != NULL)
-                    {
-                        pEventData->appEvent = mAppEvt_GenericCallback_RandomAddressReady_c;
-                        pEventData->eventData.pData = pEventData + 1;
-                        FLib_MemCpy(pEventData->eventData.pData, pGenericEvent->eventData.addrReady.aAddress, gcBleDeviceAddressSize_c);
-                        if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
-                        {
-                            (void)MEM_BufferFree(pEventData);
-                        }
-                    }
-                }
+                HandleRandomAddressReady(pGenericEvent);
             }
             break;
 
         case gControllerNotificationEvent_c:
         {
-            if(mpfBleEventHandler != NULL)
-            {
-                appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(bleNotificationEvent_t));
-                if(pEventData != NULL)
-                {
-                    pEventData->appEvent = mAppEvt_GenericCallback_CtrlNotifEvent_c;
-                    pEventData->eventData.pData = pEventData +1U;
-                    FLib_MemCpy(pEventData->eventData.pData, &pGenericEvent->eventData.notifEvent, sizeof(bleNotificationEvent_t));
-                    if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
-                    {
-                        (void)MEM_BufferFree(pEventData);
-                    }
-                }
-            }
+            HandleControllerNotificationEvent(pGenericEvent);
         }
         break;
 
         case gBondCreatedEvent_c:
         {
-            if(mpfBleEventHandler != NULL)
-            {
-                appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(bleBondCreatedEvent_t));
-                if(pEventData != NULL)
-                {
-                    pEventData->appEvent = mAppEvt_GenericCallback_BondCreatedEvent_c;
-                    pEventData->eventData.pData = pEventData + 1;
-                    FLib_MemCpy(pEventData->eventData.pData, &pGenericEvent->eventData.bondCreatedEvent, sizeof(bleBondCreatedEvent_t));
-                    if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
-                    {
-                        (void)MEM_BufferFree(pEventData);
-                    }
-                }
-            }
+            HandleBondCreatedEvent(pGenericEvent);
         }
         break;
 
@@ -1803,6 +1744,121 @@ static void App_ExportHciDataLog(void *pData)
     (void)MEM_BufferFree(pCsHciPacket);
 }
 #endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
+
+/*! *********************************************************************************
+* \brief        Handles PHY event from generic callback.
+*
+* \param[in]    pGenericEvent    Pointer to gapGenericEvent_t.
+********************************************************************************** */
+static void HandlePhyEvent(gapGenericEvent_t* pGenericEvent)
+{
+    if(mpfBleEventHandler != NULL)
+    {
+        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(gapPhyEvent_t));
+        if(pEventData != NULL)
+        {
+            pEventData->appEvent = mAppEvt_GenericCallback_LePhyEvent_c;
+            pEventData->eventData.pData = pEventData + 1;
+            FLib_MemCpy(pEventData->eventData.pData, &pGenericEvent->eventData.phyEvent, sizeof(gapPhyEvent_t));
+            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
+            {
+                (void)MEM_BufferFree(pEventData);
+            }
+        }
+    }
+}
+
+/*! *********************************************************************************
+* \brief        Handles local OOB data event from generic callback.
+*
+* \param[in]    pGenericEvent    Pointer to gapGenericEvent_t.
+********************************************************************************** */
+static void HandleLocalOobData(gapGenericEvent_t* pGenericEvent)
+{
+    if(mpfBleEventHandler != NULL)
+    {
+        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(gapLeScOobData_t));
+        if(pEventData != NULL)
+        {
+            pEventData->appEvent = mAppEvt_GenericCallback_LeScLocalOobData_c;
+            pEventData->eventData.pData = pEventData + 1;
+            FLib_MemCpy(pEventData->eventData.pData, &pGenericEvent->eventData.localOobData, sizeof(gapLeScOobData_t));
+            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
+            {
+                (void)MEM_BufferFree(pEventData);
+            }
+        }
+    }
+}
+
+/*! *********************************************************************************
+* \brief        Handles random address ready event from generic callback.
+*
+* \param[in]    pGenericEvent    Pointer to gapGenericEvent_t.
+********************************************************************************** */
+static void HandleRandomAddressReady(gapGenericEvent_t* pGenericEvent)
+{
+    if(mpfBleEventHandler != NULL)
+    {
+        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + gcBleDeviceAddressSize_c);
+        if(pEventData != NULL)
+        {
+            pEventData->appEvent = mAppEvt_GenericCallback_RandomAddressReady_c;
+            pEventData->eventData.pData = pEventData + 1;
+            FLib_MemCpy(pEventData->eventData.pData, pGenericEvent->eventData.addrReady.aAddress, gcBleDeviceAddressSize_c);
+            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
+            {
+                (void)MEM_BufferFree(pEventData);
+            }
+        }
+    }
+}
+
+/*! *********************************************************************************
+* \brief        Handles controller notification event from generic callback.
+*
+* \param[in]    pGenericEvent    Pointer to gapGenericEvent_t.
+********************************************************************************** */
+static void HandleControllerNotificationEvent(gapGenericEvent_t* pGenericEvent)
+{
+    if(mpfBleEventHandler != NULL)
+    {
+        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(bleNotificationEvent_t));
+        if(pEventData != NULL)
+        {
+            pEventData->appEvent = mAppEvt_GenericCallback_CtrlNotifEvent_c;
+            pEventData->eventData.pData = pEventData +1U;
+            FLib_MemCpy(pEventData->eventData.pData, &pGenericEvent->eventData.notifEvent, sizeof(bleNotificationEvent_t));
+            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
+            {
+                (void)MEM_BufferFree(pEventData);
+            }
+        }
+    }
+}
+
+/*! *********************************************************************************
+* \brief        Handles bond created event from generic callback.
+*
+* \param[in]    pGenericEvent    Pointer to gapGenericEvent_t.
+********************************************************************************** */
+static void HandleBondCreatedEvent(gapGenericEvent_t* pGenericEvent)
+{
+    if(mpfBleEventHandler != NULL)
+    {
+        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t) + sizeof(bleBondCreatedEvent_t));
+        if(pEventData != NULL)
+        {
+            pEventData->appEvent = mAppEvt_GenericCallback_BondCreatedEvent_c;
+            pEventData->eventData.pData = pEventData + 1;
+            FLib_MemCpy(pEventData->eventData.pData, &pGenericEvent->eventData.bondCreatedEvent, sizeof(bleBondCreatedEvent_t));
+            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
+            {
+                (void)MEM_BufferFree(pEventData);
+            }
+        }
+    }
+}
 /*! *********************************************************************************
 * @}
 ********************************************************************************** */
