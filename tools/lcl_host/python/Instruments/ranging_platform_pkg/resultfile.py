@@ -184,7 +184,7 @@ class ResultFile:
                     df = df.drop(columns=['meta.has_mciq', 'meta.has_tof'])
                 except:
                     log.error("CSV file could not be filtered, this could be caused by modified resultschema file structure because columns are not found")
-                df.to_csv(filename, sep=',', index=False, line_terminator='\n', encoding='ascii')
+                df.to_csv(filename, sep=',', index=False, encoding='ascii')
             elif ext == '.xlsx':
                 df.to_excel(filename, sheet_name='resultfile', index=False)
                 # Convert results
@@ -558,6 +558,7 @@ def generate_phase_sheet(wb, sheetName, stepNb, stepName, chanList, slopeRmse, a
 
             # Draw combined phase vs channel for averaged IQs
             c = ScatterChart()
+            c.varyColors = False
             c.height = 7.0
             c.width = 20.0
             column_plot = 10
@@ -576,6 +577,7 @@ def generate_phase_sheet(wb, sheetName, stepNb, stepName, chanList, slopeRmse, a
 
             # Draw combined phase vs step
             c = LineChart()
+            c.varyColors = False
             c.height = 7.0
             c.width = 20.0
             column_plot = 10
@@ -590,6 +592,7 @@ def generate_phase_sheet(wb, sheetName, stepNb, stepName, chanList, slopeRmse, a
 
             # Draw Combined Phase unwrapped & trendline
             c = LineChart()
+            c.varyColors = False
             c.height = 7.0
             c.width = 20.0
             column_plot = 15
@@ -610,6 +613,7 @@ def generate_phase_sheet(wb, sheetName, stepNb, stepName, chanList, slopeRmse, a
 
             # Draw Phase Error
             c = ScatterChart()
+            c.varyColors = False
             c.height = 7.0
             c.width = 20.0
             column_plot = 17
@@ -627,6 +631,7 @@ def generate_phase_sheet(wb, sheetName, stepNb, stepName, chanList, slopeRmse, a
             sheet.add_chart(c, "T19")
 
             c = LineChart()
+            c.varyColors = False
             c.height = 7.0
             c.width = 20.0
             data = Reference(sheet, min_col=column_plot, min_row=1, max_col=column_plot, max_row=stepNb + 1)
@@ -641,6 +646,7 @@ def generate_phase_sheet(wb, sheetName, stepNb, stepName, chanList, slopeRmse, a
         else:
             # Draw combined phase vs channel for non-averaged IQs (may have several IQs per step)
             c = LineChart()
+            c.varyColors = False
             c.height = 7.0
             c.width = 20.0
             column_plot = 10
@@ -653,6 +659,7 @@ def generate_phase_sheet(wb, sheetName, stepNb, stepName, chanList, slopeRmse, a
 
             # Draw Combined Phase unwrapped & trendline
             c = LineChart()
+            c.varyColors = False
             c.height = 7.0
             c.width = 20.0
             column_plot = 15
@@ -671,6 +678,7 @@ def generate_phase_sheet(wb, sheetName, stepNb, stepName, chanList, slopeRmse, a
     # Draw Amplitude over channels
     datax_channels = Reference(sheet, min_col=3, min_row=2, max_col=3, max_row=stepNb + 1)
     c = ScatterChart()
+    c.varyColors = False
     c.height = 7.0
     c.width = 20.0
     column_plot = 12
@@ -694,6 +702,7 @@ def generate_phase_sheet(wb, sheetName, stepNb, stepName, chanList, slopeRmse, a
 
     # Draw I&Q MD over steps
     c = LineChart()
+    c.varyColors = False
     c.height = 7.0
     c.width = 20.0
     column_plot = 4
@@ -707,6 +716,7 @@ def generate_phase_sheet(wb, sheetName, stepNb, stepName, chanList, slopeRmse, a
 
     # Draw I&Q RD over steps
     c = LineChart()
+    c.varyColors = False
     c.height = 7.0
     c.width = 20.0
     column_plot = 6
@@ -720,6 +730,7 @@ def generate_phase_sheet(wb, sheetName, stepNb, stepName, chanList, slopeRmse, a
 
     # Draw I vs Q MD
     c = ScatterChart()
+    c.varyColors = False
     c.height = 10
     c.width = 10
     datax = Reference(sheet, min_col=4, min_row=2, max_col=4, max_row=stepNb + 1)
@@ -735,6 +746,7 @@ def generate_phase_sheet(wb, sheetName, stepNb, stepName, chanList, slopeRmse, a
 
     # Draw I vs Q RD
     c = ScatterChart()
+    c.varyColors = False
     c.height = 10
     c.width = 10
     datax = Reference(sheet, min_col=6, min_row=2, max_col=6, max_row=stepNb + 1)
@@ -753,6 +765,7 @@ def generate_phase_sheet(wb, sheetName, stepNb, stepName, chanList, slopeRmse, a
 
         # Draw combined phase vs channel
         c = ScatterChart()
+        c.varyColors = False
         c.height = 7.0
         c.width = 30.0
         column_plot = 10
@@ -781,6 +794,7 @@ def generate_phase_sheet(wb, sheetName, stepNb, stepName, chanList, slopeRmse, a
 
         # Draw Amplitude vs channels frequencies
         c = ScatterChart()
+        c.varyColors = False
         c.height = 20.0
         c.width = 30.0
         c.y_axis.title = 'Amplitude'
@@ -808,6 +822,7 @@ def generate_phase_sheet(wb, sheetName, stepNb, stepName, chanList, slopeRmse, a
         for antennaPathIdx in range(1, antennaPathNum):
             # I vs Q charts
             c = ScatterChart()
+            c.varyColors = False
             c.height = 10
             c.width = 10
             column_plot = col_start + 0 + antennaPathIdx * numItems
@@ -823,6 +838,7 @@ def generate_phase_sheet(wb, sheetName, stepNb, stepName, chanList, slopeRmse, a
             sheet.add_chart(c, 'AF{0}'.format(5 + (antennaPathIdx - 1) * c.height * 2))
 
             c = ScatterChart()
+            c.varyColors = False
             c.height = 10
             c.width = 10
             column_plot = col_start + 2 + antennaPathIdx * numItems
@@ -893,7 +909,12 @@ def generate_measure_phase(wb, measId, result):
     if 'result' in result.get('mciq'):
         if 'distance' in result.get('mciq.result'):
             sheet["B1"] = round(float(result.get('mciq.result.distance')), 2)
-            sheet["B2"] = str(slope_rmse)
+            try:
+                # slope_rmse is iterable
+                sheet["B2"] = str([float(x) for x in slope_rmse])
+            except TypeError:
+                # slope_rmse is a single float-like value
+                sheet["B2"] = str(float(slope_rmse))
         else:
             sheet["B1"] = sheet["B2"] = "Not run"
 
