@@ -59,7 +59,9 @@ typedef struct mciq_result_tag {
     int16_t cde_dqi;            /*!< CDE distance quality indicator, fixed-point Q2.14 */
     int32_t cde_dist_array[gMaxNumAntennaPaths_c]; /*!< Distance per antenna path, fixed-point Q2.10 */
     int16_t cde_dqi_array[gMaxNumAntennaPaths_c];  /*!< DQI per antenna path, fixed-point Q2.14 */
-    uint16_t cde_nb_valid[gMaxNumAntennaPaths_c];  /*!< Number of valid frequencies per antenna path */
+    int32_t sde_dist_array[gMaxNumAntennaPaths_c]; /*!< Distance per antenna path, fixed-point Q16.15*/
+    int16_t sde_dqi_array[gMaxNumAntennaPaths_c];  /*!< DQI per antenna path, fixed-point Q15 */
+    uint16_t nb_valid[gMaxNumAntennaPaths_c];  /*!< Number of valid frequencies per antenna path */
     float rade_dist;           /*!< RADE distance estimation */
     float rade_dist_trk;       /*!< RADE tracking distance estimation */
     float rade_dqi;            /*!< RADE distance distance quality indicator */

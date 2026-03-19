@@ -1459,8 +1459,11 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
             algoDurationMs += 45U;
 #endif /* gAppUseRADEAlgorithm_d */
 #if defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)
-            algoDurationMs += 20U;
+            algoDurationMs += 25U;
 #endif /* gAppUseCDEAlgorithm_d */
+#if defined(gAppSlopeBasedCalibrationSupport_d) && (gAppSlopeBasedCalibrationSupport_d == 1)
+            algoDurationMs += 25U;
+#endif /* gAppSlopeBasedCalibrationSupport_d */
 
             uint32_t procInterval = gMaxCsProcDurationMs_c + gPostProcVerbDurationMs_c + gAppOffsetDurationMs_c + algoDurationMs;
 #if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
@@ -2337,8 +2340,7 @@ static void BleApp_PrintMeasurementResults(deviceId_t deviceId, localizationAlgo
 #if ((defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)) || \
     (defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)))
     bool_t bUIUpdated = FALSE;
-#endif /* ((defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)) || \
-            (defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1))) */
+#endif
 
     if ((mVerbosityLevel != 0U) || (mProcedureCount == mRangeSettings[deviceId].maxNumProcedures))
     {

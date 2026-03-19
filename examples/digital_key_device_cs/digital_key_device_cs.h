@@ -113,6 +113,7 @@ typedef enum appEvent_tag{
     mAppEvt_Shell_TriggerCsDistanceMeasurement_Command_c,
     mAppEvt_Shell_SetVerbosityLevel_Command_c,
     mAppEvt_Shell_SetNumProcs_Command_c,
+    mAppEvt_Shell_SetAlgorithm_Command_c,
     mAppEvt_PeerConnected_c,
     mAppEvt_PeerDisconnected_c,
     mAppEvt_EncryptionChanged_c,
@@ -161,6 +162,7 @@ typedef struct appEventData_tag
         void*      pData;
         uint8_t    verbosityLevel;
         uint16_t   numProcedures;
+        uint8_t    algorithmSelection;
     } eventData;                        /*!< Event data, selected according to event type. */
 } appEventData_t;
 

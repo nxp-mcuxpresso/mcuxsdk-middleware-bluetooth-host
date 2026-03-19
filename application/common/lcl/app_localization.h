@@ -143,6 +143,7 @@ typedef struct localizationAlgoResult_tag
     uint8_t algorithm;
     uint8_t radeError;
     localizationAlgoRun_t resultCDE;
+    localizationAlgoRun_t aResultSlope[gMaxNumAntennaPaths_c];
     localizationAlgoRun_t resultRADE;
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
     uint64_t csConfigDuration;

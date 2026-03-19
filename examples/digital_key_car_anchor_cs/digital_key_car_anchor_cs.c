@@ -612,6 +612,9 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
 #if defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)
             algoDurationMs += 25U;
 #endif /* gAppUseCDEAlgorithm_d */
+#if defined(gAppSlopeBasedCalibrationSupport_d) && (gAppSlopeBasedCalibrationSupport_d == 1)
+            algoDurationMs += 25U;
+#endif /* gAppSlopeBasedCalibrationSupport_d */
 
             uint32_t procInterval = (uint32_t)(gMaxCsProcDurationMs_c + gPostProcVerbDurationMs_c + gAppOffsetDurationMs_c + algoDurationMs);
 #if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)

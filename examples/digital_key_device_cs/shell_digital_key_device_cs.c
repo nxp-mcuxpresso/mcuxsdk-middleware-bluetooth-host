@@ -76,6 +76,7 @@ static shell_status_t ShellTriggerDistanceMeasurement_Command(shell_handle_t she
 static shell_status_t ShellSetVerbosityLevel_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellSetCsRole_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellSetNumProcs_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
+static shell_status_t ShellSelectAlgorithm_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 
 static uint8_t BleApp_ParseHexValue(char* pInput);
 static uint32_t BleApp_AsciiToHex(char *pString, uint32_t strLen);
@@ -199,6 +200,15 @@ static shell_command_t mSetNumProcsCmd =
     .cExpectedNumberOfParameters = SHELL_IGNORE_PARAMETER_COUNT,
     .pFuncCallBack = ShellSetNumProcs_Command,
 };
+
+static shell_command_t mSelectAlgoCmd =
+{
+    .pcCommand = "setalgo",
+    .pcHelpString = "\r\n\"setalgo\": Select the algorithm to run at the end of the CS procedure [0-3].\r\n"
+                    "BIT0 - CDE; BIT1 - RADE\r\n",
+    .cExpectedNumberOfParameters = SHELL_IGNORE_PARAMETER_COUNT,
+    .pFuncCallBack = ShellSelectAlgorithm_Command,
+};
 #endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 
 /************************************************************************************
@@ -256,6 +266,8 @@ void AppShellInit(char *prompt)
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSetCsRoleCmd);
     assert(kStatus_SHELL_Success == status);
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSetNumProcsCmd);
+    assert(kStatus_SHELL_Success == status);
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSelectAlgoCmd);
     assert(kStatus_SHELL_Success == status);
 #endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 }
@@ -1068,6 +1080,72 @@ static shell_status_t ShellSetNumProcs_Command(shell_handle_t shellHandle, int32
     {
         shell_write("\r\nInvalid parameter. \
                      \r\nUsage: setnumprocs peer_id [0x0001-0xffff].\r\n");
+    }
+
+    return kStatus_SHELL_Success;
+}
+
+/*! *********************************************************************************
+* \brief        Select the algorithm to run at the end of the CS procedure.
+*
+* \param[in]    argc           Number of arguments
+* \param[in]    argv           Pointer to arguments
+*
+* \return       shell_status_t  Returns the command processing status
+********************************************************************************** */
+static shell_status_t ShellSelectAlgorithm_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
+{
+    uint8_t userSelectedAlgo = 0U;
+    uint8_t algo = 0U;
+
+    if (argc == 2)
+    {
+        if (mpfBleEventHandler != NULL)
+        {
+            appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
+            if(pEventData != NULL)
+            {
+                pEventData->appEvent = mAppEvt_Shell_SetAlgorithm_Command_c;
+                userSelectedAlgo = (uint8_t)*argv[1];
+                /* Store algoritms to be set in eventData.algorithmSelection */
+                if (userSelectedAlgo > 3U)
+                {
+                    shell_write("\r\nUsage: setalgo [0-3].\n\rAlgorithm selection value: BIT0 - CDE; BIT1 - RADE\r\n");
+                }
+
+                if ((userSelectedAlgo & eMciqAlgoEmbedCDE) != 0U)
+                {
+#if defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)
+                    algo |= eMciqAlgoEmbedCDE;
+#else
+                    shell_write("\r\nCDE algorithm not enabled at application level! Set gAppUseCDEAlgorithm_d to 1!\r\n");
+#endif
+                }
+
+                if ((userSelectedAlgo & eMciqAlgoEmbedRADE) != 0U)
+                {
+#if defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)
+                    algo |= eMciqAlgoEmbedRADE;
+#else
+                    shell_write("\r\nRADE algorithm not enabled at application level! Set gAppUseRADEAlgorithm_d to 1!\r\n");
+#endif
+                }
+
+                pEventData->eventData.algorithmSelection = algo;
+                if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
+                {
+                    (void)MEM_BufferFree(pEventData);
+                }
+                else
+                {
+                    shell_write("\r\nAlgorithm set successfully.\r\n");
+                }
+            }
+        }
+    }
+    else
+    {
+        shell_write("\r\nUsage: setalgo [0-3].\n\rAlgorithm selection value: BIT0 - CDE; BIT1 - RADE\r\n");
     }
 
     return kStatus_SHELL_Success;

@@ -469,6 +469,14 @@ void APP_BleEventHandler(void *pData)
             AppLocalization_SetNumberOfProcedures(pEventData->peerDeviceId, pEventData->eventData.numProcedures);
         }
         break;
+
+#if defined (gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
+        case mAppEvt_Shell_SetAlgorithm_Command_c:
+        {
+            AppLocalization_SetAlgorithm(pEventData->eventData.algorithmSelection);
+        }
+        break;
+#endif /* defined (gAppRunAlgo_d) && (gAppRunAlgo_d == 1U) */
 #endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 
         case mAppEvt_KBD_EventPressPB1_c:
@@ -1383,6 +1391,9 @@ static void App_HandleConnectionCallback(appEventData_t *pEventData)
 #if defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)
             algoDurationMs += 25U;
 #endif /* gAppUseCDEAlgorithm_d */
+#if defined(gAppSlopeBasedCalibrationSupport_d) && (gAppSlopeBasedCalibrationSupport_d == 1)
+            algoDurationMs += 25U;
+#endif /* gAppSlopeBasedCalibrationSupport_d */
 
             uint32_t procInterval = (uint32_t)(gMaxCsProcDurationMs_c + gPostProcVerbDurationMs_c + gAppOffsetDurationMs_c + algoDurationMs);
 #if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
