@@ -46,7 +46,7 @@
 #define SHELL_MAX_ARGS                  20U
 
 /* Use a Random Static address as identity address, instead of a Public address */
-#define gRandomStaticAddress_d          1
+#define gRandomStaticAddress_d          0
 
 /*! Repeated Attempts - Mitigation for pairing attacks */
 #define gRepeatedAttempts_d             0

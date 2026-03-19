@@ -52,7 +52,7 @@
 #define gAppUsePrivacy_d                            0
 
 /* Use a Random Static address as identity address, instead of a Public address */
-#define gRandomStaticAddress_d                      1
+#define gRandomStaticAddress_d                      0
 
 #define gPasskeyValue_c                             999999
 
