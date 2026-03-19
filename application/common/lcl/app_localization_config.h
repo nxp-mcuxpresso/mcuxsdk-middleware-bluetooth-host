@@ -56,7 +56,8 @@
 #define gAppUseRADEAlgorithm_d              (1U)
 #endif
 
-/* Enable/Disable the linking of the slope-based distance estimation for calibration */
+/* Enable/Disable the linking of the slope-based distance estimation for calibration
+   This feature is experimental */
 #ifndef gAppSlopeBasedCalibrationSupport_d
 #define gAppSlopeBasedCalibrationSupport_d  (0U)
 #endif
