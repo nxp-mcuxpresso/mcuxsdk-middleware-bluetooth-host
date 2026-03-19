@@ -326,6 +326,12 @@ static void GetBufferFromConnEvtParameterUpdateComplete
     uint8_t              **ppBuffer
 );
 
+static void GetBufferFromConnEvtRemoteFeaturesRead
+(
+    gapConnectionEvent_t *pConnectionEvent,
+    uint8_t              **ppBuffer
+);
+
 #if defined(gBLE53_d) && (gBLE53_d == 1U)
 static void GetBufferFromConnEvtConnSubrateChangeEvent
 (
@@ -513,6 +519,11 @@ static uint32_t GetConnEvtParameterUpdateRequestBufferSize
 );
 
 static uint32_t GetConnEvtParameterUpdateCompleteBufferSize
+(
+    gapConnectionEvent_t *pConnectionEvent
+);
+
+static uint32_t GetConnEvtRemoteFeaturesReadBufferSize
 (
     gapConnectionEvent_t *pConnectionEvent
 );
@@ -2157,6 +2168,7 @@ const pfGapGetBufferFromConnEventHandler_t maGapGetBufferFromConnEventHandlers[]
     NULL,
 #endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
     NULL,                                               /* reserved: 0x31U */
+    GetBufferFromConnEvtRemoteFeaturesRead,             /* 0x32U, gConnEvtRemoteFeaturesRead_c */
 };
 
 /*! Array of handler functions used by fsciBleGapGetConnectionEventBufferSize */
@@ -2241,6 +2253,7 @@ const pfGapGetConnEventBufferSizeHandler_t maGapGetConnEventBufferSizeHandlers[]
     NULL,
 #endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
     NULL,                                               /* reserved: 0x31U */
+    GetConnEvtRemoteFeaturesReadBufferSize,             /* 0x32U, gConnEvtRemoteFeaturesRead_c */
 };
 
 /*! Array of handler functions used by fsciBleGapGetGenericEventFromBuffer */
@@ -3845,6 +3858,14 @@ static uint32_t GetConnEvtParameterUpdateCompleteBufferSize
     return fsciBleGapGetConnParameterUpdateCompleteBufferSize(&pConnectionEvent->eventData.connectionUpdateComplete);
 }
 
+static uint32_t GetConnEvtRemoteFeaturesReadBufferSize
+(
+    gapConnectionEvent_t *pConnectionEvent
+)
+{
+    return fsciBleGapGetConnRemoteFeaturesReadBufferSize(&pConnectionEvent->eventData.remoteFeatures);
+}
+
 #if defined(gBLE53_d) && (gBLE53_d == 1U)
 /*! *********************************************************************************
 *\private
@@ -4569,6 +4590,31 @@ static void GetBufferFromConnEvtParameterUpdateComplete
 {
     fsciBleGapGetBuffFromConnParameterUpdateComplete(&pConnectionEvent->eventData.connectionUpdateComplete, ppBuffer);
 }
+
+/*! *********************************************************************************
+*\private
+*\fn           void GetBufferFromConnEvtRemoteFeaturesRead(
+*                                           gapConnectionEvent_t *pConnectionEvent,
+*                                           uint8_t              **ppBuffer)
+*
+*\brief        Writes the remoteFeatures data field in the provided
+*              buffer.
+*
+*\param  [in]  pConnectionEvent    Pointer to the connection event.
+*\param  [in]  ppBuffer            Pointer to the buffer where the data field
+*                                  should be written.
+*
+*\retval       void.
+********************************************************************************** */
+static void GetBufferFromConnEvtRemoteFeaturesRead
+(
+    gapConnectionEvent_t *pConnectionEvent,
+    uint8_t              **ppBuffer
+)
+{
+    fsciBleGetBufferFromUint64Value(pConnectionEvent->eventData.remoteFeatures, *ppBuffer);
+}
+
 #if defined(gBLE53_d) && (gBLE53_d == 1U)
 /*! *********************************************************************************
 *\private

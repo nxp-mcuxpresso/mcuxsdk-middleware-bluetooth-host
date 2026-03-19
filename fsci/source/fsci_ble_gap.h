@@ -728,6 +728,7 @@ typedef enum
     gBleGapEvtConnectionEventSmError_c                                             = 0xF9,                       /*! gapConnectionCallback (type = gConnEvtSmError_c) event operation code */
     gBleGapEvtConnectionEventSubrateChangeEvent_c                                  = 0xFA,                       /*! gapConnectionCallback (type = gConnEvtLeSubrateChange_c) event operation code */
     gBleGapEvtConnectionEventLeSetLocalPeripheralLatencyEnableComplete_c           = 0xFB,                       /*! gapConnectionCallback (type = gConnEvtLeSetLocalPeripheralLatencyEnableComplete_c) event operation code */
+    gBleGapEvtConnectionEventRemoteFeaturesRead_c                                  = 0xFC,                       /*! gapConnectionCallback (type = gConnEvtRemoteFeaturesRead_c) event operation code */
 }fsciBleGapOpCode_t;
 
 /************************************************************************************

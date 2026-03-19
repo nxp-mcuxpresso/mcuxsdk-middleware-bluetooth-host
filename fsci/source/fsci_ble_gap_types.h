@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -230,6 +230,9 @@
 
 #define fsciBleGapGetConnSmErrorBufferSize(pSmError)  \
         (sizeof(uint16_t))
+
+#define fsciBleGapGetConnRemoteFeaturesReadBufferSize(pConnRemoteFeaturesRead)  \
+        (sizeof(uint64_t))
 
 #define fsciBleGapGetConnLeDataLengthChangedBufferSize(pConnLeDataLengthChanged)  \
         (4U * sizeof(uint16_t))

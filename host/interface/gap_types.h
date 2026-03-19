@@ -1325,6 +1325,7 @@ typedef enum {
     gConnEvtSmError_c                               = 0x2FU, /*!< Security Manager error occured. */
     gConnEvtLeSubrateChange_c                       = 0x30U, /*!< The connection has new parameters. Data in gapConnectionEvent_t.eventData.gapSubrateChangeEvent. */
     gConnEvtLeSetLocalPeripheralLatencyEnableComplete_c  = 0x31U, /*!< Le Set Local Peripheral Latency Enable complete. Data in gapConnectionEvent_t.eventData.leSetLocalPeripheralLatencyEnableComplete. */
+    gConnEvtRemoteFeaturesRead_c                    = 0x32U, /*! The remote features supported by a peer have been successfully read. */
 } gapConnectionEventType_t;
 
 /*! Event data structure for the gConnEvtConnected_c event. */
@@ -1558,6 +1559,7 @@ typedef struct {
         gapHandoverDisconnectedEvent_t      handoverDisconnectedEvent;       /*!< Data for gHandoverDisconnected_c: status of the Gap_HandoverDisconnect. */
         bleResult_t                         smError;                         /*!< Data for gConnEvtSmError_c: SM error status. */
         gapSubrateChangeEvent_t             gapSubrateChangeEvent;           /*!< Data for gConnEvtLeSubrateChange_c: connection parameters update. */
+        leSupportedFeatures_t               remoteFeatures;                  /*!< Data for gConnEvtRemoteFeaturesRead_c: bitmask of features supported by the peer. */
     } eventData;                        /*!< Event data, to be interpreted according to gapConnectionEvent_t.eventType. */
 } gapConnectionEvent_t;
 

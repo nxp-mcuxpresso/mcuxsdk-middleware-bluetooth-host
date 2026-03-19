@@ -820,12 +820,13 @@ typedef enum
     gLeConnectionSubrating_c                   = (uint64_t)1 << (4U * 8U + 5U), /* 37 */
     gLeConnectionSubratingHostSupport_c        = (uint64_t)1 << (4U * 8U + 6U), /* 38 */
     /* BLE v5.4 */
-    gAdvertisingCodingSelection_c               = (uint64_t)1 << (5U * 8U), /* 40 */
-    gAdvertisingCodingSelectionHostSupport_c    = (uint64_t)1 << (5U * 8U + 1U), /* 41 */
-    gLePawrAdvertiser_c                         = (uint64_t)1 << (5U * 8U + 3U), /* 43 */
-    gLePawrScanner_c                            = (uint64_t)1 << (5U * 8U + 4U), /* 44 */
-
+    gAdvertisingCodingSelection_c              = (uint64_t)1 << (5U * 8U), /* 40 */
+    gAdvertisingCodingSelectionHostSupport_c   = (uint64_t)1 << (5U * 8U + 1U), /* 41 */
     gLeDecisionBasedAdvertisingFiltering_c     = (uint64_t)1 << (5U * 8U + 2U), /* 42 */
+    gLePawrAdvertiser_c                        = (uint64_t)1 << (5U * 8U + 3U), /* 43 */
+    gLePawrScanner_c                           = (uint64_t)1 << (5U * 8U + 4U), /* 44 */
+    gLeChannelSounding_c                       = (uint64_t)1 << (5U * 8U + 6U), /* 46 */
+    gLeChannelSoundingHostSupport_c            = (uint64_t)1 << (5U * 8U + 7U), /* 47 */
 } leSupportedFeatures_tag;
 
 /* Extended LE Features beyond the first 64 bits */
