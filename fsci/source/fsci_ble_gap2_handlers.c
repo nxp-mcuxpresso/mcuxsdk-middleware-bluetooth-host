@@ -300,7 +300,7 @@ static void HandleGapCmdReadMonAdvListSize
 );
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
 
-#if defined(gAppUseTAK_c) && (gAppUseTAK_c == TRUE)
+#if defined(gAppUseTAK_d) && (gAppUseTAK_d == TRUE)
 static void HandleGapCmdEncryptLinkTakOpCode
 (
     uint8_t *pBuffer,
@@ -311,7 +311,7 @@ static void HandleGapCmdProvideLongTermKeyTakOpCode
     uint8_t *pBuffer, 
     uint32_t fsciInterfaceId
 );
-#endif /* defined(gAppUseTAK_c) && (gAppUseTAK_c == TRUE) */
+#endif /* defined(gAppUseTAK_d) && (gAppUseTAK_d == TRUE) */
 
 /*! *********************************************************************************
 *\private
@@ -425,13 +425,13 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
     NULL,
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
     HandleGapCmdLeSetLocalPeripheralLatencyEnable,                                   /* = 0x1E, gBleGapCmdLeSetLocalPeripheralLatencyEnableOpCode_c */
-#if defined(gAppUseTAK_c) && (gAppUseTAK_c == TRUE)
+#if defined(gAppUseTAK_d) && (gAppUseTAK_d == TRUE)
     HandleGapCmdEncryptLinkTakOpCode,                                           /* = 0x1F, gBleGapCmdEncryptLinkTakOpCode_c */
     HandleGapCmdProvideLongTermKeyTakOpCode,                                    /* = 0x20, gBleGapCmdProvideLongTermKeyTakOpCode_c */
 #else
     NULL,                                                                       /* = 0x1F */
     NULL,                                                                       /* = 0x20 */
-#endif /* defined(gAppUseTAK_c) && (gAppUseTAK_c == TRUE) */
+#endif /* defined(gAppUseTAK_d) && (gAppUseTAK_d == TRUE) */
 };
 
 #if gFsciBleTest_d
@@ -2587,7 +2587,7 @@ static void HandleGapCmdReadMonAdvListSize
 }
 #endif /* (defined gBLE60_MonitoredAdvertisers_d) && (gBLE60_MonitoredAdvertisers_d == TRUE) */
 
-#if defined(gAppUseTAK_c) && (gAppUseTAK_c == TRUE)
+#if defined(gAppUseTAK_d) && (gAppUseTAK_d == TRUE)
 /*! *********************************************************************************
 *\private
 *\fn           void HandleGapCmdEncryptLinkTakOpCode(uint8_t *pBuffer,
@@ -2633,7 +2633,7 @@ void HandleGapCmdProvideLongTermKeyTakOpCode(uint8_t *pBuffer, uint32_t fsciInte
     
     fsciBleGap2CallApiFunction(Gap_ProvideLongTermKeyTak(deviceId, aKey, gcSmpMaxLtkSize_c));
 }
-#endif /* defined(gAppUseTAK_c) && (gAppUseTAK_c == TRUE) */
+#endif /* defined(gAppUseTAK_d) && (gAppUseTAK_d == TRUE) */
 
 #endif /* gFsciBleGap2LayerEnabled_d */
 /*! *********************************************************************************

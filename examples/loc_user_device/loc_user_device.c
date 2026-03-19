@@ -125,9 +125,9 @@ static uint16_t mCharMonitoredHandles[4] = { (uint16_t)value_ras_ctrl_point, (ui
                                              (uint16_t)cccd_ras_real_time_data, (uint16_t)cccd_ras_ctrl_point };
 /* Number of the current procedure */
 static uint16_t mProcedureCount = 0U;
-#if (!defined(gAppUseTAK_c)) || ((defined(gAppUseTAK_c) && gAppUseTAK_c == 0))
+#if (!defined(gAppUseTAK_d)) || ((defined(gAppUseTAK_d) && gAppUseTAK_d == 0))
 static bool_t mRestoringBondedLink = FALSE;
-#endif /* defined(gAppUseTAK_c) && gAppUseTAK_c */
+#endif /* defined(gAppUseTAK_d) && gAppUseTAK_d */
 
 #if defined(gAppIsPeripheral_d) && (gAppIsPeripheral_d == 1U)
 static bool_t mAdvOn = FALSE;
@@ -581,7 +581,7 @@ static void BleApp_StateMachineHandler
             if (event == mAppEvt_PeerConnected_c)
             {
                 shell_write("Connected\r\n");
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
                 maPeerInformation[peerDeviceId].appState = mAppEncryptLink_c;
 #else
                 if (maPeerInformation[peerDeviceId].isBonded == TRUE)
@@ -600,7 +600,7 @@ static void BleApp_StateMachineHandler
                 (void)Gap_Pair(peerDeviceId, &gPairingParameters);
 #endif
                 }
-#endif /* #if (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* #if (defined(gAppUseTAK_d) && gAppUseTAK_d) */
             }
         }
         break;
@@ -1186,7 +1186,7 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
         {
             if( pConnectionEvent->eventData.encryptionChangedEvent.newEncryptionState )
             {
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
                 BleApp_StateMachineHandler(peerDeviceId, mAppEvt_EncryptionChanged_c);
 #else
                 if( mRestoringBondedLink )
@@ -1194,7 +1194,7 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
                     mRestoringBondedLink = FALSE;
                     BleApp_StateMachineHandler(peerDeviceId, mAppEvt_EncryptionChanged_c);
                 }
-#endif /* defined(gAppUseTAK_c) && gAppUseTAK_c */
+#endif /* defined(gAppUseTAK_d) && gAppUseTAK_d */
             }
         }
         break;

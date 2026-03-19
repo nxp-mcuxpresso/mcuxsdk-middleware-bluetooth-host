@@ -1,7 +1,7 @@
 # Transient Application Key
 
 Use the Bluetooth LE Shell application to exercise the TAK(Transient Application Key) feature.
-First, 'gAppUseTAK_c' must be enabled and 'gConnTakMaxEntries_c' must be configured to the maximum number of keys we want to support on a device. Also 'gBleHostAutoRejectLtkRequestForUnbondedDevices_c' must be set to FALSE in case the device is peripheral.
+First, 'gAppUseTAK_d' must be enabled and 'gConnTakMaxEntries_c' must be configured to the maximum number of keys we want to support on a device. Also 'gBleHostAutoRejectLtkRequestForUnbondedDevices_c' must be set to FALSE in case the device is peripheral.
 The key is stored per device ID. The device ID is obtained after connection.
 Each key is erased after it is used, as per TAK specification requirements.
 

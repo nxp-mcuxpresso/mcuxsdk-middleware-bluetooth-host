@@ -124,7 +124,7 @@
            ((defined BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT == 1))) */
 
 /*! Transient application key demo */
-#define gAppUseTAK_c                            0
+#define gAppUseTAK_d                            0
 
 /*! Number of TAK keys the application can store at once */
 #define BLE_SHELL_MAX_TAK_ENTRIES               1U

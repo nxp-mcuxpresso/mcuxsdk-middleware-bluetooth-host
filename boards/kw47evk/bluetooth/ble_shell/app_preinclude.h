@@ -124,7 +124,7 @@
            ((defined BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT == 1))) */
 
 /*! Transient application key demo */
-#define gAppUseTAK_c                            0
+#define gAppUseTAK_d                            0
 
 /*! *********************************************************************************
  *     Framework Configuration

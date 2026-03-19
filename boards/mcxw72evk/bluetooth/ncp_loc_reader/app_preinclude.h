@@ -128,7 +128,7 @@
 #define gRasRREQ_d                              1
 
 /* Enalbe Real-Time Data Transfer */
-#define gAppRealTimeDataTransfer_c              0
+#define gAppRealTimeDataTransfer_d              0
 
 /* Configure high speed CPU clock (96 MHz) */
 #define gAppHighSystemClockFrequency_d          1

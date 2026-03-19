@@ -230,7 +230,7 @@ bleResult_t BleConnManager_EnablePrivacy(void);
 ********************************************************************************** */
 bleResult_t BleConnManager_DisablePrivacy(void);
 
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
 /*! *********************************************************************************
 *\fn           void BleConnManager_GetTak(void)
 *\brief        Search for a Transient Application Key for the specified device.
@@ -241,7 +241,7 @@ bleResult_t BleConnManager_DisablePrivacy(void);
 *\return       takEntry_t*      Pointer to the TAK entry memory
 ********************************************************************************** */
 takEntry_t* BleConnManager_GetTak(deviceId_t deviceId, bool_t bFindFreeSlot);
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 
 #ifdef __cplusplus
 }

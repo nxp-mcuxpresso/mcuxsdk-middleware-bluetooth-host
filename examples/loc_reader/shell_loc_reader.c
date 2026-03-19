@@ -79,9 +79,9 @@ static int32_t BleApp_atoi(char *pStr);
 static uint8_t BleApp_ParseHexValue(char* pInput);
 static void ShellResetTimeoutTimerCallback(void* pParam);
 
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
 static shell_status_t ShellTak_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 
 #endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 
@@ -200,7 +200,7 @@ static shell_command_t mListBdCmd =
     .pcHelpString = "\r\n\"listbd\": List bonded devices information.\r\n",
 };
 
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
 static shell_command_t mTakCmd =
 {
     .pcCommand = "tak",
@@ -208,7 +208,7 @@ static shell_command_t mTakCmd =
     .pFuncCallBack = ShellTak_Command,
     .pcHelpString = "\r\n\"tak\": Set a Transient Application Key for a device.\r\n",
 };
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 
 static TIMER_MANAGER_HANDLE_DEFINE(mResetTmrId);
 
@@ -270,10 +270,10 @@ void AppShellInit(char* prompt)
     assert(kStatus_SHELL_Success == status);
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mListBdCmd);
     assert(kStatus_SHELL_Success == status);
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mTakCmd);
     assert(kStatus_SHELL_Success == status);
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 #if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mRunTestCmd);
     assert(kStatus_SHELL_Success == status);
@@ -1072,7 +1072,7 @@ static shell_status_t ShellListBd_Command (shell_handle_t shellHandle, int32_t a
     return kStatus_SHELL_Success;
 }
 
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
 /*! *********************************************************************************
  * \brief        Handles "tak" shell command.
  *
@@ -1121,7 +1121,7 @@ static shell_status_t ShellTak_Command(shell_handle_t shellHandle, int32_t argc,
 
     return kStatus_SHELL_Success;
 }
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 
 #if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
 static shell_status_t ShellRunTest_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])

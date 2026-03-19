@@ -123,11 +123,11 @@ static gapSecurityRequirements_t        deviceSecurity = gGapDefaultSecurityRequ
 static gapServiceSecurityRequirements_t serviceSecurity[1] = {
   {
     .requirements = {
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
         .securityModeLevel = gSecurityMode_1_Level_1_c,
 #else
         .securityModeLevel = gSecurityMode_1_Level_2_c,
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
         .authorization = FALSE,
         .minimumEncryptionKeySize = gDefaultEncryptionKeySize_d
     },
@@ -182,13 +182,13 @@ static gapAdStructure_t advScanStruct[] = {
     .adType = gAdShortenedLocalName_c,
     .aData = (uint8_t*)"NXP_CS"
   },
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
   {
     .length = sizeof(gAppTAKAdvID_c),
     .adType = gAdManufacturerSpecificData_c,
     .aData = (uint8_t*)gAppTAKAdvID_c
   }
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 };
 
 gapAdvertisingData_t gAppAdvertisingData =

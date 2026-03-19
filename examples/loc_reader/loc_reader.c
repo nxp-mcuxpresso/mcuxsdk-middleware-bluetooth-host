@@ -143,9 +143,9 @@ static appScanningParams_t mAppScanParams = {
 };
 static bool_t   mScanningOn = FALSE;
 static bool_t   mFoundDeviceToConnect = FALSE;
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
 static bool_t   mbDeviceToConnectHasTAK = FALSE;
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 
 static void BleApp_ScanningCallback(gapScanningEvent_t* pScanningEvent);
 static bool_t CheckScanEventExtended(gapExtScannedDevice_t* pData);
@@ -890,7 +890,7 @@ static void BleApp_StateMachineHandler
                 }
                 else
                 {
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
                     if (mbDeviceToConnectHasTAK == TRUE)
                     {
                         takEntry_t *pTakEntry = NULL;
@@ -909,7 +909,7 @@ static void BleApp_StateMachineHandler
                         }
                     }
                     else
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
                     {
                         maPeerInformation[peerDeviceId].appState = mAppPairing;
 #if defined(gAppIsPeripheral_d) && (gAppIsPeripheral_d != 1U)
@@ -1142,7 +1142,7 @@ static void BleApp_HandleRasSubscription
             result = BleApp_ConfigureRasServer(peerDeviceId, value, lastWrittenHandle);
         }
     }
-#if defined(gAppRealTimeDataTransfer_c) && (gAppRealTimeDataTransfer_c == 1U)
+#if defined(gAppRealTimeDataTransfer_d) && (gAppRealTimeDataTransfer_d == 1U)
     else if (lastWrittenHandle == (maPeerInformation[peerDeviceId].rasConfigInfo.controlPointHandle + 1U))
     {
         /* Enable Real-Time data transfer */
@@ -1511,14 +1511,14 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
         {
             if( pConnectionEvent->eventData.encryptionChangedEvent.newEncryptionState )
             {
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
                 if (mbDeviceToConnectHasTAK == TRUE)
                 {
                     mbDeviceToConnectHasTAK = FALSE;
                     BleApp_StateMachineHandler(peerDeviceId, mAppEvt_EncryptionChanged_c);
                 }
                 else
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
                 if( mRestoringBondedLink )
                 {
                     mRestoringBondedLink = FALSE;
@@ -2569,9 +2569,9 @@ static bool_t CheckScanEventLegacy(gapScannedDevice_t* pData)
 {
     uint32_t index = 0;
     bool_t foundMatch = FALSE;
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
     bool_t bHasTAK = FALSE;
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
     while (index < pData->dataLength)
     {
         gapAdStructure_t adElement;
@@ -2587,7 +2587,7 @@ static bool_t CheckScanEventLegacy(gapScannedDevice_t* pData)
             uint16_t uuid = gBleSig_RangingService_d;
             foundMatch = BluetoothLEHost_MatchDataInAdvElementList(&adElement, &uuid, (uint8_t)sizeof(uint16_t));
         }
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
         else if (foundMatch == TRUE && adElement.adType == gAdManufacturerSpecificData_c)
         {
             if (FLib_MemCmp(gAppTAKAdvID_c, adElement.aData, adElement.length))
@@ -2595,7 +2595,7 @@ static bool_t CheckScanEventLegacy(gapScannedDevice_t* pData)
                 bHasTAK = TRUE;
             }
         }
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
         /* Move on to the next AD element type */
         index += (uint32_t)adElement.length + sizeof(uint8_t);
     }
@@ -2605,13 +2605,13 @@ static bool_t CheckScanEventLegacy(gapScannedDevice_t* pData)
         /* Update UI */
         shell_write("Legacy ADV: ");
         shell_writeHexLe(pData->aAddress, gcBleDeviceAddressSize_c);
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
         if (bHasTAK == TRUE)
         {
             shell_write(" (TAK)");
             mbDeviceToConnectHasTAK = TRUE;
         }
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
         shell_write("\r\n");
     }
     return foundMatch;
@@ -2630,9 +2630,9 @@ static bool_t CheckScanEventExtended(gapExtScannedDevice_t* pData)
 {
     uint32_t index = 0;
     bool_t foundMatch = FALSE;
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
     bool_t bHasTAK = FALSE;
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
     while (index < pData->dataLength)
     {
         gapAdStructure_t adElement;
@@ -2648,7 +2648,7 @@ static bool_t CheckScanEventExtended(gapExtScannedDevice_t* pData)
             uint16_t uuid = gBleSig_RangingService_d;
             foundMatch = BluetoothLEHost_MatchDataInAdvElementList(&adElement, &uuid, (uint8_t)sizeof(uint16_t));
         }
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
         else if (foundMatch == TRUE && adElement.adType == gAdManufacturerSpecificData_c)
         {
             if (FLib_MemCmp(gAppTAKAdvID_c, adElement.aData, adElement.length))
@@ -2656,7 +2656,7 @@ static bool_t CheckScanEventExtended(gapExtScannedDevice_t* pData)
                 bHasTAK = TRUE;
             }
         }
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 
         /* Move on to the next AD element type */
         index += (uint32_t)adElement.length + sizeof(uint8_t);
@@ -2667,13 +2667,13 @@ static bool_t CheckScanEventExtended(gapExtScannedDevice_t* pData)
         /* Update UI */
         shell_write("Extended LR ADV: ");
         shell_writeHexLe(pData->aAddress, gcBleDeviceAddressSize_c);
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
         if (bHasTAK == TRUE)
         {
             shell_write(" (TAK)");
             mbDeviceToConnectHasTAK = TRUE;
         }
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
         shell_write("\r\n");
     }
     return foundMatch;

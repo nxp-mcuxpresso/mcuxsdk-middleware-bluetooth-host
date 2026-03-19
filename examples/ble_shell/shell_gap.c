@@ -209,9 +209,9 @@ static shell_status_t ShellGap_ConnSbrReq(uint8_t argc, char * argv[]);
 static void ShellGap_HandleSubrateChangeEvt(deviceId_t peerDeviceId, gapSubrateChangeEvent_t *pEvent);
 #endif /* BLE_SHELL_CONN_SBR_SUPPORT */
 static void ShellGap_GenericCallbackAdv (gapGenericEvent_t* pGenericEvent);
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
 static shell_status_t ShellGap_Tak(uint8_t argc, char * argv[]);
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 
 /************************************************************************************
 *************************************************************************************
@@ -286,9 +286,9 @@ static const gapCmds_t mGapShellCmds[] =
     {"setdefsbrparam",  ShellGap_SetDefaultConnSbrParams},
     {"connsbrreq",      ShellGap_ConnSbrReq},
 #endif /* BLE_SHELL_CONN_SBR_SUPPORT */
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
     {"tak",             ShellGap_Tak},
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 };
 
 static bool_t mIsBonded = FALSE;
@@ -4374,7 +4374,7 @@ static void ShellGap_HandleConnectedEvt(deviceId_t peerDeviceId, gapConnectedEve
 
     if (mIsCentral == TRUE)
     {
-#if gAppUseTAK_c
+#if gAppUseTAK_d
         takEntry_t *pTakEntry = NULL;
 
         pTakEntry = BleConnManager_GetTak(peerDeviceId, FALSE);
@@ -4386,7 +4386,7 @@ static void ShellGap_HandleConnectedEvt(deviceId_t peerDeviceId, gapConnectedEve
             FLib_MemSet(pTakEntry->aTak, 0, sizeof(pTakEntry->aTak));
         }
         else
-#endif /* gAppUseTAK_c */
+#endif /* gAppUseTAK_d */
         {
             mIsBonded = FALSE;
 
@@ -4451,7 +4451,7 @@ static void ShellGap_SendSmpKeys(deviceId_t peerDeviceId, gapSmpKeyFlags_t *pReq
  ********************************************************************************** */
 static void ShellGap_HandleLongTermKeyRequestEvt(deviceId_t peerDeviceId, gapLongTermKeyRequestEvent_t *pEvent)
 {
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
     takEntry_t *pTakEntry = BleConnManager_GetTak(peerDeviceId, FALSE);
     
     if (pTakEntry != NULL)
@@ -4462,7 +4462,7 @@ static void ShellGap_HandleLongTermKeyRequestEvt(deviceId_t peerDeviceId, gapLon
         FLib_MemSet(pTakEntry->aTak, 0, sizeof(pTakEntry->aTak));
     }
     else
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */   
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */   
     {   
         if (pEvent->ediv == gSmpKeys.ediv &&
             pEvent->randSize == gSmpKeys.cRandSize)
@@ -5339,7 +5339,7 @@ static void ShellGap_GenericCallbackAdv (gapGenericEvent_t* pGenericEvent)
     }
 }
 
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
 
 /*! *********************************************************************************
  * \brief        Handles "gap tak" shell command.
@@ -5390,7 +5390,7 @@ static shell_status_t ShellGap_Tak(uint8_t argc, char * argv[])
     return kStatus_SHELL_Success;
 }
 
-#endif /* (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 /*! *********************************************************************************
  * @}
  ********************************************************************************** */

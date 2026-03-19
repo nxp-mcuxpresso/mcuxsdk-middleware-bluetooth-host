@@ -35,7 +35,7 @@
 #define gAppMaxConnections_c            4U
 
 /*! Transient application key demo */
-#define gAppUseTAK_c                    0
+#define gAppUseTAK_d                    0
 
 /*! *********************************************************************************
  *     Framework Configuration

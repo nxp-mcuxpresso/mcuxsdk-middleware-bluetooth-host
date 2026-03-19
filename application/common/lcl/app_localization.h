@@ -977,7 +977,7 @@ void AppLocalization_SetDefaultConfig
     uint8_t    configId
 );
 
-#if (defined(gAppUseTAK_c) && gAppUseTAK_c)
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
 /*! *********************************************************************************
 *\fn            void AppLocalization_SetTakEnable(deviceId_t deviceId)
 *
@@ -988,7 +988,7 @@ void AppLocalization_SetDefaultConfig
 *\retval        none
 ********************************************************************************** */
 void AppLocalization_SetTakEnable(deviceId_t deviceId);
-#endif /* #if (defined(gAppUseTAK_c) && gAppUseTAK_c) */
+#endif /* #if (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 
 #if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
 /*! *********************************************************************************

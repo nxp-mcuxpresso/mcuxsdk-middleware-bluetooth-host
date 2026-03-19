@@ -690,7 +690,7 @@ static void BleApp_HandleRasSubscription
             result = BleApp_ConfigureRasServer(peerDeviceId, value, lastWrittenHandle);
         }
     }
-#if defined(gAppRealTimeDataTransfer_c) && (gAppRealTimeDataTransfer_c == 1U)
+#if defined(gAppRealTimeDataTransfer_d) && (gAppRealTimeDataTransfer_d == 1U)
     else if (lastWrittenHandle == (maPeerInformation[peerDeviceId].rasConfigInfo.controlPointHandle + 1U))
     {
             /* Enable Real-Time data transfer */

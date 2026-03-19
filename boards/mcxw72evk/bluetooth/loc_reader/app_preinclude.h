@@ -107,7 +107,7 @@
 #define gAppRunAlgo_d                   1
 
 /*! Transient application key demo */
-#define gAppUseTAK_c                    0
+#define gAppUseTAK_d                    0
 #define gAppTAKAdvID_c                  "TAK_ID"
 
 /*! *********************************************************************************
@@ -170,7 +170,7 @@
 #define gRasRREQ_d                              1
 
 /* Enalbe Real-Time Data Transfer */
-#define gAppRealTimeDataTransfer_c              0
+#define gAppRealTimeDataTransfer_d              0
 
 /* Enable/Disable the saving of RSSI information for mode 1 data.
    Information available in algorithm result structure */
