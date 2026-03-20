@@ -1559,7 +1559,7 @@ typedef struct {
         gapHandoverDisconnectedEvent_t      handoverDisconnectedEvent;       /*!< Data for gHandoverDisconnected_c: status of the Gap_HandoverDisconnect. */
         bleResult_t                         smError;                         /*!< Data for gConnEvtSmError_c: SM error status. */
         gapSubrateChangeEvent_t             gapSubrateChangeEvent;           /*!< Data for gConnEvtLeSubrateChange_c: connection parameters update. */
-        leSupportedFeatures_t               remoteFeatures;                  /*!< Data for gConnEvtRemoteFeaturesRead_c: bitmask of features supported by the peer. */
+        uint8_t                             remoteFeatures[8U];              /*!< Data for gConnEvtRemoteFeaturesRead_c: 8-byte mask of features supported by the peer. */
     } eventData;                        /*!< Event data, to be interpreted according to gapConnectionEvent_t.eventType. */
 } gapConnectionEvent_t;
 

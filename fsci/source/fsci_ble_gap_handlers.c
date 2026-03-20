@@ -4612,7 +4612,7 @@ static void GetBufferFromConnEvtRemoteFeaturesRead
     uint8_t              **ppBuffer
 )
 {
-    fsciBleGetBufferFromUint64Value(pConnectionEvent->eventData.remoteFeatures, *ppBuffer);
+    fsciBleGetBufferFromArray(pConnectionEvent->eventData.remoteFeatures, *ppBuffer, 8U);
 }
 
 #if defined(gBLE53_d) && (gBLE53_d == 1U)
