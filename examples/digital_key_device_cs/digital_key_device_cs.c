@@ -173,6 +173,13 @@ static void HandleRandomAddressReady(gapGenericEvent_t* pGenericEvent);
 static void HandleControllerNotificationEvent(gapGenericEvent_t* pGenericEvent);
 static void HandleBondCreatedEvent(gapGenericEvent_t* pGenericEvent);
 
+static void BleApp_GattClientCallback_HandleProcError(deviceId_t serverDeviceId, bleResult_t error);
+static void BleApp_GattClientCallback_HandleReadCharValue(deviceId_t serverDeviceId);
+static void BleApp_GattClientCallback_HandleReadUsingCharUuid(deviceId_t serverDeviceId);
+static void BleApp_GattClientCallback_HandleExchangeMtu(deviceId_t serverDeviceId);
+static void BleApp_GattClientCallback_HandleDefaultProcSuccess(deviceId_t serverDeviceId);
+static void BleApp_GattClientCallback_HandleProcSuccess(deviceId_t serverDeviceId, gattProcedureType_t procedureType);
+
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -291,22 +298,22 @@ void BleApp_GenericCallback (gapGenericEvent_t* pGenericEvent)
     switch (pGenericEvent->eventType)
     {
         case gLePhyEvent_c:
-            {
-                HandlePhyEvent(pGenericEvent);
-            }
-            break;
+        {
+            HandlePhyEvent(pGenericEvent);
+        }
+        break;
 
         case gLeScLocalOobData_c:
-            {
-                HandleLocalOobData(pGenericEvent);
-            }
-            break;
+        {
+            HandleLocalOobData(pGenericEvent);
+        }
+        break;
 
         case gRandomAddressReady_c:
-            {
-                HandleRandomAddressReady(pGenericEvent);
-            }
-            break;
+        {
+            HandleRandomAddressReady(pGenericEvent);
+        }
+        break;
 
         case gControllerNotificationEvent_c:
         {
@@ -357,7 +364,6 @@ void BleApp_FactoryReset(void)
 * Private functions
 *************************************************************************************
 ************************************************************************************/
-
 
 /*! *********************************************************************************
 * \brief        Handles keyboard events.
@@ -875,6 +881,168 @@ static void BleApp_StoreServiceHandles
 }
 
 /*! *********************************************************************************
+* \brief        Helper function to handle gGattProcError_c from BleApp_GattClientCallback.
+*
+* \param[in]    serverDeviceId      GATT Server device ID.
+* \param[in]    error               Callback result.
+********************************************************************************** */
+static void BleApp_GattClientCallback_HandleProcError(deviceId_t serverDeviceId, bleResult_t error)
+{
+    attErrorCode_t attError = (attErrorCode_t)(uint8_t)(error);
+
+    if (attError == gAttErrCodeInsufficientEncryption_c     ||
+        attError == gAttErrCodeInsufficientAuthorization_c  ||
+        attError == gAttErrCodeInsufficientAuthentication_c)
+    {
+        /* Start Pairing Procedure */
+        (void)Gap_Pair(serverDeviceId, &gPairingParameters);
+    }
+
+    if(mpfBleEventHandler != NULL)
+    {
+        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
+        if(pEventData != NULL)
+        {
+            pEventData->appEvent = mAppEvt_GattClientCallback_GattProcError_c;
+            pEventData->peerDeviceId = serverDeviceId;
+            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
+            {
+                (void)MEM_BufferFree(pEventData);
+            }
+        }
+    }
+}
+
+/*! *********************************************************************************
+* \brief        Helper function to handle gGattProcReadCharacteristicValue_c.
+*
+* \param[in]    serverDeviceId      GATT Server device ID.
+********************************************************************************** */
+static void BleApp_GattClientCallback_HandleReadCharValue(deviceId_t serverDeviceId)
+{
+    if(mpfBleEventHandler != NULL)
+    {
+        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
+        if(pEventData != NULL)
+        {
+            pEventData->appEvent = mAppEvt_GattClientCallback_GattProcReadCharacteristicValue_c;
+            pEventData->peerDeviceId = serverDeviceId;
+            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
+            {
+                (void)MEM_BufferFree(pEventData);
+            }
+        }
+    }
+}
+
+/*! *********************************************************************************
+* \brief        Helper function to handle gGattProcReadUsingCharacteristicUuid_c.
+*
+* \param[in]    serverDeviceId      GATT Server device ID.
+********************************************************************************** */
+static void BleApp_GattClientCallback_HandleReadUsingCharUuid(deviceId_t serverDeviceId)
+{
+    if(mpfBleEventHandler != NULL)
+    {
+        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
+        if(pEventData != NULL)
+        {
+            pEventData->appEvent = mAppEvt_GattClientCallback_GattProcReadUsingCharacteristicUuid_c;
+            pEventData->peerDeviceId = serverDeviceId;
+            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
+            {
+                (void)MEM_BufferFree(pEventData);
+            }
+        }
+    }
+}
+
+/*! *********************************************************************************
+* \brief        Helper function to handle gGattProcExchangeMtu_c.
+*
+* \param[in]    serverDeviceId      GATT Server device ID.
+********************************************************************************** */
+static void BleApp_GattClientCallback_HandleExchangeMtu(deviceId_t serverDeviceId)
+{
+    /* Get new MTU value */
+    (void)Gatt_GetMtu(serverDeviceId, &mPeerMtu[serverDeviceId]);
+
+    if(mpfBleEventHandler != NULL)
+    {
+        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
+        if(pEventData != NULL)
+        {
+            pEventData->appEvent = mAppEvt_GattClientCallback_GattProcComplete_c;
+            pEventData->peerDeviceId = serverDeviceId;
+            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
+            {
+                (void)MEM_BufferFree(pEventData);
+            }
+        }
+    }
+}
+
+/*! *********************************************************************************
+* \brief        Helper function to handle default GATT procedure success.
+*
+* \param[in]    serverDeviceId      GATT Server device ID.
+********************************************************************************** */
+static void BleApp_GattClientCallback_HandleDefaultProcSuccess(deviceId_t serverDeviceId)
+{
+    if(mpfBleEventHandler != NULL)
+    {
+        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
+        if(pEventData != NULL)
+        {
+            pEventData->appEvent = mAppEvt_GattClientCallback_GattProcComplete_c;
+            pEventData->peerDeviceId = serverDeviceId;
+            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
+            {
+                (void)MEM_BufferFree(pEventData);
+            }
+        }
+    }
+}
+
+/*! *********************************************************************************
+* \brief        Helper function to handle successful GATT procedures.
+*
+* \param[in]    serverDeviceId      GATT Server device ID.
+* \param[in]    procedureType       Procedure type.
+********************************************************************************** */
+static void BleApp_GattClientCallback_HandleProcSuccess(
+    deviceId_t serverDeviceId,
+    gattProcedureType_t procedureType)
+{
+    switch(procedureType)
+    {
+        case gGattProcReadCharacteristicValue_c:
+        {
+            BleApp_GattClientCallback_HandleReadCharValue(serverDeviceId);
+        }
+        break;
+
+        case gGattProcReadUsingCharacteristicUuid_c:
+        {
+            BleApp_GattClientCallback_HandleReadUsingCharUuid(serverDeviceId);
+        }
+        break;
+
+        case gGattProcExchangeMtu_c:
+        {
+            BleApp_GattClientCallback_HandleExchangeMtu(serverDeviceId);
+        }
+        break;
+
+        default:
+        {
+            BleApp_GattClientCallback_HandleDefaultProcSuccess(serverDeviceId);
+        }
+        break;
+    }
+}
+
+/*! *********************************************************************************
 * \brief        Handles GATT client callback from host stack.
 *
 * \param[in]    serverDeviceId      GATT Server device ID.
@@ -891,111 +1059,13 @@ static void BleApp_GattClientCallback(
 {
     if (procedureResult == gGattProcError_c)
     {
-        attErrorCode_t attError = (attErrorCode_t)(uint8_t)(error);
-
-        if (attError == gAttErrCodeInsufficientEncryption_c     ||
-            attError == gAttErrCodeInsufficientAuthorization_c  ||
-            attError == gAttErrCodeInsufficientAuthentication_c)
-        {
-            /* Start Pairing Procedure */
-            (void)Gap_Pair(serverDeviceId, &gPairingParameters);
-        }
-
-        if(mpfBleEventHandler != NULL)
-        {
-            appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
-            if(pEventData != NULL)
-            {
-                pEventData->appEvent = mAppEvt_GattClientCallback_GattProcError_c;
-                pEventData->peerDeviceId = serverDeviceId;
-                if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
-                {
-                    (void)MEM_BufferFree(pEventData);
-                }
-            }
-        }
+        BleApp_GattClientCallback_HandleProcError(serverDeviceId, error);
     }
     else
     {
         if (procedureResult == gGattProcSuccess_c)
         {
-            switch(procedureType)
-            {
-                case gGattProcReadCharacteristicValue_c:
-                {
-                    if(mpfBleEventHandler != NULL)
-                    {
-                        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
-                        if(pEventData != NULL)
-                        {
-                            pEventData->appEvent = mAppEvt_GattClientCallback_GattProcReadCharacteristicValue_c;
-                            pEventData->peerDeviceId = serverDeviceId;
-                            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
-                            {
-                                (void)MEM_BufferFree(pEventData);
-                            }
-                        }
-                    }
-                }
-                break;
-
-                case gGattProcReadUsingCharacteristicUuid_c:
-                {
-                    if(mpfBleEventHandler != NULL)
-                    {
-                        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
-                        if(pEventData != NULL)
-                        {
-                            pEventData->appEvent = mAppEvt_GattClientCallback_GattProcReadUsingCharacteristicUuid_c;
-                            pEventData->peerDeviceId = serverDeviceId;
-                            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
-                            {
-                                (void)MEM_BufferFree(pEventData);
-                            }
-                        }
-                    }
-                }
-                break;
-
-                case gGattProcExchangeMtu_c:
-                {
-                    /* Get new MTU value */
-                    (void)Gatt_GetMtu(serverDeviceId, &mPeerMtu[serverDeviceId]);
-
-                    if(mpfBleEventHandler != NULL)
-                    {
-                        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
-                        if(pEventData != NULL)
-                        {
-                            pEventData->appEvent = mAppEvt_GattClientCallback_GattProcComplete_c;
-                            pEventData->peerDeviceId = serverDeviceId;
-                            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
-                            {
-                                (void)MEM_BufferFree(pEventData);
-                            }
-                        }
-                    }
-                }
-                break;
-
-                default:
-                {
-                    if(mpfBleEventHandler != NULL)
-                    {
-                        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
-                        if(pEventData != NULL)
-                        {
-                            pEventData->appEvent = mAppEvt_GattClientCallback_GattProcComplete_c;
-                            pEventData->peerDeviceId = serverDeviceId;
-                            if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
-                            {
-                                (void)MEM_BufferFree(pEventData);
-                            }
-                        }
-                    }
-                }
-                break;
-            }
+            BleApp_GattClientCallback_HandleProcSuccess(serverDeviceId, procedureType);
         }
     }
 
