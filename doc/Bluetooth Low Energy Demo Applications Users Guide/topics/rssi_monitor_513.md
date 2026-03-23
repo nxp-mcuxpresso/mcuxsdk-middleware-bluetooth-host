@@ -9,7 +9,7 @@ RSSI Monitor is an application that allows monitoring the RSSI of a remote peer 
     ```
     BLE Shell>gap address
     BLE Shell>
-    --> GAP Event: Public Address Read:C4603770BCC5
+    --> GAP Event: Public Address:C4603770BCC5
     BLE Shell>gap extadvcfg -phy1 3
     BLE Shell>gap extadvstart
     BLE Shell>

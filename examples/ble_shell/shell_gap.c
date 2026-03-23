@@ -3605,7 +3605,7 @@ void ShellGap_GenericCallback (gapGenericEvent_t* pGenericEvent)
         {
             /* Confirm for shell command: "gap address"  */
             shell_write(mGapEventHeader);
-            shell_write("Public Address Read:");
+            shell_write("Public Address:");
 
             for(uint32_t i = sizeof(bleDeviceAddress_t); i > 0U; i-- )
             {
