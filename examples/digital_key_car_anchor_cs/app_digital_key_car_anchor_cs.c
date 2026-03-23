@@ -718,7 +718,7 @@ static void App_HandleHandoverStopAnchorMonitorCommand(appEventData_t *pEventDat
 ********************************************************************************** */
 static void App_HandleHandoverCommand(appEventData_t *pEventData)
 {
-    bleResult_t result = gBleInvalidParameter_c;
+    bleResult_t result = gBleSuccess_c;
     deviceId_t handoverDeviceId = pEventData->eventData.peerDeviceId;
     shell_write("\r\nHandover started.\r\n");
 
