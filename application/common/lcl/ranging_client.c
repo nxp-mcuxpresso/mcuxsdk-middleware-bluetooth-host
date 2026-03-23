@@ -1415,8 +1415,10 @@ static void RreqTimerCallback
         mpfAppCallback(pTimeoutData->deviceId, (void*)&error, gErrorEvent_c);
     }
 
+#if defined (gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
     uint16_t maAlgoRunCount = AppLocalization_GetAlgoRunCount(pTimeoutData->deviceId) + 1U;
     AppLocalization_SetAlgoRunCount(pTimeoutData->deviceId, maAlgoRunCount);
+#endif
 
     if ((error == gAppLclAlgoNotRunNoRangingData_c) &&
         (mbRealTimeTransfer[pTimeoutData->deviceId] == FALSE))

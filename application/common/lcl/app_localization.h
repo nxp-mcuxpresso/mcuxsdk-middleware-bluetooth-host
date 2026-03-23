@@ -755,6 +755,7 @@ void AppLocalization_SetAlgoRunCount
     deviceId_t deviceId,
     uint16_t   recvAlgoRunCount
 );
+#endif
 
 /*! *********************************************************************************
 *\fn            bool_t AppLocalization_GetRttSoundingSupport(void);
@@ -766,7 +767,6 @@ void AppLocalization_SetAlgoRunCount
 *\retval        TRUE if RTT sounding is supported, FALSE otherwise
 ********************************************************************************** */
 bool_t AppLocalization_GetRttSoundingSupport(void);
-#endif
 
 /*! *********************************************************************************
 *\fn            uint8_t AppLocalization_GetSubeventIdx(deviceId_t deviceId);
@@ -926,7 +926,6 @@ void AppLocalization_ComputeMaxProcedureDuration
     uint16_t *pOutMaxProcDuration
 );
 
-#if defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
 /*! *********************************************************************************
 *\fn            bool_t AppLocalization_RunAlgorithm(deviceId_t deviceId);
 *
@@ -940,7 +939,6 @@ void AppLocalization_RunAlgorithm
 (
     deviceId_t deviceId
 );
-#endif /* defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U) */
 
 /*! *********************************************************************************
 *\fn            bleResult_t AppLocalization_CreateConfig(deviceId_t deviceId,

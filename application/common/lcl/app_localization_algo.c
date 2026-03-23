@@ -329,13 +329,6 @@ void AppLocalizationAlgo_RunMeasurement
         pResult->rssiInfo.rssiRemoteNo = pRemoteCsAppData->rssiStepNo;
         FLib_MemCpy(pResult->rssiInfo.aRssiRemote, pRemoteCsAppData->aRssiValue, gMaxNumCsSteps_c);
 #endif /* gAppParseRssiInfo_d */
-
-        /* Clear local data and peer data */
-#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
-        RasClient_ResetPeer(deviceId, FALSE);
-#endif
-        AppLocalization_FreeLocalData(deviceId);
-        pLocalData->pData = NULL;
     }
     return;
 }

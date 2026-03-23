@@ -65,7 +65,10 @@
 /*
    Defer algorithm run
    If set to TRUE, the algorithm will not run automatically.
-   Instead it is the application's responsibility to make the call.
+   Instead it is the application's responsibility to:
+      1. Trigger the algorithm run via AppLocalization_RunAlgorithm()
+      2. Call RasClient_ResetPeer()/BtcsClient_ResetPeer() to cleanup peer data
+      3. Call AppLocalization_FreeLocalData() to cleanup local data
 */
 #ifndef gAppDeferAlgoRun_d
 #define gAppDeferAlgoRun_d                  FALSE

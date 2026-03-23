@@ -86,6 +86,11 @@
 /* Enable/Disable running the selected localization algorithm */
 #define gAppRunAlgo_d                   0
 
+#if defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1) && \
+    ((!defined(gAppBtcsClient_d)) || (defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 0)))
+#error "Must be BTCS Client to run the algorithm"
+#endif
+
 /* Enable/Disable the saving of RSSI information for mode 1 data.
    Information available in algorithm result structure */
 #define gAppParseRssiInfo_d               0

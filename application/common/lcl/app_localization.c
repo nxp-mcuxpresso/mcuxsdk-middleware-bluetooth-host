@@ -29,7 +29,7 @@
 #include "gap_interface.h"
 #include "app_conn.h"
 
-#if defined (gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
+#if defined(gAppRunAlgo_d)
 #include "app_localization_algo.h"
 #endif
 
@@ -151,11 +151,12 @@ static pfAppCsCallback_t mpfAppCsCallback = NULL;
 #if defined (gAppRunAlgo_d) && (gAppRunAlgo_d == 1)
 /* Application display callback */
 static pfAppDisplayResult_t mpfDisplayResultCallback;
-/* Check for RTT Sounding  support to parse mode 1 data */
-static bool_t rttSoundingSupported = FALSE;
 /* Number of times the algorithm has run for the current procedure sequence */
 static uint16_t maAlgoRunCount[gAppMaxConnections_c] = {0U};
 #endif /* gAppRunAlgo_d */
+
+/* Check for RTT Sounding  support to parse mode 1 data */
+static bool_t rttSoundingSupported = FALSE;
 
 /* Local measurement data */
 static rasMeasurementData_t mResultData[gAppMaxConnections_c];
@@ -1174,6 +1175,7 @@ void AppLocalization_SetAlgoRunCount
 {
     maAlgoRunCount[deviceId] = recvAlgoRunCount;
 }
+#endif
 
 /*! *********************************************************************************
 *\fn            bool_t AppLocalization_GetRttSoundingSupport(void);
@@ -1188,8 +1190,6 @@ bool_t AppLocalization_GetRttSoundingSupport(void)
 {
     return rttSoundingSupported;
 }
-
-#endif
 
 /*! *********************************************************************************
 *\fn            void AppLocalization_GetProcedureCount(deviceId_t deviceId);
@@ -3481,7 +3481,6 @@ static void TemperatureTimerCallback
 #endif /* defined(gAppUseSensors_d) && (gAppUseSensors_d > 0) */
 }
 
-#if defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
 /*! *********************************************************************************
 *\fn            void AppLocalization_RunAlgorithm(deviceId_t deviceId);
 *
@@ -3496,7 +3495,8 @@ void AppLocalization_RunAlgorithm
     deviceId_t deviceId
 )
 {
-#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
+    /* Get peer result data by transfer method */
+#if defined (gRasRREQ_d) && (gRasRREQ_d == 1)
    /* Parse header of the ranging data body */
     rasMeasurementData_t* pPeerResultData = RasClient_GetPeerRangingData(deviceId);
 
@@ -3516,6 +3516,19 @@ void AppLocalization_RunAlgorithm
 #elif defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
         rasMeasurementData_t* pPeerResultData = BtcsClient_GetPeerRangingData(deviceId);
 #endif
+
+#if defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
+
+#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 1)
+        /* Print remote data */
+        if ((mpfAppCsCallback != NULL) && (pPeerResultData != NULL))
+        {
+            /* Send data logging event to the application. */
+            mpfAppCsCallback(deviceId, (void*)pPeerResultData->pData, gCsRemoteDataLogEvent_c);
+        }
+#endif
+
+        /* Prepare algo result */
         localizationAlgoResult_t algoResult;
         FLib_MemSet(&algoResult, 0U, sizeof(localizationAlgoResult_t));
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
@@ -3553,6 +3566,15 @@ void AppLocalization_RunAlgorithm
         gCsTimeInfo.transferStart = 0UL;
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
 
+        /* Pass result to application for display */
+        if (gLocalizationAlgorithm > 0U)
+        {
+            if (mpfDisplayResultCallback != NULL)
+            {
+                mpfDisplayResultCallback(deviceId,  &algoResult);
+            }
+        }
+#endif /* gAppRunAlgo_d */
         /* Update state */
         if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
         {
@@ -3562,40 +3584,21 @@ void AppLocalization_RunAlgorithm
         {
             maAppLclState[deviceId] = gAppLclWaitingForMeasData_c;
         }
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 1)
-        /* Print remote data */
-        if (mpfAppCsCallback != NULL)
-        {
-            /* Send data logging event to the application. */
-            mpfAppCsCallback(deviceId, (void*)pPeerResultData->pData, gCsRemoteDataLogEvent_c);
-        }
-#endif
-
-        /* Reset mResultData */
-        FLib_MemSet(&mResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-
-#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
-        RasClient_ResetPeerInfo(deviceId);
-#elif defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
-        BtcsClient_ResetPeer(deviceId, FALSE);
-#endif /* gAppRasDataTransfer_d */
-
-        if (gLocalizationAlgorithm > 0U)
-        {
-            if (mpfDisplayResultCallback != NULL)
-            {
-                mpfDisplayResultCallback(deviceId,  &algoResult);
-            }
-        }
-#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
+#if defined (gRasRREQ_d) && (gRasRREQ_d == 1)
     }
 #endif
-    
-    (void)MEM_BufferFree(pPeerResultData->pData);
-    pPeerResultData->pData = NULL;
+
+    /* Clear peer data - even if algo did not run */
+#if defined (gRasRREQ_d) && (gRasRREQ_d == 1)
+    RasClient_ResetPeer(deviceId, FALSE);
+#elif defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
+    BtcsClient_ResetPeer(deviceId, FALSE);
+#endif /* gRasRREQ_d */
+
+    /* Clear local data - even if algo did not run */
+    FLib_MemSet(&mResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
+    AppLocalization_FreeLocalData(deviceId);
 }
-#endif /* gAppRunAlgo_d */
 
 #if (defined(gAppUseTAK_d) && gAppUseTAK_d)
 /*! *********************************************************************************
