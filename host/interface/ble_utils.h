@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2021-2024 NXP
+* Copyright 2016-2019, 2021-2024, 2026 NXP
 *
 *
 * \file
@@ -254,6 +254,14 @@ Include Files
     } \
 }
 
+/* Cast to uint8_t with explicit truncation of upper bits */
+#define Uint32toUint8(x)   ((uint8_t)((x) & 0xFFU))
+
+/* Cast to uint16_t with explicit truncation of upper bits */
+#define Uint32toUint16(x)  ((uint16_t)((x) & 0xFFFFU))
+
+/* Cast uint16_t to uint8_t with explicit truncation of upper byte */
+#define Uint16toUint8(x)   ((uint8_t)((x) & 0xFFU))
 #endif /* BLE_UTILS_H */
 
 /*! *********************************************************************************
