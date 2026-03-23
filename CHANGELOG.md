@@ -4,6 +4,45 @@ All notable changes to NXP Bluetooth LE Host will be documented in this file.
 
 **NXP Bluetooth LE Host Stack** is certified **Bluetooth 6.0**
 
+
+## [1.10.18] - mcux v2026-06-00-pvw1
+
+### Added
+- Support for RTT 0 m calibration in applications.
+- Support for CS Enhancements at Host level: 
+	- Inline PCT Transfer
+	- RTT 2M PHY
+- New connection event 'gConnEvtRemoteFeaturesRead_c', providing the peer feature bitmask read via the Read Remote Features procedure
+- Support for 5 advertising sets in the Bluetooth LE Host
+- Method to specify GATT handles on the client, avoiding repeated service discovery
+- Slope calibration algorithm for CS (experimental, disabled by default). Computes distance and quality indicators per antenna path
+- Handover broadcast time synchronization, allowing one connected anchor to synchronize multiple target anchors simultaneously
+- Added common configuration header 'app_localization_config.h', overridable by the user
+
+### Improved
+- Updated handling of 'Procedure_Results_Start' to correctly process multiple subevents in a single message
+- Improved CS temperature polling mechanism
+- BTCS Server now explicitly notifies the PSM channel via 'AppLocalization_SetPsmChannelId' upon handover connection
+- RAS/BTCS clients can disable algorithm execution via 'gRunAlgo_d'
+- Updated and cleaned 'app_preinclude.h' for sample applications
+- Documentation and configuration updates for LCE enable/disable
+- Documentation updates
+- Miscellaneous minor application bug fixes
+
+### Fixed
+- If the LE Set Periodic Adv Subevent Data command finishes with an error, use 'gInternalError_c' with 'gLeSetPeriodicAdvSubeventData_c' as the source and the command complete status as the error code
+- Correct handling of AddrType values in MonAdvReport generated from XML
+
+### Changed
+- Removed the Bluetooth LE Host library from the wireless_uart_host project
+- Disabled use of Random Static Address for all applications except: digital_key_car_anchor and digital_key_car_anchor_cs
+- Set maximum CS procedure duration to: (procedure interval x connection interval x 2 - 1) slots
+
+### Supported Platforms
+
+- KW45, KW47, MCXW71, MCXW72, MCXW23
+
+
 ## [1.10.17] - mcux v2026-03-00
 
 ### Added
