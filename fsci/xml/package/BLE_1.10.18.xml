@@ -22569,6 +22569,72 @@
         <CmdParms>
         </CmdParms>
       </Cmd>
+      <Cmd>
+        <CmdName>GAP2-LeSetLocalPeripheralLatencyEnable.Request</CmdName>
+        <CmdDesc>Set local Peripheral latency enable</CmdDesc>
+        <CmdHeader>4C 1E</CmdHeader>
+        <CmdParms>
+          <Parm>
+            <ParmName>DeviceId</ParmName>
+            <ParmDesc>The DeviceId for which the command is intended</ParmDesc>
+            <ParmSize>1</ParmSize>
+            <ParmType>tInt</ParmType>
+            <ParmLastValue>00</ParmLastValue>
+            <ParmDefaultValue>00</ParmDefaultValue>
+          </Parm>
+          <Parm>
+            <ParmName>enable</ParmName>
+            <ParmSize>1</ParmSize>
+            <ParmType>tBool</ParmType>
+          </Parm>
+        </CmdParms>
+      </Cmd>
+      <Cmd>
+        <CmdName>GAP2-EncryptLinkTak.Request</CmdName>
+        <CmdDesc>Encrypt the link using a Transient Application Key</CmdDesc>
+        <CmdHeader>4C 1F</CmdHeader>
+        <CmdParms>
+          <Parm>
+            <ParmName>DeviceId</ParmName>
+            <ParmDesc>The DeviceId for which the command is intended</ParmDesc>
+            <ParmSize>1</ParmSize>
+            <ParmType>tInt</ParmType>
+            <ParmLastValue>00</ParmLastValue>
+            <ParmDefaultValue>00</ParmDefaultValue>
+          </Parm>
+          <Parm>
+            <ParmName>TAK</ParmName>
+            <ParmDesc>Transient Application Key</ParmDesc>
+            <ParmSize>16</ParmSize>
+            <ParmType>tArray</ParmType>
+            <ParmLastValue>00</ParmLastValue>
+            <ParmDefaultValue>00</ParmDefaultValue>
+          </Parm>
+        </CmdParms>
+      </Cmd>
+      <Cmd>
+        <CmdName>GAP2-ProvideLongTermKeyTak.Request</CmdName>
+        <CmdDesc>Respond to a LTK Request event asking for a Transient Application Key</CmdDesc>
+        <CmdHeader>4C 20</CmdHeader>
+        <CmdParms>
+          <Parm>
+            <ParmName>DeviceId</ParmName>
+            <ParmDesc>The DeviceId for which the command is intended</ParmDesc>
+            <ParmSize>1</ParmSize>
+            <ParmType>tInt</ParmType>
+            <ParmLastValue>00</ParmLastValue>
+            <ParmDefaultValue>00</ParmDefaultValue>
+          </Parm>
+          <Parm>
+            <ParmName>TAK</ParmName>
+            <ParmDesc>Transient Application Key</ParmDesc>
+            <ParmSize>16</ParmSize>
+            <ParmType>tArray</ParmType>
+            <ParmLastValue>00</ParmLastValue>
+            <ParmDefaultValue>00</ParmDefaultValue>
+          </Parm>
+        </CmdParms>
+      </Cmd>
     </GAP2>
     <FSCI>
       <GroupDesc>FSCI Commands</GroupDesc>
@@ -72914,6 +72980,11 @@
                     <ParmText>gConnectionSubrateRequest_c</ParmText>
                     <ParmHint>gConnectionSubrateRequest_c</ParmHint>
                   </ParmItem>
+                  <ParmItem>
+                    <ParmValue>0x97</ParmValue>
+                    <ParmText>gLeSetLocalPeripheralLatencyEnable_c</ParmText>
+                    <ParmHint>gLeSetLocalPeripheralLatencyEnable_c</ParmHint>
+                  </ParmItem>
                 </ParmTypeSpecifics>
               </Parm>
               <Parm>
@@ -99386,6 +99457,54 @@
                 <ParmHint>gGattDbServiceOrCharAlreadyDeclared_c</ParmHint>
               </ParmItem>
             </ParmTypeSpecifics>
+          </Parm>
+        </CmdParms>
+      </Cmd>
+      <Cmd>
+        <CmdName>GAP-ConnectionEventLeSetLocalPeripheralLatencyEnableComplete.Indication</CmdName>
+        <CmdDesc>Gap_LeSetLocalPeripheralLatencyEnable Complete Event</CmdDesc>
+        <CmdHeader>48 FB</CmdHeader>
+        <CmdParms>
+          <Parm>
+            <ParmName>PayloadLength</ParmName>
+            <ParmDesc>Length of the payload</ParmDesc>
+            <ParmSize>2</ParmSize>
+            <ParmType>tInt</ParmType>
+          </Parm>
+          <Parm>
+            <ParmName>DeviceId</ParmName>
+            <ParmDesc>The DeviceId for which the command is intended</ParmDesc>
+            <ParmSize>1</ParmSize>
+            <ParmType>tInt</ParmType>
+            <ParmLastValue>00</ParmLastValue>
+            <ParmDefaultValue>00</ParmDefaultValue>
+          </Parm>
+        </CmdParms>
+      </Cmd>
+      <Cmd>
+        <CmdName>GAP-ConnectionEventRemoteFeaturesRead.Indication</CmdName>
+        <CmdDesc>Remote Features Read Complete event</CmdDesc>
+        <CmdHeader>48 FC</CmdHeader>
+        <CmdParms>
+          <Parm>
+            <ParmName>PayloadLength</ParmName>
+            <ParmDesc>Length of the payload</ParmDesc>
+            <ParmSize>2</ParmSize>
+            <ParmType>tInt</ParmType>
+          </Parm>
+          <Parm>
+            <ParmName>DeviceId</ParmName>
+            <ParmDesc>The DeviceId for which the command is intended</ParmDesc>
+            <ParmSize>1</ParmSize>
+            <ParmType>tInt</ParmType>
+            <ParmLastValue>00</ParmLastValue>
+            <ParmDefaultValue>00</ParmDefaultValue>
+          </Parm>
+          <Parm>
+            <ParmName>Remote Features</ParmName>
+            <ParmDesc>Bitmask of LE features supported by peer device</ParmDesc>
+            <ParmSize>8</ParmSize>
+            <ParmType>tArray</ParmType>
           </Parm>
         </CmdParms>
       </Cmd>
