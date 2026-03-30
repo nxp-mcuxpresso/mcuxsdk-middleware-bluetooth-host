@@ -1349,9 +1349,14 @@ static void BleApp_GattServerCallback
                 bleResult_t result = Ras_ControlPointHandler(deviceId,
                                                              &pServerEvent->eventData.attributeWrittenEvent);
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
+                if (rasCtrlPointCmd->cmdOpCode == getRangingDataOpCode_c)
+                {
+                    gCsTimeInfo.transferStart = TM_GetTimestamp();
+                }
+
                 if (rasCtrlPointCmd->cmdOpCode == ackRangingDataOpCode_c)
                 {
-                    localizationAlgoResult_t algoResult = {0};;
+                    localizationAlgoResult_t algoResult = {0};
 
                     gCsTimeInfo.transferEnd = TM_GetTimestamp();
                     algoResult.algorithm = 0U;

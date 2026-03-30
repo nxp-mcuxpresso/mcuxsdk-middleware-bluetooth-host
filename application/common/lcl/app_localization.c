@@ -2220,12 +2220,6 @@ static void AppLocalization_CSMetaEventCallback
                                 {
                                     AppLocalizationError(pSubeventResult->deviceId, gAppLclRasSendIndicationFailed_c);
                                 }
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-                                else
-                                {
-                                    gCsTimeInfo.transferStart = TM_GetTimestamp();
-                                }
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
 #endif /* gRasRRSP_d */
 #elif defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
@@ -2401,12 +2395,6 @@ static void AppLocalization_CSMetaEventCallback
                             {
                                 AppLocalizationError(pSubeventResultContinue->deviceId, gAppLclRasSendIndicationFailed_c);
                             }
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-                            else
-                            {
-                                gCsTimeInfo.transferStart = TM_GetTimestamp();
-                            }
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
 #endif /* defined (gRasRRSP_d) && (gRasRRSP_d == 1U) */
 #elif defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
