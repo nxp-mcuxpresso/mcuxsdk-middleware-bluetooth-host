@@ -234,6 +234,24 @@ static bool_t ParseMode3
 );
 #endif /* defined(gRasRREQ_d) && (gRasRREQ_d == 1U) && \
     defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U) */
+static void CheckAllLocalDataParsed
+(
+    rasMeasurementData_t *pLocalData,
+    csAppData_t *pDstAppBuffer
+);
+static bool_t HandleLocalTofPresent
+(
+    uint8_t **ppEventData,
+    uint32_t *pDataSize,
+    csAppData_t *pDstAppBuffer
+);
+static bool_t HandleLocalMciqPresent
+(
+    uint8_t **ppEventData,
+    uint32_t *pDataSize,
+    csAppData_t *pDstAppBuffer
+);
+
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -246,11 +264,6 @@ static bool_t ParseMode3
 *************************************************************************************
 ************************************************************************************/
 
-/************************************************************************************
-*************************************************************************************
-* Private functions
-*************************************************************************************
-************************************************************************************/
 /*! *********************************************************************************
 *\fn         void AppLocalizationAlgo_UncompressResponse(uint8_t *pEventData,
 *            uint32_t dataSize, rasMeasurementData_t *pLocalData);
@@ -270,7 +283,6 @@ void AppLocalizationAlgo_UncompressResponse
     rasMeasurementData_t *pLocalData
 )
 {
-    int totalStepCounter = 0;
 #ifdef SKIP_MAIN_MODES_REPET
     uint32_t parsedMainModeNb = CS_MAIN_MODE_REPEAT_MAX;
 #endif
@@ -380,139 +392,26 @@ void AppLocalizationAlgo_UncompressResponse
 
         if (tofPresent)
         {
-            uint32_t ts_diff = 0;
-            int16_t ts_diff_hci = 0;
-            int16_t temp1 = 0;
-            /* ToF record */
-            uint32_t quality = 0;
-
-            CheckSkipBytes(pEventData, dataSize, sizeof(uint8_t), bIncomplete, 
-                quality = (uint32_t)(*pEventData); /* Packet_AA_Quality */
-            );
-            
-            CheckSkipBytes(pEventData, dataSize, gCsNadmSize_c, bIncomplete, 
-                hciCsStoreBytesInTofBuffer(pDstAppBuffer, pEventData, (int)gCsNadmSize_c); /* Packet_NADM */
-            );
-
-            CheckSkipBytes(pEventData, dataSize, gCsRssiSize_c, bIncomplete, 
-                hciCsStoreBytesInTofBuffer(pDstAppBuffer, pEventData, (int)gCsRssiSize_c); /* Packet_RSSI */
-            );
-
-#if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
-            if ((int8_t)(*pEventData) != gRssiNotAvailable_c)
+            bIncomplete = HandleLocalTofPresent(&pEventData, &dataSize, pDstAppBuffer);
+            if (bIncomplete == TRUE)
             {
-                /* Count RSSI if available */
-                pDstAppBuffer->aRssiValue[pDstAppBuffer->rssiStepNo] = (int8_t)(*pEventData);
-                pDstAppBuffer->rssiStepNo++;
+                break;
             }
-#endif /* gAppParseRssiInfo_d */
-
-            CheckSkipBytes(pEventData, dataSize, sizeof(uint16_t), bIncomplete, 
-                FLib_MemCpy(&ts_diff_hci, pEventData, sizeof(uint16_t)); /* Time Diff signed Q16, 2 bytes */
-                /* Combine TS_DIFF & quality on 24 bits and store in local buffer */
-                temp1 = ts_diff_hci/2;
-                ts_diff = (uint32_t)(temp1); /* HCI reports half ns, application expects ns in Tof Buffer */
-                ts_diff &= 0x00FFFFU;
-                ts_diff |= (quality&0x0FU)<<gTimeStampDiffSize_c;
-                hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)gCsTsSize_c);
-            );
-
-            CheckSkipBytesDoNothing(pEventData, dataSize, 1U, bIncomplete); /* Packet_Antenna, ignored */
-            
-            pDstAppBuffer->tof_data.nbSteps++;
         }
 
         if (mciqPresent)
         {
-            /* Tone record */
-            uint8_t antPermIndex = 0U;
-            const uint8_t *antIndex_p = NULL;
-            int32_t iq_dec[gMaxNumAntennaPaths_c];
-            uint8_t tqi[gMaxNumAntennaPaths_c];
-
-            CheckSkipBytes(pEventData, dataSize, 1U, bIncomplete,
-                antPermIndex = *pEventData; /* Antenna_Permutation_Index */
-            );
-
-#if defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1)
-            AddItem(antPermIndex);
-#endif
-
-            antIndex_p = &gaAntPermNAp[antPermIndex][0];
-
-            /* Num_Antenna_Path + 1 are reported by the firmware, but discard last one */
-            /* Re-order per antenna path index */
-            for (uint8_t idx = 0U; idx < pDstAppBuffer->mciq_data.n_ap; idx++)
+            bIncomplete = HandleLocalMciqPresent(&pEventData, &dataSize, pDstAppBuffer);
+            if (bIncomplete == TRUE)
             {
-                int antIdx = (int)antIndex_p[idx];
-
-                uint32_t temp1 = (((uint32_t)pEventData[2])<<BIT4) | (((uint32_t)pEventData[1])<<BIT3)
-                                 | ((uint32_t)pEventData[0]);
-                int32_t iq = (int32_t)temp1;
-
-                CheckSkipBytes(pEventData, dataSize, gTone_PCTSize_c, bIncomplete,
-                    /* Swap I and Q as application expects I as MSB and Q as LSB (opposite from Tone_PCT[k]) */
-                    uint32_t temp2 = (((uint32_t)(((uint32_t)iq)&0xFFFU) << gIQSampleSize_c) |
-                                      ((uint32_t)(((uint32_t)iq)>>gIQSampleSize_c)&0xFFFU));
-                    iq_dec[antIdx] = (int32_t)temp2;
-                );
-
-                CheckSkipBytes(pEventData, dataSize, sizeof(uint8_t), bIncomplete,
-                    tqi[antIdx] = *pEventData;
-                );
-            }
-
-            if (bIncomplete == FALSE)
-            {
-                for (uint8_t idx = 0U; idx < pDstAppBuffer->mciq_data.n_ap; idx++)
-                {
-                    hciCsStoreBytesInIqBuffer(pDstAppBuffer, (uint8_t *)&iq_dec[idx], 3);
-                    hciCsStoreBytesInIqBuffer(pDstAppBuffer, &tqi[idx], 1);
-                }
-
-                /* Skip last IQ data (n_ap+1) */
-                CheckSkipBytesDoNothing(pEventData, dataSize, gTone_PCTSize_c + sizeof(uint8_t), bIncomplete);
-
-                pDstAppBuffer->mciq_data.nbSteps ++;
+                break;
             }
         }
 
         pLocalData->step ++;
     }
 
-    /* All data was parsed */
-    if (pLocalData->crtStep >= pLocalData->totalNumSteps)
-    {
-        /* Populate additional fields in pDstAppBuffer */
-
-        /* Total number of steps */
-        pDstAppBuffer->csData.step_nb = (uint16_t)pLocalData->step;
-
-        /* Start ACL count */
-        pDstAppBuffer->csData.startAclCnt =
-                pLocalData->aSubEventData[pDstAppBuffer->csData.subevt_nb].subevtHeader.startACLConnEvent;
-
-        /* For every subevent */
-        for (uint8_t index = 0U; index <= pLocalData->subeventIndex; index++)
-        {
-            /* The stop index is the total number of previous steps plus the current subevent's steps */
-            pDstAppBuffer->csData.subevtStopIdxLocal[index] =
-                (uint8_t)totalStepCounter + pLocalData->aSubEventData[index].subevtHeader.numStepsReported;
-
-            /* Delta regarding ACL counter of first subevent */
-            pDstAppBuffer->csData.subevtConnEvent[index] =
-                (uint8_t)(pLocalData->aSubEventData[index].subevtHeader.startACLConnEvent - pDstAppBuffer->csData.startAclCnt);
-
-            /* Count handled steps */
-            totalStepCounter += (int)pLocalData->aSubEventData[index].subevtHeader.numStepsReported;
-
-            /* Save the reference power level in subevtRefPowerLevelInit - will be switched to the proper role by the caller */
-            pDstAppBuffer->csData.subevtRefPowerLevelInit[index] = pLocalData->aSubEventData[index].subevtHeader.referencePowerLevel;
-        }
-
-        /* Total number of subevents */
-        pDstAppBuffer->csData.subevt_nb =  pLocalData->subeventIndex + 1U;
-    }
+    CheckAllLocalDataParsed(pLocalData, pDstAppBuffer);
 }
 
 void* AppLocalizationAlgo_AllocData(void)
@@ -580,7 +479,7 @@ void AppLocalizationAlgo_UncompressRemoteResponse
             /* Clear previous event data */
             (void)MEM_BufferFree(pRemoteData->pRemaining);
             pRemoteData->pRemaining = NULL;
-            pRemoteData->remainingLen = 0;
+            pRemoteData->remainingLen = 0U;
         }
         else
         {
@@ -749,7 +648,7 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
     bool_t bIncomplete = FALSE;
     uint8_t *pLastOk = NULL;
     uint8_t *pTemp = NULL;
-    uint8_t parsedSteps = 0;
+    uint8_t parsedSteps = 0U;
 
     /* Make sure the number of antenna paths is set at the begining of the uncompress procedure */
     if (pDstAppBuffer->mciq_data.n_ap == 0U)
@@ -772,7 +671,7 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
             /* Clear previous event data */
             (void)MEM_BufferFree(pRemoteData->pRemaining);
             pRemoteData->pRemaining = NULL;
-            pRemoteData->remainingLen = 0;
+            pRemoteData->remainingLen = 0U;
         }
         else
         {
@@ -861,6 +760,233 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
     return dataLength;
 }
 #endif /* defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1) */
+
+/************************************************************************************
+*************************************************************************************
+* Private functions
+*************************************************************************************
+************************************************************************************/
+
+/*! *********************************************************************************
+ *\fn           static bool_t HandleLocalTofPresent(uint8_t **ppEventData,
+ *                                                   uint32_t *pDataSize,
+ *                                                   csAppData_t *pDstAppBuffer)
+ *
+ * \brief       Parse and store Time-of-Flight (ToF) record data from local CS event.
+ *              Extracts quality, NADM, RSSI, and timestamp difference information
+ *              from the event data and stores it in the ToF buffer.
+ *
+ * \param[in,out] ppEventData       Pointer to pointer of event data. Updated to point
+ *                                  after parsed ToF data.
+ * \param[in,out] pDataSize         Pointer to remaining data size. Updated after parsing.
+ * \param[out]    pDstAppBuffer     Pointer to destination application buffer for storing
+ *                                  parsed ToF data
+ *
+ *\retval       bool_t              TRUE if data is incomplete, FALSE if parsing succeeded
+ ********************************************************************************** */
+static bool_t HandleLocalTofPresent
+(
+    uint8_t **ppEventData,
+    uint32_t *pDataSize,
+    csAppData_t *pDstAppBuffer
+)
+{
+    uint32_t ts_diff = 0U;
+    int16_t ts_diff_hci = 0;
+    int16_t temp1 = 0;
+    /* ToF record */
+    uint32_t quality = 0U;
+    bool_t bIncomplete = FALSE;
+
+    do
+    {
+        CheckSkipBytes(*ppEventData, *pDataSize, sizeof(uint8_t), bIncomplete, 
+            quality = (uint32_t)(**ppEventData); /* Packet_AA_Quality */
+        );
+        
+        CheckSkipBytes(*ppEventData, *pDataSize, gCsNadmSize_c, bIncomplete, 
+            hciCsStoreBytesInTofBuffer(pDstAppBuffer, *ppEventData, (int)gCsNadmSize_c); /* Packet_NADM */
+        );
+
+        CheckSkipBytes(*ppEventData, *pDataSize, gCsRssiSize_c, bIncomplete, 
+            hciCsStoreBytesInTofBuffer(pDstAppBuffer, *ppEventData, (int)gCsRssiSize_c); /* Packet_RSSI */
+        );
+
+#if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
+        if ((int8_t)(**ppEventData) != gRssiNotAvailable_c)
+        {
+            /* Count RSSI if available */
+            pDstAppBuffer->aRssiValue[pDstAppBuffer->rssiStepNo] = (int8_t)(**ppEventData);
+            pDstAppBuffer->rssiStepNo++;
+        }
+#endif /* gAppParseRssiInfo_d */
+
+        CheckSkipBytes(*ppEventData, *pDataSize, sizeof(uint16_t), bIncomplete, 
+            FLib_MemCpy(&ts_diff_hci, *ppEventData, sizeof(uint16_t)); /* Time Diff signed Q16, 2 bytes */
+            /* Combine TS_DIFF & quality on 24 bits and store in local buffer */
+            temp1 = ts_diff_hci/2;
+            ts_diff = (uint32_t)(temp1); /* HCI reports half ns, application expects ns in Tof Buffer */
+            ts_diff &= 0x00FFFFU;
+            ts_diff |= (quality&0x0FU)<<gTimeStampDiffSize_c;
+            hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)gCsTsSize_c);
+        );
+
+        CheckSkipBytesDoNothing(*ppEventData, *pDataSize, 1U, bIncomplete); /* Packet_Antenna, ignored */
+        
+        pDstAppBuffer->tof_data.nbSteps++;
+    } while(FALSE);
+
+    return bIncomplete;
+}
+
+/*! *********************************************************************************
+ *\fn           static bool_t HandleLocalMciqPresent(uint8_t **ppEventData,
+ *                                                    uint32_t *pDataSize,
+ *                                                    csAppData_t *pDstAppBuffer)
+ *
+ * \brief       Parse and store Mode Change IQ (MCIQ) tone record data from local CS event.
+ *              Extracts antenna permutation index, IQ samples, and tone quality
+ *              indicators for all antenna paths and stores them in the IQ buffer.
+ *              The IQ samples are reordered according to the antenna permutation index.
+ *
+ * \param[in,out] ppEventData       Pointer to pointer of event data. Updated to point
+ *                                  after parsed MCIQ data.
+ * \param[in,out] pDataSize         Pointer to remaining data size. Updated after parsing.
+ * \param[out]    pDstAppBuffer     Pointer to destination application buffer for storing
+ *                                  parsed IQ data
+ *
+ *\retval       bool_t              TRUE if data is incomplete, FALSE if parsing succeeded
+ ********************************************************************************** */
+static bool_t HandleLocalMciqPresent
+(
+    uint8_t **ppEventData,
+    uint32_t *pDataSize,
+    csAppData_t *pDstAppBuffer
+)
+{
+    /* Tone record */
+    uint8_t antPermIndex = 0U;
+    const uint8_t *antIndex_p = NULL;
+    int32_t iq_dec[gMaxNumAntennaPaths_c] = {};
+    uint8_t tqi[gMaxNumAntennaPaths_c] = {};
+    bool_t bIncomplete = FALSE;
+
+    do
+    {
+        CheckSkipBytes(*ppEventData, *pDataSize, 1U, bIncomplete,
+            antPermIndex = **ppEventData; /* Antenna_Permutation_Index */
+        );
+
+#if defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1)
+        AddItem(antPermIndex);
+#endif
+
+        antIndex_p = &gaAntPermNAp[antPermIndex][0];
+        
+        if (pDstAppBuffer->mciq_data.n_ap > gMaxNumAntennaPaths_c)
+        {
+            bIncomplete = TRUE;
+            break;
+        }
+
+        /* Num_Antenna_Path + 1 are reported by the firmware, but discard last one */
+        /* Re-order per antenna path index */
+        for (uint8_t idx = 0U; idx < pDstAppBuffer->mciq_data.n_ap; idx++)
+        {
+            int antIdx = (int)antIndex_p[idx];
+
+            uint32_t temp1 = (((uint32_t)(*ppEventData)[2])<<BIT4) | (((uint32_t)(*ppEventData)[1])<<BIT3)
+                             | ((uint32_t)(*ppEventData)[0]);
+            int32_t iq = (int32_t)temp1;
+
+            CheckSkipBytes(*ppEventData, *pDataSize, gTone_PCTSize_c, bIncomplete,
+                /* Swap I and Q as application expects I as MSB and Q as LSB (opposite from Tone_PCT[k]) */
+                uint32_t temp2 = (((uint32_t)(((uint32_t)iq)&0xFFFU) << gIQSampleSize_c) |
+                                  ((uint32_t)(((uint32_t)iq)>>gIQSampleSize_c)&0xFFFU));
+                iq_dec[antIdx] = (int32_t)temp2;
+            );
+
+            CheckSkipBytes(*ppEventData, *pDataSize, sizeof(uint8_t), bIncomplete,
+                tqi[antIdx] = **ppEventData;
+            );
+        }
+
+        if (bIncomplete == FALSE)
+        {
+            for (uint8_t idx = 0U; idx < pDstAppBuffer->mciq_data.n_ap; idx++)
+            {
+                hciCsStoreBytesInIqBuffer(pDstAppBuffer, (uint8_t *)&iq_dec[idx], 3);
+                hciCsStoreBytesInIqBuffer(pDstAppBuffer, &tqi[idx], 1);
+            }
+
+            /* Skip last IQ data (n_ap+1) */
+            CheckSkipBytesDoNothing(*ppEventData, *pDataSize, gTone_PCTSize_c + sizeof(uint8_t), bIncomplete);
+
+            pDstAppBuffer->mciq_data.nbSteps ++;
+        }
+    } while(FALSE);
+    
+    return bIncomplete;
+}
+
+/*! *********************************************************************************
+ *\fn           static void CheckAllLocalDataParsed(rasMeasurementData_t *pLocalData,
+ *                                                   csAppData_t *pDstAppBuffer)
+ *
+ * \brief       Check if all local CS data has been parsed and populate additional
+ *              fields in the application buffer. This function is called after
+ *              parsing local measurement data to finalize the data structure with
+ *              subevent information, step counts, and ACL connection event details.
+ *
+ * \param[in]   pLocalData          Pointer to local measurement data structure
+ *                                  containing parsing state and subevent information
+ * \param[out]  pDstAppBuffer       Pointer to destination application buffer where
+ *                                  final data will be stored
+ *
+ *\retval       none
+ ********************************************************************************** */
+static void CheckAllLocalDataParsed
+(
+    rasMeasurementData_t *pLocalData,
+    csAppData_t *pDstAppBuffer
+)
+{
+    int totalStepCounter = 0;
+
+    /* All data was parsed */
+    if ((pLocalData->crtStep >= pLocalData->totalNumSteps) && (pLocalData->subeventIndex < gMaxNumCsSubevents_c))
+    {
+        /* Populate additional fields in pDstAppBuffer */
+
+        /* Total number of steps */
+        pDstAppBuffer->csData.step_nb = (uint16_t)pLocalData->step;
+
+        /* Start ACL count */
+        pDstAppBuffer->csData.startAclCnt =
+                pLocalData->aSubEventData[pDstAppBuffer->csData.subevt_nb].subevtHeader.startACLConnEvent;
+
+        /* For every subevent */
+        for (uint8_t index = 0U; index <= pLocalData->subeventIndex; index++)
+        {
+            /* The stop index is the total number of previous steps plus the current subevent's steps */
+            pDstAppBuffer->csData.subevtStopIdxLocal[index] =
+                (uint8_t)totalStepCounter + pLocalData->aSubEventData[index].subevtHeader.numStepsReported;
+
+            /* Delta regarding ACL counter of first subevent */
+            pDstAppBuffer->csData.subevtConnEvent[index] =
+                (uint8_t)(pLocalData->aSubEventData[index].subevtHeader.startACLConnEvent - pDstAppBuffer->csData.startAclCnt);
+
+            /* Count handled steps */
+            totalStepCounter += (int)pLocalData->aSubEventData[index].subevtHeader.numStepsReported;
+
+            /* Save the reference power level in subevtRefPowerLevelInit - will be switched to the proper role by the caller */
+            pDstAppBuffer->csData.subevtRefPowerLevelInit[index] = pLocalData->aSubEventData[index].subevtHeader.referencePowerLevel;
+        }
+
+        /* Total number of subevents */
+        pDstAppBuffer->csData.subevt_nb =  pLocalData->subeventIndex + 1U;
+    }
+}
 
 /*! *********************************************************************************
  *\fn           void hciCsStoreBytesInTofBuffer(csAppData_t *appData,
@@ -1194,7 +1320,7 @@ static bool_t ParseMode1
         if ((filter & BIT5) != 0U)
         {
             int16_t temp1 = 0;
-            uint32_t ts_diff = 0;
+            uint32_t ts_diff = 0U;
             
             /* Combine TS_DIFF & quality on 24 bits and store in local buffer */
             temp1 = ts_diff_hci/2;
@@ -1438,7 +1564,7 @@ static bool_t ParseMode3
             }
         }
 
-        antPermIndex = 0;
+        antPermIndex = 0U;
 
         if ((filter & BIT9) != 0U)
         {
@@ -1526,7 +1652,7 @@ static bool_t ParseMode3
         if ((filter & BIT5) != 0U)
         {
             int16_t temp1 = 0;
-            uint32_t ts_diff = 0;
+            uint32_t ts_diff = 0U;
 
             /* Combine TS_DIFF & quality on 24 bits and store in local buffer */
             temp1 = ts_diff_hci/2;
@@ -1709,7 +1835,7 @@ static bool_t ParseMode1
 #endif /* gAppParseRssiInfo_d */
         
         int16_t temp1 = 0;
-        uint32_t ts_diff = 0;
+        uint32_t ts_diff = 0U;
         
         /* Combine TS_DIFF & quality on 24 bits and store in local buffer */
         temp1 = ts_diff_hci/2;
@@ -1862,7 +1988,7 @@ static bool_t ParseMode3
 #endif
     int16_t ts_diff_hci = 0;
     int16_t temp = 0;
-    uint32_t ts_diff = 0;
+    uint32_t ts_diff = 0U;
 
     /* First parse all bytes, based on filter bits, and store data in temporary variables */
     do
