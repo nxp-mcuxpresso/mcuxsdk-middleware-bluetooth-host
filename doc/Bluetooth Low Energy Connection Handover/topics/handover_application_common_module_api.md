@@ -37,14 +37,14 @@ bleResult_t AppHandover_TimeSyncReceive(bleHandoverTimeSyncEnable_t enable);
 
 ### AppHandover_StartTimeSync
 ```
-bleResult_t AppHandover_StartTimeSync(bool_t bTimeSyncForHandover);
+void AppHandover_StartTimeSync(bool_t bTimeSyncForHandover);
 ```
 **Description**: Triggers handover time synchronization.
 
 **Parameters**:
 - `bTimeSyncForHandover`: TRUE if handover is following, FALSE if RSSI sniffing is following.
 
-**Returns**: `bleResult_t`
+**Returns**: None
 
 ### AppHandover_TimeSyncTransmitSetParams
 ```
