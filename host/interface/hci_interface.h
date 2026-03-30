@@ -630,6 +630,14 @@ typedef struct
     uint16_t            connectionHandle;
 } hciLeReadRemoteFeaturesCommand_t;
 
+/*! OCF 0x0088 */
+/*! HCI_LE_Read_All_Remote_Features */
+typedef struct
+{
+    uint16_t            connectionHandle;
+    uint8_t             pagesRequested;
+} hciLeReadAllRemoteFeaturesCommand_t;
+
 /*! LE Read Remote Features Complete Event : LE Meta Event : 0x3E : Sub-event Code : 0x04 */
 typedef struct
 {
@@ -3300,6 +3308,20 @@ bleResult_t Hci_ReadRemoteVersionInformation(
 ********************************************************************************** */
 bleResult_t Hci_LeReadRemoteFeatures(
                 const hciLeReadRemoteFeaturesCommand_t *pParam);                                      /* 8.21 */
+
+/*! *********************************************************************************
+* \brief        The function sends the HCI LE Read All Remote Features (OGF : 0x08; OCF : 0x0088) command to the Controller.
+*
+* \param[in]    pParam  pointer to a structure containing the connection handle and the number of requested pages.
+* \param[out]   None
+*
+* \return       Status
+*
+* \remarks      Remote Information Group
+*
+********************************************************************************** */
+bleResult_t Hci_LeReadAllRemoteFeatures(
+                const hciLeReadAllRemoteFeaturesCommand_t *pParam);
 
 /* Connection State Group */
 

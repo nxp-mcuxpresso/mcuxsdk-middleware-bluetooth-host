@@ -827,6 +827,8 @@ typedef enum
     gLePawrScanner_c                           = (uint64_t)1 << (5U * 8U + 4U), /* 44 */
     gLeChannelSounding_c                       = (uint64_t)1 << (5U * 8U + 6U), /* 46 */
     gLeChannelSoundingHostSupport_c            = (uint64_t)1 << (5U * 8U + 7U), /* 47 */
+    /* Extended Features bit */
+    gLeExtendedFeatures_c                      = (uint64_t)1 << (7U * 8U + 7U), /* 63 */
 } leSupportedFeatures_tag;
 
 /* Extended LE Features beyond the first 64 bits */
