@@ -1889,14 +1889,37 @@ static void BleApp_TriggerCsDistanceMeasurement(deviceId_t deviceId)
 {
     bleResult_t result = gBleSuccess_c;
 
-    /* Reset data before starting a new procedure */
-    AppLocalization_ResetPeer(deviceId, FALSE, gInvalidNvmIndex_c);
-
-    result = AppLocalization_SetProcedureParameters(deviceId);
-
-    if (result != gBleSuccess_c)
+    if (deviceId != gInvalidDeviceId_c)
     {
-        shell_write("\r\nCS distance measurement failed.\r\n");
+        /* Single device measurement */
+        /* Reset data before starting a new procedure */
+        AppLocalization_ResetPeer(deviceId, FALSE, gInvalidNvmIndex_c);
+
+        result = AppLocalization_SetProcedureParameters(deviceId);
+
+        if (result != gBleSuccess_c)
+        {
+            shell_write("\r\nCS distance measurement failed.\r\n");
+        }
+    }
+    else
+    {
+        for (uint8_t i = 0U; i < (uint8_t)gAppMaxConnections_c; i++)
+        {
+            /* Check if device is connected */
+            if (maPeerInformation[i].deviceId != gInvalidDeviceId_c)
+            {
+                /* Reset data before starting a new procedure */
+                AppLocalization_ResetPeer(i, FALSE, gInvalidNvmIndex_c);
+
+                result = AppLocalization_SetProcedureParameters(i);
+
+                if (result != gBleSuccess_c)
+                {
+                    shell_write("\r\nCS distance measurement failed.\r\n");
+                }
+            }
+        }
     }
 }
 

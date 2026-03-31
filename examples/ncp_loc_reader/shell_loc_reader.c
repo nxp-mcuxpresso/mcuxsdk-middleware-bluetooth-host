@@ -639,10 +639,15 @@ static shell_status_t ShellTriggerDistanceMeasurement_Command(shell_handle_t she
             status = gBleInvalidParameter_c;
         }
     }
+    else if ((uint32_t)argc == 1U)
+    {
+        status = BleApp_TriggerCsDistanceMeasurement(gInvalidDeviceId_c);
+    }
     else
     {
         shell_write("\r\nUsage: \
-                    \r\ntdm device_id \
+                    \r\ntdm device_id (trigger measurement with one peer) \
+                    \r\ntdm (trigger measurements with all peers) \
                     \r\n");
     }
 
@@ -653,7 +658,7 @@ static shell_status_t ShellTriggerDistanceMeasurement_Command(shell_handle_t she
 
     return kStatus_SHELL_Success;
 }
-
+                    
 /*! *********************************************************************************
 * \brief        Select the algorithm to run at the end of the CS procedure.
 *

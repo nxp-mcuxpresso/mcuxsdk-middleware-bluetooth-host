@@ -361,16 +361,30 @@ bleResult_t BleApp_TriggerCsDistanceMeasurement(deviceId_t deviceId)
 {
     bleResult_t result = gBleSuccess_c;
 
-    /* Reset data before starting a new procedure */
-    AppLocalization_ResetPeer(deviceId, FALSE, gInvalidNvmIndex_c);
-
-    if (maPeerInformation[deviceId].isSubscribed == TRUE)
+    if (deviceId != gInvalidDeviceId_c)
     {
-        result = AppLocalization_SetProcedureParameters(deviceId);
+        /* Reset data before starting a new procedure */
+        AppLocalization_ResetPeer(deviceId, FALSE, gInvalidNvmIndex_c);
+
+        if (maPeerInformation[deviceId].isSubscribed == TRUE)
+        {
+            result = AppLocalization_SetProcedureParameters(deviceId);
+        }
+        else
+        {
+            result = gBleInvalidParameter_c;
+        }
     }
     else
     {
-        result = gBleInvalidParameter_c;
+        for (uint8_t i = 0; i < (uint8_t)gAppMaxConnections_c; i++)
+        {
+            AppLocalization_ResetPeer(i, FALSE, gInvalidNvmIndex_c);
+            if (maPeerInformation[i].isSubscribed == TRUE)
+            {
+                (void)AppLocalization_SetProcedureParameters(i);
+            }
+        }  
     }
 
     return result;
@@ -1717,6 +1731,12 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
                 {
                     shell_write("Algorithm did not run - Real Time Ranging Data not complete!\r\n");
                     maPeerInformation[deviceId].isSubscribed = FALSE;
+                }
+                break;
+
+                case gAppLclMaxProceduresReached_c:
+                {
+                    shell_write("Maximum concurrent CS procedures reached!\r\n");
                 }
                 break;
 

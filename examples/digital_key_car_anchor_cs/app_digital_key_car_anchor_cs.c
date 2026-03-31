@@ -193,6 +193,7 @@ static csErrorMsg_t maCsErrorMsgs[] =
     {gAppLclNoSubeventMemoryAvailable_c, "No more memory available for a local subevent!\r\n"},
     {gAppLclErrorProcessingSubevent_c, "An error occured in the processing of subevent data!\r\n"},
     {gAppLclUnexpectedWCCC_c, "Received an unexpectedWrite Cached Remote Supported Capabilities Command Complete Event!\r\n"},
+    {gAppLclMaxProceduresReached_c, "Maximum concurrent CS procedures reached! Cannot start new procedure.\r\n"},
 };
 
 /************************************************************************************
@@ -1027,14 +1028,54 @@ static void BleApp_TriggerCsDistanceMeasurement(deviceId_t deviceId)
 {
     bleResult_t result = gBleSuccess_c;
 
-    /* Reset data before starting a new procedure */
-    AppLocalization_ResetPeer(deviceId, FALSE, gInvalidNvmIndex_c);
-
-    result = AppLocalization_SetProcedureParameters(deviceId);
-
-    if (result != gBleSuccess_c)
+    if (deviceId != gInvalidDeviceId_c)
     {
-        shell_write("\r\nCS distance measurement failed.\r\n");
+        /* Single device measurement */
+        /* Reset data before starting a new procedure */
+        AppLocalization_ResetPeer(deviceId, FALSE, gInvalidNvmIndex_c);
+
+        result = AppLocalization_SetProcedureParameters(deviceId);
+
+        if (result == gBleOverflow_c)
+        {
+            shell_write("Maximum concurrent CS procedures reached!\r\n");
+        }
+        else if (result != gBleSuccess_c)
+        {
+            shell_write("\r\nCS distance measurement failed.\r\n");
+        }
+        else
+        {
+            /* MISRA C-2012 Rule 15.7 */
+        }
+    }
+    else
+    {
+        /* All devices measurement */
+        for (uint8_t i = 0U; i < (uint8_t)gAppMaxConnections_c; i++)
+        {
+            /* Check if device is connected */
+            if (maPeerInformation[i].deviceId != gInvalidDeviceId_c)
+            {
+                /* Reset data before starting a new procedure */
+                AppLocalization_ResetPeer(i, FALSE, gInvalidNvmIndex_c);
+
+                result = AppLocalization_SetProcedureParameters(i);
+
+                if (result == gBleOverflow_c)
+                {
+                    shell_write("Maximum concurrent CS procedures reached!\r\n");
+                }
+                else if (result != gBleSuccess_c)
+                {
+                    shell_write("\r\nCS distance measurement failed.\r\n");
+                }
+                else
+                {
+                    /* MISRA C-2012 Rule 15.7 */
+                }
+            }
+        }
     }
 }
 

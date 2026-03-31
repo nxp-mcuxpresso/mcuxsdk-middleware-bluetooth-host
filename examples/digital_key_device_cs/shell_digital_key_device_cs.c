@@ -1175,17 +1175,20 @@ static shell_status_t ShellSetCsProcedureParams_Command(shell_handle_t shellHand
 ********************************************************************************** */
 static shell_status_t ShellTriggerDistanceMeasurement_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
 {
+    bleResult_t status = gBleSuccess_c;
+
     if ((uint32_t)argc == 2U)
     {
+        /* Single device measurement */
         deviceId_t deviceId = (uint8_t)BleApp_AsciiToHex(argv[1], FLib_StrLen(argv[1]));
 
         if (deviceId < (uint8_t)gAppMaxConnections_c)
         {
-            if(mpfBleEventHandler != NULL)
+            if (mpfBleEventHandler != NULL)
             {
                 appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
 
-                if(pEventData != NULL)
+                if (pEventData != NULL)
                 {
                     pEventData->appEvent = mAppEvt_Shell_TriggerCsDistanceMeasurement_Command_c;
                     pEventData->peerDeviceId = deviceId;
@@ -1193,22 +1196,63 @@ static shell_status_t ShellTriggerDistanceMeasurement_Command(shell_handle_t she
                     if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
                     {
                         (void)MEM_BufferFree(pEventData);
+                        status = gBleOutOfMemory_c;
                     }
+                }
+                else
+                {
+                    status = gBleOutOfMemory_c;
                 }
             }
         }
         else
         {
-            shell_write("\r\nUsage: \
-                        \r\ntdm peer_id \
-                        \r\n");
+            status = gBleInvalidParameter_c;
+        }
+    }
+    else if ((uint32_t)argc == 1U)
+    {
+        /* All devices measurement */
+        if (mpfBleEventHandler != NULL)
+        {
+            appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
+
+            if (pEventData != NULL)
+            {
+                pEventData->appEvent = mAppEvt_Shell_TriggerCsDistanceMeasurement_Command_c;
+                pEventData->peerDeviceId = gInvalidDeviceId_c;
+
+                if (gBleSuccess_c != App_PostCallbackMessage(mpfBleEventHandler, pEventData))
+                {
+                    (void)MEM_BufferFree(pEventData);
+                    status = gBleOutOfMemory_c;
+                }
+            }
+            else
+            {
+                status = gBleOutOfMemory_c;
+            }
         }
     }
     else
     {
         shell_write("\r\nUsage: \
-                    \r\ntdm peer_id \
+                    \r\ntdm device_id (trigger measurement with one peer) \
+                    \r\ntdm (trigger measurements with all peers) \
                     \r\n");
+    }
+
+    if (status == gBleInvalidParameter_c)
+    {
+        shell_write("\r\nInvalid parameter.\r\n");
+    }
+    else if (status == gBleOutOfMemory_c)
+    {
+        shell_write("\r\nOut of memory.\r\n");
+    }
+    else
+    {
+        /* MISRA C-2012 Rule 15.7 */
     }
 
     return kStatus_SHELL_Success;

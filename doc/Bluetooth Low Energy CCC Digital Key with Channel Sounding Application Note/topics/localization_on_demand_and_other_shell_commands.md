@@ -1,6 +1,11 @@
 # Localization on demand and other shell commands
 
-Localization can also be performed on demand via the `tdm` shell command, which takes the device ID of the peer as an argument. As shown in the figure below, the Device triggers the localization process, and the default 5 measurements complete successfully.
+Localization can also be performed on demand via the `tdm` shell command. The command can be used in two ways:
+
+- **`tdm`** - Triggers distance measurement on all connected devices
+- **`tdm <peerId>`** - Triggers distance measurement on the specified peer device (where `peerId` is the device ID of the peer)
+
+As shown in the figure below, the Device triggers the localization process, and the default 5 measurements complete successfully.
 
 **Triggering the localization process**
 

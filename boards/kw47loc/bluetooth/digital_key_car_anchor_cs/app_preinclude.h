@@ -109,6 +109,17 @@
     ((!defined(gAppBtcsClient_d)) || (defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 0)))
 #error "Must be BTCS Client to run the algorithm"
 #endif
+
+#define gAppMaxConnections_c              2
+
+/* Maximum number of concurrent Channel Sounding procedures across all connections */
+#define gChannelSoundingMaxConcurrentProcedures_c  2U
+
+/* Validate Channel Sounding configuration */
+#if (gChannelSoundingMaxConcurrentProcedures_c > gAppMaxConnections_c)
+#error "gChannelSoundingMaxConcurrentProcedures_c cannot exceed gAppMaxConnections_c "
+#endif
+
 /*! *********************************************************************************
  *     CCC Configuration
  ********************************************************************************** */
@@ -185,12 +196,6 @@
 #define gExtendedAdvSetHandle_c                 0x01U
 #define gNoAdvSetHandle_c                       0xFFU
 
-#ifdef DEBUG
-#define gAppMaxConnections_c                    1
-#else
-#define gAppMaxConnections_c                    2
-#endif
-
 /* Must open an L2CAP channel for each CCC peer */
 #define gL2caMaxLeCbChannels_c                  gAppMaxConnections_c
 
@@ -238,7 +243,6 @@
 /*! *********************************************************************************
  *  Auto Configuration
  ********************************************************************************** */
-
 
 /*! *********************************************************************************
  *     BLE LL Configuration

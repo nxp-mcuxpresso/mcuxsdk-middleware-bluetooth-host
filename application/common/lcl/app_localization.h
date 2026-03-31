@@ -200,6 +200,7 @@ typedef enum
     gAppLclErrorProcessingSubevent_c,           /*!< An error occured in the processing of subevent data. */
     gAppLclUnexpectedWCCC_c,                    /*!< Unexpected writeCachedRemoteCapabilities_c was received. */
     gAppLclOutOfMemory_c,                       /*!< Not enough memory available for the temporary notification buffer */
+    gAppLclMaxProceduresReached_c,              /*!< Error occured! Maximum concurrent CS procedures reached */
 } appLocalizationError_t;
 
 typedef enum

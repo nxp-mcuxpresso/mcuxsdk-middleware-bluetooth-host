@@ -103,6 +103,16 @@
    Information available in algorithm result structure */
 #define gAppParseRssiInfo_d               0
 
+#define gAppMaxConnections_c              2
+
+/* Maximum number of concurrent Channel Sounding procedures across all connections */
+#define gChannelSoundingMaxConcurrentProcedures_c  2U
+
+/* Validate Channel Sounding configuration */
+#if (gChannelSoundingMaxConcurrentProcedures_c > gAppMaxConnections_c)
+#error "gChannelSoundingMaxConcurrentProcedures_c cannot exceed gAppMaxConnections_c "
+#endif
+
 /*! *********************************************************************************
  *     CCC Configuration
  ********************************************************************************** */
@@ -178,8 +188,6 @@
 #define gLegacyAdvSetHandle_c                   0x00U
 #define gExtendedAdvSetHandle_c                 0x01U
 #define gNoAdvSetHandle_c                       0xFFU
-
-#define gAppMaxConnections_c                    2
 
 /* Must open an L2CAP channel for each CCC peer */
 #define gL2caMaxLeCbChannels_c                  gAppMaxConnections_c

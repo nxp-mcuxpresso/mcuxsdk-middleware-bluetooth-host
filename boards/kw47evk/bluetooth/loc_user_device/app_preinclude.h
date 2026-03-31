@@ -58,7 +58,7 @@
 /*! Set the Tx power in dBm */
 #define mAdvertisingDefaultTxPower_c    0
 
-#define gAppMaxConnections_c            1U
+#define gAppMaxConnections_c            2U
 
 /* Must open an L2CAP channel for each CCC peer */
 #define gL2caMaxLeCbChannels_c          gAppMaxConnections_c
@@ -98,6 +98,14 @@
 /*! Transient application key demo */
 #define gAppUseTAK_d                    0
 #define gAppTAKAdvID_c                  "TAK_ID"
+
+/* Maximum number of concurrent Channel Sounding procedures across all connections */
+#define gChannelSoundingMaxConcurrentProcedures_c  2U
+
+/* Validate Channel Sounding configuration */
+#if (gChannelSoundingMaxConcurrentProcedures_c > gAppMaxConnections_c)
+#error "gChannelSoundingMaxConcurrentProcedures_c cannot exceed gAppMaxConnections_c "
+#endif
 
 /*! *********************************************************************************
  *     Framework Configuration

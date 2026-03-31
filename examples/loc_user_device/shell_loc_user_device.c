@@ -642,11 +642,11 @@ static shell_status_t ShellSetCsProcedureParams_Command(shell_handle_t shellHand
 static shell_status_t ShellTriggerDistanceMeasurement_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
 {
     bleResult_t status = gBleSuccess_c;
-    
+
     if ((uint32_t)argc == 2U)
     {
         deviceId_t deviceId = (uint8_t)BleApp_AsciiToHex(argv[1], FLib_StrLen(argv[1]));
-        
+
         if (deviceId < (uint8_t)gAppMaxConnections_c)
         {
             status = BleApp_TriggerCsDistanceMeasurement(deviceId);
@@ -656,13 +656,18 @@ static shell_status_t ShellTriggerDistanceMeasurement_Command(shell_handle_t she
             status = gBleInvalidParameter_c;
         }
     }
+    else if ((uint32_t)argc == 1U)
+    {
+        status = BleApp_TriggerCsDistanceMeasurement(gInvalidDeviceId_c);
+    }
     else
     {
         shell_write("\r\nUsage: \
-                    \r\ntdm device_id \
+                    \r\ntdm device_id (trigger measurement with one peer) \
+                    \r\ntdm (trigger measurements with all peers) \
                     \r\n");
     }
-    
+
     if (status == gBleInvalidParameter_c)
     {
         shell_write("\r\nInvalid parameter.\r\n");

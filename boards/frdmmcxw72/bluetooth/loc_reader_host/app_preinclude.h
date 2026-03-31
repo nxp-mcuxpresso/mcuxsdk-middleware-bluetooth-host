@@ -61,6 +61,16 @@
 /* Enable/Disable FSCI */
 #define gFsciIncluded_c                 1
 
+#define gAppMaxConnections_c            2
+
+/* Maximum number of concurrent Channel Sounding procedures across all connections */
+#define gChannelSoundingMaxConcurrentProcedures_c  2U
+
+/* Validate Channel Sounding configuration */
+#if (gChannelSoundingMaxConcurrentProcedures_c > gAppMaxConnections_c)
+#error "gChannelSoundingMaxConcurrentProcedures_c cannot exceed gAppMaxConnections_c "
+#endif
+
 /*! *********************************************************************************
  *     Framework Configuration
  ********************************************************************************** */
@@ -73,7 +83,6 @@
 /*! *********************************************************************************
  *     BLE Stack Configuration
  ********************************************************************************** */
-#define gAppMaxConnections_c                    1
 
 #define gAppUseSerialManager_c                  1
 

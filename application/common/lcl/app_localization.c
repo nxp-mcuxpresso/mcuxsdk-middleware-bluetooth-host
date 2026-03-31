@@ -296,6 +296,16 @@ static void TemperatureTimerStopCheck
 (
     void
 );
+
+static uint8_t AppLocalization_GetActiveProcedureCount
+(
+    appLocalization_State_t minState
+);
+
+static bool_t AppLocalization_CanStartProcedure
+(
+    void
+);
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -569,7 +579,7 @@ bleResult_t AppLocalization_HostInitHandler(void)
 *
 *\brief        Trigger localization configuration phase.
 *
-*\param  [in]  deviceId     Peer device id.
+*\param  [in]  deviceId         Peer device id.
 *
 *\retval       bleResult_t      Result of the operation.
 ********************************************************************************** */
@@ -585,14 +595,27 @@ bleResult_t AppLocalization_Config
     bool_t bHasTAK = maTakSupport[deviceId];
 #endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 
-    result = Gap_CheckIfBonded(deviceId, &isBonded, &nvmIndex);
-
-    if ((mGlobalRangeSettings.role != gCsRoleInitiator_c) ||
-        (maAppLclState[deviceId] != gAppLclIdle_c))
+    /* Check if we can start a new procedure */
+    if (AppLocalization_CanStartProcedure() == FALSE)
     {
-        result = gBleInvalidState_c;
+        result = gBleOverflow_c;
     }
-    else
+
+    if (result == gBleSuccess_c)
+    {
+        result = Gap_CheckIfBonded(deviceId, &isBonded, &nvmIndex);
+    }
+
+    if (result == gBleSuccess_c)
+    {
+        if ((mGlobalRangeSettings.role != gCsRoleInitiator_c) ||
+            (maAppLclState[deviceId] != gAppLclIdle_c))
+        {
+            result = gBleInvalidState_c;
+        }
+    }
+
+    if (result == gBleSuccess_c)
     {
         if (
 #if (defined(gAppUseTAK_d) && gAppUseTAK_d)
@@ -604,7 +627,7 @@ bleResult_t AppLocalization_Config
         }
         else
         {
-            if ((result == gBleSuccess_c) && (isBonded == TRUE))
+            if (isBonded == TRUE)
             {
                 result = CS_WriteCachedRemoteSupportedCapabilities(mpCachedRemoteCaps[nvmIndex]);
             }
@@ -619,11 +642,11 @@ bleResult_t AppLocalization_Config
 #endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
             ((isBonded == TRUE) && (mpCachedRemoteCaps[nvmIndex] == NULL)))
         {
-            maAppLclState[deviceId] = gAppLclWaitingForRRSC_c;
+            AppLocalization_SetLocState(deviceId, gAppLclWaitingForRRSC_c);
         }
         else
         {
-            maAppLclState[deviceId] = gAppLclWaitingForWCCC_c;
+            AppLocalization_SetLocState(deviceId, gAppLclWaitingForWCCC_c);
         }
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
         gCsTimeInfo.csConfigStartTs = TM_GetTimestamp();
@@ -705,31 +728,38 @@ bleResult_t AppLocalization_SecurityEnable
 bleResult_t AppLocalization_SetProcedureParameters(deviceId_t deviceId)
 {
     bleResult_t result = gBleSuccess_c;
-
     gCsSetProcedureParamsCommandParams_t params;
 
-    params.configId = mRangeSettings[deviceId].configId;
-    params.maxProcedureDuration = mRangeSettings[deviceId].maxProcedureDuration;
-    params.minProcedureInterval = mRangeSettings[deviceId].minPeriodBetweenProcedures;
-    params.maxProcedureInterval = mRangeSettings[deviceId].maxPeriodBetweenProcedures;
-    params.maxProcCount = mRangeSettings[deviceId].maxNumProcedures;
-    params.minSubeventLen = mRangeSettings[deviceId].minSubeventLen;
-    params.maxSubeventLen = mRangeSettings[deviceId].maxSubeventLen;
-    params.toneAntennaConfigSelection = mRangeSettings[deviceId].ant_cfg_index;
-    params.phys = mRangeSettings[deviceId].phy; /* Should have been updated by the app upon connection to be the same as the connection PHY */
-    params.txPwrDelta = 0; /* 0dBm */
-    params.preferredPeerAntenna = 3U; /* Use any of the 2 antenna */
-    params.SNRCtrlInitiator = mRangeSettings[deviceId].snr_control_init;
-    params.SNRCtrlReflector = mRangeSettings[deviceId].snr_control_refl;
-    /* Reset mResultData - if pData is allocated, it remains so for the upcoming procedure */
-    FLib_MemSet(&mResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-
-    result = CS_SetProcedureParameters(deviceId, &params);
-
-    if (result == gBleSuccess_c)
+    /*  Check if we can start a new procedure */
+    if (AppLocalization_CanStartProcedure() == TRUE)
     {
-        /* Waiting for Set Procedure Parameters command complete event. */
-        maAppLclState[deviceId] = gAppLclWaitingForSPPCC_c;
+        params.configId = mRangeSettings[deviceId].configId;
+        params.maxProcedureDuration = mRangeSettings[deviceId].maxProcedureDuration;
+        params.minProcedureInterval = mRangeSettings[deviceId].minPeriodBetweenProcedures;
+        params.maxProcedureInterval = mRangeSettings[deviceId].maxPeriodBetweenProcedures;
+        params.maxProcCount = mRangeSettings[deviceId].maxNumProcedures;
+        params.minSubeventLen = mRangeSettings[deviceId].minSubeventLen;
+        params.maxSubeventLen = mRangeSettings[deviceId].maxSubeventLen;
+        params.toneAntennaConfigSelection = mRangeSettings[deviceId].ant_cfg_index;
+        params.phys = mRangeSettings[deviceId].phy; /* Should have been updated by the app upon connection to be the same as the connection PHY */
+        params.txPwrDelta = 0; /* 0dBm */
+        params.preferredPeerAntenna = 3U; /* Use any of the 2 antenna */
+        params.SNRCtrlInitiator = mRangeSettings[deviceId].snr_control_init;
+        params.SNRCtrlReflector = mRangeSettings[deviceId].snr_control_refl;
+        /* Reset mResultData - if pData is allocated, it remains so for the upcoming procedure */
+        FLib_MemSet(&mResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
+
+        result = CS_SetProcedureParameters(deviceId, &params);
+
+        if (result == gBleSuccess_c)
+        {
+            /* Waiting for Set Procedure Parameters command complete event. */
+            AppLocalization_SetLocState(deviceId, gAppLclWaitingForSPPCC_c);
+        }
+    }
+    else
+    {
+        result = gBleOverflow_c;
     }
 
     return result;
@@ -2518,6 +2548,33 @@ static void AppLocalization_CSMetaEventCallback
             /* Procedure was enabled */
             if (pProcEnableComplete->state == 1U)
             {
+                uint8_t activeProcedures;
+                appLocalization_State_t countThreshold;
+
+                /* Check if we exceeded the limit */
+                countThreshold = (maAppLclState[deviceId] >= gAppLclWaitingForSPPCC_c) ? 
+                                 gAppLclWaitingForMeasData_c : gAppLclWaitingForSPPCC_c;
+
+                activeProcedures = AppLocalization_GetActiveProcedureCount(countThreshold);
+
+                if (activeProcedures >= gChannelSoundingMaxConcurrentProcedures_c)
+                {
+                    AppLocalization_SetLocState(deviceId, gAppLclWaitingForPECS_c);
+                    /* Limit exceeded - disable this procedure */
+                    result = CS_ProcedureEnable(deviceId, mRangeSettings[deviceId].configId, FALSE);
+
+                    if (result == gBleSuccess_c)
+                    {
+                        /* Notify application */
+                        if (mpfAppCsCallback != NULL)
+                        {
+                            AppLocalizationError(deviceId, gAppLclMaxProceduresReached_c);
+                        }
+                    }
+
+                    break;
+                }
+
                 /* Update number of procedures and reset internal counters */
                 mRangeSettings[deviceId].maxNumProcedures = pProcEnableComplete->procedureCount;
 
@@ -2537,7 +2594,7 @@ static void AppLocalization_CSMetaEventCallback
 #endif /* defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U) */
 
                 /* Wait for measurement data. */
-                maAppLclState[deviceId] = gAppLclWaitingForMeasData_c;
+                AppLocalization_SetLocState(deviceId, gAppLclWaitingForMeasData_c);
 
                 mResultData[deviceId].selectedTxPower = ((int8_t)pProcEnableComplete->selectedTxPower);
 
@@ -3467,6 +3524,45 @@ static void TemperatureTimerCallback
                        kTimerModeSingleShot | kTimerModeLowPowerTimer, gTemperaturePollingInterval_c);
     }
 #endif /* defined(gAppUseSensors_d) && (gAppUseSensors_d > 0) */
+}
+
+/*! *********************************************************************************
+* \brief        Count active CS procedures by checking device states
+*
+* \retval       uint8_t      Number of active procedures
+********************************************************************************** */
+static uint8_t AppLocalization_GetActiveProcedureCount(appLocalization_State_t minState)
+{
+    uint8_t count = 0U;
+
+    for (uint8_t i = 0U; i < (uint8_t)gAppMaxConnections_c; i++)
+    {
+        /* Check if device is in a CS active state */
+        if (maAppLclState[i] >= minState)
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+/*! *********************************************************************************
+* \brief        Check if a new CS procedure can be started
+*
+* \retval       bool_t      TRUE if a new procedure can be started, FALSE otherwise
+********************************************************************************** */
+static bool_t AppLocalization_CanStartProcedure(void)
+{
+    bool_t canStart = FALSE;
+    uint8_t activeProcedures = AppLocalization_GetActiveProcedureCount(gAppLclWaitingForSPPCC_c);
+
+    if (activeProcedures < gChannelSoundingMaxConcurrentProcedures_c)
+    {
+        canStart = TRUE;
+    }
+
+    return canStart;
 }
 
 /*! *********************************************************************************

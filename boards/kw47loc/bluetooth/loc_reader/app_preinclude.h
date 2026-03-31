@@ -121,6 +121,16 @@
 #define gAppUseTAK_d                          0
 #define gAppTAKAdvID_c                        "TAK_ID"
 
+#define gAppMaxConnections_c                  2
+
+/* Maximum number of concurrent Channel Sounding procedures across all connections */
+#define gChannelSoundingMaxConcurrentProcedures_c  2U
+
+/* Validate Channel Sounding configuration */
+#if (gChannelSoundingMaxConcurrentProcedures_c > gAppMaxConnections_c)
+#error "gChannelSoundingMaxConcurrentProcedures_c cannot exceed gAppMaxConnections_c "
+#endif
+
 /*! *********************************************************************************
  *     Framework Configuration
  ********************************************************************************** */
@@ -140,8 +150,6 @@
  ********************************************************************************** */
 #define gAdvSetHandle_c                       0x00U
 #define gNoAdvSetHandle_c                     0xFFU
-
-#define gAppMaxConnections_c                  1
 
  /* Enable Serial Manager interface */
 #if gAppHciDataLogExport_d
@@ -193,6 +201,7 @@
 #define gHost_TaskStackSize_c                 1800
 
 #define gMainThreadStackSize_c                3360
+
 /*! *********************************************************************************
  *     BLE LL Configuration
  ***********************************************************************************/

@@ -11,6 +11,7 @@ This section describes configuration options available for the applications. The
 
 For better performance and user experience, the optional LE Coded PHY advertising should be disabled by setting `gAppLeCodedAdvEnable_d` to `0` inside `app_preinclude.h` on the Anchor.
 
+-   Maximum concurrent Channel Sounding procedures**: Configure the maximum number of Channel Sounding procedures that can run simultaneously across all connections using the `gChannelSoundingMaxConcurrentProcedures_c` define in `app_preinclude.h`.
 
 **Parent topic:**[Localization scenarios](../topics/localization_scenarios.md)
 

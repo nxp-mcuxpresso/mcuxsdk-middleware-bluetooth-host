@@ -95,6 +95,14 @@
    Information available in algorithm result structure */
 #define gAppParseRssiInfo_d               0
 
+/* Maximum number of concurrent Channel Sounding procedures across all connections */
+#define gChannelSoundingMaxConcurrentProcedures_c  2U
+
+/* Validate Channel Sounding configuration */
+#if (gChannelSoundingMaxConcurrentProcedures_c > gAppMaxConnections_c)
+#error "gChannelSoundingMaxConcurrentProcedures_c cannot exceed gAppMaxConnections_c "
+#endif
+    
 /*! *********************************************************************************
  *     CCC Configuration
  ********************************************************************************** */

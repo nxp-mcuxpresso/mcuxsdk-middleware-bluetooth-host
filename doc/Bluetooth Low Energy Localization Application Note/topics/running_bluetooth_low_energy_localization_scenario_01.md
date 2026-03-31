@@ -25,7 +25,17 @@ To run the application, perform the following steps:
 
 After the devices are connected, the link is encrypted, the Channel Sounding configuration is created, and distance measurement is triggered. This is shown in [Figure 3](../images/Figure8.png). If two consecutive distance measurements return a value lower or equal to 1 meter, the LED1 on the Localization Reader starts blinking. If the measured distance is higher than 1, LED1 turns off.
 
--  To trigger a new distance measurement with peer device id `0`, enter "`tdm 0`" command. This command can be executed on either the Localization User Device or the Localization Reader. [Figure 4](../images/Figure5_Localization_User_Device_TriggerDistMeasurement.png) shows an example of triggering the distance measurement from the Localization User Device.
+-  To trigger a new distance measurement, use the "`tdm`" command:
+   -  **`tdm`** (without parameters): Triggers distance measurement on **all connected devices**
+   -  **`tdm <peerId>`**: Triggers distance measurement on the **specified peer device**
+   
+   Examples:
+   -  `tdm` - Start distance measurement on all connected peers
+   -  `tdm 0` - Start distance measurement on peer device with ID 0
+   -  `tdm 1` - Start distance measurement on peer device with ID 1
+
+   This command can be executed on either the Localization User Device or the Localization Reader. [Figure 4](../images/Figure5_Localization_User_Device_TriggerDistMeasurement.png) shows an example of triggering the distance measurement from the Localization User Device.
+
 
 ![](../images/Figure5_Localization_User_Device_TriggerDistMeasurement.png "Localization User Device triggering distance measurement")
 

@@ -17,4 +17,4 @@ The two demo applications provided showcase the following Bluetooth Low Energy l
 -   **Timing information display**: To enable this feature, set the `gAppCsTimeInfo_d` macro to the value `1` in the `app_preinclude.h` file. The console then displays details of the timing information \(such as the duration of the CS configuration phase, CS procedure, RAS transfer, and running of the algorithm\(s\)\).
 -   **Data quality information display**: This feature can be enabled by setting the `gAppParseQualityInfo_d` macro to the value `1` in the file `app_preinclude.h` for the Anchor. Additional information \(such as RSSI and Tone Quality Indicator values for the measurement data\) is displayed in the console.
 -   **GAP role**: Set the GAP role using `gAppIsPeripheral_d`, 1 for peripheral role, 0 for central role. In the default configuration, the `loc_reader` application is central.
-
+-   **Maximum concurrent Channel Sounding procedures**: Configure the maximum number of Channel Sounding procedures that can run simultaneously across all connections using the `gChannelSoundingMaxConcurrentProcedures_c` define in `app_preinclude.h`.
