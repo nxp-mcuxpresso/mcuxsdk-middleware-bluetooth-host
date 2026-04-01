@@ -1397,7 +1397,14 @@ static bool_t ParseMode2
                 ((antIdx == 2U) && ((filter & BIT7) != 0U)) ||
                 ((antIdx == 3U) && ((filter & BIT8) != 0U)))
                 {
-                    CheckSkipBytesDoNothing(*ppEventData, *pDataLength, gTone_PCTSize_c + sizeof(uint8_t), bIncomplete);
+                    if ((filter & BIT3) != 0U)
+                    {
+                        CheckSkipBytesDoNothing(*ppEventData, *pDataLength, gTone_PCTSize_c, bIncomplete);
+                    }
+                    if ((filter & BIT4) != 0U)
+                    {
+                        CheckSkipBytesDoNothing(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete);
+                    }
                 }
                 break;
             }
@@ -1587,7 +1594,14 @@ static bool_t ParseMode3
                   ((antIdx == 2U) && ((filter & BIT14) != 0U)) ||
                   ((antIdx == 3U) && ((filter & BIT15) != 0U)))
                 {
-                    CheckSkipBytesDoNothing(*ppEventData, *pDataLength, gTone_PCTSize_c + sizeof(uint8_t), bIncomplete);
+                    if ((filter & BIT10) != 0U)
+                    {
+                        CheckSkipBytesDoNothing(*ppEventData, *pDataLength, gTone_PCTSize_c, bIncomplete);
+                    }
+                    if ((filter & BIT11) != 0U)
+                    {
+                        CheckSkipBytesDoNothing(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete);
+                    }
                 }
                 break;
             }
