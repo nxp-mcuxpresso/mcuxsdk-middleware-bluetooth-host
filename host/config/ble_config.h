@@ -284,6 +284,14 @@
 #define gHostInitEnableExpmFeatures_c      FALSE
 #endif
 
+/*! Enables/disables the reception of the coredump packets as 
+ * gHciVendorSpecificDbgEvent_c events at application level.
+ * Default value is disabled.
+ */
+#ifndef gEnableCoredumpPackets_c
+#define gEnableCoredumpPackets_c      FALSE
+#endif
+
 #endif /* BLE_CONFIG_H */
 
 /*! *********************************************************************************

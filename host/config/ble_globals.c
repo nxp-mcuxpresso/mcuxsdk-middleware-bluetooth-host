@@ -371,6 +371,9 @@ const bool_t gEnableIntrusionDetectionSystem = FALSE;
 
 /*Enable experimental features in Controller*/
 bool_t gHostInitEnableExpmFeatures = (bool_t)gHostInitEnableExpmFeatures_c;
+
+/*Enable receiving coredump packets as gHciVendorSpecificDbgEvent_c events*/
+bool_t gEnableCoredumpPackets = (bool_t)gEnableCoredumpPackets_c;
 /************************************************************************************
 *************************************************************************************
 * Public functions

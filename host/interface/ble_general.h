@@ -192,7 +192,7 @@
 
 #define gVendorUnitaryTestSize_c             (255U)   /*!< Maximum size of the VENDOR_UNITARY_TEST response */
 
-#define gVendorDebugEventSize_c              (255U)   /*!< Maximum size of the debug payload */
+#define gVendorDebugEventSize_c              (254U)   /*!< Maximum size of the debug payload */
 #define gLeExtendedFeaturesSize_c            (1U)     /*!< Current size of the leExtendedFeatures, can be raised up to 240 */
 
 /* Macros for checking extended features */
@@ -1817,6 +1817,8 @@ extern const bool_t gUseHciCommandFlowControl;
 #endif /* gUnitTesting_d */
 
 extern bool_t gHostInitEnableExpmFeatures;
+
+extern bool_t gEnableCoredumpPackets;
 
 #if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == TRUE)
 #define gCsReadLocalSupportedCapabilitiesV2Support_c         (BIT0)
