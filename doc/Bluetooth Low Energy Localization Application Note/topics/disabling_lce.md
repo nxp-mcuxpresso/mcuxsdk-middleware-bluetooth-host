@@ -7,6 +7,6 @@ Follow the steps below to disable LCE acceleration support and use the RADE v1 a
  - replace CONFIG_MCUX_PRJSEG_module.board.wireless.linker_script_ble_loc=y with CONFIG_MCUX_PRJSEG_module.board.wireless.linker_script_ble=y
  - disable CONFIG_MCUX_PRJSEG_module.board.wireless.app_lce
 
-2. Running the RADE algorithm without LCE support increases stack size requirements. Ensure the stack size for the task on which the algorithm runs is at least 3000 octets.
+2. Running the RADE algorithm without LCE support increases stack size requirements. Ensure the stack size for the task on which the algorithm runs is at least 3300 octets.
 
 Note: Make sure the above components are listed only once in the prj.conf file. If duplicates exist, remove them before building the project.

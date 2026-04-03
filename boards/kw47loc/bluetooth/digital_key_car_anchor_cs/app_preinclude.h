@@ -239,7 +239,7 @@
 
 #define gHost_TaskStackSize_c                   1800
 
-#define gMainThreadStackSize_c                  3000
+#define gMainThreadStackSize_c                  3300
 /*! *********************************************************************************
  *  Auto Configuration
  ********************************************************************************** */
