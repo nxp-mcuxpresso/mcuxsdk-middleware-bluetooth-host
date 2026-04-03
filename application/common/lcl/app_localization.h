@@ -928,6 +928,26 @@ void AppLocalization_ComputeMaxProcedureDuration
 );
 
 /*! *********************************************************************************
+*\fn            void AppLocalization_ComputeSubeventLength(uint32_t connInterval,
+*                               uint32_t *pOutMinSubeventLen, uint32_t *pOutMaxSubeventLen);
+*
+*\brief         Helper function. Compute the CS Min/Max Subevent Length based on system
+*               and controller constraints based on a custom rule.
+*
+*\param[in]     connInterval         Bluetooth LE connection interval in units of 1.25ms.
+*\param[out]    pOutMinSubeventLen   Pointer to computed Min Subevent Len value.
+*\param[out]    pOutMaxSubeventLen   Pointer to computed Max Subevent Len value.
+*
+*\retval        None
+********************************************************************************** */
+void AppLocalization_ComputeSubeventLength
+(
+    uint32_t connInterval,
+    uint32_t *pOutMinSubeventLen,
+    uint32_t *pOutMaxSubeventLen
+);
+
+/*! *********************************************************************************
 *\fn            bool_t AppLocalization_RunAlgorithm(deviceId_t deviceId);
 *
 *\brief         Runs the distance measurement algorithm for a given peer.

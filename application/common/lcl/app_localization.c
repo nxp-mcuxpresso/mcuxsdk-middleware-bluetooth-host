@@ -890,6 +890,47 @@ bleResult_t AppLocalization_WriteConfig
 }
 
 /*! *********************************************************************************
+*\fn            void AppLocalization_ComputeSubeventLength(uint32_t connInterval,
+*                               uint32_t *pOutMinSubeventLen, uint32_t *pOutMaxSubeventLen);
+*
+*\brief         Helper function. Compute the CS Min/Max Subevent Length based on system
+*               and controller constraints based on a custom rule.
+*
+*\param[in]     connInterval         Bluetooth LE connection interval in units of 1.25ms.
+*\param[out]    pOutMinSubeventLen   Pointer to computed Min Subevent Len value.
+*\param[out]    pOutMaxSubeventLen   Pointer to computed Max Subevent Len value.
+*
+*\retval        None
+********************************************************************************** */
+void AppLocalization_ComputeSubeventLength
+(
+    uint32_t connInterval,
+    uint32_t *pOutMinSubeventLen,
+    uint32_t *pOutMaxSubeventLen
+)
+{
+#if (defined(gChannelSoundingMaxConcurrentProcedures_c) && (gChannelSoundingMaxConcurrentProcedures_c > 0U) \
+     && (gChannelSoundingMaxConcurrentProcedures_c <= 6U))
+    /* Compute subevent length based on the following rule:
+       subevent_len = CI/N_2 - 2500us, where N is the number of supported concurrent CS procedures
+       and N_2 is computed from N:
+       N   | 1 | 2 | 3 | 4 | 5 | 6 |
+       N_2 | 1 | 2 | 4 | 4 | 8 | 8 |
+     */
+    uint8_t aN_2[6U] = {1U, 2U, 4U, 4U, 8U, 8U};
+
+    if ((pOutMinSubeventLen != NULL) && (pOutMaxSubeventLen != NULL))
+    {
+        if ( ((connInterval * 1250U) / aN_2[gChannelSoundingMaxConcurrentProcedures_c - 1U]) > 2500U)
+        {
+            *pOutMinSubeventLen = (connInterval * 1250U) / aN_2[gChannelSoundingMaxConcurrentProcedures_c - 1U] - 2500U;
+            *pOutMaxSubeventLen = *pOutMinSubeventLen;
+        }
+    }
+#endif
+}
+
+/*! *********************************************************************************
 *\fn            void AppLocalization_ComputeMaxProcedureDuration(uint32_t procInterval,
 *                               uint16_t connInterval, uint16_t *pOutMaxProcDuration);
 *

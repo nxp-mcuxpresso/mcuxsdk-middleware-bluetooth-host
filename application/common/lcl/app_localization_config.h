@@ -96,4 +96,8 @@
 #define gMeasurementDataSizeMax_c           (4U /* HCI data header */ + (6U + 1U + 4U * (1U + gMaxNumAntennaPaths_c)) /* Mode 3 HCI length */)
 #define gMeasurementBufferSize_c            (gMeasurementDataSizeMax_c * gMaxNumCsSteps_c)
 
+/* Maximum concurrent CS procedures */
+#ifndef gChannelSoundingMaxConcurrentProcedures_c
+#define gChannelSoundingMaxConcurrentProcedures_c  (1U)
+#endif
 #endif /* APP_LOCALIZATION_CONFIG_H */
