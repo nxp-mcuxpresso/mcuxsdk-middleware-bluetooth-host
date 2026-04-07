@@ -1,46 +1,84 @@
-# Building and flashing the BLE software demo applications using IAR Embedded Workbench
+# Building and flashing BLE demo applications using IAR Embedded Workbench
 
-Use the following steps in order to build and flash the BLE software demo applications using the IAR Embedded Workbench:
+This guide shows how to build and flash Bluetooth Low Energy demo applications using IAR Embedded Workbench and the west build environment.
 
-1.  First unpack the contents of the archive to a folder on the local disk. Then, navigate to the resulting location starting from the SDK root directory.
+## Prerequisites
 
-2.  Open the IAR workspace file \(`*.eww` file format\) highlighted file in the figure below.
+- **west build environment** - Follow [Getting Started with MCUXpresso SDK Repository](https://mcuxpresso.nxp.com/mcuxsdk/latest/html/gsd/installation.html)
+- **IAR Embedded Workbench for Arm** (see release notes for version)
+- **GitHub MCUXpresso SDK repository** cloned locally (west init -m https://github.com/nxp-mcuxpresso/mcuxsdk-manifests.git)
 
-    **Wireless UART IAR demo project location**
-    ![Wireless UART IAR demo project location](../images/Rev1.1_figure4.png "Wireless UART IAR demo project location")
+## Step 1: Generate IAR Project
 
-3.  Choose between Debug and Release configurations in the drop-down selector above the project tree in the workspace.
+Use west build to generate the IAR project:
 
-    **Select the desired configuration (Debug or Release)**
-    ![Select the desired configuration (Debug or Release)](../images/Rev1.1_figure5.png "Select the desired configuration (Debug or Release)")
+```bash
+west build -b <board> <application_path> --toolchain=iar -t guiproject -Dcore_id=<core_id> --pristine
+```
 
-    The figure below shows the Wireless UART - IAR workspace.
+**Example for Wireless UART on KW47-EVK:**
 
-    **Wireless UART - IAR workspace**\
-    ![Wireless UART - IAR workspace](../images/Rev1.1_figure6.png "Wireless UART - IAR workspace")
+```bash
+west build -b kw47evk examples/wireless_examples/bluetooth/w_uart/freertos/ --toolchain=iar -t guiproject -Dcore_id=cm33_core0 --pristine
+```
 
-4.  Build the Wireless UART project using the options shown in the figure.
+**Parameters:**
 
-    **Build Wireless UART application**
-    ![Build Wireless UART application](../images/MCXW72_I/Figure8.png "Build Wireless UART application")
+| Parameter | Description |
+|-----------|-------------|
+| `-b <board>` | Target board (kw47evk, kw47loc, frdmkw43, frdmmcxw72, etc.) |
+| `--toolchain=iar` | Use IAR toolchain |
+| `-t guiproject` | Generate IAR workspace |
+| `-Dcore_id=cm33_core0` | CPU core (for KW47, MCXW72) |
+| `--pristine` | Clean build |
 
-5.  Make the appropriate debugger settings in the project options window, as seen in the next figure.
+**Supported boards:** kw47evk, kw47loc, frdmmcxw71, frdmmcxw72, mcxw72evk, frdmkw43.
 
-    Go to: **Project \> Options \(Alt+F7\) \> Debugger \> Setup \(tab\) \> Driver \> J-Link/J-Trace**
+**Output:** IAR workspace at `build/iar/<project_name>.eww`
 
-    **Debugger Settings for the Wireless UART project**
-    ![Debugger Settings for the Wireless UART project](../images/MCXW72_I/Figure9.png "Debugger Settings for the Wireless UART project")
+**Note:** The west build command builds in debug mode by default. To build in release mode, add `--config=release` to the command.
 
-6.  Click the “**Download and Debug**” button \(or **CTRL+D**\) to flash the executable onto the board.
+## Step 2: Open IAR Workspace
 
-    **Download and Debug the Wireless UART application**
-    ![Download and Debug the Wireless UART application](../images/image6.png "Download and Debug the Wireless UART application")
+1. Navigate to `build/iar/`
+2. Open the `.eww` file in IAR Embedded Workbench
 
-7.  Press **Go** \(**F5**\). At this moment, the board starts running the application.
+![IAR workspace location](../images/Rev1.1_figure4.png)
 
-    **Running the code on IAR**
-    ![Running the code on IAR](../images/MCXW72_I/Figure11.png "Running the code on IAR")
+![IAR workspace](../images/Rev1.1_figure6.png)
 
+## Step 3: Build Project
 
-**Parent topic:**[Building the binaries](../topics/building_the_binaries.md)
+Build the project using **Project > Make** or **F7**.
 
+![Build application](../images/MCXW72_I/Figure8.png)
+
+## Step 4: Configure Debugger
+
+Go to **Project > Options (Alt+F7) > Debugger > Setup > Driver**
+
+Select debugger:
+- **CMSIS-DAP** for kw45b41zevk, mcxw71evk, frdmmcxw71
+- **J-Link** for kw47evk, kw47loc, mcxw72evk, frdmmcxw72, frdmkw43
+
+![Debugger settings](../images/MCXW72_I/Figure9.png)
+
+## Step 5: Flash and Debug
+
+Click **Download and Debug** or press **Ctrl+D**.
+
+![Download and debug](../images/image6.png)
+
+## Step 6: Run Application
+
+Press **Go (F5)** to start the application.
+
+![Running code](../images/MCXW72_I/Figure11.png)
+
+## Notes
+
+- To rebuild after configuration changes, run west build with `--pristine`
+- Build artifacts are in the `build/` directory
+- Change board with `-b` parameter and application path as needed
+
+**Parent topic:** [Building the binaries](../topics/building_the_binaries.md)
