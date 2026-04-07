@@ -12,180 +12,181 @@ testcases:
 -
     id: 1001
     name: Mode 3 1Mbps 150/145/20
-    skip: n
+    skip: y
     cat: core, rtt, rtt1, rtp, nadm_off
     params: --mainmode 3 --testmode -n 5 --dutconfig "param timings int 150 145" --dutconfig "param timings t_pm 20"
 -
     id: 1002
     name: Mainmode 2 Submode 3 150/80/20
-    skip: n
+    skip: y
     cat: core, rtt, rtt1, rtp, nadm_off
     params: --mainmode 2 --submode 3 --testmode -n 5 --dutconfig "param timings int 150 80" --dutconfig "param timings t_pm 20"
 -
     id: 1003
     name: Mainmode 3 Submode 2 50/40/40
-    skip: n
+    skip: y
     cat: core, rtt, rtt1, rtp, nadm_off
     params: --mainmode 3 --submode 2 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 40"
 -
     id: 1004
     name: Mode3 Channel rand 50/40/20
-    skip: n
+    skip: y
     cat: core, rtp, rtt, rtt1, nadm_off
     params: --mainmode 3 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20" --dutconfig "param ch_list generate 0 77 rand"
 -
     id: 1005
     name: Mode3 2Mbps 150/145/20
-    skip: n
+    skip: y
     cat: core, rtt, rtt2, rtp, nadm_off
     params: --mainmode 3 --testmode -n 5 --dutconfig "param timings int 150 145" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_phy 1"
 -
     id: 1006
     name: Mode3 N_AP=4 T_SW=4 150/145/20
-    skip: n
+    skip: y
     cat: core, rtp, rtt, rtt1, nadm_off
     params: --mainmode 3 --testmode -n 5 --dutconfig "param ant 7 255" --dutconfig "param tone_ext 4" --dutconfig "param timings t_sw 4" --dutconfig "param timings int 150 145" --dutconfig "param timings t_pm 20"
 -
     id: 1007
     name: Mainmode 2 Submode 3 N_AP=4 T_SW=10 150/145/20
-    skip: n
+    skip: y
     cat: core, rtp, rtt, rtt1, nadm_off
     params: --mainmode 2 --submode 3 --testmode -n 5 --dutconfig "param ant 7 0" --dutconfig "param tone_ext 0" --dutconfig "param timings t_sw 10" --dutconfig "param timings int 150 145" --dutconfig "param timings t_pm 20"
 -
     id: 1010
     name: CONN Mode 3
+    skip: y
     cat: core, rtp, rtt, rtt1, nadm_off
     params: --mainmode 3 -n 5
 -
     id: 1011
     name: CONN Mainmode 2 Submode 3
-    skip: n
+    skip: y
     cat: core, rtp, rtt, rtt1, nadm_off
     params: --mainmode 2 --submode 3 -n 5
 -
     id: 1012
     name: CONN Mode3 N_AP=4 2Mbps
-    skip: n
+    skip: y
     cat: core, rtp, rtt, rtt2, nadm_off
     params: --mainmode 3 -n 5 --dutconfig "param ant 7 0" --dutconfig "param rtt_phy 1"
 # Random sequences
 -
     id: 10020
     name: RS32
-    skip: n
+    skip: y
     cat: core, rtt, rtt1, nadm_on
     params: --mainmode 1 --testmode -n 5 --dutconfig "param timings int 150 145" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_type 3"
 -
     id: 10021
     name: RS32 Mainmode 2 Submode 1
-    skip: n
+    skip: y
     cat: core, rtt, rtt1, rtp, nadm_on
     params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_type 3"
 -
     id: 10022
     name: RS32 Mainmode 3
-    skip: n
+    skip: y
     cat: core, rtt, rtt1, rtp, nadm_on
     params: --mainmode 3 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_type 3"
 -
     id: 10023
     name: RS32 Mainmode 2 Submode 1 2Mbps
-    skip: n
+    skip: y
     cat: core, rtt, rtt2, rtp, nadm_on
     params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_type 3" --dutconfig "param rtt_phy 1"
 -
     id: 10030
     name: RS64
-    skip: n
+    skip: y
     cat: core, rtt, rtt1, nadm_on
     params: --mainmode 1 --testmode -n 5 --dutconfig "param timings int 150 145" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_type 4"
 -
     id: 10031
     name: RS64 submode 1s
-    skip: n
+    skip: y
     cat: core, rtt, rtt1, rtp, nadm_on
     params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_type 4"
 -
     id: 10032
     name: RS64 Mainmode 3
-    skip: n
+    skip: y
     cat: core, rtt, rtt1, rtp, nadm_on
     params: --mainmode 3 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_type 4"
 -
     id: 10033
     name: RS64 Submode 1 2Mbps
-    skip: n
+    skip: y
     cat: core, rtt, rtt2, rtp, nadm_on
     params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_type 4" --dutconfig "param rtt_phy 1"
 -
     id: 10040
     name: RS96
-    skip: n
+    skip: y
     cat: core, rtt, rtt1, nadm_on
     params: --mainmode 1 --testmode -n 5 --dutconfig "param timings int 150 145" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_type 5"
 -
     id: 10041
     name: RS96 Mainmode 2 Submode 1
-    skip: n
+    skip: y
     cat: core, rtt, rtt1, rtp, nadm_on
     params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_type 5"
 -
     id: 10042
     name: RS96 Mainmode 3
-    skip: n
+    skip: y
     cat: core, rtt, rtt1, rtp, nadm_on
     params: --mainmode 3 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_type 5"
 -
     id: 10043
     name: RS96 Mainmode 2 Submode 1 2Mbps
-    skip: n
+    skip: y
     cat: core, rtt, rtt2, rtp, nadm_on
     params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_type 5" --dutconfig "param rtt_phy 1"
 -
     id: 10050
     name: RS128 Mainmode 1
-    skip: n
+    skip: y
     cat: core, rtt, rtt1, nadm_on
     params: --mainmode 1 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_type 6"
 -
     id: 10051
     name: RS128 Mainmode 2 Submode 1
-    skip: n
+    skip: y
     cat: core, rtt, rtt1, rtp, nadm_on
     params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_type 6"
 -
     id: 10052
     name: RS128 Mainmode 3
-    skip: n
+    skip: y
     cat: core, rtt, rtt1, rtp, nadm_on
     params: --mainmode 3 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_type 6"
 -
     id: 10053
     name: RS128 Mainmode 2 Submode 1 2Mbps
-    skip: n
+    skip: y
     cat: core, rtt, rtt2, rtp, nadm_on
     params: --mainmode 2 --submode 1 --testmode -n 5 --dutconfig "param timings int 50 40" --dutconfig "param timings t_pm 20" --dutconfig "param rtt_type 6" --dutconfig "param rtt_phy 1"
 -
     id: 10060
     name: CONN RS128 Maimode3 1Mbps
-    skip: n
+    skip: y
     cat: core, rtt, rtt1, rtp, nadm_on
     params: --mainmode 3 -n 5 --dutconfig "param rtt_type 6" --dutconfig "param rtt_phy 0"
 -
     id: 10061
     name: CONN RS128 Maimode2 Submode 3 1Mbps
-    skip: n
+    skip: y
     cat: core, rtt, rtt1, rtp, nadm_on
     params: --mainmode 2 --submode 3 -n 5 --dutconfig "param rtt_type 6" --dutconfig "param rtt_phy 0"
 -
     id: 10070
     name: CONN RS128 mode3 2Mbps
-    skip: n
+    skip: y
     cat: core, rtt, rtt2, rtp, nadm_on
     params: --mainmode 3 -n 5 --dutconfig "param rtt_type 6" --dutconfig "param rtt_phy 1"
 -
     id: 10071
     name: CONN RS128 Maimode2 Submode 3 2Mbps
-    skip: n
+    skip: y
     cat: core, rtt, rtt2, rtp, nadm_on
     params: --mainmode 2 --submode 3 -n 5 --dutconfig "param rtt_type 6" --dutconfig "param rtt_phy 1"

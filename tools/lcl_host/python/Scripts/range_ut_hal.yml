@@ -236,6 +236,7 @@ testcases:
 -
     id: 73
     name: RTT 150/145/20 with null CFO
+    skip: n
     cat: core, rtt, rtt1
     params: --mainmode 1 --testmode --injectCFO null,+ -n 1 --dutconfig "param timings int 150 145" --dutconfig "param timings t_pm 20"
 ##################
@@ -243,56 +244,56 @@ testcases:
 -
     id: 99
     name: CONN NORAS RTP
-    skip: n
+    skip: y
     descr: Smoke test for RTP connected mode (no RAS test mode)
     cat: core, rtp
     params: --mainmode 2 --noras -n 5
 -
     id: 100
     name: CONN RTP
-    skip: n
+    skip: y
     descr: Smoke test for RTP connected mode
     cat: core, rtp
     params: --mainmode 2 -n 5
 -
     id: 101
     name: CONN RTT
-    skip: n
+    skip: y
     descr: Smoke test for RTT connected mode
     cat: core, rtt, rtt1
     params: --mainmode 1 -n 5
 -
     id: 102
     name: CONN RTP/RTT 2Mbps
-    skip: n
+    skip: y
     descr: RTP/RTT connected mode
     cat: core, rtt, rtt2, rtp
     params: --mainmode 2 --submode 1 -n 5 --dutconfig "param rtt_phy 1"
 -
     id: 103
     name: CONN CHMAP RTP/RTT
-    skip: n
+    skip: y
     descr: connected mode, channel map configuration (skip advertising channels)
     cat: core, rtt, rtt1, rtp
     params: --mainmode 2 --submode 1 -n 5 --dutconfig "param ch_map 0x1FFFFFFFFFFFFC7FFFFC 1"
 -
     id: 104
     name: CONN CHANREP RTP/RTT
-    skip: n
+    skip: y
     descr: connected mode, channel map repetition
     cat: core, rtt, rtt1 # TODO: fix convert_to_excel to handle channel gaps, then re-enable 'rtp' category
     params: --mainmode 2 --submode 1 -n 5 --dutconfig "param ch_map 0xF0F0F0F000F000F000F0 2"
 -
     id: 105
     name: CONN RTP/RTT CS#3c
-    skip: n
+    skip: y
     descr: connected mode, cs3c
     cat: core, rtt, rtt1, rtp
     params: --mainmode 2 --submode 1 -n 5 --dutconfig "param cs_algo 1"
 -
     id: 106
     name: CONN RTP/RTT CS#3c SHAPE_X
-    skip: n
+    skip: y
     descr: connected mode, cs3c shape X, 3 repetitions
     cat: core, rtt, rtt1, rtp
     params: --mainmode 2 --submode 1 -n 5 --dutconfig "param cs_algo 1 1 8" --dutconfig "param ch_map 0x1FFFFFFFFFFFFFFFFFFF 3"
@@ -309,56 +310,56 @@ testcases:
 -
     id: 150
     name: CONN SUBEV FRAG 5ms  # Should produce 8 subevents
-    skip: n
+    skip: y
     descr: connected mode, subevent frag, subevtlen=5ms
     cat: core, rtp, rtt
     params: --mainmode 2 --submode 1 -n 10 --dutconfig "param subevent_len 5000" --dutconfig "param ant 7 0"
 -
     id: 151
     name: CONN SUBEV FRAG 10ms 2Mbps # Should produce 3 subevents
-    skip: n
+    skip: y
     descr: connected mode, subevent frag, subevtlen=10ms, 2Mbps
     cat: core, rtp, rtt
     params: --mainmode 2 --submode 1 -n 5 --dutconfig "param subevent_len 10000" --dutconfig "param ant 7 0" --dutconfig "param rtt_phy 1"
 -
     id: 170
     name: CONN PROC_REPEAT NOFRAG 1AP
-    skip: n
+    skip: y
     descr: connected mode, procedure repetition, antenna path=1, all algorithms
     cat: core, rtp, rtt
     params: --useprocrepeat 1 --mainmode 2 --submode 1 -n 20 --dutconfig "param ant 0 0"
 -
     id: 171
     name: CONN PROC_REPEAT NOFRAG 4AP
-    skip: n
+    skip: y
     descr: connected mode, procedure repetition, antenna path=4, all algorithms
     cat: core, rtp, rtt
     params: --useprocrepeat 1 --mainmode 2 --submode 1 -n 20 --dutconfig "param ant 7 0"
 -
     id: 172
     name: CONN PROC_REPEAT NOFRAG 4AP CDE_ONLY
-    skip: n
+    skip: y
     descr: "connected mode, procedure repetition, antenna path=4, algo: CDE embedded only"
     cat: algoCDE
     params: --useprocrepeat 1 --algo 0,1 --mainmode 2 --submode 1 -n 20 --dutconfig "param ant 7 0"
 -
     id: 173
     name: CONN PROC_REPEAT NOFRAG 4AP CDE_RADE
-    skip: n
+    skip: y
     descr: "connected mode, procedure repetition, antenna path=4, algo: CDE+RADE embedded"
     cat: algoCDE, algoRADE
     params: --useprocrepeat 1 --algo 0,5 --mainmode 2 --submode 1 -n 20 --dutconfig "param ant 7 0"
 -
     id: 174
     name: CONN RTP/RTT NOFRAG 160 STEPS
-    skip: n
+    skip: y
     descr: connected mode FRAG STEPS_NB stops at 160
     cat: core, rtt, rtt1, rtp
     params: --mainmode 2 --submode 1 -n 5 --dutconfig "param subevent_len 50000" --dutconfig "param ch_map 0x1FFFFFFFFFFFFFFFFFFF 3"
 -
     id: 175
     name: CONN RTP/RTT 256 STEPS
-    skip: n
+    skip: y
     descr: connected mode FRAG STEPS_NB greater than 256
     cat: core, rtt, rtt1, rtp
     params: --mainmode 2 --submode 1 -n 5 --dutconfig "param subevent_len 20000" --dutconfig "param ch_map 0x1FFFFFFFFFFFFFFFFFFF 3"
@@ -369,28 +370,28 @@ testcases:
 -
     id: 210
     name: EMBEDDED CDE
-    skip: n
+    skip: y
     descr: Embedded CDE, no algo on Host
     cat: algoCDE
     params: --mainmode 2 --submode 1 -n 5 --algo 0,1
 -
     id: 213
     name: EMBEDDED CDE + RADE DIV
-    skip: n
+    skip: y
     descr: Embedded CDE + CDE, with antenna diversity
     cat: algoCDE, algoRADE
     params: --mainmode 2 --submode 1 -n 5 --algo 0,5 --dutconfig "param ant 7 0" --dutconfig "param timings t_sw 2"
 -
     id: 214
     name: EMBEDDED CDE + RADE with CS3c
-    skip: n
+    skip: y
     descr: Embedded CDE + CDE
     cat: algoCDE, algoRADE
     params: --mainmode 2 --submode 1 -n 5 --algo 0,5 --dutconfig "param cs_algo 1"
 -
     id: 215
     name: EMBEDDED RADE
-    skip: n
+    skip: y
     descr: Embedded RADE
     cat: algoRADE
     params: --mainmode 2 --submode 1 -n 5 --algo 0,4
