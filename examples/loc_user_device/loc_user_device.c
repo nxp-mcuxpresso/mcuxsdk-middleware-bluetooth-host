@@ -1276,12 +1276,368 @@ static void BleApp_GattClientCallback(
     }
 }
 
-/*! *********************************************************************************
+/*! **********************************************************************************
+ * \brief        Handles CCCD written event for RAS characteristics.
+ *
+ * \param[in]    deviceId           Client peer device ID.
+ * \param[in]    pServerEvent       Pointer to gattServerEvent_t.
+ ***********************************************************************************/
+static void BleApp_HandleCharacteristicCccdWritten
+(
+    deviceId_t deviceId,
+    gattServerEvent_t *pServerEvent
+)
+{
+    uint8_t rasPreferenceValue = Ras_GetDataSendPreference(deviceId);
+
+    switch (pServerEvent->eventData.charCccdWrittenEvent.handle)
+    {
+        case (uint16_t)cccd_ras_data_ready:
+        {
+            if ((pServerEvent->eventData.charCccdWrittenEvent.newCccd & gCccdIndication_c) != 0U)
+            {
+                /* Signal preference for indications for Data Ready */
+                rasPreferenceValue |= BIT1;
+            }
+        }
+        break;
+
+        case (uint16_t)cccd_ras_data_overwritten:
+        {
+            if ((pServerEvent->eventData.charCccdWrittenEvent.newCccd & gCccdIndication_c) != 0U)
+            {
+                /* Signal preference for indications for Data Overwritten */
+                rasPreferenceValue |= BIT2;
+            }
+        }
+        break;
+
+        default:
+        {
+            /* Should not get here */
+            rasPreferenceValue = 0xFF;
+        }
+        break;
+    }
+
+    (void)Ras_SetDataSendPreference(deviceId, rasPreferenceValue);
+}
+
+/*! **********************************************************************************
+ * \brief        Handles RAS control point CCCD write.
+ *
+ * \param[in]    deviceId           Client peer device ID.
+ * \param[in]    pServerEvent       Pointer to gattServerEvent_t.
+ ***********************************************************************************/
+static void BleApp_HandleRasCtrlPointCccdWrite
+(
+    deviceId_t deviceId,
+    gattServerEvent_t *pServerEvent
+)
+{
+    uint8_t status = (uint8_t)gAttErrCodeNoError_c;
+    uint16_t newCccd = Utils_ExtractTwoByteValue(pServerEvent->eventData.attributeWrittenEvent.aValue);
+
+    if (newCccd != gCccdIndication_c)
+    {
+        status = (uint8_t)gAttErrCodeWriteRequestRejected_c;
+    }
+
+    if (pServerEvent->eventType == gEvtAttributeWritten_c)
+    {
+        (void)GattServer_SendAttributeWrittenStatus(deviceId,
+                                                    pServerEvent->eventData.attributeWrittenEvent.handle,
+                                                    status);
+    }
+}
+
+/*! **********************************************************************************
+ * \brief        Handles RAS control point value write.
+ *
+ * \param[in]    deviceId           Client peer device ID.
+ * \param[in]    pServerEvent       Pointer to gattServerEvent_t.
+ ***********************************************************************************/
+static void BleApp_HandleRasCtrlPointValueWrite
+(
+    deviceId_t deviceId,
+    gattServerEvent_t *pServerEvent
+)
+{
+    rasControlPointReq_t *rasCtrlPointCmd = (rasControlPointReq_t*)(void*)pServerEvent->eventData.attributeWrittenEvent.aValue;
+
+    if (pServerEvent->eventType == gEvtAttributeWritten_c)
+    {
+        (void)GattServer_SendAttributeWrittenStatus(deviceId,
+                                              pServerEvent->eventData.attributeWrittenEvent.handle,
+                                              (uint8_t)gAttErrCodeNoError_c);
+    }
+
+    /* RAS control point characteristic was written */
+    bleResult_t result = Ras_ControlPointHandler(deviceId,
+                                                 &pServerEvent->eventData.attributeWrittenEvent);
+
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
+    if (rasCtrlPointCmd->cmdOpCode == getRangingDataOpCode_c)
+    {
+        gCsTimeInfo.transferStart = TM_GetTimestamp();
+    }
+
+    if (rasCtrlPointCmd->cmdOpCode == ackRangingDataOpCode_c)
+    {
+        localizationAlgoResult_t algoResult = {0};
+
+        gCsTimeInfo.transferEnd = TM_GetTimestamp();
+        algoResult.algorithm = 0U;
+        algoResult.csConfigDuration = gCsTimeInfo.csConfigEndTs - gCsTimeInfo.csConfigStartTs;
+        algoResult.csProcedureDuration = gCsTimeInfo.csDistMeasDuration;
+        algoResult.transferDuration = gCsTimeInfo.transferEnd - gCsTimeInfo.transferStart;
+
+        BleApp_PrintMeasurementResults(deviceId,  &algoResult);
+    }
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
+
+    if (result != gBleSuccess_c)
+    {
+        shell_write("[");
+        shell_writeDec(deviceId);
+        shell_write("] RAS Error Received! Error code: ");
+        shell_writeDec((uint32_t)result);
+        shell_write(".\r\n");
+    }
+
+    if (rasCtrlPointCmd->cmdOpCode == (uint8_t)ackRangingDataOpCode_c)
+    {
+        shell_write("RAS transfer completed for procedure index ");
+        shell_writeDec((uint32_t)mProcedureCount - 1U); /* It was previously incremented at CS procedure completion */
+        shell_write(".\r\n");
+
+        if (mProcedureCount == mRangeSettings[deviceId].maxNumProcedures)
+        {
+            shell_cmd_finished();
+        }
+    }
+}
+
+/*! **********************************************************************************
+ * \brief        Handles RAS real-time data CCCD write.
+ *
+ * \param[in]    deviceId           Client peer device ID.
+ * \param[in]    pServerEvent       Pointer to gattServerEvent_t.
+ ***********************************************************************************/
+static void BleApp_HandleRasRealTimeDataCccdWrite
+(
+    deviceId_t deviceId,
+    gattServerEvent_t *pServerEvent
+)
+{
+    uint16_t *newCccd = (uint16_t*)(void*)pServerEvent->eventData.attributeWrittenEvent.aValue;
+    uint8_t status = (uint8_t)gAttErrCodeNoError_c;
+    uint8_t rasPreferenceValue = Ras_GetDataSendPreference(deviceId);
+
+    if (*newCccd == 0U)
+    {
+        (void)Ras_Unsubscribe(deviceId, FALSE);
+        shell_write("Ranging Client Unsubscribed for Real-Time\r\n");
+        (void)GattDb_WriteAttribute(pServerEvent->eventData.attributeWrittenEvent.handle,
+                                  pServerEvent->eventData.attributeWrittenEvent.cValueLength,
+                                  pServerEvent->eventData.attributeWrittenEvent.aValue);
+        (void)Gap_SaveCccd(deviceId, pServerEvent->eventData.attributeWrittenEvent.handle, (gattCccdFlags_t)(*newCccd));
+    }
+    else
+    {
+        if ((Ras_CheckIfSubscribed(deviceId) == FALSE) || (Ras_CheckRealTimeData(deviceId) == TRUE))
+        {
+            (void)GattDb_WriteAttribute(pServerEvent->eventData.attributeWrittenEvent.handle,
+                                      pServerEvent->eventData.attributeWrittenEvent.cValueLength,
+                                      pServerEvent->eventData.attributeWrittenEvent.aValue);
+            (void)Gap_SaveCccd(deviceId, pServerEvent->eventData.attributeWrittenEvent.handle, (gattCccdFlags_t)(*newCccd));
+
+            if ((*newCccd) == gCccdIndication_c)
+            {
+                /* Signal preference for indications for RAS On-Demand Data */
+                rasPreferenceValue |= BIT3;
+            }
+            (void)Ras_SetDataSendPreference(deviceId, rasPreferenceValue);
+
+            if (Ras_CheckIfSubscribed(deviceId) == FALSE)
+            {
+                (void)Ras_Subscribe(deviceId, TRUE);
+            }
+            shell_write("Ranging Client Subscribed for Real-Time\r\n");
+        }
+        else
+        {
+            status = (uint8_t)gAttErrCodeCccdImproperlyConfigured_c;
+        }
+    }
+
+    if (pServerEvent->eventType == gEvtAttributeWritten_c)
+    {
+        (void)GattServer_SendAttributeWrittenStatus(deviceId,
+                                                    pServerEvent->eventData.attributeWrittenEvent.handle,
+                                                    status);
+    }
+
+    BleApp_StateMachineHandler(deviceId, mAppEvt_GattServerCallback_CCCDWrittenComplete_c);
+}
+
+/*! **********************************************************************************
+ * \brief        Handles RAS stored data CCCD write.
+ *
+ * \param[in]    deviceId           Client peer device ID.
+ * \param[in]    pServerEvent       Pointer to gattServerEvent_t.
+ ***********************************************************************************/
+static void BleApp_HandleRasStoredDataCccdWrite
+(
+    deviceId_t deviceId,
+    gattServerEvent_t *pServerEvent
+)
+{
+    uint16_t *newCccd = (uint16_t*)(void*)pServerEvent->eventData.attributeWrittenEvent.aValue;
+    uint8_t status = (uint8_t)gAttErrCodeNoError_c;
+    uint8_t rasPreferenceValue = Ras_GetDataSendPreference(deviceId);
+
+    if (*newCccd == 0U)
+    {
+        (void)Ras_Unsubscribe(deviceId, FALSE);
+        shell_write("Ranging Client Unsubscribed for On-Demand\r\n");
+        (void)GattDb_WriteAttribute(pServerEvent->eventData.attributeWrittenEvent.handle,
+                                  pServerEvent->eventData.attributeWrittenEvent.cValueLength,
+                                  pServerEvent->eventData.attributeWrittenEvent.aValue);
+        (void)Gap_SaveCccd(deviceId, pServerEvent->eventData.attributeWrittenEvent.handle, (gattCccdFlags_t)(*newCccd));
+    }
+    else
+    {
+        if ((Ras_CheckIfSubscribed(deviceId) == FALSE) || (Ras_CheckRealTimeData(deviceId) == FALSE))
+        {
+            (void)GattDb_WriteAttribute(pServerEvent->eventData.attributeWrittenEvent.handle,
+                                      pServerEvent->eventData.attributeWrittenEvent.cValueLength,
+                                      pServerEvent->eventData.attributeWrittenEvent.aValue);
+            (void)Gap_SaveCccd(deviceId, pServerEvent->eventData.attributeWrittenEvent.handle, (gattCccdFlags_t)(*newCccd));
+
+            if ((*newCccd) == gCccdIndication_c)
+            {
+                /* Signal preference for indications for RAS On-Demand Data */
+                rasPreferenceValue |= BIT0;
+            }
+            (void)Ras_SetDataSendPreference(deviceId, rasPreferenceValue);
+
+            if (Ras_CheckIfSubscribed(deviceId) == FALSE)
+            {
+                (void)Ras_Subscribe(deviceId, FALSE);
+            }
+            shell_write("Ranging Client Subscribed for On-Demand\r\n");
+        }
+        else
+        {
+            status = (uint8_t)gAttErrCodeCccdImproperlyConfigured_c;
+        }
+    }
+
+    if (pServerEvent->eventType == gEvtAttributeWritten_c)
+    {
+        (void)GattServer_SendAttributeWrittenStatus(deviceId,
+                                                    pServerEvent->eventData.attributeWrittenEvent.handle,
+                                                    status);
+    }
+    
+    BleApp_StateMachineHandler(deviceId, mAppEvt_GattServerCallback_CCCDWrittenComplete_c);
+}
+
+/*! **********************************************************************************
+ * \brief        Handles attribute written events.
+ *
+ * \param[in]    deviceId           Client peer device ID.
+ * \param[in]    pServerEvent       Pointer to gattServerEvent_t.
+ ***********************************************************************************/
+static void BleApp_HandleAttributeWritten
+(
+    deviceId_t deviceId,
+    gattServerEvent_t *pServerEvent
+)
+{
+    if (pServerEvent->eventData.attributeWrittenEvent.handle == (uint16_t)cccd_ras_ctrl_point)
+    {
+        BleApp_HandleRasCtrlPointCccdWrite(deviceId, pServerEvent);
+    }
+
+    if (pServerEvent->eventData.attributeWrittenEvent.handle == (uint16_t)value_ras_ctrl_point)
+    {
+        BleApp_HandleRasCtrlPointValueWrite(deviceId, pServerEvent);
+    }
+
+    if (pServerEvent->eventData.attributeWrittenEvent.handle == (uint16_t)cccd_ras_real_time_data)
+    {
+        BleApp_HandleRasRealTimeDataCccdWrite(deviceId, pServerEvent);
+    }
+
+    if (pServerEvent->eventData.attributeWrittenEvent.handle == (uint16_t)cccd_ras_stored_data)
+    {
+        BleApp_HandleRasStoredDataCccdWrite(deviceId, pServerEvent);
+    }
+}
+
+/*! **********************************************************************************
+ * \brief        Handles value confirmation event.
+ *
+ * \param[in]    deviceId           Client peer device ID.
+ ***********************************************************************************/
+static void BleApp_HandleValueConfirmation
+(
+    deviceId_t deviceId
+)
+{
+    /* Confirm indication received */
+    Ras_GattValueConfirmationHandler(deviceId);
+
+    if (Ras_CheckTransferInProgress(deviceId))
+    {
+        if ((Ras_GetDataSendPreference(deviceId) & BIT0) != 0U)
+        {
+            /* On-Demand data transfer in progress through indications */
+            (void)Ras_SendRangingDataIndication(deviceId, (uint16_t)value_ras_stored_data);
+        }
+    }
+
+    if (Ras_CheckSegmentTransmInProgress(deviceId))
+    {
+        /* Segment retransmission in progress through indications */
+        (void)Ras_HandleGetRangingDataSegmInd(deviceId);
+    }
+
+    if ((Ras_CheckRealTimeData(deviceId)) && ((Ras_GetDataSendPreference(deviceId) & BIT3) != 0U))
+    {
+        /* Real-Time data transfer in progress through indications */
+        (void)Ras_SendRangingDataIndication(deviceId, (uint16_t)value_ras_real_time_data);
+    }
+}
+
+/*! **********************************************************************************
+ * \brief        Handles MTU changed event.
+ *
+ * \param[in]    deviceId           Client peer device ID.
+ * \param[in]    pServerEvent       Pointer to gattServerEvent_t.
+ ***********************************************************************************/
+static void BleApp_HandleMtuChanged
+(
+    deviceId_t deviceId,
+    gattServerEvent_t *pServerEvent
+)
+{
+    /* Get new MTU value to register with RAS */
+    shell_write("MTU Exchange complete\n\r");
+
+    Ras_SetMtuValue(deviceId, pServerEvent->eventData.mtuChangedEvent.newMtu);
+    /* Moving to Service Discovery State*/
+    maPeerInformation[deviceId].appState = mAppLocalizationSetup_c;
+}
+
+/*! **********************************************************************************
  * \brief        Handles GATT server callback from host stack.
  *
  * \param[in]    deviceId           Client peer device ID.
  * \param[in]    pServerEvent       Pointer to gattServerEvent_t.
- ********************************************************************************** */
+ ***********************************************************************************/
 static void BleApp_GattServerCallback
 (
     deviceId_t deviceId,
@@ -1292,261 +1648,26 @@ static void BleApp_GattServerCallback
     {
         case gEvtCharacteristicCccdWritten_c:
         {
-            uint8_t rasPreferenceValue = Ras_GetDataSendPreference(deviceId);
-
-            switch (pServerEvent->eventData.charCccdWrittenEvent.handle)
-            {
-                case (uint16_t)cccd_ras_data_ready:
-                {
-                    if ((pServerEvent->eventData.charCccdWrittenEvent.newCccd & gCccdIndication_c) != 0U)
-                    {
-                        /* Signal preference for indications for Data Ready */
-                        rasPreferenceValue |= BIT1;
-                    }
-                }
-                break;
-
-                case (uint16_t)cccd_ras_data_overwritten:
-                {
-                    if ((pServerEvent->eventData.charCccdWrittenEvent.newCccd & gCccdIndication_c) != 0U)
-                    {
-                        /* Signal preference for indications for Data Overwritten */
-                        rasPreferenceValue |= BIT2;
-                    }
-                }
-                break;
-
-                default:
-                {
-                    /* Should not get here */
-                    rasPreferenceValue = 0xFF;
-                }
-                break;
-            }
-
-            (void)Ras_SetDataSendPreference(deviceId, rasPreferenceValue);
+            BleApp_HandleCharacteristicCccdWritten(deviceId, pServerEvent);
         }
         break;
 
         case gEvtAttributeWrittenWithoutResponse_c:
         case gEvtAttributeWritten_c:
         {
-            uint8_t rasPreferenceValue = Ras_GetDataSendPreference(deviceId);
-
-            if (pServerEvent->eventData.attributeWrittenEvent.handle == (uint16_t)cccd_ras_ctrl_point)
-            {
-                uint8_t status = (uint8_t)gAttErrCodeNoError_c;
-                uint16_t newCccd = Utils_ExtractTwoByteValue(pServerEvent->eventData.attributeWrittenEvent.aValue);
-
-                if (newCccd != gCccdIndication_c)
-                {
-                    status = (uint8_t)gAttErrCodeWriteRequestRejected_c;
-                }
-
-                if (pServerEvent->eventType == gEvtAttributeWritten_c)
-                {
-                    (void)GattServer_SendAttributeWrittenStatus(deviceId,
-                                                                pServerEvent->eventData.attributeWrittenEvent.handle,
-                                                                status);
-                }
-            }
-
-            if (pServerEvent->eventData.attributeWrittenEvent.handle == (uint16_t)value_ras_ctrl_point)
-            {
-                rasControlPointReq_t *rasCtrlPointCmd = (rasControlPointReq_t*)(void*)pServerEvent->eventData.attributeWrittenEvent.aValue;
-                if (pServerEvent->eventType == gEvtAttributeWritten_c)
-                {
-                    (void)GattServer_SendAttributeWrittenStatus(deviceId,
-                                                          pServerEvent->eventData.attributeWrittenEvent.handle,
-                                                          (uint8_t)gAttErrCodeNoError_c);
-                }
-                /* RAS control point characteristic was written */
-                bleResult_t result = Ras_ControlPointHandler(deviceId,
-                                                             &pServerEvent->eventData.attributeWrittenEvent);
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-                if (rasCtrlPointCmd->cmdOpCode == getRangingDataOpCode_c)
-                {
-                    gCsTimeInfo.transferStart = TM_GetTimestamp();
-                }
-
-                if (rasCtrlPointCmd->cmdOpCode == ackRangingDataOpCode_c)
-                {
-                    localizationAlgoResult_t algoResult = {0};
-
-                    gCsTimeInfo.transferEnd = TM_GetTimestamp();
-                    algoResult.algorithm = 0U;
-                    algoResult.csConfigDuration = gCsTimeInfo.csConfigEndTs - gCsTimeInfo.csConfigStartTs;
-                    algoResult.csProcedureDuration = gCsTimeInfo.csDistMeasDuration;
-                    algoResult.transferDuration = gCsTimeInfo.transferEnd - gCsTimeInfo.transferStart;
-
-                    BleApp_PrintMeasurementResults(deviceId,  &algoResult);
-                }
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
-
-                if (result != gBleSuccess_c)
-                {
-                    shell_write("[");
-                    shell_writeDec(deviceId);
-                    shell_write("] RAS Error Received! Error code: ");
-                    shell_writeDec((uint32_t)result);
-                    shell_write(".\r\n");
-                }
-
-                if (rasCtrlPointCmd->cmdOpCode == (uint8_t)ackRangingDataOpCode_c)
-                {
-                    shell_write("RAS transfer completed for procedure index ");
-                    shell_writeDec((uint32_t)mProcedureCount - 1U); /* It was previously incremented at CS procedure completion */
-                    shell_write(".\r\n");
-
-                    if (mProcedureCount == mRangeSettings[deviceId].maxNumProcedures)
-                    {
-                        shell_cmd_finished();
-                    }
-                }
-            }
-
-            if (pServerEvent->eventData.attributeWrittenEvent.handle == (uint16_t)cccd_ras_real_time_data)
-            {
-                uint16_t *newCccd = (uint16_t*)(void*)pServerEvent->eventData.attributeWrittenEvent.aValue;
-                uint8_t status = (uint8_t)gAttErrCodeNoError_c;
-
-                if (*newCccd == 0U)
-                {
-                    (void)Ras_Unsubscribe(deviceId, FALSE);
-                    shell_write("Ranging Client Unsubscribed for Real-Time\r\n");
-                    (void)GattDb_WriteAttribute(pServerEvent->eventData.attributeWrittenEvent.handle,
-                                              pServerEvent->eventData.attributeWrittenEvent.cValueLength,
-                                              pServerEvent->eventData.attributeWrittenEvent.aValue);
-                    (void)Gap_SaveCccd(deviceId,pServerEvent->eventData.attributeWrittenEvent.handle, (gattCccdFlags_t)(*newCccd));
-                }
-                else
-                {
-                    if ((Ras_CheckIfSubscribed(deviceId) == FALSE) || (Ras_CheckRealTimeData(deviceId) == TRUE))
-                    {
-                        (void)GattDb_WriteAttribute(pServerEvent->eventData.attributeWrittenEvent.handle,
-                                              pServerEvent->eventData.attributeWrittenEvent.cValueLength,
-                                              pServerEvent->eventData.attributeWrittenEvent.aValue);
-                        (void)Gap_SaveCccd(deviceId,pServerEvent->eventData.attributeWrittenEvent.handle, (gattCccdFlags_t)(*newCccd));
-
-                        if ((*newCccd) == gCccdIndication_c)
-                        {
-                            /* Signal preference for indications for RAS On-Demand Data */
-                            rasPreferenceValue |= BIT3;
-                        }
-                        (void)Ras_SetDataSendPreference(deviceId, rasPreferenceValue);
-
-                        if (Ras_CheckIfSubscribed(deviceId) == FALSE)
-                        {
-                            (void)Ras_Subscribe(deviceId, TRUE);\
-                        }
-                        shell_write("Ranging Client Subscribed for Real-Time\r\n");
-                    }
-                    else
-                    {
-                        status = (uint8_t)gAttErrCodeCccdImproperlyConfigured_c;
-                    }
-                }
-
-                if (pServerEvent->eventType == gEvtAttributeWritten_c)
-                {
-                    (void)GattServer_SendAttributeWrittenStatus(deviceId,
-                                                                pServerEvent->eventData.attributeWrittenEvent.handle,
-                                                                status);
-                }
-
-                BleApp_StateMachineHandler(deviceId, mAppEvt_GattServerCallback_CCCDWrittenComplete_c);
-            }
-
-            if (pServerEvent->eventData.attributeWrittenEvent.handle == (uint16_t)cccd_ras_stored_data)
-            {
-                uint16_t *newCccd = (uint16_t*)(void*)pServerEvent->eventData.attributeWrittenEvent.aValue;
-                uint8_t status = (uint8_t)gAttErrCodeNoError_c;
-
-                if (*newCccd == 0U)
-                {
-                    (void)Ras_Unsubscribe(deviceId, FALSE);
-                    shell_write("Ranging Client Unsubscribed for On-Demand\r\n");
-                    (void)GattDb_WriteAttribute(pServerEvent->eventData.attributeWrittenEvent.handle,
-                                              pServerEvent->eventData.attributeWrittenEvent.cValueLength,
-                                              pServerEvent->eventData.attributeWrittenEvent.aValue);
-                    (void)Gap_SaveCccd(deviceId,pServerEvent->eventData.attributeWrittenEvent.handle, (gattCccdFlags_t)(*newCccd));
-                }
-                else
-                {
-                    if ((Ras_CheckIfSubscribed(deviceId) == FALSE) || (Ras_CheckRealTimeData(deviceId) == FALSE))
-                    {
-                        (void)GattDb_WriteAttribute(pServerEvent->eventData.attributeWrittenEvent.handle,
-                                              pServerEvent->eventData.attributeWrittenEvent.cValueLength,
-                                              pServerEvent->eventData.attributeWrittenEvent.aValue);
-                        (void)Gap_SaveCccd(deviceId,pServerEvent->eventData.attributeWrittenEvent.handle, (gattCccdFlags_t)(*newCccd));
-
-                        if ((*newCccd) == gCccdIndication_c)
-                        {
-                            /* Signal preference for indications for RAS On-Demand Data */
-                            rasPreferenceValue |= BIT0;
-                        }
-                        (void)Ras_SetDataSendPreference(deviceId, rasPreferenceValue);
-
-                        if (Ras_CheckIfSubscribed(deviceId) == FALSE)
-                        {
-                            (void)Ras_Subscribe(deviceId, FALSE);
-                        }
-                        shell_write("Ranging Client Subscribed for On-Demand\r\n");
-                    }
-                    else
-                    {
-                        status = (uint8_t)gAttErrCodeCccdImproperlyConfigured_c;
-                    }
-                }
-
-                if (pServerEvent->eventType == gEvtAttributeWritten_c)
-                {
-                    (void)GattServer_SendAttributeWrittenStatus(deviceId,
-                                                                pServerEvent->eventData.attributeWrittenEvent.handle,
-                                                                status);
-                }
-
-                BleApp_StateMachineHandler(deviceId, mAppEvt_GattServerCallback_CCCDWrittenComplete_c);
-            }
+            BleApp_HandleAttributeWritten(deviceId, pServerEvent);
         }
         break;
 
         case gEvtHandleValueConfirmation_c:
         {
-            /* Confirm indication received */
-            Ras_GattValueConfirmationHandler(deviceId);
-
-            if (Ras_CheckTransferInProgress(deviceId))
-            {
-                if ((Ras_GetDataSendPreference(deviceId) & BIT0) != 0U)
-                {
-                    /* On-Demand data transfer in progress through indications */
-                    (void)Ras_SendRangingDataIndication(deviceId, (uint16_t)value_ras_stored_data);
-                }
-            }
-
-            if (Ras_CheckSegmentTransmInProgress(deviceId))
-            {
-                /* Segment retransmission in progress through indications */
-                (void)Ras_HandleGetRangingDataSegmInd(deviceId);
-            }
-
-            if ((Ras_CheckRealTimeData(deviceId)) && ((Ras_GetDataSendPreference(deviceId) & BIT3) != 0U))
-            {
-                /* Real-Time data transfer in progress through indications */
-                (void)Ras_SendRangingDataIndication(deviceId, (uint16_t)value_ras_real_time_data);
-            }
+            BleApp_HandleValueConfirmation(deviceId);
         }
         break;
 
         case gEvtMtuChanged_c:
         {
-              /* Get new MTU value to register with RAS */
-              shell_write("MTU Exchange complete\n\r");
-
-              Ras_SetMtuValue(deviceId, pServerEvent->eventData.mtuChangedEvent.newMtu);
-              /* Moving to Service Discovery State*/
-              maPeerInformation[deviceId].appState = mAppLocalizationSetup_c;
+            BleApp_HandleMtuChanged(deviceId, pServerEvent);
         }
         break;
 
