@@ -43,21 +43,21 @@ typedef struct soc_eventlog_tag {
 #define MUXVAL      (PORT_PCR_MUX(8))
 
 /* DTEST signal selectors for use with dtest_init() */
-#define DTEST0          1<<0
-#define DTEST1          1<<1
-#define DTEST2          1<<2
-#define DTEST3          1<<3
-#define DTEST4          1<<4
-#define DTEST5          1<<5
-#define DTEST6          1<<6
-#define DTEST7          1<<7
-#define DTEST8          1<<8
-#define DTEST9          1<<9
-#define DTEST10         1<<10
-#define DTEST11         1<<11
-#define DTEST12         1<<12
-#define DTEST13         1<<13
-#define DTEST_ALL       0x1FFF
+#define DTEST0          (1UL<<0U)
+#define DTEST1          (1UL<<1U)
+#define DTEST2          (1UL<<2U)
+#define DTEST3          (1UL<<3U)
+#define DTEST4          (1UL<<4U)
+#define DTEST5          (1UL<<5U)
+#define DTEST6          (1UL<<6U)
+#define DTEST7          (1UL<<7U)
+#define DTEST8          (1UL<<8U)
+#define DTEST9          (1UL<<9U)
+#define DTEST10         (1UL<<10U)
+#define DTEST11         (1UL<<11U)
+#define DTEST12         (1UL<<12U)
+#define DTEST13         (1UL<<13U)
+#define DTEST_ALL       0x1FFFU
 
 /* DTEST1 conflicts with PTC1 (SW2) on localization board */
 #if ((defined(BOARD_LOCALIZATION_REVISION_SUPPORT)) && BOARD_LOCALIZATION_REVISION_SUPPORT)
@@ -92,111 +92,113 @@ static soc_eventlog_t soc_eventlog;
 #if !(defined(CPU_KW45B41Z82AFPA_NBU) || defined(CPU_KW45B41Z82AFTA_NBU) || defined(CPU_KW45B41Z83AFPA_NBU) || defined(CPU_KW45B41Z83AFTA_NBU))
 void isp_dtest_init(uint32_t option)
 {
-    uint32_t temp;  
-
-  if (option & DTEST0) /* PTC0 alt 8 */
-  {
-      temp = PORTC->PCR[0];
-      temp &= MUXMASK;
-      temp |= MUXVAL;
-      PORTC->PCR[0] = temp;
-  }
-  if (option & DTEST1) /* PTC1 alt 8 */
-  {
-      temp = PORTC->PCR[1];
-      temp &= MUXMASK;
-      temp |= MUXVAL;
-      PORTC->PCR[1] = temp;
-  }
-  if (option & DTEST2) /* PTC2 alt 8 */
-  {
-      temp = PORTC->PCR[2];
-      temp &= MUXMASK;
-      temp |= MUXVAL;
-      PORTC->PCR[2] = temp;
-  }
-  if (option & DTEST3) /* PTC3 alt 8 */
-  {
-      temp = PORTC->PCR[3];
-      temp &= MUXMASK;
-      temp |= MUXVAL;
-      PORTC->PCR[3] = temp;
-  }
-  
-  if (option & DTEST4) /* PTC4 alt 8 */
-  {
-      temp = PORTC->PCR[4];
-      temp &= MUXMASK;
-      temp |= MUXVAL;
-      PORTC->PCR[4] = temp;
-  }
-
-  if (option & DTEST5) /* PTC5 alt 8 */
-  {
-      temp = PORTC->PCR[5];
-      temp &= MUXMASK;
-      temp |= MUXVAL;
-      PORTC->PCR[5] = temp;
-  }
-  if (option & DTEST6) /* PTC6 alt 8 */
-  {
-      temp = PORTC->PCR[6];
-      temp &= MUXMASK;
-      temp |= MUXVAL;
-      PORTC->PCR[6] = temp;
-  }
-  if (option & DTEST7) /* PTB0 alt 8*/
-  {
-      temp = PORTB->PCR[0];
-      temp &= MUXMASK;
-      temp |= MUXVAL;
-      PORTB->PCR[0] = temp;
-  }
-  if (option & DTEST8) /* PTB1 alt 8 */
-  {
-      temp = PORTB->PCR[1];
-      temp &= MUXMASK;
-      temp |= MUXVAL;
-      PORTB->PCR[1] = temp;
-  }
-  if (option & DTEST9) /* PTB2 alt 8 */
-  {
-      temp = PORTB->PCR[2];
-      temp &= MUXMASK;
-      temp |= MUXVAL;
-      PORTB->PCR[2] = temp;
-  }
-
-  if (option & DTEST10) /* PTB3 alt 8 */
-  {
-      temp = PORTB->PCR[3];
-      temp &= MUXMASK;
-      temp |= MUXVAL;
-      PORTB->PCR[3] = temp;
-  }
-    
-  if (option & DTEST11) /* PTB4 alt 8 */
-  {
-      temp = PORTB->PCR[4];
-      temp &= MUXMASK;
-      temp |= MUXVAL;
-      PORTB->PCR[4] = temp;
-  }
-
-  if (option & DTEST12) /* PTCB5 alt 8  */
-  {
-      temp = PORTB->PCR[5];
-      temp &= MUXMASK;
-      temp |= MUXVAL;
-      PORTB->PCR[5] = temp;
-  }
-  if (option & DTEST13) /* PTC7 alt 8 */
-  {
-      temp = PORTC->PCR[7];
-      temp &= MUXMASK;
-      temp |= MUXVAL;
-      PORTC->PCR[7] = temp;
-  }
+    uint32_t temp;
+    if ((option & (DTEST0 | DTEST1 | DTEST2 | DTEST3 | DTEST4 | DTEST5 | DTEST6 | DTEST13)) != 0U)
+    {
+        CLOCK_EnableClock(kCLOCK_PortC);
+    }
+    if ((option & (DTEST7 | DTEST8 | DTEST9 | DTEST3 | DTEST10 | DTEST11 | DTEST12)) != 0U)
+    {
+        CLOCK_EnableClock(kCLOCK_PortB);
+    }
+    if ((option & DTEST0) != 0U) /* PTC0 alt 8 */
+    {
+        temp = PORTC->PCR[0];
+        temp &= MUXMASK;
+        temp |= MUXVAL;
+        PORTC->PCR[0] = temp;
+    }
+    if ((option & DTEST1) != 0U) /* PTC1 alt 8 */
+    {
+        temp = PORTC->PCR[1];
+        temp &= MUXMASK;
+        temp |= MUXVAL;
+        PORTC->PCR[1] = temp;
+    }
+    if ((option & DTEST2) != 0U) /* PTC2 alt 8 */
+    {
+        temp = PORTC->PCR[2];
+        temp &= MUXMASK;
+        temp |= MUXVAL;
+        PORTC->PCR[2] = temp;
+    }
+    if ((option & DTEST3) != 0U) /* PTC3 alt 8 */
+    {
+        temp = PORTC->PCR[3];
+        temp &= MUXMASK;
+        temp |= MUXVAL;
+        PORTC->PCR[3] = temp;
+    }
+    if ((option & DTEST4) != 0U) /* PTC4 alt 8 */
+    {
+        temp = PORTC->PCR[4];
+        temp &= MUXMASK;
+        temp |= MUXVAL;
+        PORTC->PCR[4] = temp;
+    }
+    if ((option & DTEST5) != 0U) /* PTC5 alt 8 */
+    {
+        temp = PORTC->PCR[5];
+        temp &= MUXMASK;
+        temp |= MUXVAL;
+        PORTC->PCR[5] = temp;
+    }
+    if ((option & DTEST6) != 0U) /* PTC6 alt 8 */
+    {
+        temp = PORTC->PCR[6];
+        temp &= MUXMASK;
+        temp |= MUXVAL;
+        PORTC->PCR[6] = temp;
+    }
+    if ((option & DTEST7) != 0U) /* PTB0 alt 8*/
+    {
+        temp = PORTB->PCR[0];
+        temp &= MUXMASK;
+        temp |= MUXVAL;
+        PORTB->PCR[0] = temp;
+    }
+    if ((option & DTEST8) != 0U) /* PTB1 alt 8 */
+    {
+        temp = PORTB->PCR[1];
+        temp &= MUXMASK;
+        temp |= MUXVAL;
+        PORTB->PCR[1] = temp;
+    }
+    if ((option & DTEST9) != 0U) /* PTB2 alt 8 */
+    {
+        temp = PORTB->PCR[2];
+        temp &= MUXMASK;
+        temp |= MUXVAL;
+        PORTB->PCR[2] = temp;
+    }
+    if ((option & DTEST10) != 0U) /* PTB3 alt 8 */
+    {
+        temp = PORTB->PCR[3];
+        temp &= MUXMASK;
+        temp |= MUXVAL;
+        PORTB->PCR[3] = temp;
+    }
+    if ((option & DTEST11) != 0U) /* PTB4 alt 8 */
+    {
+        temp = PORTB->PCR[4];
+        temp &= MUXMASK;
+        temp |= MUXVAL;
+        PORTB->PCR[4] = temp;
+    }
+    if ((option & DTEST12) != 0U) /* PTCB5 alt 8  */
+    {
+        temp = PORTB->PCR[5];
+        temp &= MUXMASK;
+        temp |= MUXVAL;
+        PORTB->PCR[5] = temp;
+    }
+    if ((option & DTEST13) != 0U) /* PTC7 alt 8 */
+    {
+        temp = PORTC->PCR[7];
+        temp &= MUXMASK;
+        temp |= MUXVAL;
+        PORTC->PCR[7] = temp;
+    }
 }
 #endif
 
