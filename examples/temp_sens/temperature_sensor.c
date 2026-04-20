@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -30,9 +30,7 @@
 #include "fsl_component_serial_manager.h"
 #include "fsl_format.h"
 #include "FunctionLib.h"
-#if defined(gAppUseSensors_d) && (gAppUseSensors_d > 0U)
 #include "sensors.h"
-#endif /* defined(gAppUseSensors_d) && (gAppUseSensors_d > 0U) */
 
 /* BLE Host Stack */
 #include "gatt_server_interface.h"

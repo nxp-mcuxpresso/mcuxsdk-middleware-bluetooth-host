@@ -128,7 +128,7 @@
 
 /* Sensors module is required for Battery measurement (BLE battery service profile) and temperature measurement */
 #if !defined(gAppUseSensors_d)
-#define gAppUseSensors_d               1
+#define gAppUseSensors_d               0
 #endif
 
 /* Enable Memory manager light heap extention for All BLE Applications
