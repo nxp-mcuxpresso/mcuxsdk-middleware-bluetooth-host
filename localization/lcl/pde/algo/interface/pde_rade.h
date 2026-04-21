@@ -90,6 +90,7 @@ typedef struct _rade_cs_para
     int8_t *refPowerLevel_refl; /*!< referencePowerLevel at reflector */
     uint8_t *subevtDoneStatus_local;  /*!< Subevent Done status - local */
     uint8_t *subevtDoneStatus_remote; /*!< Subevent Done status - remote */
+    uint8_t pctTransMode;       /*!< PCT transfer Mode */
 } rade_cs_para_t;
 
 /*! \struct rade_result_t

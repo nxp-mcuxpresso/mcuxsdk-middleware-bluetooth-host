@@ -1489,6 +1489,17 @@ static void antennaPathFilterStepData
 
         devIdIdx = deviceId * 4U;
 
+        /* Proprietary IPT solution: filter out mode-2 and mode-3 PCT data */
+        if (mRangeSettings[deviceId].inlinePctEnabled == TRUE)
+        {
+            maModeFilters[devIdIdx + gMode2Idx_c] &= ~((uint16_t)1U << 2U);
+            maModeFilters[devIdIdx + gMode2Idx_c] &= ~((uint16_t)1U << 3U);
+            maModeFilters[devIdIdx + gMode2Idx_c] &= ~((uint16_t)1U << 4U);
+            maModeFilters[devIdIdx + gMode3Idx_c] &= ~((uint16_t)1U << 9U);
+            maModeFilters[devIdIdx + gMode3Idx_c] &= ~((uint16_t)1U << 10U);
+            maModeFilters[devIdIdx + gMode3Idx_c] &= ~((uint16_t)1U << 11U);
+        }
+
         switch (mode)
         {
             /* Mode 0 data: Packet AA Quality, RSSI, Packet Antenna, Measured frequency offset */

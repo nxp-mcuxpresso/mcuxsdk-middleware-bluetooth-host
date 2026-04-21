@@ -1470,7 +1470,12 @@ bleResult_t AppLocalization_CreateConfig
         createConfigParams.ch3cShape = 0U; /* unused */
         createConfigParams.ch3cJump = 3; /* unused */
         createConfigParams.role = mGlobalRangeSettings.role;
-        createConfigParams.csEnhancements = 0U;
+#if defined(gAppUseInlinePctTransfer_d) && (gAppUseInlinePctTransfer_d == 1U)
+        if ((mRangeSettings[deviceId].subfeaturesSupported & gCsSubfeatureIptInReflector_c) != 0U)
+        {
+            createConfigParams.csEnhancements |= gCsEnhancementsIptEnabledInReflector_c;
+        }
+#endif
 
         /* If TRUE, create CS configuration in both local and remote Controller */
         createConfigParams.createContext = (uint8_t)createContextRemote;
@@ -2046,6 +2051,7 @@ static void AppLocalization_CSMetaEventCallback
             deviceId = pRemoteCapabilities->deviceId;
 
             mRangeSettings[deviceId].t_sw_remote = pRemoteCapabilities->TSWtimeSupported;
+            mRangeSettings[deviceId].subfeaturesSupported = pRemoteCapabilities->optionalSubfeaturesSupported;
 
             if (((mGlobalRangeSettings.role == gCsRoleInitiator_c) &&
                     (maAppLclState[deviceId] == gAppLclWaitingForRRSCC_c)) ||
@@ -2144,6 +2150,7 @@ static void AppLocalization_CSMetaEventCallback
                 mRangeSettings[deviceId].t_ip2 = pEvent->TIP2time;
                 mRangeSettings[deviceId].t_fcs = pEvent->TFCStime;
                 mRangeSettings[deviceId].t_pm = pEvent->TPMtime;
+                mRangeSettings[deviceId].inlinePctEnabled = ((pEvent->csEnhancements & gCsEnhancementsIptEnabledInReflector_c) != 0U);
 
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
                 gCsTimeInfo.csConfigEndTs = TM_GetTimestamp();

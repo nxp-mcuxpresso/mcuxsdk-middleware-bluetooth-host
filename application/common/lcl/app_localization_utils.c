@@ -545,7 +545,26 @@ void AppLocalizationAlgo_UncompressRemoteResponse
                     pDstAppBuffer->csData.modeMap[pRemoteData->step] = mode;
                     /* Get filter for the current mode */
                     filter = RasClient_GetModeFilter(pRemoteData->deviceId, mode);
-
+                    /* Proprietary IPT solution: filter out mode-2 and mode-3 PCT data */
+                    if (mRangeSettings[pRemoteData->deviceId].inlinePctEnabled == TRUE)
+                    {
+                        if (mode == 2U)
+                        {
+                            filter &= ~((uint16_t)1U << 2U);
+                            filter &= ~((uint16_t)1U << 3U);
+                            filter &= ~((uint16_t)1U << 4U);
+                        }
+                        else if (mode == 3U)
+                        {
+                            filter &= ~((uint16_t)1U << 9U);
+                            filter &= ~((uint16_t)1U << 10U);
+                            filter &= ~((uint16_t)1U << 11U);
+                        }
+                        else
+                        {
+                            /* MISRA */
+                        }
+                    }
                     /* Unpack mode data */
                     bIncomplete = HandleRemoteModes(mode, filter, &pEventData, 
                                                     &dataLength, pDstAppBuffer, 

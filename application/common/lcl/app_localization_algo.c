@@ -79,29 +79,44 @@ static uint8_t g_ceHeap_id = 0U;
 * Private prototypes
 *************************************************************************************
 ************************************************************************************/
-static void isp_mciq_ranging_compute
+#if (defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)) || \
+    (defined(gAppSlopeBasedCalibrationSupport_d) && (gAppSlopeBasedCalibrationSupport_d == 1))
+static void isp_mciq_ranging_compute_cde_slope
 (
     isp_meas_response_t *meas_response,
     mciq_result_t *mciq_result,
     engine_config_t *engine_config
+);
+
+static void isp_mciq_measurement_unpack_iqs(cs_data_t *cs_data,
+                                            mciq_data_t *data1, mciq_data_t *data2,
+                                            int16_t *pIQout1, int16_t *pIQout2, int16_t *pPhases,
+                                            uint32_t freqMask[], uint32_t tqi1Mask[],
+                                            uint32_t tqi2Mask[], uint16_t nbValid[]);
+
+static void AppLocalizationAlgo_ProcessAlgoResult(int32_t distFp, int16_t dqiFp, float distScaler, float dqiScaler, localizationAlgoRun_t *pResult);
+static int16_t AppLocalizationAlgo_CombinePhases(int16_t iSample1, int16_t qSample1, int16_t iSample2, int16_t qSample2);
+static int32_t AppLocalizationAlgo_GetAbsoluteValue(int32_t value);
+#endif
+
+static void isp_mciq_ranging_compute
+(
+    isp_meas_response_t *meas_response,
+    mciq_result_t *mciq_result,
+    engine_config_t *engine_config,
+    bool_t bIptEnabled
 );
 static void isp_tof_ranging_compute
 (
     isp_meas_response_t *meas_response,
     tof_result_t *tof_result
 );
-static void isp_mciq_measurement_unpack_iqs(cs_data_t *cs_data,
-                                            mciq_data_t *data1, mciq_data_t *data2,
-                                            int16_t *pIQout1, int16_t *pIQout2, int16_t *pPhases,
-                                            uint32_t freqMask[], uint32_t tqi1Mask[],
-                                            uint32_t tqi2Mask[], uint16_t nbValid[]);
+
 static uint8_t AppLocalizationAlgo_ComputeTsw(deviceId_t deviceId);
 static uint8_t AppLocalizationAlgo_CountLeadingZeroes(uint16_t decimalPart);
-static int16_t AppLocalizationAlgo_CombinePhases(int16_t iSample1, int16_t qSample1, int16_t iSample2, int16_t qSample2);
-static int32_t AppLocalizationAlgo_GetAbsoluteValue(int32_t value);
 static void AppLocalizationAlgo_ConvertFloatToIntDec(float value, uint8_t *pIntPart, uint16_t *pDecPart, uint8_t *pLeadingZeroes);
 static void AppLocalizationAlgo_ConvertDqiToIntDec(float dqiPercentage, uint16_t *pIntPart, uint16_t *pDecPart);
-static void AppLocalizationAlgo_ProcessAlgoResult(int32_t distFp, int16_t dqiFp, float distScaler, float dqiScaler, localizationAlgoRun_t *pResult);
+
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -258,7 +273,7 @@ void AppLocalizationAlgo_RunMeasurement
         engine_config.cde_div_threshold = DM_CDE_THRESHOLD_DIVERSITY_DEFAULT;
 
         /* Compute PBR distance */
-        isp_mciq_ranging_compute(&response, &engine_response.mciq_result, &engine_config);
+        isp_mciq_ranging_compute(&response, &engine_response.mciq_result, &engine_config, mRangeSettings[deviceId].inlinePctEnabled);
 
         /* Compute RTT distance */
         isp_tof_ranging_compute(&response, &engine_response.tof_result);
@@ -337,13 +352,132 @@ void AppLocalizationAlgo_RunMeasurement
 * Private functions
 *************************************************************************************
 ************************************************************************************/
+#if (defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)) || \
+    (defined(gAppSlopeBasedCalibrationSupport_d) && (gAppSlopeBasedCalibrationSupport_d == 1))
 
 /*! *********************************************************************************
- *\fn           void isp_mciq_ranging_compute(isp_meas_response_t *meas_response,
+ *\fn           void isp_mciq_measurement_unpack_iqs(cs_data_t *cs_data,
+ *                                  mciq_data_t *data1,
+ *                                  mciq_data_t *data2,
+ *                                  int16_t *pIQout1,
+ *                                  int16_t *pIQout2,
+ *                                  int16_t *pPhases,
+ *                                  uint32_t freqMask[],
+ *                                  uint32_t tqi1Mask[],
+ *                                  uint32_t tqi2Mask[],
+ *                                  uint16_t nbValid[]);
+ *
+ * \brief       Unpack IQs from mciq measurement data
+ *
+ * \param[in]   cs_data             Pointer to CS data
+ * \param[in]   data1               Pointer to initiator data
+ * \param[in]   data2               Pointer to reflector data
+ * \param[out]  pIQout1             Pointer to IQ1 data
+ * \param[out]  pIQout2             Pointer to IQ2 data
+ * \param[out]  pPhases             Pointer to combined phase data
+ * \param[out]  freqMask            Mask of CS channels used for RTP measurements
+ * \param[out]  tqi1Mask            Mask of CS channels used for RTP measurements; TQI was GOOD
+ * \param[out]  tqi2Mask            Mask of CS channels used for RTP measurements; TQI was GOOD
+ * \param[out]  nbValid             Number of mode 2 and mode 3 steps that contain valid data
+ *
+ *\retval       none
+ ********************************************************************************** */
+static void isp_mciq_measurement_unpack_iqs
+(
+    cs_data_t *cs_data,
+    mciq_data_t *data1,
+    mciq_data_t *data2,
+    int16_t *pIQout1,
+    int16_t *pIQout2,
+    int16_t *pPhases,
+    uint32_t freqMask[],
+    uint32_t tqi1Mask[],
+    uint32_t tqi2Mask[],
+    uint16_t nbValid[]
+)
+{
+    uint32_t i;
+    uint8_t *pIQ;
+    uint8_t *pIQin1;
+    uint8_t *pIQin2;
+    uint32_t channel;
+    int16_t iSample1, qSample1;
+    int16_t iSample2, qSample2;
+    int16_t tqi1, tqi2;
+    uint32_t apIdx, apNb;
+
+    /* CS IQs are 2 * 12 bits compressed, I is located in 12bits MSB, all antenna paths packed by step */
+    apNb = data1->n_ap;
+
+    for (apIdx = 0; apIdx < apNb; apIdx++)
+    {
+        pIQin1 = data1->iq;
+        pIQin2 = data2->iq;
+        nbValid[apIdx] = 0;
+        for (i = 0U; i < cs_data->step_nb; i++)
+        {
+            if (cs_data->modeMap[i] == 2U || cs_data->modeMap[i] == 3U)
+            {
+                uint16_t qSample1u, qSample2u, iSample1u, iSample2u;
+                channel = cs_data->channelMap[i];
+                assert(channel < gCsChannelsNb_c);
+                pIQ = pIQin1 + (gCsIqSize_c+gCsTqiSize_c)*apIdx;
+                qSample1u = (uint16_t)pIQ[0] | ((uint16_t)pIQ[1] & 0xFU) << 8U;
+                qSample1u = ISP_MCIQ_SIGN_EXTEND_12_16((uint16_t)qSample1u);
+                qSample1 = (int16_t)qSample1u;
+                iSample1u = (((uint16_t)pIQ[1] & 0xF0U) >> 4U) | (pIQ[2] << 4U);
+                iSample1u = ISP_MCIQ_SIGN_EXTEND_12_16((uint16_t)iSample1u);
+                iSample1 = (int16_t)iSample1u;
+                pIQ += gCsIqSize_c;
+                tqi1 = (int16_t)*pIQ;
+                pIQ = pIQin2 + (gCsIqSize_c+gCsTqiSize_c)*apIdx;
+                qSample2u = (uint16_t)pIQ[0] | ((uint16_t)pIQ[1] & 0xFU) << 8U;
+                qSample2u = ISP_MCIQ_SIGN_EXTEND_12_16((uint16_t)qSample2u);
+                qSample2 = (int16_t)qSample2u;
+                iSample2u = (((uint16_t)pIQ[1] & 0xF0U) >> 4U) | (pIQ[2] << 4U);
+                iSample2u = ISP_MCIQ_SIGN_EXTEND_12_16((uint16_t)iSample2u);
+                iSample2 = (int16_t)iSample2u;
+                pIQ += gCsIqSize_c;
+                tqi2 = (int16_t)*pIQ;
+
+                if (pPhases != NULL)
+                {
+                    *pPhases++ = AppLocalizationAlgo_CombinePhases(iSample1, qSample1, iSample2, qSample2);
+                }
+
+                /* Store unpacked IQs */
+                pIQout1[channel*2U] = iSample1;
+                pIQout1[channel*2U+1U] = qSample1;
+                pIQout2[channel*2U] = iSample2;
+                pIQout2[channel*2U+1U] = qSample2;
+
+                if (((uint16_t)tqi1 & 0xFU) == 0U)
+                {
+                    FREQMASK_SET(tqi1Mask, channel);
+                }
+                if (((uint16_t)tqi2 & 0xFU) == 0U)
+                {
+                    FREQMASK_SET(tqi2Mask, channel);
+                }
+
+                FREQMASK_SET(freqMask, channel); /* channel has been used */
+                nbValid[apIdx]++;
+
+                pIQin1 += (gCsIqSize_c + gCsTqiSize_c)*apNb;
+                pIQin2 += (gCsIqSize_c + gCsTqiSize_c)*apNb;
+            }
+        }
+        pIQout1 += 2U*gCsChannelsNb_c;
+        pIQout2 += 2U*gCsChannelsNb_c;
+    }
+}
+
+/*! *********************************************************************************
+ *\fn           void isp_mciq_ranging_compute_cde_slope(isp_meas_response_t *meas_response,
  *                                  mciq_result_t *mciq_result,
  *                                  engine_config_t *engine_config);
  *
- * \brief       Run distance estimation algorithm(s) and store computation results in mciq_result
+ * \brief       Helper function for CDE and Slope algorithms only.
  *
  * \param[in]   meas_response       Pointer to measurement response data
  * \param[in]   mciq_result         Pointer to mciq result data
@@ -351,7 +485,7 @@ void AppLocalizationAlgo_RunMeasurement
  *
  *\retval       none
  ********************************************************************************** */
-static void isp_mciq_ranging_compute
+static void isp_mciq_ranging_compute_cde_slope
 (
     isp_meas_response_t *meas_response,
     mciq_result_t *mciq_result,
@@ -362,7 +496,6 @@ static void isp_mciq_ranging_compute
     mciq_data_t *refl_data = &meas_response->mciq_data[1];
     int16_t *iq1, *iq2;
     int16_t *pPhases = NULL;
-
     uint16_t nb_valid[gMaxNumAntennaPaths_c] = {0};
     /* mask of CS channels that have been actually used for RTP measurements */
     uint32_t freqMask[(XCVR_F_RANGE/32)+1];
@@ -370,19 +503,19 @@ static void isp_mciq_ranging_compute
     uint32_t tqi1Mask[(XCVR_F_RANGE/32)+1];
     uint32_t tqi2Mask[(XCVR_F_RANGE/32)+1];
 
-    /* Allocate a single buffer to store combined phases and IQs for all devices. freed in isp_measurement_stop */
+    /* Allocate a single buffer to store combined phases and IQs for all devices */
     /* For each device : 2 IQ buff (each 2*uint16_t*channels*n_ap) */
     uint32_t item_size = (2U * sizeof(int16_t) * gCsChannelsNb_c * (uint32_t)engine_config->n_ap);
-    uint8_t *buf_start = (uint8_t *)MEM_BufferAlloc(2U*item_size);
+    uint8_t *buf_start = (uint8_t *)MEM_BufferAlloc(2U * item_size);
 
     if (buf_start == NULL)
     {
         return;
     }
 
-    FLib_MemSet(buf_start, 0U, 2U * item_size);
     iq1 = (int16_t *)(void *)buf_start;
     iq2 = (int16_t *)(void *)(buf_start + item_size);
+    FLib_MemSet(buf_start, 0U, 2U * item_size);
 
     mciq_result->cde_dqi = 0;
     mciq_result->cde_fp = 0;
@@ -505,6 +638,186 @@ static void isp_mciq_ranging_compute
     }
 #endif /* gAppUseCDEAlgorithm_d */
     (void)MEM_BufferFree(buf_start);
+}
+
+/*! *********************************************************************************
+ *\fn           void AppLocalizationAlgo_ProcessAlgoResult(int32_t distFp,
+ *                                                         int16_t dqiFp,
+ *                                                         float distScaler,
+ *                                                         float dqiScaler,
+ *                                                         algoResult_t *pResult);
+ *
+ * \brief       Process algorithm result and convert to display format.
+ *
+ * \param[in]   distFp        Distance in fixed-point format.
+ * \param[in]   dqiFp         DQI in fixed-point format.
+ * \param[in]   distScaler    Scaler for distance conversion.
+ * \param[in]   dqiScaler     Scaler for DQI conversion.
+ * \param[out]  pResult       Pointer to store converted result.
+ *
+ *\retval       none
+ ********************************************************************************** */
+static void AppLocalizationAlgo_ProcessAlgoResult
+(
+    int32_t distFp,
+    int16_t dqiFp,
+    float distScaler,
+    float dqiScaler,
+    localizationAlgoRun_t *pResult
+)
+{
+    int32_t temp;
+
+    /* Get absolute values */
+    distFp = AppLocalizationAlgo_GetAbsoluteValue(distFp);
+    temp = dqiFp;
+    temp = AppLocalizationAlgo_GetAbsoluteValue(temp);
+    if (temp > (int32_t)INT16_MAX)
+    {
+        temp = (int32_t)INT16_MAX;
+    }
+    dqiFp = (int16_t)temp;
+    
+    /* Convert distance */
+    pResult->distanceInMeters = (float)distFp / distScaler;
+    
+    /* Convert DQI to percentage */
+    pResult->dqiPercentage = ((float)dqiFp / dqiScaler) * 100.0f;
+    
+    /* Convert distance to integer/decimal parts */
+    AppLocalizationAlgo_ConvertFloatToIntDec(
+        pResult->distanceInMeters,
+        &pResult->distanceIntegerPart,
+        &pResult->distanceDecimalPart,
+        &pResult->leadingZeroesDecimalPart
+    );
+    
+    /* Convert DQI to integer/decimal parts */
+    AppLocalizationAlgo_ConvertDqiToIntDec(
+        pResult->dqiPercentage,
+        &pResult->dqiIntegerPart,
+        &pResult->dqiDecimalPart
+    );
+}
+
+/*! *********************************************************************************
+ *\fn           int16_t AppLocalizationAlgo_CombinePhases(int16_t iSample1,
+ *                               int16_t qSample1, int16_t iSample2, int16_t qSample2);
+ *
+ * \brief       Combines phases, scales to [-1;1] in Q15 fixed-point format.
+ *
+ * \param[in]   iSample1         I sample on initiator.
+ * \param[in]   qSample1         Q sample on initiator.
+ * \param[in]   iSample2         I sample on reflector.
+ * \param[in]   qSample2         Q sample on reflector.
+ *
+ *\retval       phaseConv.i16    Normalized combined phase in Q15 format.
+ ********************************************************************************** */
+static int16_t AppLocalizationAlgo_CombinePhases(int16_t iSample1, int16_t qSample1, int16_t iSample2, int16_t qSample2)
+{
+    int32_t phase1, phase2;
+    union
+    {
+        int32_t i32;
+        int16_t i16;
+    } phaseConv;
+    
+    /* Compute phase = atan(Q/I) */
+    phase1 = atan2fp(qSample1, iSample1);
+    /* Normalize phase to Pi in Q3.12 and convert to Q15 */
+    phase1 = (phase1 * 32768) / 12867;
+    
+    phase2 = atan2fp(qSample2, iSample2);
+    phase2 = (phase2 * 32768) / 12867;
+    
+    /* Sum phases */
+    phase1 = phase1 + phase2;
+    
+    /* Phi normalization wrapped in [-1,1] */
+    if (phase1 > gPhaseNormalizedThreshold_c)
+    {
+        phase1 -= gPhaseCorrectionFactor_c;
+    }
+    else if (phase1 < (-gPhaseNormalizedThreshold_c))
+    {
+        phase1 += gPhaseCorrectionFactor_c;
+    }
+    else
+    {
+        /* MISRA rule 15.7 */
+    }
+
+    phaseConv.i32 = phase1;
+    return phaseConv.i16;
+}
+
+/*! *********************************************************************************
+ *\fn           int32_t AppLocalizationAlgo_GetAbsoluteValue(int32_t value);
+ *
+ * \brief       Get absolute value using 2's complement for negative numbers.
+ *
+ * \param[in]   value         Input value.
+ *
+ *\retval       int32_t       Absolute value.
+ ********************************************************************************** */
+static int32_t AppLocalizationAlgo_GetAbsoluteValue(int32_t value)
+{
+    if (value < 0)
+    {
+        union
+        {
+            uint32_t u32;
+            int32_t  i32;
+        } conv;
+
+        conv.u32 = (0xFFFFFFFFUL ^ (uint32_t)value) + 1UL;
+        value = conv.i32;
+    }
+    return value;
+}
+#endif /* gAppUseCDEAlgorithm_d ||gAppSlopeBasedCalibrationSupport_d */
+
+/*! *********************************************************************************
+ *\fn           void isp_mciq_ranging_compute(isp_meas_response_t *meas_response,
+ *                                  mciq_result_t *mciq_result,
+ *                                  engine_config_t *engine_config,
+*                                   bool_t bIptEnabled);
+ *
+ * \brief       Run distance estimation algorithm(s) and store computation results in mciq_result
+ *
+ * \param[in]   meas_response       Pointer to measurement response data
+ * \param[in]   mciq_result         Pointer to mciq result data
+ * \param[in]   engine_config       Pointer to ranging engine configuration
+ * \param[in]   bIptEnabled         TRUE if Inline PCT Transfer is enabled for this measurement
+ *
+ *\retval       none
+ ********************************************************************************** */
+static void isp_mciq_ranging_compute
+(
+    isp_meas_response_t *meas_response,
+    mciq_result_t *mciq_result,
+    engine_config_t *engine_config,
+    bool_t bIptEnabled
+)
+{
+    mciq_data_t *init_data = &meas_response->mciq_data[0];
+    mciq_data_t *refl_data = &meas_response->mciq_data[1];
+
+    /* Set the runtime flag for Slope automatically if enabled at compile time - it is used below */
+#if defined(gAppSlopeBasedCalibrationSupport_d) && (gAppSlopeBasedCalibrationSupport_d == 1)
+    engine_config->mciq_algo_flags |= eMciqAlgoEmbedSlope;
+#endif
+
+    /* Handle CDE and Slope */
+#if (defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)) || \
+    (defined(gAppSlopeBasedCalibrationSupport_d) && (gAppSlopeBasedCalibrationSupport_d == 1))
+    /* Only call if at least one of the algos is enabled at runtime and IPT is disabled */
+    if ((((engine_config->mciq_algo_flags & eMciqAlgoEmbedCDE) != 0U) ||
+        ((engine_config->mciq_algo_flags & eMciqAlgoEmbedSlope) != 0U)) && (bIptEnabled == FALSE))
+    {
+        isp_mciq_ranging_compute_cde_slope(meas_response, mciq_result, engine_config);
+    }
+#endif
 
 #if defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)
     if((engine_config->mciq_algo_flags & eMciqAlgoEmbedRADE) != 0U)
@@ -543,6 +856,7 @@ static void isp_mciq_ranging_compute
         radeCsPara.refPowerLevel_refl       = meas_response->cs_data->subevtRefPowerLevelRefl;
         radeCsPara.subevtDoneStatus_local   = meas_response->cs_data->subevtDoneStatusLocal;
         radeCsPara.subevtDoneStatus_remote  = meas_response->cs_data->subevtDoneStatusRemote;
+        radeCsPara.pctTransMode             = (bIptEnabled == TRUE) ? 1U : 0U;
         radeResult.rng_est                  = &mciq_result->rade_dist;
         radeResult.rng_est_qi               = &mciq_result->rade_dqi;
         radeResult.reserved                 = &radeResReserved;
@@ -631,123 +945,6 @@ static void isp_tof_ranging_compute
 }
 
 /*! *********************************************************************************
- *\fn           void isp_mciq_measurement_unpack_iqs(cs_data_t *cs_data,
- *                                  mciq_data_t *data1,
- *                                  mciq_data_t *data2,
- *                                  int16_t *pIQout1,
- *                                  int16_t *pIQout2,
- *                                  int16_t *pPhases,
- *                                  uint32_t freqMask[],
- *                                  uint32_t tqi1Mask[],
- *                                  uint32_t tqi2Mask[],
- *                                  uint16_t nbValid[]);
- *
- * \brief       Unpack IQs from mciq measurement data
- *
- * \param[in]   cs_data             Pointer to CS data
- * \param[in]   data1               Pointer to initiator data
- * \param[in]   data2               Pointer to reflector data
- * \param[out]  pIQout1             Pointer to IQ1 data
- * \param[out]  pIQout2             Pointer to IQ2 data
- * \param[out]  pPhases             Pointer to combined phase data
- * \param[out]  freqMask            Mask of CS channels used for RTP measurements
- * \param[out]  tqi1Mask            Mask of CS channels used for RTP measurements; TQI was GOOD
- * \param[out]  tqi2Mask            Mask of CS channels used for RTP measurements; TQI was GOOD
- * \param[out]  nbValid             Number of mode 2 and mode 3 steps that contain valid data
- *
- *\retval       none
- ********************************************************************************** */
-static void isp_mciq_measurement_unpack_iqs
-(
-    cs_data_t *cs_data,
-    mciq_data_t *data1,
-    mciq_data_t *data2,
-    int16_t *pIQout1,
-    int16_t *pIQout2,
-    int16_t *pPhases,
-    uint32_t freqMask[],
-    uint32_t tqi1Mask[],
-    uint32_t tqi2Mask[],
-    uint16_t nbValid[]
-)
-{
-    uint32_t i;
-    uint8_t *pIQ;
-    uint8_t *pIQin1;
-    uint8_t *pIQin2;
-    uint32_t channel;
-    int16_t iSample1, qSample1;
-    int16_t iSample2, qSample2;
-    int16_t tqi1, tqi2;
-    uint32_t apIdx, apNb;
-
-    /* CS IQs are 2 * 12 bits compressed, I is located in 12bits MSB, all antenna paths packed by step */
-    apNb = data1->n_ap;
-
-    for (apIdx = 0; apIdx < apNb; apIdx++)
-    {
-        pIQin1 = data1->iq;
-        pIQin2 = data2->iq;
-        nbValid[apIdx] = 0;
-        for (i = 0U; i < cs_data->step_nb; i++)
-        {
-            if (cs_data->modeMap[i] == 2U || cs_data->modeMap[i] == 3U)
-            {
-                uint16_t qSample1u, qSample2u, iSample1u, iSample2u;
-                channel = cs_data->channelMap[i];
-                assert(channel < gCsChannelsNb_c);
-                pIQ = pIQin1 + (gCsIqSize_c+gCsTqiSize_c)*apIdx;
-                qSample1u = (uint16_t)pIQ[0] | ((uint16_t)pIQ[1] & 0xFU) << 8U;
-                qSample1u = ISP_MCIQ_SIGN_EXTEND_12_16((uint16_t)qSample1u);
-                qSample1 = (int16_t)qSample1u;
-                iSample1u = (((uint16_t)pIQ[1] & 0xF0U) >> 4U) | (pIQ[2] << 4U);
-                iSample1u = ISP_MCIQ_SIGN_EXTEND_12_16((uint16_t)iSample1u);
-                iSample1 = (int16_t)iSample1u;
-                pIQ += gCsIqSize_c;
-                tqi1 = (int16_t)*pIQ;
-                pIQ = pIQin2 + (gCsIqSize_c+gCsTqiSize_c)*apIdx;
-                qSample2u = (uint16_t)pIQ[0] | ((uint16_t)pIQ[1] & 0xFU) << 8U;
-                qSample2u = ISP_MCIQ_SIGN_EXTEND_12_16((uint16_t)qSample2u);
-                qSample2 = (int16_t)qSample2u;
-                iSample2u = (((uint16_t)pIQ[1] & 0xF0U) >> 4U) | (pIQ[2] << 4U);
-                iSample2u = ISP_MCIQ_SIGN_EXTEND_12_16((uint16_t)iSample2u);
-                iSample2 = (int16_t)iSample2u;
-                pIQ += gCsIqSize_c;
-                tqi2 = (int16_t)*pIQ;
-
-                if (pPhases != NULL)
-                {
-                    *pPhases++ = AppLocalizationAlgo_CombinePhases(iSample1, qSample1, iSample2, qSample2);
-                }
-
-                /* Store unpacked IQs */
-                pIQout1[channel*2U] = iSample1;
-                pIQout1[channel*2U+1U] = qSample1;
-                pIQout2[channel*2U] = iSample2;
-                pIQout2[channel*2U+1U] = qSample2;
-
-                if (((uint16_t)tqi1 & 0xFU) == 0U)
-                {
-                    FREQMASK_SET(tqi1Mask, channel);
-                }
-                if (((uint16_t)tqi2 & 0xFU) == 0U)
-                {
-                    FREQMASK_SET(tqi2Mask, channel);
-                }
-
-                FREQMASK_SET(freqMask, channel); /* channel has been used */
-                nbValid[apIdx]++;
-
-                pIQin1 += (gCsIqSize_c + gCsTqiSize_c)*apNb;
-                pIQin2 += (gCsIqSize_c + gCsTqiSize_c)*apNb;
-            }
-        }
-        pIQout1 += 2U*gCsChannelsNb_c;
-        pIQout2 += 2U*gCsChannelsNb_c;
-    }
-}
-
-/*! *********************************************************************************
  *\fn           uint8_t AppLocalizationAlgo_ComputeTsw(deviceId_t deviceId);
  *
  * \brief       Function which computes the T_SW used by a CS procedure.
@@ -829,82 +1026,6 @@ static uint8_t AppLocalizationAlgo_CountLeadingZeroes
     tmp.u16 = leadingZeroes;
 
     return tmp.u8;
-}
-
-/*! *********************************************************************************
- *\fn           int16_t AppLocalizationAlgo_CombinePhases(int16_t iSample1,
- *                               int16_t qSample1, int16_t iSample2, int16_t qSample2);
- *
- * \brief       Combines phases, scales to [-1;1] in Q15 fixed-point format.
- *
- * \param[in]   iSample1         I sample on initiator.
- * \param[in]   qSample1         Q sample on initiator.
- * \param[in]   iSample2         I sample on reflector.
- * \param[in]   qSample2         Q sample on reflector.
- *
- *\retval       phaseConv.i16    Normalized combined phase in Q15 format.
- ********************************************************************************** */
-static int16_t AppLocalizationAlgo_CombinePhases(int16_t iSample1, int16_t qSample1, int16_t iSample2, int16_t qSample2)
-{
-    int32_t phase1, phase2;
-    union
-    {
-        int32_t i32;
-        int16_t i16;
-    } phaseConv;
-    
-    /* Compute phase = atan(Q/I) */
-    phase1 = atan2fp(qSample1, iSample1);
-    /* Normalize phase to Pi in Q3.12 and convert to Q15 */
-    phase1 = (phase1 * 32768) / 12867;
-    
-    phase2 = atan2fp(qSample2, iSample2);
-    phase2 = (phase2 * 32768) / 12867;
-    
-    /* Sum phases */
-    phase1 = phase1 + phase2;
-    
-    /* Phi normalization wrapped in [-1,1] */
-    if (phase1 > gPhaseNormalizedThreshold_c)
-    {
-        phase1 -= gPhaseCorrectionFactor_c;
-    }
-    else if (phase1 < (-gPhaseNormalizedThreshold_c))
-    {
-        phase1 += gPhaseCorrectionFactor_c;
-    }
-    else
-    {
-        /* MISRA rule 15.7 */
-    }
-
-    phaseConv.i32 = phase1;
-    return phaseConv.i16;
-}
-
-/*! *********************************************************************************
- *\fn           int32_t AppLocalizationAlgo_GetAbsoluteValue(int32_t value);
- *
- * \brief       Get absolute value using 2's complement for negative numbers.
- *
- * \param[in]   value         Input value.
- *
- *\retval       int32_t       Absolute value.
- ********************************************************************************** */
-static int32_t AppLocalizationAlgo_GetAbsoluteValue(int32_t value)
-{
-    if (value < 0)
-    {
-        union
-        {
-            uint32_t u32;
-            int32_t  i32;
-        } conv;
-
-        conv.u32 = (0xFFFFFFFFUL ^ (uint32_t)value) + 1UL;
-        value = conv.i32;
-    }
-    return value;
 }
 
 /*! *********************************************************************************
@@ -991,64 +1112,4 @@ static void AppLocalizationAlgo_ConvertDqiToIntDec
         decimalPart = (uint32_t)UINT16_MAX;
     }
     *pDecPart = (uint16_t)decimalPart;
-}
-
-/*! *********************************************************************************
- *\fn           void AppLocalizationAlgo_ProcessAlgoResult(int32_t distFp,
- *                                                         int16_t dqiFp,
- *                                                         float distScaler,
- *                                                         float dqiScaler,
- *                                                         algoResult_t *pResult);
- *
- * \brief       Process algorithm result and convert to display format.
- *
- * \param[in]   distFp        Distance in fixed-point format.
- * \param[in]   dqiFp         DQI in fixed-point format.
- * \param[in]   distScaler    Scaler for distance conversion.
- * \param[in]   dqiScaler     Scaler for DQI conversion.
- * \param[out]  pResult       Pointer to store converted result.
- *
- *\retval       none
- ********************************************************************************** */
-static void AppLocalizationAlgo_ProcessAlgoResult
-(
-    int32_t distFp,
-    int16_t dqiFp,
-    float distScaler,
-    float dqiScaler,
-    localizationAlgoRun_t *pResult
-)
-{
-    int32_t temp;
-
-    /* Get absolute values */
-    distFp = AppLocalizationAlgo_GetAbsoluteValue(distFp);
-    temp = dqiFp;
-    temp = AppLocalizationAlgo_GetAbsoluteValue(temp);
-    if (temp > (int32_t)INT16_MAX)
-    {
-        temp = (int32_t)INT16_MAX;
-    }
-    dqiFp = (int16_t)temp;
-    
-    /* Convert distance */
-    pResult->distanceInMeters = (float)distFp / distScaler;
-    
-    /* Convert DQI to percentage */
-    pResult->dqiPercentage = ((float)dqiFp / dqiScaler) * 100.0f;
-    
-    /* Convert distance to integer/decimal parts */
-    AppLocalizationAlgo_ConvertFloatToIntDec(
-        pResult->distanceInMeters,
-        &pResult->distanceIntegerPart,
-        &pResult->distanceDecimalPart,
-        &pResult->leadingZeroesDecimalPart
-    );
-    
-    /* Convert DQI to integer/decimal parts */
-    AppLocalizationAlgo_ConvertDqiToIntDec(
-        pResult->dqiPercentage,
-        &pResult->dqiIntegerPart,
-        &pResult->dqiDecimalPart
-    );
 }
