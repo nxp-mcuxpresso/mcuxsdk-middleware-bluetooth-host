@@ -555,8 +555,8 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
         (void)printf(",rade_dqi:%d.%02d", integ, decimal);
         (void)printf(",raderr:%d", engine_response->mciq_result.rade_error_flag);
 #endif
+        (void)printf("},");
     }
-    (void)printf("},");
 
 #if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1) 
     if (mdata->nbSteps != 0U)
