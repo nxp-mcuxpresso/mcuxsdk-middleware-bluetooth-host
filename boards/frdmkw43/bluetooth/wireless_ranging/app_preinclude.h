@@ -62,6 +62,10 @@
 
 #define gAppDisableControllerLowPower_d                 1
 
+/* Enable/Disable CS Enhancement: Inline PCT Transfer
+   Only the RADE algorithm supports distance measurement with Inline PCT Transfer */
+#define gAppUseInlinePctTransfer_d                      0
+
 /* Enable experimental features on controller for advanced testing */
 #define gHostInitEnableExpmFeatures_c                   1
 

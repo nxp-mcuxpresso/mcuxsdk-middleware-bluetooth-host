@@ -434,6 +434,7 @@ void processCsConfigCompleteEvent
     config->t_ip2 = pEvent->TIP2time;
     config->t_fcs = pEvent->TFCStime;
     config->t_pm = pEvent->TPMtime;
+    config->inlinePctEnabled = ((pEvent->csEnhancements & gCsEnhancementsIptEnabledInReflector_c) != 0U);
 
     /* Retrieve debug information from RT PHY field */
     config->debug = pEvent->csSyncPhy >> CS_DBG_FLG_SHIFT;
@@ -461,6 +462,7 @@ void processReadRemoteSupportedCapabilitiesCompleteEvent
 )
 {
     gRangeSettings->t_sw_remote = pEvent->TSWtimeSupported;
+    gRangeSettings->subfeaturesSupported = pEvent->optionalSubfeaturesSupported;
     wrs_StartSecurity(pEvent->deviceId);
 }
 
@@ -639,6 +641,12 @@ bleResult_t measurement_configure(deviceId_t deviceId)
     createConfigParams.ch3cShape = (userShape_t)config->ch_sel_shape;
     createConfigParams.ch3cJump = config->ch_sel_jump;
     createConfigParams.csEnhancements = 0U;
+#if defined(gAppUseInlinePctTransfer_d) && (gAppUseInlinePctTransfer_d == 1)
+    if ((config->subfeaturesSupported & gCsSubfeatureIptInReflector_c) != 0U)
+    {
+        createConfigParams.csEnhancements |= gCsEnhancementsIptEnabledInReflector_c;
+    }
+#endif
 
     return CS_CreateConfig(deviceId, &createConfigParams);
 }

@@ -278,7 +278,7 @@ void isp_mciq_ranging_compute(isp_meas_response_t *meas_response, mciq_result_t 
         radeCsPara.refPowerLevel_refl   =  meas_response->cs_data->subevtRefPowerLevelRefl;
         radeCsPara.subevtDoneStatus_local = meas_response->cs_data->subevtDoneStatusLocal  ;
         radeCsPara.subevtDoneStatus_remote = meas_response->cs_data->subevtDoneStatusRemote ;
-        radeCsPara.pctTransMode         = 0U;
+        radeCsPara.pctTransMode         =  (meas_response->mparams->cfg.inlinePctEnabled) ? 1U : 0U;
         radeResult.rng_est              =  &mciq_result->rade_dist;
         radeResult.rng_trk              =  &mciq_result->rade_dist_trk;
         radeResult.rng_est_qi           =  &mciq_result->rade_dqi;

@@ -2038,7 +2038,8 @@ void cli_cmd_system_factory(int argc, char *argv[])
     gRangeSettings->ch_sel_algo = 0; /* #3b */
     gRangeSettings->ch_sel_shape = 0; /* Hat shape */
     gRangeSettings->ch_sel_jump = 3;
-#if defined(BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT > 0)
+#if (defined(BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT > 0)) && \
+    (!defined(gAppUseInlinePctTransfer_d) || (gAppUseInlinePctTransfer_d != 1))
     gRangeSettings->ant_cfg_index = 7;
     gRangeSettings->ant_type = 4;
 #else
