@@ -449,7 +449,10 @@ bleResult_t AppLocalization_Init
         /* Antenna switching enabled also in Debug mode */
         PLATFORM_InitLclGpioDebug(false);
 
-#if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
+#if defined(gAppUseInlinePctTransfer_d) && (gAppUseInlinePctTransfer_d == 1U)
+        /* IPT is only supported in 1x1 antenna config
+           Do not change the ant_type for LOC boards if IPT is enabled */
+#elif defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
         /* Set antenna type according to board used */
         /* KW47 and more series */
         mGlobalRangeSettings.ant_type = CS_ANT_BOARD_LOC_PRINTED;
