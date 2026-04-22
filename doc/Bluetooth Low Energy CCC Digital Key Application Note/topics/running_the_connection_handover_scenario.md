@@ -2,7 +2,7 @@
 
 Connection Handover is an NXP proprietary feature that enables a Bluetooth Low Energy connection to be seamlessly transferred from one peripheral to another while the central device remains unaware. It is best exemplified by \(but not limited to\) the CCC Digital Key use case. As a person carrying a phone moves around the vehicle, the Bluetooth Low Energy connection is transferred between Car Anchors in order to ensure the best user experience. From the Device’s point of view, it stays in the same initial connection.
 
-The CCC Digital Key demos showcase the Connection Handover feature. The handover is performed on demand via a button press. In a real scenario, the handover is performed based on criteria such as RSSI. The feature is currently supported on the KW45B41Z-EVK and KW47-EVK platforms.
+The CCC Digital Key demos showcase the Connection Handover feature. The handover is performed on demand via a button press. In a real scenario, the handover is performed based on criteria such as RSSI. The feature is currently supported on the KW45B41Z-EVK, KW47-EVK and FRDM-KW43 platforms.
 
 **Prerequisites**:
 
@@ -10,7 +10,8 @@ The CCC Digital Key demos showcase the Connection Handover feature. The handover
 -   The two Car Anchors must have a serial connection via the secondary UART as shown in the image below. The UART connection stands in for a real deployment solution such as a CAN bus.
 -   The *gHandoverDemo\_d* macro must be set to `1` in *`app_preinclude.h`* for the ***digital_key_car_anchor*** project. [Figure 1](../images/serial_conn_2.jpg) shows KW45B41Z-EVK car anchors connected via secondary UART. *\(J1-1 is connected to J1-2 and J1-2 is connected to J1-1. GND connection is J13-1 to J13-1.\)*
 -   If KW47-EVK boards are used, make the UART connection between J1-1 to J1-3 and J1-3 to J1-1.
-
+-   If FRDM-KW43 boards are used, make the UART connection between JP19-1 (UART0_TX PTA17) to J22-1 (UART0_RX PTA18) and J22-1 to JP19-1. 
+**Note:** The current firmware configuration uses PTA18 for UART0_RX instead of PTA16 as shown in the schematic.
 **Two Car Anchors connected via the secondary UART**
 
 ![Figure 1](../images/serial_conn_2.jpg "Two Car Anchors connected via the secondary UART ")

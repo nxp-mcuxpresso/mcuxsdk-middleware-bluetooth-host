@@ -26,7 +26,7 @@ The following sections present the steps required for building the *wireless\_UA
 
 -   `<IDE>`: represents the integrated development environment used to build projects; “iar” in this case.
 
--   `<core_id>`: represents the target CPU on which the application will run, "`cm33_core0`" in this case \(applicable only on KW47-EVK, KW47-LOC, MCX-W72-EVK and FRDM-MCXW72 boards\).
+-   `<core_id>`: represents the target CPU on which the application will run, "`cm33_core0`" in this case \(applicable only on KW47-EVK, KW47-LOC, MCX-W72-EVK, FRDM-MCXW72 and FRDM-KW43 boards\).
 -   The general folder structure of the demo applications is the following:
 
     `<connectivity_path>\boars\<board>\wireless_examples\bluetooth\<demo_app>\<core_id>\<RTOS>\<IDE>`
@@ -43,12 +43,13 @@ The following sections present the steps required for building the *wireless\_UA
 -   kw47loc
 -   mcxw72evk
 -   frdmmcxw72
+-   frdm-kw43
 
 **RTOS**: FreeRTOS
 
 **Resulting location**:
 
-`<connectivity_path>\boards\<kw45b41zevk / kw45b41zloc / frdmmcxw71 / kw47evk / kw47loc / mcxw72evk / frdmmcxw72>\wireless_examples\bluetooth\w_uart\freertos\<IDE>`
+`<connectivity_path>\boards\<kw45b41zevk / kw45b41zloc / frdmmcxw71 / kw47evk / kw47loc / mcxw72evk / frdmmcxw72/frdm-kw43>\wireless_examples\bluetooth\w_uart\freertos\<IDE>`
 
 
 ```{include} ../topics/building_and_flashing_the_ble_software_demo_applic.md

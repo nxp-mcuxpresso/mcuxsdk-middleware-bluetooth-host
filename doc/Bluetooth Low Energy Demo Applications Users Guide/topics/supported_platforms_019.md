@@ -8,6 +8,7 @@ The following platforms support the HID Host application:
 -   KW47-EVK
 -   FRDM-MCXW72
 -   MCX-W72-EVK
+-   FRDM-KW43
 
 **Parent topic:**[HID Host](../topics/hid_host.md)
 

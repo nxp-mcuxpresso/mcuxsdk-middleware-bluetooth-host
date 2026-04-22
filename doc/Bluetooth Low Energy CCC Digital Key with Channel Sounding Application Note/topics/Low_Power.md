@@ -4,6 +4,7 @@ The CCC Owner Pairing and Passive Entry scenarios (with Channel Sounding support
 
 -   KW47-EVK
 -   KW47-LOC
+-   FRDM-KW43
 
 To enable Low-power mode, set the `gAppLowpowerEnabled_d` macro to `1` in the `app_preinclude.h` file for the **digital_key_car_anchor_cs** and/or the **digital_key_device_cs** projects.
 

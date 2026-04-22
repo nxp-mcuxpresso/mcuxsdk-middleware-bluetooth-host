@@ -7,6 +7,7 @@ Extended Advertising Peripheral
 | FRDM-MCXW23  | SW5    | SW2    | Blue LED | RGB LED  |
 | FRDM-MCXW71  | SW4    | SW2    | Blue LED | RGB LED  |
 | FRDM-MCXW72  | SW4    | SW2    | Blue LED | RGB LED  |
+| FRDM-KW43    | SW3    | SW2    | Blue LED | RGB LED  |
 | KW45B41Z-EVK | SW3    | SW2    | LED2     | LED1     |
 | KW47-EVK     | SW3    | SW2    | LED2     | LED1     |
 | MCXW23-EVK   | SW3    | SW4    | RED LED  |
@@ -20,6 +21,7 @@ Extended Advertising Central
 | FRDM-MCXW23  | SW2    | Blue LED | RGB LED  |
 | FRDM-MCXW71  | SW2    | Blue LED | RGB LED  |
 | FRDM-MCXW72  | SW2    | Blue LED | RGB LED  |
+| FRDM-KW43    | SW2    | Blue LED | RGB LED  |
 | KW45B41Z-EVK | SW2    |  LED2    | LED1     |
 | KW47-EVK     | SW3    |  LED2    | LED1     |
 | MCXW23-EVK   | SW4    | RED LED  |
@@ -33,6 +35,7 @@ ANCS Client
 | FRDM-MCXW23  | SW2      | Blue LED |
 | FRDM-MCXW71  | SW2      | Blue LED |
 | FRDM-MCXW72  | SW2      | Blue LED |
+| FRDM-KW43    | SW2      | Blue LED |
 | KW45B41Z-EVK | SW2      | LED2     |
 | KW47-EVK     | SW2      | LED2     |
 | MCXW23-EVK   | SW4      | RED LED  |
@@ -46,6 +49,7 @@ Beacon
 | FRDM-MCXW23  | SW2   | Blue LED | RGB LED   |
 | FRDM-MCXW71  | SW2   | Blue LED | RGB LEDs  |
 | FRDM-MCXW72  | SW2   | Blue LED | RGB LEDs  |
+| FRDM-KW43    | SW2   | Blue LED | RGB LED   |
 | KW45B41Z-EVK | SW2   | LED2     | LED1      |
 | KW47-EVK     | SW2   | LED2     | LED1      |
 | MCXW23-EVK   | SW4   | Red LED  |
@@ -59,6 +63,7 @@ EATT Central
 | FRDM-MCXW23  | SW2       | Blue LED |
 | FRDM-MCXW71  | SW2       | Blue LED |
 | FRDM-MCXW72  | SW2       | Blue LED |
+| FRDM-KW43    | SW2       | Blue LED |
 | KW45B41Z-EVK | SW2       | LED2     |
 | KW47-EVK     | SW2       | LED2     |
 | MCXW23-EVK   | SW4       | Red LED  |
@@ -72,6 +77,7 @@ EATT Peripheral
 | FRDM-MCXW23  | SW2       | Blue LED |
 | FRDM-MCXW71  | SW2       | Blue LED |
 | FRDM-MCXW72  | SW2       | Blue LED |
+| FRDM-KW43    | SW2       | Blue LED |
 | KW45B41Z-EVK | SW2       | LED2     |
 | KW47-EVK     | SW2       | LED2     |
 | MCXW23-EVK   | SW2       | Red LED  |
@@ -85,6 +91,7 @@ HID Device
 | FRDM-MCXW23  | SW2      | Blue LED |
 | FRDM-MCXW71  | SW2      | Blue LED |
 | FRDM-MCXW72  | SW2      | Blue LED |
+| FRDM-KW43    | SW2      | Blue LED |
 | KW45B41Z-EVK | SW2      | LED2     |
 | KW47-EVK     | SW2      | LED2     |
 | MCXW23-EVK   | SW4      | Red LED  |
@@ -98,6 +105,7 @@ HID Host
 | FRDM-MCXW23  | SW2      | Blue LED |
 | FRDM-MCX71   | SW2      | Blue LED |
 | FRDM-MCXW72  | SW2      | Blue LED |
+| FRDM-KW43    | SW2      | Blue LED |
 | KW45B41Z-EVK | SW2      | LED2     |
 | KW47-EVK     | SW2      | LED2     |
 | MCXW23-EVK   | SW4      | RED LED  |
@@ -111,6 +119,7 @@ OTAP Client ATT
 | FRDM-MCXW23  | SW4   | SW4    | Blue LED |
 | FRDM-MCXW71  | SW2   | SW2    | Blue LED |
 | FRDM-MCXW72  | SW2   | SW2    | Blue LED |
+| FRDM-KW43    | SW2   | SW2    | Blue LED |
 | KW45B41Z-EVK | SW2   | SW2    | LED2     |
 | KW47-EVK     | SW2   | SW2    | LED2     |
 | MCXW23-EVK   | SW4   | SW4    | Red LED  |
@@ -124,6 +133,7 @@ OTAP Client L2CAP
 | FRDM-MCXW23  | SW4   | SW4    | Blue LED |
 | FRDM-MCXW71  | SW2   | SW2    | Blue LED |
 | FRDM-MCXW72  | SW2   | SW2    | Blue LED |
+| FRDM-KW43    | SW2   | SW2    | Blue LED |
 | KW45B41Z-EVK | SW2   | SW2    | LED2     |
 | KW47-EVK     | SW2   | SW2    | LED2     |
 | MCXW23-EVK   | SW4   | SW4    | Red LED  |
@@ -137,6 +147,7 @@ OTAP Server
 | FRDM-MCXW23  | SW4   | SW4    | Blue LED |
 | FRDM-MCXW71  | SW2   | SW2    | Blue LED |
 | FRDM-MCXW72  | SW2   | SW2    | Blue LED |
+| FRDM-KW43    | SW2   | SW2    | Blue LED |
 | KW45B41Z-EVK | SW2   | SW2    | LED2     |
 | KW47-EVK     | SW2   | SW2    | LED2     |
 | MCXW23-EVK   | SW4   | SW4    | Red LED  |
@@ -150,6 +161,7 @@ Temperature Collector
 | FRDM-MCXW23  | SW2    | Blue LED |
 | FRDM-MCXW71  | SW2    | Blue LED |
 | FRDM-MCXW72  | SW2    | Blue LED |
+| FRDM-KW43    | SW2    | Blue LED |
 | KW45B41Z-EVK | SW2    | LED2     |
 | KW47-EVK     | SW2    | LED2     |
 | MCXW23-EVK   | SW4    | Red LED  |
@@ -163,6 +175,7 @@ Temperature Sensor
 | FRDM-MCXW23  | SW2    | Blue LED |
 | FRDM-MCXW71  | SW2    | Blue LED |
 | FRDM-MCXW72  | SW2    | Blue LED |
+| FRDM-KW43    | SW2    | Blue LED |
 | KW45B41Z-EVK | SW2    | LED2     |
 | KW47-EVK     | SW2    | LED2     |
 | MCXW23-EVK   | SW4    | Red LED  |
@@ -176,6 +189,7 @@ Wireless UART
 | FRDM-MCXW23  | SW4    | Blue LED | SW2     |
 | FRDM-MCXW71  | SW2    | Blue LED | SW4     |
 | FRDM-MCXW72  | SW2    | Blue LED | SW4     |
+| FRDM-KW43    | SW2    | Blue LED | SW3     |
 | KW45B41Z-EVK | SW2    | LED2     | SW3     |
 | KW45B41Z-LOC | SW2    | LED2     | SW3     |
 | KW47-EVK     | SW2    | LED2     | SW3     |
@@ -189,6 +203,7 @@ Wireless UART GENFSK
 ===================
 | Platform     | SCANSW | CONNLED  | ROLESW  |
 |:------------:|:------:|:--------:|:-------:|
+| FRDM-KW43    | SW2    | Blue LED | SW3     |
 | KW45B41Z-EVK | SW2    | LED2     | SW3     |
 | KW45B41Z-LOC | SW2    | LED2     | SW3     |
 | KW47-EVK     | SW2    | LED2     | SW3     |

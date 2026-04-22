@@ -8,6 +8,7 @@ The Temperature Sensor and Collector applications are supported by the following
 -   KW47-EVK
 -   FRDM-MCXW72
 -   MCX-W72-EVK
+-   FRDM-KW43
 
 **Parent topic:**[Low-power temperature sensor and collector](../topics/low-power_temperature_sensor_and_collector.md)
 

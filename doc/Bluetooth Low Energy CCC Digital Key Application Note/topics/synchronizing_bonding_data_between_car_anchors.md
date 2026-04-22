@@ -1,6 +1,6 @@
 # Synchronizing bonding data between Car Anchors
 
-**Note:** On the KW45B41Z-EVK and KW47-EVK platforms, this feature is only valid when Advanced Secure Mode is disabled \(`gAppSecureMode_d` is set to `0` in the `app_preinclude.h` file\). To synchronize bonding data when Advanced Secure Mode is enabled, refer to [Running the A2B scenario](running_the_a2b_scenario.md).
+**Note:** On the KW45B41Z-EVK, KW47-EVK and FRDM-KW43 platforms, this feature is only valid when Advanced Secure Mode is disabled \(`gAppSecureMode_d` is set to `0` in the `app_preinclude.h` file\). To synchronize bonding data when Advanced Secure Mode is enabled, refer to [Running the A2B scenario](running_the_a2b_scenario.md).
 
 Multiple Car Anchors can reside on a car, acting as a single Bluetooth Low Energy device as far as the Device is concerned. When the Device pairs and bonds with a Car Anchor, that bonding data must be shared with all other anchors. To showcase this functionality, the Car Anchor shell demo offers the "`setbd`" command.
 

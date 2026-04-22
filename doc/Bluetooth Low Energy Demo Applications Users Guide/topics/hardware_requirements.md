@@ -13,6 +13,7 @@ The NXP Bluetooth LE demo applications run on a selection of the following platf
 -   MCXW72-LOC
 -   FRDM-MCXW23
 -   MCXW23-EVK
+-   FRDM-KW43
 
 **Parent topic:**[Hardware configurations](../topics/hardware_configurations.md)
 

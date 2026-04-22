@@ -8,6 +8,7 @@ The following platforms support the HCI Black Box application:
 -   KW47-EVK
 -   FRDM-MCXW72
 -   MCX-W72-EVK
+-   FRDM-KW43
 
 **Parent topic:**[HCI Black Box](../topics/hci_black_box.md)
 

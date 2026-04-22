@@ -6,6 +6,7 @@ The CCC Digital Key demos showcase the Connection Handover feature. The handover
 
 -   KW47-EVK
 -   KW47-LOC board
+-   FRDM-KW43
 
 **Prerequisites**:
 

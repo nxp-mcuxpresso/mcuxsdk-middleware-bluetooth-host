@@ -4,6 +4,9 @@ The table below summarizes the revisions to this document.
 
 |Document ID|Release date|Description|
 |-----------|------------|-----------|
+|AN13979 v.2.2|06 April 2026|-   Added support for FRDM-KW43 platform. See [CCC Digital Key hardware platforms](ccc_digital_key_hardware_platforms.md)|
+- Added the FRDM-KW43 platform in documentation.
+
 |AN13979 v.2.1|18 March 2025|-   Added support for KW47-LOC platform. See [CCC Digital Key hardware platforms](ccc_digital_key_hardware_platforms.md)
 -   Added the sections [Exporting HCI data](HCI_export.md) and [BTCS L2CAP data transfer](BTCS_L2CAP_data_transfer.md).
 -   Other updates.

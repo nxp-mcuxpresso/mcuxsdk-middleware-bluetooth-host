@@ -72,7 +72,7 @@ To run the application, follow the steps below:
 
         ![SB3 JSON configuration](../images/Json_config2.PNG "SB3 JSON configuration")
 
-    -   After the `.sb3` file is created, the “**Encryption Key**” and “**Authentication Key**” are presented. For the secured update to be successful, the destination board must have been provisioned with these keys through fuse burning, as described in the accompanying document. Depending on the board type, it can either be already provisioned by NXP \(KW45\KW47\MCX-W71\MCX-W72 samples) or not provisioned \(loose samples\). See the figure below. <br>
+    -   After the `.sb3` file is created, the “**Encryption Key**” and “**Authentication Key**” are presented. For the secured update to be successful, the destination board must have been provisioned with these keys through fuse burning, as described in the accompanying document. Depending on the board type, it can either be already provisioned by NXP \(KW45\KW47\MCX-W71\MCX-W72\FRDM-KW43 samples) or not provisioned \(loose samples\). See the figure below. <br>
 
         ![Encryption key and authentication key](../images/key.PNG "Encryption key and authentication key")
 

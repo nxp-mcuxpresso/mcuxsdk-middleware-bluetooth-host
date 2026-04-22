@@ -8,8 +8,9 @@ The Bluetooth Low Energy Localization demo applications support the following pl
 -   MCXW72-EVK \(see [Figure 3](../images/MCX-W72/MCX_W72_EVK.png)\)
 -   FRDM-MCXW72 \(see [Figure 4](../images/MCX-W72/FRDM_MCXW72.png)\)
 -   MCXW72-LOC \(see [Figure 5](../images/MCX-W72/MCXW72_LOC.png)\)
+-   FRDM-KW43 \(see [Figure 6](../images/MCX-W72/FRDM-KW43.png)\)
 
-**Note**: The KW47/MCXW72 device family includes the LCE (Localization Compute Engine). This is a hardware accelerator for the localization algorithm.
+**Note**: The KW47/MCXW72/FRDM-KW43 device family includes the LCE (Localization Compute Engine). This is a hardware accelerator for the localization algorithm.
 
 
 ![](../images/MCX-W72/KW47_EVK.png "KW47-EVK development board")
@@ -21,4 +22,6 @@ The Bluetooth Low Energy Localization demo applications support the following pl
 ![](../images/MCX-W72/FRDM_MCXW72.png "FRDM-MCXW72 development board")
 
 ![](../images/MCX-W72/MCXW72_LOC.png "MCXW72-LOC development board")
+
+![](../images/MCX-W72/FRDM-KW43.png "FRDM-KW43 development board")
 

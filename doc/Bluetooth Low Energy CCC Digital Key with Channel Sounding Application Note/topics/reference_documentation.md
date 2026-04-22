@@ -3,6 +3,7 @@
 For more information, refer to the following documents:
 
 -   Bluetooth Low Energy Application Developer's Guide \(KW47\_BLEADG\)
+
 -   Bluetooth Low Energy Host Stack API Reference Manual \(KW47\_BLEHSAPIRM\)
 
 -   Bluetooth Low Energy Host Stack FSCI \(Framework Serial Connectivity Interface\) API Reference Manual(KW47\_BLEHSFSCIRM\)

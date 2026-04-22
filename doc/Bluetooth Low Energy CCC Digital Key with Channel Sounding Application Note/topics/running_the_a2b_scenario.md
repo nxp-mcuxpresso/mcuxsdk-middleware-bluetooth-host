@@ -4,6 +4,8 @@ The A2B feature allows for the secure transfer of Bluetooth Low Energy security 
 
 -   KW47-EVK with a life cycle state of OEM-Open or higher, this feature is provided by th EdgeLock Secure Enclave.
 
+-   FRDM-KW43 with a life cycle state of OEM-Open or higher, this feature is provided by the EdgeLock Secure Enclave.
+
 The Car Anchor demo application makes use of the A2B feature to securely synchronize the local Identity Resolving Key \(IRK\) and the Bonding Data \(LTK Long Term Key and peer IRK\) with another Car Anchor.
 
 **Prerequisites**:

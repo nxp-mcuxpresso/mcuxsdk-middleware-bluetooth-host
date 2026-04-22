@@ -6,6 +6,7 @@ The DBAF feature is supported on the following platforms:
 
 -   KW45B41Z-EVK
 -   KW47-EVK
+-   FRDM-KW43
 
 
 ```{include} ../topics/enabling_dbaf.md

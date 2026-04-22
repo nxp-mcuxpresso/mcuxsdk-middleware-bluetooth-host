@@ -53,3 +53,7 @@
 :heading-offset: 1
 ```
 
+```{include} ../topics/FRDM-KW43_platform.md
+:heading-offset: 1
+```
+

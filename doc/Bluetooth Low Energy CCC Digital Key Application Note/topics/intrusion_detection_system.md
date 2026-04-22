@@ -6,6 +6,7 @@ The IDS feature is supported on the following platforms:
 
 -   KW45B41Z-EVK
 -   KW47-EVK
+-   FRDM-KW43
 
 To enable IDS, modify the Digital Key Car Anchor as per the steps listed below:
 

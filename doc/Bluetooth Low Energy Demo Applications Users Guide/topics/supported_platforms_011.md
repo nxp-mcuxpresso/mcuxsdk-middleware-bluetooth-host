@@ -8,6 +8,7 @@ The following platforms support the Beacon application:
 -   KW47-EVK
 -   FRDM-MCXW72
 -   MCX-W72-EVK
+-   FRDM-KW43
 
 **Parent topic:**[Beacon](../topics/beacon.md)
 

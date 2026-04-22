@@ -8,6 +8,7 @@ The following platforms support the Bluetooth LE Shell application:
 -   KW47-EVK
 -   FRDM-MCXW72
 -   MCX-W72-EVK
+-   FRDM-KW43
 
 **Parent topic:**[Bluetooth LE Shell](../topics/bluetooth_le_shell_513.md)
 
