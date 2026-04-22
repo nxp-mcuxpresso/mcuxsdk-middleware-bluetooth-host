@@ -49,7 +49,7 @@
  *     Framework Configuration
  ********************************************************************************** */
 /* Do not modify. Not used for this application */
-#define gAppUseNvm_d                     0
+#define gAppUseNvm_d                     1
 
 /* erase NVM pages at download( armgcc only) */
 #if ((defined gAppUseNvm_d) && (gAppUseNvm_d != 0)) && defined(__GNUC__)
