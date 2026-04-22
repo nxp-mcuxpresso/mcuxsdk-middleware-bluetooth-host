@@ -1031,22 +1031,34 @@ static void BleApp_TriggerCsDistanceMeasurement(deviceId_t deviceId)
     if (deviceId != gInvalidDeviceId_c)
     {
         /* Single device measurement */
-        /* Reset data before starting a new procedure */
-        AppLocalization_ResetPeer(deviceId, FALSE, gInvalidNvmIndex_c);
+        /* Check if localization state allows starting a new procedure */
+        appLocalization_State_t locState = AppLocalization_GetLocState(deviceId);
 
-        result = AppLocalization_SetProcedureParameters(deviceId);
-
-        if (result == gBleOverflow_c)
+        if (locState != gAppLclIdle_c)
         {
-            shell_write("Maximum concurrent CS procedures reached!\r\n");
-        }
-        else if (result != gBleSuccess_c)
-        {
-            shell_write("\r\nCS distance measurement failed.\r\n");
+            shell_write("\r\n[");
+            shell_writeDec(deviceId);
+            shell_write("] Cannot start CS procedure, localization procedure in progress \r\n");
         }
         else
         {
-            /* MISRA C-2012 Rule 15.7 */
+            /* Reset data before starting a new procedure */
+            AppLocalization_ResetPeer(deviceId, FALSE, gInvalidNvmIndex_c);
+
+            result = AppLocalization_SetProcedureParameters(deviceId);
+
+            if (result == gBleOverflow_c)
+            {
+                shell_write("Maximum concurrent CS procedures reached!\r\n");
+            }
+            else if (result != gBleSuccess_c)
+            {
+                shell_write("\r\nCS distance measurement failed.\r\n");
+            }
+            else
+            {
+                /* MISRA C-2012 Rule 15.7 */
+            }
         }
     }
     else
@@ -1057,22 +1069,34 @@ static void BleApp_TriggerCsDistanceMeasurement(deviceId_t deviceId)
             /* Check if device is connected */
             if (maPeerInformation[i].deviceId != gInvalidDeviceId_c)
             {
-                /* Reset data before starting a new procedure */
-                AppLocalization_ResetPeer(i, FALSE, gInvalidNvmIndex_c);
+                /* Check if localization state allows starting a new procedure */
+                appLocalization_State_t locState = AppLocalization_GetLocState(i);
 
-                result = AppLocalization_SetProcedureParameters(i);
-
-                if (result == gBleOverflow_c)
+                if (locState != gAppLclIdle_c)
                 {
-                    shell_write("Maximum concurrent CS procedures reached!\r\n");
-                }
-                else if (result != gBleSuccess_c)
-                {
-                    shell_write("\r\nCS distance measurement failed.\r\n");
+                    shell_write("\r\n[");
+                    shell_writeDec(i);
+                    shell_write("] Skipping, localization procedure in progress \r\n");
                 }
                 else
                 {
-                    /* MISRA C-2012 Rule 15.7 */
+                    /* Reset data before starting a new procedure */
+                    AppLocalization_ResetPeer(i, FALSE, gInvalidNvmIndex_c);
+
+                    result = AppLocalization_SetProcedureParameters(i);
+
+                    if (result == gBleOverflow_c)
+                    {
+                        shell_write("Maximum concurrent CS procedures reached!\r\n");
+                    }
+                    else if (result != gBleSuccess_c)
+                    {
+                        shell_write("\r\nCS distance measurement failed.\r\n");
+                    }
+                    else
+                    {
+                        /* MISRA C-2012 Rule 15.7 */
+                    }
                 }
             }
         }

@@ -336,27 +336,60 @@ bleResult_t BleApp_TriggerCsDistanceMeasurement(deviceId_t deviceId)
 
     if (deviceId != gInvalidDeviceId_c)
     {
-        /* Reset data before starting a new procedure */
-        AppLocalization_ResetPeer(deviceId, FALSE, gInvalidNvmIndex_c);
+        /* Check if localization state allows starting a new procedure */
+        appLocalization_State_t locState = AppLocalization_GetLocState(deviceId);
 
-        if (Ras_CheckIfSubscribed(deviceId) == TRUE)
+        if (locState != gAppLclIdle_c)
         {
-            result = AppLocalization_SetProcedureParameters(deviceId);
+            shell_write("\r\n[");
+            shell_writeDec(deviceId);
+            shell_write("] Cannot start CS procedure, localization procedure in progress \r\n");
+            result = gBleInvalidState_c;
         }
         else
         {
-            result = gBleInvalidParameter_c;
+            if (Ras_CheckIfSubscribed(deviceId) == TRUE)
+            {
+                /* Reset data before starting a new procedure */
+                AppLocalization_ResetPeer(deviceId, FALSE, gInvalidNvmIndex_c);
+
+                result = AppLocalization_SetProcedureParameters(deviceId);
+            }
+            else
+            {
+                shell_write("\r\n[");
+                shell_writeDec(deviceId);
+                shell_write("] Cannot start CS procedure, RAS client not subscribed\r\n");
+                result = gBleInvalidParameter_c;
+            }
         }
     }
     else
     {
         for (uint8_t i = 0; i < (uint8_t)gAppMaxConnections_c; i++)
         {
-            AppLocalization_ResetPeer(i, FALSE, gInvalidNvmIndex_c);
+            /* Check if localization state allows starting a new procedure */
+            appLocalization_State_t locState = AppLocalization_GetLocState(i);
 
-            if (Ras_CheckIfSubscribed(i) == TRUE)
+            if (locState != gAppLclIdle_c)
             {
-                (void)AppLocalization_SetProcedureParameters(i);
+                shell_write("\r\n[");
+                shell_writeDec(i);
+                shell_write("] Skipping, localization procedure in progress \r\n");
+            }
+            else
+            {
+                if (Ras_CheckIfSubscribed(i) == TRUE)
+                {
+                    AppLocalization_ResetPeer(i, FALSE, gInvalidNvmIndex_c);
+                    (void)AppLocalization_SetProcedureParameters(i);
+                }
+                else
+                {
+                    shell_write("\r\n[");
+                    shell_writeDec(i);
+                    shell_write("] Skipping, RAS client not subscribed\r\n");
+                }
             }
         }
     }

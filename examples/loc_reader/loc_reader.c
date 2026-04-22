@@ -370,35 +370,69 @@ bleResult_t BleApp_TriggerCsDistanceMeasurement(deviceId_t deviceId)
 
     if (deviceId != gInvalidDeviceId_c)
     {
-        /* Reset data before starting a new procedure */
-        AppLocalization_ResetPeer(deviceId, FALSE, gInvalidNvmIndex_c);
+        /* Check if localization state allows starting a new procedure */
+        appLocalization_State_t locState = AppLocalization_GetLocState(deviceId);
 
-        if (maPeerInformation[deviceId].isSubscribed == TRUE)
+        if (locState != gAppLclIdle_c)
         {
-            result = AppLocalization_SetProcedureParameters(deviceId);
-
-            if (result == gBleOverflow_c)
-            {
-                shell_write("Maximum concurrent CS procedures reached!\r\n");
-            }
+            shell_write("\r\n[");
+            shell_writeDec(deviceId);
+            shell_write("] Cannot start CS procedure, localization procedure in progress \r\n");
+            result = gBleInvalidState_c;
         }
         else
         {
-            result = gBleInvalidParameter_c;
+            if (maPeerInformation[deviceId].isSubscribed == TRUE)
+            {
+                /* Reset data before starting a new procedure */
+                AppLocalization_ResetPeer(deviceId, FALSE, gInvalidNvmIndex_c);
+
+                result = AppLocalization_SetProcedureParameters(deviceId);
+
+                if (result == gBleOverflow_c)
+                {
+                    shell_write("Maximum concurrent CS procedures reached!\r\n");
+                }
+            }
+            else
+            {
+                shell_write("\r\n[");
+                shell_writeDec(deviceId);
+                shell_write("] Cannot start CS procedure, not subscribed to RAS service\r\n");
+                result = gBleInvalidParameter_c;
+            }
         }
     }
     else
     {
         for (uint8_t i = 0; i < (uint8_t)gAppMaxConnections_c; i++)
         {
-            AppLocalization_ResetPeer(i, FALSE, gInvalidNvmIndex_c);
-            if (maPeerInformation[i].isSubscribed == TRUE)
-            {
-                result = AppLocalization_SetProcedureParameters(i);
+            /* Check if localization state allows starting a new procedure */
+            appLocalization_State_t locState = AppLocalization_GetLocState(i);
 
-                if (result == gBleOverflow_c)
+            if (locState != gAppLclIdle_c)
+            {
+                shell_write("\r\n[");
+                shell_writeDec(i);
+                shell_write("] Skipping, localization procedure in progress\r\n");
+            }
+            else
+            {
+                if (maPeerInformation[i].isSubscribed == TRUE)
                 {
-                    shell_write("Maximum concurrent CS procedures reached!\r\n");
+                    AppLocalization_ResetPeer(i, FALSE, gInvalidNvmIndex_c);
+                    result = AppLocalization_SetProcedureParameters(i);
+
+                    if (result == gBleOverflow_c)
+                    {
+                        shell_write("Maximum concurrent CS procedures reached!\r\n");
+                    }
+                }
+                else
+                {
+                    shell_write("\r\n[");
+                    shell_writeDec(i);
+                    shell_write("] Skipping, not subscribed to RAS service\r\n");
                 }
             }
         }
