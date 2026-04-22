@@ -114,7 +114,7 @@
 #define gBLE_ChannelSounding_d                          1
 
 /* Configure high speed CPU clock (96 MHz) */
-#define gAppHighSystemClockFrequency_d                  1
+#define gAppHighSystemClockFrequency_d                  0
 
 /*If enable the gUseHciTransportDownward_d macro, Two serial interfaces are required.
  *One serial port(LPUART0) prints the log and the other serial port(LPUART1) sends HCI packets */

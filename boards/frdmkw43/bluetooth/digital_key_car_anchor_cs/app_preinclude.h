@@ -174,7 +174,7 @@
  *     Framework Configuration
  ********************************************************************************** */
 /* enable NVM to be used as non volatile storage management by the host stack */
-#define gAppUseNvm_d                     0
+#define gAppUseNvm_d                     1
 
 /* erase NVM pages at download( armgcc only) */
 #if ((defined gAppUseNvm_d) && (gAppUseNvm_d != 0)) && defined(__GNUC__)
@@ -229,11 +229,11 @@
 #define gAppRealTimeDataTransfer_d              0
 
 /* Configure high speed CPU clock (96 MHz) */
-#define gAppHighSystemClockFrequency_d          1
+#define gAppHighSystemClockFrequency_d          0
 
-#define gHost_TaskStackSize_c                   1800
+#define gHost_TaskStackSize_c                   2200
 
-#define gMainThreadStackSize_c                  3000
+#define gMainThreadStackSize_c                  3600
 /*! *********************************************************************************
  *  Auto Configuration
  ********************************************************************************** */
