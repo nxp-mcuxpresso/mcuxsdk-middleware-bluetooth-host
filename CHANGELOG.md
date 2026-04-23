@@ -5,6 +5,32 @@ All notable changes to NXP Bluetooth LE Host will be documented in this file.
 **NXP Bluetooth LE Host Stack** is certified **Bluetooth 6.0**
 
 
+## [1.10.19] - mcux v2026-06-00-pvw2
+
+### Added
+- Support for LE Read All Remote Features after connection is established
+- Experimental Inline PCT Transfer support for localization sample applications
+- Support for configurable limits for concurrent Channel Sounding connections/procedures
+
+### Improved
+- Optimized memory allocation in isp_mciq_ranging_compute for localization applications
+- Updated RAS loc_reader application for multiple CS connections
+- Updated handover documentation with broadcast time synchronization details
+- Documentation updates
+
+### Fixed
+- Fixed double free issue in L2ca_SendAclDataWithSegmentation
+- Fixed consecutive CS procedures sustainability issue
+- Miscellaneous minor application bug fixes
+
+### Changed
+- CS procedure state management: do not allow new procedure to start before previous one completes
+
+### Supported Platforms
+
+- KW45, KW47, MCXW71, MCXW72, MCXW23, KW43
+
+
 ## [1.10.18] - mcux v2026-06-00-pvw1
 
 ### Added
