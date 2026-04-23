@@ -18,7 +18,7 @@ Follow the steps in the order presented in [Getting Started with MCUXpresso SDK 
    - Extract the downloaded ZIP file to your workspace
 
 2. **Locate Bluetooth Examples**
-   {ref}Bluetooth examples<_examples__wireless_examples__bluetooth>
+   {ref}`Bluetooth examples<_examples__wireless_examples__bluetooth>`
 
 3. **Install west (Required for Building)**
    
