@@ -177,6 +177,8 @@ static appLocalization_State_t maAppLclState[gAppMaxConnections_c];
 /* Number of CS procedures executed */
 static uint16_t maCsProcCount[gAppMaxConnections_c];
 
+static uint8_t gCsMaxConcurrentProcs = gChannelSoundingMaxConcurrentProcedures_c;
+
 /*
     Cached remote capabilities for each bonded peer
     These capabilities are NOT stored in non-volatile memory
@@ -924,9 +926,9 @@ void AppLocalization_ComputeSubeventLength
 
     if ((pOutMinSubeventLen != NULL) && (pOutMaxSubeventLen != NULL))
     {
-        if ( ((connInterval * 1250U) / aN_2[gChannelSoundingMaxConcurrentProcedures_c - 1U]) > 2500U)
+        if ( ((connInterval * 1250U) / aN_2[gCsMaxConcurrentProcs - 1U]) > 2500U)
         {
-            *pOutMinSubeventLen = (connInterval * 1250U) / aN_2[gChannelSoundingMaxConcurrentProcedures_c - 1U] - 2500U;
+            *pOutMinSubeventLen = (connInterval * 1250U) / aN_2[gCsMaxConcurrentProcs - 1U] - 2500U;
             *pOutMaxSubeventLen = *pOutMinSubeventLen;
         }
     }
@@ -1280,6 +1282,30 @@ uint16_t AppLocalization_GetProcedureCount
 )
 {
     return maCsProcCount[deviceId];
+}
+
+/*! *********************************************************************************
+*\fn            void AppLocalization_SetMaxNumConcurrentProcs(uint8_t maxProcs)
+*
+*\brief         Set the maximum number of concurrent CS procedures.
+*
+*\param[in]     maxProcs    Maximum number of concurrent procedures
+*
+*\retval        none
+********************************************************************************** */
+void AppLocalization_SetMaxNumConcurrentProcs
+(
+    uint8_t maxProcs
+)
+{
+    if (maxProcs <= gChannelSoundingMaxConcurrentProcedures_c)
+    {
+        gCsMaxConcurrentProcs = maxProcs;
+    }
+    else
+    {
+        gCsMaxConcurrentProcs = gChannelSoundingMaxConcurrentProcedures_c;
+    }
 }
 
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)

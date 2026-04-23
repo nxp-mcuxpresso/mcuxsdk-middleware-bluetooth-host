@@ -1028,4 +1028,18 @@ void AppLocalization_RunPtsTest(deviceId_t deviceId, uint8_t index, uint8_t acti
 }
 #endif /* __cplusplus */
 
+/*! *********************************************************************************
+*\fn            void AppLocalization_SetMaxNumConcurrentProcs(uint8_t maxProcs)
+*
+*\brief         Set the maximum number of concurrent CS procedures.
+*
+*\param[in]     maxProcs    Maximum number of concurrent procedures
+*
+*\retval        none
+********************************************************************************** */
+void AppLocalization_SetMaxNumConcurrentProcs
+(
+    uint8_t maxProcs
+);
+
 #endif /* APP_LOCALIZATION_H */

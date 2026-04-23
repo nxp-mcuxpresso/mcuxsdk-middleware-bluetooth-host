@@ -50,7 +50,6 @@
 * Private type definitions
 *************************************************************************************
 ************************************************************************************/
-
 /************************************************************************************
 *************************************************************************************
 * Private functions prototypes
@@ -69,7 +68,7 @@ static shell_status_t ShellSetCsRole_Command(shell_handle_t shellHandle, int32_t
 static shell_status_t ShellSetNumProcs_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellFilter_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellListBd_Command (shell_handle_t shellHandle, int32_t argc, char * argv[]);
-
+static shell_status_t ShellSetMaxConcurrentProcs_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static uint32_t BleApp_AsciiToHex(char *pString, uint32_t strLen);
 static int32_t BleApp_atoi(char *pStr);
 static uint8_t BleApp_ParseHexValue(char* pInput);
@@ -179,6 +178,13 @@ static shell_command_t mListBdCmd =
     .pcHelpString = "\r\n\"listbd\": List bonded devices information.\r\n",
 };
 
+static shell_command_t mSetMaxConcurrentProcsCmd =
+{
+    .pcCommand = "setmcp",
+    .pcHelpString = "\r\n\"setmcp\": Set maximum number of supported concurrent CS procedures [1-6].\r\n",
+    .cExpectedNumberOfParameters = SHELL_IGNORE_PARAMETER_COUNT,
+    .pFuncCallBack = ShellSetMaxConcurrentProcs_Command,
+};
 static TIMER_MANAGER_HANDLE_DEFINE(mResetTmrId);
 
 /*serial manager handle*/
@@ -237,8 +243,9 @@ void AppShellInit(char* prompt)
     assert(kStatus_SHELL_Success == status);
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mListBdCmd);
     assert(kStatus_SHELL_Success == status);
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSetMaxConcurrentProcsCmd);
+    assert(kStatus_SHELL_Success == status);
 }
-
 /*! *********************************************************************************
 * \brief        Prints string of hex values
 *
@@ -1029,6 +1036,46 @@ static uint8_t BleApp_ParseHexValue(char* pInput)
 static shell_status_t ShellListBd_Command (shell_handle_t shellHandle, int32_t argc, char * argv[])
 {
     BleApp_ListBondingData();
+
+    return kStatus_SHELL_Success;
+}
+/*! *********************************************************************************
+* \brief        Set the maximum number of concurrent CS procedures.
+*
+* \param[in]    shellHandle    Shell handle
+* \param[in]    argc           Number of arguments
+* \param[in]    argv           Pointer to arguments
+*
+* \return       shell_status_t  Returns the command processing status
+********************************************************************************** */
+static shell_status_t ShellSetMaxConcurrentProcs_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
+{
+    bleResult_t status = gBleSuccess_c;
+
+    if (argc == 2)
+    {
+        uint8_t maxProcs = (uint8_t)BleApp_atoi(argv[1]);
+
+        if ((maxProcs == 0U) || (maxProcs > 6U))
+        {
+            status = gBleInvalidParameter_c;
+        }
+        else
+        {
+            AppLocalization_SetMaxNumConcurrentProcs(maxProcs);
+            shell_write("\r\nMaximum concurrent procedures set successfully.\r\n");
+        }
+    }
+    else
+    {
+        shell_write("\r\nUsage: setmcp [1-6]\r\n");
+    }
+
+    if (status == gBleInvalidParameter_c)
+    {
+        shell_write("\r\nInvalid parameter. \
+                     \r\nUsage: setmcp [1-6]\r\n");
+    }
 
     return kStatus_SHELL_Success;
 }
