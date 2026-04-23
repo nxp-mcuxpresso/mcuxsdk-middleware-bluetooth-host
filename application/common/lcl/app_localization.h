@@ -306,19 +306,19 @@ typedef void (*pfAppDisplayResult_t)(deviceId_t deviceId, localizationAlgoResult
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
 typedef struct appLocalization_TimeInfo_tag
 {
-    uint64_t        csConfigStartTs;
-    uint64_t        csConfigEndTs;
-    uint64_t        csDistMeasStart;
-    uint64_t        csDistMeasDuration;
-    uint64_t        transferStart;
-    uint64_t        transferEnd;
-    uint64_t        algoStart;
-    uint64_t        algoEnd;
-    uint32_t        subeventLen;
-    uint16_t        subeventInterval;
-    uint16_t        lastAclConnEvtCnt;
-    uint16_t        connInterval;
-    uint8_t         noOfRcvSubEvsInConnInt;
+    uint64_t        csConfigStartTs;            /* CS configuration start timestamp. Set when AppLocalization_Config() begins the CS setup process. */
+    uint64_t        csConfigEndTs;              /* CS configuration end timestamp. Set when gCsMetaEvtConfigComplete_c event is received. Duration = csConfigEndTs - csConfigStartTs */
+    uint64_t        csDistMeasStart;            /* CS distance measurement start timestamp. Set when first CS subevent data arrives (dataIndex == 0). */
+    uint64_t        csDistMeasDuration;         /* CS distance measurement total duration. Either calculated from timestamp (csDistMeasStart) or accumulated incrementally from subevents. */
+    uint64_t        transferStart;              /* Data transfer (L2CAP or RAS) start timestamp. Set when ranging data transfer begins via GATT/L2CAP. */
+    uint64_t        transferEnd;                /* Data transfer (L2CAP or RAS) end timestamp. Set when ranging data transfer completes before the distance algorithm execution start. */
+    uint64_t        algoStart;                  /* Algorithm execution start timestamp. Set before running distance calculation algorithm. */
+    uint64_t        algoEnd;                    /* Algorithm execution end timestamp. Set after distance calculation completes. */
+    uint32_t        subeventLen;                /* Subevent duration in microseconds. */
+    uint16_t        subeventInterval;           /* Interval between subevents. */
+    uint16_t        lastAclConnEvtCnt;          /* Last ACL connection event counter. */
+    uint16_t        connInterval;               /* Connection interval. */
+    uint8_t         noOfRcvSubEvsInConnInt;     /* Number of subevents in current connection interval. */
 } appLocalization_TimeInfo_t;
 #endif
 
