@@ -552,7 +552,7 @@ typedef struct {
 /*! Extended Advertising Parameters; for defaults see gGapDefaultExtAdvertisingParameters_d. */
 typedef struct gapExtAdvertisingParameters_tag {
     uint8_t                             SID;                    /*!< ID of the advertising set chosen by application. Shall be lower than gBleExtAdvMaxSetId_c */
-    uint8_t                             handle;                 /*!< ID of the advertising set handled by controller. Shall be lower than gMaxAdvSets_c */
+    uint8_t                             handle;                 /*!< ID of the advertising set handled by controller. Shall be lower than gNumOfSupportedAdvSets */
     uint32_t                            minInterval;            /*!< Minimum desired advertising interval. Shall be at least equal or higher than gGapExtAdvertisingIntervalRangeMinimum_c */
     uint32_t                            maxInterval;            /*!< Maximum desired advertising interval. Shall be higher than gGapExtAdvertisingIntervalRangeMinimum_c and higher than minInterval */
     bleAddressType_t                    ownAddressType;         /*!< Indicates whether the advertising address is the public address (BD_ADDR) or the random address (set by Gap_SetRandomAddress). Default: public address.
@@ -577,7 +577,7 @@ typedef struct gapExtAdvertisingParameters_tag {
 
 /*! Periodic Advertising Parameters [v2]; for defaults see gGapDefaultPeriodicAdvParameters_d. */
 typedef struct gapPeriodicAdvParameters_tag {
-    uint8_t                             handle;             /*!< ID of the advertising set handled by controller. Shall be lower than gMaxAdvSets_c */
+    uint8_t                             handle;             /*!< ID of the advertising set handled by controller. Shall be lower than gNumOfSupportedAdvSets */
     bool_t                              addTxPowerInAdv;    /*!< Set this option to include the Tx power in advertising packet. */
     uint16_t                            minInterval;        /*!< Minimum advertising interval for periodic advertising. */
     uint16_t                            maxInterval;        /*!< Maximum advertising interval for periodic advertising. Should be different and higher than minInterval. */
