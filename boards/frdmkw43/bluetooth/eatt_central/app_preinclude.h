@@ -25,7 +25,7 @@
  *     Board Configuration
  ********************************************************************************** */
 /* Number of Buttons required by the application */
-#define gAppButtonCnt_c                             0U
+#define gAppButtonCnt_c                             1U
 
 /* Number of LEDs required by the application */
 #define gAppLedCnt_c                                0U
