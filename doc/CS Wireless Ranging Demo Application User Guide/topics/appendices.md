@@ -15,3 +15,5 @@ This chapter provides some additional information about the following:<br>  - Te
 :heading-offset: 1
 ```
 
+**Parent topic:**[CS Wireless Ranging Demo Application User Guide](<../CS Wireless Ranging Demo Application User Guide.md>)
+
