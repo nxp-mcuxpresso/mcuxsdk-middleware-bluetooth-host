@@ -1601,7 +1601,9 @@ static void BatteryMeasurementTimerCallback
     void *pParam
 )
 {
+#if gAppUseSensors_d
     mBasServiceConfig.batteryLevel = SENSORS_GetBatteryLevel();
+#endif /* gAppUseSensors_d */
     (void)Bas_RecordBatteryMeasurement(&mBasServiceConfig);
 }
 
@@ -1932,8 +1934,9 @@ static void BluetoothLEHost_Initialized(void)
 
     /* Start services */
     (void)Wus_Start(&mWuServiceConfig);
-
+#if gAppUseSensors_d
     mBasServiceConfig.batteryLevel = SENSORS_GetBatteryLevel();
+#endif /* gAppUseSensors_d */
     (void)Bas_Start(&mBasServiceConfig);
 
     /* Allocate application timer */
