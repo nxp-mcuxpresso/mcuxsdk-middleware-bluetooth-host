@@ -592,7 +592,22 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
             (void)printf("'%s',", (char*)pBuffer);
             (void)MEM_BufferFree(pBuffer);
         }
-        
+
+        /* Subevent abort reason */
+        (void)printf("abt:");
+        uint8_t *subevtAbortReason_init = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtAbortReasonLocal : meas_response->cs_data->subevtAbortReasonRemote;
+        pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
+        if (pBuffer == NULL)
+        {
+            (void)printf("'NA:oom'");
+        }
+        else
+        {
+            cli_sprint_hex8b_c(pBuffer, (uint8_t *)subevtAbortReason_init, (uint8_t)meas_response->cs_data->subevt_nb, 1U);
+            (void)printf("'%s',", (char*)pBuffer);
+            (void)MEM_BufferFree(pBuffer);
+        }
+
         /* subevt */
         (void)printf("se:");
         uint8_t *subevtStopIdx_init = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtStopIdxLocal : meas_response->cs_data->subevtStopIdxRemote;
@@ -643,7 +658,21 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
             (void)printf("'%s',", (char*)pBuffer);
             (void)MEM_BufferFree(pBuffer);
         }
-        
+
+        (void)printf("abt:");
+        uint8_t *subevtAbortReason_refl = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtAbortReasonRemote : meas_response->cs_data->subevtAbortReasonLocal;
+        pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
+        if (pBuffer == NULL)
+        {
+            (void)printf("'NA:oom'");
+        }
+        else
+        {
+            cli_sprint_hex8b_c(pBuffer, (uint8_t *)subevtAbortReason_refl, (uint8_t)meas_response->cs_data->subevt_nb, 1U);
+            (void)printf("'%s',", (char*)pBuffer);
+            (void)MEM_BufferFree(pBuffer);
+        }
+
         /* subevt */
         (void)printf("se:");
         uint8_t *subevtStopIdx_refl = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtStopIdxRemote : meas_response->cs_data->subevtStopIdxLocal;

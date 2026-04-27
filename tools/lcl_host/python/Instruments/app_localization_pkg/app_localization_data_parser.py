@@ -289,6 +289,7 @@ class ResultParser:
             'rssi': [ResultParser.hexstr2_to_numpy_array, 2, -0x80, 1, 0],
             'rpl': [ResultParser.hexstr2_to_numpy_array, 2, -0x80, 1, 0],
             'sts': [ResultParser.hexstr2_to_numpy_array, 2, 0, 1, 0],
+            'abt':[ResultParser.hexstr2_to_numpy_array, 2, 0, 1, 0],
             'cfo': [ResultParser.hexstr2_to_numpy_array, 4, -0x8000, 1, 0],
             'rttstat': [ResultParser.basestr_to_numpy_array, 5, 0, 1, 0],
             'nadm': [ResultParser.hexstr2_to_numpy_array, 1, 0, 1, 0]

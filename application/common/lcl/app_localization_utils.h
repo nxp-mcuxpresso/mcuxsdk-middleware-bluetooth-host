@@ -125,6 +125,8 @@ typedef struct cs_data_tag {
     int8_t subevtRefPowerLevelRefl[gMaxNumCsSubevents_c]; /* Reference power level per subevent */
     uint8_t subevtDoneStatusLocal[gMaxNumCsSubevents_c]; /* Status for each subevent - local data */
     uint8_t subevtDoneStatusRemote[gMaxNumCsSubevents_c]; /* Status for each subevent - remote data */
+    uint8_t subevtAbortReasonLocal[gMaxNumCsSubevents_c]; /* Abort reason for each subevent - local data */
+    uint8_t subevtAbortReasonRemote[gMaxNumCsSubevents_c]; /* Abort reason for each subevent - remote data */
     mode0_data_t mode0Data[2U * gMaxNumCsStepsMode0_c]; /* Mode0 step data - local and remote */
 } cs_data_t;
 
