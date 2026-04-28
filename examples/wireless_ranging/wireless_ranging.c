@@ -1191,6 +1191,111 @@ static void BleApp_StoreServiceHandles(deviceId_t peerDeviceId, gattService_t *p
 }
 
 /*! *********************************************************************************
+ * \brief        Handle events in Exchange MTU state
+ *
+ * \param[in]    peerDeviceId       The remote device ID.
+ * \param[in]    event              The application event.
+ ********************************************************************************** */
+static void BleApp_HandleExchangeMtuState
+(
+    deviceId_t peerDeviceId,
+    appEvent_t event
+)
+{
+    uint16_t tempMtu = 0;
+    bleUuid_t uuid;
+
+    if (event == mAppEvt_GattProcComplete_c)
+    {
+        /* update stream length with minimum of maximum MTU's of connected devices */
+        (void)Gatt_GetMtu(peerDeviceId, &tempMtu);
+        tempMtu = gAttMaxWriteDataSize_d(tempMtu);
+
+        mAppMtu = mAppMtu <= tempMtu ? mAppMtu : tempMtu;
+
+#if gAppUseServiceDiscovery_d
+        /* Moving to Service Discovery State*/
+        maPeerInformation[peerDeviceId].appState = mAppServiceDisc_c;
+
+        FLib_MemCpy(uuid.uuid128, uuid_service_wireless_ranging, sizeof(bleUuid_t));
+
+        /* Start Service Discovery*/
+        (void)BleServDisc_FindService(peerDeviceId,
+                                      gBleUuidType128_c,
+                                      &uuid);
+#else
+        maPeerInformation[peerDeviceId].appState = mAppRunning_c;
+        if (maPeerInformation[peerDeviceId].gapRole == gGapCentral_c)
+        {
+            /* Start CS setup procedure from central device */
+            wrs_StartSetup(peerDeviceId);
+        }
+#endif /* gAppUseServiceDiscovery_d */
+    }
+    else if (event == mAppEvt_GattProcError_c)
+    {
+        (void)Gap_Disconnect(peerDeviceId);
+    }
+    else
+    {
+        /* ignore other event types */
+    }
+}
+
+/*! *********************************************************************************
+ * \brief        Handle events in Service Discovery states
+ *
+ * \param[in]    peerDeviceId       The remote device ID.
+ * \param[in]    event              The application event.
+ * \param[in]    isRetry            True if in retry state, false otherwise
+ ********************************************************************************** */
+static void BleApp_HandleServiceDiscoveryStates(deviceId_t peerDeviceId, appEvent_t event, bool isRetry)
+{
+    if (event == mAppEvt_ServiceDiscoveryComplete_c)
+    {
+        /* Moving to Running State*/
+        maPeerInformation[peerDeviceId].appState = mAppRunning_c;
+
+        if (!isRetry)
+        {
+#if gAppUseBonding_d
+            /* Write data in NVM */
+            (void)Gap_SaveCustomPeerInformation(maPeerInformation[peerDeviceId].deviceId,
+                                                (void *) &maPeerInformation[peerDeviceId].clientInfo, 0,
+                                                sizeof(wucConfig_t));
+#endif
+            if (maPeerInformation[peerDeviceId].gapRole == gGapCentral_c)
+            {
+                /* Start CS setup procedure from central device */
+                wrs_StartSetup(peerDeviceId);
+            }
+        }
+    }
+    else if (event == mAppEvt_ServiceDiscoveryNotFound_c)
+    {
+        if (!isRetry)
+        {
+            /* Moving to Service discovery Retry State*/
+            maPeerInformation[peerDeviceId].appState = mAppServiceDiscRetry_c;
+            /* Restart Service Discovery for all services */
+            (void)BleServDisc_Start(peerDeviceId);
+        }
+        else
+        {
+            (void)Gap_Disconnect(peerDeviceId);
+        }
+    }
+    else if (event == mAppEvt_ServiceDiscoveryFailed_c)
+    {
+        (void)Gap_Disconnect(peerDeviceId);
+    }
+    else
+    {
+        /* ignore other event types */
+    }
+}
+
+/*! *********************************************************************************
  * \brief        Handle the main application state machine
  *
  * \param[in]    peerDeviceId       The remote device ID.
@@ -1202,7 +1307,6 @@ static void BleApp_StateMachineHandler
     appEvent_t event
 )
 {
-    uint16_t tempMtu = 0;
     bleUuid_t uuid;
 
     switch(event)
@@ -1210,8 +1314,8 @@ static void BleApp_StateMachineHandler
         case mAppEvt_PeerConnected_c:
             maPeerInformation[peerDeviceId].deviceId = peerDeviceId;
             maPeerInformation[peerDeviceId].appState = mAppIdle_c;
-            wrs_ConnDataInit(peerDeviceId, bleInfo.connInterval);
-             /* Default is Server as soon as a connection is established, may be changed if a range command is issued */
+            wrs_ConnDataInit(peerDeviceId, bleInfo.connInterval); 
+            /* Default is Server as soon as a connection is established, may be changed if a range command is issued */
             wrs_SetRole(peerDeviceId, eRoleServer);
             /* Default settings */
             wrs_SetDefaultSettings(peerDeviceId);
@@ -1265,8 +1369,8 @@ static void BleApp_StateMachineHandler
                     (void)BleServDisc_FindService(peerDeviceId,
                                                   gBleUuidType128_c,
                                                   &uuid);
-#else
-                     maPeerInformation[peerDeviceId].appState = mAppRunning_c;
+#else 
+                    maPeerInformation[peerDeviceId].appState = mAppRunning_c;
 #endif /* gAppUseServiceDiscovery_d */
                 }
             }
@@ -1275,94 +1379,19 @@ static void BleApp_StateMachineHandler
 
         case mAppExchangeMtu_c:
         {
-            if (event == mAppEvt_GattProcComplete_c)
-            {
-                /* update stream length with minimum of maximum MTU's of connected devices */
-                (void)Gatt_GetMtu(peerDeviceId, &tempMtu);
-                tempMtu = gAttMaxWriteDataSize_d(tempMtu);
-
-                mAppMtu = mAppMtu <= tempMtu ? mAppMtu : tempMtu;
-
-#if gAppUseServiceDiscovery_d
-                /* Moving to Service Discovery State*/
-                maPeerInformation[peerDeviceId].appState = mAppServiceDisc_c;
-
-                FLib_MemCpy(uuid.uuid128, uuid_service_wireless_ranging, sizeof(bleUuid_t));
-
-                /* Start Service Discovery*/
-                (void)BleServDisc_FindService(peerDeviceId,
-                                              gBleUuidType128_c,
-                                              &uuid);
-#else
-                 maPeerInformation[peerDeviceId].appState = mAppRunning_c;
-                 if (maPeerInformation[peerDeviceId].gapRole == gGapCentral_c) {
-                     /* Start CS setup procedure from central device */
-                     wrs_StartSetup(peerDeviceId);
-                 }
-#endif /* gAppUseServiceDiscovery_d */
-            }
-            else
-            {
-                if (event == mAppEvt_GattProcError_c)
-                {
-                    (void)Gap_Disconnect(peerDeviceId);
-                }
-            }
+            BleApp_HandleExchangeMtuState(peerDeviceId, event);
         }
         break;
 
         case mAppServiceDisc_c:
         {
-            if (event == mAppEvt_ServiceDiscoveryComplete_c)
-            {
-                /* Moving to Running State*/
-                maPeerInformation[peerDeviceId].appState = mAppRunning_c;
-#if gAppUseBonding_d
-                /* Write data in NVM */
-                (void)Gap_SaveCustomPeerInformation(maPeerInformation[peerDeviceId].deviceId,
-                                                    (void *) &maPeerInformation[peerDeviceId].clientInfo, 0,
-                                                    sizeof(wucConfig_t));
-#endif
-                 if (maPeerInformation[peerDeviceId].gapRole == gGapCentral_c)
-                 {
-                     /* Start CS setup procedure from central device */
-                     wrs_StartSetup(peerDeviceId);
-                 }
-            }
-            else if (event == mAppEvt_ServiceDiscoveryNotFound_c)
-            {
-                /* Moving to Service discovery Retry State*/
-                maPeerInformation[peerDeviceId].appState = mAppServiceDiscRetry_c;
-                /* Restart Service Discovery for all services */
-                (void)BleServDisc_Start(peerDeviceId);
-            }
-            else if (event == mAppEvt_ServiceDiscoveryFailed_c)
-            {
-                (void)Gap_Disconnect(peerDeviceId);
-            }
-            else
-            {
-                /* ignore other event types */
-            }
+            BleApp_HandleServiceDiscoveryStates(peerDeviceId, event, false);
         }
         break;
 
         case mAppServiceDiscRetry_c:
         {
-            if (event == mAppEvt_ServiceDiscoveryComplete_c)
-            {
-                /* Moving to Running State*/
-                maPeerInformation[peerDeviceId].appState = mAppRunning_c;
-            }
-            else if ((event == mAppEvt_ServiceDiscoveryNotFound_c) ||
-                     (event == mAppEvt_ServiceDiscoveryFailed_c))
-            {
-                (void)Gap_Disconnect(peerDeviceId);
-            }
-            else
-            {
-                /* ignore other event types */
-            }
+            BleApp_HandleServiceDiscoveryStates(peerDeviceId, event, true);
         }
         break;
 
