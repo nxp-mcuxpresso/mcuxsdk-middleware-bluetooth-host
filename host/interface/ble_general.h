@@ -931,6 +931,7 @@ typedef enum {
     gMonAdvListSizeRead_c                                   = 0x58U, /*!< Read Monitored Advertisers List Size command complete */
     gVendorDebugEvent_c                                     = 0x59U, /*!< Vendor specific debugging event signaling NBU fatal error */
     gLeSetDefaultConnectionSubrateParametersSetupComplete_c = 0x5AU, /*!< Default Connection Subrate Parameters.have been successfully set */
+    gLeChasConfigComplete_c                                 = 0x5BU, /*!< LE CHAS Config command completed successfully */
 } gapGenericEventType_t;
 
 /*! Internal Error Source - the command that triggered the error */
@@ -1087,6 +1088,7 @@ typedef enum {
     gEncryptLinkTak_c = 0x95U,                       /*!< An error occurred during Encrypt link with TAK procedure */
     gVendorEnableExpmFeatures_c = 0x96U,             /*!< An error occurred during gHciVendorEnableExpmFeaturesCommand_c execution */
     gLeSetLocalPeripheralLatencyEnable_c = 0x97U,    /*!< An error occurred during the Le Set Local Peripheral Latency Enable procedure */
+    gLeChasConfig_c = 0x98U,                         /*!< An error occurred during LE CHAS Config command execution */
 } gapInternalErrorSource_t;
 
 /*! Internal Error Event Data */

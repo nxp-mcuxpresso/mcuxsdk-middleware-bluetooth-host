@@ -70,7 +70,7 @@ typedef enum
     gBleGapCmdSetPeriodicAdvertisingResponseDataOpCode_c                        = 0x0F,                     /*! Gap_SetPeriodicAdvResponseData command operation code */
     gBleGapCmdSetPeriodicSyncSubeventOpCode_c                                   = 0x10,                     /*! Gap_SetPeriodicSyncSubevent command operation code */
     gBleGapCmdConnectV2OpCode_c                                                 = 0x11,                     /*! Gap_ConnectFromPawr command operation code */
-    /*!                                                                         = 0x12,                         Not Used / Free to use */
+    gBleGapCmdLeChasConfigOpCode_c                                              = 0x12,                     /*! Gap_LeChasConfig command operation code */
     gBleCtrlCmdGetTimestampExOpCode_c                                           = 0x13,                     /*! Controller_GetTimestampEx command operation code */
     gBleGapCmdSetDataRelatedAddressChanges_c                                    = 0x14,                     /*! Gap_SetDataRelatedAddress command operation code */
     gBleGapCmdSetBondedDeviceNameOpCode_c                                       = 0x15,                     /*! Gap_SetBondedDeviceName command operation code */
@@ -117,7 +117,8 @@ typedef enum
     gBleGapEvtGenericEventMonAdvListSizeReadOpCode_c                            = 0x9D,                     /*! gapGenericCallback (type = gMonAdvListSizeRead_c) event operation code */
     gBleGapEvtScanningEventMonAdvReportOpCode_c                                 = 0x9E,                     /*! gapScanningCallback (type = gMonAdvReportEventReceived_c) event operation code */
     gBleGapEvtGenericEventVendorDebugOpCode_c                                   = 0x9F,                     /*! gapGenericCallback (type = gVendorDebugEvent_c) event operation code */
-    gBleGapEvtGenericEventSetDefaultConnectionSubrateParametersSetupComplete_c  = 0xA0,                      /*! gapGenericCallback (type = gLeSetDefaultConnectionSubrateParametersSetupComplete_c) event operation code */
+    gBleGapEvtGenericEventSetDefaultConnectionSubrateParametersSetupComplete_c  = 0xA0,                     /*! gapGenericCallback (type = gLeSetDefaultConnectionSubrateParametersSetupComplete_c) event operation code */
+    gBleGapEvtGenericEventLeChasConfigComplete_c                                = 0xA1,                     /*! gapGenericCallback (type = gLeChasConfigComplete_c) event operation code */
 } fsciBleGap2OpCode_t;
 
 /************************************************************************************

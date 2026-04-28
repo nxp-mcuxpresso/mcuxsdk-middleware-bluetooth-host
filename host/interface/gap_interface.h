@@ -136,6 +136,29 @@ bleResult_t Gap_SetDataRelatedAddressChanges
     uint8_t changeReasons
 );
 
+/*!*************************************************************************************************
+ * \fn           bleResult_t Gap_LeChasConfig(int8_t initialFilterSeed,
+ *                                            uint8_t filterThreshold,
+ *                                            uint8_t filterWeight,
+ *                                            uint16_t measurementInterval)
+ *
+ * \brief        Command to configure Channel Assessment settings.
+ *
+ * \param [in]   initialFilterSeed      Initial filter seed (-108 to -80 dBm).
+ * \param [in]   filterThreshold        Filter threshold (not used).
+ * \param [in]   filterWeight           Filter weight (1 to 255).
+ * \param [in]   measurementInterval    Measurement interval (0 to 0x7FFF).
+ *
+ * \retval       bleResult_t             gBleSuccess_c or error.
+***************************************************************************************************/
+bleResult_t Gap_LeChasConfig
+(
+    int8_t   initialFilterSeed,
+    uint8_t  filterThreshold,
+    uint8_t  filterWeight,
+    uint16_t measurementInterval
+);
+
 /*! *********************************************************************************
 * \brief  Registers the device security requirements.
 * This function includes a central security for all services and, optionally, additional stronger security

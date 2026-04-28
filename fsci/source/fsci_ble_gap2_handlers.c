@@ -88,6 +88,12 @@ static void HandleGapCmdSetDataRelatedAddressChanges
     uint32_t fsciInterfaceId
 );
 
+static void HandleGapCmdLeChasConfig
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+
 static void HandleGapCmdLeChannelOverride
 (
     uint8_t *pBuffer,
@@ -396,7 +402,7 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
     NULL,
     NULL,
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
-    NULL,                                                                       /* = 0x12, Not Used / Free to use */
+    HandleGapCmdLeChasConfig,                                                   /* = 0x12, gBleGapEvtGenericEventLeChasConfigComplete_c*/
     HandleCtrlCmdGetTimestampExOpCode,                                          /* = 0x13, gBleCtrlCmdGetTimestampExOpCode_c */
     HandleGapCmdSetDataRelatedAddressChanges,                                   /* = 0x14, gBleGapCmdSetDataRelatedAddressChanges_c */
     HandleGapCmdSetBondedDeviceNameOpCode,                                      /* = 0x15, gBleGapCmdSetBondedDeviceNameOpCode_c */
@@ -962,6 +968,43 @@ static void HandleGapCmdSetDataRelatedAddressChanges
     fsciBleGetUint8ValueFromBuffer(changeReasons, pBuffer);
 
     fsciBleGap2CallApiFunction(Gap_SetDataRelatedAddressChanges(advertisingHandle, changeReasons));
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdLeChasConfig(uint8_t *pBuffer,
+*                                            uint32_t fsciInterfaceId)
+*\brief        Handler for gBleGapCmdLeChasConfigOpCode_c.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+*
+*\remarks      Vendor-specific CHAS Config command handler.
+*
+********************************************************************************** */
+static void HandleGapCmdLeChasConfig
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+)
+{
+    int8_t   initialFilterSeed;
+    uint8_t  filterThreshold;
+    uint8_t  filterWeight;
+    uint16_t measurementInterval;
+
+    /* Get command parameters from buffer */
+    fsciBleGetUint8ValueFromBuffer(initialFilterSeed, pBuffer);
+    fsciBleGetUint8ValueFromBuffer(filterThreshold, pBuffer);
+    fsciBleGetUint8ValueFromBuffer(filterWeight, pBuffer);
+    fsciBleGetUint16ValueFromBuffer(measurementInterval, pBuffer);
+
+    fsciBleGap2CallApiFunction(Gap_LeChasConfig(initialFilterSeed, 
+                                                 filterThreshold, 
+                                                 filterWeight, 
+                                                 measurementInterval));
 }
 
 /*! *********************************************************************************

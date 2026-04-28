@@ -68,6 +68,15 @@ typedef struct
     uint8_t             changeReasons;
 } hciSetDataRelatedAddressChangesCommand_t;
 
+/*! HCI LE CHAS Config Command Parameters */
+typedef struct hciLeChasConfigCommand_tag
+{
+    int8_t   initialFilterSeed;
+    uint8_t  filterThreshold;
+    uint8_t  filterWeight;
+    uint16_t measurementInterval;
+} hciLeChasConfigCommand_t;
+
 /*! OCF 0x001D */
 /*! HCI_Read_Remote_Version_Information */
 typedef struct
@@ -3294,6 +3303,23 @@ bleResult_t  Hci_SetDataRelatedAddressChanges(
 ********************************************************************************** */
 bleResult_t Hci_ReadRemoteVersionInformation(
                 const hciReadRemoteVersionInformationCommand_t *pParam);                              /* 1.23 */
+
+/*! *********************************************************************************
+* \fn           bleResult_t Hci_LeChasConfig(const hciLeChasConfigCommand_t *pParam)
+*
+* \brief        The function sends the HCI LE CHAS Config (OGF : 0x08; OCF : 0x008C) 
+*               command to the Controller.
+*
+* \param[in]    pParam  pointer to a structure containing the CHAS configuration parameters.
+* \param[out]   None
+*
+* \return       Status
+*
+********************************************************************************** */
+bleResult_t Hci_LeChasConfig
+(
+    const hciLeChasConfigCommand_t *pParam
+);
 
 /*! *********************************************************************************
 * \brief        The function sends the HCI LE Read Remote Features (OGF : 0x08; OCF : 0x0016) command to the Controller.
