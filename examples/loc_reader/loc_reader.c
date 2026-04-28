@@ -1879,11 +1879,618 @@ static void BleApp_StoreServiceHandles
    }
 }
 
-/*! *********************************************************************************
-* \brief  This is the callback for Bluetooth LE CS events
-********************************************************************************** */
-static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventType_t eventType)
+/*! **********************************************************************************
+ * \brief        Handles CS Command Complete events.
+ *
+ * \param[in]    deviceId        Peer device ID.
+ * \param[in]    pData           Pointer to event data.
+ ***********************************************************************************/
+static void BleApp_HandleCsCcEvent
+(
+    deviceId_t deviceId,
+    void *pData
+)
 {
+    if (pData != NULL)
+    {
+        csCommandCompleteEvent_t *pEvent = (csCommandCompleteEvent_t*)pData;
+        if (pEvent->eventType == commandError_c)
+        {
+            shell_write("CS Command Complete error! errorSource: ");
+            shell_writeDec((uint32_t)pEvent->eventData.csCommandError.errorSource); /* value in commandErrorSource_t enum */
+            shell_write(", status ");
+            shell_writeDec((uint32_t)pEvent->eventData.csCommandError.status); /* value in bleResult_t enum */
+            SHELL_NEWLINE();
+        }
+    }
+}
+
+/*! **********************************************************************************
+ * \brief        Handles CS Security Enabled event.
+ *
+ * \param[in]    deviceId        Peer device ID.
+ ***********************************************************************************/
+static void BleApp_HandleCsSecurityEnabled
+(
+    deviceId_t deviceId
+)
+{
+    shell_write("CS security enabled.\r\n");
+    if (mGlobalRangeSettings.role == gCsRoleInitiator_c)
+    {
+        bleResult_t result = gBleSuccess_c;
+        result = AppLocalization_SetProcedureParameters(deviceId);
+        if (result != gBleSuccess_c)
+        {
+            shell_write("\r\nSet Procedure parameters failed.\r\n");
+        }
+    }
+}
+
+/*! **********************************************************************************
+ * \brief        Handles CS Configuration Complete event.
+ *
+ * \param[in]    deviceId        Peer device ID.
+ ***********************************************************************************/
+static void BleApp_HandleConfigComplete
+(
+    deviceId_t deviceId
+)
+{
+    shell_write("Localization config complete.\r\n");
+#if defined(gAppIsPeripheral_d) && (gAppIsPeripheral_d != 1U)
+    bleResult_t result = AppLocalization_SecurityEnable(deviceId);
+    if (result != gBleSuccess_c)
+    {
+        shell_write("CS Security Enable failed.\r\n");
+    }
+#endif
+}
+
+/*! **********************************************************************************
+ * \brief        Handles Set Procedure Parameters Complete event.
+ *
+ * \param[in]    deviceId        Peer device ID.
+ ***********************************************************************************/
+static void BleApp_HandleSetProcParamsComplete
+(
+    deviceId_t deviceId
+)
+{
+    bleResult_t result = gBleSuccess_c;
+    shell_write("Set Procedure parameters complete.\r\n");
+    shell_write("Start distance measurement.\r\n");
+    mProcedureCount = 0U;
+    result = AppLocalization_StartMeasurement(deviceId);
+    if (result != gBleSuccess_c)
+    {
+        shell_write("Distance measurement start failed.\r\n");
+    }
+}
+
+/*! **********************************************************************************
+ * \brief        Handles Distance Measurement Started event.
+ ***********************************************************************************/
+static void BleApp_HandleDistanceMeastStarted
+(
+    void
+)
+{
+    if (mGlobalRangeSettings.role == gCsRoleReflector_c)
+    {
+        mProcedureCount = 0U;
+        shell_write("Distance measurement started.\r\n");
+    }
+}
+
+/*! **********************************************************************************
+ * \brief        Handles localization error messages (Part 1).
+ *
+ * \param[in]    error           Localization error type.
+ *
+ * \return       TRUE if error was handled, FALSE otherwise.
+ ***********************************************************************************/
+static bool_t BleApp_HandleLocalizationErrorsPart1
+(
+    appLocalizationError_t error
+)
+{
+    bool_t errorHandled = TRUE;
+
+    switch (error)
+    {
+        case gAppLclErrorRLSC_c:
+        {
+            shell_write("Error occured! Source: csReadLocalSupportedCapabilities!\r\n");
+        }
+        break;
+
+        case gAppLclUnexpectedCC_c:
+        {
+            shell_write("Received an unexpected Config Complete Event!\r\n");
+        }
+        break;
+
+        case gAppLclUnexpectedRRSCC_c:
+        {
+            shell_write("Received an unexpected Read Remote Supported Capabilities Complete Event!\r\n");
+        }
+        break;
+
+        case gAppLclUnexpectedPEC_c:
+        {
+            shell_write("Received an unexpected Procedure Enable Complete Event!\r\n");
+        }
+        break;
+
+        case gAppLclUnexpectedSRE_c:
+        {
+            shell_write("Received an unexpected Subevent Result Event!\r\n");
+        }
+        break;
+
+        case gAppLclUnexpectedSDS_c:
+        {
+            shell_write("Received an unexpected Set Default Settings Event!\r\n");
+        }
+        break;
+
+        case gAppLclUnexpectedSRCE_c:
+        {
+            shell_write("Received an unexpected Subevent Result Continue Event!\r\n");
+        }
+        break;
+
+        case gAppLclErrorRRSCCC_c:
+        {
+            shell_write("Error occured! Source: readRemoteSupportedCapabilitiesComplete!\r\n");
+        }
+        break;
+
+        case gAppLclErrorRRFAETC_c:
+        {
+            shell_write("Error occured! Source: readRemoteFAETableComplete!\r\n");
+        }
+        break;
+
+        case gAppLclErrorSEC_c:
+        {
+            shell_write("Error occured! Source: securityEnableComplete!\r\n");
+        }
+        break;
+
+        case gAppLclErrorCC_c:
+        {
+            shell_write("Error occured! Source: configComplete!\r\n");
+        }
+        break;
+
+        case gAppLclErrorPEC_c:
+        {
+            shell_write("Error occured! Source: procedureEnableComplete!\r\n");
+        }
+        break;
+
+        case gAppLclErrorERE_c:
+        {
+            shell_write("Error occured! Source: eventResult!\r\n");
+        }
+        break;
+
+        case gAppLclErrorERCE_c:
+        {
+            shell_write("Error occured! Source: eventResultContinue!\r\n");
+        }
+        break;
+
+        default:
+        {
+            errorHandled = FALSE; /* Not handled in this part */
+        }
+        break;
+    }
+
+    return errorHandled;
+}
+
+/*! **********************************************************************************
+ * \brief        Handles localization error messages (Part 2).
+ *
+ * \param[in]    error           Localization error type.
+ *
+ * \return       TRUE if error was handled, FALSE otherwise.
+ ***********************************************************************************/
+static bool_t BleApp_HandleLocalizationErrorsPart2
+(
+    appLocalizationError_t error
+)
+{
+    bool_t errorHandled = TRUE;
+
+    switch (error)
+    {
+        case gAppLclInvalidDeviceId_c:
+        {
+            shell_write("Received an invalid device Id!\r\n");
+        }
+        break;
+
+        case gAppLclSDSConfigError_c:
+        {
+            shell_write("CS_SetDefaultSettings command failed!\r\n");
+        }
+        break;
+
+        case gAppLclCCConfigError_c:
+        {
+            shell_write("CS_CreateConfig command failed!\r\n");
+        }
+        break;
+
+        case gAppLclRRSCError_c:
+        {
+            shell_write("Error status received! csReadRemoteSupportedCsCapabilities command status event!\r\n");
+        }
+        break;
+
+        case gAppLclSEError_c:
+        {
+            shell_write("Error status received! csSecurityEnable command status event!\r\n");
+        }
+        break;
+
+        case gAppLclCCError_c:
+        {
+            shell_write("Error status received! csCreateConfig command status event!\r\n");
+        }
+        break;
+
+        case gAppLclAlgoNotRun_c:
+        {
+            shell_write("\r\nAlgorithm did not run, procedure likely failed on peer.\r\n");
+        }
+        break;
+
+        case gAppLclStartMeasurementFail_c:
+        {
+            shell_write("Start measurement failed!\r\n");
+        }
+        break;
+
+        case gAppLclProcStatusFailed_c:
+        {
+            shell_write("Procedure done status error received!\r\n");
+        }
+        break;
+
+        case gAppLclProcedureAborted_c:
+        {
+            shell_write("All subsequent CS procedures aborted!\r\n");
+        }
+        break;
+
+        case gAppLclRasTransferFailed_c:
+        {
+            shell_write("RAS - Received an error response from RAS server!\r\n");
+        }
+        break;
+
+        case gAppLclInvalidProcCounter_c:
+        {
+            shell_write("RAS - Received an invalid procedure index!\r\n");
+        }
+        break;
+
+        case gAppLclInvalidProcIndex_c:
+        {
+            shell_write("RAS - Received a data ready indication for a procedure index different from the local one!\r\n");
+        }
+        break;
+
+        default:
+        {
+            errorHandled = FALSE; /* Not handled in this part */
+        }
+        break;
+    }
+
+    return errorHandled;
+}
+
+/*! **********************************************************************************
+ * \brief        Handles localization error messages (Part 3).
+ *
+ * \param[in]    deviceId        Peer device ID.
+ * \param[in]    error           Localization error type.
+ ***********************************************************************************/
+static void BleApp_HandleLocalizationErrorsPart3
+(
+    deviceId_t deviceId,
+    appLocalizationError_t error
+)
+{
+    switch (error)
+    {
+        case gAppLclInvalidSegmentCounter_c:
+        {
+            shell_write("RAS - Received an invalid segment counter in data notification!\r\n");
+        }
+        break;
+
+        case gAppLclSubeventStatusFailed_c:
+        {
+            shell_write("Subevent status failed!\r\n");
+        }
+        break;
+
+        case gAppLclNoSubeventMemoryAvailable_c:
+        {
+            shell_write("No more memory available for a local subevent!\r\n");
+        }
+        break;
+
+        case gAppLclErrorProcessingSubevent_c:
+        {
+            shell_write("An error occured in the processing of subevent data!\r\n");
+        }
+        break;
+
+        case gAppLclAlgoNotRunNoDataReady_c:
+        {
+            shell_write("Algorithm did not run - No Data Ready from peer!\r\n");
+        }
+        break;
+
+        case gAppLclAlgoNotRunNoRangingData_c:
+        {
+            shell_write("Algorithm did not run - Ranging Data not complete!\r\n");
+        }
+        break;
+
+        case gAppLclAlgoNotRunNoRealTimeData_c:
+        {
+            shell_write("Algorithm did not run - Real Time Ranging Data not complete!\r\n");
+            maPeerInformation[deviceId].isSubscribed = FALSE;
+        }
+        break;
+
+        case gAppLclMaxProceduresReached_c:
+        {
+            shell_write("Maximum concurrent CS procedures reached!\r\n");
+        }
+        break;
+
+        default:
+        {
+            shell_write("Unknown error!\r\n");
+        }
+        break;
+    }
+}
+
+/*! **********************************************************************************
+ * \brief        Handles general error event with detailed error reporting.
+ *
+ * \param[in]    deviceId        Peer device ID.
+ * \param[in]    pData           Pointer to error data.
+ ***********************************************************************************/
+static void BleApp_HandleErrorEvent
+(
+    deviceId_t deviceId,
+    void *pData
+)
+{
+    if (pData != NULL)
+    {
+        appLocalizationError_t *pError = (appLocalizationError_t*)pData;
+
+        shell_write("Error event for deviceId ");
+        shell_writeDec((uint8_t)deviceId);
+        shell_write(":\r\n");
+
+        if (BleApp_HandleLocalizationErrorsPart1(*pError) == FALSE)
+        {
+            if (BleApp_HandleLocalizationErrorsPart2(*pError) == FALSE)
+            {
+                BleApp_HandleLocalizationErrorsPart3(deviceId, *pError);
+            }
+        }
+    }
+}
+
+/*! **********************************************************************************
+ * \brief        Handles subevent abort reason reporting.
+ *
+ * \param[in]    abortReason     Abort reason code.
+ ***********************************************************************************/
+static void BleApp_HandleSubeventAbortReason
+(
+    uint8_t abortReason
+)
+{
+    switch (abortReason)
+    {
+        case (uint8_t)gAppLclNoCsSync_c:
+        {
+            shell_write("No CS_SYNC (mode0) received.\r\n");
+        }
+        break;
+
+        case (uint8_t)gAppLclScheduleConflict_c:
+        {
+            shell_write("Scheduling conflicts or limited resources.\r\n");
+        }
+        break;
+
+        case (uint8_t)gAppLclTimePassed_c:
+        {
+            shell_write("Time passed.\r\n");
+        }
+        break;
+
+        case (uint8_t)gAppLclInvalidArguments_c:
+        {
+            shell_write("Invalid arguments.\r\n");
+        }
+        break;
+
+        case (uint8_t)gAppLclAborted_c:
+        {
+            shell_write("Aborted.\r\n");
+        }
+        break;
+
+        case (uint8_t)gAppLclUnspecifiedReasons_c:
+        {
+            shell_write("Unspecified reasons.\r\n");
+        }
+        break;
+
+        default:
+        {
+            shell_write("Unknown!\r\n");
+        }
+        break;
+    }
+}
+
+/*! **********************************************************************************
+ * \brief        Handles CS subevent aborted event.
+ *
+ * \param[in]    deviceId        Peer device ID.
+ * \param[in]    pData           Pointer to abort reason data.
+ ***********************************************************************************/
+static void BleApp_HandleErrorSubeventAborted
+(
+    deviceId_t deviceId,
+    void *pData
+)
+{
+    uint8_t abortReason = *((uint8_t*)pData);
+    shell_write("Current CS subevent aborted for deviceId ");
+    shell_writeDec((uint8_t)deviceId);
+    shell_write("! Abort Reason: ");
+    BleApp_HandleSubeventAbortReason(abortReason);
+}
+
+/*! **********************************************************************************
+ * \brief        Handles procedure abort reason reporting.
+ *
+ * \param[in]    abortReason     Abort reason code.
+ ***********************************************************************************/
+static void BleApp_HandleProcedureAbortReason
+(
+    uint8_t abortReason
+)
+{
+    switch (abortReason)
+    {
+        case (uint8_t)gAppLclLocalHost_c:
+        {
+            shell_write("Abort because of local Host or remote request.\r\n");
+        }
+        break;
+
+        case (uint8_t)gAppLclRequiredChannelNumber_c:
+        {
+            shell_write("Abort because filtered channel map has less than 15 channels.\r\n");
+        }
+        break;
+
+        case (uint8_t)gAppLclChannelMapInstant_c:
+        {
+            shell_write("Abort because the channel map update instant has passed.\r\n");
+        }
+        break;
+
+        case (uint8_t)gAppLclUnspecifiedReasons_c:
+        {
+            shell_write("Abort because of unspecified reasons.\r\n");
+        }
+        break;
+
+        default:
+        {
+            shell_write("Unknown!\r\n");
+        }
+        break;
+    }
+}
+
+/*! **********************************************************************************
+ * \brief        Handles CS procedure aborted event.
+ *
+ * \param[in]    deviceId        Peer device ID.
+ * \param[in]    pData           Pointer to abort reason data.
+ ***********************************************************************************/
+static void BleApp_HandleErrorProcedureAborted
+(
+    deviceId_t deviceId,
+    void *pData
+)
+{
+    uint8_t abortReason = *((uint8_t*)pData);
+    shell_write("All subsequent CS procedures aborted for deviceId ");
+    shell_writeDec((uint8_t)deviceId);
+    shell_write("! Abort Reason: ");
+    BleApp_HandleProcedureAbortReason(abortReason);
+}
+
+#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
+/*! **********************************************************************************
+ * \brief        Handles CS HCI data log export event.
+ *
+ * \param[in]    pData           Pointer to HCI data log event.
+ ***********************************************************************************/
+static void BleApp_HandleCsHciDataLogEvent
+(
+    void *pData
+)
+{
+    csHciDataLogEvent_t *pHciDataLog = (csHciDataLogEvent_t*)pData;
+
+    /* Construct full CS HCI data packet */
+    uint8_t * pCsHciPacket = MEM_BufferAlloc(pHciDataLog->packetSize + gCsHciDataHdrLength_c);
+
+    if (pCsHciPacket != NULL)
+    {
+        /* Add header, length and subevent opcode */
+        pCsHciPacket[0] = gHciPacketIndicator_c;
+        pCsHciPacket[1] = gHciEventCode_c;
+        pCsHciPacket[2] = pHciDataLog->packetSize;
+        pCsHciPacket[3] = pHciDataLog->opCode;
+
+        /* Add CS data */
+        FLib_MemCpy(&(pCsHciPacket[4]), pHciDataLog->pPacket, pHciDataLog->packetSize - 1U);
+
+        /* Serial write full packet */
+        (void)SerialManager_WriteBlocking(gDataExportSerialWriteHandle, pCsHciPacket, pHciDataLog->packetSize + gCsHciDataHdrLength_c);
+
+        (void)MEM_BufferFree(pCsHciPacket);
+    }
+
+    (void)MEM_BufferFree((void*)pHciDataLog->pPacket);
+}
+#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
+
+/*! **********************************************************************************
+ * \brief        Handles CS events for the application (Part 1).
+ *
+ * \param[in]    deviceId        Peer device ID.
+ * \param[in]    pData           Pointer to event data.
+ * \param[in]    eventType       Type of CS event.
+ *
+ * \return       TRUE if event was handled, FALSE otherwise.
+ ***********************************************************************************/
+static bool_t BleApp_CsEventHandlerPart1
+(
+    deviceId_t deviceId,
+    void *pData,
+    appCsEventType_t eventType
+)
+{
+    bool_t eventHandled = TRUE;
+
     switch (eventType)
     {
         case gCsMetaEvent_c:
@@ -1893,15 +2500,7 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
 
         case gCsCcEvent_c:
         {
-            csCommandCompleteEvent_t *pEvent = (csCommandCompleteEvent_t*)pData;
-            if (pEvent->eventType == commandError_c)
-            {
-                shell_write("CS Command Complete error! errorSource: ");
-                shell_writeDec((uint32_t)pEvent->eventData.csCommandError.errorSource); /* value in commandErrorSource_t enum */
-                shell_write(", status ");
-                shell_writeDec((uint32_t)pEvent->eventData.csCommandError.status); /* value in bleResult_t enum */
-                SHELL_NEWLINE();
-            }
+            BleApp_HandleCsCcEvent(deviceId, pData);
         }
         break;
 
@@ -1912,60 +2511,26 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
 
         case gCsSecurityEnabled_c:
         {
-            shell_write("CS security enabled.\r\n");
-
-            if (mGlobalRangeSettings.role == gCsRoleInitiator_c)
-            {
-                bleResult_t result = gBleSuccess_c;
-                result = AppLocalization_SetProcedureParameters(deviceId);
-
-                if (result != gBleSuccess_c)
-                {
-                    shell_write("\r\nSet Procedure parameters failed.\r\n");
-                }
-            }
+            BleApp_HandleCsSecurityEnabled(deviceId);
         }
         break;
 
         case gConfigComplete_c:
         case gLocalConfigWritten_c:
         {
-            shell_write("Localization config complete.\r\n");
-#if defined(gAppIsPeripheral_d) && (gAppIsPeripheral_d != 1U)
-            bleResult_t result = AppLocalization_SecurityEnable(deviceId);
-
-            if (result != gBleSuccess_c)
-            {
-                shell_write("CS Security Enable failed.\r\n");
-            }
-#endif
+            BleApp_HandleConfigComplete(deviceId);
         }
         break;
 
         case gSetProcParamsComplete_c:
         {
-            bleResult_t result = gBleSuccess_c;
-
-            shell_write("Set Procedure parameters complete.\r\n");
-            shell_write("Start distance measurement.\r\n");
-            mProcedureCount = 0U;
-
-            result = AppLocalization_StartMeasurement(deviceId);
-
-            if (result != gBleSuccess_c)
-            {
-                shell_write("Distance measurement start failed.\r\n");
-            }
+            BleApp_HandleSetProcParamsComplete(deviceId);
         }
         break;
 
         case gDistanceMeastStarted_c:
         {
-            if (mGlobalRangeSettings.role == gCsRoleReflector_c)
-            {
-                mProcedureCount = 0U;
-                shell_write("Distance measurement started.\r\n");
-            }
+            BleApp_HandleDistanceMeastStarted();
         }
         break;
 
@@ -1994,6 +2559,36 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
         }
         break;
 
+        default:
+        {
+            eventHandled = FALSE;
+        }
+        break;
+    }
+
+    return eventHandled;
+}
+
+/*! **********************************************************************************
+ * \brief        Handles CS events for the application (Part 2).
+ *
+ * \param[in]    deviceId        Peer device ID.
+ * \param[in]    pData           Pointer to event data.
+ * \param[in]    eventType       Type of CS event.
+ *
+ * \return       TRUE if event was handled, FALSE otherwise.
+ ***********************************************************************************/
+static bool_t BleApp_CsEventHandlerPart2
+(
+    deviceId_t deviceId,
+    void *pData,
+    appCsEventType_t eventType
+)
+{
+    bool_t eventHandled = TRUE;
+
+    switch (eventType)
+    {
         case gErrRasParameterNotSupported_c:
         {
             shell_write("\r\nRAS error parameter not supported!\r\n");
@@ -2026,371 +2621,59 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
 
         case gErrorEvent_c:
         {
-            if (pData != NULL)
-            {
-                appLocalizationError_t *pError = (appLocalizationError_t*)pData;
-
-                shell_write("Error event for deviceId ");
-                shell_writeDec((uint8_t)deviceId);
-                shell_write(":\r\n");
-
-                switch (*pError)
-                {
-                    case gAppLclErrorRLSC_c:
-                    {
-                        shell_write("Error occured! Source: csReadLocalSupportedCapabilities!\r\n");
-                    }
-                    break;
-
-                    case gAppLclUnexpectedCC_c:
-                    {
-                        shell_write("Received an unexpected Config Complete Event!\r\n");
-                    }
-                    break;
-
-                    case gAppLclUnexpectedRRSCC_c:
-                    {
-                        shell_write("Received an unexpected Read Remote Supported Capabilities Complete Event!\r\n");
-                    }
-                    break;
-
-                    case gAppLclUnexpectedPEC_c:
-                    {
-                        shell_write("Received an unexpected Procedure Enable Complete Event!\r\n");
-                    }
-                    break;
-
-                    case gAppLclUnexpectedSRE_c:
-                    {
-                        shell_write("Received an unexpected Subevent Result Event!\r\n");
-                    }
-                    break;
-
-                    case gAppLclUnexpectedSDS_c:
-                    {
-                        shell_write("Received an unexpected Set Default Settings Event!\r\n");
-                    }
-                    break;
-
-
-                    case gAppLclUnexpectedSRCE_c:
-                    {
-                        shell_write("Received an unexpected Subevent Result Continue Event!\r\n");
-                    }
-                    break;
-
-                    case gAppLclErrorRRSCCC_c:
-                    {
-                        shell_write("Error occured! Source: readRemoteSupportedCapabilitiesComplete!\r\n");
-                    }
-                    break;
-
-                    case gAppLclErrorRRFAETC_c:
-                    {
-                        shell_write("Error occured! Source: readRemoteFAETableComplete!\r\n");
-                    }
-                    break;
-
-                    case gAppLclErrorSEC_c:
-                    {
-                        shell_write("Error occured! Source: securityEnableComplete!\r\n");
-                    }
-                    break;
-
-                    case gAppLclErrorCC_c:
-                    {
-                        shell_write("Error occured! Source: configComplete!\r\n");
-                    }
-                    break;
-
-                    case gAppLclErrorPEC_c:
-                    {
-                        shell_write("Error occured! Source: procedureEnableComplete!\r\n");
-                    }
-                    break;
-
-                    case gAppLclErrorERE_c:
-                    {
-                        shell_write("Error occured! Source: eventResult!\r\n");
-                    }
-                    break;
-
-                    case gAppLclErrorERCE_c:
-                    {
-                        shell_write("Error occured! Source: eventResultContinue!\r\n");
-                    }
-                    break;
-
-                    case gAppLclInvalidDeviceId_c:
-                    {
-                        shell_write("Received an invalid device Id!\r\n");
-                    }
-                    break;
-
-                    case gAppLclSDSConfigError_c:
-                    {
-                        shell_write("CS_SetDefaultSettings command failed!\r\n");
-                    }
-                    break;
-
-                    case gAppLclCCConfigError_c:
-                    {
-                        shell_write("CS_CreateConfig command failed!\r\n");
-                    }
-                    break;
-
-                    case gAppLclRRSCError_c:
-                    {
-                        shell_write("Error status received! csReadRemoteSupportedCsCapabilities command status event!\r\n");
-                    }
-                    break;
-
-                    case gAppLclSEError_c:
-                    {
-                        shell_write("Error status received! csSecurityEnable command status event!\r\n");
-                    }
-                    break;
-
-                    case gAppLclCCError_c:
-                    {
-                        shell_write("Error status received! csCreateConfig command status event!\r\n");
-                    }
-                    break;
-
-                    case gAppLclAlgoNotRun_c:
-                    {
-                        shell_write("\r\nAlgorithm did not run, procedure likely failed on peer.\r\n");
-                    }
-                    break;
-
-                    case gAppLclStartMeasurementFail_c:
-                    {
-                        shell_write("Start measurement failed!\r\n");
-                    }
-                    break;
-
-                    case gAppLclProcStatusFailed_c:
-                    {
-                        shell_write("Procedure done status error received!\r\n");
-                    }
-                    break;
-
-                    case gAppLclProcedureAborted_c:
-                    {
-                        shell_write("All subsequent CS procedures aborted!\r\n");
-                    }
-                    break;
-
-                    case gAppLclRasTransferFailed_c:
-                    {
-                        shell_write("RAS - Received an error response from RAS server!\r\n");
-                    }
-                    break;
-
-                    case gAppLclInvalidProcCounter_c:
-                    {
-                        shell_write("RAS - Received an invalid procedure index!\r\n");
-                    }
-                    break;
-
-                    case gAppLclInvalidProcIndex_c:
-                    {
-                        shell_write("RAS - Received a data ready indication for a procedure index different from the local one!\r\n");
-                    }
-                    break;
-
-                    case gAppLclInvalidSegmentCounter_c:
-                    {
-                        shell_write("RAS - Received an invalid segment counter in data notification!\r\n");
-                    }
-                    break;
-
-                    case gAppLclSubeventStatusFailed_c:
-                    {
-                        shell_write("Subevent status failed!\r\n");
-                    }
-                    break;
-
-                    case gAppLclNoSubeventMemoryAvailable_c:
-                    {
-                        shell_write("No more memory available for a local subevent!\r\n");
-                    }
-                    break;
-
-                    case gAppLclErrorProcessingSubevent_c:
-                    {
-                        shell_write("An error occured in the processing of subevent data!\r\n");
-                    }
-                    break;
-
-                    case gAppLclAlgoNotRunNoDataReady_c:
-                    {
-                        shell_write("Algorithm did not run - No Data Ready from peer!\r\n");
-                    }
-                    break;
-
-                    case gAppLclAlgoNotRunNoRangingData_c:
-                    {
-                        shell_write("Algorithm did not run - Ranging Data not complete!\r\n");
-                    }
-                    break;
-
-                    case gAppLclAlgoNotRunNoRealTimeData_c:
-                    {
-                        shell_write("Algorithm did not run - Real Time Ranging Data not complete!\r\n");
-                        maPeerInformation[deviceId].isSubscribed = FALSE;
-                    }
-                    break;
-
-                    case gAppLclMaxProceduresReached_c:
-                    {
-                        shell_write("Maximum concurrent CS procedures reached!\r\n");
-                    }
-                    break;
-
-                    default:
-                    {
-                        shell_write("Unknown error!\r\n");
-                    }
-                    break;
-                }
-            }
+            BleApp_HandleErrorEvent(deviceId, pData);
         }
         break;
 
         case gErrorSubeventAborted_c:
         {
-            uint8_t abortReason = *((uint8_t*)pData);
-
-            shell_write("Current CS subevent aborted for deviceId ");
-            shell_writeDec((uint8_t)deviceId);
-            shell_write("! Abort Reason: ");
-
-            switch (abortReason)
-            {
-                case (uint8_t)gAppLclNoCsSync_c:
-                {
-                    shell_write("No CS_SYNC (mode0) received.\r\n");
-                }
-                break;
-
-                case (uint8_t)gAppLclScheduleConflict_c:
-                {
-                    shell_write("Scheduling conflicts or limited resources.\r\n");
-                }
-                break;
-
-                case (uint8_t)gAppLclTimePassed_c:
-                {
-                    shell_write("Time passed.\r\n");
-                }
-                break;
-
-                case (uint8_t)gAppLclInvalidArguments_c:
-                {
-                    shell_write("Invalid arguments.\r\n");
-                }
-                break;
-
-                case (uint8_t)gAppLclAborted_c:
-                {
-                    shell_write("Aborted.\r\n");
-                }
-                break;
-
-                case (uint8_t)gAppLclUnspecifiedReasons_c:
-                {
-                    shell_write("Unspecified reasons.\r\n");
-                }
-                break;
-
-                default:
-                {
-                    shell_write("Unknown!\r\n");
-                }
-                break;
-            }
+            BleApp_HandleErrorSubeventAborted(deviceId, pData);
         }
         break;
 
         case gErrorProcedureAborted_c:
         {
-            uint8_t abortReason = *((uint8_t*)pData);
-
-            shell_write("All subsequent CS procedures aborted for deviceId ");
-            shell_writeDec((uint8_t)deviceId);
-            shell_write("! Abort Reason: ");
-
-            switch (abortReason)
-            {
-                case (uint8_t)gAppLclLocalHost_c:
-                {
-                    shell_write("Abort because of local Host or remote request.\r\n");
-                }
-                break;
-
-                case (uint8_t)gAppLclRequiredChannelNumber_c:
-                {
-                    shell_write("Abort because filtered channel map has less than 15 channels.\r\n");
-                }
-                break;
-
-                case (uint8_t)gAppLclChannelMapInstant_c:
-                {
-                    shell_write("Abort because the channel map update instant has passed.\r\n");
-                }
-                break;
-
-                case (uint8_t)gAppLclUnspecifiedReasons_c:
-                {
-                    shell_write("Abort because of unspecified reasons.\r\n");
-                }
-                break;
-
-                default:
-                {
-                    shell_write("Unknown!\r\n");
-                }
-                break;
-            }
+            BleApp_HandleErrorProcedureAborted(deviceId, pData);
         }
         break;
 
 #if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
         case gCsHciDataLogEvent_c:
         {
-            csHciDataLogEvent_t *pHciDataLog = (csHciDataLogEvent_t*)pData;
-
-            /* Construct full CS HCI data packet */
-            uint8_t * pCsHciPacket = MEM_BufferAlloc(pHciDataLog->packetSize + gCsHciDataHdrLength_c);
-
-            if (pCsHciPacket != NULL)
-            {
-                /* Add header, length and subevent opcode */
-                pCsHciPacket[0] = gHciPacketIndicator_c;
-                pCsHciPacket[1] = gHciEventCode_c;
-                pCsHciPacket[2] = pHciDataLog->packetSize;
-                pCsHciPacket[3] = pHciDataLog->opCode;
-
-                /* Add CS data */
-                FLib_MemCpy(&(pCsHciPacket[4]), pHciDataLog->pPacket, pHciDataLog->packetSize - 1U);
-
-                /* Serial write full packet */
-                (void)SerialManager_WriteBlocking(gDataExportSerialWriteHandle, pCsHciPacket, pHciDataLog->packetSize + gCsHciDataHdrLength_c);
-
-                (void)MEM_BufferFree(pCsHciPacket);
-            }
-
-            (void)MEM_BufferFree((void*)pHciDataLog->pPacket);
+            BleApp_HandleCsHciDataLogEvent(pData);
         }
         break;
 #endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
 
         default:
         {
-            ; /* No action required */
+            eventHandled = FALSE;
         }
         break;
+    }
+
+    return eventHandled;
+}
+
+/*! *********************************************************************************
+* \brief  This is the callback for Bluetooth LE CS events
+********************************************************************************** */
+static void BleApp_CsEventHandler
+(
+    deviceId_t deviceId,
+    void *pData,
+    appCsEventType_t eventType
+)
+{
+    bool_t eventHandled = FALSE;
+
+    /* Try to handle event in Part 1 */
+    eventHandled = BleApp_CsEventHandlerPart1(deviceId, pData, eventType);
+
+    /* If not handled, try Part 2 */
+    if (!eventHandled)
+    {
+        (void)BleApp_CsEventHandlerPart2(deviceId, pData, eventType);
     }
 }
 
