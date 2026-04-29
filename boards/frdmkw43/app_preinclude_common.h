@@ -103,6 +103,14 @@
 #define gAppSecureMode_d                 (0U)
 #endif
 
+#if defined(gAppSecureMode_d) && (gAppSecureMode_d == 1U)
+    #error "Secure Subsystem not enabled at this moment, feature not supported"
+#endif /* (gAppSecureMode_d) && (gAppSecureMode_d == 1U) */
+
+#if defined(gSecLibUseSecureSubSystem_d) && (gSecLibUseSecureSubSystem_d == 1U)
+    #error "Secure Subsystem not enabled at this moment, feature not supported"
+#endif /* (gSecLibUseSecureSubSystem_d) && (gSecLibUseSecureSubSystem_d == 1U) */
+
 #if (gAppSecureMode_d == 1U)
 #define gHostSecureMode_d                (1U)
 #else
