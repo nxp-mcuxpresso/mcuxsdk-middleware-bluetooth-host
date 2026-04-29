@@ -73,9 +73,9 @@
 #include "isp_ranging_engine.h"
 #include "hci_transport.h"
 
-#ifdef LCE_KW47_MCXW72
+#ifdef LCE_ENABLED
 #include "app_lce_init.h"
-#endif /* LCE_KW47_MCXW72 */
+#endif /* LCE_ENABLED */
 
 #include "pde_rade.h"
 
@@ -366,7 +366,7 @@ void BluetoothLEHost_AppInit(void)
     isp_cli_powerup();
     wrs_ConnDataInit(CS_TEST_DEVICEID, 0);
 
-#ifdef LCE_KW47_MCXW72
+#ifdef LCE_ENABLED
     (void)APP_InitLce();
 #endif
 }

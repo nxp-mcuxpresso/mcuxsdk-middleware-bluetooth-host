@@ -51,9 +51,9 @@
 #endif /* gAppBtcsClient_d */
 #endif /* gAppRasDataTransfer_d */
 
-#ifdef LCE_KW47_MCXW72
+#ifdef LCE_ENABLED
 #include "app_lce_init.h"
-#endif /* LCE_KW47_MCXW72 */
+#endif /* LCE_ENABLED */
 
 #if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
 #include "pts_test_vectors.h"
@@ -417,7 +417,7 @@ bleResult_t AppLocalization_Init
         const uint8_t CSChMapReal[gCsChannelMapLength_c] = {0xfc,0xff,0x7f,0xfc,0xff,0xff,0xff,0xff,0xff,0x1f}; /* All valid channels */
 
         /* Start LCE */
-#ifdef LCE_KW47_MCXW72
+#ifdef LCE_ENABLED
         (void)APP_InitLce();
 #endif
 

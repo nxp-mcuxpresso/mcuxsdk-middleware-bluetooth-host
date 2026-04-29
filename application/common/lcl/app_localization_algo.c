@@ -34,11 +34,11 @@
 #include "btcs_server_interface.h"
 #endif /* defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U) */
 
-#ifdef LCE_KW47_MCXW72
+#ifdef LCE_ENABLED
 #if defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0)
 #include "PWR_Interface.h"
 #endif /* gAppLowpowerEnabled_d */
-#endif /* LCE_KW47_MCXW72 */
+#endif /* LCE_ENABLED */
 /************************************************************************************
 *************************************************************************************
 * Private macros
@@ -67,7 +67,7 @@
 * Private memory declarations
 *************************************************************************************
 ************************************************************************************/
-#ifdef LCE_KW47_MCXW72
+#ifdef LCE_ENABLED
 /* ID of LCE exclusive heap */
 extern uint8_t g_ceHeap_id;
 #else
@@ -869,18 +869,18 @@ static void isp_mciq_ranging_compute
         radeCsData.csDataBufFreeCb.pfFreeCb = NULL;
         radeCsData.csDataBufFreeCb.deviceId = 0U;      
         rade_para_t radePara                = {.radeMode = kRadeNormal, .distBias = 0.0f, .ceHeap_id = g_ceHeap_id};
-#ifdef LCE_KW47_MCXW72
+#ifdef LCE_ENABLED
 #if defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0)
         /* LCE is not able to compute while CORE0 is in deep sleep */
         (void)PWR_SetLowPowerModeConstraint(PWR_WFI);
 #endif /* defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0) */
-#endif /* LCE_KW47_MCXW72 */
+#endif /* LCE_ENABLED */
         radeStatus = pde_rade(&radeCsData, meas_response->cs_data->csAlgoBuf, &radeCsPara, &radeResult, &radePara);
-#ifdef LCE_KW47_MCXW72
+#ifdef LCE_ENABLED
 #if defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0)
         (void)PWR_ReleaseLowPowerModeConstraint(PWR_WFI);
 #endif /* defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0) */
-#endif /* LCE_KW47_MCXW72 */
+#endif /* LCE_ENABLED */
         if (kRadeSuccess != radeStatus)
         {
             mciq_result->rade_error_flag = (uint8_t)radeStatus;

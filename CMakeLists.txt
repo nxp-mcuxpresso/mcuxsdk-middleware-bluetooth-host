@@ -1132,7 +1132,7 @@ endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_lib)
     mcux_add_configuration(
-        CC "-DLCE_KW47_MCXW72"
+        CC "-DLCE_ENABLED"
     )
     mcux_add_iar_configuration(
         LD  "--config_def=gReserveCeRam_d=1"

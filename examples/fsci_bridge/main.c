@@ -24,7 +24,7 @@
 
 #include "RNG_Interface.h"
 
-#ifdef LCE_KW47_MCXW72
+#ifdef LCE_ENABLED
 #include "app_lce_init.h"
 #endif
 #if !defined(SDK_OS_FREE_RTOS) && (defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0))
@@ -68,7 +68,7 @@ static void start_task(void *argument)
     (void)RNG_Init();
 
     /* Start LCE */
-#ifdef LCE_KW47_MCXW72
+#ifdef LCE_ENABLED
     (void)APP_InitLce();
 #endif
 
@@ -112,7 +112,7 @@ int main(void)
     (void)RNG_Init();
 
     /* Start LCE */
-#ifdef LCE_KW47_MCXW72
+#ifdef LCE_ENABLED
     (void)APP_InitLce();
 #endif
 

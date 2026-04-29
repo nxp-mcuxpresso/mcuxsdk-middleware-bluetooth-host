@@ -53,9 +53,9 @@
 #include "ble_port_fsci.h"
 #include "host_app.h"
 
-#ifdef LCE_KW47_MCXW72
+#ifdef LCE_ENABLED
 #include "app_lce_init.h"
-#endif /* LCE_KW47_MCXW72 */
+#endif /* LCE_ENABLED */
 #include "fsl_shell.h"
 
 /*************************************************************************************
@@ -183,7 +183,7 @@ void BluetoothLEHost_AppInit(void)
     (void)App_HostAppFsciInit();
 
     /* Start LCE */
-#ifdef LCE_KW47_MCXW72
+#ifdef LCE_ENABLED
     (void)APP_InitLce();
 #endif
 

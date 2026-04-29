@@ -48,7 +48,7 @@
 
 /* === Globals ============================================================= */
 void *csAlgoBuf = NULL;
-#ifdef LCE_KW47_MCXW72
+#ifdef LCE_ENABLED
 extern uint8_t g_ceHeap_id;
 #else
 static uint8_t g_ceHeap_id = 0U;
