@@ -281,7 +281,6 @@ static void BleInfo_TimerCallback(void * pParam);
 * Public functions
 *************************************************************************************
 ************************************************************************************/
-#if (defined(gAppLedCnt_c) && (gAppLedCnt_c > 0))
 /*! *********************************************************************************
  * \brief        Updates the LEDs according to the given state
  *
@@ -289,7 +288,8 @@ static void BleInfo_TimerCallback(void * pParam);
  ********************************************************************************** */
 void BleApp_SetLED(bleLedStates_t state)
 {
-    /* Re-configure pinmux for LEDs if required (we have a conflict with RF_GPO) */
+#if (defined(gAppLedCnt_c) && (gAppLedCnt_c > 0))    
+/* Re-configure pinmux for LEDs if required (we have a conflict with RF_GPO) */
     if (state != mLedOff)
     {
         BOARD_InitPinLED1();
@@ -340,8 +340,11 @@ void BleApp_SetLED(bleLedStates_t state)
         (void)BOARD_MONOCHROME_LED_FLASH(&gLedFlashSlow);
         break;
     }
-}
+#else
+    (void)state;
 #endif
+}
+
 
 /*! *********************************************************************************
 * \brief  This is the initialization function for each application. This function

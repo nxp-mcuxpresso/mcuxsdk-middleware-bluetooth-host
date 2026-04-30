@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -399,10 +399,7 @@ static button_status_t BleApp_HandleKeys0(void *pButtonHandle, button_callback_m
     {
         case kBUTTON_EventOneClick:
         case kBUTTON_EventShortPress:
-            for (uint8_t i = 0; i < gAppLedCnt_c; i++)
-            {
-                LedOff(i);
-            }
+            LedStopFlashingAllLeds();
             Led1Flashing();
 
             BleApp_Start();
