@@ -21,7 +21,7 @@
  /* Defines the number of available tsi electrodes for this application */
 
 /* Number of Button required by the application */
-#define gAppButtonCnt_c                                 0
+#define gAppButtonCnt_c                                 1U
 
 /* Number of LED required by the application */
 #define gAppLedCnt_c                                    0

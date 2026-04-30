@@ -25,7 +25,7 @@
  *     Board Configuration
  ********************************************************************************** */
 /* Number of Buttons required by the application */
-#define gAppButtonCnt_c                 0
+#define gAppButtonCnt_c                 1U
 
 /* Number of LEDs required by the application:
  * Beware! On KW45 PB0 is tied to SPI NOR Flash chip select and monochrome LED.
