@@ -1024,10 +1024,6 @@ void AppLocalization_SetTakEnable(deviceId_t deviceId);
 void AppLocalization_RunPtsTest(deviceId_t deviceId, uint8_t index, uint8_t actionMask);
 #endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */
 
-#if defined(__cplusplus)
-}
-#endif /* __cplusplus */
-
 /*! *********************************************************************************
 *\fn            void AppLocalization_SetMaxNumConcurrentProcs(uint8_t maxProcs)
 *
@@ -1041,5 +1037,9 @@ void AppLocalization_SetMaxNumConcurrentProcs
 (
     uint8_t maxProcs
 );
+
+#if defined(__cplusplus)
+}
+#endif /* __cplusplus */
 
 #endif /* APP_LOCALIZATION_H */
