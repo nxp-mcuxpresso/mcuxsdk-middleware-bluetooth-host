@@ -100,10 +100,13 @@
 #define BLE_SHELL_MONADV_SUPPORT                0
 /* Enable Connection Subrating shell commands */
 #define BLE_SHELL_CONN_SBR_SUPPORT              0
+/* Enable Power Controll shell commands */
+#define BLE_SHELL_PWR_CONTROL_SUPPORT           0
 
 /* Experimental features require special initialization */
 #if ((defined(BLE_SHELL_MONADV_SUPPORT)) && (BLE_SHELL_MONADV_SUPPORT == 1)) || \
-    ((defined(BLE_SHELL_CONN_SBR_SUPPORT)) && (BLE_SHELL_CONN_SBR_SUPPORT == 1))
+    ((defined(BLE_SHELL_CONN_SBR_SUPPORT)) && (BLE_SHELL_CONN_SBR_SUPPORT == 1)) || \
+    ((defined(BLE_SHELL_PWR_CONTROL_SUPPORT)) && (BLE_SHELL_PWR_CONTROL_SUPPORT == 1))
 #define gHostInitEnableExpmFeatures_c      1
 #endif
 
@@ -112,16 +115,23 @@
 #define gBLE60_MonitoredAdvertisers_d           1
 #endif /* BLE_SHELL_MONADV_SUPPORT */
 
+#if defined(BLE_SHELL_PWR_CONTROL_SUPPORT) && (BLE_SHELL_PWR_CONTROL_SUPPORT)
+#define gBLE52_d                                1
+#define gBLE52_LePowerControlSupport_d          1
+#endif /* BLE_SHELL_PWR_CONTROL_SUPPORT */
+
 #if (((defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)) || \
      ((defined BLE_SHELL_DBAF_SUPPORT) && (BLE_SHELL_DBAF_SUPPORT == 1)) || \
      ((defined BLE_SHELL_CONN_SBR_SUPPORT) && (BLE_SHELL_CONN_SBR_SUPPORT == 1)) || \
-     ((defined BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT == 1)))
+     ((defined BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT == 1)) || \
+     ((defined BLE_SHELL_PWR_CONTROL_SUPPORT) && (BLE_SHELL_PWR_CONTROL_SUPPORT == 1)))
 /* Increase shell buffer size & task stack size to allow longer commands */
 #define SHELL_BUFFER_SIZE                       128U
 #define SHELL_TASK_STACK_SIZE                   1200U
 #endif /* (((defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)) || \
            ((defined BLE_SHELL_DBAF_SUPPORT) && (BLE_SHELL_DBAF_SUPPORT == 1)) || \
-           ((defined BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT == 1))) */
+           ((defined BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT == 1)) || \
+           ((defined BLE_SHELL_PWR_CONTROL_SUPPORT) && (BLE_SHELL_PWR_CONTROL_SUPPORT == 1))) */
 
 /*! *********************************************************************************
  *     Framework Configuration

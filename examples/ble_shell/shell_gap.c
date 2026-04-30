@@ -81,6 +81,9 @@
 
 #define mcEncryptionKeySize_c                (16U)
 
+#define mTxPowerLevel_NotManaged_c          ((int8_t)0x7E)        /* Remote device is not managing power levels on this PHY */
+#define mTxPowerLevel_Unavailable_c         ((int8_t)0x7F)        /* Transmit power level is not available */
+
 /************************************************************************************
 *************************************************************************************
 * Private type definitions
@@ -147,6 +150,20 @@ static shell_status_t ShellGap_RSSIMonitorStop(uint8_t argc, char * argv[]);
 
 static void ShellGap_ReadRssiTmrCb (void *param);
 static void ShellGap_ReadRssi (void *param);
+
+#if defined(BLE_SHELL_PWR_CONTROL_SUPPORT) && (BLE_SHELL_PWR_CONTROL_SUPPORT == 1)
+static shell_status_t ShellGap_EnhancedReadTxPower(uint8_t argc, char * argv[]);
+static shell_status_t ShellGap_ReadRemoteTxPower(uint8_t argc, char * argv[]);
+static shell_status_t ShellGap_SetPathLossParams(uint8_t argc, char * argv[]);
+static shell_status_t ShellGap_EnablePathLossReporting(uint8_t argc, char * argv[]);
+static shell_status_t ShellGap_EnableTxPowerReporting(uint8_t argc, char * argv[]);
+static void ShellGap_HandlePathLossThresholdEvt(gapPathLossThresholdEvent_t *pEvent);
+static void ShellGap_HandleTransmitPowerReportingEvt(gapConnectionEvent_t* pConnectionEvent);
+static void ShellGap_HandleEnhancedReadTxPowerEvt(gapConnectionEvent_t* pConnectionEvent);
+static void ShellGap_HandlePathLossReportingParamsSetup(void);
+static void ShellGap_HandlePathLossReportingStateChanged(void);
+static void ShellGap_HandleTransmitPowerReportingStateChanged(void);
+#endif /* defined(BLE_SHELL_PWR_CONTROL_SUPPORT) && (BLE_SHELL_PWR_CONTROL_SUPPORT == 1) */
 
 #if defined(BLE_SHELL_AE_SUPPORT) && (BLE_SHELL_AE_SUPPORT)
 static shell_status_t ShellGap_StartExtAdvertising(uint8_t argc, char * argv[]);
@@ -289,6 +306,13 @@ static const gapCmds_t mGapShellCmds[] =
 #if (defined(gAppUseTAK_d) && gAppUseTAK_d)
     {"tak",             ShellGap_Tak},
 #endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
+#if defined(BLE_SHELL_PWR_CONTROL_SUPPORT) && (BLE_SHELL_PWR_CONTROL_SUPPORT == 1)
+    {"pwrread",         ShellGap_EnhancedReadTxPower},
+    {"pwrremote",       ShellGap_ReadRemoteTxPower},
+    {"pathlossparams",  ShellGap_SetPathLossParams},
+    {"pathlossenable",  ShellGap_EnablePathLossReporting},
+    {"pwrenable",       ShellGap_EnableTxPowerReporting},
+#endif /* defined(BLE_SHELL_PWR_CONTROL_SUPPORT) && (BLE_SHELL_PWR_CONTROL_SUPPORT == 1) */
 };
 
 static bool_t mIsBonded = FALSE;
@@ -3454,6 +3478,229 @@ static shell_status_t ShellGap_SetTxPower(uint8_t argc, char * argv[])
     return result;
 }
 
+#if defined(BLE_SHELL_PWR_CONTROL_SUPPORT) && (BLE_SHELL_PWR_CONTROL_SUPPORT == 1)
+/*! *********************************************************************************
+ * \brief        Handles "gap pwrread" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellGap_EnhancedReadTxPower(uint8_t argc, char * argv[])
+{
+    shell_status_t result = kStatus_SHELL_Error;
+    deviceId_t peerId;
+    blePowerControlPhyType_t phy;
+
+    if (argc == 2U)
+    {
+        peerId = (deviceId_t)BleApp_atoi(argv[0]);
+        phy = (blePowerControlPhyType_t)BleApp_atoi(argv[1]);
+
+        if ((peerId >= gAppMaxConnections_c) || (IS_CONNECTED(peerId) == 0U))
+        {
+            shell_write("\r\n-->  Please connect the node first...");
+            result = kStatus_SHELL_Error;
+        }
+        else if (phy < (blePowerControlPhyType_t)gPowerControlLePhy1M_c ||
+                 phy > (blePowerControlPhyType_t)gPowerControlLePhyCodedS2_c)
+        {
+            shell_write(mShellErrorStatus);
+            result = kStatus_SHELL_Error;
+        }
+        else
+        {
+            if (gBleSuccess_c != Gap_EnhancedReadTransmitPowerLevel(peerId, phy))
+            {
+                shell_write(mShellErrorStatus);
+            }
+            result = kStatus_SHELL_Success;
+        }
+    }
+    else
+    {
+        shell_write("\r\nIncorrect command parameter(s).  Enter \"help\" to view a list of available commands.\r\n\r\n");
+    }
+
+    return result;
+}
+
+/*! *********************************************************************************
+ * \brief        Handles "gap pwrremote" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellGap_ReadRemoteTxPower(uint8_t argc, char * argv[])
+{
+    shell_status_t result = kStatus_SHELL_Error;
+    deviceId_t peerId;
+    blePowerControlPhyType_t phy;
+
+    if (argc == 2U)
+    {
+        peerId = (deviceId_t)BleApp_atoi(argv[0]);
+        phy = (blePowerControlPhyType_t)BleApp_atoi(argv[1]);
+
+        if ((peerId >= gAppMaxConnections_c) || (IS_CONNECTED(peerId) == 0U))
+        {
+            shell_write("\r\n-->  Please connect the node first...");
+            result = kStatus_SHELL_Error;
+        }
+        else if (phy < (blePowerControlPhyType_t)gPowerControlLePhy1M_c || phy > (blePowerControlPhyType_t)gPowerControlLePhyCodedS2_c)
+        {
+            shell_write(mShellErrorStatus);
+            result = kStatus_SHELL_Error;
+        }
+        else
+        {
+            if (gBleSuccess_c != Gap_ReadRemoteTransmitPowerLevel(peerId, phy))
+            {
+                shell_write(mShellErrorStatus);
+            }
+            result = kStatus_SHELL_Success;
+        }
+    }
+    else
+    {
+        shell_write("\r\nIncorrect command parameter(s).  Enter \"help\" to view a list of available commands.\r\n\r\n");
+    }
+
+    return result;
+}
+
+/*! *********************************************************************************
+ * \brief        Handles "gap pathlossparams" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellGap_SetPathLossParams(uint8_t argc, char * argv[])
+{
+    shell_status_t result = kStatus_SHELL_Error;
+    deviceId_t peerId;
+    gapPathLossReportingParams_t params = {0};
+
+    if (argc == 6U)
+    {
+        peerId = (deviceId_t)BleApp_atoi(argv[0]);
+        params.highThreshold = (uint8_t)BleApp_atoi(argv[1]);
+        params.highHysteresis = (uint8_t)BleApp_atoi(argv[2]);
+        params.lowThreshold = (uint8_t)BleApp_atoi(argv[3]);
+        params.lowHysteresis = (uint8_t)BleApp_atoi(argv[4]);
+        params.minTimeSpent = (uint16_t)BleApp_atoi(argv[5]);
+
+        if ((peerId >= gAppMaxConnections_c) || (IS_CONNECTED(peerId) == 0U))
+        {
+            shell_write("\r\n-->  Please connect the node first...");
+            result = kStatus_SHELL_Error;
+        }
+        else
+        {
+            if (gBleSuccess_c != Gap_SetPathLossReportingParameters(peerId, &params))
+            {
+                shell_write(mShellErrorStatus);
+            }
+            result = kStatus_SHELL_Success;
+        }
+    }
+    else
+    {
+        shell_write("\r\nIncorrect command parameter(s).  Enter \"help\" to view a list of available commands.\r\n\r\n");
+    }
+
+    return result;
+}
+
+/*! *********************************************************************************
+ * \brief        Handles "gap pathlossenable" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellGap_EnablePathLossReporting(uint8_t argc, char * argv[])
+{
+    shell_status_t result = kStatus_SHELL_Error;
+    deviceId_t peerId;
+    blePathLossReportingEnable_t enable;
+
+    if (argc == 2U)
+    {
+        peerId = (deviceId_t)BleApp_atoi(argv[0]);
+        enable = (blePathLossReportingEnable_t)BleApp_atoi(argv[1]);
+
+        if ((peerId >= gAppMaxConnections_c) || (IS_CONNECTED(peerId) == 0U))
+        {
+            shell_write("\r\n-->  Please connect the node first...");
+            result = kStatus_SHELL_Error;
+        }
+        else
+        {
+            if (gBleSuccess_c != Gap_EnablePathLossReporting(peerId, enable))
+            {
+                shell_write(mShellErrorStatus);
+            }
+            result = kStatus_SHELL_Success;
+        }
+    }
+    else
+    {
+        shell_write("\r\nIncorrect command parameter(s).  Enter \"help\" to view a list of available commands.\r\n\r\n");
+    }
+
+    return result;
+}
+
+/*! *********************************************************************************
+ * \brief        Handles "gap pwrenable" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellGap_EnableTxPowerReporting(uint8_t argc, char * argv[])
+{
+    shell_status_t result = kStatus_SHELL_Error;
+    deviceId_t peerId;
+    bleTxPowerReportingEnable_t localEnable, remoteEnable;
+
+    if (argc == 3U)
+    {
+        peerId = (deviceId_t)BleApp_atoi(argv[0]);
+        localEnable = (bleTxPowerReportingEnable_t)BleApp_atoi(argv[1]);
+        remoteEnable = (bleTxPowerReportingEnable_t)BleApp_atoi(argv[2]);
+
+        if ((peerId >= gAppMaxConnections_c) || (IS_CONNECTED(peerId) == 0U))
+        {
+            shell_write("\r\n-->  Please connect the node first...");
+            result = kStatus_SHELL_Error;
+        }
+        else
+        {
+            if (gBleSuccess_c != Gap_EnableTransmitPowerReporting(peerId, localEnable, remoteEnable))
+            {
+                shell_write(mShellErrorStatus);
+            }
+            result = kStatus_SHELL_Success;
+        }
+    }
+    else
+    {
+        shell_write("\r\nIncorrect command parameter(s).  Enter \"help\" to view a list of available commands.\r\n\r\n");
+    }
+
+    return result;
+}
+#endif /* defined(BLE_SHELL_PWR_CONTROL_SUPPORT) && (BLE_SHELL_PWR_CONTROL_SUPPORT == 1) */
+
 /*! *********************************************************************************
  * \brief        Handles "gap rssimonitor" shell command.
  *
@@ -3991,6 +4238,43 @@ void ShellGap_ConnectionCallback
         }
         break;
 #endif /* BLE_SHELL_CONN_SBR_SUPPORT */
+#if defined(BLE_SHELL_PWR_CONTROL_SUPPORT) && (BLE_SHELL_PWR_CONTROL_SUPPORT == 1)
+        case gConnEvtPathLossThreshold_c:
+        {
+            ShellGap_HandlePathLossThresholdEvt(&pConnectionEvent->eventData.pathLossThreshold);
+        }
+        break;
+
+        case gConnEvtTransmitPowerReporting_c:
+        {
+            ShellGap_HandleTransmitPowerReportingEvt(pConnectionEvent);
+        }
+        break;
+
+        case gConnEvtEnhancedReadTransmitPowerLevel_c:
+        {
+            ShellGap_HandleEnhancedReadTxPowerEvt(pConnectionEvent);
+        }
+        break;
+
+        case gConnEvtPathLossReportingParamsSetupComplete_c:
+        {
+            ShellGap_HandlePathLossReportingParamsSetup();
+        }
+        break;
+
+        case gConnEvtPathLossReportingStateChanged_c:
+        {
+            ShellGap_HandlePathLossReportingStateChanged();
+        }
+        break;
+
+        case gConnEvtTransmitPowerReportingStateChanged_c:
+        {
+            ShellGap_HandleTransmitPowerReportingStateChanged();
+        }
+        break;
+#endif /* defined(BLE_SHELL_PWR_CONTROL_SUPPORT) && (BLE_SHELL_PWR_CONTROL_SUPPORT == 1) */
         default:
             ; /* Other Connection Event */
         break;
@@ -4607,6 +4891,256 @@ static void ShellGap_HandleTxPowerLevelSetCompleteEvt(gapGenericEvent_t* pGeneri
     }
 
 }
+
+#if defined(BLE_SHELL_PWR_CONTROL_SUPPORT) && (BLE_SHELL_PWR_CONTROL_SUPPORT == 1)
+/*! *********************************************************************************
+ * \brief        Handles path loss threshold event.
+ ********************************************************************************** */
+static void ShellGap_HandlePathLossThresholdEvt(gapPathLossThresholdEvent_t *pEvent)
+{
+    shell_write("\r\n-->  GAP Event: Path Loss Threshold ");
+
+    if (pEvent->zoneEntered == (uint8_t)gPathLossThresholdLowZone_c)
+    {
+        shell_write("LOW zone entered");
+    }
+    else if (pEvent->zoneEntered == (uint8_t)gPathLossThresholdMiddleZone_c)
+    {
+        shell_write("MID zone entered");
+    }
+    else if (pEvent->zoneEntered == (uint8_t)gPathLossThresholdHighZone_c)
+    {
+        shell_write("HIGH zone entered");
+    }
+    else
+    {
+        /* for MISRA compliance */
+    }
+
+    shell_write("\r\n     Current Path Loss: ");
+    shell_writeDec(pEvent->currentPathLoss);
+    shell_write(" dB\r\n");
+    shell_cmd_finished();
+}
+
+/*! *********************************************************************************
+ * \brief        Prints the transmit power flags indicating if power is at minimum,
+ *               maximum, or within normal operating range.
+ *
+ * \param[in]    minimum  Flag indicating power at minimum level (0=no, non-zero=yes)
+ * \param[in]    maximum  Flag indicating power at maximum level (0=no, non-zero=yes)
+ *
+ * \return       -
+ ********************************************************************************** */
+static void ShellGap_PrintTransmitPowerFlags(uint8_t minimum, uint8_t maximum)
+{
+    shell_write("\r\n     Flags:");
+    
+    if (minimum != 0U)
+    {
+        shell_write(" [At Minimum]");
+    }
+    if (maximum != 0U)
+    {
+        shell_write(" [At Maximum]");
+    }
+    if ((minimum == 0U) && (maximum == 0U))
+    {
+        shell_write(" [Normal Range]");
+    }
+}
+
+/*! *********************************************************************************
+ * \brief        Handles transmit power reporting event.
+ ********************************************************************************** */
+static void ShellGap_HandleTransmitPowerReportingEvt(gapConnectionEvent_t* pConnectionEvent)
+{
+    int8_t txPower = pConnectionEvent->eventData.transmitPowerReporting.txPowerLevel;
+    shell_write("\r\n-->  GAP Event: Transmit Power Reporting\r\n");
+    shell_write("     Reason: ");
+
+    switch(pConnectionEvent->eventData.transmitPowerReporting.reason)
+    {
+        case (uint8_t)gLocalTxPowerChanged_c:
+            shell_write("Local TX power changed");
+            break;
+        case (uint8_t)gRemoteTxPowerChanged_c:
+            shell_write("Remote TX power changed");
+            break;
+        case (uint8_t)gReadRemoteTxPowerLevelCommandCompleted_c:
+            shell_write("Read Remote TX Power completed");
+            break;
+        default:
+            shell_write("Unknown");
+            break;
+    }
+
+    shell_write("\r\n     PHY: ");
+    switch(pConnectionEvent->eventData.transmitPowerReporting.phy)
+    {
+        case (uint8_t)gPowerControlLePhy1M_c:
+            shell_write("LE 1M PHY");
+            break;
+        case (uint8_t)gPowerControlLePhy2M_c:
+            shell_write("LE 2M PHY");
+            break;
+        case (uint8_t)gPowerControlLePhyCodedS8_c:
+            shell_write("LE Coded PHY (S=8)");
+            break;
+        case (uint8_t)gPowerControlLePhyCodedS2_c:
+            shell_write("LE Coded PHY (S=2)");
+            break;
+        default:
+            shell_write("Unknown");
+            break;
+    }
+
+    shell_write("\r\n     TX Power Level: ");
+    if (txPower == mTxPowerLevel_NotManaged_c)
+    {
+        shell_write("Not managed (remote device not managing power on this PHY)");
+    }
+    else if (txPower == mTxPowerLevel_Unavailable_c)
+    {
+        shell_write("Unavailable");
+    }
+    else if (txPower < 0)
+    {
+        shell_write("-");
+        shell_writeDec((uint32_t)(-(int32_t)txPower));
+        shell_write(" dBm");
+    }
+    else
+    {
+        shell_writeDec((uint32_t)txPower);
+        shell_write(" dBm");
+    }
+
+    if (txPower != mTxPowerLevel_NotManaged_c)
+    {
+        int8_t delta = pConnectionEvent->eventData.transmitPowerReporting.delta;
+        shell_write("\r\n     Delta: ");
+        
+        if (delta < 0)
+        {
+            shell_write("-");
+            shell_writeDec((uint32_t)(-(int32_t)delta));
+        }
+        else if (delta > 0)
+        {
+            shell_write("+");
+            shell_writeDec((uint32_t)delta);
+        }
+        else
+        {
+            shell_writeDec(0U);
+        }
+        shell_write(" dB");
+    }
+
+    if ((pConnectionEvent->eventData.transmitPowerReporting.reason == (uint8_t)gReadRemoteTxPowerLevelCommandCompleted_c) && 
+        ((txPower != mTxPowerLevel_NotManaged_c) && (txPower != mTxPowerLevel_Unavailable_c)))
+    {
+        ShellGap_PrintTransmitPowerFlags(
+            pConnectionEvent->eventData.transmitPowerReporting.flags.minimum,
+            pConnectionEvent->eventData.transmitPowerReporting.flags.maximum);
+    }
+    shell_cmd_finished();
+}
+
+/*! *********************************************************************************
+ * \brief        Handles enhanced read transmit power level event.
+ ********************************************************************************** */
+static void ShellGap_HandleEnhancedReadTxPowerEvt(gapConnectionEvent_t* pConnectionEvent)
+{
+    shell_write("\r\n-->  GAP Event: Enhanced Read Transmit Power Level\r\n");
+    shell_write("     PHY: ");
+
+    switch(pConnectionEvent->eventData.transmitPowerInfo.phy)
+    {
+        case (uint8_t)gPowerControlLePhy1M_c:
+            shell_write("LE 1M PHY");
+            break;
+        case (uint8_t)gPowerControlLePhy2M_c:
+            shell_write("LE 2M PHY");
+            break;
+        case (uint8_t)gPowerControlLePhyCodedS8_c:
+            shell_write("LE Coded PHY (S=8)");
+            break;
+        case (uint8_t)gPowerControlLePhyCodedS2_c:
+            shell_write("LE Coded PHY (S=2)");
+            break;
+        default:
+            shell_write("Unknown");
+            break;
+    }
+
+    shell_write("\r\n     Current TX Power: ");
+    int8_t currPower = pConnectionEvent->eventData.transmitPowerInfo.currTxPowerLevel;
+    if (currPower == mTxPowerLevel_Unavailable_c)
+    {
+        shell_write("Unavailable");
+    }
+    else
+    {
+        if (currPower < 0)
+        {
+            shell_write("-");
+            shell_writeDec((uint32_t)(-currPower));
+        }
+        else
+        {
+            shell_writeDec((uint32_t)currPower);
+        }
+        shell_write(" dBm");
+    }
+
+    shell_write("\r\n     Max TX Power: ");
+
+    int8_t maxPower = (int8_t)pConnectionEvent->eventData.transmitPowerInfo.maxTxPowerLevel;
+    if (maxPower < 0)
+    {
+        shell_write("-");
+        shell_writeDec((uint32_t)(-maxPower));
+    }
+    else
+    {
+        shell_writeDec((uint32_t)maxPower);
+    }
+    shell_write(" dBm\r\n");
+    shell_cmd_finished();
+}
+
+/*! *********************************************************************************
+ * \brief  Handles Path Loss Reporting Parameters Setup Complete event
+ ********************************************************************************** */
+static void ShellGap_HandlePathLossReportingParamsSetup(void)
+{
+    shell_write("\r\n-->  GAP Event: Path Loss Reporting Parameters Setup Complete\r\n");
+    shell_write("     Parameters configured successfully!");
+    shell_cmd_finished();
+}
+
+/*! *********************************************************************************
+ * \brief  Handles Path Loss Reporting State Changed event
+ ********************************************************************************** */
+static void ShellGap_HandlePathLossReportingStateChanged(void)
+{
+    shell_write("\r\n-->  GAP Event: Path Loss Reporting State Changed\r\n");
+    shell_write("     Path loss reporting is now enabled!");
+    shell_cmd_finished();
+}
+
+/*! *********************************************************************************
+ * \brief  Handles Transmit Power Reporting State Changed event
+ ********************************************************************************** */
+static void ShellGap_HandleTransmitPowerReportingStateChanged(void)
+{
+    shell_write("\r\n-->  GAP Event: Transmit Power Reporting State Changed\r\n");
+    shell_write("     Transmit power reporting enabled!");
+    shell_cmd_finished();
+}
+#endif /* defined(BLE_SHELL_PWR_CONTROL_SUPPORT) && (BLE_SHELL_PWR_CONTROL_SUPPORT == 1) */
 
 #if defined(BLE_SHELL_AE_SUPPORT) && (BLE_SHELL_AE_SUPPORT)
 /*! *********************************************************************************

@@ -193,6 +193,13 @@ static shell_command_t mGapCmd =
                     "  gap setdefsbrparam\r\n"
                     "  gap connsbrreq <peerID>\r\n"
 #endif /* BLE_SHELL_CONN_SBR_SUPPORT */
+#if defined(BLE_SHELL_PWR_CONTROL_SUPPORT) && (BLE_SHELL_PWR_CONTROL_SUPPORT == 1)
+                    "  gap pwrread <peerID> [phy]\r\n"
+                    "  gap pwrremote <peerID> [phy]\r\n"
+                    "  gap pathlossparams <peerID> <highThresh> <highHyst> <lowThresh> <lowHyst> <minTime>\r\n"
+                    "  gap pathlossenable <peerID> <0|1>\r\n"
+                    "  gap pwrenable <peerID> <localEnable> <remoteEnable>\r\n"
+#endif /* defined(BLE_SHELL_PWR_CONTROL_SUPPORT) && (BLE_SHELL_PWR_CONTROL_SUPPORT == 1) */
 #if (defined(gAppUseTAK_d) && gAppUseTAK_d)
                     "  gap tak <peerID> <Transient Application Key>\r\n"
 #endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
