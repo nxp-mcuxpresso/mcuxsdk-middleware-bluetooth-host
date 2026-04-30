@@ -36,9 +36,6 @@
 #include "app.h"
 #include "board.h"
 #include "fwk_platform_ble.h"
-#if defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)
-#include "NVM_Interface.h"
-#endif
 #include "RNG_Interface.h"
 #include "fwk_platform_lcl.h"
 
@@ -67,6 +64,7 @@
 *************************************************************************************
 ************************************************************************************/
 uint16_t gFilterShellVal = (uint16_t)gNoFilter_c;
+bool_t filterTestSend = FALSE;
 
 /************************************************************************************
 *************************************************************************************
@@ -108,8 +106,8 @@ typedef struct appPeerInfo_tag
 {
     deviceId_t                  deviceId;
     bool_t                      isBonded;
-    bool_t                      isSubscribed;
     uint8_t                     nvmIndex;
+    bool_t                      isSubscribed;
     appState_t                  appState;
     rasStaticConfig_t           rasConfigInfo;
     gapDisconnectionReason_t    disconReason;
@@ -139,6 +137,9 @@ static appScanningParams_t mAppScanParams = {
 };
 static bool_t   mScanningOn = FALSE;
 static bool_t   mFoundDeviceToConnect = FALSE;
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
+static bool_t   mbDeviceToConnectHasTAK = FALSE;
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 
 static void BleApp_ScanningCallback(gapScanningEvent_t* pScanningEvent);
 static bool_t CheckScanEventExtended(gapExtScannedDevice_t* pData);
@@ -146,6 +147,7 @@ static bool_t CheckScanEventLegacy(gapScannedDevice_t* pData);
 #endif
 
 static bool_t mRestoringBondedLink = FALSE;
+#if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
 /* LTK */
 static uint8_t gaAppSmpLtk[gcSmpMaxLtkSize_c];
 
@@ -169,6 +171,7 @@ static gapSmpKeys_t gAppOutKeys = {
 static gapSmpKeyFlags_t gAppOutKeyFlags;
 static bool_t gAppOutLeSc;
 static bool_t gAppOutAuth;
+#endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 
 #if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
 static SERIAL_MANAGER_WRITE_HANDLE_DEFINE(gDataExportSerialWriteHandle);
@@ -214,12 +217,7 @@ static void BleApp_StoreServiceHandles(deviceId_t peerDeviceId,
 static void BleApp_ServiceDiscoveryCallback(deviceId_t peerDeviceId,
                                             servDiscEvent_t* pEvent);
 
-static void BleApp_CsEventHandler
-(
-    deviceId_t deviceId,
-    void *pData,
-    appCsEventType_t eventType
-);
+static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventType_t eventType);
 
 static bleResult_t BleApp_ConfigureRasServer
 (
@@ -232,6 +230,14 @@ static void BleApp_HandleRasSubscription
 (
     deviceId_t peerDeviceId
 );
+
+#if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
+static void BleApp_SwitchRealTimeDataState(
+    deviceId_t deviceId,
+    uint16_t value,
+    uint8_t *testStep
+);
+#endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */
 
 /************************************************************************************
 *************************************************************************************
@@ -250,15 +256,16 @@ void BluetoothLEHost_AppInit(void)
         char * prompt;
     } shellPrompt;
 
+    uint8_t mPeerId = 0;
+
     /* Initialize table with peer devices information  */
-    for (uint8_t peerId = 0; peerId < (uint8_t)gAppMaxConnections_c; peerId++)
+    for (mPeerId = 0; mPeerId < (uint8_t)gAppMaxConnections_c; mPeerId++)
     {
-        maPeerInformation[peerId].deviceId = gInvalidDeviceId_c;
-        maPeerInformation[peerId].appState = mAppIdle_c;
+        maPeerInformation[mPeerId].deviceId = gInvalidDeviceId_c;
+        maPeerInformation[mPeerId].appState = mAppIdle_c;
     }
     /* UI */
     LedStartFlashingAllLeds();
-
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
     (void)BUTTON_InstallCallback((button_handle_t)g_buttonHandle[0],
                                  BleApp_HandleKeys0, NULL);
@@ -340,14 +347,12 @@ void BleApp_Disconnect(void)
 void BleApp_FactoryReset(void)
 {
     /* Erase NVM Datasets */
-#if defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d  == 1)
     NVM_Status_t status = NvFormat();
     if (status != gNVM_OK_c)
     {
          /* NvFormat exited with an error status */
          panic(0, (uint32_t)BleApp_FactoryReset, 0, 0);
     }
-#endif
 
     /* Reset MCU */
     HAL_ResetMCU();
@@ -360,7 +365,7 @@ void BleApp_FactoryReset(void)
 bleResult_t BleApp_TriggerCsDistanceMeasurement(deviceId_t deviceId)
 {
     bleResult_t result = gBleSuccess_c;
-    
+
     if (deviceId != gInvalidDeviceId_c)
     {
         /* Check if localization state allows starting a new procedure */
@@ -455,6 +460,7 @@ bool_t BleApp_CheckActiveConnections(void)
     return bActiveConn;
 }
 
+#if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
 /*! *********************************************************************************
 * \brief        Lists bonding data for all peers.
 *
@@ -470,7 +476,7 @@ void BleApp_ListBondingData(void)
         for (uint8_t i = 0; i < (uint8_t)gMaxBondedDevices_c; i++)
         {
             result = Gap_LoadKeys((uint8_t)i, &gAppOutKeys, &gAppOutKeyFlags, &gAppOutLeSc, &gAppOutAuth);
-            if (gBleSuccess_c == result && nrBondedDevices > 0U)
+            if (gBleSuccess_c == result)
             {
                 /* address type, address, ltk, irk */
                 shell_write("\r\nNVMIndex: ");
@@ -495,6 +501,412 @@ void BleApp_ListBondingData(void)
         }
     }
 }
+
+#if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
+/*! *********************************************************************************
+* \brief        Run commands to test PTS.
+*
+********************************************************************************** */
+void BleApp_RunPtsTest(void *pParam)
+{
+    const deviceId_t deviceId = 0U;
+    char *arg = (char*)pParam;
+
+    if (strcmp(arg, "RAP/REQ/RRD/BV-01-C") == 0)
+    {
+        static uint8_t testStep = 0U;
+
+        switch(testStep)
+        {
+            case 0U:
+            {
+                AppLocalization_RunPtsTest(deviceId, 101U, 0U);
+                testStep++;
+                break;
+            }
+            case 1U:
+            case 3U:
+            {
+                /* Disable Real-Time data transfer */
+                BleApp_SwitchRealTimeDataState(deviceId, gCccdEmpty_c, &testStep);
+                break;
+            }
+            case 2U:
+            {
+                /* Enable Real-Time data transfer */
+                BleApp_SwitchRealTimeDataState(deviceId, gCccdIndication_c, &testStep);
+                break;
+            }
+            case 4U:
+            {
+                testStep = 0U;
+                break;
+            }
+
+            default:
+            {
+                ; /* No action required */
+            }
+            break;
+        }
+    }
+    else if (strcmp(arg, "RAP/REQ/RRD/BV-02-C") == 0)
+    {
+        static uint8_t testStep = 0U;
+
+        switch(testStep)
+        {
+            case 0U: /* Fall-through */
+            case 4U: /* Fall-through */
+            case 8U: /* Fall-through */
+            case 12U:
+            {
+                /* Disable Real-Time data transfer */
+                BleApp_SwitchRealTimeDataState(deviceId, gCccdEmpty_c, &testStep);
+                break;
+            }
+            case 1U:
+            case 9U:
+            {
+                /* Enable Real-Time data transfer notification */
+                BleApp_SwitchRealTimeDataState(deviceId, gCccdNotification_c, &testStep);
+                break;
+            }
+            /* Round 1 cli commands:
+             * filter 0 0x0028 0
+             * filter 0 0x0028 1
+             * filter 0 0x0031 0
+             * filter 0 0x0031 1
+             * filter 0 0x004E 0
+             * filter 0 0x004E 1
+             * filter 0 0x15A3 0
+             * filter 0 0x15A3 1
+             * 
+             * Round 2 cli commands:
+             * filter 0 0x0020 0
+             * filter 0 0x0020 1
+             * filter 0 0x0021 0
+             * filter 0 0x0021 1
+             * filter 0 0x000A 0
+             * filter 0 0x000A 1
+             * filter 0 0x0423 0
+             * filter 0 0x0423 1
+             */
+            case 5U:
+            case 13U:
+            {
+                /* Enable Real-Time data transfer indication */
+                BleApp_SwitchRealTimeDataState(deviceId, gCccdIndication_c, &testStep);
+                break;
+            }
+            case 2U: /* Fall-through */
+            case 3U: /* Fall-through */
+            case 6U: /* Fall-through */
+            case 7U: /* Fall-through */
+            case 10U: /* Fall-through */
+            case 11U: /* Fall-through */
+            case 14U: /* Fall-through */
+            case 15U:
+            {
+                AppLocalization_RunPtsTest(deviceId, 101U, 0U);
+                testStep++;
+                break;
+            }
+            case 16U:
+            {
+                testStep = 0U;
+                break;
+            }
+
+            default:
+            {
+                ; /* No action required */
+            }
+            break;
+        }
+    }
+    else if (strcmp(arg, "RAP/REQ/RRD/BI-01-C") == 0 ||
+             strcmp(arg, "RAP/REQ/RRD/BI-02-C") == 0)
+    {
+        AppLocalization_RunPtsTest(deviceId, 1U, 0U);
+    }
+    else if (strcmp(arg, "RAP/REQ/ORD/BV-01-C") == 0 ||
+             strcmp(arg, "RAP/REQ/ORD/BV-03-C") == 0)
+    {
+        AppLocalization_RunPtsTest(deviceId, 101U, 0U);
+    }
+    else if (strcmp(arg, "RAP/REQ/ORD/BV-02-C") == 0)
+    {
+        static uint8_t testStep = 0U;
+        bleResult_t result = gBleSuccess_c;
+        uint16_t handle = gGattDbInvalidHandle_d;
+
+        switch(testStep)
+        {
+            case 0U: /* Fall-through */
+            case 3U: /* Fall-through */
+            case 6U: /* Fall-through */
+            case 9U:
+            {
+                /* Disable On-Demand data transfer */
+                handle = (uint16_t)(maPeerInformation[deviceId].rasConfigInfo.onDemandDataHandle + 1U);
+
+                if (mpCharProcBuffer == NULL)
+                {
+                    mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
+                }
+
+                if (mpCharProcBuffer != NULL)
+                {
+                    result = BleApp_ConfigureRasServer(deviceId, gCccdEmpty_c, handle);
+                }
+
+                if (result == gBleSuccess_c)
+                {
+                    testStep++;
+                }
+                break;
+            }
+            /* Round 1 cli commands:
+             * filter 0 0x0028 0
+             * filter 0 0x0028 1
+             * filter 0 0x0031 0
+             * filter 0 0x0031 1
+             * filter 0 0x004E 0
+             * filter 0 0x004E 1
+             * filter 0 0x15A3 0
+             * filter 0 0x15A3 1
+             * 
+             * Round 2 cli commands:
+             * filter 0 0x0020 0
+             * filter 0 0x0020 1
+             * filter 0 0x0021 0
+             * filter 0 0x0021 1
+             * filter 0 0x000A 0
+             * filter 0 0x000A 1
+             * filter 0 0x0423 0
+             * filter 0 0x0423 1
+             */
+            case 1U: /* Fall-through */
+            case 2U: /* Fall-through */
+            case 4U: /* Fall-through */
+            case 5U: /* Fall-through */
+            case 7U: /* Fall-through */
+            case 8U: /* Fall-through */
+            case 10U: /* Fall-through */
+            case 11U:
+            {
+                AppLocalization_RunPtsTest(deviceId, 101U, 0U);
+                testStep++;
+                break;
+            }
+            case 12U:
+            {
+                testStep = 0U;
+                break;
+            }
+
+            default:
+            {
+                ; /* No action required */
+            }
+            break;
+        }
+    }
+    else if (strcmp(arg, "RAP/REQ/ORD/BV-04-C") == 0)
+    {
+        static uint8_t testStep = 0U;
+
+        switch(testStep)
+        {
+            case 0U:
+            {
+                AppLocalization_RunPtsTest(deviceId, 103U, 0U);
+                testStep++;
+                break;
+            }
+            case 1U:
+            {
+                AppLocalization_RunPtsTest(deviceId, 102U, 0U);
+                testStep++;
+                break;
+            }
+            case 2U:
+            {
+                testStep = 0U;
+                break;
+            }
+
+            default:
+            {
+                ; /* No action required */
+            }
+            break;
+        }
+    }
+    else if (strcmp(arg, "RAP/REQ/ORD/BV-05-C") == 0)
+    {
+        uint16_t handle = gGattDbInvalidHandle_d;
+
+        /* Enable Data Ready optional notifications */
+        handle = (uint16_t)(maPeerInformation[deviceId].rasConfigInfo.dataReadyHandle + 1U);
+
+        if (mpCharProcBuffer == NULL)
+        {
+            mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
+        }
+
+        if (mpCharProcBuffer != NULL)
+        {
+            (void)BleApp_ConfigureRasServer(deviceId, gCccdNotification_c, handle);
+        }
+    }
+    else if (strcmp(arg, "RAP/REQ/ORD/BV-06-C") == 0)
+    {
+        static uint8_t testStep = 0U;
+        bleResult_t result = gBleSuccess_c;
+        uint16_t handle = gGattDbInvalidHandle_d;
+
+        switch(testStep)
+        {
+            case 0U:
+            {
+                /* Enable Data Ready optional notifications */
+                handle = (uint16_t)(maPeerInformation[deviceId].rasConfigInfo.dataReadyHandle + 1U);
+
+                if (mpCharProcBuffer == NULL)
+                {
+                    mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
+                }
+
+                if (mpCharProcBuffer != NULL)
+                {
+                    result = BleApp_ConfigureRasServer(deviceId, gCccdNotification_c, handle);
+                }
+
+                if (result == gBleSuccess_c)
+                {
+                    testStep++;
+                }
+                break;
+            }
+            case 1U:
+            {
+                /* Read Data Ready characteristic */
+                mpRasCharacteristic.value.handle = maPeerInformation[deviceId].rasConfigInfo.dataReadyHandle;
+                mpRasCharacteristic.value.uuidType = gBleUuidType16_c;
+                mpRasCharacteristic.value.uuid.uuid16 = gBleSig_RasProcDataReady_d;
+                mpRasCharacteristic.value.paValue = MEM_BufferAlloc(sizeof(uint32_t));
+                if (mpRasCharacteristic.value.paValue != NULL)
+                {
+                    (void)GattClient_ReadCharacteristicValue(deviceId,
+                                                            &mpRasCharacteristic,
+                                                            (uint16_t)(sizeof(uint32_t)));
+                }
+                testStep++;
+                break;
+            }
+            case 2U:
+            {
+                testStep = 0U;
+                break;
+            }
+
+            default:
+            {
+                ; /* No action required */
+            }
+            break;
+        }
+    }
+    else if (strcmp(arg, "RAP/REQ/ORD/BV-08-C") == 0)
+    {
+        uint16_t handle = gGattDbInvalidHandle_d;
+
+        /* Enable Data Overwritten optional notifications */
+        handle = (uint16_t)(maPeerInformation[deviceId].rasConfigInfo.dataOverwrittenHandle + 1U);
+
+        if (mpCharProcBuffer == NULL)
+        {
+            mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
+        }
+
+        if (mpCharProcBuffer != NULL)
+        {
+            (void)BleApp_ConfigureRasServer(deviceId, gCccdNotification_c, handle);
+        }
+    }
+    else if (strcmp(arg, "RAP/REQ/ORD/BV-09-C") == 0)
+    {
+        static uint8_t testStep = 0U;
+        bleResult_t result = gBleSuccess_c;
+        uint16_t handle = gGattDbInvalidHandle_d;
+
+        switch(testStep)
+        {
+            case 0U:
+            {
+                /* Enable Data Overwritten optional notifications */
+                handle = (uint16_t)(maPeerInformation[deviceId].rasConfigInfo.dataOverwrittenHandle + 1U);
+
+                if (mpCharProcBuffer == NULL)
+                {
+                    mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
+                }
+
+                if (mpCharProcBuffer != NULL)
+                {
+                    result = BleApp_ConfigureRasServer(deviceId, gCccdNotification_c, handle);
+                }
+
+                if (result == gBleSuccess_c)
+                {
+                    testStep++;
+                }
+                break;
+            }
+            case 1U:
+            {
+                /* Read Data Overwritten characteristic */
+                mpRasCharacteristic.value.handle = maPeerInformation[deviceId].rasConfigInfo.dataOverwrittenHandle;
+                mpRasCharacteristic.value.uuidType = gBleUuidType16_c;
+                mpRasCharacteristic.value.uuid.uuid16 = gBleSig_RasprocDataOverwritten_d;
+                mpRasCharacteristic.value.paValue = MEM_BufferAlloc(sizeof(uint32_t));
+                if (mpRasCharacteristic.value.paValue != NULL)
+                {
+                    (void)GattClient_ReadCharacteristicValue(deviceId,
+                                                            &mpRasCharacteristic,
+                                                            (uint16_t)(sizeof(uint32_t)));
+                }
+                testStep++;
+                break;
+            }
+            case 2U:
+            {
+                testStep = 0U;
+                break;
+            }
+
+            default:
+            {
+                ; /* No action required */
+            }
+            break;
+        }
+    }
+    else if (strcmp(arg, "RAP/REQ/ORD/BI-03-C") == 0)
+    {
+        AppLocalization_RunPtsTest(deviceId, 101U, 0U);
+    }
+    else
+    {
+        ; /* MISRA */
+    }
+
+    (void)MEM_BufferFree(pParam);
+}
+#endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */
+#endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 
 /************************************************************************************
 *************************************************************************************
@@ -534,10 +946,34 @@ static void BleApp_StateMachineHandler
                 }
                 else
                 {
-                    maPeerInformation[peerDeviceId].appState = mAppPairing;
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
+                    if (mbDeviceToConnectHasTAK == TRUE)
+                    {
+                        takEntry_t *pTakEntry = NULL;
+
+                        maPeerInformation[peerDeviceId].appState = mAppEncryptLink_c;
+
+                        pTakEntry = BleConnManager_GetTak(peerDeviceId, FALSE);
+                        if (pTakEntry != NULL)
+                        {
+                            (void)Gap_EncryptLinkTak(peerDeviceId, pTakEntry->aTak);
+                            
+                            /* Clear Transient Key after usage */
+                            FLib_MemSet(pTakEntry->aTak, 0, sizeof(pTakEntry->aTak));
+                            
+                            AppLocalization_SetTakEnable(peerDeviceId);
+                        }
+                    }
+                    else
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
+                    {
+                        maPeerInformation[peerDeviceId].appState = mAppPairing;
 #if defined(gAppIsPeripheral_d) && (gAppIsPeripheral_d != 1U)
-                (void)Gap_Pair(peerDeviceId, &gPairingParameters);
+#if gAppUsePairing_d
+                        (void)Gap_Pair(peerDeviceId, &gPairingParameters);
 #endif
+#endif
+                    }
                 }
             }
         }
@@ -698,6 +1134,15 @@ static void BleApp_StateMachineHandler
     }
 }
 
+/*! *********************************************************************************
+* \brief        Configures RAS server by writing to characteristic descriptor.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    value           Value to write to descriptor.
+* \param[in]    handle          Handle of the descriptor to write to.
+*
+* \return       bleResult_t     Result of the configuration operation.
+********************************************************************************** */
 static bleResult_t BleApp_ConfigureRasServer
 (
     deviceId_t peerDeviceId,
@@ -720,6 +1165,11 @@ static bleResult_t BleApp_ConfigureRasServer
     return result;
 }
 
+/*! *********************************************************************************
+* \brief        Handles RAS service subscription setup and configuration.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+********************************************************************************** */
 static void BleApp_HandleRasSubscription
 (
     deviceId_t peerDeviceId
@@ -751,10 +1201,10 @@ static void BleApp_HandleRasSubscription
 #if defined(gAppRealTimeDataTransfer_d) && (gAppRealTimeDataTransfer_d == 1U)
     else if (lastWrittenHandle == (maPeerInformation[peerDeviceId].rasConfigInfo.controlPointHandle + 1U))
     {
-            /* Enable Real-Time data transfer */
-            lastWrittenHandle = (uint16_t)(maPeerInformation[peerDeviceId].rasConfigInfo.realTimeDataHandle + 1U);
-            RasClient_SetRealTimePreference(peerDeviceId, TRUE);
-            result = BleApp_ConfigureRasServer(peerDeviceId, value, lastWrittenHandle);
+        /* Enable Real-Time data transfer */
+        lastWrittenHandle = (uint16_t)(maPeerInformation[peerDeviceId].rasConfigInfo.realTimeDataHandle + 1U);
+        RasClient_SetRealTimePreference(peerDeviceId, TRUE);
+        result = BleApp_ConfigureRasServer(peerDeviceId, value, lastWrittenHandle);
     }
 #else
     else if (lastWrittenHandle == (maPeerInformation[peerDeviceId].rasConfigInfo.controlPointHandle + 1U))
@@ -1080,6 +1530,7 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
             procInterval = 1U + (procInterval * 1000U)/(((uint32_t)(connInterval)) * 1250U);
             locConfig.minPeriodBetweenProcedures = (uint16_t)procInterval;
             locConfig.maxPeriodBetweenProcedures = (uint16_t)procInterval;
+
             AppLocalization_ComputeMaxProcedureDuration(procInterval, connInterval, &locConfig.maxProcedureDuration);
             AppLocalization_ComputeSubeventLength(connInterval, &locConfig.minSubeventLen, &locConfig.maxSubeventLen);
 
@@ -1121,6 +1572,14 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
         {
             if( pConnectionEvent->eventData.encryptionChangedEvent.newEncryptionState )
             {
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
+                if (mbDeviceToConnectHasTAK == TRUE)
+                {
+                    mbDeviceToConnectHasTAK = FALSE;
+                    BleApp_StateMachineHandler(peerDeviceId, mAppEvt_EncryptionChanged_c);
+                }
+                else
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
                 if( mRestoringBondedLink )
                 {
                     mRestoringBondedLink = FALSE;
@@ -1163,6 +1622,7 @@ static void BleApp_GattClientCallback
 {
     if (procedureResult == gGattProcError_c)
     {
+#if gAppUsePairing_d
         attErrorCode_t attError = (attErrorCode_t)(uint8_t)(error);
 
         if (attError == gAttErrCodeInsufficientEncryption_c     ||
@@ -1172,7 +1632,7 @@ static void BleApp_GattClientCallback
             /* Start Pairing Procedure */
             (void)Gap_Pair(serverDeviceId, &gPairingParameters);
         }
-
+#endif
         BleApp_StateMachineHandler(serverDeviceId, mAppEvt_GattProcError_c);
     }
     else
@@ -1435,9 +1895,9 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
             if (pEvent->eventType == commandError_c)
             {
                 shell_write("CS Command Complete error! errorSource: ");
-                shell_writeDec(pEvent->eventData.csCommandError.errorSource); /* value in commandErrorSource_t enum */
+                shell_writeDec((uint32_t)pEvent->eventData.csCommandError.errorSource); /* value in commandErrorSource_t enum */
                 shell_write(", status ");
-                shell_writeDec(pEvent->eventData.csCommandError.status); /* value in bleResult_t enum */
+                shell_writeDec((uint32_t)pEvent->eventData.csCommandError.status); /* value in bleResult_t enum */
                 shell_write("\r\n");
             }
         }
@@ -1482,7 +1942,6 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
 
         case gSetProcParamsComplete_c:
         {
-
             bleResult_t result = gBleSuccess_c;
 
             shell_write("Set Procedure parameters complete.\r\n");
@@ -1565,231 +2024,234 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
 
         case gErrorEvent_c:
         {
-            appLocalizationError_t *pError = (appLocalizationError_t*)pData;
-
-            shell_write("Error event for deviceId ");
-            shell_writeDec((uint8_t)deviceId);
-            shell_write(":\r\n");
-
-            switch (*pError)
+            if (pData != NULL)
             {
-                case gAppLclErrorRLSC_c:
-                {
-                    shell_write("Error occured! Source: csReadLocalSupportedCapabilities!\r\n");
-                }
-                break;
+                appLocalizationError_t *pError = (appLocalizationError_t*)pData;
 
-                case gAppLclUnexpectedCC_c:
-                {
-                    shell_write("Received an unexpected Config Complete Event!\r\n");
-                }
-                break;
+                shell_write("Error event for deviceId ");
+                shell_writeDec((uint8_t)deviceId);
+                shell_write(":\r\n");
 
-                case gAppLclUnexpectedRRSCC_c:
+                switch (*pError)
                 {
-                    shell_write("Received an unexpected Read Remote Supported Capabilities Complete Event!\r\n");
-                }
-                break;
+                    case gAppLclErrorRLSC_c:
+                    {
+                        shell_write("Error occured! Source: csReadLocalSupportedCapabilities!\r\n");
+                    }
+                    break;
 
-                case gAppLclUnexpectedPEC_c:
-                {
-                    shell_write("Received an unexpected Procedure Enable Complete Event!\r\n");
-                }
-                break;
+                    case gAppLclUnexpectedCC_c:
+                    {
+                        shell_write("Received an unexpected Config Complete Event!\r\n");
+                    }
+                    break;
 
-                case gAppLclUnexpectedSRE_c:
-                {
-                    shell_write("Received an unexpected Subevent Result Event!\r\n");
-                }
-                break;
+                    case gAppLclUnexpectedRRSCC_c:
+                    {
+                        shell_write("Received an unexpected Read Remote Supported Capabilities Complete Event!\r\n");
+                    }
+                    break;
 
-                case gAppLclUnexpectedSDS_c:
-                {
-                    shell_write("Received an unexpected Set Default Settings Event!\r\n");
-                }
-                break;
+                    case gAppLclUnexpectedPEC_c:
+                    {
+                        shell_write("Received an unexpected Procedure Enable Complete Event!\r\n");
+                    }
+                    break;
+
+                    case gAppLclUnexpectedSRE_c:
+                    {
+                        shell_write("Received an unexpected Subevent Result Event!\r\n");
+                    }
+                    break;
+
+                    case gAppLclUnexpectedSDS_c:
+                    {
+                        shell_write("Received an unexpected Set Default Settings Event!\r\n");
+                    }
+                    break;
 
 
-                case gAppLclUnexpectedSRCE_c:
-                {
-                    shell_write("Received an unexpected Subevent Result Continue Event!\r\n");
-                }
-                break;
+                    case gAppLclUnexpectedSRCE_c:
+                    {
+                        shell_write("Received an unexpected Subevent Result Continue Event!\r\n");
+                    }
+                    break;
 
-                case gAppLclErrorRRSCCC_c:
-                {
-                    shell_write("Error occured! Source: readRemoteSupportedCapabilitiesComplete!\r\n");
-                }
-                break;
+                    case gAppLclErrorRRSCCC_c:
+                    {
+                        shell_write("Error occured! Source: readRemoteSupportedCapabilitiesComplete!\r\n");
+                    }
+                    break;
 
-                case gAppLclErrorRRFAETC_c:
-                {
-                    shell_write("Error occured! Source: readRemoteFAETableComplete!\r\n");
-                }
-                break;
+                    case gAppLclErrorRRFAETC_c:
+                    {
+                        shell_write("Error occured! Source: readRemoteFAETableComplete!\r\n");
+                    }
+                    break;
 
-                case gAppLclErrorSEC_c:
-                {
-                    shell_write("Error occured! Source: securityEnableComplete!\r\n");
-                }
-                break;
+                    case gAppLclErrorSEC_c:
+                    {
+                        shell_write("Error occured! Source: securityEnableComplete!\r\n");
+                    }
+                    break;
 
-                case gAppLclErrorCC_c:
-                {
-                    shell_write("Error occured! Source: configComplete!\r\n");
-                }
-                break;
+                    case gAppLclErrorCC_c:
+                    {
+                        shell_write("Error occured! Source: configComplete!\r\n");
+                    }
+                    break;
 
-                case gAppLclErrorPEC_c:
-                {
-                    shell_write("Error occured! Source: procedureEnableComplete!\r\n");
-                }
-                break;
+                    case gAppLclErrorPEC_c:
+                    {
+                        shell_write("Error occured! Source: procedureEnableComplete!\r\n");
+                    }
+                    break;
 
-                case gAppLclErrorERE_c:
-                {
-                    shell_write("Error occured! Source: eventResult!\r\n");
-                }
-                break;
+                    case gAppLclErrorERE_c:
+                    {
+                        shell_write("Error occured! Source: eventResult!\r\n");
+                    }
+                    break;
 
-                case gAppLclErrorERCE_c:
-                {
-                    shell_write("Error occured! Source: eventResultContinue!\r\n");
-                }
-                break;
+                    case gAppLclErrorERCE_c:
+                    {
+                        shell_write("Error occured! Source: eventResultContinue!\r\n");
+                    }
+                    break;
 
-                case gAppLclInvalidDeviceId_c:
-                {
-                    shell_write("Received an invalid device Id!\r\n");
-                }
-                break;
+                    case gAppLclInvalidDeviceId_c:
+                    {
+                        shell_write("Received an invalid device Id!\r\n");
+                    }
+                    break;
 
-                case gAppLclSDSConfigError_c:
-                {
-                    shell_write("CS_SetDefaultSettings command failed!\r\n");
-                }
-                break;
+                    case gAppLclSDSConfigError_c:
+                    {
+                        shell_write("CS_SetDefaultSettings command failed!\r\n");
+                    }
+                    break;
 
-                case gAppLclCCConfigError_c:
-                {
-                    shell_write("CS_CreateConfig command failed!\r\n");
-                }
-                break;
+                    case gAppLclCCConfigError_c:
+                    {
+                        shell_write("CS_CreateConfig command failed!\r\n");
+                    }
+                    break;
 
-                case gAppLclRRSCError_c:
-                {
-                    shell_write("Error status received! csReadRemoteSupportedHadmCapabilities command status event!\r\n");
-                }
-                break;
+                    case gAppLclRRSCError_c:
+                    {
+                        shell_write("Error status received! csReadRemoteSupportedCsCapabilities command status event!\r\n");
+                    }
+                    break;
 
-                case gAppLclSEError_c:
-                {
-                    shell_write("Error status received! csSecurityEnable command status event!\r\n");
-                }
-                break;
+                    case gAppLclSEError_c:
+                    {
+                        shell_write("Error status received! csSecurityEnable command status event!\r\n");
+                    }
+                    break;
 
-                case gAppLclCCError_c:
-                {
-                    shell_write("Error status received! csCreateConfig command status event!\r\n");
-                }
-                break;
+                    case gAppLclCCError_c:
+                    {
+                        shell_write("Error status received! csCreateConfig command status event!\r\n");
+                    }
+                    break;
 
-                case gAppLclAlgoNotRun_c:
-                {
-                    shell_write("\r\nAlgorithm did not run, procedure likely failed on peer.\r\n");
-                }
-                break;
+                    case gAppLclAlgoNotRun_c:
+                    {
+                        shell_write("\r\nAlgorithm did not run, procedure likely failed on peer.\r\n");
+                    }
+                    break;
 
-                case gAppLclStartMeasurementFail_c:
-                {
-                    shell_write("Start measurement failed!\r\n");
-                }
-                break;
+                    case gAppLclStartMeasurementFail_c:
+                    {
+                        shell_write("Start measurement failed!\r\n");
+                    }
+                    break;
 
-                case gAppLclProcStatusFailed_c:
-                {
-                    shell_write("Procedure done status error received!\r\n");
-                }
-                break;
+                    case gAppLclProcStatusFailed_c:
+                    {
+                        shell_write("Procedure done status error received!\r\n");
+                    }
+                    break;
 
-                case gAppLclProcedureAborted_c:
-                {
-                    shell_write("All subsequent CS procedures aborted!\r\n");
-                }
-                break;
+                    case gAppLclProcedureAborted_c:
+                    {
+                        shell_write("All subsequent CS procedures aborted!\r\n");
+                    }
+                    break;
 
-                case gAppLclRasTransferFailed_c:
-                {
-                    shell_write("RAS - Received an error response from RAS server!\r\n");
-                }
-                break;
+                    case gAppLclRasTransferFailed_c:
+                    {
+                        shell_write("RAS - Received an error response from RAS server!\r\n");
+                    }
+                    break;
 
-                case gAppLclInvalidProcCounter_c:
-                {
-                    shell_write("RAS - Received an invalid procedure index!\r\n");
-                }
-                break;
+                    case gAppLclInvalidProcCounter_c:
+                    {
+                        shell_write("RAS - Received an invalid procedure index!\r\n");
+                    }
+                    break;
 
-		        case gAppLclInvalidProcIndex_c:
-                {
-                    shell_write("RAS - Received a data ready indication for a procedure index different from the local one!\r\n");
-                }
-                break;
+                    case gAppLclInvalidProcIndex_c:
+                    {
+                        shell_write("RAS - Received a data ready indication for a procedure index different from the local one!\r\n");
+                    }
+                    break;
 
-                case gAppLclInvalidSegmentCounter_c:
-                {
-                    shell_write("RAS - Received an invalid segment counter in data notification!\r\n");
-                }
-                break;
+                    case gAppLclInvalidSegmentCounter_c:
+                    {
+                        shell_write("RAS - Received an invalid segment counter in data notification!\r\n");
+                    }
+                    break;
 
-                case gAppLclSubeventStatusFailed_c:
-                {
-                    shell_write("Subevent status failed!\r\n");
-                }
-                break;
+                    case gAppLclSubeventStatusFailed_c:
+                    {
+                        shell_write("Subevent status failed!\r\n");
+                    }
+                    break;
 
-                case gAppLclNoSubeventMemoryAvailable_c:
-                {
-                    shell_write("No more memory available for a local subevent!\r\n");
-                }
-                break;
+                    case gAppLclNoSubeventMemoryAvailable_c:
+                    {
+                        shell_write("No more memory available for a local subevent!\r\n");
+                    }
+                    break;
 
-                case gAppLclErrorProcessingSubevent_c:
-                {
-                    shell_write("An error occured in the processing of subevent data!\r\n");
-                }
-                break;
+                    case gAppLclErrorProcessingSubevent_c:
+                    {
+                        shell_write("An error occured in the processing of subevent data!\r\n");
+                    }
+                    break;
 
-                case gAppLclAlgoNotRunNoDataReady_c:
-                {
-                    shell_write("Algorithm did not run - No Data Ready from peer!\r\n");
-                }
-                break;
+                    case gAppLclAlgoNotRunNoDataReady_c:
+                    {
+                        shell_write("Algorithm did not run - No Data Ready from peer!\r\n");
+                    }
+                    break;
 
-                case gAppLclAlgoNotRunNoRangingData_c:
-                {
-                    shell_write("Algorithm did not run - Ranging Data not complete!\r\n");
-                }
-                break;
+                    case gAppLclAlgoNotRunNoRangingData_c:
+                    {
+                        shell_write("Algorithm did not run - Ranging Data not complete!\r\n");
+                    }
+                    break;
 
-                case gAppLclAlgoNotRunNoRealTimeData_c:
-                {
-                    shell_write("Algorithm did not run - Real Time Ranging Data not complete!\r\n");
-                    maPeerInformation[deviceId].isSubscribed = FALSE;
-                }
-                break;
+                    case gAppLclAlgoNotRunNoRealTimeData_c:
+                    {
+                        shell_write("Algorithm did not run - Real Time Ranging Data not complete!\r\n");
+                        maPeerInformation[deviceId].isSubscribed = FALSE;
+                    }
+                    break;
 
-                case gAppLclMaxProceduresReached_c:
-                {
-                    shell_write("Maximum concurrent CS procedures reached!\r\n");
-                }
-                break;
+                    case gAppLclMaxProceduresReached_c:
+                    {
+                        shell_write("Maximum concurrent CS procedures reached!\r\n");
+                    }
+                    break;
 
-                default:
-                {
-                    shell_write("Unknown error!\r\n");
+                    default:
+                    {
+                        shell_write("Unknown error!\r\n");
+                    }
+                    break;
                 }
-                break;
             }
         }
         break;
@@ -1944,6 +2406,9 @@ static bool_t CheckScanEventLegacy(gapScannedDevice_t* pData)
 {
     uint32_t index = 0;
     bool_t foundMatch = FALSE;
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
+    bool_t bHasTAK = FALSE;
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
     while (index < pData->dataLength)
     {
         gapAdStructure_t adElement;
@@ -1959,7 +2424,15 @@ static bool_t CheckScanEventLegacy(gapScannedDevice_t* pData)
             uint16_t uuid = gBleSig_RangingService_d;
             foundMatch = BluetoothLEHost_MatchDataInAdvElementList(&adElement, &uuid, (uint8_t)sizeof(uint16_t));
         }
-
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
+        else if (foundMatch == TRUE && adElement.adType == gAdManufacturerSpecificData_c)
+        {
+            if (FLib_MemCmp(gAppTAKAdvID_c, adElement.aData, adElement.length))
+            {
+                bHasTAK = TRUE;
+            }
+        }
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
         /* Move on to the next AD element type */
         index += (uint32_t)adElement.length + sizeof(uint8_t);
     }
@@ -1969,6 +2442,13 @@ static bool_t CheckScanEventLegacy(gapScannedDevice_t* pData)
         /* Update UI */
         shell_write("Legacy ADV: ");
         shell_writeHexLe(pData->aAddress, gcBleDeviceAddressSize_c);
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
+        if (bHasTAK == TRUE)
+        {
+            shell_write(" (TAK)");
+            mbDeviceToConnectHasTAK = TRUE;
+        }
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
         shell_write("\r\n");
     }
     return foundMatch;
@@ -1987,6 +2467,9 @@ static bool_t CheckScanEventExtended(gapExtScannedDevice_t* pData)
 {
     uint32_t index = 0;
     bool_t foundMatch = FALSE;
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
+    bool_t bHasTAK = FALSE;
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
     while (index < pData->dataLength)
     {
         gapAdStructure_t adElement;
@@ -2002,6 +2485,15 @@ static bool_t CheckScanEventExtended(gapExtScannedDevice_t* pData)
             uint16_t uuid = gBleSig_RangingService_d;
             foundMatch = BluetoothLEHost_MatchDataInAdvElementList(&adElement, &uuid, (uint8_t)sizeof(uint16_t));
         }
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
+        else if (foundMatch == TRUE && adElement.adType == gAdManufacturerSpecificData_c)
+        {
+            if (FLib_MemCmp(gAppTAKAdvID_c, adElement.aData, adElement.length))
+            {
+                bHasTAK = TRUE;
+            }
+        }
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 
         /* Move on to the next AD element type */
         index += (uint32_t)adElement.length + sizeof(uint8_t);
@@ -2012,6 +2504,13 @@ static bool_t CheckScanEventExtended(gapExtScannedDevice_t* pData)
         /* Update UI */
         shell_write("Extended LR ADV: ");
         shell_writeHexLe(pData->aAddress, gcBleDeviceAddressSize_c);
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
+        if (bHasTAK == TRUE)
+        {
+            shell_write(" (TAK)");
+            mbDeviceToConnectHasTAK = TRUE;
+        }
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
         shell_write("\r\n");
     }
     return foundMatch;
@@ -2138,3 +2637,46 @@ static void BleApp_ScanningCallback (gapScanningEvent_t* pScanningEvent)
     }
 }
 #endif /* !gAppIsPeripheral_d */
+
+#if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
+/*! *********************************************************************************
+* \brief        Run commands to test PTS.
+*
+********************************************************************************** */
+static void BleApp_SwitchRealTimeDataState(deviceId_t deviceId, uint16_t value, uint8_t *testStep)
+{
+    /* Real-Time data transfer handle */
+    uint16_t handle = (uint16_t)(maPeerInformation[deviceId].rasConfigInfo.realTimeDataHandle + 1U);
+    bleResult_t result = gBleSuccess_c;
+
+    /* Set local Real Time Preference state */
+    if (value == gCccdEmpty_c)
+    {
+        RasClient_SetRealTimePreference(deviceId, FALSE);
+    }
+    else
+    {
+        RasClient_SetRealTimePreference(deviceId, TRUE);
+    }
+
+    if (mpCharProcBuffer == NULL)
+    {
+        mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
+    }
+
+    /* Set the CCCD on the remote */
+    if (mpCharProcBuffer != NULL)
+    {
+        result = BleApp_ConfigureRasServer(deviceId, value, handle);
+    }
+    else
+    {
+        result = gBleOutOfMemory_c;
+    }
+
+    if (result == gBleSuccess_c)
+    {
+        (*testStep)++;
+    }
+}
+#endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */

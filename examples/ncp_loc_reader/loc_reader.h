@@ -62,11 +62,11 @@ extern gapScanResponseData_t            gAppScanRspData;
 extern gapExtAdvertisingParameters_t    gAdvParams;
 extern appExtAdvertisingParams_t        gAppAdvParams;
 
+extern uint16_t gFilterShellVal;
+extern bool_t filterTestSend;
+
 extern gapConnectionRequestParameters_t gConnReqParams;
 extern gapScanningParameters_t          gScanParams;
-
-extern uint16_t gFilterShellVal;
-
 /************************************************************************************
 *************************************************************************************
 * Public prototypes
@@ -82,7 +82,9 @@ void BleApp_FactoryReset(void);
 bleResult_t BleApp_TriggerCsDistanceMeasurement(deviceId_t deviceId);
 bool_t BleApp_CheckActiveConnections(void);
 void BleApp_ListBondingData(void);
-
+#if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
+void BleApp_RunPtsTest(void *pParam);
+#endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */
 #ifdef __cplusplus
 }
 #endif

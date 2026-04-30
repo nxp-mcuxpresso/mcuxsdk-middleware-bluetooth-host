@@ -47,7 +47,11 @@ gapConnectionRequestParameters_t gConnReqParams =
     .scanInterval = gcScanInterval_c,
     .scanWindow = gcScanWindow_c,
     .filterPolicy = (uint8_t)gUseDeviceAddress_c,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    .ownAddressType = gBleAddrTypeRandom_c,
+#else
     .ownAddressType = gBleAddrTypePublic_c,
+#endif
     .connIntervalMin = gcConnectionInterval_c,
     .connIntervalMax = gcConnectionInterval_c,
     .connLatency = 0,
@@ -62,7 +66,11 @@ gapScanningParameters_t gScanParams =
     /* type */              gScanTypePassive_c,
     /* interval */          gGapScanIntervalDefault_d,
     /* window */            gGapScanWindowDefault_d,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* ownAddressType */    gBleAddrTypeRandom_c,
+#else
     /* ownAddressType */    gBleAddrTypePublic_c,
+#endif
     /* filterPolicy */      (uint8_t)gScanAll_c,
     /* scanning PHY */      (uint8_t)gLePhy1MFlag_c
 };
@@ -73,8 +81,12 @@ gapExtAdvertisingParameters_t gAdvParams =
     /* SID */                       0xB, \
     /* handle */                    gAdvSetHandle_c, \
     /* minInterval */               gcAdvertisingInterval_c, \
-    /* maxInterval */               gcAdvertisingInterval_c, \
-    /* ownAddrType */               gBleAddrTypePublic_c,\
+    /* maxInterval */               gcAdvertisingInterval_c,
+#if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
+    /* addressType */               gBleAddrTypeRandom_c,
+#else
+    /* addressType */               gBleAddrTypePublic_c,
+#endif
     /* ownAddress */                {0, 0, 0, 0, 0, 0}, \
     /* peerAddrType */              gBleAddrTypePublic_c,\
     /* peerAddress */               {0, 0, 0, 0, 0, 0}, \
@@ -133,13 +145,13 @@ gapScanResponseData_t gAppScanRspData =
 /* SMP Data */
 gapPairingParameters_t gPairingParameters = {
     .withBonding = (bool_t)gAppUseBonding_d,
-    .securityModeAndLevel = gSecurityMode_1_Level_3_c,
+    .securityModeAndLevel = gSecurityMode_1_Level_4_c,
     .maxEncryptionKeySize = mcEncryptionKeySize_c,
     .localIoCapabilities = gIoKeyboardDisplay_c,
     .oobAvailable = FALSE,
     .centralKeys = (gapSmpKeyFlags_t) (gIrk_c | gLtk_c),
     .peripheralKeys = (gapSmpKeyFlags_t) (gIrk_c | gLtk_c),
-    .leSecureConnectionSupported = FALSE,
+    .leSecureConnectionSupported = TRUE,
     .useKeypressNotifications = FALSE,
 };
 
@@ -176,7 +188,11 @@ gapSmpKeys_t gSmpKeys = {
 
 /* Device Security Requirements */
 static gapSecurityRequirements_t  deviceSecurity = {
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
+        .securityModeLevel = gSecurityMode_1_Level_1_c,
+#else
         .securityModeLevel = gSecurityMode_1_Level_3_c,
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
         .authorization = FALSE,
         .minimumEncryptionKeySize = mcEncryptionKeySize_c
 };

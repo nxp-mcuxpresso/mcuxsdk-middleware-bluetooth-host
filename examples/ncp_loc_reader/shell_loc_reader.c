@@ -38,6 +38,7 @@
 #include "loc_reader.h"
 #include "shell_loc_reader.h"
 #include "ranging_client_interface.h"
+#include "ble_conn_manager.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -55,6 +56,7 @@
 * Private functions prototypes
 *************************************************************************************
 ************************************************************************************/
+#if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
 /* Shell */
 static shell_status_t ShellReset_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellDisconnect_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
@@ -69,16 +71,27 @@ static shell_status_t ShellSetNumProcs_Command(shell_handle_t shellHandle, int32
 static shell_status_t ShellFilter_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellListBd_Command (shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellSetMaxConcurrentProcs_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
+#if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
+static shell_status_t ShellRunTest_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
+#endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */
+
 static uint32_t BleApp_AsciiToHex(char *pString, uint32_t strLen);
 static int32_t BleApp_atoi(char *pStr);
 static uint8_t BleApp_ParseHexValue(char* pInput);
 static void ShellResetTimeoutTimerCallback(void* pParam);
+
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
+static shell_status_t ShellTak_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
+
+#endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 
 /************************************************************************************
 *************************************************************************************
 * Private memory declarations
 *************************************************************************************
 ************************************************************************************/
+#if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
 static shell_command_t mResetCmd =
 {
     .pcCommand = "reset",
@@ -144,6 +157,16 @@ static shell_command_t mSelectalgoCmd =
     .pFuncCallBack = ShellSelectAlgorithm_Command,
 };
 
+#if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
+static shell_command_t mRunTestCmd =
+{
+    .pcCommand = "ptstest",
+    .cExpectedNumberOfParameters = SHELL_IGNORE_PARAMETER_COUNT,
+    .pFuncCallBack = ShellRunTest_Command,
+    .pcHelpString = "\r\n\"ptstest\": Run ptstest test_id.\r\n",
+};
+#endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */
+
 static shell_command_t mSetCsRoleCmd =
 {
     .pcCommand = "role",
@@ -185,17 +208,32 @@ static shell_command_t mSetMaxConcurrentProcsCmd =
     .cExpectedNumberOfParameters = SHELL_IGNORE_PARAMETER_COUNT,
     .pFuncCallBack = ShellSetMaxConcurrentProcs_Command,
 };
+
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
+static shell_command_t mTakCmd =
+{
+    .pcCommand = "tak",
+    .cExpectedNumberOfParameters = SHELL_IGNORE_PARAMETER_COUNT,
+    .pFuncCallBack = ShellTak_Command,
+    .pcHelpString = "\r\n\"tak\": Set a Transient Application Key for a device.\r\n",
+};
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
+
 static TIMER_MANAGER_HANDLE_DEFINE(mResetTmrId);
 
 /*serial manager handle*/
 static SERIAL_MANAGER_HANDLE_DEFINE(gSerMgrIf);
+
+#endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
 *************************************************************************************
 ************************************************************************************/
+#if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
 SHELL_HANDLE_DEFINE(g_shellHandle);
+#endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 
 /************************************************************************************
 *************************************************************************************
@@ -213,6 +251,7 @@ SHELL_HANDLE_DEFINE(g_shellHandle);
 ********************************************************************************** */
 void AppShellInit(char* prompt)
 {
+#if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
     shell_status_t status = kStatus_SHELL_Error;
 
     /* Avoid compiler warning in release mode. */
@@ -245,7 +284,18 @@ void AppShellInit(char* prompt)
     assert(kStatus_SHELL_Success == status);
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSetMaxConcurrentProcsCmd);
     assert(kStatus_SHELL_Success == status);
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mTakCmd);
+    assert(kStatus_SHELL_Success == status);
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
+#if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mRunTestCmd);
+    assert(kStatus_SHELL_Success == status);
+#endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */
+#endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 }
+
+#if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
 /*! *********************************************************************************
 * \brief        Prints string of hex values
 *
@@ -273,6 +323,7 @@ void BleApp_PrintHexLe(uint8_t *pHex, uint8_t len)
         (void)SHELL_PrintfSynchronization((shell_handle_t)g_shellHandle, (char const*)FORMAT_Hex2Ascii(pHex[((uint32_t)len - 1U) - i]));
     }
 }
+#endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 
 /************************************************************************************
 *************************************************************************************
@@ -280,6 +331,7 @@ void BleApp_PrintHexLe(uint8_t *pHex, uint8_t len)
 *************************************************************************************
 ************************************************************************************/
 
+#if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
 /*! *********************************************************************************
 * \brief        Reset MCU.
 *
@@ -665,7 +717,7 @@ static shell_status_t ShellTriggerDistanceMeasurement_Command(shell_handle_t she
 
     return kStatus_SHELL_Success;
 }
-                    
+
 /*! *********************************************************************************
 * \brief        Select the algorithm to run at the end of the CS procedure.
 *
@@ -848,7 +900,6 @@ static shell_status_t ShellFilter_Command(shell_handle_t shellHandle, int32_t ar
 {
     bleResult_t status = gBleSuccess_c;
     bool_t filterSetDone = FALSE;
-    bool_t filterTestSend = FALSE;
 
     if (argc == 4)
     {
@@ -865,7 +916,7 @@ static shell_status_t ShellFilter_Command(shell_handle_t shellHandle, int32_t ar
             if ( sizeof(uint16_t) == BleApp_ParseHexValue(argv[2]) )
             {
                 gFilterShellVal = Utils_ExtractTwoByteValue(argv[2]);
-                filterTestSend = (bool_t)BleApp_AsciiToHex(argv[3], FLib_StrLen(argv[3]));
+                filterTestSend = (bool)BleApp_AsciiToHex(argv[3], FLib_StrLen(argv[3]));
                 if ((uint8_t)filterTestSend > 1U)
                 {
                     status = gBleInvalidParameter_c;
@@ -1039,6 +1090,7 @@ static shell_status_t ShellListBd_Command (shell_handle_t shellHandle, int32_t a
 
     return kStatus_SHELL_Success;
 }
+
 /*! *********************************************************************************
 * \brief        Set the maximum number of concurrent CS procedures.
 *
@@ -1079,3 +1131,79 @@ static shell_status_t ShellSetMaxConcurrentProcs_Command(shell_handle_t shellHan
 
     return kStatus_SHELL_Success;
 }
+
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
+/*! *********************************************************************************
+ * \brief        Handles "tak" shell command.
+ *
+ * \param[in]    argc           Number of arguments
+ * \param[in]    argv           Array of argument's values
+ *
+ * \return       shell_status_t Command status
+ ********************************************************************************** */
+static shell_status_t ShellTak_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
+{
+    deviceId_t deviceId = gInvalidDeviceId_c;
+    takEntry_t *pTakEntry = NULL;
+    uint32_t takLength = 0;
+
+    /* Both arguments must be provided */
+    if (argc == 3U)
+    {
+        deviceId = (uint8_t)BleApp_atoi(argv[1]);
+        takLength = BleApp_ParseHexValue(argv[2]);
+
+        /* First check if this deviceID exist in the list */
+        pTakEntry = BleConnManager_GetTak(deviceId, FALSE);
+        if (pTakEntry != NULL)
+        {
+            FLib_MemCpy(pTakEntry->aTak, argv[2], takLength);
+        }
+        else
+        {
+            /* If this deviceID was not previously registered, try to add a new entry */
+            pTakEntry = BleConnManager_GetTak(deviceId, TRUE);
+            if (pTakEntry != NULL)
+            {
+                pTakEntry->device = deviceId;
+                FLib_MemCpy(pTakEntry->aTak, argv[2], takLength);
+            }
+            else
+            {
+                shell_write("No more room for a new entry, update BLE_SHELL_MAX_TAK_ENTRIES\n\r");
+            }
+        }
+    }
+    else
+    {
+        shell_write("Usage: gap tak <deviceID> <Transient Application Key>\n\r");
+    }
+
+    return kStatus_SHELL_Success;
+}
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
+
+#if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
+static shell_status_t ShellRunTest_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
+{
+    if (argc != 2)
+    {
+        shell_write("\r\nUsage: ptstest test_id\r\n");
+    }
+    else
+    {
+        uint32_t argSize = FLib_StrLen(argv[1]);
+        void *pArgvCopy = MEM_BufferAlloc(argSize + 1U);
+
+        if (pArgvCopy != NULL)
+        {
+            FLib_MemCpy(pArgvCopy, (const void *)argv[1], argSize + 1U);
+
+            (void)App_PostCallbackMessage(BleApp_RunPtsTest, pArgvCopy);
+        }
+    }
+
+    return kStatus_SHELL_Success;
+}
+#endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */
+#endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */

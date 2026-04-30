@@ -58,6 +58,9 @@
 /*! Enable/disable use of privacy */
 #define gAppUsePrivacy_d                1
 
+/* Use a Random Static address as identity address, instead of a Public address */
+#define gRandomStaticAddress_d          0
+
 /*! Repeated Attempts - Mitigation for pairing attacks */
 #define gRepeatedAttempts_d             0
 
@@ -69,6 +72,20 @@
 /*! Display distance measurement related timing information */
 #define gAppCsTimeInfo_d                0
 
+/* CS data logging support
+0 = disabled
+   1 = export CS config data + ranging results
+   2 = export CS config + PBR data + ToF data + ranging results
+  */
+#define gAppLocDataExport_d             0
+
+/* Baudrate for loc data export */
+#if gAppLocDataExport_d > 0
+#define BOARD_APP_UART_BAUDRATE         1000000
+#endif
+
+#define gAppUseShellInApplication_d     1
+
 /*! Display RSSI and Tone Quality Indicator information */
 #define gAppParseQualityInfo_d          0
 
@@ -78,6 +95,10 @@
 
 /* Configure for GATT CCCD types */
 #define gRasUseNotifOrInd_c             gCccdNotification_c
+
+/*! Transient application key demo */
+#define gAppUseTAK_d                    0
+#define gAppTAKAdvID_c                  "TAK_ID"
 
 #define gAppMaxConnections_c            2
 
@@ -107,8 +128,8 @@
 /*! *********************************************************************************
  *     BLE Stack Configuration
  ********************************************************************************** */
-#define gAdvSetHandle_c                   0x00U
-#define gNoAdvSetHandle_c                       0xFF
+#define gAdvSetHandle_c                         0x00U
+#define gNoAdvSetHandle_c                       0xFFU
 
 #define gAppUseSerialManager_c                  1
 
