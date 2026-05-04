@@ -1620,11 +1620,297 @@ static bool_t ParseMode2
     return bIncomplete;
 }
 
-/*! *********************************************************************************
- *\fn           static bool_t ParseMode3(uint16_t filter, 
- *                                       uint8_t **ppEventData, 
- *                                       uint32_t *pDataLength, 
- *                                       csAppData_t *pDstAppBuffer, 
+/*! *******************************************************************************
+ * \brief       Check if antenna path is enabled for Mode 3 based on filter bits.
+ *
+ * \param[in]   antIdx              Antenna path index (0-3)
+ * \param[in]   filter              Filter bits indicating enabled antenna paths
+ *
+ * \retval      bool_t              TRUE if antenna path is enabled, FALSE otherwise
+ ******************************************************************************* */
+static bool_t IsMode3AntennaPathEnabled
+(
+    uint8_t antIdx,
+    uint16_t filter
+)
+{
+    bool_t isEnabled = FALSE;
+
+    if ((antIdx == 0U) && ((filter & BIT12) != 0U))
+    {
+        isEnabled = TRUE;
+    }
+    else if ((antIdx == 1U) && ((filter & BIT13) != 0U))
+    {
+        isEnabled = TRUE;
+    }
+    else if ((antIdx == 2U) && ((filter & BIT14) != 0U))
+    {
+        isEnabled = TRUE;
+    }
+    else if ((antIdx == 3U) && ((filter & BIT15) != 0U))
+    {
+        isEnabled = TRUE;
+    }
+    else
+    {
+        /* Antenna path not enabled */
+    }
+
+    return isEnabled;
+}
+
+/*! *******************************************************************************
+ * \brief       Parse packet quality, NADM, and RSSI from Mode 3 event.
+ *
+ * \param[in]   filter              Filter bits indicating which fields are present
+ * \param[in,out] ppEventData       Pointer to pointer of event data
+ * \param[in,out] pDataLength       Pointer to remaining data length
+ * \param[out]  pQuality            Pointer to store quality value
+ * \param[out]  aNadm               Array to store NADM data
+ * \param[out]  aRssi               Array to store RSSI data
+ * \param[out]  pRssiValue          Pointer to store RSSI value (conditional)
+ * \param[in,out] pIncomplete       Pointer to incomplete flag
+ *
+ * \retval      void
+ ******************************************************************************* */
+static void ParseMode3PacketMetrics
+(
+    uint16_t filter,
+    uint8_t **ppEventData,
+    uint32_t *pDataLength,
+    uint32_t *pQuality,
+    uint8_t *aNadm,
+    uint8_t *aRssi,
+#if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
+    int8_t *pRssiValue,
+#endif
+    bool_t *pIncomplete
+)
+{
+    do
+    {
+        if ((filter & BIT2) != 0U)
+        {
+            /* Data includes Packet Quality*/
+            CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), *pIncomplete,
+                *pQuality = (uint32_t)(**ppEventData);
+            );
+        }
+
+        if ((filter & BIT3) != 0U)
+        {
+            /* Data includes Packet NADM */
+            CheckSkipBytes(*ppEventData, *pDataLength, gCsNadmSize_c, *pIncomplete,
+                FLib_MemCpy(aNadm, *ppEventData, gCsNadmSize_c);
+            );
+        }
+
+        if ((filter & BIT4) != 0U)
+        {
+            /* Data includes Packet RSSI */
+#if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
+            CheckSkipBytes(*ppEventData, *pDataLength, gCsRssiSize_c, *pIncomplete,
+                FLib_MemCpy(aRssi, *ppEventData, gCsRssiSize_c);
+                *pRssiValue = (int8_t)(**ppEventData);
+            );
+#else
+            CheckSkipBytes(*ppEventData, *pDataLength, gCsRssiSize_c, *pIncomplete,
+                FLib_MemCpy(aRssi, *ppEventData, gCsRssiSize_c);
+            );
+#endif /* gAppParseRssiInfo_d */
+        }
+    } while (FALSE);
+}
+
+/*! *******************************************************************************
+ * \brief       Parse ToF and antenna data from Mode 3 event.
+ *
+ * \param[in]   filter              Filter bits indicating which fields are present
+ * \param[in,out] ppEventData       Pointer to pointer of event data
+ * \param[in,out] pDataLength       Pointer to remaining data length
+ * \param[out]  pTsDiffHci          Pointer to store timestamp difference
+ * \param[out]  pAntPermIndex       Pointer to store antenna permutation index
+ * \param[in,out] pIncomplete       Pointer to incomplete flag
+ *
+ * \retval      void
+ ******************************************************************************* */
+static void ParseMode3ToFAndAntenna
+(
+    uint16_t filter,
+    uint8_t **ppEventData,
+    uint32_t *pDataLength,
+    int16_t *pTsDiffHci,
+    uint8_t *pAntPermIndex,
+    bool_t *pIncomplete
+)
+{
+    do
+    {
+        if ((filter & BIT5) != 0U)
+        {
+            /* Data includes ToA_ToD_Initiator/ToD_ToA_Reflector information */
+            CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint16_t), *pIncomplete,
+                FLib_MemCpy(pTsDiffHci, *ppEventData, sizeof(uint16_t)); /* Time Diff signed Q16, 2 bytes */
+            );
+        }
+
+        if ((filter & BIT6) != 0U)
+        {
+            /* Data includes Packet Antenna */
+            CheckSkipBytesDoNothing(*ppEventData, *pDataLength, 1U, *pIncomplete);
+        }
+
+        /* Check if data includes Packet_PCT1, Packet_PCT2 information (3 octets each) */
+        if (AppLocalization_GetRttSoundingSupport() == TRUE)
+        {
+            if ((filter & BIT7) != 0U)
+            {
+                /* Data includes Packet_PCT1 */
+                CheckSkipBytesDoNothing(*ppEventData, *pDataLength, gPacket_PCTSize_c, *pIncomplete);
+            }
+            if ((filter & BIT8) != 0U)
+            {
+                /* Data includes Packet_PCT2 */
+                CheckSkipBytesDoNothing(*ppEventData, *pDataLength, gPacket_PCTSize_c, *pIncomplete);
+            }
+        }
+
+        *pAntPermIndex = 0;
+        if ((filter & BIT9) != 0U)
+        {
+            /* Data includes Antenna Permutation Index */
+            CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), *pIncomplete,
+                *pAntPermIndex = **ppEventData; /* Antenna_Permutation_Index */
+            );
+        }
+    } while (FALSE);
+}
+
+/*! *******************************************************************************
+ * \brief       Parse tone PCT and quality data for a single antenna path in Mode 3.
+ *
+ * \param[in]   filter              Filter bits indicating which fields are present
+ * \param[in,out] ppEventData       Pointer to pointer of event data
+ * \param[in,out] pDataLength       Pointer to remaining data length
+ * \param[in]   antIdx              Antenna path index
+ * \param[out]  pIqDec              Pointer to store decoded IQ sample
+ * \param[out]  pTqi                Pointer to store tone quality indicator
+ * \param[in,out] pIncomplete       Pointer to incomplete flag
+ *
+ * \retval      void
+ ******************************************************************************* */
+static void ParseMode3ToneData
+(
+    uint16_t filter,
+    uint8_t **ppEventData,
+    uint32_t *pDataLength,
+    uint8_t antIdx,
+    int32_t *pIqDec,
+    uint8_t *pTqi,
+    bool_t *pIncomplete
+)
+{
+    do
+    {
+        if ((filter & BIT10) != 0U)
+        {
+            /* Data includes Tone_PCT information */
+            CheckSkipBytes(*ppEventData, *pDataLength, gTone_PCTSize_c, *pIncomplete,
+                uint32_t temp1 = ((uint32_t)(*ppEventData)[2])<<BIT4 | 
+                                ((uint32_t)(*ppEventData)[1])<<BIT3 | 
+                                ((uint32_t)(*ppEventData)[0]);
+                int32_t iq = (int32_t)temp1;
+                /* Swap I and Q as application expects I as MSB and Q as LSB (opposite from Tone_PCT[k]) */
+                uint32_t temp2 = (((uint32_t)(((uint32_t)iq)&0xFFFU) << gIQSampleSize_c) |
+                                 ((uint32_t)(((uint32_t)iq)>>gIQSampleSize_c)&0xFFFU));
+                *pIqDec = (int32_t)temp2;
+            );
+        }
+
+        if ((filter & BIT11) != 0U)
+        {
+            /* Data includes Tone_Quality_Indication */
+            CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), *pIncomplete,
+                *pTqi = **ppEventData;
+            );
+        }
+    } while (FALSE);
+}
+
+/*! *******************************************************************************
+ * \brief       Parse tone data for all antenna paths in Mode 3.
+ *
+ * \param[in]   filter              Filter bits indicating which fields are present
+ * \param[in,out] ppEventData       Pointer to pointer of event data
+ * \param[in,out] pDataLength       Pointer to remaining data length
+ * \param[in]   pAntIndex           Pointer to antenna permutation array
+ * \param[in]   numAntennaPaths     Number of antenna paths to process
+ * \param[out]  iq_dec              Array to store decoded IQ samples
+ * \param[out]  tqi                 Array to store tone quality indicators
+ * \param[in,out] pIncomplete       Pointer to incomplete flag
+ *
+ * \retval      void
+ ******************************************************************************* */
+static void ParseMode3AllAntennaPaths
+(
+    uint16_t filter,
+    uint8_t **ppEventData,
+    uint32_t *pDataLength,
+    uint8_t const *pAntIndex,
+    uint8_t numAntennaPaths,
+    int32_t *iq_dec,
+    uint8_t *tqi,
+    bool_t *pIncomplete
+)
+{
+    uint8_t antIdx = 0u;
+
+    do
+    {
+        /* Num_Antenna_Path + 1 are reported by the firmware, but discard last one */
+        /* Re-order per antenna path index */
+        for (uint8_t idx = 0U; idx <= numAntennaPaths; idx++)
+        {
+            if (idx == numAntennaPaths)
+            {
+                /* Skip last IQ data (n_ap+1) */
+                if (IsMode3AntennaPathEnabled(antIdx, filter))
+                {
+                    if ((filter & BIT10) != 0U)
+                    {
+                        CheckSkipBytesDoNothing(*ppEventData, *pDataLength, gTone_PCTSize_c, *pIncomplete);
+                    }
+                    if ((filter & BIT11) != 0U)
+                    {
+                        CheckSkipBytesDoNothing(*ppEventData, *pDataLength, sizeof(uint8_t), *pIncomplete);
+                    }
+                }
+                break;
+            }
+
+            antIdx = pAntIndex[idx];
+
+            /* Check if the corresponding Antenna Path is enabled */
+            if (IsMode3AntennaPathEnabled(antIdx, filter))
+            {
+                ParseMode3ToneData(filter, ppEventData, pDataLength, antIdx,
+                                  &iq_dec[antIdx], &tqi[antIdx], pIncomplete);
+                
+                if (*pIncomplete)
+                {
+                    break;
+                }
+            }
+        }
+    } while (FALSE);
+}
+
+/*! *******************************************************************************
+ * \fn           static bool_t ParseMode3(uint16_t filter,
+ *                                       uint8_t **ppEventData,
+ *                                       uint32_t *pDataLength,
+ *                                       csAppData_t *pDstAppBuffer,
  *                                       rasMeasurementData_t *pRemoteData)
  *
  * \brief       Parse CS Mode 3 data from received event data.
@@ -1640,21 +1926,19 @@ static bool_t ParseMode2
  * \param[in,out] pRemoteData       Pointer to measurement data structure containing
  *                                  parsing state information
  *
- *\retval       bool_t              TRUE if data is incomplete, FALSE if parsing succeeded
- ********************************************************************************** */
+ * \retval       bool_t              TRUE if data is incomplete, FALSE if parsing succeeded
+ ******************************************************************************* */
 static bool_t ParseMode3
 (
-    uint16_t filter, 
-    uint8_t **ppEventData, 
-    uint32_t *pDataLength, 
-    csAppData_t *pDstAppBuffer, 
+    uint16_t filter,
+    uint8_t **ppEventData,
+    uint32_t *pDataLength,
+    csAppData_t *pDstAppBuffer,
     rasMeasurementData_t *pRemoteData
 )
 {
     bool_t bIncomplete = FALSE;
-    
     uint8_t antPermIndex = 0u;
-    uint8_t antIdx = 0u;
     uint8_t const *pAntIndex;
     int32_t iq_dec[gMaxNumAntennaPaths_c] = {};
     uint8_t tqi[gMaxNumAntennaPaths_c] = {};
@@ -1670,135 +1954,37 @@ static bool_t ParseMode3
     do
     {
         /* ToF+Tone record */
-        if ((filter & BIT2) != 0U)
-        {
-            /* Data includes Packet Quality*/
-            CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-                quality = (uint32_t)(**ppEventData);
-            );
-        }
-
-        if ((filter & BIT3) != 0U)
-        {
-            /* Data includes Packet NADM */
-            CheckSkipBytes(*ppEventData, *pDataLength, gCsNadmSize_c, bIncomplete,
-                FLib_MemCpy(aNadm, *ppEventData, gCsNadmSize_c);
-            );
-        }
-        
-        if ((filter & BIT4) != 0U)
-        {
-            /* Data includes Packet RSSI */
+        /* Parse packet quality, NADM, and RSSI */
+        ParseMode3PacketMetrics(filter, ppEventData, pDataLength, &quality, aNadm, aRssi,
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
-            CheckSkipBytes(*ppEventData, *pDataLength, gCsRssiSize_c, bIncomplete,
-                FLib_MemCpy(aRssi, *ppEventData, gCsRssiSize_c);
-                rssiVal = (int8_t)(**ppEventData);
-            );
-#else
-            CheckSkipBytes(*ppEventData, *pDataLength, gCsRssiSize_c, bIncomplete,
-                FLib_MemCpy(aRssi, *ppEventData, gCsRssiSize_c);
-            );
-#endif /* gAppParseRssiInfo_d */
-        }
+                               &rssiValue,
+#endif
+                               &bIncomplete);
 
-        if ((filter & BIT5) != 0U)
+        if (bIncomplete)
         {
-            /* Data includes ToA_ToD_Initiator/ToD_ToA_Reflector information */
-            CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint16_t), bIncomplete,
-                FLib_MemCpy(&ts_diff_hci, *ppEventData, sizeof(uint16_t)); /* Time Diff signed Q16, 2 bytes */
-            );
+            break;
         }
 
-        if ((filter & BIT6) != 0U)
+        /* Parse ToF and antenna information */
+        ParseMode3ToFAndAntenna(filter, ppEventData, pDataLength, &ts_diff_hci, 
+                               &antPermIndex, &bIncomplete);
+
+        if (bIncomplete)
         {
-            /* Data includes Packet Antenna */
-            CheckSkipBytesDoNothing(*ppEventData, *pDataLength, 1U, bIncomplete);
+            break;
         }
 
-        /* Check if data includes Packet_PCT1, Packet_PCT2 information (3 octets each) */
-        if (AppLocalization_GetRttSoundingSupport() == TRUE)
-        {
-            if ((filter & BIT7) != 0U)
-            {
-                /* Data includes Packet_PCT1 */
-                CheckSkipBytesDoNothing(*ppEventData, *pDataLength, gPacket_PCTSize_c, bIncomplete);
-            }
-
-            if ((filter & BIT8) != 0U)
-            {
-                /* Data includes Packet_PCT2 */
-                CheckSkipBytesDoNothing(*ppEventData, *pDataLength, gPacket_PCTSize_c, bIncomplete);
-            }
-        }
-
-        antPermIndex = 0U;
-
-        if ((filter & BIT9) != 0U)
-        {
-            /* Data includes Antenna Permutation Index */
-            CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-                antPermIndex = **ppEventData; /* Antenna_Permutation_Index */
-            );
-        }
         pAntIndex = &gaAntPermNAp[antPermIndex][0];
 
-        /* Num_Antenna_Path + 1 are reported by the firmware, but discard last one */
-        /* Re-order per antenna path index */
-        for (uint8_t idx = 0U; idx <= pRemoteData->numAntennaPaths; idx++)
-        {
-            if (idx == pRemoteData->numAntennaPaths)
-            {
-                /* Skip last IQ data (n_ap+1) */
-                if (((antIdx == 0U) && ((filter & BIT12) != 0U)) ||
-                  ((antIdx == 1U) && ((filter & BIT13) != 0U)) ||
-                  ((antIdx == 2U) && ((filter & BIT14) != 0U)) ||
-                  ((antIdx == 3U) && ((filter & BIT15) != 0U)))
-                {
-                    if ((filter & BIT10) != 0U)
-                    {
-                        CheckSkipBytesDoNothing(*ppEventData, *pDataLength, gTone_PCTSize_c, bIncomplete);
-                    }
-                    if ((filter & BIT11) != 0U)
-                    {
-                        CheckSkipBytesDoNothing(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete);
-                    }
-                }
-                break;
-            }
-            antIdx = pAntIndex[idx];
+        /* Parse tone data for all antenna paths */
+        ParseMode3AllAntennaPaths(filter, ppEventData, pDataLength, pAntIndex,
+                                 pRemoteData->numAntennaPaths, iq_dec, tqi, &bIncomplete);
 
-            /* Check if the corresponding Antenna Path is enabled */
-            if (((antIdx == 0U) && ((filter & BIT12) != 0U)) ||
-                ((antIdx == 1U) && ((filter & BIT13) != 0U)) ||
-                ((antIdx == 2U) && ((filter & BIT14) != 0U)) ||
-                ((antIdx == 3U) && ((filter & BIT15) != 0U)))
-            {
-                if ((filter & BIT10) != 0U)
-                {
-                    /* Data includes Tone_PCT information */
-                    CheckSkipBytes(*ppEventData, *pDataLength, gTone_PCTSize_c, bIncomplete,
-                        uint32_t temp1 = ((uint32_t)(*ppEventData)[2])<<BIT4 | ((uint32_t)(*ppEventData)[1])<<BIT3 | ((uint32_t)(*ppEventData)[0]);
-                        int32_t iq = (int32_t)temp1;
-
-                        /* Swap I and Q as application expects I as MSB and Q as LSB (opposite from Tone_PCT[k]) */
-                        uint32_t temp2 = (((uint32_t)(((uint32_t)iq)&0xFFFU) << gIQSampleSize_c) |
-                                          ((uint32_t)(((uint32_t)iq)>>gIQSampleSize_c)&0xFFFU));
-                        iq_dec[antIdx] = (int32_t)temp2;
-                     );
-                }
-
-                if ((filter & BIT11) != 0U)
-                {
-                    /* Data includes Tone_Quality_Indication */
-                    CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-                        tqi[antIdx] = **ppEventData;);
-                }
-            }
-        }
     } while (FALSE);
-    
-    /* In case no error occured, store temporary variables into the actual output */
-    if (bIncomplete ==  FALSE)
+
+    /* In case no error occurred, store temporary variables into the actual output */
+    if (bIncomplete == FALSE)
     {
         /* ToF+Tone record */
         pRemoteData->step++;
@@ -1827,7 +2013,6 @@ static bool_t ParseMode3
         {
             int16_t temp1 = 0;
             uint32_t ts_diff = 0U;
-
             /* Combine TS_DIFF & quality on 24 bits and store in local buffer */
             temp1 = ts_diff_hci/2;
             ts_diff = (uint32_t)(temp1); /* HCI reports half ns, application expects ns in Tof Buffer */
@@ -1835,7 +2020,7 @@ static bool_t ParseMode3
             ts_diff |= (quality & 0x0FU) << gTimeStampDiffSize_c;
             hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)gCsTsSize_c);
         }
-        
+
         for (uint8_t idx = 0U; idx < pDstAppBuffer->mciq_data.n_ap; idx++)
         {
             hciCsStoreBytesInIqBuffer(pDstAppBuffer, (uint8_t *)&iq_dec[idx], 3);
