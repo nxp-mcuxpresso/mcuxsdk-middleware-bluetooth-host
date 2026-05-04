@@ -28,6 +28,7 @@
 #include "fsl_component_timer_manager.h"
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1U) */
 #include "app_localization_algo.h"
+#include "app_localization_debug.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -173,6 +174,11 @@ bleResult_t BtcsClient_HandleRangingServiceMsg
     /* Extract message length */
     uint16_t packetLen = Utils_BeExtractTwoByteValue(pData);
     pData = &pData[gLengthFieldSize_c];
+
+    CS_LOG_BTCS("RxMsg: devId=%d, msgType=%d, dataLen=%u",
+                deviceId,
+                msgType,
+                dataLen);
 
     if (msgId == gRangingProcResStart_c)
     {

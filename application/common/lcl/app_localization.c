@@ -28,6 +28,7 @@
 #include "gatt_client_interface.h"
 #include "gap_interface.h"
 #include "app_conn.h"
+#include "app_localization_debug.h"
 
 #if defined(gAppRunAlgo_d)
 #include "app_localization_algo.h"
@@ -2212,6 +2213,14 @@ static void AppLocalization_CSMetaEventCallback
             csSubeventResultEvent_t* pSubeventResult = (csSubeventResultEvent_t*)pPacket->pEventData;
             deviceId = pSubeventResult->deviceId;
 
+            /* Debug logging for Subevent Result */
+            CS_LOG_SUBEVENT("SubeventResult: devId=%d, procCnt=%u, steps=%u, procDone=%u, subevtDone=%u",
+                            deviceId,
+                            pSubeventResult->procedureCounter,
+                            pSubeventResult->numStepsReported,
+                            pSubeventResult->procedureDoneStatus,
+                            pSubeventResult->subeventDoneStatus);
+
             /* Clear local data on new procedure start during ongoing RAS transfer */
             if ((maAppLclState[deviceId] == gAppLclWaitingForMeasData_c) || (maAppLclState[deviceId] == gAppRasTransfInProgress_c))
             {
@@ -2454,6 +2463,13 @@ static void AppLocalization_CSMetaEventCallback
             csSubeventResultContinueEvent_t* pSubeventResultContinue =
                 (csSubeventResultContinueEvent_t*)pPacket->pEventData;
             deviceId = pSubeventResultContinue->deviceId;
+
+            /* Debug logging for Subevent Result Continue */
+            CS_LOG_SUBEVENT("SubeventResultContinue: devId=%d, steps=%d, procDone=%d, subevtDone=%d",
+                            deviceId,
+                            pSubeventResultContinue->numStepsReported,
+                            pSubeventResultContinue->procedureDoneStatus,
+                            pSubeventResultContinue->subeventDoneStatus);
 
             if ((maAppLclState[deviceId] == gAppLclWaitingForMeasData_c) || (maAppLclState[deviceId] == gAppRasTransfInProgress_c))
             {

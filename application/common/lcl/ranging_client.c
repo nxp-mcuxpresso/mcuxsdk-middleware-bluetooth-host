@@ -24,6 +24,7 @@
 #include "channel_sounding.h"
 #include "gatt_client_interface.h"
 #include "app_localization_utils.h"
+#include "app_localization_debug.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -227,6 +228,9 @@ bleResult_t RasClient_StorePeerMeasurementData
     (void)TM_Start((timer_handle_t)mRreqTimerId, (uint8_t)kTimerModeLowPowerTimer | (uint8_t)kTimerModeSingleShot | (uint8_t)kTimerModeSetSecondTimer,
                    gRreqTimeoutDataSeconds_c);
 
+    CS_LOG_RAS("StorePeerData: devId=%d, state=%d",
+               deviceId,
+               AppLocalization_GetLocState(deviceId));
 
     /* A previous RAS transfer did not finish before a new CS procedure started
        Peer result data was cleared, but notifications/indications may still arrive
@@ -437,6 +441,11 @@ bleResult_t RasClient_ProcessRasDataReadyIndications
 
     /* Received data ready indication */
     (void)TM_Stop((timer_handle_t)mRreqTimerId);
+
+    CS_LOG_RAS("DataReady: devId=%d, rxProcCnt=%d, localProcCnt=%d",
+               deviceId,
+               pRasIndication->procedureIndex,
+               procedureCounter);
 
     /* Reset RAS transfer data in preparation for a new procedure */
     FLib_MemSet(&mPeerResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
