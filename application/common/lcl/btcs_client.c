@@ -177,8 +177,8 @@ bleResult_t BtcsClient_HandleRangingServiceMsg
 
     CS_LOG_BTCS("RxMsg: devId=%d, msgType=%d, dataLen=%u",
                 deviceId,
-                msgType,
-                dataLen);
+                msgId,
+                packetLen);
 
     if (msgId == gRangingProcResStart_c)
     {
