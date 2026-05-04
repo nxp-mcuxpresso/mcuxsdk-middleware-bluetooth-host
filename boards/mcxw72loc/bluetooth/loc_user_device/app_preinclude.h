@@ -79,13 +79,6 @@
 /*! Display distance measurement related timing information */
 #define gAppCsTimeInfo_d                      0
 
-/* CS HCI data logging support
-  *  0 = disabled
-  *  1 = export local HCI data only
-  *  2 = export local HCI data and remote data received via RAS
-  */
-#define gAppHciDataLogExport_d                0
-
 #define gAppUseShellInApplication_d           1
 
 /*! Enable/Disable PowerDown functionality in Application */
@@ -144,11 +137,7 @@
  *     BLE Stack Configuration
  ********************************************************************************** */
  /* Enable Serial Manager interface */
-#if gAppHciDataLogExport_d
-#define gAppUseSerialManager_c                2
-#else
 #define gAppUseSerialManager_c                1
-#endif
 
 /* Enable BLE 5.0 */
 #define gBLE50_d                              1

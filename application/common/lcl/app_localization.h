@@ -21,10 +21,6 @@
 #include "ranging_interface.h"
 #endif
 #include "ble_general.h"
-#if (defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0))
-#include "fsl_component_serial_manager.h"
-#endif /* gAppHciDataLogExport_d */
-
 #include "channel_sounding.h"
 #include "app_localization_config.h"
 
@@ -284,10 +280,6 @@ typedef enum
     gErrRasProcedureNotCompleted_c,             /* Server needed to interrupt its data transfer  */
     gErrRasServerBusy_c,                        /* Server busy - cannot process request */
     gErrRasNoRecordsFound_c,                    /* Requested ranging counter was not found*/
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
-    gCsHciDataLogEvent_c,                       /* CS HCI data logging event */
-    gCsRemoteDataLogEvent_c,                    /* CS remote RAS data logging event */
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */
 } appCsEventType_t;
 
 typedef enum
@@ -352,9 +344,6 @@ typedef enum csAppMetaEventType_tag {
   gCsMetaEvtSubeventResult_c,
   gCsMetaEvtSubeventResultContinue_c,
   gCsMetaEvtError_c,
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
-  gCsMetaEvtHciDataLog_c,
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */
 } csAppMetaEventType_t;
 
 typedef struct csMetaEventData_tag

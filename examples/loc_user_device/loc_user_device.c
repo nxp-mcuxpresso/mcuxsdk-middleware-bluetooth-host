@@ -157,10 +157,6 @@ static gapSmpKeyFlags_t gAppOutKeyFlags;
 static bool_t gAppOutLeSc;
 static bool_t gAppOutAuth;
 
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
-static SERIAL_MANAGER_WRITE_HANDLE_DEFINE(gDataExportSerialWriteHandle);
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
-
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -261,11 +257,6 @@ void BluetoothLEHost_AppInit(void)
 
     /* Register CS callback and initialize localization */
     (void)AppLocalization_Init(gCsDefaultRole_c, BleApp_CsEventHandler, NULL);
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
-    /* Open write handle */
-    (void)SerialManager_OpenWriteHandle(gSerMgrIf2, (serial_write_handle_t)gDataExportSerialWriteHandle);
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
 }
 
 /*! *********************************************************************************
@@ -2102,41 +2093,6 @@ static void BleApp_HandleProcedureAborted
     }
 }
 
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
-/*! **********************************************************************************
- * \brief  Handle CS HCI data log event.
- *
- * \param[in]    pHciDataLog    Pointer to HCI data log event
- ********************************************************************************** */
-static void BleApp_HandleCsHciDataLog
-(
-    csHciDataLogEvent_t *pHciDataLog
-)
-{
-    /* Construct full CS HCI data packet */
-    uint8_t * pCsHciPacket = MEM_BufferAlloc(pHciDataLog->packetSize + gCsHciDataHdrLength_c);
-
-    if (pCsHciPacket != NULL)
-    {
-        /* Add header, length and subevent opcode */
-        pCsHciPacket[0] = gHciPacketIndicator_c;
-        pCsHciPacket[1] = gHciEventCode_c;
-        pCsHciPacket[2] = pHciDataLog->packetSize;
-        pCsHciPacket[3] = pHciDataLog->opCode;
-
-        /* Add CS data */
-        FLib_MemCpy(&(pCsHciPacket[4]), pHciDataLog->pPacket, pHciDataLog->packetSize - 1U);
-
-        /* Serial write full packet */
-        (void)SerialManager_WriteBlocking(gDataExportSerialWriteHandle, pCsHciPacket, pHciDataLog->packetSize + gCsHciDataHdrLength_c);
-
-        (void)MEM_BufferFree(pCsHciPacket);
-    }
-
-    (void)MEM_BufferFree((void*)pHciDataLog->pPacket);
-}
-#endif
-
 /*! **********************************************************************************
  * \brief  This is the callback for Bluetooth LE CS events
  ********************************************************************************** */
@@ -2258,14 +2214,6 @@ static void BleApp_CsEventHandler
             BleApp_HandleProcedureAborted(deviceId, *((uint8_t*)pData));
         }
         break;
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
-        case gCsHciDataLogEvent_c:
-        {
-            BleApp_HandleCsHciDataLog((csHciDataLogEvent_t*)pData);
-        }
-        break;
-#endif
 
         default:
         ; /* Do nothing */

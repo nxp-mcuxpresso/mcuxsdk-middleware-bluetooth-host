@@ -17,7 +17,3 @@
 :heading-offset: 1
 ```
 
-```{include} ../topics/HCI_export.md
-:heading-offset: 1
-```
-

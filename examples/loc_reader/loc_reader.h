@@ -46,12 +46,6 @@
 #define smpEdiv                 0x1F99
 #define mcEncryptionKeySize_c   16
 
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
-#define gCsHciDataHdrLength_c   3U
-#define gHciPacketIndicator_c   0x04
-#define gHciEventCode_c         0x3E
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
-
 /************************************************************************************
 *************************************************************************************
 * Private type definitions

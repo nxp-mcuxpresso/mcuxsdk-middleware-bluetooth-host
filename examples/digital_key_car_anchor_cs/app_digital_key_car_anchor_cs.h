@@ -35,12 +35,6 @@
 *************************************************************************************/
 #define L2CAP_SAMPLE_MESSAGE                                     "H E L L O"
 
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
-#define gCsHciDataHdrLength_c   3U
-#define gHciPacketIndicator_c   0x04
-#define gHciEventCode_c         0x3E
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */
-
 /************************************************************************************
 *************************************************************************************
 * Public type definitions

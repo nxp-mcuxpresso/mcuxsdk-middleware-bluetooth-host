@@ -355,12 +355,6 @@ extern bool_t gDisablePrivacyPerAdvSet[gMaxAdvSets_c];
 bool_t gDisablePrivacyPerAdvSet[gMaxAdvSets_c] = {FALSE};
 #endif
 
-/* Allow HCI data logging from CS library */
-#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d==TRUE)
-extern const uint8_t gAppHciDataLogEnabled;
-const uint8_t gAppHciDataLogEnabled = gAppHciDataLogExport_d;
-#endif /* defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d==TRUE) */
-
 /*! Enable the reporting of intrusion detection events from the Host stack */
 extern const bool_t gEnableIntrusionDetectionSystem;
 #if defined(gIntrusionDetectionSystem_d) && (gIntrusionDetectionSystem_d == TRUE)

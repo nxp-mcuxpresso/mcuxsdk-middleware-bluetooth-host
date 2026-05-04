@@ -156,10 +156,6 @@ static bool_t mBondAddedFromShell = FALSE;
 
 static uint8_t mVerbosityLevel = 2U; /* default: all prints enabled */
 
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
-static SERIAL_MANAGER_WRITE_HANDLE_DEFINE(gDataExportSerialWriteHandle);
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */
-
 static csErrorMsg_t maCsErrorMsgs[] =
 {
     {gAppLclStartMeasurementFail_c, "Start measurement failed!\r\n"},
@@ -265,14 +261,6 @@ static void BleApp_PE_StartCaller(appCallbackParam_t param);
 static void BleApp_HandoverCommHandler(uint8_t opGroup, uint8_t cmdId, uint16_t len, uint8_t *pData);
 #endif
 
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
-static void App_ExportHciDataLog(void *pData);
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 1)
-static void App_ExportRemoteDataLog(void *pData);
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 1) */
-
 static void HandlePhyEvent(appEventData_t *pEventData);
 static bool_t APP_UserInterfaceEventHandlerGeneric(appEventData_t *pEventData);
 #if defined(gHandoverIncluded_d) && (gHandoverIncluded_d == 1)
@@ -367,11 +355,6 @@ void BluetoothLEHost_AppInit(void)
 #else /* defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U) */
     (void)AppLocalization_Init(gCsDefaultRole_c, BleApp_CsEventHandler, NULL);
 #endif /* defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U) */
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
-    /* Open write handle */
-    (void)SerialManager_OpenWriteHandle(gSerMgrIf2, (serial_write_handle_t)gDataExportSerialWriteHandle);
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */
 }
 
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
@@ -2347,79 +2330,6 @@ static void BleApp_CsEventHandlerProcedureAborted(deviceId_t deviceId, void *pDa
     }
 }
 
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
-/*! *********************************************************************************
-* \brief        Handles CS HCI data log event for export.
-*
-* \param[in]    pData    Pointer to HCI data log event data
-********************************************************************************** */
-static void BleApp_CsEventHandlerDataLogEvent(void *pData)
-{
-    csHciDataLogEvent_t *pHciDataLog = (csHciDataLogEvent_t*)pData;
-
-    union
-    {
-        const uint8_t *p_u8;
-        void *v_ptr;
-    }temp = {};
-
-    /* Construct full CS HCI data packet */
-    uint8_t * pCsHciPacket = MEM_BufferAlloc((uint32_t)pHciDataLog->packetSize + gCsHciDataHdrLength_c);
-
-    if (pCsHciPacket != NULL)
-    {
-        /* Add header, length and subevent opcode */
-        pCsHciPacket[0] = gHciPacketIndicator_c;
-        pCsHciPacket[1] = gHciEventCode_c;
-        pCsHciPacket[2] = pHciDataLog->packetSize;
-        pCsHciPacket[3] = pHciDataLog->opCode;
-
-        /* Add CS data */
-        FLib_MemCpy(&(pCsHciPacket[4]), pHciDataLog->pPacket, (uint32_t)pHciDataLog->packetSize - 1U);
-
-        /* Post callback for serial operation to prevent the addition of delays during the procedure */
-        if (gBleSuccess_c != App_PostCallbackMessage(App_ExportHciDataLog, (void *)pCsHciPacket))
-        {
-            (void)MEM_BufferFree(pCsHciPacket);
-        }
-    }
-
-    temp.p_u8 = pHciDataLog->pPacket;
-
-    (void)MEM_BufferFree(temp.v_ptr);
-}
-#endif 
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 1)
-/*! *********************************************************************************
-* \brief        Handles CS remote data log event for export.
-*
-* \param[in]    deviceId    Device ID for which remote data is logged
-* \param[in]    pData       Pointer to remote data
-********************************************************************************** */
-static void BleApp_CsEventHandlerRemoteDataLogEvent(deviceId_t deviceId, void *pData)
-{
-    uint16_t dataLen = BtcsClient_GetPeerRangingDataSize(deviceId);
-
-    /* Construct full CS HCI data packet */
-    uint8_t * pCsRemoteDataPacket = MEM_BufferAlloc(dataLen + sizeof(uint16_t));
-
-    if (pCsRemoteDataPacket != NULL)
-    {
-        /* Pack data length */
-        Utils_PackTwoByteValue(dataLen, &pCsRemoteDataPacket[0]);
-        /* Pack data */
-        FLib_MemCpy(&pCsRemoteDataPacket[2], pData, dataLen);
-
-        /* Post callback for serial operation to prevent the addition of delays during the procedure */
-        if (gBleSuccess_c != App_PostCallbackMessage(App_ExportRemoteDataLog, (void *)pCsRemoteDataPacket))
-        {
-            (void)MEM_BufferFree(pCsRemoteDataPacket);
-        }
-    }
-}
-#endif
-
 /*! *********************************************************************************
 * \brief        Main CS event handler dispatcher.
 *
@@ -2515,22 +2425,6 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
             BleApp_CsEventHandlerProcedureAborted(deviceId, pData);
         }
         break;
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
-        case gCsHciDataLogEvent_c:
-        {
-            BleApp_CsEventHandlerDataLogEvent(pData);
-        }
-        break;
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 1)
-        case gCsRemoteDataLogEvent_c:
-        {
-            BleApp_CsEventHandlerRemoteDataLogEvent(deviceId, pData);
-        }
-        break;
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */
 
         default:
         {
@@ -2786,41 +2680,6 @@ static void BleApp_HandoverCommHandler(uint8_t opGroup, uint8_t cmdId, uint16_t 
     A2A_SendCommand(opGroup, cmdId, pData, len);
 }
 #endif
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
-/*! *********************************************************************************
-* \brief        Handler function for exporting HCI data via serial
-*
-********************************************************************************** */
-static void App_ExportHciDataLog(void *pData)
-{
-    uint8_t *pCsHciPacket = (uint8_t*)pData;
-
-    /* Serial write full packet */
-    (void)SerialManager_WriteBlocking(gDataExportSerialWriteHandle, pCsHciPacket, (uint32_t)pCsHciPacket[2] + gCsHciDataHdrLength_c);
-
-    (void)MEM_BufferFree(pCsHciPacket);
-}
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 1)
-/*! *********************************************************************************
-* \brief        Handler function for exporting remote transfer data via serial
-*
-********************************************************************************** */
-static void App_ExportRemoteDataLog(void *pData)
-{
-    uint8_t *pCsRemotePacket = (uint8_t*)pData;
-
-    /* Get data length for the peer */
-    uint16_t dataLen = Utils_ExtractTwoByteValue(pCsRemotePacket);
-
-    /* Serial write full packet */
-    (void)SerialManager_WriteBlocking(gDataExportSerialWriteHandle, &pCsRemotePacket[2], dataLen);
-
-    (void)MEM_BufferFree(pCsRemotePacket);
-}
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 1) */
 
 static void HandlePhyEvent(appEventData_t *pEventData)
 {

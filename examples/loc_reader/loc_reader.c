@@ -179,10 +179,6 @@ static bool_t gAppOutLeSc;
 static bool_t gAppOutAuth;
 #endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
-static SERIAL_MANAGER_WRITE_HANDLE_DEFINE(gDataExportSerialWriteHandle);
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
-
 /************************************************************************************
 *************************************************************************************
 * Private functions prototypes
@@ -292,11 +288,6 @@ void BluetoothLEHost_AppInit(void)
     (void)AppLocalization_Init(gCsDefaultRole_c,
                                BleApp_CsEventHandler,
                                BleApp_PrintMeasurementResults);
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
-    /* Open write handle */
-    (void)SerialManager_OpenWriteHandle(gSerMgrIf2, (serial_write_handle_t)gDataExportSerialWriteHandle);
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
 }
 
 /*! *********************************************************************************
@@ -2436,43 +2427,6 @@ static void BleApp_HandleErrorProcedureAborted
     BleApp_HandleProcedureAbortReason(abortReason);
 }
 
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
-/*! **********************************************************************************
- * \brief        Handles CS HCI data log export event.
- *
- * \param[in]    pData           Pointer to HCI data log event.
- ***********************************************************************************/
-static void BleApp_HandleCsHciDataLogEvent
-(
-    void *pData
-)
-{
-    csHciDataLogEvent_t *pHciDataLog = (csHciDataLogEvent_t*)pData;
-
-    /* Construct full CS HCI data packet */
-    uint8_t * pCsHciPacket = MEM_BufferAlloc(pHciDataLog->packetSize + gCsHciDataHdrLength_c);
-
-    if (pCsHciPacket != NULL)
-    {
-        /* Add header, length and subevent opcode */
-        pCsHciPacket[0] = gHciPacketIndicator_c;
-        pCsHciPacket[1] = gHciEventCode_c;
-        pCsHciPacket[2] = pHciDataLog->packetSize;
-        pCsHciPacket[3] = pHciDataLog->opCode;
-
-        /* Add CS data */
-        FLib_MemCpy(&(pCsHciPacket[4]), pHciDataLog->pPacket, pHciDataLog->packetSize - 1U);
-
-        /* Serial write full packet */
-        (void)SerialManager_WriteBlocking(gDataExportSerialWriteHandle, pCsHciPacket, pHciDataLog->packetSize + gCsHciDataHdrLength_c);
-
-        (void)MEM_BufferFree(pCsHciPacket);
-    }
-
-    (void)MEM_BufferFree((void*)pHciDataLog->pPacket);
-}
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
-
 /*! **********************************************************************************
  * \brief        Handles CS events for the application (Part 1).
  *
@@ -2636,14 +2590,6 @@ static bool_t BleApp_CsEventHandlerPart2
             BleApp_HandleErrorProcedureAborted(deviceId, pData);
         }
         break;
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
-        case gCsHciDataLogEvent_c:
-        {
-            BleApp_HandleCsHciDataLogEvent(pData);
-        }
-        break;
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
 
         default:
         {

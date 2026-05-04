@@ -85,16 +85,6 @@
 #define gCsSubfeatureIptInReflector_c          (BIT4) /*! IPT in the CS reflector */
 #define gCsSubfeatureRttAccuracyPerPhy_c       (BIT5) /*! CS RTT accuracy specified on a per PHY basis */
 
-/* CS HCI data logging support */
-#ifndef gAppHciDataLogExport_d
-#define gAppHciDataLogExport_d               0U
-#endif
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
-#define gCsSubevtResHdrLength_c              16U
-#define gCsSubevtContResHdrLength_c          9U
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */
-
 /************************************************************************************
 *************************************************************************************
 * Public type definitions
@@ -115,9 +105,6 @@ typedef enum {
     csTestEnd_c,
     csEventResultDebug_c,
     csError_c,
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
-    csHciDataLog_c,
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */
 } csMetaEventType_t;
 
 typedef struct csReadRemoteSupportedCapabilitiesCompleteEvent_tag
@@ -246,15 +233,6 @@ typedef struct csEventResultDebugEvent_tag
     uint8_t*     pData;
 } csEventResultDebugEvent_t;
 
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
-typedef PACKED_STRUCT csHciDataLogEvent_tag
-{
-    uint8_t         opCode;
-    uint8_t         packetSize;
-    const uint8_t*  pPacket;
-} csHciDataLogEvent_t;
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */
-
 typedef enum
 {
     readRemoteSupportedCapabilitiesComplete,
@@ -287,9 +265,6 @@ typedef struct csMetaEvent_tag
         csErrorEvent_t                                   csError;
         csTestEndEvent_t                                 csTestEndEvent;
         csEventResultDebugEvent_t                        csEventResultDebugEvent;
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
-        csHciDataLogEvent_t                              csHciDataLogEvent;
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */
     }eventData;
 } csMetaEvent_t;
 
@@ -515,11 +490,6 @@ typedef enum {
 * Public memory declarations
 *************************************************************************************
 ************************************************************************************/
-#if defined(gUnitTesting_d)
-extern uint8_t gAppHciDataLogEnabled;
-#else
-extern const uint8_t gAppHciDataLogEnabled;
-#endif /* gUnitTesting_d */
 
 /************************************************************************************
 *************************************************************************************

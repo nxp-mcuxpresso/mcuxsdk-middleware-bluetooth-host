@@ -104,10 +104,6 @@ bool_t gPrivacyStateChangedByUser = FALSE;
 /* Peer MTU values */
 static uint16_t mPeerMtu[gAppMaxConnections_c] = {0U};
 
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
-static SERIAL_MANAGER_WRITE_HANDLE_DEFINE(gDataExportSerialWriteHandle);
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
-
 /************************************************************************************
 *************************************************************************************
 * Private functions prototypes
@@ -162,10 +158,6 @@ static void BluetoothLEHost_Initialized(void);
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
 static button_status_t BleApp_HandleKeys0(void *buttonHandle, button_callback_message_t *message,void *callbackParam);
 #endif /*gAppButtonCnt_c > 0*/
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
-static void App_ExportHciDataLog(void *pData);
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
 
 static void HandlePhyEvent(gapGenericEvent_t* pGenericEvent);
 static void HandleLocalOobData(gapGenericEvent_t* pGenericEvent);
@@ -234,11 +226,6 @@ void BluetoothLEHost_AppInit(void)
 
     /* Register CS callback and initialize localization */
     (void)AppLocalization_Init(gCsDefaultRole_c, BleApp_CsEventHandler, BleApp_PrintMeasurementResults);
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
-    /* Open write handle */
-    (void)SerialManager_OpenWriteHandle(gSerMgrIf2, (serial_write_handle_t)gDataExportSerialWriteHandle);
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
 }
 
 /*! *********************************************************************************
@@ -1752,45 +1739,6 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
         }
         break;
 
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
-        case gCsHciDataLogEvent_c:
-        {
-            csHciDataLogEvent_t *pHciDataLog = (csHciDataLogEvent_t*)pData;
-
-            union
-            {
-                const uint8_t *p_u8;
-                void *v_ptr;
-            }temp = {};
-
-            /* Construct full CS HCI data packet */
-            uint8_t * pCsHciPacket = MEM_BufferAlloc((uint32_t)pHciDataLog->packetSize + gCsHciDataHdrLength_c);
-
-            if (pCsHciPacket != NULL)
-            {
-                /* Add header, length and subevent opcode */
-                pCsHciPacket[0] = gHciPacketIndicator_c;
-                pCsHciPacket[1] = gHciEventCode_c;
-                pCsHciPacket[2] = pHciDataLog->packetSize;
-                pCsHciPacket[3] = pHciDataLog->opCode;
-
-                /* Add CS data */
-                FLib_MemCpy(&(pCsHciPacket[4]), pHciDataLog->pPacket, (uint32_t)pHciDataLog->packetSize - 1U);
-
-                /* Post callback for serial operation to prevent the addition of delays during the procedure */
-                if (gBleSuccess_c != App_PostCallbackMessage(App_ExportHciDataLog, (void *)pCsHciPacket))
-                {
-                    (void)MEM_BufferFree(pCsHciPacket);
-                }
-            }
-
-            temp.p_u8 = pHciDataLog->pPacket;
-
-            (void)MEM_BufferFree(temp.v_ptr);
-        }
-        break;
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
-
         default:
         {
             ; /* Do nothing */
@@ -1798,22 +1746,6 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
         break;
     }
 }
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
-/*! *********************************************************************************
-* \brief        Handler function for exporting HCI data via serial
-*
-********************************************************************************** */
-static void App_ExportHciDataLog(void *pData)
-{
-    uint8_t *pCsHciPacket = (uint8_t*)pData;
-
-    /* Serial write full packet */
-    (void)SerialManager_WriteBlocking(gDataExportSerialWriteHandle, pCsHciPacket, (uint32_t)pCsHciPacket[2] + gCsHciDataHdrLength_c);
-
-    (void)MEM_BufferFree(pCsHciPacket);
-}
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
 
 /*! *********************************************************************************
 * \brief        Handles PHY event from generic callback.

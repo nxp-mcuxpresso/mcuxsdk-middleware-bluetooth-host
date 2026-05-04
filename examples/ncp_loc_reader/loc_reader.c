@@ -173,10 +173,6 @@ static bool_t gAppOutLeSc;
 static bool_t gAppOutAuth;
 #endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
-static SERIAL_MANAGER_WRITE_HANDLE_DEFINE(gDataExportSerialWriteHandle);
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
-
 /************************************************************************************
 *************************************************************************************
 * Private functions prototypes
@@ -290,11 +286,6 @@ void BluetoothLEHost_AppInit(void)
     (void)AppLocalization_Init(gCsDefaultRole_c,
                                BleApp_CsEventHandler,
                                NULL);
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
-    /* Open write handle */
-    (void)SerialManager_OpenWriteHandle(gSerMgrIf2, (serial_write_handle_t)gDataExportSerialWriteHandle);
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
 }
 
 /*! *********************************************************************************
@@ -2353,36 +2344,6 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
             }
         }
         break;
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1)
-        case gCsHciDataLogEvent_c:
-        {
-            csHciDataLogEvent_t *pHciDataLog = (csHciDataLogEvent_t*)pData;
-
-            /* Construct full CS HCI data packet */
-            uint8_t * pCsHciPacket = MEM_BufferAlloc(pHciDataLog->packetSize + gCsHciDataHdrLength_c);
-
-            if (pCsHciPacket != NULL)
-            {
-                /* Add header, length and subevent opcode */
-                pCsHciPacket[0] = gHciPacketIndicator_c;
-                pCsHciPacket[1] = gHciEventCode_c;
-                pCsHciPacket[2] = pHciDataLog->packetSize;
-                pCsHciPacket[3] = pHciDataLog->opCode;
-
-                /* Add CS data */
-                FLib_MemCpy(&(pCsHciPacket[4]), pHciDataLog->pPacket, pHciDataLog->packetSize - 1U);
-
-                /* Serial write full packet */
-                (void)SerialManager_WriteBlocking(gDataExportSerialWriteHandle, pCsHciPacket, pHciDataLog->packetSize + gCsHciDataHdrLength_c);
-
-                (void)MEM_BufferFree(pCsHciPacket);
-            }
-
-            (void)MEM_BufferFree((void*)pHciDataLog->pPacket);
-        }
-        break;
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d == 1) */
 
         default:
         {

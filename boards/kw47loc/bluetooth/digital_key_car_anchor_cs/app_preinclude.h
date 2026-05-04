@@ -152,13 +152,6 @@
 #define gA2BEnabled_d           0
 #define gA2BInitiator_d         0
 
-/* CS HCI data logging support
-  *  0 = disabled
-  *  1 = export local HCI data only
-  *  2 = export local HCI data and remote data received via RAS
-  */
-#define gAppHciDataLogExport_d          0
-
 /* CS data logging support
    0 = disabled
    1 = export CS config data + ranging results
@@ -173,10 +166,6 @@
 
 #if (gHandoverIncluded_d == 1) || (gA2BEnabled_d == 1)
 #define gA2ASerialInterface_d   1
-#endif
-
-#if ((gHandoverIncluded_d == 1) || (gA2BEnabled_d == 1)) && (gAppHciDataLogExport_d == 1)
-#error "Distance measurement data export not available if connection handover or A2B is enabled"
 #endif
 
 #if (gA2BEnabled_d == 1) && (gAppSecureMode_d == 0)
@@ -207,7 +196,7 @@
 #define gL2caMaxLeCbChannels_c                  gAppMaxConnections_c
 
  /* Enable Serial Manager interface */
-#if gA2ASerialInterface_d || gAppHciDataLogExport_d
+#if gA2ASerialInterface_d
 #define gAppUseSerialManager_c                  2
 #else
 #define gAppUseSerialManager_c                  1

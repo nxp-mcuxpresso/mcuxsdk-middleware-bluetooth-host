@@ -7,8 +7,6 @@ This section describes configuration options available for the applications. The
 -   The ranging algorithm to run once the local and remote measurement data is available. Each of the two supported algorithms can be disabled at compile time for code size reasons. By default, both are enabled. To disable an algorithm at compile time, define its respective macro with the value `0` inside `app_preinclude.h`. The macros are `gAppUseCDEAlgorithm_d`, `gAppUseRADEAlgorithm_d`. At runtime, the `setalgo` shell command can be used to configure the algorithm that runs upon completion of the CS procedure and data transfer. Any combination of algorithms can be selected. By default, RADE is selected.
 -   The timing information display feature can be activated by setting the `gAppCsTimeInfo_d` macro to value `1` inside `app_preinclude.h`. Additional timing information such as the duration of the CS config phase, CS procedure, BTCS transfer, and running of the algorithms is displayed on the console.
 
--   The HCI data log export can be activated by setting the `gAppHciDataLogExport_d` macro to value 1 in `app_preinclude.h`, on both the Anchor and the Device. A log of all Subevent Result and Subevent Result Continue HCI events will be printed on the second serial for each CS procedure.
-
 For better performance and user experience, the optional LE Coded PHY advertising should be disabled by setting `gAppLeCodedAdvEnable_d` to `0` inside `app_preinclude.h` on the Anchor.
 
 -   Maximum concurrent Channel Sounding procedures**: Configure the maximum number of Channel Sounding procedures that can run simultaneously across all connections using the `gChannelSoundingMaxConcurrentProcedures_c` define in `app_preinclude.h`.

@@ -1904,58 +1904,6 @@ static bleResult_t handleCsError
     return result;
 }
 
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
-/*! *********************************************************************************
-*\fn           static bleResult_t handleHciDataLog(
-*              csMetaEvent_t* pPacket, csMetaEventData_t* pCsMetaEvent)
-*
-*\brief        Handle HCI Data Log event.
-*
-*\param[in]    pPacket          Pointer to CS meta event packet
-*\param[out]   pCsMetaEvent     Pointer to CS meta event data structure
-*
-*\retval       bleResult_t      Result of the operation.
-********************************************************************************** */
-static bleResult_t handleHciDataLog
-(
-    csMetaEvent_t* pPacket,
-    csMetaEventData_t* pCsMetaEvent
-)
-{
-    bleResult_t result = gBleSuccess_c;
-    
-    pCsMetaEvent->eventType = gCsMetaEvtHciDataLog_c;
-    csHciDataLogEvent_t *pHciDataLog = MEM_BufferAlloc(sizeof(csHciDataLogEvent_t));
-
-    if (pHciDataLog != NULL)
-    {
-        pCsMetaEvent->pEventData = (void*)pHciDataLog;
-        pHciDataLog->opCode = pPacket->eventData.csHciDataLogEvent.opCode;
-        pHciDataLog->packetSize = pPacket->eventData.csHciDataLogEvent.packetSize;
-        uint8_t *hciPacket = MEM_BufferAlloc(pPacket->eventData.csHciDataLogEvent.packetSize);
-
-        if (hciPacket != NULL)
-        {
-            /* Copy HCI data packet into event data */
-            FLib_MemCpy(hciPacket,
-                        pPacket->eventData.csHciDataLogEvent.pPacket,
-                        pPacket->eventData.csHciDataLogEvent.packetSize);
-            pHciDataLog->pPacket = hciPacket;
-        }
-        else
-        {
-            result = gBleOutOfMemory_c;
-        }
-    }
-    else
-    {
-        result = gBleOutOfMemory_c;
-    }
-    
-    return result;
-}
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */
-
 /*! *********************************************************************************
 *\fn           bleResult_t csMetaEventCallback(csMetaEvent_t* pPacket)
 *
@@ -2019,14 +1967,6 @@ static bleResult_t csMetaEventCallback
                 result = handleCsError(pPacket, pCsMetaEvent);
             }
             break;
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
-            case csHciDataLog_c:
-            {
-                result = handleHciDataLog(pPacket, pCsMetaEvent);
-            }
-            break;
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */
 
             default:
             {
@@ -2783,18 +2723,6 @@ static void AppLocalization_CSMetaEventCallback
             }
         }
         break;
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0)
-        case gCsMetaEvtHciDataLog_c:
-        {
-            if (mpfAppCsCallback != NULL)
-            {
-                /* Send HCI data logging event to the application. */
-                mpfAppCsCallback(deviceId, (void*)pPacket->pEventData, gCsHciDataLogEvent_c);
-            }
-        }
-        break;
-#endif /* defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 0) */
 
         default:
         {
@@ -3695,15 +3623,6 @@ void AppLocalization_RunAlgorithm
 #endif
 
 #if defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
-
-#if defined(gAppHciDataLogExport_d) && (gAppHciDataLogExport_d > 1)
-        /* Print remote data */
-        if ((mpfAppCsCallback != NULL) && (pPeerResultData != NULL))
-        {
-            /* Send data logging event to the application. */
-            mpfAppCsCallback(deviceId, (void*)pPeerResultData->pData, gCsRemoteDataLogEvent_c);
-        }
-#endif
 
         /* Prepare algo result */
         localizationAlgoResult_t algoResult;
