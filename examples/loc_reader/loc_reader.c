@@ -2623,15 +2623,290 @@ static void BleApp_CsEventHandler
     }
 }
 
-/*! *********************************************************************************
-* \brief  This is the callback for displaying distance measurement results
-********************************************************************************** */
-static void BleApp_PrintMeasurementResults(deviceId_t deviceId, localizationAlgoResult_t *pResult)
+/*! **********************************************************************************
+ * \brief        Print RADE algorithm distance results.
+ *
+ * \param[in]    deviceId        Peer device ID.
+ * \param[in]    pResult         Pointer to localization algorithm result.
+ *
+ * \return       bool_t          TRUE if UI was updated, FALSE otherwise.
+ ********************************************************************************** */
+#if defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)
+static bool_t BleApp_PrintRADEResults
+(
+    deviceId_t deviceId,
+    localizationAlgoResult_t *pResult
+)
 {
-#if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
-    uint16_t qInt =0U;
+    bool_t bUIUpdated = FALSE;
+
+    if ((pResult->algorithm & eMciqAlgoEmbedRADE) != 0U)
+    {
+        shell_write("\r\n[");
+        shell_writeDec((uint8_t)deviceId);
+
+        if (pResult->radeError != 0U)
+        {
+            shell_write("] RADE Error: ");
+            shell_writeDec(pResult->radeError);
+            shell_write("!\r\n");
+        }
+        else if (pResult->resultRADE.dqiIntegerPart == 0U)
+        {
+            shell_write("] Low Quality data for RADE! Quality indicator is 0! \n\r");
+        }
+        else if (pResult->resultRADE.distanceIntegerPart > gMaxDistanceMeters_c)
+        {
+            shell_write("] Outlier RADE distance result - discarded. Check gMaxDistanceMeters_c value. \n\r");
+        }
+        else
+        {
+            shell_write("] Distance (RADE): ");
+            /* Display the integer part of the distance in meters. */
+            shell_writeDec(pResult->resultRADE.distanceIntegerPart);
+            shell_write(".");
+            /* Leading zeroes for decimal part */
+            for (uint8_t i = 0U; i < pResult->resultRADE.leadingZeroesDecimalPart; i++)
+            {
+                shell_write("0");
+            }
+            /* Display the decimal part of the distance in meters. */
+            shell_writeDec(pResult->resultRADE.distanceDecimalPart);
+            shell_write(" m   ");
+            shell_write("Quality: ");
+            shell_writeDec(pResult->resultRADE.dqiIntegerPart);
+            shell_write(".");
+            shell_writeDec(pResult->resultRADE.dqiDecimalPart);
+            shell_write("%%\r\n");
+
+            /* Flash LEDs if distance is less than 1m. */
+            if ((mPreviousDistance <= (float)1) && (pResult->resultRADE.distanceInMeters <= (float)1))
+            {
+                LedStartFlashingAllLeds();
+                bUIUpdated = TRUE;
+            }
+            else if ((mPreviousDistance > (float)1) && (pResult->resultRADE.distanceInMeters > (float)1))
+            {
+                LedStopFlashingAllLeds();
+                Led1On();
+                bUIUpdated = TRUE;
+            }
+            else
+            {
+                /* MISRA */
+            }
+            mPreviousDistance = pResult->resultRADE.distanceInMeters;
+        }
+    }
+    return bUIUpdated;
+}
+#endif /* gAppUseRADEAlgorithm_d */
+
+/*! **********************************************************************************
+ * \brief        Print CDE algorithm distance results.
+ *
+ * \param[in]    deviceId        Peer device ID.
+ * \param[in]    pResult         Pointer to localization algorithm result.
+ * \param[in]    bUIUpdated      Flag indicating if UI was already updated.
+ ********************************************************************************** */
+#if defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)
+static void BleApp_PrintCDEResults
+(
+    deviceId_t deviceId,
+    localizationAlgoResult_t *pResult,
+    bool_t bUIUpdated
+)
+{
+    if ((pResult->algorithm & eMciqAlgoEmbedCDE) != 0U)
+    {
+        shell_write("\r\n[");
+        shell_writeDec((uint8_t)deviceId);
+        shell_write("] Distance (CDE): ");
+        /* Display the integer part of the distance in meters. */
+        shell_writeDec(pResult->resultCDE.distanceIntegerPart);
+        shell_write(".");
+        /* Leading zeroes for decimal part */
+        for (uint8_t i = 0U; i < pResult->resultCDE.leadingZeroesDecimalPart; i++)
+        {
+            shell_write("0");
+        }
+        /* Display the decimal part of the distance in meters. */
+        shell_writeDec(pResult->resultCDE.distanceDecimalPart);
+        shell_write(" m   ");
+        shell_write("Quality: ");
+        shell_writeDec(pResult->resultCDE.dqiIntegerPart);
+        shell_write(".");
+        shell_writeDec(pResult->resultCDE.dqiDecimalPart);
+        shell_write("%%\r\n");
+
+        /* Flash LEDs if distance is less than 1m. */
+        if (bUIUpdated == FALSE)
+        {
+            if ((mPreviousDistance <= (float)1) && (pResult->resultCDE.distanceInMeters <= (float)1))
+            {
+                LedStartFlashingAllLeds();
+            }
+            else if ((mPreviousDistance > (float)1) && (pResult->resultCDE.distanceInMeters > (float)1))
+            {
+                LedStopFlashingAllLeds();
+                Led1On();
+            }
+            else
+            {
+                /* MISRA */
+            }
+            mPreviousDistance = pResult->resultCDE.distanceInMeters;
+        }
+    }
+}
+#endif /* gAppUseCDEAlgorithm_d */
+
+/*! **********************************************************************************
+ * \brief        Print CS timing information.
+ *
+ * \param[in]    pResult         Pointer to localization algorithm result.
+ ********************************************************************************** */
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
+static void BleApp_PrintTimeInfo
+(
+    localizationAlgoResult_t *pResult
+)
+{
+    shell_write("Time information:");
+    shell_write("\r\n");
+
+    if (pResult->csConfigDuration != 0)
+    {
+        shell_write("CS Config: ");
+        shell_writeDec(pResult->csConfigDuration/1000);
+        shell_write("ms\r\n");
+    }
+    if (pResult->csProcedureDuration != 0)
+    {
+        shell_write("CS Procedure: ");
+        shell_writeDec(pResult->csProcedureDuration/1000);
+        shell_write("ms\r\n");
+    }
+    if (pResult->transferDuration != 0)
+    {
+        shell_write("RAS transfer: ");
+        shell_writeDec(pResult->transferDuration/1000);
+        shell_write("ms\r\n");
+    }
+    if (pResult->algoDuration != 0)
+    {
+        shell_write("Localization algorithm: ");
+        shell_writeDec(pResult->algoDuration/1000);
+        shell_write("ms\r\n");
+    }
+}
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
+
+/*! **********************************************************************************
+ * \brief        Print RTT distance information.
+ *
+ * \param[in]    deviceId        Peer device ID.
+ * \param[in]    pResult         Pointer to localization algorithm result.
+ ********************************************************************************** */
+static void BleApp_PrintRTTInfo
+(
+    deviceId_t deviceId,
+    localizationAlgoResult_t *pResult
+)
+{
+    uint16_t qInt = 0U;
     uint16_t qFrac = 0U;
 
+    shell_write("\r\n[");
+    shell_writeDec((uint8_t)deviceId);
+    shell_write("] RTT Distance: ");
+
+    /* Set negative distance to zero */
+    if (pResult->rttResult.dm_ad <= 0)
+    {
+        qInt = 0U;
+        qFrac = 0U;
+    }
+    else
+    {
+        /* Round to nearest integer */
+        pResult->rttResult.dm_ad += 3277;
+        qInt = (uint16_t)((uint32_t)pResult->rttResult.dm_ad >> 16U);
+        qFrac = (uint16_t)((((uint32_t)pResult->rttResult.dm_ad & 0x0000FFFFU)*10U) >> 16U);
+    }
+
+    /* Print Results */
+    shell_writeDec(qInt);
+    shell_write(".");
+    shell_writeDec(qFrac);
+    shell_write(" m Success Rate: ");
+    shell_writeDec(pResult->rttResult.dm_sr);
+    shell_write("\r\n");
+}
+
+/*! **********************************************************************************
+ * \brief        Print average RSSI information.
+ *
+ * \param[in]    pResult         Pointer to localization algorithm result.
+ ********************************************************************************** */
+#if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1)
+static void BleApp_PrintRssiInfo
+(
+    localizationAlgoResult_t *pResult
+)
+{
+    shell_write("RSSI information:");
+    shell_write("\r\n");
+
+    if (pResult->rssiInfo.rssiLocalNo != 0U)
+    {
+        int8_t rssiLocalAverage = 0;
+        shell_write("Local Average: ");
+        for (uint8_t idx = 0U; idx < pResult->rssiInfo.rssiLocalNo; idx++)
+        {
+            rssiLocalAverage += (pResult->rssiInfo.aRssiLocal[idx]/pResult->rssiInfo.rssiLocalNo);
+        }
+        if (((uint8_t)rssiLocalAverage >> 7U) != 0U)
+        {
+            shell_write("-");
+            rssiLocalAverage = ~((uint8_t)rssiLocalAverage - 1U);
+        }
+        shell_writeDec(rssiLocalAverage);
+        shell_write("    ");
+    }
+
+    if (pResult->rssiInfo.rssiRemoteNo != 0U)
+    {
+        int8_t rssiRemoteAverage = 0;
+        shell_write("Remote Average: ");
+        for (uint8_t idx = 0U; idx < pResult->rssiInfo.rssiRemoteNo; idx++)
+        {
+            rssiRemoteAverage += (pResult->rssiInfo.aRssiRemote[idx]/pResult->rssiInfo.rssiRemoteNo);
+        }
+        if (((uint8_t)rssiRemoteAverage >> 7U) != 0U)
+        {
+            shell_write("-");
+            rssiRemoteAverage = ~((uint8_t)rssiRemoteAverage - 1U);
+        }
+        shell_writeDec(rssiRemoteAverage);
+        shell_write("\r\n");
+    }
+}
+#endif /* defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1) */
+
+/*! **********************************************************************************
+ * \brief        This is the callback for displaying distance measurement results.
+ *
+ * \param[in]    deviceId        Peer device ID.
+ * \param[in]    pResult         Pointer to localization algorithm result.
+ ********************************************************************************** */
+static void BleApp_PrintMeasurementResults
+(
+    deviceId_t deviceId,
+    localizationAlgoResult_t *pResult
+)
+{
+#if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
 #if ((defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)) || \
     (defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)))
     bool_t bUIUpdated = FALSE;
@@ -2640,208 +2915,21 @@ static void BleApp_PrintMeasurementResults(deviceId_t deviceId, localizationAlgo
     if ((mVerbosityLevel != 0U) || (mProcedureCount == mRangeSettings[deviceId].maxNumProcedures))
     {
 #if defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)
-        if ((pResult->algorithm & eMciqAlgoEmbedRADE) != 0U)
-        {
-            shell_write("\r\n[");
-            shell_writeDec((uint8_t)deviceId);
-
-            if (pResult->radeError != 0U)
-            {
-                shell_write("] RADE Error: ");
-                shell_writeDec(pResult->radeError);
-                shell_write("!\r\n");
-            }
-            else if (pResult->resultRADE.dqiIntegerPart == 0U)
-            {
-                shell_write("] Low Quality data for RADE! Quality indicator is 0! \n\r");
-            }
-            else if (pResult->resultRADE.distanceIntegerPart > gMaxDistanceMeters_c)
-            {
-                shell_write("] Outlier RADE distance result - discarded. Check gMaxDistanceMeters_c value. \n\r");
-            }
-            else
-            {
-                shell_write("] Distance (RADE): ");
-                /* Display the integer part of the distance in meters. */
-                shell_writeDec(pResult->resultRADE.distanceIntegerPart);
-                shell_write(".");
-
-                /* Leading zeroes for decimal part */
-                for (uint8_t i = 0U; i < pResult->resultRADE.leadingZeroesDecimalPart; i++)
-                {
-                    shell_write("0");
-                }
-
-                /* Display the decimal part of the distance in meters. */
-                shell_writeDec(pResult->resultRADE.distanceDecimalPart);
-                shell_write(" m   ");
-
-                shell_write("Quality: ");
-                shell_writeDec(pResult->resultRADE.dqiIntegerPart);
-                shell_write(".");
-                shell_writeDec(pResult->resultRADE.dqiDecimalPart);
-                shell_write("%%\r\n");
-                /* Flash LEDs if distance is less than 1m. */
-                if ((mPreviousDistance <= (float)1) && (pResult->resultRADE.distanceInMeters <= (float)1))
-                {
-                    LedStartFlashingAllLeds();
-                    bUIUpdated = TRUE;
-                }
-                else if ((mPreviousDistance > (float)1) && (pResult->resultRADE.distanceInMeters > (float)1))
-                {
-                    LedStopFlashingAllLeds();
-                    Led1On();
-                    bUIUpdated = TRUE;
-                }
-                else
-                {
-                    /* MISRA */
-                }
-                mPreviousDistance = pResult->resultRADE.distanceInMeters;
-            }
-        }
+        bUIUpdated = BleApp_PrintRADEResults(deviceId, pResult);
 #endif /* gAppUseRADEAlgorithm_d */
 
 #if defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)
-        if ((pResult->algorithm & eMciqAlgoEmbedCDE) != 0U)
-        {
-            shell_write("\r\n[");
-            shell_writeDec((uint8_t)deviceId);
-            shell_write("] Distance (CDE): ");
-            /* Display the integer part of the distance in meters. */
-            shell_writeDec(pResult->resultCDE.distanceIntegerPart);
-            shell_write(".");
-
-            /* Leading zeroes for decimal part */
-            for (uint8_t i = 0U; i < pResult->resultCDE.leadingZeroesDecimalPart; i++)
-            {
-                shell_write("0");
-            }
-
-            /* Display the decimal part of the distance in meters. */
-            shell_writeDec(pResult->resultCDE.distanceDecimalPart);
-            shell_write(" m   ");
-
-            shell_write("Quality: ");
-            shell_writeDec(pResult->resultCDE.dqiIntegerPart);
-            shell_write(".");
-            shell_writeDec(pResult->resultCDE.dqiDecimalPart);
-            shell_write("%%\r\n");
-
-            /* Flash LEDs if distance is less than 1m. */
-            if (bUIUpdated == FALSE)
-            {
-                if ((mPreviousDistance <= (float)1) && (pResult->resultCDE.distanceInMeters <= (float)1))
-                {
-                    LedStartFlashingAllLeds();
-                }
-                else if ((mPreviousDistance > (float)1) && (pResult->resultCDE.distanceInMeters > (float)1))
-                {
-                    LedStopFlashingAllLeds();
-                    Led1On();
-                }
-                else
-                {
-                    /* MISRA */
-                }
-                mPreviousDistance = pResult->resultCDE.distanceInMeters;
-            }
-        }
+        BleApp_PrintCDEResults(deviceId, pResult, bUIUpdated);
 #endif /* gAppUseCDEAlgorithm_d */
 
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-        shell_write("Time information:");
-        shell_write("\r\n");
-        if (pResult->csConfigDuration != 0)
-        {
-            shell_write("CS Config: ");
-            shell_writeDec(pResult->csConfigDuration/1000);
-            shell_write("ms\r\n");
-        }
-        if (pResult->csProcedureDuration != 0)
-        {
-            shell_write("CS Procedure: ");
-            shell_writeDec(pResult->csProcedureDuration/1000);
-            shell_write("ms\r\n");
-        }
-        if (pResult->transferDuration != 0)
-        {
-            shell_write("RAS transfer: ");
-            shell_writeDec(pResult->transferDuration/1000);
-            shell_write("ms\r\n");
-        }
-        if (pResult->algoDuration != 0)
-        {
-            shell_write("Localization algorithm: ");
-            shell_writeDec(pResult->algoDuration/1000);
-            shell_write("ms\r\n");
-        }
+        BleApp_PrintTimeInfo(pResult);
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
 
-        /* Print RTT information */
-        shell_write("\r\n[");
-        shell_writeDec((uint8_t)deviceId);
-        shell_write("] RTT Distance: ");
+        BleApp_PrintRTTInfo(deviceId, pResult);
 
-        /* Set negative distance to zero */
-        if (pResult->rttResult.dm_ad <= 0)
-        {
-            qInt = 0U;
-            qFrac = 0U;
-        }
-        else
-        {
-            /* Round to nearest integer */
-            pResult->rttResult.dm_ad += 3277;
-            qInt = (uint16_t)((uint32_t)pResult->rttResult.dm_ad >> 16U);
-            qFrac = (uint16_t)((((uint32_t)pResult->rttResult.dm_ad & 0x0000FFFFU)*10U) >> 16U);
-        }
-
-        /* Print Results */
-        shell_writeDec(qInt);
-        shell_write(".");
-        shell_writeDec(qFrac);
-        shell_write(" m Success Rate: ");
-        shell_writeDec(pResult->rttResult.dm_sr);
-        shell_write("\r\n");
-
-/* Print average RSSI values */
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1)
-        shell_write("RSSI information:");
-        shell_write("\r\n");
-        if (pResult->rssiInfo.rssiLocalNo != 0U)
-        {
-            int8_t rssiLocalAverage = 0;
-            shell_write("Local Average: ");
-            for (uint8_t idx = 0U; idx < pResult->rssiInfo.rssiLocalNo; idx++)
-            {
-                rssiLocalAverage += (pResult->rssiInfo.aRssiLocal[idx]/pResult->rssiInfo.rssiLocalNo);
-            }
-            if (((uint8_t)rssiLocalAverage >> 7U) != 0U)
-            {
-                shell_write("-");
-                rssiLocalAverage = ~((uint8_t)rssiLocalAverage - 1U);
-            }
-            shell_writeDec(rssiLocalAverage);
-            shell_write("    ");
-        }
-
-        if (pResult->rssiInfo.rssiRemoteNo != 0U)
-        {
-            int8_t rssiRemoteAverage = 0;
-            shell_write("Remote Average: ");
-            for (uint8_t idx = 0U; idx < pResult->rssiInfo.rssiRemoteNo; idx++)
-            {
-                rssiRemoteAverage += (pResult->rssiInfo.aRssiRemote[idx]/pResult->rssiInfo.rssiRemoteNo);
-            }
-            if (((uint8_t)rssiRemoteAverage >> 7U) != 0U)
-            {
-                shell_write("-");
-                rssiRemoteAverage = ~((uint8_t)rssiRemoteAverage - 1U);
-            }
-            shell_writeDec(rssiRemoteAverage);
-            shell_write("\r\n");
-        }
+        BleApp_PrintRssiInfo(pResult);
 #endif /* defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1) */
     }
 
