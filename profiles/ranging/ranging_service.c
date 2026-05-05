@@ -1417,6 +1417,374 @@ static void packSubeventHeader
 }
 
 /*!**********************************************************************************
+ * \brief            Process Mode 0 step data filtering
+ *
+ * \param[in]        deviceId          Peer identifier
+ * \param[in]        devIdIdx          Device index for mode filters
+ * \param[in]        stepDataLength    Length of step data
+ * \param[in,out]    pStepDataAux      Pointer to step data (updated after processing)
+ * \param[out]       pNotifData        Pointer to notification data buffer
+ * \param[in,out]    pOutLen           Length of stored data (updated)
+ *
+ * \return           Pointer to next step data position
+ ************************************************************************************/
+static uint8_t* processMode0Data
+(
+    deviceId_t deviceId,
+    uint8_t devIdIdx,
+    uint8_t stepDataLength,
+    uint8_t* pStepDataAux,
+    uint8_t* pNotifData,
+    uint16_t* pOutLen
+)
+{
+    uint8_t* pData = pStepDataAux;
+
+    if ((maModeFilters[devIdIdx] & BIT2) != 0U)
+    {
+        /* Copy packet quality information */
+        *(pNotifData + (*pOutLen)) = *pData;
+        (*pOutLen) += (uint16_t)sizeof(uint8_t);
+    }
+    pData = &pData[sizeof(uint8_t)];
+
+    if ((maModeFilters[devIdIdx] & BIT3) != 0U)
+    {
+        /* Copy packet RSSI information */
+        *(pNotifData + (*pOutLen)) = *pData;
+        (*pOutLen) += (uint16_t)sizeof(uint8_t);
+    }
+    pData = &pData[sizeof(uint8_t)];
+
+    if ((maModeFilters[devIdIdx] & BIT4) != 0U)
+    {
+        /* Copy packet antenna information */
+        *(pNotifData + (*pOutLen)) = *pData;
+        (*pOutLen) += (uint16_t)sizeof(uint8_t);
+    }
+    pData = &pData[sizeof(uint8_t)];
+
+    if (stepDataLength > 3U)
+    {
+        if ((maModeFilters[devIdIdx] & BIT5) != 0U)
+        {
+            /* Copy measured frequency offset information */
+            FLib_MemCpy(pNotifData + (*pOutLen), pData, sizeof(uint16_t));
+            (*pOutLen) += (uint16_t)sizeof(uint16_t);
+        }
+        pData = &pData[sizeof(uint16_t)];
+    }
+
+    return pData;
+}
+
+/*!**********************************************************************************
+ * \brief            Process Mode 1 step data filtering
+ *
+ * \param[in]        deviceId          Peer identifier
+ * \param[in]        devIdIdx          Device index for mode filters
+ * \param[in]        stepDataLength    Length of step data
+ * \param[in,out]    pStepDataAux      Pointer to step data (updated after processing)
+ * \param[out]       pNotifData        Pointer to notification data buffer
+ * \param[in,out]    pOutLen           Length of stored data (updated)
+ *
+ * \return           Pointer to next step data position
+************************************************************************************/
+static uint8_t* processMode1Data
+(
+    deviceId_t deviceId,
+    uint8_t devIdIdx,
+    uint8_t stepDataLength,
+    uint8_t* pStepDataAux,
+    uint8_t* pNotifData,
+    uint16_t* pOutLen
+)
+{
+    uint8_t* pData = pStepDataAux;
+
+    if ((maModeFilters[devIdIdx] & BIT2) != 0U)
+    {
+        /* Copy packet quality information */
+        *(pNotifData + (*pOutLen)) = *pData;
+        (*pOutLen) += (uint16_t)sizeof(uint8_t);
+    }
+    pData = &pData[sizeof(uint8_t)];
+
+    if ((maModeFilters[devIdIdx] & BIT3) != 0U)
+    {
+        /* Copy packet NADM information */
+        *(pNotifData + (*pOutLen)) = *pData;
+        (*pOutLen) += (uint16_t)sizeof(uint8_t);
+    }
+    pData = &pData[sizeof(uint8_t)];
+
+    if ((maModeFilters[devIdIdx] & BIT4) != 0U)
+    {
+        /* Copy packet RSSI information */
+        *(pNotifData + (*pOutLen)) = *pData;
+        (*pOutLen) += (uint16_t)sizeof(uint8_t);
+    }
+    pData = &pData[sizeof(uint8_t)];
+
+    if ((maModeFilters[devIdIdx] & BIT5) != 0U)
+    {
+        /* Copy packet ToA ToD information */
+        FLib_MemCpy(pNotifData + (*pOutLen), pData, sizeof(uint16_t));
+        (*pOutLen) += (uint16_t)sizeof(uint16_t);
+    }
+    pData = &pData[sizeof(uint16_t)];
+
+    if ((maModeFilters[devIdIdx] & BIT6) != 0U)
+    {
+        /* Copy packet antenna information */
+        *(pNotifData + (*pOutLen)) = *pData;
+        (*pOutLen) += (uint16_t)sizeof(uint8_t);
+    }
+    pData = &pData[sizeof(uint8_t)];
+
+    if (stepDataLength > 6U)
+    {
+        if ((maModeFilters[devIdIdx] & BIT7) != 0U)
+        {
+            /* Copy packet PCT1 information */
+            FLib_MemCpy(pNotifData + (*pOutLen), pData, gPacket_PCTSize_c);
+            (*pOutLen) += (uint16_t)gPacket_PCTSize_c;
+        }
+        pData = &pData[gPacket_PCTSize_c];
+
+        if ((maModeFilters[devIdIdx] & BIT8) != 0U)
+        {
+            /* Copy packet PCT2 information */
+            FLib_MemCpy(pNotifData + (*pOutLen), pData, gPacket_PCTSize_c);
+            (*pOutLen) += (uint16_t)gPacket_PCTSize_c;
+        }
+        pData = &pData[gPacket_PCTSize_c];
+    }
+    return pData;
+}
+
+/*!**********************************************************************************
+ * \brief            Process Mode 2 step data filtering
+ *
+ * \param[in]        deviceId          Peer identifier
+ * \param[in]        devIdIdx          Device index for mode filters
+ * \param[in]        stepDataLength    Length of step data
+ * \param[in,out]    pStepDataAux      Pointer to step data (updated after processing)
+ * \param[out]       pNotifData        Pointer to notification data buffer
+ * \param[in,out]    pOutLen           Length of stored data (updated)
+ *
+ * \return           Pointer to next step data position
+************************************************************************************/
+static uint8_t* processMode2Data
+(
+    deviceId_t deviceId,
+    uint8_t devIdIdx,
+    uint8_t stepDataLength,
+    uint8_t* pStepDataAux,
+    uint8_t* pNotifData,
+    uint16_t* pOutLen
+)
+{
+    uint8_t* pData = pStepDataAux;
+    uint8_t antPermIndex = *pData++;
+    assert(antPermIndex < 25);
+    uint8_t antIdx = 0U;
+    const uint8_t *antIndex_p = NULL;
+    antIndex_p = &gaAntPermNAp[antPermIndex][0];
+
+    if ((maModeFilters[devIdIdx] & BIT2) != 0U)
+    {
+        /* Copy Antenna Permutation Index information */
+        *(pNotifData + (*pOutLen)) = antPermIndex;
+        (*pOutLen) += (uint16_t)sizeof(uint8_t);
+    }
+
+    for (uint8_t idx = 0U; idx <= maRasDynamicCfg[deviceId].pCfg->numAntennaPaths; idx++)
+    {
+        if (idx < maRasDynamicCfg[deviceId].pCfg->numAntennaPaths)
+        {
+            antIdx = antIndex_p[idx];
+        }
+        else
+        {
+            /* extension slot - repeat last antenna path in the switching sequence */
+            antIdx = antIndex_p[maRasDynamicCfg[deviceId].pCfg->numAntennaPaths - 1U];
+        }
+
+        /* Check if the corresponding Antenna Path is enabled */
+        if (((antIdx == 0U) && ((maModeFilters[devIdIdx] & BIT5) != 0U)) ||
+            ((antIdx == 1U) && ((maModeFilters[devIdIdx] & BIT6) != 0U)) ||
+            ((antIdx == 2U) && ((maModeFilters[devIdIdx] & BIT7) != 0U)) ||
+            ((antIdx == 3U) && ((maModeFilters[devIdIdx] & BIT8) != 0U)))
+        {
+            if ((maModeFilters[devIdIdx] & BIT3) != 0U)
+            {
+                /* Copy Tone_PCT information in IQ format */
+                FLib_MemCpy(pNotifData + (*pOutLen), pData, gTone_PCTSize_c);
+
+                (*pOutLen) += (uint16_t)gTone_PCTSize_c;
+            }
+            pData = &pData[gTone_PCTSize_c];
+
+            if ((maModeFilters[devIdIdx] & BIT4) != 0U)
+            {
+                /* Copy Tone_PCT information */
+                *(pNotifData + (*pOutLen)) = *pData;
+                (*pOutLen) += (uint16_t)sizeof(uint8_t);
+            }
+            pData = &pData[sizeof(uint8_t)];
+        }
+        else
+        {
+            pData = &pData[sizeof(uint8_t) + gTone_PCTSize_c];
+        }
+    }
+
+    return pData;
+}
+
+/*!**********************************************************************************
+ * \brief            Process Mode 3 step data filtering
+ *
+ * \param[in]        deviceId          Peer identifier
+ * \param[in]        devIdIdx          Device index for mode filters
+ * \param[in]        stepDataLength    Length of step data
+ * \param[in,out]    pStepDataAux      Pointer to step data (updated after processing)
+ * \param[out]       pNotifData        Pointer to notification data buffer
+ * \param[in,out]    pOutLen           Length of stored data (updated)
+ *
+ * \return           Pointer to next step data position
+************************************************************************************/
+static uint8_t* processMode3Data
+(
+    deviceId_t deviceId,
+    uint8_t devIdIdx,
+    uint8_t stepDataLength,
+    uint8_t* pStepDataAux,
+    uint8_t* pNotifData,
+    uint16_t* pOutLen
+)
+{
+    uint8_t* pData = pStepDataAux;
+    uint8_t antPermIndex = 0U;
+    uint8_t antIdx = 0U;
+    const uint8_t *antIndex_p = NULL;
+
+    if ((maModeFilters[devIdIdx] & BIT2) != 0U)
+    {
+        /* Copy AA Quality information */
+        *(pNotifData + (*pOutLen)) = *pData;
+        (*pOutLen) += (uint16_t)sizeof(uint8_t);
+    }
+    pData = &pData[sizeof(uint8_t)];
+
+    if ((maModeFilters[devIdIdx] & BIT3) != 0U)
+    {
+        /* Copy NADM information */
+        *(pNotifData + (*pOutLen)) = *pData;
+        (*pOutLen) += (uint16_t)sizeof(uint8_t);
+    }
+    pData = &pData[sizeof(uint8_t)];
+
+    if ((maModeFilters[devIdIdx] & BIT4) != 0U)
+    {
+        /* Copy RSSI information */
+        *(pNotifData + (*pOutLen)) = *pData;
+        (*pOutLen) += (uint16_t)sizeof(uint8_t);
+    }
+    pData = &pData[sizeof(uint8_t)];
+
+    if ((maModeFilters[devIdIdx] & BIT5) != 0U)
+    {
+        /* Copy packet ToA ToD information */
+        FLib_MemCpy(pNotifData + (*pOutLen), pData, sizeof(uint16_t));
+        (*pOutLen) += (uint16_t)sizeof(uint16_t);
+    }
+    pData = &pData[sizeof(uint16_t)];
+
+    if ((maModeFilters[devIdIdx] & BIT6) != 0U)
+    {
+        /* Copy Antenna information */
+        *(pNotifData + (*pOutLen)) = *pData;
+        (*pOutLen) += (uint16_t)sizeof(uint8_t);
+    }
+    pData = &pData[sizeof(uint8_t)];
+
+    if (stepDataLength > (7U + ((1U + maRasDynamicCfg[deviceId].pCfg->numAntennaPaths) * 4U)))
+    {
+        if ((maModeFilters[devIdIdx] & BIT7) != 0U)
+        {
+            /* Copy packet PCT1 information */
+            FLib_MemCpy(pNotifData + (*pOutLen), pData, gPacket_PCTSize_c);
+            (*pOutLen) += (uint16_t)gPacket_PCTSize_c;
+        }
+        pData = &pData[gPacket_PCTSize_c];
+
+        if ((maModeFilters[devIdIdx] & BIT8) != 0U)
+        {
+            /* Copy packet PCT2 information */
+            FLib_MemCpy(pNotifData + (*pOutLen), pData, gPacket_PCTSize_c);
+            (*pOutLen) += (uint16_t)gPacket_PCTSize_c;
+        }
+        pData = &pData[gPacket_PCTSize_c];
+    }
+
+    antPermIndex = *pData;
+    antIndex_p = &gaAntPermNAp[antPermIndex][0];
+
+    if ((maModeFilters[devIdIdx] & BIT9) != 0U)
+    {
+        /* Copy Antenna Permutation Index information */
+        *(pNotifData + (*pOutLen)) = *pData;
+        (*pOutLen) += (uint16_t)sizeof(uint8_t);
+    }
+    pData = &pData[sizeof(uint8_t)];
+
+    for (uint8_t idx = 0U; idx <= maRasDynamicCfg[deviceId].pCfg->numAntennaPaths; idx++)
+    {
+        if (idx < maRasDynamicCfg[deviceId].pCfg->numAntennaPaths)
+        {
+            antIdx = antIndex_p[idx];
+        }
+        else
+        {
+            /* extension slot - repeat last antenna path in the switching sequence */
+            antIdx = antIndex_p[maRasDynamicCfg[deviceId].pCfg->numAntennaPaths - 1U];
+        }
+
+        /* Check if the corresponding Antenna Path is enabled */
+        if (((antIdx == 0U) && ((maModeFilters[devIdIdx] & BIT12) != 0U)) ||
+            ((antIdx == 1U) && ((maModeFilters[devIdIdx] & BIT13) != 0U)) ||
+            ((antIdx == 2U) && ((maModeFilters[devIdIdx] & BIT14) != 0U)) ||
+            ((antIdx == 3U) && ((maModeFilters[devIdIdx] & BIT15) != 0U)))
+        {
+            if ((maModeFilters[devIdIdx] & BIT10) != 0U)
+            {
+                /* Copy Tone_PCT information in IQ format */
+                FLib_MemCpy(pNotifData + (*pOutLen), pData, gTone_PCTSize_c);
+
+                (*pOutLen) += (uint16_t)gTone_PCTSize_c;
+            }
+            pData = &pData[gTone_PCTSize_c];
+
+            if ((maModeFilters[devIdIdx] & BIT11) != 0U)
+            {
+                /* Copy Tone_PCT information */
+                *(pNotifData + (*pOutLen)) = *pData;
+                (*pOutLen) += (uint16_t)sizeof(uint8_t);
+            }
+            pData = &pData[sizeof(uint8_t)];
+        }
+        else
+        {
+            pData = &pData[sizeof(uint8_t) + gTone_PCTSize_c];
+        }
+    }
+
+    return pData;
+}
+
+/*!**********************************************************************************
 * \brief        Filter notification data according to the received Antenna Path Filter
 *
 * \param[in]    deviceId      Peer identifier
@@ -1439,10 +1807,7 @@ static void antennaPathFilterStepData
     /* Data structure: step mode, step channel, step data length, step data */
     uint8_t mode = 0U;
     uint8_t stepDataLength = 0U;
-    uint8_t antPermIndex = 0U;
-    uint8_t antIdx = 0U;
     uint8_t devIdIdx = deviceId * 4U;
-    const uint8_t *antIndex_p = NULL;
     union
     {
         uint8_t stepLen8;
@@ -1455,7 +1820,7 @@ static void antennaPathFilterStepData
     } dataIndex = {0U};
     bool_t bHasData = FALSE;
     dataIndex.dataIndex32 = maRasDynamicCfg[deviceId].pCfg->dataIndex;
-    
+
     while (maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex < dataIndex.dataIndex16)
     {
         bHasData = TRUE;
@@ -1507,41 +1872,7 @@ static void antennaPathFilterStepData
             case (gMode0Idx_c):
             {
                 devIdIdx += gMode0Idx_c;
-
-                if ((maModeFilters[devIdIdx] & BIT2) != 0U)
-                {
-                    /* Copy packet quality information */
-                    *(pNotifData + (*pOutLen)) = *pStepDataAux;
-                    (*pOutLen) += (uint16_t)sizeof(uint8_t);
-                }
-                pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
-
-                if ((maModeFilters[devIdIdx] & BIT3) != 0U)
-                {
-                    /* Copy packet RSSI information */
-                    *(pNotifData + (*pOutLen)) = *pStepDataAux;
-                    (*pOutLen) += (uint16_t)sizeof(uint8_t);
-                }
-                pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
-
-                if ((maModeFilters[devIdIdx] & BIT4) != 0U)
-                {
-                    /* Copy packet antenna information */
-                    *(pNotifData + (*pOutLen)) = *pStepDataAux;
-                    (*pOutLen) += (uint16_t)sizeof(uint8_t);
-                }
-                pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
-
-                if (stepDataLength > 3U)
-                {
-                    if ((maModeFilters[devIdIdx] & BIT5) != 0U)
-                    {
-                        /* Copy measured frequency offset information */
-                        FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, sizeof(uint16_t));
-                        (*pOutLen) += (uint16_t)sizeof(uint16_t);
-                    }
-                    pStepDataAux = &pStepDataAux[sizeof(uint16_t)];
-                }
+                pStepDataAux = processMode0Data(deviceId, devIdIdx, stepDataLength, pStepDataAux, pNotifData, pOutLen);
             }
             break;
 
@@ -1551,66 +1882,7 @@ static void antennaPathFilterStepData
             case (gMode1Idx_c):
             {
                 devIdIdx += gMode1Idx_c;
-
-                if ((maModeFilters[devIdIdx] & BIT2) != 0U)
-                {
-                    /* Copy packet quality information */
-                    *(pNotifData + (*pOutLen)) = *pStepDataAux;
-                    (*pOutLen) += (uint16_t)sizeof(uint8_t);
-
-                }
-                pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
-
-                if ((maModeFilters[devIdIdx] & BIT3) != 0U)
-                {
-                    /* Copy packet NADM information */
-                    *(pNotifData + (*pOutLen)) = *pStepDataAux;
-                    (*pOutLen) += (uint16_t)sizeof(uint8_t);
-                }
-                pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
-
-                if ((maModeFilters[devIdIdx] & BIT4) != 0U)
-                {
-                    /* Copy packet RSSI information */
-                    *(pNotifData + (*pOutLen)) = *pStepDataAux;
-                    (*pOutLen) += (uint16_t)sizeof(uint8_t);
-                }
-                pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
-
-                if ((maModeFilters[devIdIdx] & BIT5) != 0U)
-                {
-                    /* Copy packet ToA ToD information */
-                    FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, sizeof(uint16_t));
-                    (*pOutLen) += (uint16_t)sizeof(uint16_t);
-                }
-                pStepDataAux = &pStepDataAux[sizeof(uint16_t)];
-
-                if ((maModeFilters[devIdIdx] & BIT6) != 0U)
-                {
-                    /* Copy packet antenna information */
-                    *(pNotifData + (*pOutLen)) = *pStepDataAux;
-                    (*pOutLen) += (uint16_t)sizeof(uint8_t);
-                }
-                pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
-
-                if (stepDataLength > 6U)
-                {
-                    if ((maModeFilters[devIdIdx] & BIT7) != 0U)
-                    {
-                        /* Copy packet PCT1 information */
-                        FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, gPacket_PCTSize_c);
-                        (*pOutLen) += (uint16_t)gPacket_PCTSize_c;
-                    }
-                    pStepDataAux = &pStepDataAux[gPacket_PCTSize_c];
-
-                    if ((maModeFilters[devIdIdx] & BIT8) != 0U)
-                    {
-                        /* Copy packet PCT2 information */
-                        FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, gPacket_PCTSize_c);
-                        (*pOutLen) += (uint16_t)gPacket_PCTSize_c;
-                    }
-                    pStepDataAux = &pStepDataAux[gPacket_PCTSize_c];
-                }
+                pStepDataAux = processMode1Data(deviceId, devIdIdx, stepDataLength, pStepDataAux, pNotifData, pOutLen);
             }
             break;
 
@@ -1619,58 +1891,7 @@ static void antennaPathFilterStepData
             case (gMode2Idx_c):
             {
                 devIdIdx += gMode2Idx_c;
-
-                antPermIndex = *pStepDataAux++;
-                assert(antPermIndex < 25);
-                antIndex_p = &gaAntPermNAp[antPermIndex][0];
-
-                if ((maModeFilters[devIdIdx] & BIT2) != 0U)
-                {
-                    /* Copy Antenna Permutation Index information */
-                    *(pNotifData + (*pOutLen)) = antPermIndex;
-                    (*pOutLen) += (uint16_t)sizeof(uint8_t);
-                }
-
-                for (uint8_t idx = 0U; idx <= maRasDynamicCfg[deviceId].pCfg->numAntennaPaths; idx++)
-                {
-                    if (idx < maRasDynamicCfg[deviceId].pCfg->numAntennaPaths)
-                    {
-                        antIdx = antIndex_p[idx];
-                    }
-                    else
-                    {
-                        /* extension slot - repeat last antenna path in the switching sequence */
-                        antIdx = antIndex_p[maRasDynamicCfg[deviceId].pCfg->numAntennaPaths - 1U];
-                    }
-
-                    /* Check if the corresponding Antenna Path is enabled */
-                    if (((antIdx == 0U) && ((maModeFilters[devIdIdx] & BIT5) != 0U)) ||
-                        ((antIdx == 1U) && ((maModeFilters[devIdIdx] & BIT6) != 0U)) ||
-                        ((antIdx == 2U) && ((maModeFilters[devIdIdx] & BIT7) != 0U)) ||
-                        ((antIdx == 3U) && ((maModeFilters[devIdIdx] & BIT8) != 0U)))
-                    {
-                        if ((maModeFilters[devIdIdx] & BIT3) != 0U)
-                        {
-                            /* Copy Tone_PCT information in IQ format */
-                            FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, gTone_PCTSize_c);
-
-                            (*pOutLen) += (uint16_t)gTone_PCTSize_c;
-                        }
-                        pStepDataAux = &pStepDataAux[gTone_PCTSize_c];
-
-                        if ((maModeFilters[devIdIdx] & BIT4) != 0U)
-                        {
-                            /* Copy Tone_PCT information */
-                            *(pNotifData + (*pOutLen)) = *pStepDataAux;
-                            (*pOutLen) += (uint16_t)sizeof(uint8_t);
-                        }
-                        pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
-                    }
-                    else
-                    {
-                        pStepDataAux = &pStepDataAux[sizeof(uint8_t) + gTone_PCTSize_c];
-                    }
-                }
+                pStepDataAux = processMode2Data(deviceId, devIdIdx, stepDataLength, pStepDataAux, pNotifData, pOutLen);
             }
             break;
 
@@ -1682,117 +1903,7 @@ static void antennaPathFilterStepData
             case (gMode3Idx_c):
             {
                 devIdIdx += gMode3Idx_c;
-
-                if ((maModeFilters[devIdIdx] & BIT2) != 0U)
-                {
-                    /* Copy AA Quality information */
-                    *(pNotifData + (*pOutLen)) = *pStepDataAux;
-                    (*pOutLen) += (uint16_t)sizeof(uint8_t);
-                }
-                pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
-
-                if ((maModeFilters[devIdIdx] & BIT3) != 0U)
-                {
-                    /* Copy NADM information */
-                    *(pNotifData + (*pOutLen)) = *pStepDataAux;
-                    (*pOutLen) += (uint16_t)sizeof(uint8_t);
-                }
-                pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
-
-                if ((maModeFilters[devIdIdx] & BIT4) != 0U)
-                {
-                    /* Copy RSSI information */
-                    *(pNotifData + (*pOutLen)) = *pStepDataAux;
-                    (*pOutLen) += (uint16_t)sizeof(uint8_t);
-                }
-                pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
-
-                if ((maModeFilters[devIdIdx] & BIT5) != 0U)
-                {
-                    /* Copy packet ToA ToD information */
-                     FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, sizeof(uint16_t));
-                    (*pOutLen) += (uint16_t)sizeof(uint16_t);
-                }
-                pStepDataAux = &pStepDataAux[sizeof(uint16_t)];
-
-                if ((maModeFilters[devIdIdx] & BIT6) != 0U)
-                {
-                    /* Copy Antenna information */
-                    *(pNotifData + (*pOutLen)) = *pStepDataAux;
-                    (*pOutLen) += (uint16_t)sizeof(uint8_t);
-                }
-                pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
-
-                if (stepDataLength > (7U + ((1U + maRasDynamicCfg[deviceId].pCfg->numAntennaPaths) * 4U)))
-                {
-                    if ((maModeFilters[devIdIdx] & BIT7) != 0U)
-                    {
-                        /* Copy packet PCT1 information */
-                        FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, gPacket_PCTSize_c);
-                        (*pOutLen) += (uint16_t)gPacket_PCTSize_c;
-                    }
-                    pStepDataAux = &pStepDataAux[gPacket_PCTSize_c];
-
-                    if ((maModeFilters[devIdIdx] & BIT8) != 0U)
-                    {
-                        /* Copy packet PCT2 information */
-                        FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, gPacket_PCTSize_c);
-                        (*pOutLen) += (uint16_t)gPacket_PCTSize_c;
-                    }
-                    pStepDataAux = &pStepDataAux[gPacket_PCTSize_c];
-                }
-
-                antPermIndex = *pStepDataAux;
-                antIndex_p = &gaAntPermNAp[antPermIndex][0];
-
-                if ((maModeFilters[devIdIdx] & BIT9) != 0U)
-                {
-                    /* Copy Antenna Permutation Index information */
-                    *(pNotifData + (*pOutLen)) = *pStepDataAux;
-                    (*pOutLen) += (uint16_t)sizeof(uint8_t);
-                }
-                pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
-
-                for (uint8_t idx = 0U; idx <= maRasDynamicCfg[deviceId].pCfg->numAntennaPaths; idx++)
-                {
-                    if (idx < maRasDynamicCfg[deviceId].pCfg->numAntennaPaths)
-                    {
-                        antIdx = antIndex_p[idx];
-                    }
-                    else
-                    {
-                        /* extension slot - repeat last antenna path in the switching sequence */
-                        antIdx = antIndex_p[maRasDynamicCfg[deviceId].pCfg->numAntennaPaths - 1U];
-                    }
-
-                    /* Check if the corresponding Antenna Path is enabled */
-                    if (((antIdx == 0U) && ((maModeFilters[devIdIdx] & BIT12) != 0U)) ||
-                        ((antIdx == 1U) && ((maModeFilters[devIdIdx] & BIT13) != 0U)) ||
-                        ((antIdx == 2U) && ((maModeFilters[devIdIdx] & BIT14) != 0U)) ||
-                        ((antIdx == 3U) && ((maModeFilters[devIdIdx] & BIT15) != 0U)))
-                    {
-                        if ((maModeFilters[devIdIdx] & BIT10) != 0U)
-                        {
-                            /* Copy Tone_PCT information in IQ format */
-                            FLib_MemCpy(pNotifData + (*pOutLen), pStepDataAux, gTone_PCTSize_c);
-
-                            (*pOutLen) += (uint16_t)gTone_PCTSize_c;
-                        }
-                        pStepDataAux = &pStepDataAux[gTone_PCTSize_c];
-
-                        if ((maModeFilters[devIdIdx] & BIT11) != 0U)
-                        {
-                            /* Copy Tone_PCT information */
-                            *(pNotifData + (*pOutLen)) = *pStepDataAux;
-                            (*pOutLen) += (uint16_t)sizeof(uint8_t);
-                        }
-                        pStepDataAux = &pStepDataAux[sizeof(uint8_t)];
-                    }
-                    else
-                    {
-                        pStepDataAux = &pStepDataAux[sizeof(uint8_t) + gTone_PCTSize_c];
-                    }
-                }
+                pStepDataAux = processMode3Data(deviceId, devIdIdx, stepDataLength, pStepDataAux, pNotifData, pOutLen);
             }
             break;
 
