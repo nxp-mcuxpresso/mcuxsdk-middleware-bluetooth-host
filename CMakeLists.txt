@@ -1236,5 +1236,15 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.lcl_pts_test)
     )
 endif()
 
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_profiles_tpm)
+    mcux_add_source(
+        SOURCES profiles/tpm/tpm_service.c
+                profiles/tpm/tpm_interface.h
+    )
+    mcux_add_include(
+        INCLUDES profiles/tpm
+    )
+endif()
+
 mcux_add_cmakelists(${CMAKE_CURRENT_LIST_DIR}/application/common/ble_port_fsci/core0)
 mcux_add_cmakelists(${CMAKE_CURRENT_LIST_DIR}/application/common/ble_port_fsci/core1)

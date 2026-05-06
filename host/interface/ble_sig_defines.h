@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2024, 2026 NXP
 *
 *
 * \file
@@ -310,6 +310,23 @@
 #define gBleSig_RasProcDataReady_d              0x2C18U
 /*! RAS Procedure Data Overwritten Characteristic UUID */
 #define gBleSig_RasprocDataOverwritten_d        0x2C19U
+
+/*! Tire Pressure Monitoring System Service UUID */
+#define gBleSig_TirePressureMonitoringService_d 0x1860U
+/*! Tire Pressure Characteristic UUID */
+#define gBleSig_TirePressure_d                  0x2C3BU
+/*! Tire Temperature Characteristic UUID */
+#define gBleSig_TireTemperature_d               0x2C3CU
+/*! Tire Acceleration Characteristic UUID */
+#define gBleSig_TireAcceleration_d              0x2C3DU
+/*! TPMS Properties Characteristic UUID */
+#define gBleSig_TpmsProperties_d                0x2C3EU
+/*! TPMS Monitoring Mode Duty Cycle Characteristic UUID */
+#define gBleSig_TpmsMonitoringModeDutyCycle_d   0x2C3FU
+/*! TPMS Position Characteristic UUID */
+#define gBleSig_TpmsPosition_d                  0x2C40U
+/*! TPMS Signing Key UUID */
+#define gBleSig_TpmsSigningKey_d                0x2C41U
 
 /*! Macro that returns whether or not an input 16-bit UUID is a grouping type. */
 #define BleSig_IsGroupingAttributeUuid16(uuid16) \
