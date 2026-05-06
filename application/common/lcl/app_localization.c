@@ -309,6 +309,128 @@ static bool_t AppLocalization_CanStartProcedure
 (
     void
 );
+
+static deviceId_t AppLocalization_HandleReadRemoteCaps
+(
+    void* pEventData
+);
+
+static deviceId_t AppLocalization_HandleSecurityEnableComplete
+(
+    void* pEventData
+);
+
+static deviceId_t AppLocalization_HandleConfigComplete
+(
+    void* pEventData
+);
+
+static deviceId_t AppLocalization_HandleSubeventResult
+(
+    void* pEventData
+);
+
+static deviceId_t AppLocalization_HandleSubeventResultContinue
+(
+    void* pEventData
+);
+
+static deviceId_t AppLocalization_HandleProcedureEnableComplete
+(
+    void* pEventData
+);
+
+static deviceId_t AppLocalization_HandleCsError
+(
+    void* pEventData
+);
+
+static bleResult_t AppLocalization_ConfigureRemoteCaps
+(
+    deviceId_t deviceId,
+    csReadRemoteSupportedCapabilitiesCompleteEvent_t* pRemoteCapabilities
+);
+
+static void AppLocalization_SaveMeasurementConfig
+(
+    deviceId_t deviceId,
+    csConfigCompleteEvent_t* pEvent
+);
+
+static void AppLocalization_PrepareForNewProcedure
+(
+    deviceId_t deviceId
+);
+
+static void AppLocalization_UpdateCsTimeInfo
+(
+    csSubeventResultEvent_t* pSubeventResult
+);
+
+static void AppLocalization_ProcessSubeventStatus
+(
+    deviceId_t deviceId,
+    uint8_t procedureDoneStatus,
+    uint8_t abortReason
+);
+
+static void AppLocalization_HandleCompleteResults
+(
+    deviceId_t deviceId
+);
+
+static void AppLocalization_ResetCsTimeInfo
+(
+    deviceId_t deviceId
+);
+
+static void AppLocalization_CheckAlgoRun
+(
+    deviceId_t deviceId
+);
+
+static void AppLocalization_UpdateStateAfterComplete
+(
+    deviceId_t deviceId
+);
+
+static void AppLocalization_HandleProcedureAborted
+(
+    deviceId_t deviceId, uint8_t abortReason
+);
+
+static void AppLocalization_HandleProcedureError
+(
+    deviceId_t deviceId
+);
+
+static void AppLocalization_PrepareForContinueEvent
+(
+    deviceId_t deviceId
+);
+
+static void AppLocalization_ProcessContinueStatus
+(
+    deviceId_t deviceId,
+    uint8_t procedureDoneStatus,
+    uint8_t abortReason
+);
+
+static void AppLocalization_HandleContinueCompleteResults
+(
+    deviceId_t deviceId
+);
+
+static void AppLocalization_HandleProcedureEnabled
+(
+    deviceId_t deviceId,
+    csProcedureEnableCompleteEvent_t* pEvent
+);
+
+static void AppLocalization_HandleProcedureDisabled
+(
+    deviceId_t deviceId
+);
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -2008,7 +2130,6 @@ static void AppLocalization_CSMetaEventCallback
     void* pCsMetaEvent
 )
 {
-    bleResult_t result = gBleSuccess_c;
     csMetaEventData_t* pPacket = (csMetaEventData_t*)pCsMetaEvent;
     deviceId_t deviceId = gInvalidDeviceId_c;
 
@@ -2016,711 +2137,43 @@ static void AppLocalization_CSMetaEventCallback
     {
         case gCsMetaEvtReadRemoteSupportedCapabilities_c:
         {
-            csReadRemoteSupportedCapabilitiesCompleteEvent_t* pRemoteCapabilities =
-                (csReadRemoteSupportedCapabilitiesCompleteEvent_t*)pPacket->pEventData;
-            deviceId = pRemoteCapabilities->deviceId;
-
-            mRangeSettings[deviceId].t_sw_remote = pRemoteCapabilities->TSWtimeSupported;
-            mRangeSettings[deviceId].subfeaturesSupported = pRemoteCapabilities->optionalSubfeaturesSupported;
-
-            if (((mGlobalRangeSettings.role == gCsRoleInitiator_c) &&
-                    (maAppLclState[deviceId] == gAppLclWaitingForRRSCC_c)) ||
-                (mGlobalRangeSettings.role == gCsRoleReflector_c))
-            {
-                uint8_t syncAntennaSelection = 0xFF; /* proprietary antenna shuffling */
-                int8_t  maxTxPowerLevel = 10; /* 10 dBm */
-                uint8_t nvmIndex = gInvalidNvmIndex_c;
-                bool_t isBonded = FALSE;
-
-                (void)Gap_CheckIfBonded(deviceId, &isBonded, &nvmIndex);
-
-               /* Save the capabilities of the peer device */
-               if ((isBonded == TRUE) && (mpCachedRemoteCaps[nvmIndex] == NULL))
-               {
-                    mpCachedRemoteCaps[nvmIndex] = MEM_BufferAlloc(sizeof(csReadRemoteSupportedCapabilitiesCompleteEvent_t));
-
-                    FLib_MemCpy(mpCachedRemoteCaps[nvmIndex],
-                                pRemoteCapabilities,
-                                sizeof(csReadRemoteSupportedCapabilitiesCompleteEvent_t));
-               }
-
-               result = CS_SetDefaultSettings(deviceId,
-                                              (csRoleType)(((uint8_t)gEnableCsInitiator_c) | ((uint8_t)gEnableCsReflector_c)),
-                                              syncAntennaSelection,
-                                              maxTxPowerLevel);
-
-
-
-                if (result != gBleSuccess_c)
-                {
-                    AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
-                    AppLocalizationError(deviceId, gAppLclSDSConfigError_c);
-                }
-                else
-                {
-                    if (mGlobalRangeSettings.role == gCsRoleInitiator_c)
-                    {
-                        maAppLclState[deviceId] = gAppLclWaitingForSDSCC_c;
-                    }
-                }
-            }
-            else
-            {
-                /* Unexpected event. */
-                AppLocalizationError(deviceId, gAppLclUnexpectedRRSCC_c);
-            }
-
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-            if (mGlobalRangeSettings.role == gCsRoleReflector_c)
-            {
-                gCsTimeInfo.csConfigStartTs = TM_GetTimestamp();
-            }
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
+            deviceId = AppLocalization_HandleReadRemoteCaps(pPacket->pEventData);
         }
         break;
 
         case gCsMetaEvtSecurityEnableComplete_c:
         {
-            csSecurityEnableCompleteEvent_t* pSecurityComplete =
-                (csSecurityEnableCompleteEvent_t*)pPacket->pEventData;
-            deviceId = pSecurityComplete->deviceId;
-
-            if (mpfAppCsCallback != NULL)
-            {
-                mpfAppCsCallback(deviceId, NULL, gCsSecurityEnabled_c);
-            }
+            deviceId = AppLocalization_HandleSecurityEnableComplete(pPacket->pEventData);
         }
         break;
 
         case gCsMetaEvtConfigComplete_c:
         {
-            csConfigCompleteEvent_t* pConfigComplete = (csConfigCompleteEvent_t*)pPacket->pEventData;
-            deviceId = pConfigComplete->deviceId;
-
-            if ((maAppLclState[deviceId] == gAppLclWaitingForCC_c) ||
-                (maAppLclState[deviceId] == gAppLclWaitingForLocCfg_c) ||
-                (mGlobalRangeSettings.role == gCsRoleReflector_c))
-            {
-                csConfigCompleteEvent_t *pEvent = pConfigComplete;
-
-                /* Save measurement config locally */
-                mGlobalRangeSettings.role = pEvent->role;
-                mRangeSettings[deviceId].configId = pEvent->configId;
-                mRangeSettings[deviceId].main_mode_type = pEvent->mainModeType;
-                mRangeSettings[deviceId].sub_mode_type = pEvent->subModeType;
-                mRangeSettings[deviceId].main_mode_min = pEvent->mainModeMinSteps;
-                mRangeSettings[deviceId].main_mode_max = pEvent->mainModeMaxSteps;
-                mRangeSettings[deviceId].main_mode_repeat = pEvent->mainModeRepetition;
-                mRangeSettings[deviceId].mode0_nb = pEvent->mode0Steps;
-                mRangeSettings[deviceId].rtt_type = pEvent->RTTTypes;
-                mRangeSettings[deviceId].cs_sync_phy = pEvent->csSyncPhy;
-                FLib_MemCpy(mRangeSettings[deviceId].ch_map, pEvent->channelMap, gHCICSChannelMapSize);
-                mRangeSettings[deviceId].ch_map_repeat = pEvent->channelMapRepetition;
-                mRangeSettings[deviceId].t_ip1 = pEvent->TIP1time;
-                mRangeSettings[deviceId].t_ip2 = pEvent->TIP2time;
-                mRangeSettings[deviceId].t_fcs = pEvent->TFCStime;
-                mRangeSettings[deviceId].t_pm = pEvent->TPMtime;
-                mRangeSettings[deviceId].inlinePctEnabled = ((pEvent->csEnhancements & gCsEnhancementsIptEnabledInReflector_c) != 0U);
-
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-                gCsTimeInfo.csConfigEndTs = TM_GetTimestamp();
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
-
-                if (mpfAppCsCallback != NULL)
-                {
-                    if (maAppLclState[deviceId] == gAppLclWaitingForCC_c)
-                    {
-                        AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
-                        mpfAppCsCallback(deviceId, NULL, gConfigComplete_c);
-                    }
-                    else
-                    {
-                        AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
-                        mpfAppCsCallback(deviceId, NULL, gLocalConfigWritten_c);
-                    }
-                }
-            }
-            else
-            {
-                /* Unexpected event. */
-                AppLocalizationError(deviceId, gAppLclUnexpectedCC_c);
-            }
+            deviceId = AppLocalization_HandleConfigComplete(pPacket->pEventData);
         }
         break;
 
         case gCsMetaEvtSubeventResult_c:
         {
-            csSubeventResultEvent_t* pSubeventResult = (csSubeventResultEvent_t*)pPacket->pEventData;
-            deviceId = pSubeventResult->deviceId;
-
-            /* Debug logging for Subevent Result */
-            CS_LOG_SUBEVENT("SubeventResult: devId=%d, procCnt=%u, steps=%u, procDone=%u, subevtDone=%u",
-                            deviceId,
-                            pSubeventResult->procedureCounter,
-                            pSubeventResult->numStepsReported,
-                            pSubeventResult->procedureDoneStatus,
-                            pSubeventResult->subeventDoneStatus);
-
-            /* Clear local data on new procedure start during ongoing RAS transfer */
-            if ((maAppLclState[deviceId] == gAppLclWaitingForMeasData_c) || (maAppLclState[deviceId] == gAppRasTransfInProgress_c))
-            {
-                if (maAppLclState[deviceId] == gAppRasTransfInProgress_c)
-                {
-                    /* New CS procedure started while RAS transfer was in progress for the previous one
-                       Enter a new state in which leftover RAS notifications/indications will be dropped */
-                    maAppLclState[deviceId] = gAppLclReceivingMeasDataDropLeftovers_c;
-                }
-                else
-                {
-                    maAppLclState[deviceId] = gAppLclReceivingMeasData_c;
-                }
-
-                /* Make sure local csAppData_t is allocated */
-                (void)AppLocalization_AllocLocalData(deviceId);
-
-                /* Clear local data */
-                AppLocalization_ClearLocalData(deviceId);
-
-#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
-#if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
-                /* clear any leftover peer data */
-                RasClient_ResetPeerInfo(deviceId);
-#endif /* gRasRREQ_d */
-
-#if defined (gRasRRSP_d) && (gRasRRSP_d == 1U)
-                /* If a transfer was in progress send data overwritten indication */
-                if ((Ras_CheckRealTimeData(deviceId) == FALSE) && (Ras_CheckTransferInProgress(deviceId) == TRUE))
-                {
-                    (void)Ras_SendDataOverwritten(deviceId);
-                    if (mpfAppCsCallback != NULL)
-                    {
-                        mpfAppCsCallback(deviceId, NULL, gDataOverwritten_c);
-                    }
-                }
-                /* Clear RAS data pointer to avoid reading of incomplete data. */
-                Ras_SetDataPointer(deviceId, NULL);
-#endif /* gRasRRSP_d */
-#endif /* gAppRasDataTransfer_d */
-            }
-
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-            if (gCsTimeInfo.csDistMeasStart == 0U)
-            {
-                gCsTimeInfo.csDistMeasDuration += gCsTimeInfo.subeventLen;
-
-                if (gCsTimeInfo.lastAclConnEvtCnt == 0)
-                {
-                    /* First CS event for this procedure */
-                    gCsTimeInfo.noOfRcvSubEvsInConnInt = 1;
-                }
-                else if (gCsTimeInfo.lastAclConnEvtCnt == pSubeventResult->startACLConnEvent)
-                {
-                    /* Additional CS event in same connection interval */
-                    gCsTimeInfo.noOfRcvSubEvsInConnInt++;
-                    gCsTimeInfo.csDistMeasDuration += (uint64_t)gCsTimeInfo.subeventInterval * 625;
-                }
-                else
-                {
-                    /* CS event in new connection interval */
-                    /* Estimate the time between the end of the last CS event and the begining of
-                    the current CS event which is the first CS event in this connection interval */
-                    gCsTimeInfo.csDistMeasDuration += (uint64_t)gCsTimeInfo.connInterval * 1250 - ((gCsTimeInfo.noOfRcvSubEvsInConnInt * gCsTimeInfo.subeventLen) + (uint64_t)((gCsTimeInfo.noOfRcvSubEvsInConnInt - 1) * gCsTimeInfo.subeventInterval * 625));
-                    gCsTimeInfo.noOfRcvSubEvsInConnInt = 1;
-
-                    /* Take into account the case where multiple ACL connection events may be
-                    between consecutive CS events */
-                    gCsTimeInfo.csDistMeasDuration += (uint64_t)gCsTimeInfo.connInterval * 1250 * (pSubeventResult->startACLConnEvent - gCsTimeInfo.lastAclConnEvtCnt - 1);
-                }
-
-                gCsTimeInfo.lastAclConnEvtCnt = pSubeventResult->startACLConnEvent;
-            }
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
-
-            if (maAppLclState[deviceId] == gAppLclReceivingMeasData_c)
-            {
-                /* Save results */
-                result = processCsResultsEvent(pSubeventResult);
-
-                if (result == gBleSuccess_c)
-                {
-                    switch (pSubeventResult->procedureDoneStatus)
-                    {
-                        case (uint8_t)gCsCompleteResults_c:
-                        {
-                            /* All results complete for the CS procedure - check if there is data to send */
-                            if (mResultData[deviceId].dataIndex > 0U)
-                            {
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-                                if (gCsTimeInfo.csDistMeasStart != 0U)
-                                {
-                                    /* Distance measurement duration for the first procedure. */
-                                    gCsTimeInfo.csDistMeasDuration = TM_GetTimestamp() - gCsTimeInfo.csDistMeasStart;
-                                    gCsTimeInfo.csDistMeasStart = 0;
-                                    gCsTimeInfo.lastAclConnEvtCnt = pSubeventResult->startACLConnEvent;
-
-                                    gCsTimeInfo.lastAclConnEvtCnt = 0;
-                                    gCsTimeInfo.noOfRcvSubEvsInConnInt = 0;
-                                }
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
-
-#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
-#if defined (gRasRRSP_d) && (gRasRRSP_d == 1U)
-                                Ras_SetDataPointer(pSubeventResult->deviceId, &mResultData[pSubeventResult->deviceId]);
-                                /* Send real-time data after the subevent is completed */
-                                if (Ras_CheckRealTimeData(deviceId) == FALSE)
-                                {
-                                    result = Ras_SendDataReady(pSubeventResult->deviceId);
-                                }
-
-                                if (result != gBleSuccess_c)
-                                {
-                                    AppLocalizationError(pSubeventResult->deviceId, gAppLclRasSendIndicationFailed_c);
-                                }
-#endif /* gRasRRSP_d */
-#elif defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-                                gCsTimeInfo.transferStart = TM_GetTimestamp();
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
-                                /* Start sending L2CAP data */
-                                (void)BtcsServer_SendData(pSubeventResult->deviceId,
-                                                          maPsmChannels[pSubeventResult->deviceId],
-                                                          gRangingProcResStart_c);
-#endif /* gAppRasDataTransfer_d */
-
-#if defined (gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
-                                if ((maCsProcCount[deviceId] > 0U) &&
-                                    (maAlgoRunCount[deviceId] != maCsProcCount[deviceId]))
-                                {
-                                    AppLocalizationError(deviceId, gAppLclAlgoNotRun_c);
-                                    maAlgoRunCount[deviceId] = maCsProcCount[deviceId];
-                                }
-#endif /* gAppRunAlgo_d */
-                                maCsProcCount[deviceId]++;
-
-#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
-#if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
-                                /* Local procedure is over - Wait for RAS transfer */
-                                maAppLclState[deviceId] = gAppRasTransfInProgress_c;
-#endif /* gRasRREQ_d */
-#endif /* gAppRasDataTransfer_d */
-
-#if (defined (gRasRRSP_d) && (gRasRRSP_d == 1U)) || \
-    (defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U))
-                                if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
-                                {
-                                    AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
-                                }
-                                else
-                                {
-                                    maAppLclState[deviceId] = gAppLclWaitingForMeasData_c;
-                                }
-#endif
-
-                                if (mpfAppCsCallback != NULL)
-                                {
-                                    mpfAppCsCallback(deviceId, NULL, gLocalMeasurementComplete_c);
-                                }
-                            }
-                            else
-                            {
-                                maCsProcCount[deviceId]++;
-                                /* Check if we reached the last procedure */
-                                if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
-                                {
-                                    AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
-                                }
-                                else
-                                {
-                                    maAppLclState[deviceId] = gAppLclWaitingForMeasData_c;
-                                }
-                            }
-                        }
-                        break;
-
-                        case (uint8_t)gCsPartialResults_c:
-                        {
-                            /* Partial results with more to follow for the CS procedure */
-                        }
-                        break;
-
-                        case (uint8_t)gCsNoResultsProcAborted_c:
-                        {
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U)
-                            gCsTimeInfo.csDistMeasStart = 0U;
-                            gCsTimeInfo.csDistMeasDuration = 0U;
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U) */
-
-                            /* All subsequent CS procedures aborted */
-                            maCsProcCount[deviceId] = 0U;
-                            AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
-
-                            if (mpfAppCsCallback != NULL)
-                            {
-                                mpfAppCsCallback(deviceId, (void*)&pSubeventResult->abortReason, gErrorProcedureAborted_c);
-                            }
-                        }
-                        break;
-
-                        default:
-                        {
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U)
-                            gCsTimeInfo.csDistMeasStart = 0U;
-                            gCsTimeInfo.csDistMeasDuration = 0U;
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U) */
-
-                            /* Check if we reached the last procedure */
-                            if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
-                            {
-                                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
-                            }
-                            else
-                            {
-                                maAppLclState[deviceId] = gAppLclWaitingForMeasData_c;
-                            }
-                            AppLocalizationError(deviceId, gAppLclProcStatusFailed_c);
-                        }
-                        break;
-                    }
-                }
-                else
-                {
-                    /* Error occured! */
-                    AppLocalizationError(deviceId, gAppLclErrorProcessingSubevent_c);
-                }
-            }
-            else
-            {
-                /* Unexpected event. */
-                AppLocalizationError(deviceId, gAppLclUnexpectedSRE_c);
-            }
-            /* Free Data */
-            (void)MEM_BufferFree(pSubeventResult->pData);
+            deviceId = AppLocalization_HandleSubeventResult(pPacket->pEventData);
         }
         break;
 
         case gCsMetaEvtSubeventResultContinue_c:
         {
-            csSubeventResultContinueEvent_t* pSubeventResultContinue =
-                (csSubeventResultContinueEvent_t*)pPacket->pEventData;
-            deviceId = pSubeventResultContinue->deviceId;
-
-            /* Debug logging for Subevent Result Continue */
-            CS_LOG_SUBEVENT("SubeventResultContinue: devId=%d, steps=%d, procDone=%d, subevtDone=%d",
-                            deviceId,
-                            pSubeventResultContinue->numStepsReported,
-                            pSubeventResultContinue->procedureDoneStatus,
-                            pSubeventResultContinue->subeventDoneStatus);
-
-            if ((maAppLclState[deviceId] == gAppLclWaitingForMeasData_c) || (maAppLclState[deviceId] == gAppRasTransfInProgress_c))
-            {
-                maAppLclState[deviceId] = gAppLclReceivingMeasData_c;
-
-#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
-#if defined (gRasRRSP_d) && (gRasRRSP_d == 1U)
-                /* Clear RAS data pointer to avoid reading of incomplete data. */
-                Ras_SetDataPointer(deviceId, NULL);
-#endif /* gRasRRSP_d */
-#endif /* gAppRasDataTransfer_d */
-            }
-
-            if (maAppLclState[deviceId] == gAppLclReceivingMeasData_c)
-            {
-                /* Save results */
-                result = processCsResultsContinueEvent(pSubeventResultContinue);
-
-                if (result == gBleSuccess_c)
-                {
-                    /* Procedure done - success */
-                    switch (pSubeventResultContinue->procedureDoneStatus)
-                    {
-                        case (uint8_t)gCsCompleteResults_c:
-                        {
-                            /* All results complete for the CS procedure */
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-                            if (gCsTimeInfo.csDistMeasStart != 0U)
-                            {
-                                /* Distance measurement duration for the first procedure. */
-                                gCsTimeInfo.csDistMeasDuration = TM_GetTimestamp() - gCsTimeInfo.csDistMeasStart;
-                                gCsTimeInfo.csDistMeasStart = 0;
-                            }
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
-
-#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
-#if defined (gRasRRSP_d) && (gRasRRSP_d == 1U)
-                            Ras_SetDataPointer(deviceId, &mResultData[pSubeventResultContinue->deviceId]);
-                            /* Send real-time data after the subevent is completed */
-                            if (Ras_CheckRealTimeData(deviceId) == FALSE)
-                            {
-                                result = Ras_SendDataReady(pSubeventResultContinue->deviceId);
-                            }
-
-                            if (result != gBleSuccess_c)
-                            {
-                                AppLocalizationError(pSubeventResultContinue->deviceId, gAppLclRasSendIndicationFailed_c);
-                            }
-#endif /* defined (gRasRRSP_d) && (gRasRRSP_d == 1U) */
-#elif defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-                                gCsTimeInfo.transferStart = TM_GetTimestamp();
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
-                            /* Start sending L2CAP data */
-                            (void)BtcsServer_SendData(pSubeventResultContinue->deviceId,
-                                                      maPsmChannels[pSubeventResultContinue->deviceId],
-                                                      gRangingProcResStart_c);
-#endif /* gAppRasDataTransfer_d */
-
-#if defined (gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
-                            if ((maCsProcCount[deviceId] > 0U) &&
-                                (maAlgoRunCount[deviceId] != maCsProcCount[deviceId]))
-                            {
-                                AppLocalizationError(deviceId, gAppLclAlgoNotRun_c);
-                                maAlgoRunCount[deviceId] = maCsProcCount[deviceId];
-                            }
-#endif /* gAppRunAlgo_d */
-
-                            maCsProcCount[deviceId]++;
-
-#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
-#if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
-                            /* Local procedure is over - Wait for RAS transfer */
-                            maAppLclState[deviceId] = gAppRasTransfInProgress_c;
-#endif /* gRasRREQ_d */
-#endif /* gAppRasDataTransfer_d */
-#if (defined (gRasRRSP_d) && (gRasRRSP_d == 1U)) || \
-    (defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U))
-                            if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
-                            {
-                                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
-                            }
-                            else
-                            {
-                                maAppLclState[deviceId] = gAppLclWaitingForMeasData_c;
-                            }
-#endif
-
-                            if (mpfAppCsCallback != NULL)
-                            {
-                                mpfAppCsCallback(deviceId, NULL, gLocalMeasurementComplete_c);
-                            }
-                        }
-                        break;
-
-                        case (uint8_t)gCsPartialResults_c:
-                        {
-                            /* Partial results with more to follow for the CS procedure */
-                        }
-                        break;
-
-                        case (uint8_t)gCsNoResultsProcAborted_c:
-                        {
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U)
-                            gCsTimeInfo.csDistMeasStart = 0U;
-                            gCsTimeInfo.csDistMeasDuration = 0U;
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U) */
-
-                            /* All subsequent CS procedures aborted */
-                            maCsProcCount[deviceId] = 0U;
-                            AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
-
-                            if (mpfAppCsCallback != NULL)
-                            {
-                                mpfAppCsCallback(deviceId, (void*)&pSubeventResultContinue->abortReason, gErrorProcedureAborted_c);
-                            }
-                        }
-                        break;
-
-                        default:
-                        {
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U)
-                            gCsTimeInfo.csDistMeasStart = 0U;
-                            gCsTimeInfo.csDistMeasDuration = 0U;
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U) */
-
-                            /* Procedure error! */
-                            if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
-                            {
-                                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
-                            }
-                            else
-                            {
-                                maAppLclState[deviceId] = gAppLclWaitingForMeasData_c;
-                            }
-                            AppLocalizationError(deviceId, gAppLclProcStatusFailed_c);
-                        }
-                        break;
-                    }
-                }
-                else
-                {
-                    /* Error occured! */
-                    AppLocalizationError(deviceId, gAppLclErrorProcessingSubevent_c);
-                }
-            }
-            else
-            {
-                /* Unexpected event. */
-                AppLocalizationError(deviceId, gAppLclUnexpectedSRCE_c);
-            }
-
-            /* Free Event Data */
-            (void)MEM_BufferFree(pSubeventResultContinue->pData);
-
+            deviceId = AppLocalization_HandleSubeventResultContinue(pPacket->pEventData);
         }
         break;
 
         case gCsMetaEvtProcedureEnableComplete_c:
         {
-            csProcedureEnableCompleteEvent_t* pProcEnableComplete = (csProcedureEnableCompleteEvent_t*)pPacket->pEventData;
-            deviceId = pProcEnableComplete->deviceId;
-
-#if defined (gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
-            maAlgoRunCount[deviceId] = 0U;
-#endif
-            maCsProcCount[deviceId] = 0U;
-
-            /* Procedure was enabled */
-            if (pProcEnableComplete->state == 1U)
-            {
-                uint8_t activeProcedures;
-                appLocalization_State_t countThreshold;
-
-                /* Check if we exceeded the limit */
-                countThreshold = (maAppLclState[deviceId] >= gAppLclWaitingForSPPCC_c) ? 
-                                 gAppLclWaitingForMeasData_c : gAppLclWaitingForSPPCC_c;
-
-                activeProcedures = AppLocalization_GetActiveProcedureCount(countThreshold);
-
-                if (activeProcedures >= gChannelSoundingMaxConcurrentProcedures_c)
-                {
-                    AppLocalization_SetLocState(deviceId, gAppLclWaitingForPECS_c);
-                    /* Limit exceeded - disable this procedure */
-                    result = CS_ProcedureEnable(deviceId, mRangeSettings[deviceId].configId, FALSE);
-
-                    if (result == gBleSuccess_c)
-                    {
-                        /* Notify application */
-                        if (mpfAppCsCallback != NULL)
-                        {
-                            AppLocalizationError(deviceId, gAppLclMaxProceduresReached_c);
-                        }
-                    }
-
-                    break;
-                }
-
-                /* Update number of procedures and reset internal counters */
-                mRangeSettings[deviceId].maxNumProcedures = pProcEnableComplete->procedureCount;
-
-                /* Start temperature refresh timer if not started already */
-                if (TM_IsTimerActive((timer_handle_t)mTemperatureTimerId) == 0U)
-                {
-                    (void)TM_Start((timer_handle_t)mTemperatureTimerId, kTimerModeSingleShot | kTimerModeLowPowerTimer, gTemperaturePollingInterval_c);
-                }
-
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-                gCsTimeInfo.subeventInterval = pProcEnableComplete->subeventInterval;
-                gCsTimeInfo.subeventLen = Utils_ExtractThreeByteValue(pProcEnableComplete->subeventLen);
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
-
-#if defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
-                BtcsServer_SetServerCfg(deviceId, &mResultData[deviceId]);
-#endif /* defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U) */
-
-                /* Wait for measurement data. */
-                AppLocalization_SetLocState(deviceId, gAppLclWaitingForMeasData_c);
-
-                mResultData[deviceId].selectedTxPower = ((int8_t)pProcEnableComplete->selectedTxPower);
-
-                if (mGlobalRangeSettings.role == gCsRoleReflector_c)
-                {
-                    if (mpfAppCsCallback != NULL)
-                    {
-                        mpfAppCsCallback(deviceId, NULL, gDistanceMeastStarted_c);
-                    }
-                }
-            }
-            /* Procedure was disabled either by the local or remote device */
-            else
-            {
-                /* Reset measurement data */
-                AppLocalization_FreeLocalData(deviceId);
-                FLib_MemSet(&mResultData[deviceId], 0x00, sizeof(rasMeasurementData_t));
-                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
-
-#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
-#if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
-                RasClient_ResetRasTransferInfo(deviceId);
-#endif /* gRasRREQ_d */
-#endif /* gAppRasDataTransfer_d */
-            }
+            deviceId = AppLocalization_HandleProcedureEnableComplete(pPacket->pEventData);
         }
         break;
 
         case gCsMetaEvtError_c:
         {
-            csErrorEvent_t* pCsMetaEvtError = (csErrorEvent_t*)pPacket->pEventData;
-            deviceId = pCsMetaEvtError->deviceId;
-
-            /* Set idle state once for all error cases */
-            AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
-
-            switch (pCsMetaEvtError->csErrorSource)
-            {
-                case readRemoteSupportedCapabilitiesComplete:
-                {
-                    /* An error occured during the configuration phase. */
-                    AppLocalizationError(deviceId, gAppLclErrorRRSCCC_c);
-                }
-                break;
-
-                case securityEnableComplete:
-                {
-                    /* An error occured during the configuration phase. */
-                    AppLocalizationError(deviceId, gAppLclErrorSEC_c);
-                }
-                break;
-
-                case readRemoteFAETableComplete:
-                {
-                    /* An error occurred during read remote FAE table. */
-                    AppLocalizationError(deviceId, gAppLclErrorRRFAETC_c);
-                }
-                break;
-
-                case configComplete:
-                {
-                    /* An error occurred during configuration. */
-                    AppLocalizationError(deviceId, gAppLclErrorCC_c);
-                }
-                break;
-
-                case procedureEnableComplete:
-                {
-                    /* An error occurred during procedure enable. */
-                    AppLocalizationError(deviceId, gAppLclErrorPEC_c);
-                }
-                break;
-
-                case eventResult:
-                {
-                    /* An error occurred during event result processing. */
-                    AppLocalizationError(deviceId, gAppLclErrorERE_c);
-                }
-                break;
-
-                case eventResultContinue:
-                {
-                    /* An error occurred during event result continue processing. */
-                    AppLocalizationError(deviceId, gAppLclErrorERCE_c);
-                }
-                break;
-
-                default:
-                {
-                    ; /* No action required */
-                }
-                break;
-            }
+            deviceId = AppLocalization_HandleCsError(pPacket->pEventData);
         }
         break;
 
@@ -2740,6 +2193,994 @@ static void AppLocalization_CSMetaEventCallback
     /* Free packet data and packet */
     (void)MEM_BufferFree(pPacket->pEventData);
     (void)MEM_BufferFree(pPacket);
+}
+
+/*! **********************************************************************************
+\fn           deviceId_t AppLocalization_HandleReadRemoteCaps(void* pEventData)
+\brief        Handles read remote supported capabilities complete event.
+\param[in]    pEventData - Pointer to event data
+\retval       deviceId_t - Device ID
+********************************************************************************** */
+static deviceId_t AppLocalization_HandleReadRemoteCaps
+(
+    void* pEventData
+)
+{
+    csReadRemoteSupportedCapabilitiesCompleteEvent_t* pRemoteCapabilities =
+        (csReadRemoteSupportedCapabilitiesCompleteEvent_t*)pEventData;
+    deviceId_t deviceId = pRemoteCapabilities->deviceId;
+    bleResult_t result = gBleSuccess_c;
+
+    mRangeSettings[deviceId].t_sw_remote = pRemoteCapabilities->TSWtimeSupported;
+	mRangeSettings[deviceId].subfeaturesSupported = pRemoteCapabilities->optionalSubfeaturesSupported;
+
+    if (((mGlobalRangeSettings.role == gCsRoleInitiator_c) &&
+            (maAppLclState[deviceId] == gAppLclWaitingForRRSCC_c)) ||
+        (mGlobalRangeSettings.role == gCsRoleReflector_c))
+    {
+        result = AppLocalization_ConfigureRemoteCaps(deviceId, pRemoteCapabilities);
+
+        if (result != gBleSuccess_c)
+        {
+            AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+            AppLocalizationError(deviceId, gAppLclSDSConfigError_c);
+        }
+        else
+        {
+            if (mGlobalRangeSettings.role == gCsRoleInitiator_c)
+            {
+                maAppLclState[deviceId] = gAppLclWaitingForSDSCC_c;
+            }
+        }
+    }
+    else
+    {
+        /* Unexpected event. */
+        AppLocalizationError(deviceId, gAppLclUnexpectedRRSCC_c);
+    }
+
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
+    if (mGlobalRangeSettings.role == gCsRoleReflector_c)
+    {
+        gCsTimeInfo.csConfigStartTs = TM_GetTimestamp();
+    }
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
+
+    return deviceId;
+}
+
+/*! **********************************************************************************
+\fn           bleResult_t AppLocalization_ConfigureRemoteCaps(deviceId_t deviceId, 
+                                                               csReadRemoteSupportedCapabilitiesCompleteEvent_t* pRemoteCapabilities)
+\brief        Configures remote capabilities and saves them if bonded.
+\param[in]    deviceId - Device ID
+\param[in]    pRemoteCapabilities - Pointer to remote capabilities
+\retval       bleResult_t - Result of the operation
+********************************************************************************** */
+static bleResult_t AppLocalization_ConfigureRemoteCaps
+(
+    deviceId_t deviceId,
+    csReadRemoteSupportedCapabilitiesCompleteEvent_t* pRemoteCapabilities
+)
+{
+    uint8_t syncAntennaSelection = 0xFF; /* proprietary antenna shuffling */
+    int8_t  maxTxPowerLevel = 10; /* 10 dBm */
+    uint8_t nvmIndex = gInvalidNvmIndex_c;
+    bool_t isBonded = FALSE;
+    bleResult_t result;
+
+    (void)Gap_CheckIfBonded(deviceId, &isBonded, &nvmIndex);
+
+    /* Save the capabilities of the peer device */
+    if ((isBonded == TRUE) && (mpCachedRemoteCaps[nvmIndex] == NULL))
+    {
+        mpCachedRemoteCaps[nvmIndex] = MEM_BufferAlloc(sizeof(csReadRemoteSupportedCapabilitiesCompleteEvent_t));
+        FLib_MemCpy(mpCachedRemoteCaps[nvmIndex],
+                    pRemoteCapabilities,
+                    sizeof(csReadRemoteSupportedCapabilitiesCompleteEvent_t));
+    }
+
+    result = CS_SetDefaultSettings(deviceId,
+                                   (csRoleType)(((uint8_t)gEnableCsInitiator_c) | ((uint8_t)gEnableCsReflector_c)),
+                                   syncAntennaSelection,
+                                   maxTxPowerLevel);
+
+    return result;
+}
+
+/*! **********************************************************************************
+\fn           deviceId_t AppLocalization_HandleSecurityEnableComplete(void* pEventData)
+\brief        Handles security enable complete event.
+\param[in]    pEventData - Pointer to event data
+\retval       deviceId_t - Device ID
+********************************************************************************** */
+static deviceId_t AppLocalization_HandleSecurityEnableComplete
+(
+    void* pEventData
+)
+{
+    csSecurityEnableCompleteEvent_t* pSecurityComplete =
+        (csSecurityEnableCompleteEvent_t*)pEventData;
+    deviceId_t deviceId = pSecurityComplete->deviceId;
+
+    if (mpfAppCsCallback != NULL)
+    {
+        mpfAppCsCallback(deviceId, NULL, gCsSecurityEnabled_c);
+    }
+
+    return deviceId;
+}
+
+/*! **********************************************************************************
+\fn           deviceId_t AppLocalization_HandleConfigComplete(void* pEventData)
+\brief        Handles configuration complete event.
+\param[in]    pEventData - Pointer to event data
+\retval       deviceId_t - Device ID
+********************************************************************************** */
+static deviceId_t AppLocalization_HandleConfigComplete
+(
+    void* pEventData
+)
+{
+    csConfigCompleteEvent_t* pConfigComplete = (csConfigCompleteEvent_t*)pEventData;
+    deviceId_t deviceId = pConfigComplete->deviceId;
+
+    if ((maAppLclState[deviceId] == gAppLclWaitingForCC_c) ||
+        (maAppLclState[deviceId] == gAppLclWaitingForLocCfg_c) ||
+        (mGlobalRangeSettings.role == gCsRoleReflector_c))
+    {
+        AppLocalization_SaveMeasurementConfig(deviceId, pConfigComplete);
+
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
+        gCsTimeInfo.csConfigEndTs = TM_GetTimestamp();
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
+
+        if (mpfAppCsCallback != NULL)
+        {
+            if (maAppLclState[deviceId] == gAppLclWaitingForCC_c)
+            {
+                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+                mpfAppCsCallback(deviceId, NULL, gConfigComplete_c);
+            }
+            else
+            {
+                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+                mpfAppCsCallback(deviceId, NULL, gLocalConfigWritten_c);
+            }
+        }
+    }
+    else
+    {
+        /* Unexpected event. */
+        AppLocalizationError(deviceId, gAppLclUnexpectedCC_c);
+    }
+
+    return deviceId;
+}
+
+/*! **********************************************************************************
+\fn           void AppLocalization_SaveMeasurementConfig(deviceId_t deviceId, 
+                                                          csConfigCompleteEvent_t* pEvent)
+\brief        Saves measurement configuration locally.
+\param[in]    deviceId - Device ID
+\param[in]    pEvent - Pointer to config complete event
+\retval       none
+********************************************************************************** */
+static void AppLocalization_SaveMeasurementConfig
+(
+    deviceId_t deviceId,
+    csConfigCompleteEvent_t* pEvent
+)
+{
+    /* Save measurement config locally */
+    mGlobalRangeSettings.role = pEvent->role;
+    mRangeSettings[deviceId].configId = pEvent->configId;
+    mRangeSettings[deviceId].main_mode_type = pEvent->mainModeType;
+    mRangeSettings[deviceId].sub_mode_type = pEvent->subModeType;
+    mRangeSettings[deviceId].main_mode_min = pEvent->mainModeMinSteps;
+    mRangeSettings[deviceId].main_mode_max = pEvent->mainModeMaxSteps;
+    mRangeSettings[deviceId].main_mode_repeat = pEvent->mainModeRepetition;
+    mRangeSettings[deviceId].mode0_nb = pEvent->mode0Steps;
+    mRangeSettings[deviceId].rtt_type = pEvent->RTTTypes;
+    mRangeSettings[deviceId].cs_sync_phy = pEvent->csSyncPhy;
+    FLib_MemCpy(mRangeSettings[deviceId].ch_map, pEvent->channelMap, gHCICSChannelMapSize);
+    mRangeSettings[deviceId].ch_map_repeat = pEvent->channelMapRepetition;
+    mRangeSettings[deviceId].t_ip1 = pEvent->TIP1time;
+    mRangeSettings[deviceId].t_ip2 = pEvent->TIP2time;
+    mRangeSettings[deviceId].t_fcs = pEvent->TFCStime;
+    mRangeSettings[deviceId].t_pm = pEvent->TPMtime;
+	mRangeSettings[deviceId].inlinePctEnabled = ((pEvent->csEnhancements & gCsEnhancementsIptEnabledInReflector_c) != 0U);
+}
+
+/*! **********************************************************************************
+\fn           deviceId_t AppLocalization_HandleSubeventResult(void* pEventData)
+\brief        Handles subevent result event.
+\param[in]    pEventData - Pointer to event data
+\retval       deviceId_t - Device ID
+********************************************************************************** */
+static deviceId_t AppLocalization_HandleSubeventResult
+(
+    void* pEventData
+)
+{
+    csSubeventResultEvent_t* pSubeventResult = (csSubeventResultEvent_t*)pEventData;
+    deviceId_t deviceId = pSubeventResult->deviceId;
+    bleResult_t result = gBleSuccess_c;
+
+    /* Debug logging for Subevent Result */
+    CS_LOG_SUBEVENT("SubeventResult: devId=%d, procCnt=%u, steps=%u, procDone=%u, subevtDone=%u",
+                    deviceId,
+                    pSubeventResult->procedureCounter,
+                    pSubeventResult->numStepsReported,
+                    pSubeventResult->procedureDoneStatus,
+                    pSubeventResult->subeventDoneStatus);
+
+    /* Clear local data on new procedure start during ongoing RAS transfer */
+    AppLocalization_PrepareForNewProcedure(deviceId);
+
+    AppLocalization_UpdateCsTimeInfo(pSubeventResult);
+
+    if (maAppLclState[deviceId] == gAppLclReceivingMeasData_c)
+    {
+        /* Save results */
+        result = processCsResultsEvent(pSubeventResult);
+        if (result == gBleSuccess_c)
+        {
+            AppLocalization_ProcessSubeventStatus(deviceId, 
+                                                   pSubeventResult->procedureDoneStatus,
+                                                   pSubeventResult->abortReason);
+        }
+        else
+        {
+            /* Error occured! */
+            AppLocalizationError(deviceId, gAppLclErrorProcessingSubevent_c);
+        }
+    }
+    else
+    {
+        /* Unexpected event. */
+        AppLocalizationError(deviceId, gAppLclUnexpectedSRE_c);
+    }
+
+    /* Free Data */
+    (void)MEM_BufferFree(pSubeventResult->pData);
+
+    return deviceId;
+}
+
+/*! **********************************************************************************
+\fn           void AppLocalization_PrepareForNewProcedure(deviceId_t deviceId)
+\brief        Prepares local data for a new CS procedure.
+\param[in]    deviceId - Device ID
+\retval       none
+********************************************************************************** */
+static void AppLocalization_PrepareForNewProcedure
+(
+    deviceId_t deviceId
+)
+{
+    if ((maAppLclState[deviceId] == gAppLclWaitingForMeasData_c) || 
+        (maAppLclState[deviceId] == gAppRasTransfInProgress_c))
+    {
+        if (maAppLclState[deviceId] == gAppRasTransfInProgress_c)
+        {
+            /* New CS procedure started while RAS transfer was in progress for the previous one
+               Enter a new state in which leftover RAS notifications/indications will be dropped */
+            maAppLclState[deviceId] = gAppLclReceivingMeasDataDropLeftovers_c;
+        }
+        else
+        {
+            maAppLclState[deviceId] = gAppLclReceivingMeasData_c;
+        }
+
+        /* Make sure local csAppData_t is allocated */
+        (void)AppLocalization_AllocLocalData(deviceId);
+
+        /* Clear local data */
+        AppLocalization_ClearLocalData(deviceId);
+
+#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
+#if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
+        /* clear any leftover peer data */
+        RasClient_ResetPeerInfo(deviceId);
+#endif /* gRasRREQ_d */
+#if defined (gRasRRSP_d) && (gRasRRSP_d == 1U)
+        /* If a transfer was in progress send data overwritten indication */
+        if ((Ras_CheckRealTimeData(deviceId) == FALSE) && 
+            (Ras_CheckTransferInProgress(deviceId) == TRUE))
+        {
+            (void)Ras_SendDataOverwritten(deviceId);
+            if (mpfAppCsCallback != NULL)
+            {
+                mpfAppCsCallback(deviceId, NULL, gDataOverwritten_c);
+            }
+        }
+        /* Clear RAS data pointer to avoid reading of incomplete data. */
+        Ras_SetDataPointer(deviceId, NULL);
+#endif /* gRasRRSP_d */
+#endif /* gAppRasDataTransfer_d */
+    }
+}
+
+/*! **********************************************************************************
+\fn           void AppLocalization_UpdateCsTimeInfo(csSubeventResultEvent_t* pSubeventResult)
+\brief        Updates CS time information for measurements.
+\param[in]    pSubeventResult - Pointer to subevent result
+\retval       none
+********************************************************************************** */
+static void AppLocalization_UpdateCsTimeInfo
+(
+    csSubeventResultEvent_t* pSubeventResult
+)
+{
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
+    if (gCsTimeInfo.csDistMeasStart == 0U)
+    {
+        gCsTimeInfo.csDistMeasDuration += gCsTimeInfo.subeventLen;
+
+        if (gCsTimeInfo.lastAclConnEvtCnt == 0)
+        {
+            /* First CS event for this procedure */
+            gCsTimeInfo.noOfRcvSubEvsInConnInt = 1;
+        }
+        else if (gCsTimeInfo.lastAclConnEvtCnt == pSubeventResult->startACLConnEvent)
+        {
+            /* Additional CS event in same connection interval */
+            gCsTimeInfo.noOfRcvSubEvsInConnInt++;
+            gCsTimeInfo.csDistMeasDuration += (uint64_t)gCsTimeInfo.subeventInterval * 625;
+        }
+        else
+        {
+            /* CS event in new connection interval */
+            /* Estimate the time between the end of the last CS event and the begining of
+            the current CS event which is the first CS event in this connection interval */
+            gCsTimeInfo.csDistMeasDuration += (uint64_t)gCsTimeInfo.connInterval * 1250 - 
+                ((gCsTimeInfo.noOfRcvSubEvsInConnInt * gCsTimeInfo.subeventLen) + 
+                 (uint64_t)((gCsTimeInfo.noOfRcvSubEvsInConnInt - 1) * gCsTimeInfo.subeventInterval * 625));
+            gCsTimeInfo.noOfRcvSubEvsInConnInt = 1;
+            /* Take into account the case where multiple ACL connection events may be
+            between consecutive CS events */
+            gCsTimeInfo.csDistMeasDuration += (uint64_t)gCsTimeInfo.connInterval * 1250 * 
+                (pSubeventResult->startACLConnEvent - gCsTimeInfo.lastAclConnEvtCnt - 1);
+        }
+        gCsTimeInfo.lastAclConnEvtCnt = pSubeventResult->startACLConnEvent;
+    }
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
+}
+
+/*! **********************************************************************************
+\fn           void AppLocalization_ProcessSubeventStatus(deviceId_t deviceId, 
+                                                          uint8_t procedureDoneStatus,
+                                                          uint8_t abortReason)
+\brief        Processes the subevent procedure done status.
+\param[in]    deviceId - Device ID
+\param[in]    procedureDoneStatus - Procedure done status
+\param[in]    abortReason - Abort reason if applicable
+\retval       none
+********************************************************************************** */
+static void AppLocalization_ProcessSubeventStatus
+(
+    deviceId_t deviceId,
+    uint8_t procedureDoneStatus,
+    uint8_t abortReason
+)
+{
+    switch (procedureDoneStatus)
+    {
+        case (uint8_t)gCsCompleteResults_c:
+        {
+            AppLocalization_HandleCompleteResults(deviceId);
+        }
+        break;
+
+        case (uint8_t)gCsPartialResults_c:
+        {
+            /* Partial results with more to follow for the CS procedure */
+        }
+        break;
+
+        case (uint8_t)gCsNoResultsProcAborted_c:
+        {
+            AppLocalization_HandleProcedureAborted(deviceId, abortReason);
+        }
+        break;
+
+        default:
+        {
+            AppLocalization_HandleProcedureError(deviceId);
+        }
+        break;
+    }
+}
+
+/*! **********************************************************************************
+\fn           void AppLocalization_HandleCompleteResults(deviceId_t deviceId)
+\brief        Handles complete results for a CS procedure.
+\param[in]    deviceId - Device ID
+\retval       none
+********************************************************************************** */
+static void AppLocalization_HandleCompleteResults
+(
+    deviceId_t deviceId
+)
+{
+    /* All results complete for the CS procedure - check if there is data to send */
+    if (mResultData[deviceId].dataIndex > 0U)
+    {
+        AppLocalization_ResetCsTimeInfo(deviceId);
+
+#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
+#if defined (gRasRRSP_d) && (gRasRRSP_d == 1U)
+        Ras_SetDataPointer(deviceId, &mResultData[deviceId]);
+
+        /* Send real-time data after the subevent is completed */
+        if (Ras_CheckRealTimeData(deviceId) == FALSE)
+        {
+            bleResult_t result = Ras_SendDataReady(deviceId);
+            if (result != gBleSuccess_c)
+            {
+                AppLocalizationError(deviceId, gAppLclRasSendIndicationFailed_c);
+            }
+        }
+#endif /* gRasRRSP_d */
+#elif defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
+        gCsTimeInfo.transferStart = TM_GetTimestamp();
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
+
+        /* Start sending L2CAP data */
+        (void)BtcsServer_SendData(deviceId,
+                                  maPsmChannels[deviceId],
+                                  gRangingProcResStart_c);
+#endif /* gAppRasDataTransfer_d */
+
+        AppLocalization_CheckAlgoRun(deviceId);
+
+        maCsProcCount[deviceId]++;
+
+        AppLocalization_UpdateStateAfterComplete(deviceId);
+
+        if (mpfAppCsCallback != NULL)
+        {
+            mpfAppCsCallback(deviceId, NULL, gLocalMeasurementComplete_c);
+        }
+    }
+    else
+    {
+        maCsProcCount[deviceId]++;
+        /* Check if we reached the last procedure */
+        if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
+        {
+            AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+        }
+        else
+        {
+            maAppLclState[deviceId] = gAppLclWaitingForMeasData_c;
+        }
+    }
+}
+
+/*! **********************************************************************************
+\fn           void AppLocalization_ResetCsTimeInfo(deviceId_t deviceId)
+\brief        Resets CS time information after measurement completion.
+\param[in]    deviceId - Device ID
+\retval       none
+********************************************************************************** */
+static void AppLocalization_ResetCsTimeInfo
+(
+    deviceId_t deviceId
+)
+{
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
+    if (gCsTimeInfo.csDistMeasStart != 0U)
+    {
+        /* Distance measurement duration for the first procedure. */
+        gCsTimeInfo.csDistMeasDuration = TM_GetTimestamp() - gCsTimeInfo.csDistMeasStart;
+        gCsTimeInfo.csDistMeasStart = 0;
+        gCsTimeInfo.lastAclConnEvtCnt = 0;
+        gCsTimeInfo.noOfRcvSubEvsInConnInt = 0;
+    }
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
+}
+
+/*! **********************************************************************************
+\fn           void AppLocalization_CheckAlgoRun(deviceId_t deviceId)
+\brief        Checks if algorithm was run for the procedure.
+\param[in]    deviceId - Device ID
+\retval       none
+********************************************************************************** */
+static void AppLocalization_CheckAlgoRun
+(
+    deviceId_t deviceId
+)
+{
+#if defined (gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
+    if ((maCsProcCount[deviceId] > 0U) &&
+        (maAlgoRunCount[deviceId] != maCsProcCount[deviceId]))
+    {
+        AppLocalizationError(deviceId, gAppLclAlgoNotRun_c);
+        maAlgoRunCount[deviceId] = maCsProcCount[deviceId];
+    }
+#endif /* gAppRunAlgo_d */
+}
+
+/*! **********************************************************************************
+\fn           void AppLocalization_UpdateStateAfterComplete(deviceId_t deviceId)
+\brief        Updates application state after procedure completion.
+\param[in]    deviceId - Device ID
+\retval       none
+********************************************************************************** */
+static void AppLocalization_UpdateStateAfterComplete
+(
+    deviceId_t deviceId
+)
+{
+#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
+#if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
+    /* Local procedure is over - Wait for RAS transfer */
+    maAppLclState[deviceId] = gAppRasTransfInProgress_c;
+#endif /* gRasRREQ_d */
+#endif /* gAppRasDataTransfer_d */
+
+#if (defined (gRasRRSP_d) && (gRasRRSP_d == 1U)) || \
+    (defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U))
+    if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
+    {
+        AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+    }
+    else
+    {
+        maAppLclState[deviceId] = gAppLclWaitingForMeasData_c;
+    }
+#endif
+}
+
+/*! **********************************************************************************
+\fn           void AppLocalization_HandleProcedureAborted(deviceId_t deviceId, 
+                                                           uint8_t abortReason)
+\brief        Handles aborted CS procedure.
+\param[in]    deviceId - Device ID
+\param[in]    abortReason - Reason for abort
+\retval       none
+********************************************************************************** */
+static void AppLocalization_HandleProcedureAborted
+(
+    deviceId_t deviceId,
+    uint8_t abortReason
+)
+{
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U)
+    gCsTimeInfo.csDistMeasStart = 0U;
+    gCsTimeInfo.csDistMeasDuration = 0U;
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U) */
+
+    /* All subsequent CS procedures aborted */
+    maCsProcCount[deviceId] = 0U;
+    AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+
+    if (mpfAppCsCallback != NULL)
+    {
+        mpfAppCsCallback(deviceId, (void*)&abortReason, gErrorProcedureAborted_c);
+    }
+}
+
+/*! **********************************************************************************
+\fn           void AppLocalization_HandleProcedureError(deviceId_t deviceId)
+\brief        Handles CS procedure error.
+\param[in]    deviceId - Device ID
+\retval       none
+********************************************************************************** */
+static void AppLocalization_HandleProcedureError
+(
+    deviceId_t deviceId
+)
+{
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U)
+    gCsTimeInfo.csDistMeasStart = 0U;
+    gCsTimeInfo.csDistMeasDuration = 0U;
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U) */
+
+    /* Check if we reached the last procedure */
+    if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
+    {
+        AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+    }
+    else
+    {
+        maAppLclState[deviceId] = gAppLclWaitingForMeasData_c;
+    }
+
+    AppLocalizationError(deviceId, gAppLclProcStatusFailed_c);
+}
+
+/*! **********************************************************************************
+\fn           deviceId_t AppLocalization_HandleSubeventResultContinue(void* pEventData)
+\brief        Handles subevent result continue event.
+\param[in]    pEventData - Pointer to event data
+\retval       deviceId_t - Device ID
+********************************************************************************** */
+static deviceId_t AppLocalization_HandleSubeventResultContinue
+(
+    void* pEventData
+)
+{
+    csSubeventResultContinueEvent_t* pSubeventResultContinue =
+        (csSubeventResultContinueEvent_t*)pEventData;
+    deviceId_t deviceId = pSubeventResultContinue->deviceId;
+    bleResult_t result = gBleSuccess_c;
+
+    /* Debug logging for Subevent Result Continue */
+    CS_LOG_SUBEVENT("SubeventResultContinue: devId=%d, steps=%d, procDone=%d, subevtDone=%d",
+                    deviceId,
+                    pSubeventResultContinue->numStepsReported,
+                    pSubeventResultContinue->procedureDoneStatus,
+                    pSubeventResultContinue->subeventDoneStatus);
+
+    AppLocalization_PrepareForContinueEvent(deviceId);
+
+    if (maAppLclState[deviceId] == gAppLclReceivingMeasData_c)
+    {
+        /* Save results */
+        result = processCsResultsContinueEvent(pSubeventResultContinue);
+        if (result == gBleSuccess_c)
+        {
+            AppLocalization_ProcessContinueStatus(deviceId,
+                                                   pSubeventResultContinue->procedureDoneStatus,
+                                                   pSubeventResultContinue->abortReason);
+        }
+        else
+        {
+            /* Error occured! */
+            AppLocalizationError(deviceId, gAppLclErrorProcessingSubevent_c);
+        }
+    }
+    else
+    {
+        /* Unexpected event. */
+        AppLocalizationError(deviceId, gAppLclUnexpectedSRCE_c);
+    }
+
+    /* Free Event Data */
+    (void)MEM_BufferFree(pSubeventResultContinue->pData);
+
+    return deviceId;
+}
+
+/*! **********************************************************************************
+\fn           void AppLocalization_PrepareForContinueEvent(deviceId_t deviceId)
+\brief        Prepares state for subevent result continue event.
+\param[in]    deviceId - Device ID
+\retval       none
+********************************************************************************** */
+static void AppLocalization_PrepareForContinueEvent
+(
+    deviceId_t deviceId
+)
+{
+    if ((maAppLclState[deviceId] == gAppLclWaitingForMeasData_c) || 
+        (maAppLclState[deviceId] == gAppRasTransfInProgress_c))
+    {
+        maAppLclState[deviceId] = gAppLclReceivingMeasData_c;
+#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
+#if defined (gRasRRSP_d) && (gRasRRSP_d == 1U)
+        /* Clear RAS data pointer to avoid reading of incomplete data. */
+        Ras_SetDataPointer(deviceId, NULL);
+#endif /* gRasRRSP_d */
+#endif /* gAppRasDataTransfer_d */
+    }
+}
+
+/*! **********************************************************************************
+\fn           void AppLocalization_ProcessContinueStatus(deviceId_t deviceId,
+                                                          uint8_t procedureDoneStatus,
+                                                          uint8_t abortReason)
+\brief        Processes the continue event procedure done status.
+\param[in]    deviceId - Device ID
+\param[in]    procedureDoneStatus - Procedure done status
+\param[in]    abortReason - Abort reason if applicable
+\retval       none
+********************************************************************************** */
+static void AppLocalization_ProcessContinueStatus
+(
+    deviceId_t deviceId,
+    uint8_t procedureDoneStatus,
+    uint8_t abortReason
+)
+{
+    switch (procedureDoneStatus)
+    {
+        case (uint8_t)gCsCompleteResults_c:
+        {
+            AppLocalization_HandleContinueCompleteResults(deviceId);
+        }
+        break;
+
+        case (uint8_t)gCsPartialResults_c:
+        {
+            /* Partial results with more to follow for the CS procedure */
+        }
+        break;
+
+        case (uint8_t)gCsNoResultsProcAborted_c:
+        {
+            AppLocalization_HandleProcedureAborted(deviceId, abortReason);
+        }
+        break;
+
+        default:
+        {
+            AppLocalization_HandleProcedureError(deviceId);
+        }
+        break;
+    }
+}
+
+/*! **********************************************************************************
+\fn           void AppLocalization_HandleContinueCompleteResults(deviceId_t deviceId)
+\brief        Handles complete results for a CS procedure continue event.
+\param[in]    deviceId - Device ID
+\retval       none
+********************************************************************************** */
+static void AppLocalization_HandleContinueCompleteResults
+(
+    deviceId_t deviceId
+)
+{
+    /* All results complete for the CS procedure */
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
+    if (gCsTimeInfo.csDistMeasStart != 0U)
+    {
+        /* Distance measurement duration for the first procedure. */
+        gCsTimeInfo.csDistMeasDuration = TM_GetTimestamp() - gCsTimeInfo.csDistMeasStart;
+        gCsTimeInfo.csDistMeasStart = 0;
+    }
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
+
+#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
+#if defined (gRasRRSP_d) && (gRasRRSP_d == 1U)
+    Ras_SetDataPointer(deviceId, &mResultData[deviceId]);
+
+    /* Send real-time data after the subevent is completed */
+    if (Ras_CheckRealTimeData(deviceId) == FALSE)
+    {
+        bleResult_t result = Ras_SendDataReady(deviceId);
+        if (result != gBleSuccess_c)
+        {
+            AppLocalizationError(deviceId, gAppLclRasSendIndicationFailed_c);
+        }
+    }
+#endif /* defined (gRasRRSP_d) && (gRasRRSP_d == 1U) */
+#elif defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
+    gCsTimeInfo.transferStart = TM_GetTimestamp();
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
+
+    /* Start sending L2CAP data */
+    (void)BtcsServer_SendData(deviceId,
+                              maPsmChannels[deviceId],
+                              gRangingProcResStart_c);
+#endif /* gAppRasDataTransfer_d */
+
+    AppLocalization_CheckAlgoRun(deviceId);
+
+    maCsProcCount[deviceId]++;
+
+    AppLocalization_UpdateStateAfterComplete(deviceId);
+
+    if (mpfAppCsCallback != NULL)
+    {
+        mpfAppCsCallback(deviceId, NULL, gLocalMeasurementComplete_c);
+    }
+}
+
+/*! **********************************************************************************
+\fn           deviceId_t AppLocalization_HandleProcedureEnableComplete(void* pEventData)
+\brief        Handles procedure enable complete event.
+\param[in]    pEventData - Pointer to event data
+\retval       deviceId_t - Device ID
+********************************************************************************** */
+static deviceId_t AppLocalization_HandleProcedureEnableComplete
+(
+    void* pEventData
+)
+{
+    csProcedureEnableCompleteEvent_t* pProcEnableComplete = 
+        (csProcedureEnableCompleteEvent_t*)pEventData;
+    deviceId_t deviceId = pProcEnableComplete->deviceId;
+
+#if defined (gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
+    maAlgoRunCount[deviceId] = 0U;
+#endif
+    maCsProcCount[deviceId] = 0U;
+
+    /* Procedure was enabled */
+    if (pProcEnableComplete->state == 1U)
+    {
+        AppLocalization_HandleProcedureEnabled(deviceId, pProcEnableComplete);
+    }
+    /* Procedure was disabled either by the local or remote device */
+    else
+    {
+        AppLocalization_HandleProcedureDisabled(deviceId);
+    }
+
+    return deviceId;
+}
+
+/*! **********************************************************************************
+\fn           void AppLocalization_HandleProcedureEnabled(deviceId_t deviceId,
+                                                           csProcedureEnableCompleteEvent_t* pEvent)
+\brief        Handles procedure enabled state.
+\param[in]    deviceId - Device ID
+\param[in]    pEvent - Pointer to procedure enable complete event
+\retval       none
+********************************************************************************** */
+static void AppLocalization_HandleProcedureEnabled
+(
+    deviceId_t deviceId,
+    csProcedureEnableCompleteEvent_t* pEvent
+)
+{
+    uint8_t activeProcedures;
+    appLocalization_State_t countThreshold;
+    bleResult_t result;
+
+    /* Check if we exceeded the limit */
+    countThreshold = (maAppLclState[deviceId] >= gAppLclWaitingForSPPCC_c) ? 
+                     gAppLclWaitingForMeasData_c : gAppLclWaitingForSPPCC_c;
+
+    activeProcedures = AppLocalization_GetActiveProcedureCount(countThreshold);
+
+    if (activeProcedures >= gChannelSoundingMaxConcurrentProcedures_c)
+    {
+        AppLocalization_SetLocState(deviceId, gAppLclWaitingForPECS_c);
+        /* Limit exceeded - disable this procedure */
+        result = CS_ProcedureEnable(deviceId, mRangeSettings[deviceId].configId, FALSE);
+
+        if (result == gBleSuccess_c)
+        {
+            /* Notify application */
+            if (mpfAppCsCallback != NULL)
+            {
+                AppLocalizationError(deviceId, gAppLclMaxProceduresReached_c);
+            }
+        }
+
+        return;
+    }
+
+    /* Update number of procedures and reset internal counters */
+    mRangeSettings[deviceId].maxNumProcedures = pEvent->procedureCount;
+
+    /* Start temperature refresh timer if not started already */
+    if (TM_IsTimerActive((timer_handle_t)mTemperatureTimerId) == 0U)
+    {
+        (void)TM_Start((timer_handle_t)mTemperatureTimerId, 
+                       kTimerModeSingleShot | kTimerModeLowPowerTimer, 
+                       gTemperaturePollingInterval_c);
+    }
+
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
+    gCsTimeInfo.subeventInterval = pEvent->subeventInterval;
+    gCsTimeInfo.subeventLen = Utils_ExtractThreeByteValue(pEvent->subeventLen);
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
+
+#if defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
+    BtcsServer_SetServerCfg(deviceId, &mResultData[deviceId]);
+#endif /* defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U) */
+
+    /* Wait for measurement data. */
+    AppLocalization_SetLocState(deviceId, gAppLclWaitingForMeasData_c);
+    mResultData[deviceId].selectedTxPower = ((int8_t)pEvent->selectedTxPower);
+
+    if (mGlobalRangeSettings.role == gCsRoleReflector_c)
+    {
+        if (mpfAppCsCallback != NULL)
+        {
+            mpfAppCsCallback(deviceId, NULL, gDistanceMeastStarted_c);
+        }
+    }
+}
+
+/*! **********************************************************************************
+\fn           void AppLocalization_HandleProcedureDisabled(deviceId_t deviceId)
+\brief        Handles procedure disabled state.
+\param[in]    deviceId - Device ID
+\retval       none
+********************************************************************************** */
+static void AppLocalization_HandleProcedureDisabled
+(
+    deviceId_t deviceId
+)
+{
+    /* Reset measurement data */
+    AppLocalization_FreeLocalData(deviceId);
+    FLib_MemSet(&mResultData[deviceId], 0x00, sizeof(rasMeasurementData_t));
+    AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+
+#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
+#if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
+    RasClient_ResetRasTransferInfo(deviceId);
+#endif /* gRasRREQ_d */
+#endif /* gAppRasDataTransfer_d */
+}
+
+/*! **********************************************************************************
+\fn           deviceId_t AppLocalization_HandleCsError(void* pEventData)
+\brief        Handles CS error event.
+\param[in]    pEventData - Pointer to event data
+\retval       deviceId_t - Device ID
+********************************************************************************** */
+static deviceId_t AppLocalization_HandleCsError
+(
+    void* pEventData
+)
+{
+    csErrorEvent_t* pCsMetaEvtError = (csErrorEvent_t*)pEventData;
+    deviceId_t deviceId = pCsMetaEvtError->deviceId;
+
+    /* Set idle state once for all error cases */
+    AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+
+    switch (pCsMetaEvtError->csErrorSource)
+    {
+        case readRemoteSupportedCapabilitiesComplete:
+        {
+            /* An error occured during the configuration phase. */
+            AppLocalizationError(deviceId, gAppLclErrorRRSCCC_c);
+        }
+        break;
+
+        case securityEnableComplete:
+        {
+            /* An error occured during the configuration phase. */
+            AppLocalizationError(deviceId, gAppLclErrorSEC_c);
+        }
+        break;
+
+        case readRemoteFAETableComplete:
+        {
+            /* An error occurred during read remote FAE table. */
+            AppLocalizationError(deviceId, gAppLclErrorRRFAETC_c);
+        }
+        break;
+
+        case configComplete:
+        {
+            /* An error occurred during configuration. */
+            AppLocalizationError(deviceId, gAppLclErrorCC_c);
+        }
+        break;
+
+        case procedureEnableComplete:
+        {
+            /* An error occurred during procedure enable. */
+            AppLocalizationError(deviceId, gAppLclErrorPEC_c);
+        }
+        break;
+
+        case eventResult:
+        {
+            /* An error occurred during event result processing. */
+            AppLocalizationError(deviceId, gAppLclErrorERE_c);
+        }
+        break;
+
+        case eventResultContinue:
+        {
+            /* An error occurred during event result continue processing. */
+            AppLocalizationError(deviceId, gAppLclErrorERCE_c);
+        }
+        break;
+
+        default:
+        {
+            ; /* No action required */
+        }
+        break;
+    }
+
+    return deviceId;
 }
 
 /*! *********************************************************************************
