@@ -871,7 +871,15 @@ bleResult_t AppLocalization_SetProcedureParameters(deviceId_t deviceId)
         params.toneAntennaConfigSelection = mRangeSettings[deviceId].ant_cfg_index;
         params.phys = mRangeSettings[deviceId].phy; /* Should have been updated by the app upon connection to be the same as the connection PHY */
         params.txPwrDelta = 0; /* 0dBm */
-        params.preferredPeerAntenna = 3U; /* Use any of the 2 antenna */
+        if ( mRangeSettings[deviceId].numAntennasSupported <= gCsMaxNumberOfAntennas_c)
+        {
+            params.preferredPeerAntenna = (1U << mRangeSettings[deviceId].numAntennasSupported) - 1U; /* use any of the antennas supported by the peer */
+        }
+        else
+        {
+            /* Should not get here */
+            params.preferredPeerAntenna = 0U;
+        }
         params.SNRCtrlInitiator = mRangeSettings[deviceId].snr_control_init;
         params.SNRCtrlReflector = mRangeSettings[deviceId].snr_control_refl;
         /* Reset mResultData - if pData is allocated, it remains so for the upcoming procedure */
@@ -2212,7 +2220,8 @@ static deviceId_t AppLocalization_HandleReadRemoteCaps
     bleResult_t result = gBleSuccess_c;
 
     mRangeSettings[deviceId].t_sw_remote = pRemoteCapabilities->TSWtimeSupported;
-	mRangeSettings[deviceId].subfeaturesSupported = pRemoteCapabilities->optionalSubfeaturesSupported;
+    mRangeSettings[deviceId].subfeaturesSupported = pRemoteCapabilities->optionalSubfeaturesSupported;
+    mRangeSettings[deviceId].numAntennasSupported = pRemoteCapabilities->numAntennasSupported;
 
     if (((mGlobalRangeSettings.role == gCsRoleInitiator_c) &&
             (maAppLclState[deviceId] == gAppLclWaitingForRRSCC_c)) ||

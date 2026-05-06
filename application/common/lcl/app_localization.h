@@ -252,6 +252,7 @@ typedef struct appLocalization_rangeCfg_tag
     uint8_t snr_control_init;                   /*!< CS SNR_Control_Initiator */
     uint8_t snr_control_refl;                   /*!< CS SNR_Control_Reflector */
     uint16_t subfeaturesSupported;              /*!< CS Subfeatures Supported as reported by Read Remote Capabilities */
+    uint8_t numAntennasSupported;               /*!< Num antennas supported as reported by Read Remote Capabilities */
     bool_t inlinePctEnabled;                    /*!< TRUE if IPT enabled in current CS config */
     /* Used by algorithm */
     uint16_t connInterval;                      /*!< Connection interval of the Bluetooth LE link (units of 1.25ms) - required by algorithm */
