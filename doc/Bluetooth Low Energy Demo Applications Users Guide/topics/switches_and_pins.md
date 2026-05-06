@@ -182,6 +182,22 @@ Temperature Sensor
 | MCX-W71-EVK  | SW2    | LED2     |
 | MCX-W72-EVK  | SW2    | LED2     |
 
+TPMS Monitor
+===================
+|  Platform    | SCANSW | FACTORYRESETSW | CONNLED  |
+|:------------:|:------:|:--------------:|:--------:|
+| FRDM-KW43    | SW2    | SW3            | Blue LED |
+| KW45B41Z-EVK | SW2    | SW3            | LED2     |
+| KW47-EVK     | SW2    | SW3            | LED2     |
+
+TPMS Sensor
+===================
+|  Platform    | CONNADVSW | NCONNADVSW | CONNLED  |
+|:------------:|:---------:|:----------:|:--------:|
+| FRDM-KW43    | SW2       | SW3        | Blue LED |
+| KW45B41Z-EVK | SW2       | SW3        | LED2     |
+| KW47-EVK     | SW2       | SW3        | LED2     |
+
 Wireless UART
 ===================
 | Platform     | SCANSW | CONNLED  | ROLESW  |

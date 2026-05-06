@@ -53,6 +53,10 @@
 :heading-offset: 1
 ```
 
+```{include} ../topics/tpms_sensor_and_monitor.md
+:heading-offset: 1
+```
+
 ```{include} ../topics/low-power_extended_advertising_peripheral_and_exte.md
 :heading-offset: 1
 ```
