@@ -3131,6 +3131,11 @@ static deviceId_t AppLocalization_HandleCsError
     /* Set idle state once for all error cases */
     AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
 
+    CS_LOG_ERROR("CS Meta Event: devId=%d, source=%d, status=0x%x",
+                    pCsMetaEvtError->deviceId,
+                    pCsMetaEvtError->csErrorSource,
+                    pCsMetaEvtError->status);
+
     switch (pCsMetaEvtError->csErrorSource)
     {
         case readRemoteSupportedCapabilitiesComplete:

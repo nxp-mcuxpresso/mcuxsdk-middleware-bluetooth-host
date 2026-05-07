@@ -1889,8 +1889,8 @@ static void BleApp_HandleCsCcEvent
         {
             shell_write("CS Command Complete error! errorSource: ");
             shell_writeDec((uint32_t)pEvent->eventData.csCommandError.errorSource); /* value in commandErrorSource_t enum */
-            shell_write(", status ");
-            shell_writeDec((uint32_t)pEvent->eventData.csCommandError.status); /* value in bleResult_t enum */
+            shell_write(", status: 0x ");
+            shell_writeHexLe((uint8_t*)&pEvent->eventData.csCommandError.status, 2); /* value in bleResult_t enum */
             SHELL_NEWLINE();
         }
     }
