@@ -461,7 +461,8 @@ static shell_status_t ShellSetCsConfigParams_Command(shell_handle_t shellHandle,
             {
                 csConfigParams.sub_mode_type = (uint8_t)BleApp_atoi(argv[3]);
 
-                if ((csConfigParams.sub_mode_type == 0U) || (csConfigParams.sub_mode_type > 3U))
+                if ((csConfigParams.sub_mode_type == 0U) ||
+                    ((csConfigParams.sub_mode_type > 3U) && (csConfigParams.sub_mode_type != 255U)))
                 {
                     status = gBleInvalidParameter_c;
                 }

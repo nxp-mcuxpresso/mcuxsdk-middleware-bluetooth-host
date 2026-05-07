@@ -408,7 +408,8 @@ static bleResult_t ValidateAndSetCsParams
     {
         pCsConfigParams->sub_mode_type = (uint8_t)BleApp_atoi(argv[3]);
 
-        if ((pCsConfigParams->sub_mode_type == 0U) || (pCsConfigParams->sub_mode_type > 3U))
+        if ((pCsConfigParams->sub_mode_type == 0U) ||
+            ((pCsConfigParams->sub_mode_type > 3U) && (pCsConfigParams->sub_mode_type != 255U)))
         {
             status = gBleInvalidParameter_c;
         }

@@ -807,7 +807,8 @@ static bleResult_t ShellSetCsConfigParams_CheckSubmodeType(appCsConfigParams_t *
     bleResult_t status = gBleSuccess_c;
     pAppCsConfigParams->subModeType = (uint8_t)BleApp_atoi(pArgv);
 
-    if ((pAppCsConfigParams->subModeType == 0U) || (pAppCsConfigParams->subModeType > 3U))
+    if ((pAppCsConfigParams->subModeType == 0U)||
+        ((pAppCsConfigParams->subModeType > 3U) && (pAppCsConfigParams->subModeType != 255U)))
     {
         status = gBleInvalidParameter_c;
     }
