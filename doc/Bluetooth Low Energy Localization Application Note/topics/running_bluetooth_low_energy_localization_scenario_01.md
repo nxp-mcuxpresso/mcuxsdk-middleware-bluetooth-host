@@ -122,6 +122,7 @@ Other available shell commands are:
     -   `maxNumProcedures`: Number of procedures in hex format. Example: `setnumprocs 0 0x0005`.
 -   `setmcp`: This command overwrites the default value `gChannelSoundingMaxConcurrentProcedures_c` parameter for the number of maximum supported simultaneous CS procedures across all connections. It takes the following parameters:
     -   `maxNumConcurrentProcedures`: Number of procedures in decimal format. Example: `setmcp 2`.
+-  `loop`: This command toggles the automatic restart of the CS procedure (whether with CS Procedure Repeat enabled or not) upon its end. By default, the CS procedure will not restart automatically.
 
 **Parent topic:**[Running the Bluetooth Low Energy Localization Scenario](../topics/running_bluetooth_low_energy_localization_scenario.md)
 

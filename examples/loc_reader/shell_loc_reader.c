@@ -71,6 +71,7 @@ static shell_status_t ShellSetNumProcs_Command(shell_handle_t shellHandle, int32
 static shell_status_t ShellFilter_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellListBd_Command (shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellSetMaxConcurrentProcs_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
+static shell_status_t ShellToggleLoop_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 #if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
 static shell_status_t ShellRunTest_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 #endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */
@@ -209,6 +210,14 @@ static shell_command_t mSetMaxConcurrentProcsCmd =
     .pFuncCallBack = ShellSetMaxConcurrentProcs_Command,
 };
 
+static shell_command_t mToggleLoopCmd =
+{
+    .pcCommand = "loop",
+    .pcHelpString = "\r\n\"loop\": Toggle auto-loop of CS procedure (restart on end).\r\n",
+    .cExpectedNumberOfParameters = SHELL_IGNORE_PARAMETER_COUNT,
+    .pFuncCallBack = ShellToggleLoop_Command,
+};
+
 #if (defined(gAppUseTAK_d) && gAppUseTAK_d)
 static shell_command_t mTakCmd =
 {
@@ -280,6 +289,8 @@ void AppShellInit(char* prompt)
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mListBdCmd);
     assert(kStatus_SHELL_Success == status);
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSetMaxConcurrentProcsCmd);
+    assert(kStatus_SHELL_Success == status);
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mToggleLoopCmd);
     assert(kStatus_SHELL_Success == status);
 #if (defined(gAppUseTAK_d) && gAppUseTAK_d)
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mTakCmd);
@@ -1126,6 +1137,34 @@ static shell_status_t ShellSetMaxConcurrentProcs_Command(shell_handle_t shellHan
         shell_write("\r\nInvalid parameter. \
                      \r\nUsage: setmcp [1-6]\r\n");
     }
+
+    return kStatus_SHELL_Success;
+}
+
+/*! *********************************************************************************
+* \brief        Toggle auto-loop of CS procedure.
+*
+* \param[in]    shellHandle    Shell handle
+* \param[in]    argc           Number of arguments
+* \param[in]    argv           Pointer to arguments
+*
+* \return       shell_status_t  Returns the command processing status
+********************************************************************************** */
+static shell_status_t ShellToggleLoop_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
+{
+    static bool_t mLastValue = FALSE;
+
+    AppLocalization_EnableProcedureRestart(!mLastValue);
+    shell_write("CS procedure auto-restart: ");
+    if (!mLastValue)
+    {
+        shell_write("ENABLED\r\n");
+    }
+    else
+    {
+        shell_write("DISABLED\r\n");
+    }
+    mLastValue = !mLastValue;
 
     return kStatus_SHELL_Success;
 }

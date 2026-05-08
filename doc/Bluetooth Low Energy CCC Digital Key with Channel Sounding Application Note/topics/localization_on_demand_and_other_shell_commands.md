@@ -89,6 +89,6 @@ Other available shell commands are:
 
     -   `peerId`
     -   `maxNumProcedures`: Number of procedures in hex format. Example: `setnumprocs 0 0x0005`.
-
+-   `loop`: This command toggles the automatic restart of the CS procedure (whether with CS Procedure Repeat enabled or not) upon its end. By default, the CS procedure will not restart automatically.
 **Parent topic:**[Localization scenarios](../topics/localization_scenarios.md)
 

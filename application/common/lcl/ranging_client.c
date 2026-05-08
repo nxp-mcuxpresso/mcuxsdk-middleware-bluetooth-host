@@ -143,6 +143,13 @@ static bleResult_t RasClient_UnsubscribeRealTime
     deviceId_t deviceId
 );
 
+/* Helper function - retrieves the procedure counter from the first segment
+   of a real time transfer */
+static bool_t RasClient_CheckRealTimeProcedureCounter
+(
+    uint8_t *pData,
+    uint16_t *pOutProcCounter
+);
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -228,23 +235,30 @@ bleResult_t RasClient_StorePeerMeasurementData
     (void)TM_Start((timer_handle_t)mRreqTimerId, (uint8_t)kTimerModeLowPowerTimer | (uint8_t)kTimerModeSingleShot | (uint8_t)kTimerModeSetSecondTimer,
                    gRreqTimeoutDataSeconds_c);
 
-    CS_LOG_RAS("StorePeerData: devId=%d, state=%d",
-               deviceId,
-               AppLocalization_GetLocState(deviceId));
-
-    /* A previous RAS transfer did not finish before a new CS procedure started
-       Peer result data was cleared, but notifications/indications may still arrive
-       Drop all notifications and indications until the new RAS transfer */
-    if (AppLocalization_GetLocState(deviceId) == gAppLclReceivingMeasDataDropLeftovers_c)
+    if (mbRealTimeTransfer[deviceId] == TRUE)
     {
-        segmentHeader = *pValue;
-        if ((segmentHeader & ((uint8_t)gRasNotifFirstSegment_c)) != 0U)
+        uint16_t peerProcCounter = 0U;
+        bool_t isFirstSegment = RasClient_CheckRealTimeProcedureCounter(pValue, &peerProcCounter);
+        if (isFirstSegment == TRUE)
         {
-            AppLocalization_SetLocState(deviceId, gAppLclReceivingMeasData_c);
+            mPeerResultData[deviceId].procedureCounter = peerProcCounter;
         }
-        else
+    }
+
+    CS_LOG_RAS("StorePeerData: devId=%d, state=%d, peerProcCnt=%d, localProcCnt=%d",
+               deviceId,
+               AppLocalization_GetLocState(deviceId),
+               mPeerResultData[deviceId].procedureCounter,
+               AppLocalization_GetGlobalProcedureCount(deviceId));
+
+    if ((mPeerResultData[deviceId].procedureCounter < AppLocalization_GetGlobalProcedureCount(deviceId)) ||
+        (AppLocalization_GetLocState(deviceId) < gAppLclReceivingMeasData_c))
+    {
+        bEarlyReturn = TRUE;
+        if (AppLocalization_GetProcedureCount(deviceId) == AppLocalization_GetNumberOfProcedures(deviceId))
         {
-            bEarlyReturn = TRUE;
+            AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+            AppLocalization_ProcedureRestart(deviceId);
         }
     }
 
@@ -282,7 +296,7 @@ bleResult_t RasClient_StorePeerMeasurementData
 
             if ((segmentHeader & ((uint8_t)gRasNotifFirstSegment_c)) != 0U)
             {
-                segmentCounter = gRasSegmentCounterMinValue_c;
+                CS_LOG_RAS("StorePeerData: devId=%d, first segment", deviceId);
 
                 if (mbRealTimeTransfer[deviceId] == TRUE)
                 {
@@ -462,14 +476,19 @@ bleResult_t RasClient_ProcessRasDataReadyIndications
     /* Check if the received procedure index matches the local one */
     if (pRasIndication->procedureIndex != procedureCounter)
     {
-        /* Received an unexpected procedure - do not initiate transfer and wait for the next procedure */
+        /* Received an unexpected procedure */
         if (procCounter == mRangeSettings[deviceId].maxNumProcedures)
         {
             AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+            AppLocalization_ProcedureRestart(deviceId);
         }
         else
         {
-            AppLocalization_SetLocState(deviceId, gAppLclWaitingForMeasData_c);
+            /* Do not initiate transfer and wait for the next procedure */
+            if (AppLocalization_GetLocState(deviceId) > gAppLclWaitingForMeasData_c)
+            {
+                AppLocalization_SetLocState(deviceId, gAppLclWaitingForMeasData_c);
+            }
         }
 
         error = gAppLclInvalidProcIndex_c;
@@ -487,6 +506,9 @@ bleResult_t RasClient_ProcessRasDataReadyIndications
         if (AppLocalization_GetProcDoneStatus(deviceId, subeventIndex) == (uint8_t)gCsCompleteResults_c)
         {
             segmentCounter = gRasSegmentCounterMinValue_c;
+            /* Save peer procedure counter to be used for comparison with the local procedure counter
+               when receiving the ranging data */
+            mPeerResultData[deviceId].procedureCounter = pRasIndication->procedureIndex;
             result = RasClient_SendRasCommand(deviceId, getRangingDataOpCode_c,
                                               0U, 0U, procedureCounter,
                                               gAntennaPathFilterAllowAll_c);
@@ -1397,6 +1419,7 @@ static void RreqTimerCallback
     if (procCount == mRangeSettings[pTimeoutData->deviceId].maxNumProcedures)
     {
         AppLocalization_SetLocState(pTimeoutData->deviceId, gAppLclIdle_c);
+        AppLocalization_ProcedureRestart(pTimeoutData->deviceId);
     }
     else
     {
@@ -1521,6 +1544,7 @@ static bleResult_t RasClient_CPRspCompleteProcData
 {
     bleResult_t result = gBleSuccess_c;
 
+    CS_LOG_INFO("RasClient_CPRspCompleteProcData, devId=%d", deviceId);
     /* Stop RAP timer */
     (void)TM_Stop((timer_handle_t)mRreqTimerId);
 
@@ -1532,33 +1556,52 @@ static bleResult_t RasClient_CPRspCompleteProcData
 #if defined(gAppDeferAlgoRun_d) && (gAppDeferAlgoRun_d == TRUE)
         result = gBleUnavailable_c;
 #else
-        AppLocalization_RunAlgorithm(deviceId);
+        if ((AppLocalization_GetGlobalProcedureCount(deviceId) & 0x0FFFU) == mPeerResultData[deviceId].procedureCounter)
+        {
+            AppLocalization_RunAlgorithm(deviceId);
+        }
+        else
+        {
+            /* Clear peer data */
+            RasClient_ResetPeer(deviceId, FALSE);
+        }
 #endif
     }
     else
     {
-        if (mRasTransferInfo[deviceId].currentIdxLostSegm != 0U)
+        /* Retrieve Lost Segments - but only if the peer supports the feature */
+        if ((maRASFeatures[deviceId] & BIT1) != 0U)
         {
-            /* We have lost segments - send command to retrieve them */
-            handleRetrLostRangingData(deviceId);
+            CS_LOG_INFO("Retrieving Lost Segments");
+            if (mRasTransferInfo[deviceId].currentIdxLostSegm != 0U)
+            {
+                /* We have lost segments - send command to retrieve them */
+                handleRetrLostRangingData(deviceId);
 
-            /* Reset counter to receive notifications */
-            mRasTransferInfo[deviceId].crtTempDataIdx = 0U;
-            mRasTransferInfo[deviceId].crtIdxRecvLost = 0U;
-            mRasTransferInfo[deviceId].expectingSegments = TRUE;
+                /* Reset counter to receive notifications */
+                mRasTransferInfo[deviceId].crtTempDataIdx = 0U;
+                mRasTransferInfo[deviceId].crtIdxRecvLost = 0U;
+                mRasTransferInfo[deviceId].expectingSegments = TRUE;
+            }
+            else
+            {
+                /* We lost the last segment - request everything from the last received */
+                uint8_t lastIdx = mRasTransferInfo[deviceId].currentIdxRecvSegm - 1U;
+                uint8_t startRollingCounter = (uint8_t)((mRasTransferInfo[deviceId].recvSegm[lastIdx]) >> 2U);
+                mRasTransferInfo[deviceId].expectingSegments = TRUE;
+                mRasTransferInfo[deviceId].crtIdxRecvLost = 0U;
+
+                (void)RasClient_SendRasCommand(deviceId, retrLostRangingDataOpCode_c,
+                                               startRollingCounter, 0xFF,
+                                               AppLocalization_GetGlobalProcedureCount(deviceId),
+                                               (uint16_t)gNoFilter_c);
+            }
         }
         else
         {
-            /* We lost the last segment - request everything from the last received */
-            uint8_t lastIdx = mRasTransferInfo[deviceId].currentIdxRecvSegm - 1U;
-            uint8_t startRollingCounter = (uint8_t)((mRasTransferInfo[deviceId].recvSegm[lastIdx]) >> 2U);
-            mRasTransferInfo[deviceId].expectingSegments = TRUE;
-            mRasTransferInfo[deviceId].crtIdxRecvLost = 0U;
-
-            (void)RasClient_SendRasCommand(deviceId, retrLostRangingDataOpCode_c,
-                                           startRollingCounter, 0xFF,
-                                           AppLocalization_GetGlobalProcedureCount(deviceId),
-                                           (uint16_t)gNoFilter_c);
+            CS_LOG_INFO("Lost Segments - Peer does not support Retrieving Lost Segments");
+            /* Clear peer data */
+            RasClient_ResetPeer(deviceId, FALSE);
         }
     }
 
@@ -1802,5 +1845,36 @@ static bleResult_t RasClient_ProcessGetRecordSegmentsResponse
     return result;
 }
 
+/*! *********************************************************************************
+*\fn         bleResult_t RasClient_CheckRealTimeProcedureCounter(uint8_t*   pData)
+*
+*\brief      Check the procedure counter for the first segment of a real time transfer.
+*
+*\param[in]   pValue           Pointer to ranging data.
+*\param[out]  pOutProcCounter  Pointer for storing the procedure counter.
+*
+*\return    TRUE if this is the first segment, FALSE otherwise (ignore pOutProcCounter)
+********************************************************************************** */
+static bool_t RasClient_CheckRealTimeProcedureCounter
+(
+    uint8_t *pData,
+    uint16_t *pOutProcCounter
+)
+{
+    uint8_t segmentHeader = 0U;
+    uint16_t counterCfgId = 0U;
+    bool_t result = FALSE;
+
+    /* Extract Segment Header */
+    segmentHeader = *pData++;
+
+    if ((segmentHeader & ((uint8_t)gRasNotifFirstSegment_c)) != 0U)
+    {
+        result = TRUE;
+        counterCfgId = Utils_BeExtractTwoByteValue(pData);
+        *pOutProcCounter = ((counterCfgId & 0xFF00U) >> 8U);
+    }
+    return result;
+}
 #endif /* gRasRREQ_d */
 #endif /* gAppRasDataTransfer_d */

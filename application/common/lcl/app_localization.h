@@ -330,7 +330,6 @@ typedef enum
     gAppLclWaitingForPECS_c,                    /* Wait for Procedure Enable Command Status */
     gAppLclWaitingForPEC_c,                     /* Wait for Procedure Enable Complete Meta Event */
     gAppLclWaitingForMeasData_c,                /* Wait for the first Subevent Result Event */
-    gAppLclReceivingMeasDataDropLeftovers_c,    /* Wait for the end of the current procedure - drop leftover RAS ranging data from previous procedure */
     gAppLclReceivingMeasData_c,                 /* Wait for the end of the current procedure */
     gAppLclWaitingForWCCC_c,                    /* Wait for Write Cached Remote Capabilities command complete */
     gAppLclWaitingForLocCfg_c,                  /* Wait for Create Config Complete Meta Event after writing the local config */
@@ -509,6 +508,20 @@ void AppLocalization_SetNumberOfProcedures
 (
     deviceId_t deviceId,
     uint16_t value
+);
+
+/*! *********************************************************************************
+*\fn            uint16_t AppLocalization_GetNumberOfProcedures(deviceId_t deviceId, uint16_t value)
+*
+*\brief         Get the number of CS procedures to be executed during procedure repeat
+*
+*\param  [in]   deviceId        Peer device identifier.
+*
+*\return        None
+********************************************************************************** */
+uint16_t AppLocalization_GetNumberOfProcedures
+(
+    deviceId_t deviceId
 );
 
 /*! *********************************************************************************
@@ -702,6 +715,35 @@ void AppLocalization_SetLocState
 (
     deviceId_t deviceId,
     appLocalization_State_t recvState
+);
+
+/*! *********************************************************************************
+*\fn            void AppLocalization_EnableProcedureRestart(bool_t bRestart);
+*
+*\brief         Enable or disable CS procedure automatic restart after ending.
+*
+*\param[in]     bRestart   TRUE to enable restart, FALSE to disable
+*
+*\retval        none
+********************************************************************************** */
+void AppLocalization_EnableProcedureRestart
+(
+    bool_t bRestart
+);
+
+/*! *********************************************************************************
+*\fn            void AppLocalization_RestartProcedure(deviceId_t deviceId);
+*
+*\brief         Restart CS procedure if previously configured to do so via 
+*               AppLocalization_EnableProcedureRestart.
+*
+*\param[in]     deviceId_t   Peer device ID.
+*
+*\retval        none
+********************************************************************************** */
+void AppLocalization_ProcedureRestart
+(
+    deviceId_t deviceId
 );
 
 /*! *********************************************************************************

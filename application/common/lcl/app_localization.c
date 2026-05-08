@@ -128,7 +128,6 @@
         PCT rotation: 4U * gMaxNumAntennaPaths_c
 */
 #define CS_CONFIG_VENDOR_PARAM_LENGTH   (9U + 5U * gMaxNumAntennaPaths_c)
-
 /************************************************************************************
 *************************************************************************************
 * Private type definitions
@@ -215,6 +214,8 @@ static int16_t maRttFineTuningParams[3U] = {0,  /* 1M PHY */
 static bool_t maTakSupport[gAppMaxConnections_c];
 #endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 
+/* Automatically restart the CS procedure when it ends, aborts or times out */
+static bool_t mAutoRestart = FALSE;
 /************************************************************************************
 *************************************************************************************
 * Private prototypes
@@ -921,6 +922,23 @@ void AppLocalization_SetNumberOfProcedures
 }
 
 /*! *********************************************************************************
+*\fn            uint16_t AppLocalization_GetNumberOfProcedures(deviceId_t deviceId, uint16_t value)
+*
+*\brief         Get the number of CS procedures to be executed during procedure repeat
+*
+*\param  [in]   deviceId        Peer device identifier.
+*
+*\return        None
+********************************************************************************** */
+uint16_t AppLocalization_GetNumberOfProcedures
+(
+    deviceId_t deviceId
+)
+{
+    return mRangeSettings[deviceId].maxNumProcedures;
+}
+
+/*! *********************************************************************************
 *\fn            void AppLocalization_SetConnectionInterval(deviceId_t deviceId, uint16_t connInterval)
 *
 *\brief         Set the connection interval of the Bluetooth LE link. Needed by algorithm.
@@ -1331,6 +1349,46 @@ void AppLocalization_SetLocState
 }
 
 /*! *********************************************************************************
+*\fn            void AppLocalization_EnableProcedureRestart(bool_t bRestart);
+*
+*\brief         Enable or disable CS procedure automatic restart after ending.
+*
+*\param[in]     bRestart   TRUE to enable restart, FALSE to disable
+*
+*\retval        none
+********************************************************************************** */
+void AppLocalization_EnableProcedureRestart
+(
+    bool_t bRestart
+)
+{
+    mAutoRestart = bRestart;
+}
+
+/*! *********************************************************************************
+*\fn            void AppLocalization_RestartProcedure(deviceId_t deviceId);
+*
+*\brief         Restart CS procedure if previously configured to do so via 
+*               AppLocalization_EnableProcedureRestart.
+*
+*\param[in]     deviceId_t   Peer device ID.
+*
+*\retval        none
+********************************************************************************** */
+void AppLocalization_ProcedureRestart
+(
+    deviceId_t deviceId
+)
+{
+    if (mAutoRestart == TRUE)
+    {
+       /* Reset peer and restart procedure */
+       AppLocalization_ResetPeer(deviceId, FALSE, gInvalidNvmIndex_c);
+       (void)AppLocalization_SetProcedureParameters(deviceId);
+    }
+}
+
+/*! *********************************************************************************
 *\fn            void AppLocalization_GetRemoteCachedSupportedCapabilities(uint8_t nvmIndex);
 *
 *\brief         Get the supported capabilities for the specified peer.
@@ -1541,6 +1599,7 @@ void AppLocalization_FreeLocalData
 {
     if (mResultData[deviceId].pData != NULL)
     {
+        CS_LOG_INFO("AppLocalization_FreeLocalData - Freeing");
         (void)MEM_BufferFree(mResultData[deviceId].pData);
         mResultData[deviceId].pData = NULL;
     }
@@ -2447,6 +2506,35 @@ static deviceId_t AppLocalization_HandleSubeventResult
     }
     else
     {
+        switch (pSubeventResult->procedureDoneStatus)
+        {
+            case (uint8_t)gCsCompleteResults_c:
+            {
+                /* Must still count the procedure even if we discard it */
+                maCsProcCount[deviceId]++;
+                if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
+                {
+                    AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+                    AppLocalization_ProcedureRestart(deviceId);
+                }
+            }
+            break;
+
+            case (uint8_t)gCsNoResultsProcAborted_c:
+            {
+                /* All subsequent CS procedures aborted */
+                maCsProcCount[deviceId] = mRangeSettings[deviceId].maxNumProcedures;
+                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+                AppLocalization_ProcedureRestart(deviceId);
+            }
+            break;
+
+            default:
+            {
+                ; /* Should not get here */
+            }
+            break;
+        }
         /* Unexpected event. */
         AppLocalizationError(deviceId, gAppLclUnexpectedSRE_c);
     }
@@ -2471,16 +2559,7 @@ static void AppLocalization_PrepareForNewProcedure
     if ((maAppLclState[deviceId] == gAppLclWaitingForMeasData_c) || 
         (maAppLclState[deviceId] == gAppRasTransfInProgress_c))
     {
-        if (maAppLclState[deviceId] == gAppRasTransfInProgress_c)
-        {
-            /* New CS procedure started while RAS transfer was in progress for the previous one
-               Enter a new state in which leftover RAS notifications/indications will be dropped */
-            maAppLclState[deviceId] = gAppLclReceivingMeasDataDropLeftovers_c;
-        }
-        else
-        {
-            maAppLclState[deviceId] = gAppLclReceivingMeasData_c;
-        }
+        maAppLclState[deviceId] = gAppLclReceivingMeasData_c;
 
         /* Make sure local csAppData_t is allocated */
         (void)AppLocalization_AllocLocalData(deviceId);
@@ -2764,8 +2843,9 @@ static void AppLocalization_HandleProcedureAborted
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U) */
 
     /* All subsequent CS procedures aborted */
-    maCsProcCount[deviceId] = 0U;
+    maCsProcCount[deviceId] = mRangeSettings[deviceId].maxNumProcedures;
     AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+    AppLocalization_ProcedureRestart(deviceId);
 
     if (mpfAppCsCallback != NULL)
     {
@@ -2789,10 +2869,11 @@ static void AppLocalization_HandleProcedureError
     gCsTimeInfo.csDistMeasDuration = 0U;
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U) */
 
-    /* Check if we reached the last procedure */
+    /* Procedure error */
     if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
     {
         AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+        AppLocalization_ProcedureRestart(deviceId);
     }
     else
     {
@@ -2845,6 +2926,35 @@ static deviceId_t AppLocalization_HandleSubeventResultContinue
     }
     else
     {
+        switch (pSubeventResultContinue->procedureDoneStatus)
+        {
+            case (uint8_t)gCsCompleteResults_c:
+            {
+                /* Must still count the procedure even if we discard it */
+                maCsProcCount[deviceId]++;
+                if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
+                {
+                    AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+                    AppLocalization_ProcedureRestart(deviceId);
+                }
+            }
+            break;
+
+            case (uint8_t)gCsNoResultsProcAborted_c:
+            {
+                /* All subsequent CS procedures aborted */
+                maCsProcCount[deviceId] = mRangeSettings[deviceId].maxNumProcedures;
+                AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+                AppLocalization_ProcedureRestart(deviceId);
+            }
+            break;
+
+            default:
+            {
+                ; /* Should not get here */
+            }
+            break;
+        }
         /* Unexpected event. */
         AppLocalizationError(deviceId, gAppLclUnexpectedSRCE_c);
     }
@@ -3002,6 +3112,10 @@ static deviceId_t AppLocalization_HandleProcedureEnableComplete
 #endif
     maCsProcCount[deviceId] = 0U;
 
+    CS_LOG_INFO("ProcedureEnableComplete: devId=%d, state=%d",
+                        pProcEnableComplete->deviceId,
+                        pProcEnableComplete->state);
+
     /* Procedure was enabled */
     if (pProcEnableComplete->state == 1U)
     {
@@ -3112,6 +3226,7 @@ static void AppLocalization_HandleProcedureDisabled
     RasClient_ResetRasTransferInfo(deviceId);
 #endif /* gRasRREQ_d */
 #endif /* gAppRasDataTransfer_d */
+    AppLocalization_ProcedureRestart(deviceId);
 }
 
 /*! **********************************************************************************
@@ -3132,9 +3247,9 @@ static deviceId_t AppLocalization_HandleCsError
     AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
 
     CS_LOG_ERROR("CS Meta Event: devId=%d, source=%d, status=0x%x",
-                    pCsMetaEvtError->deviceId,
-                    pCsMetaEvtError->csErrorSource,
-                    pCsMetaEvtError->status);
+                pCsMetaEvtError->deviceId,
+                pCsMetaEvtError->csErrorSource,
+                pCsMetaEvtError->status);
 
     switch (pCsMetaEvtError->csErrorSource)
     {
@@ -3170,6 +3285,7 @@ static deviceId_t AppLocalization_HandleCsError
         {
             /* An error occurred during procedure enable. */
             AppLocalizationError(deviceId, gAppLclErrorPEC_c);
+            AppLocalization_ProcedureRestart(deviceId);
         }
         break;
 
@@ -3613,10 +3729,6 @@ static bleResult_t processCsResultsEvent
 
         if (pEvent->subeventDoneStatus == (uint8_t)gCsNoResultsProcAborted_c)
         {
-#if defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
-            maAlgoRunCount[deviceId]++;
-#endif
-
             if (mpfAppCsCallback != NULL)
             {
                 mpfAppCsCallback(deviceId, (void*)&pEvent->abortReason, gErrorSubeventAborted_c);
@@ -3693,9 +3805,6 @@ static bleResult_t processCsResultsContinueEvent
 
         if (pEvent->subeventDoneStatus == (uint8_t)gCsNoResultsProcAborted_c)
         {
-#if defined(gAppRunAlgo_d) && (gAppRunAlgo_d == 1U)
-            maAlgoRunCount[deviceId]++;
-#endif
             if (mpfAppCsCallback != NULL)
             {
                 mpfAppCsCallback(deviceId, (void*)&pEvent->abortReason, gErrorSubeventAborted_c);
@@ -4064,6 +4173,7 @@ void AppLocalization_RunAlgorithm
     RasClient_ResetRasTransferInfo(deviceId);
 
     /* Only compare the lower 12 bits of the counter, RAS truncates the original 16-bit value */
+    CS_LOG_INFO("AppLocalization_RunAlgorithm - rxCnt=%d localCnt=%d", pPeerResultData->procedureCounter, mResultData[deviceId].procedureCounter); 
     if ((mResultData[deviceId].procedureCounter & 0x0FFFU) == pPeerResultData->procedureCounter)
     {
         if (RasClient_GetRealTimeMode(deviceId) == FALSE)
@@ -4149,6 +4259,12 @@ void AppLocalization_RunAlgorithm
     /* Clear local data - even if algo did not run */
     FLib_MemSet(&mResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
     AppLocalization_FreeLocalData(deviceId);
+
+    /* Restart procedure if configured to do so */
+    if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
+    {
+        AppLocalization_ProcedureRestart(deviceId);
+    }
 }
 
 #if (defined(gAppUseTAK_d) && gAppUseTAK_d)

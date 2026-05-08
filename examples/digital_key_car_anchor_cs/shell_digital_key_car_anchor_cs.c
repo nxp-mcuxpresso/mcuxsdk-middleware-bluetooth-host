@@ -79,6 +79,7 @@ static shell_status_t ShellSetVerbosityLevel_Command(shell_handle_t shellHandle,
 static shell_status_t ShellSelectAlgorithm_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellSetCsRole_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellSetNumProcs_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
+static shell_status_t ShellToggleLoop_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 
 static uint8_t BleApp_ParseHexValue(char* pInput);
 static uint32_t BleApp_AsciiToHex(char *pString, uint32_t strLen);
@@ -270,6 +271,14 @@ static shell_command_t mSetNumProcsCmd =
     .pFuncCallBack = ShellSetNumProcs_Command,
 };
 
+static shell_command_t mToggleLoopCmd =
+{
+    .pcCommand = "loop",
+    .pcHelpString = "\r\n\"loop\": Toggle auto-loop of CS procedure (restart on end).\r\n",
+    .cExpectedNumberOfParameters = SHELL_IGNORE_PARAMETER_COUNT,
+    .pFuncCallBack = ShellToggleLoop_Command,
+};
+
 static TIMER_MANAGER_HANDLE_DEFINE(mResetTmrId);
 
 #endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
@@ -391,6 +400,8 @@ static void AppShellInit_CsHandoverCommands(void)
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSetCsRoleCmd);
     assert(kStatus_SHELL_Success == status);
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSetNumProcsCmd);
+    assert(kStatus_SHELL_Success == status);
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mToggleLoopCmd);
     assert(kStatus_SHELL_Success == status);
 }
 
@@ -1740,6 +1751,49 @@ static shell_status_t ShellSetNumProcs_Command(shell_handle_t shellHandle, int32
     {
         shell_write("\r\nInvalid parameter. \
                      \r\nUsage: setnumprocs peer_id [0x0001-0xffff].\r\n");
+    }
+
+    return kStatus_SHELL_Success;
+}
+
+/*! *********************************************************************************
+* \brief        Toggle auto-loop of CS procedure.
+*
+* \param[in]    shellHandle    Shell handle
+* \param[in]    argc           Number of arguments
+* \param[in]    argv           Pointer to arguments
+*
+* \return       shell_status_t  Returns the command processing status
+********************************************************************************** */
+static shell_status_t ShellToggleLoop_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
+{
+    static bool_t mLastValue = FALSE;
+
+    if (mpfShellEventHandler != NULL)
+    {
+        appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
+        if (pEventData != NULL)
+        {
+            pEventData->appEvent = mAppEvt_Shell_ToggleLoop_Command_c;
+            pEventData->eventData.enableProcedureRestart = !mLastValue;
+            if (gBleSuccess_c != App_PostCallbackMessage(mpfShellEventHandler, pEventData))
+            {
+                (void)MEM_BufferFree(pEventData);
+            }
+            else
+            {
+                shell_write("CS procedure auto-restart: ");
+                if (!mLastValue)
+                {
+                    shell_write("ENABLED\r\n");
+                }
+                else
+                {
+                    shell_write("DISABLED\r\n");
+                }
+                mLastValue = !mLastValue;
+            }
+        }
     }
 
     return kStatus_SHELL_Success;

@@ -858,6 +858,12 @@ void App_HandleShellCmds(void *pData)
         }
         break;
 
+        case mAppEvt_Shell_ToggleLoop_Command_c:
+        {
+            AppLocalization_EnableProcedureRestart(pEventData->eventData.enableProcedureRestart);
+        }
+        break;
+
         default:
         {
             ; /* No action required */

@@ -74,7 +74,7 @@ static shell_status_t ShellSetMaxConcurrentProcs_Command(shell_handle_t shellHan
 #if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
 static shell_status_t ShellRunTest_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 #endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */
-
+static shell_status_t ShellToggleLoop_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static uint32_t BleApp_AsciiToHex(char *pString, uint32_t strLen);
 static int32_t BleApp_atoi(char *pStr);
 static uint8_t BleApp_ParseHexValue(char* pInput);
@@ -219,6 +219,14 @@ static shell_command_t mTakCmd =
 };
 #endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 
+static shell_command_t mToggleLoopCmd =
+{
+    .pcCommand = "loop",
+    .pcHelpString = "\r\n\"loop\": Toggle auto-loop of CS procedure (restart on end).\r\n",
+    .cExpectedNumberOfParameters = SHELL_IGNORE_PARAMETER_COUNT,
+    .pFuncCallBack = ShellToggleLoop_Command,
+};
+
 static TIMER_MANAGER_HANDLE_DEFINE(mResetTmrId);
 
 /*serial manager handle*/
@@ -292,6 +300,8 @@ void AppShellInit(char* prompt)
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mRunTestCmd);
     assert(kStatus_SHELL_Success == status);
 #endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mToggleLoopCmd);
+    assert(kStatus_SHELL_Success == status);
 #endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 }
 
@@ -1207,4 +1217,31 @@ static shell_status_t ShellRunTest_Command(shell_handle_t shellHandle, int32_t a
     return kStatus_SHELL_Success;
 }
 #endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */
+/*! *********************************************************************************
+* \brief        Toggle auto-loop of CS procedure.
+*
+* \param[in]    shellHandle    Shell handle
+* \param[in]    argc           Number of arguments
+* \param[in]    argv           Pointer to arguments
+*
+* \return       shell_status_t  Returns the command processing status
+********************************************************************************** */
+static shell_status_t ShellToggleLoop_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
+{
+    static bool_t mLastValue = FALSE;
+
+    AppLocalization_EnableProcedureRestart(!mLastValue);
+    shell_write("CS procedure auto-restart: ");
+    if (!mLastValue)
+    {
+        shell_write("ENABLED\r\n");
+    }
+    else
+    {
+        shell_write("DISABLED\r\n");
+    }
+    mLastValue = !mLastValue;
+
+    return kStatus_SHELL_Success;
+}
 #endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */

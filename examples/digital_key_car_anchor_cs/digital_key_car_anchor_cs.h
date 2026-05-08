@@ -81,6 +81,7 @@ typedef enum appEvent_tag{
     mAppEvt_Shell_SetVerbosityLevel_Command_c,
     mAppEvt_Shell_SetAlgorithm_Command_c,
     mAppEvt_Shell_SetNumProcs_Command_c,
+    mAppEvt_Shell_ToggleLoop_Command_c,
     mAppEvt_AdvertisingStartedLegacy_c,
     mAppEvt_AdvertisingStartedExtendedLR_c,
     mAppEvt_AdvertisingStopped_c,
@@ -174,6 +175,7 @@ typedef struct appEventData_tag
         uint8_t                                     algorithmSelection;
         appAnchorMonitorStartEvent_t                monitorStart;
         uint16_t                                    numProcedures;
+        bool_t                                      enableProcedureRestart;
     } eventData;                        /*!< Event data, selected according to event type. */
 }appEventData_t;
 
