@@ -85,6 +85,7 @@ typedef enum
     gBleGapCmdLeSetLocalPeripheralLatencyEnableOpCode_c                         = 0x1E,                     /*! Gap_LeSetLocalPeripheralLatencyEnable command operation code */
     gBleGapCmdLeGap_EncryptLinkTakOpCode_c                                      = 0x1F,                     /*! Gap_EncryptLinkTak command operation code */
     gBleGapCmdLeGap_ProvideLongTermKeyTakOpCode_c                               = 0x20,                     /*! Gap_ProvideLongTermKeyTak command operation code */
+    gBleGapCmdLeModulationTestOpCode_c                                          = 0x21,                     /*! Gap_LeModulationTest command operation code */
 
     gBleGap2StatusOpCode_c                                                      = 0x80,                     /*! GAP2 status operation code */
     gBleCtrlDebugInfoOpCode_c                                                   = 0x81,                     /*! Debug data from gBleCtrlCmdGetDebugInfoCmdOpCode_c */
@@ -119,6 +120,7 @@ typedef enum
     gBleGapEvtGenericEventVendorDebugOpCode_c                                   = 0x9F,                     /*! gapGenericCallback (type = gVendorDebugEvent_c) event operation code */
     gBleGapEvtGenericEventSetDefaultConnectionSubrateParametersSetupComplete_c  = 0xA0,                     /*! gapGenericCallback (type = gLeSetDefaultConnectionSubrateParametersSetupComplete_c) event operation code */
     gBleGapEvtGenericEventLeChasConfigComplete_c                                = 0xA1,                     /*! gapGenericCallback (type = gLeChasConfigComplete_c) event operation code */
+    gBleGapEvtGenericEventLeModulationTestComplete_c                            = 0xA2,                     /*! gapGenericCallback (type = gLeModulationTestComplete_c) event operation code */
 } fsciBleGap2OpCode_t;
 
 /************************************************************************************

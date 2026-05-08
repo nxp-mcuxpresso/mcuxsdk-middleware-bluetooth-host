@@ -159,6 +159,31 @@ bleResult_t Gap_LeChasConfig
     uint16_t measurementInterval
 );
 
+/*!*************************************************************************************************
+ * \fn           bleResult_t Gap_LeModulationTest(uint8_t testMode,
+ *                                                uint8_t channelNumber,
+ *                                                uint8_t options,
+ *                                                int8_t txPower)
+ *
+ * \brief        Command to transmit continuously unmodulated or modulated signal or 
+ *               measure the RSSI of a channel.
+ *
+ * \param [in]   testMode        Test mode (0=disable, 1=unmodulated, 2=mod 0's, 3=mod 1's, 
+ *                               4=mod PRBS, 255=RSSI measurement).
+ * \param [in]   channelNumber   Channel number (0-39 for BLE RF, 0-127 for generic).
+ * \param [in]   options         Options bitmap (bit0=PHY, bit1=channel type, bit2=power type).
+ * \param [in]   txPower         TX power in dBm or power index (0-62) based on options.
+ *
+ * \retval       bleResult_t     gBleSuccess_c or error.
+***************************************************************************************************/
+bleResult_t Gap_LeModulationTest
+(
+    uint8_t  testMode,
+    uint8_t  channelNumber,
+    uint8_t  options,
+    int8_t   txPower
+);
+
 /*! *********************************************************************************
 * \brief  Registers the device security requirements.
 * This function includes a central security for all services and, optionally, additional stronger security

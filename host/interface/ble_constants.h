@@ -227,6 +227,15 @@
 
 /*! Maximum RSSI threshold value for Monitored Advertisers */
 #define gBleMonAdvRssiThresholdMax_c    (20)
+
+/*! LE Modulation Test - Maximum BLE RF channel number (0-39) */
+#define gLeModulationTestMaxBleRfChannel_c          (39U)
+
+/*! LE Modulation Test - Maximum generic channel number (0-127) */
+#define gLeModulationTestMaxGenericChannel_c        (127U)
+
+/*! LE Modulation Test - Maximum power index (0-62) */
+#define gLeModulationTestMaxPowerIndex_c            (62U)
 #endif /* BLE_CONSTANTS_H */
 
 /*! *********************************************************************************

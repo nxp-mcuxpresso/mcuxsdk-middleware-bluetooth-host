@@ -77,6 +77,15 @@ typedef struct hciLeChasConfigCommand_tag
     uint16_t measurementInterval;
 } hciLeChasConfigCommand_t;
 
+/*! HCI LE Modulation Test Command Parameters */
+typedef struct hciLeModulationTestCommand_tag
+{
+    uint8_t  testMode;
+    uint8_t  channelNumber;
+    uint8_t  options;
+    int8_t   txPower;
+} hciLeModulationTestCommand_t;
+
 /*! OCF 0x001D */
 /*! HCI_Read_Remote_Version_Information */
 typedef struct
@@ -3319,6 +3328,23 @@ bleResult_t Hci_ReadRemoteVersionInformation(
 bleResult_t Hci_LeChasConfig
 (
     const hciLeChasConfigCommand_t *pParam
+);
+
+/*! *********************************************************************************
+* \fn           bleResult_t Hci_LeModulationTest(const hciLeModulationTestCommand_t *pParam)
+*
+* \brief        The function sends the HCI LE Modulation Test (OGF : 0x3F; OCF : 0x00B9) 
+*               command to the Controller.
+*
+* \param[in]    pParam  pointer to a structure containing the modulation test parameters.
+* \param[out]   None
+*
+* \return       Status
+*
+********************************************************************************** */
+bleResult_t Hci_LeModulationTest
+(
+    const hciLeModulationTestCommand_t *pParam
 );
 
 /*! *********************************************************************************

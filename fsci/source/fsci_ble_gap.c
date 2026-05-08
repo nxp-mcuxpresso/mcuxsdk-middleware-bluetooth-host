@@ -406,6 +406,7 @@ static const int16_t maGenericEventToOpcode[]=
   -1,                                                                                      /* reserved: 0x59U */
   -1,                                                                                      /* reserved: 0x5AU */
   -1,                                                                                      /* reserved: 0x5BU */
+  -1,                                                                                      /* reserved: 0x5CU */
 };
 
 static const int16_t maGenericEvent2ToOpcode[]= {
@@ -456,6 +457,7 @@ static const int16_t maGenericEvent2ToOpcode[]= {
     -1,                                                                                      /* reserved: 0x5AU */
 #endif /* defined(gBLE53_d) && (gBLE53_d == 1U) */
      (int16_t)gBleGapEvtGenericEventLeChasConfigComplete_c,                                  /* = 0x5BU, gLeChasConfigComplete_c */
+     (int16_t)gBleGapEvtGenericEventLeModulationTestComplete_c,                              /* = 0x5CU, gLeModulationTestComplete_c */
 };
 
 

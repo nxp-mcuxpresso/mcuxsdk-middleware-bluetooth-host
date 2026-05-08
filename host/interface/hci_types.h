@@ -268,6 +268,9 @@ the data portion (excluding header) contained in the packets is 500 - header siz
         /*! HCI Commands OCF for OGF : 0x3F : Vendor Specific Debug Commands */
         /* Will be inherited from "vendor_debug_commands.h" */
 
+/* Vendor specific command LE_Modulation_Test */
+#define gHciVendorLeModulationTest_c                             0x00B9U
+
 /* Vendor specific command LE_Channel_Assessment_Config */
 #define gHciVendorLeChasConfig_c                                 0x008CU
 

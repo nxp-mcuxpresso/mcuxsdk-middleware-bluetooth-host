@@ -94,6 +94,12 @@ static void HandleGapCmdLeChasConfig
     uint32_t fsciInterfaceId
 );
 
+static void HandleGapCmdLeModulationTest
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+);
+
 static void HandleGapCmdLeChannelOverride
 (
     uint8_t *pBuffer,
@@ -438,6 +444,7 @@ const pfGap2OpCodeHandler_t maGap2CmdOpCodeHandlers[]=
     NULL,                                                                       /* = 0x1F */
     NULL,                                                                       /* = 0x20 */
 #endif /* defined(gAppUseTAK_d) && (gAppUseTAK_d == TRUE) */
+    HandleGapCmdLeModulationTest,                                               /* = 0x21, gBleGapCmdLeModulationTestOpCode_c */
 };
 
 #if gFsciBleTest_d
@@ -1005,6 +1012,43 @@ static void HandleGapCmdLeChasConfig
                                                  filterThreshold, 
                                                  filterWeight, 
                                                  measurementInterval));
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           void HandleGapCmdLeModulationTest(uint8_t *pBuffer,
+*                                                uint32_t fsciInterfaceId)
+*\brief        Handler for gBleGapCmdLeModulationTestOpCode_c.
+*
+*\param  [in]  pBuffer              Pointer to the command parameters.
+*\param  [in]  fsciInterfaceId      FSCI interface identifier.
+*
+*\retval       void.
+*
+*\remarks      Vendor-specific LE Modulation Test command handler.
+*
+********************************************************************************** */
+static void HandleGapCmdLeModulationTest
+(
+    uint8_t *pBuffer,
+    uint32_t fsciInterfaceId
+)
+{
+    uint8_t  testMode;
+    uint8_t  channelNumber;
+    uint8_t  options;
+    int8_t   txPower;
+
+    /* Get command parameters from buffer */
+    fsciBleGetUint8ValueFromBuffer(testMode, pBuffer);
+    fsciBleGetUint8ValueFromBuffer(channelNumber, pBuffer);
+    fsciBleGetUint8ValueFromBuffer(options, pBuffer);
+    fsciBleGetUint8ValueFromBuffer(txPower, pBuffer);
+
+    fsciBleGap2CallApiFunction(Gap_LeModulationTest(testMode, 
+                                                     channelNumber, 
+                                                     options, 
+                                                     txPower));
 }
 
 /*! *********************************************************************************

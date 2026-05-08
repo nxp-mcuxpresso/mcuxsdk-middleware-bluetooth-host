@@ -201,6 +201,11 @@
 
 #define isSupportedLeExtendedFeature(features, bitNumber) \
     (((features)[getLeExtendedFeatureByte(bitNumber)] & (1U << getLeExtendedFeatureBit(bitNumber))) != 0U)
+
+/*! LE Modulation Test Options bit definitions */
+#define gLeModulationTestOptionPhy2M_c          (1U << 0U)  /*!< bit 0: 0=1M PHY, 1=2M PHY */
+#define gLeModulationTestOptionGenericChannel_c (1U << 1U)  /*!< bit 1: 0=BLE RF index, 1=generic channel */
+#define gLeModulationTestOptionPowerIndex_c     (1U << 2U)  /*!< bit 2: 0=tx power in dBm, 1=power index */
 /************************************************************************************
 *************************************************************************************
 * Public type definitions
@@ -639,6 +644,17 @@ typedef enum
     gBleLlConnectionPeripheral_c         = 0x01U, /*!< Link Layer Peripheral Role */
 } bleLlConnectionRole_t;
 
+/*! LE Modulation Test Mode values */
+typedef enum
+{
+    gLeModulationTestDisable_c          = 0x00U,    /*!< Disable modulation test */
+    gLeModulationTestUnmodulated_c      = 0x01U,    /*!< Unmodulated signal */
+    gLeModulationTestModulatedZeros_c   = 0x02U,    /*!< Modulated with 0's */
+    gLeModulationTestModulatedOnes_c    = 0x03U,    /*!< Modulated with 1's */
+    gLeModulationTestModulatedPRBS_c    = 0x04U,    /*!< Modulated with pseudo-random */
+    gLeModulationTestRssiMeasurement_c  = 0xFFU,    /*!< RSSI measurement */
+} gapLeModulationTestMode_t;
+
 typedef uint8_t bleCentralClockAccuracy_t;
 typedef enum
 {
@@ -932,6 +948,7 @@ typedef enum {
     gVendorDebugEvent_c                                     = 0x59U, /*!< Vendor specific debugging event signaling NBU fatal error */
     gLeSetDefaultConnectionSubrateParametersSetupComplete_c = 0x5AU, /*!< Default Connection Subrate Parameters.have been successfully set */
     gLeChasConfigComplete_c                                 = 0x5BU, /*!< LE CHAS Config command completed successfully */
+    gLeModulationTestComplete_c                             = 0x5CU, /*!< LE Modulation Test command completed successfully */
 } gapGenericEventType_t;
 
 /*! Internal Error Source - the command that triggered the error */
@@ -1089,6 +1106,7 @@ typedef enum {
     gVendorEnableExpmFeatures_c = 0x96U,             /*!< An error occurred during gHciVendorEnableExpmFeaturesCommand_c execution */
     gLeSetLocalPeripheralLatencyEnable_c = 0x97U,    /*!< An error occurred during the Le Set Local Peripheral Latency Enable procedure */
     gLeChasConfig_c = 0x98U,                         /*!< An error occurred during LE CHAS Config command execution */
+    gLeModulationTest_c = 0x99U,                     /*!< An error occurred during LE Modulation Test command execution */
 } gapInternalErrorSource_t;
 
 /*! Internal Error Event Data */
