@@ -1159,6 +1159,59 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_lib)
     )
 endif()
 
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_r3_lib)
+    mcux_add_iar_configuration(
+        LD  "--config_def=gReserveCeRam_d=0"
+    )
+    mcux_add_armgcc_configuration(
+        LD "-Xlinker --defsym=gReserveCeRam_d=0"
+    )
+    mcux_add_library(
+        LIBS localization/lib_r34/lib_lcl_algo_cm33_r3_iar.a
+        TOOLCHAINS iar
+    )
+    mcux_add_library(
+        LIBS localization/lib_r34/lib_lcl_algo_cm33_r3_gcc.a
+        TOOLCHAINS mcux armgcc
+    )
+    mcux_add_include(
+        INCLUDES localization/lcl/pde/algo/interface
+    )
+    mcux_add_source(
+        SOURCES localization/lcl/pde/algo/interface/dm_phasebased.h
+        localization/lcl/pde/algo/interface/pde_postprocessing.h
+        localization/lcl/pde/algo/interface/pde_rade.h
+    )
+endif()
+
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_r4_lib)
+    mcux_add_configuration(
+        CC "-DLCE_ENABLED"
+    )
+    mcux_add_iar_configuration(
+        LD  "--config_def=gReserveCeRam_d=1"
+    )
+    mcux_add_armgcc_configuration(
+        LD "-Xlinker --defsym=gReserveCeRam_d=1"
+    )
+    mcux_add_library(
+        LIBS localization/lib_r34/lib_lcl_algo_cm33_lce_r4_iar.a
+        TOOLCHAINS iar
+    )
+    mcux_add_library(
+        LIBS localization/lib_r34/lib_lcl_algo_cm33_lce_r4_gcc.a
+        TOOLCHAINS mcux armgcc
+    )
+    mcux_add_include(
+        INCLUDES localization/lcl/pde/algo/interface
+    )
+    mcux_add_source(
+        SOURCES localization/lcl/pde/algo/interface/dm_phasebased.h
+        localization/lcl/pde/algo/interface/pde_postprocessing.h
+        localization/lcl/pde/algo/interface/pde_rade.h
+    )
+endif()
+
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_lcl_isp_controller_wr)
     mcux_add_source(
         SOURCES localization/lcl/isp/interface/isp_debug_helpers.h
