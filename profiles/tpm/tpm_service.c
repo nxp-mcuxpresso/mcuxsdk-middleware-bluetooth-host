@@ -101,7 +101,7 @@ void Tpms_Start(tpmConfig_t *pServiceConfig)
 #else
     properties &= ~BIT1;
 #endif
-    (void)GattDb_WriteAttribute((uint16_t)value_tpms_properties, sizeof(uint8_t), (const uint8_t*)&properties);
+    (void)GattDb_WriteAttribute((uint16_t)value_tpms_properties, (uint16_t)sizeof(uint8_t), (const uint8_t*)&properties);
 }
 
 /*!**********************************************************************************
@@ -240,7 +240,7 @@ void Tpms_UpdateAdvData(uint8_t *pData, tpmsSensorReadData_t *pSensorReadData)
         uint8_t position = 0U;
 
         /* Update sensor data in the GATT database and AD data */
-        (void)GattDb_WriteAttribute((uint16_t)value_tire_pressure, sizeof(pSensorReadData->tirePressure), (const uint8_t*)&pSensorReadData->tirePressure);
+        (void)GattDb_WriteAttribute((uint16_t)value_tire_pressure, (uint16_t)sizeof(pSensorReadData->tirePressure), (const uint8_t*)&pSensorReadData->tirePressure);
         FLib_MemCpy(&pData[TPMS_AD_OFFSET_PRESSURE], (uint8_t*)&pSensorReadData->tirePressure, 2U);
         FLib_MemCpy(&pData[TPMS_AD_OFFSET_PRESSURE_ACC], (uint8_t*)&pSensorReadData->tirePressureAccuracy, 1U);
         (void)GattDb_WriteAttribute((uint16_t)value_tire_temperature, sizeof(pSensorReadData->tireTemperature), (const uint8_t*)&pSensorReadData->tireTemperature);
@@ -303,14 +303,14 @@ void Tpms_HandleAttributeWritten(deviceId_t deviceId, gattServerEvent_t* pServer
             errorCode = (uint8_t)gAttErrCodeNoError_c;
 
             /* Seq may be reset to zero when the signing key changes */
-            if (pServerEvent->eventData.attributeWrittenEvent.handle == value_tpms_signing_key)
+            if (pServerEvent->eventData.attributeWrittenEvent.handle == (uint16_t)value_tpms_signing_key)
             {
                 mSeqNum = 0U;
             }
         }
         else
         {
-            if (pServerEvent->eventData.attributeWrittenEvent.handle == value_tpms_monitoring_duty_cycle)
+            if (pServerEvent->eventData.attributeWrittenEvent.handle == (uint16_t)value_tpms_monitoring_duty_cycle)
             {
                 errorCode = (uint8_t)gAttErrCodeOutOfRange_c;
             }
@@ -340,7 +340,7 @@ void Tpms_HandleAttributeRead(deviceId_t deviceId, gattServerEvent_t* pServerEve
 {
     uint8_t errorCode = (uint8_t)gAttErrCodeNoError_c;
 
-    if (pServerEvent->eventData.attributeReadEvent.handle == value_tpms_signing_key)
+    if (pServerEvent->eventData.attributeReadEvent.handle == (uint16_t)value_tpms_signing_key)
     {
         uint8_t nvmIndex = 0U;
         bool_t isBonded = FALSE;
@@ -385,14 +385,14 @@ void Tpms_NotifyTirePressure(tpmConfig_t *pServiceConfig, tpmsSensorReadData_t *
             if (pServiceConfig->aValidSubscriberList[mClientId] == TRUE)
             {
                 if (gBleSuccess_c == Gap_CheckNotificationStatus
-                    (mClientId, cccd_tire_pressure, &isNotifActive) &&
+                    (mClientId, (uint16_t)cccd_tire_pressure, &isNotifActive) &&
                     TRUE == isNotifActive)
                 {
                     (void)GattServer_SendNotification(mClientId, (uint16_t)value_tire_pressure);
                 }
                 
                 if (gBleSuccess_c == Gap_CheckNotificationStatus
-                    (mClientId, cccd_tire_temperature, &isNotifActive) &&
+                    (mClientId, (uint16_t)cccd_tire_temperature, &isNotifActive) &&
                     TRUE == isNotifActive)
                 {
                     (void)GattServer_SendNotification(mClientId, (uint16_t)value_tire_temperature);

@@ -589,7 +589,7 @@ static void AdvertisingTimerCallback(void* pParam)
     }
     else
     {
-        App_PostCallbackMessage(APP_AdvertiseCommandHandler, NULL);
+        (void)App_PostCallbackMessage(APP_AdvertiseCommandHandler, NULL);
     }
 }
 

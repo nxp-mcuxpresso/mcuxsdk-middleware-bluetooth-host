@@ -43,7 +43,7 @@
 #define gAppUsePrivacy_d                1
 
 /*! Only one bond is allowed, as per TPMP spec */
-#define gMaxBondedDevices_c             1
+#define gMaxBondedDevices_c             (1U)
 
 #define gPasskeyValue_c                 999999
 

@@ -1155,14 +1155,14 @@ static void ProcessNonConnScanEvent(gapScannedDevice_t* pData)
     uint8_t tpmsSigningKey[16] = {0U};
     uint8_t keyReversed[16] = {0U};
     bool_t bFound = FALSE;
-    uint8_t index = 0;
+    uint32_t index = 0;
     uint8_t optionalFieldsLen = 0U;
 
     while (index < pData->dataLength)
     {
         adElement.length = pData->data[index];
-        adElement.adType = (gapAdType_t)pData->data[index + 1];
-        adElement.aData = &pData->data[index + 2];
+        adElement.adType = (gapAdType_t)pData->data[index + 1U];
+        adElement.aData = &pData->data[index + 2U];
 
         if(adElement.adType == gAdServiceData16bit_c)
         {
