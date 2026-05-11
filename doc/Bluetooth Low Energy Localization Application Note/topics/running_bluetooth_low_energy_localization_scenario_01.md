@@ -119,7 +119,7 @@ Other available shell commands are:
 -   `verbosity`: Sets the verbosity level during the CS procedure.
 -   `setnumprocs`: This command overwrites the default value `gCsProcRepeatMaxNumProcedures_c` parameter for the CS Procedure Repeat. It takes the following parameters, in the order below:
     -   `peerId`
-    -   `maxNumProcedures`: Number of procedures in hex format. Example: `setnumprocs 0 0x0005`.
+    -   `maxNumProcedures`: Number of procedures in hex format. Example: `setnumprocs 0 0x0005`. Value `0x0000` means infinite repeats.
 -   `setmcp`: This command overwrites the default value `gChannelSoundingMaxConcurrentProcedures_c` parameter for the number of maximum supported simultaneous CS procedures across all connections. It takes the following parameters:
     -   `maxNumConcurrentProcedures`: Number of procedures in decimal format. Example: `setmcp 2`.
 -  `loop`: This command toggles the automatic restart of the CS procedure (whether with CS Procedure Repeat enabled or not) upon its end. By default, the CS procedure will not restart automatically.

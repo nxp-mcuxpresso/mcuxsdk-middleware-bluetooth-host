@@ -1706,8 +1706,7 @@ static shell_status_t ShellSetNumProcs_Command(shell_handle_t shellHandle, int32
             {
                 uint16_t value = (uint16_t)BleApp_AsciiToHex(argv[2], strlen(argv[2]));
 
-                if (sizeof(uint16_t) != BleApp_ParseHexValue(argv[2]) ||
-                    value == 0U)
+                if (sizeof(uint16_t) != BleApp_ParseHexValue(argv[2]))
                 {
                     status = gBleInvalidParameter_c;
                 }
@@ -1740,7 +1739,7 @@ static shell_status_t ShellSetNumProcs_Command(shell_handle_t shellHandle, int32
     }
     else
     {
-        shell_write("\r\nUsage: setnumprocs peer_id [0x0001-0xffff].\r\n");
+        shell_write("\r\nUsage: setnumprocs peer_id [0x0000-0xffff].\r\n");
     }
 
     if (status == gBleOutOfMemory_c)
@@ -1750,7 +1749,7 @@ static shell_status_t ShellSetNumProcs_Command(shell_handle_t shellHandle, int32
     if (status == gBleInvalidParameter_c)
     {
         shell_write("\r\nInvalid parameter. \
-                     \r\nUsage: setnumprocs peer_id [0x0001-0xffff].\r\n");
+                     \r\nUsage: setnumprocs peer_id [0x0000-0xffff].\r\n");
     }
 
     return kStatus_SHELL_Success;

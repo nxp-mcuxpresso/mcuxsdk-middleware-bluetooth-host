@@ -88,7 +88,7 @@ Other available shell commands are:
 -   `setnumprocs`: This command overwrites the default value `gCsProcRepeatMaxNumProcedures_c` parameter for the CS Procedure Repeat. It takes the following parameters, in the order below:
 
     -   `peerId`
-    -   `maxNumProcedures`: Number of procedures in hex format. Example: `setnumprocs 0 0x0005`.
+    -   `maxNumProcedures`: Number of procedures in hex format. Example: `setnumprocs 0 0x0005`. Value `0x0000` means infinite repeats.
 -   `loop`: This command toggles the automatic restart of the CS procedure (whether with CS Procedure Repeat enabled or not) upon its end. By default, the CS procedure will not restart automatically.
 **Parent topic:**[Localization scenarios](../topics/localization_scenarios.md)
 
