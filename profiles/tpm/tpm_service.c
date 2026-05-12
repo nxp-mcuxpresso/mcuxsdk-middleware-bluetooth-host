@@ -243,7 +243,7 @@ void Tpms_UpdateAdvData(uint8_t *pData, tpmsSensorReadData_t *pSensorReadData)
         (void)GattDb_WriteAttribute((uint16_t)value_tire_pressure, (uint16_t)sizeof(pSensorReadData->tirePressure), (const uint8_t*)&pSensorReadData->tirePressure);
         FLib_MemCpy(&pData[TPMS_AD_OFFSET_PRESSURE], (uint8_t*)&pSensorReadData->tirePressure, 2U);
         FLib_MemCpy(&pData[TPMS_AD_OFFSET_PRESSURE_ACC], (uint8_t*)&pSensorReadData->tirePressureAccuracy, 1U);
-        (void)GattDb_WriteAttribute((uint16_t)value_tire_temperature, sizeof(pSensorReadData->tireTemperature), (const uint8_t*)&pSensorReadData->tireTemperature);
+        (void)GattDb_WriteAttribute((uint16_t)value_tire_temperature, (uint16_t)sizeof(pSensorReadData->tireTemperature), (const uint8_t*)&pSensorReadData->tireTemperature);
         FLib_MemCpy(&pData[TPMS_AD_OFFSET_TEMPERATURE], (uint8_t*)&pSensorReadData->tireTemperature, 1U);
         FLib_MemCpy(&pData[TPMS_AD_OFFSET_TEMP_ACC], (uint8_t*)&pSensorReadData->tireTemperatureAccuracy, 1U);
 
