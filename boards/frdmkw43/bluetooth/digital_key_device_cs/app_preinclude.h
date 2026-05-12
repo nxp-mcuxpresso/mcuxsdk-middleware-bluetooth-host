@@ -181,7 +181,7 @@
 #define gCsDefaultRole_c                        gCsRoleReflector_c
 
 /* Configure high speed CPU clock (96 MHz) */
-#define gAppHighSystemClockFrequency_d          0
+#define gAppHighSystemClockFrequency_d          1
 
 #define gHost_TaskStackSize_c                   2200
 #define gMainThreadStackSize_c                  3600
