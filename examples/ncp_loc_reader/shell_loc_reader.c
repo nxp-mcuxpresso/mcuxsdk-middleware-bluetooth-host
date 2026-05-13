@@ -45,7 +45,28 @@
 * Private macros
 *************************************************************************************
 ************************************************************************************/
+#if defined(gCsDropTestEnabled_d) && (gCsDropTestEnabled_d == 1)
+/* Vendor HCI command defines */
+#define gHciVendorUnitaryTest_c             0x009EU
+#define gForcedMissedSyncSubOpcode_c        0x0BU
+#define gForcedMissedSyncPayloadLen_c       18U
+#define gForcedMissedSyncTotalLen_c         (gForcedMissedSyncPayloadLen_c + gHciCommandPacketHeaderLength_c)
 
+#define HciCommand(opCodeGroup, opCodeCommand) \
+    (((uint16_t)(opCodeGroup) & (uint16_t)0x3FU) << (uint16_t)SHIFT10) | \
+    (uint16_t)((opCodeCommand) & 0x3FFU)
+
+#define Hci_CommandPacket(pHciCmdPacket, parameterTotalLength) \
+    Ble_HciSend( \
+        gHciCommandPacket_c, \
+        (void*)(pHciCmdPacket), \
+        gHciCommandPacketHeaderLength_c + (parameterTotalLength))
+
+/* Compile-time validation */
+#if (gHciCommandPacketHeaderLength_c < 3U)
+#error "HCI command packet header length must be at least 3 bytes"
+#endif
+#endif /* gCsDropTestEnabled_d */
 /************************************************************************************
 *************************************************************************************
 * Private type definitions
@@ -84,7 +105,27 @@ static void ShellResetTimeoutTimerCallback(void* pParam);
 static shell_status_t ShellTak_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 #endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 
+#if defined(gCsDropTestEnabled_d) && (gCsDropTestEnabled_d == 1)
+static shell_status_t ShellCsDrop_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
+static bleResult_t CS_VendorUnitaryTestForceMissedSync(uint32_t ceDropNum, uint32_t ceDropDenom,
+                                                        uint32_t csDropNum, uint32_t csDropDenom);
+#endif
+
 #endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
+
+/************************************************************************************
+*************************************************************************************
+* External declarations
+*************************************************************************************
+************************************************************************************/
+#if defined(gCsDropTestEnabled_d) && (gCsDropTestEnabled_d == 1)
+extern bleResult_t Ble_HciSend
+(
+    hciPacketType_t packetType,
+    void*           pPacket,
+    uint16_t        packetSize
+);
+#endif
 
 /************************************************************************************
 *************************************************************************************
@@ -227,6 +268,24 @@ static shell_command_t mToggleLoopCmd =
     .pFuncCallBack = ShellToggleLoop_Command,
 };
 
+#if defined(gCsDropTestEnabled_d) && (gCsDropTestEnabled_d == 1)
+static shell_command_t mCsDropCmd =
+{
+    .pcCommand = "csdrop",
+    .pcHelpString = "\r\n\"csdrop\": Set CS drop ratios for testing (based on mode0 drops).\r\n"
+                    "  Usage: csdrop <ce_num> <ce_denom> <cs_num> <cs_denom>\r\n"
+                    "  Note: Drop ratio is based on mode0 steps, NOT subevents directly.\r\n"
+                    "        To drop N subevents out of M, use: cs_num = N * mode0_nb\r\n"
+                    "                                           cs_denom = M * mode0_nb\r\n"
+                    "  Example with mode0_nb=3:\r\n"
+                    "    csdrop 0 1 3 6   -> drop 1/2 subevents (3 mode0 / 6 mode0)\r\n"
+                    "    csdrop 0 1 3 9   -> drop 1/3 subevents (3 mode0 / 9 mode0)\r\n"
+                    "    csdrop 0 1 3 12  -> drop 1/4 subevents (3 mode0 / 12 mode0)\r\n",
+    .cExpectedNumberOfParameters = SHELL_IGNORE_PARAMETER_COUNT,
+    .pFuncCallBack = ShellCsDrop_Command,
+};
+#endif
+
 static TIMER_MANAGER_HANDLE_DEFINE(mResetTmrId);
 
 /*serial manager handle*/
@@ -302,6 +361,10 @@ void AppShellInit(char* prompt)
 #endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mToggleLoopCmd);
     assert(kStatus_SHELL_Success == status);
+#if defined(gCsDropTestEnabled_d) && (gCsDropTestEnabled_d == 1)
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mCsDropCmd);
+    assert(kStatus_SHELL_Success == status);
+#endif
 #endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */
 }
 
@@ -1192,6 +1255,171 @@ static shell_status_t ShellTak_Command(shell_handle_t shellHandle, int32_t argc,
     return kStatus_SHELL_Success;
 }
 #endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
+
+#if defined(gCsDropTestEnabled_d) && (gCsDropTestEnabled_d == 1)
+/*!*************************************************************************************************
+*\fn    static bleResult_t CS_VendorUnitaryTestForceMissedSync(...)
+*
+*\brief Send vendor HCI command to force CS subevent drops (0xFC9E / 0x0B).
+*
+*\param [in]    ceDropNum         CE drop ratio numerator
+*\param [in]    ceDropDenom       CE drop ratio denominator (must be > 0)
+*\param [in]    csDropNum         CS drop ratio numerator
+*\param [in]    csDropDenom       CS drop ratio denominator (must be > 0)
+*
+*\retval        gBleSuccess_c               Command sent successfully
+*\retval        gBleInvalidParameter_c      Invalid parameters
+*\retval        gHciTransportError_c        HCI send failed
+***************************************************************************************************/
+static bleResult_t CS_VendorUnitaryTestForceMissedSync
+(
+    uint32_t ceDropNum,
+    uint32_t ceDropDenom,
+    uint32_t csDropNum,
+    uint32_t csDropDenom
+)
+{
+    bleResult_t result = gBleSuccess_c;
+    uint8_t pHciPacket[gForcedMissedSyncTotalLen_c];
+    assert(gForcedMissedSyncTotalLen_c == 21U);
+    uint16_t opcode = HciCommand(gHciVendorSpecificDebugCommands_c, gHciVendorUnitaryTest_c);
+
+    if ((ceDropDenom == 0U) || (csDropDenom == 0U) ||
+        (ceDropNum > ceDropDenom) || (csDropNum > csDropDenom))
+    {
+        result = gBleInvalidParameter_c;
+    }
+    else
+    {
+        /* Build HCI packet */
+        /* Bytes 0-1: Opcode (0xFC9E little-endian) */
+        FLib_MemCpy((void*)pHciPacket, (const void*)&opcode, 2U);
+
+        /* Byte 2: Length = 18 (0x12) */
+        pHciPacket[2] = (uint8_t)gForcedMissedSyncPayloadLen_c;
+
+        /* Byte 3: Subopcode (0x0B) */
+        pHciPacket[3] = gForcedMissedSyncSubOpcode_c;
+        
+        /* Byte 4: Reserved */
+        pHciPacket[4] = 0x00U;
+
+        /* Bytes 5-8: CE Drop Num */
+        pHciPacket[5]  = (uint8_t)(ceDropNum & 0xFFU);
+        pHciPacket[6]  = (uint8_t)((ceDropNum >> 8U) & 0xFFU);
+        pHciPacket[7]  = (uint8_t)((ceDropNum >> 16U) & 0xFFU);
+        pHciPacket[8]  = (uint8_t)((ceDropNum >> 24U) & 0xFFU);
+
+        /* Bytes 9-12: CE Drop Denom */
+        pHciPacket[9]  = (uint8_t)(ceDropDenom & 0xFFU);
+        pHciPacket[10] = (uint8_t)((ceDropDenom >> 8U) & 0xFFU);
+        pHciPacket[11] = (uint8_t)((ceDropDenom >> 16U) & 0xFFU);
+        pHciPacket[12] = (uint8_t)((ceDropDenom >> 24U) & 0xFFU);
+
+        /* Bytes 13-16: CS Drop Num */
+        pHciPacket[13] = (uint8_t)(csDropNum & 0xFFU);
+        pHciPacket[14] = (uint8_t)((csDropNum >> 8U) & 0xFFU);
+        pHciPacket[15] = (uint8_t)((csDropNum >> 16U) & 0xFFU);
+        pHciPacket[16] = (uint8_t)((csDropNum >> 24U) & 0xFFU);
+
+        /* Bytes 17-20: CS Drop Denom */
+        pHciPacket[17] = (uint8_t)(csDropDenom & 0xFFU);
+        pHciPacket[18] = (uint8_t)((csDropDenom >> 8U) & 0xFFU);
+        pHciPacket[19] = (uint8_t)((csDropDenom >> 16U) & 0xFFU);
+        pHciPacket[20] = (uint8_t)((csDropDenom >> 24U) & 0xFFU);
+
+        /* Send HCI command */
+        result = Hci_CommandPacket(pHciPacket, (uint16_t)pHciPacket[2]);
+
+    }
+
+    return result;
+}
+
+/*!*************************************************************************************************
+*\fn    static shell_status_t ShellCsDrop_Command(...)
+*
+*\brief Shell command handler for "csdrop" - Set CS drop ratios for testing.
+*
+*\param [in]    shellHandle     Shell handle
+*\param [in]    argc            Number of arguments
+*\param [in]    argv            Pointer to arguments
+*
+*\retval        kStatus_SHELL_Success
+***************************************************************************************************/
+static shell_status_t ShellCsDrop_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
+{
+    bleResult_t result = gBleSuccess_c;
+    uint32_t ceDropNum = 0U;
+    uint32_t ceDropDenom = 1U;
+    uint32_t csDropNum = 0U;
+    uint32_t csDropDenom = 1U;
+
+    if (argc == 5)
+    {
+        /* Parse arguments */
+        ceDropNum   = (uint32_t)BleApp_atoi(argv[1]);
+        ceDropDenom = (uint32_t)BleApp_atoi(argv[2]);
+        csDropNum   = (uint32_t)BleApp_atoi(argv[3]);
+        csDropDenom = (uint32_t)BleApp_atoi(argv[4]);
+
+        /* Send vendor HCI command */
+        result = CS_VendorUnitaryTestForceMissedSync(ceDropNum, ceDropDenom, csDropNum, csDropDenom);
+
+        if (result == gBleSuccess_c)
+        {
+            shell_write("csdrop: CE=");
+            shell_writeDec(ceDropNum);
+            shell_write("/");
+            shell_writeDec(ceDropDenom);
+            shell_write(" CS=");
+            shell_writeDec(csDropNum);
+            shell_write("/");
+            shell_writeDec(csDropDenom);
+            shell_write(" [OK]\r\n");
+        }
+        else
+        {
+            shell_write("csdrop: error 0x");
+            shell_writeHex((uint8_t*)&result, 1U);
+            shell_write("\r\n");
+        }
+    }
+    else if (argc == 1)
+    {
+        /* No arguments - reset to no drop */
+        result = CS_VendorUnitaryTestForceMissedSync(0U, 1U, 0U, 1U);
+
+        if (result == gBleSuccess_c)
+        {
+            shell_write("csdrop: disabled [OK]\r\n");
+        }
+        else
+        {
+            shell_write("csdrop: error 0x");
+            shell_writeHex((uint8_t*)&result, 1U);
+            shell_write("\r\n");
+        }
+    }
+    else
+    {
+        shell_write("\r\n");
+        shell_write("Usage: csdrop <ce_num> <ce_denom> <cs_num> <cs_denom>\r\n");
+        shell_write("       csdrop (no args = disable)\r\n");
+        shell_write("\r\n");
+        shell_write("NOTE: Drop ratio is based on MODE0 steps, not subevents!\r\n");
+        shell_write("      Formula: cs_num = subevents_to_drop * mode0_nb\r\n");
+        shell_write("               cs_denom = total_subevents * mode0_nb\r\n");
+        shell_write("\r\n");
+        shell_write("Examples (assuming mode0_nb = 3):\r\n");
+        shell_write("  csdrop 0 1 3 6   -> drop 1/2 subevents (50%%)\r\n");
+        shell_write("\r\n");
+    }
+
+    return kStatus_SHELL_Success;
+}
+
+#endif /* gCsDropTestEnabled_d */
 
 #if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
 static shell_status_t ShellRunTest_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
