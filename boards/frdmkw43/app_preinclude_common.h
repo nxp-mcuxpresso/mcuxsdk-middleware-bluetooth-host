@@ -210,7 +210,7 @@
 #endif
 #else
 #ifndef gHost_TaskStackSize_c
-#define gHost_TaskStackSize_c       1700
+#define gHost_TaskStackSize_c       2200
 #endif
 #endif
 
