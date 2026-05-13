@@ -997,7 +997,7 @@ static void HandleGapCmdLeChasConfig
     uint32_t fsciInterfaceId
 )
 {
-    int8_t   initialFilterSeed;
+    uint8_t   initialFilterSeed;
     uint8_t  filterThreshold;
     uint8_t  filterWeight;
     uint16_t measurementInterval;
@@ -1008,7 +1008,7 @@ static void HandleGapCmdLeChasConfig
     fsciBleGetUint8ValueFromBuffer(filterWeight, pBuffer);
     fsciBleGetUint16ValueFromBuffer(measurementInterval, pBuffer);
 
-    fsciBleGap2CallApiFunction(Gap_LeChasConfig(initialFilterSeed, 
+    fsciBleGap2CallApiFunction(Gap_LeChasConfig((int8_t)initialFilterSeed, 
                                                  filterThreshold, 
                                                  filterWeight, 
                                                  measurementInterval));
@@ -1037,7 +1037,7 @@ static void HandleGapCmdLeModulationTest
     uint8_t  testMode;
     uint8_t  channelNumber;
     uint8_t  options;
-    int8_t   txPower;
+    uint8_t   txPower;
 
     /* Get command parameters from buffer */
     fsciBleGetUint8ValueFromBuffer(testMode, pBuffer);
@@ -1048,7 +1048,7 @@ static void HandleGapCmdLeModulationTest
     fsciBleGap2CallApiFunction(Gap_LeModulationTest(testMode, 
                                                      channelNumber, 
                                                      options, 
-                                                     txPower));
+                                                     (int8_t)txPower));
 }
 
 /*! *********************************************************************************
