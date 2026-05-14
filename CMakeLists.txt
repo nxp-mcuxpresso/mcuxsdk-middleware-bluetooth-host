@@ -1250,10 +1250,12 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.wr_wireless_ranging_tools)
             tools/lcl_host/python/Instruments/MatlabEngine.py
             tools/lcl_host/python/Instruments/ranging_platform_pkg/boardinfo.kw45.csv
             tools/lcl_host/python/Instruments/ranging_platform_pkg/boardinfo.kw47.csv
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/boardinfo.kw43.csv
             tools/lcl_host/python/Instruments/ranging_platform_pkg/parser.py
             tools/lcl_host/python/Instruments/ranging_platform_pkg/RangingPlatform.py
             tools/lcl_host/python/Instruments/ranging_platform_pkg/RangingPlatform_kw45.py
             tools/lcl_host/python/Instruments/ranging_platform_pkg/RangingPlatform_kw47.py
+            tools/lcl_host/python/Instruments/ranging_platform_pkg/RangingPlatform_kw43.py
             tools/lcl_host/python/Instruments/ranging_platform_pkg/resultfile.py
             tools/lcl_host/python/Instruments/ranging_platform_pkg/resultschema.2.yaml
             tools/lcl_host/python/Instruments/ranging_platform_pkg/swinfo.default.yaml
