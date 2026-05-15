@@ -107,26 +107,18 @@ menu "bluetooth"
 endmenu
 
 menu "localization"
-    choice MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lib.selection
-        prompt "Localization algo library"
-        default MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lib_no_lib
-
-        config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lib
-            bool "genfsk_wr_lcl_algo_cm33_lib"
-            select MCUX_COMPONENT_CMSIS_DSP_Source
-        config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_lib
-            bool "genfsk_wr_lcl_algo_cm33_lce_lib"
-            select MCUX_COMPONENT_CMSIS_DSP_Source
-        config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_r3_lib
-            bool "genfsk_wr_lcl_algo_cm33_r3_lib"
-            select MCUX_COMPONENT_CMSIS_DSP_Source
-        config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_r4_lib
-            bool "genfsk_wr_lcl_algo_cm33_lce_r4_lib"
-            select MCUX_COMPONENT_CMSIS_DSP_Source
-        config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lib_no_lib
-            bool "No localization lib"
-    endchoice
-
+    config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lib
+        bool "genfsk_wr_lcl_algo_cm33_lib"
+        select MCUX_COMPONENT_CMSIS_DSP_Source
+    config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_lib
+        bool "genfsk_wr_lcl_algo_cm33_lce_lib"
+        select MCUX_COMPONENT_CMSIS_DSP_Source
+    config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_r3_lib
+        bool "genfsk_wr_lcl_algo_cm33_r3_lib"
+        select MCUX_COMPONENT_CMSIS_DSP_Source
+    config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_r4_lib
+        bool "genfsk_wr_lcl_algo_cm33_lce_r4_lib"
+        select MCUX_COMPONENT_CMSIS_DSP_Source
     config MCUX_COMPONENT_middleware.wireless.genfsk_lcl_isp_controller_wr
         bool "genfsk_lcl_isp_controller_wr"
     config MCUX_COMPONENT_middleware.wireless.wr_wireless_ranging_host
