@@ -11,9 +11,15 @@ The CCC Digital Key demos showcase the Connection Handover feature. The handover
 **Prerequisites**:
 
 -   Three boards \(two boards act as Car Anchors, one as a Device\). The demo is limited to a maximum of two Car Anchors.
--   The two Car Anchors must have a serial connection via the secondary UART.
--   The figure below shows two Car Anchors running on two KW47-EVK boards, connected via the secondary UART \(J1-1 to J1-3, J1-3 to J1-1\). The GND connection is J13-1 to J13-1. The UART connection stands in for a real deployment solution such as a CAN bus.
-    -   If using LOC boards, the UART connection is J2-3 to J2-4, J2-4 to J2-3.
+-   The two Car Anchors must have a serial connection via the secondary UART. The UART connection stands in for a real deployment solution such as a CAN bus. The table below describes the connections for each supported board.
+
+    | Board | UART RX → TX | UART TX → RX | GND |
+    |-------|-------------|-------------|-----|
+    | KW47-EVK | J1-1 → J1-3 | J1-3 → J1-1 | J13-8 to J13-8 |
+    | KW47-LOC | J2-3 → J2-4 | J2-4 → J2-3 | J2-8 → J2-8 |
+    | FRDM-KW43 | J22-1 (UART0\_RX PTA18) → JP19-1 (UART0\_TX PTA17) | JP19-1 → J22-1 | J21-8 to J21-8 |
+
+    **Note:** For FRDM-KW43, the current firmware configuration uses PTA18 for UART0\_RX instead of PTA16 as shown in the schematic.
 -   The *gHandoverIncluded\_d* macro must be set to `1` in *`app_preinclude.h`* for the ***digital\_key\_car\_anchor\_cs*** project.
 -   The CS configuration must exist on the initial Car Anchor before the first handover is performed, as detailed in the Demo steps below.
 
