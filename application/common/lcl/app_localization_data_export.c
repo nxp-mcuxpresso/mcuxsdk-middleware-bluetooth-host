@@ -110,6 +110,7 @@ static void cli_sprint_hex8b
 * \param[in]    units       Data length to translate
 * \param[in]    to_4bits   Translation function
 ********************************************************************************** */
+#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1) 
 static void cli_sprint_hex4b(uint8_t *dataOut,
                       uint8_t *dataIn,
                       uint8_t units,
@@ -140,7 +141,6 @@ static void cli_sprint_hex4b(uint8_t *dataOut,
     *dataOut = 0;
 }
 
-#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1) 
 /*! *********************************************************************************
 * \brief        Print 12 bits out of 3 bytes (CS IQ) shifted by 'shift',
 *               every 'incr' bytes - 'units' times
@@ -308,6 +308,20 @@ static uint32_t convert_rtt_to_24bits(uint8_t **dataIn)
 *
 * \param[in]    dataIn      Pointer to source buffer
 ********************************************************************************** */
+static uint32_t convert_mode0rssi(uint8_t **dataIn) {
+    uint8_t val;
+
+    /* Skip NADM */
+    val = (**dataIn) ^ 0x80U;
+    (*dataIn)++;
+    return val;
+}
+
+/*! *********************************************************************************
+* \brief        RSSI is signed, swap sign bit for easier decoding on CLI
+*
+* \param[in]    dataIn      Pointer to source buffer
+********************************************************************************** */
 static uint32_t convert_rssi(uint8_t **dataIn) {
     uint8_t val;
 
@@ -348,16 +362,6 @@ static uint32_t convert_nadm_to_4bits(uint8_t **dataIn) {
 }
 #endif
 
-static void app_mode0_measurement_print(isp_meas_response_t *meas_response, appLocalization_rangeCfg_t *ranging_cfg)
-{
-    uint32_t nb_steps = meas_response->cs_data->mode0_nb;
-
-    (void)printf("md0:{cfg:{n_stp:%d},", nb_steps);
-
-    /* No mode 0 buffer */
-    (void)printf("},");
-}
-
 static void app_print_cs_measurement(isp_meas_response_t *meas_response, appLocalization_rangeCfg_t *ranging_cfg)
 {
     uint8_t *pBuffer;
@@ -383,6 +387,8 @@ static void app_print_cs_measurement(isp_meas_response_t *meas_response, appLoca
 
     /* CS Steps */
     (void)printf("stp:{nb:%u,", meas_response->cs_data->step_nb);
+
+#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1)
     /* Modes */
     (void)printf("md:");
     pBuffer = MEM_BufferAlloc((uint32_t)meas_response->cs_data->step_nb + 4U);
@@ -428,6 +434,7 @@ static void app_print_cs_measurement(isp_meas_response_t *meas_response, appLoca
     }
 
     (void)printf(",");
+#endif
     
     /* CS proc startAclCnt */
     (void)printf("acl:%u,", meas_response->cs_data->startAclCnt);
@@ -592,7 +599,7 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
             (void)printf("'%s',", (char*)pBuffer);
             (void)MEM_BufferFree(pBuffer);
         }
-
+        
         /* Subevent abort reason */
         (void)printf("abt:");
         uint8_t *subevtAbortReason_init = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtAbortReasonLocal : meas_response->cs_data->subevtAbortReasonRemote;
@@ -773,6 +780,49 @@ static void app_tof_measurement_print(isp_meas_response_t *meas_response, engine
     }
     (void)printf("},");
 }
+
+static void mode0_print_node_data(cs_data_t *cs_data, mode0_data_t *mode0Data)
+{
+    uint8_t *pBuffer;
+    int8_t mode0Rssi[gMaxNumCsStepsMode0_c];
+    for (uint32_t i = 0; i < cs_data->mode0_nb; i++)
+    {
+        mode0Rssi[i] = mode0Data->rssi;
+    }
+    /* Mode0 RSSI */
+    (void)printf("r:");
+    pBuffer = MEM_BufferAlloc(cs_data->mode0_nb * sizeof(mode0_data_t) + 4);
+    if (pBuffer == NULL) {
+        (void)printf("'NA:oom'");
+    } else {
+        cli_sprint_hex8b(pBuffer, (uint8_t *)mode0Rssi, cs_data->mode0_nb, convert_mode0rssi);
+        (void)printf("'%s'", (char*)pBuffer);
+        MEM_BufferFree(pBuffer);
+    }
+    (void)printf(",");
+}
+
+static void app_mode0_measurement_print(cs_data_t *cs_data)
+{
+    mode0_data_t *data;
+    uint32_t nb_steps = cs_data->mode0_nb;
+
+    (void)printf("md0:{cfg:{n_stp:%d},", nb_steps);
+
+    (void)printf("init:{");
+    data = mGlobalRangeSettings.role == gCsRoleInitiator_c ? cs_data->mode0Data : &(cs_data->mode0Data[gMaxNumCsStepsMode0_c]);
+    if(data != NULL) {
+        mode0_print_node_data(cs_data, data);
+    }
+
+    (void)printf("},refl:{");
+    data = mGlobalRangeSettings.role == gCsRoleInitiator_c ? &(cs_data->mode0Data[gMaxNumCsStepsMode0_c]) : cs_data->mode0Data;
+    if(data != NULL) {
+        mode0_print_node_data(cs_data, data);
+    }
+    (void)printf("}},");
+}
+
 #endif
 
 /************************************************************************************
@@ -845,7 +895,7 @@ void app_print_cs_data(isp_meas_response_t *meas_response, engine_response_t *en
         (void)printf("{");
         
         app_print_cs_measurement(meas_response, ranging_cfg);
-        app_mode0_measurement_print(meas_response, ranging_cfg);
+        app_mode0_measurement_print(meas_response->cs_data);
         if (meas_response->mciq_data[0].iq != NULL)
         {
             app_mciq_measurement_print(meas_response, engine_response, ranging_cfg);

@@ -12,11 +12,12 @@ import queue
 import multiprocessing
 
 class DUTConfig:
-    def __init__(self, specified_port=None, baudrate=115200, debug=0):
+    def __init__(self, specified_port=None, baudrate=115200, debug=0, printLog=0):
         self.port = None
         self.serial_handle = None
         self.baudrate = baudrate
         self.debug = debug
+        self.printLog = printLog
         self.dut_response = {'marker': '[DONE]'}
         self.select_port(specified_port)
         self.FrameReceivedEvent = threading.Event()
@@ -164,6 +165,8 @@ class DUTConfig:
                 self.SerialTimeoutEvent.set()
                 continue
             try:
+                if self.printLog == 1:
+                    print(line)
                 line = line.decode(errors='ignore').replace('\r', '').replace('\n', '')
             except Exception:
                 continue

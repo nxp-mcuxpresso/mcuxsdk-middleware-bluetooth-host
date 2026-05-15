@@ -19,7 +19,7 @@ from nesteddict import NestedDict
 
 
 class ResultPlot:
-    def __init__(self, algos=[0,1], plotConfig=[0,10,0,200,0,25]):
+    def __init__(self, algos=[0,1], show_rssi=0, plotConfig=[0,10,0,200,0,25]):
         #plotConfig: [plot_mode, y_lim (m), x-type, snapshot_nb_points,slide_mode,time_lim]
         #Plot mode: 0:No plotting, 1:Realtime + History block plotting, 2: History block plotting || x-type: 0:time index, 1:time in seconds || slide_en: 0:static, 1:sliding display rade_trk, 2: rade_raw+rade_trk|| time_lim: time span of sliding display
         self.y_cde                  = []
@@ -36,6 +36,7 @@ class ResultPlot:
 
         self.cde_enabled            = int(algos[0])
         self.rade_enabled           = int(algos[1])
+        self.show_rssi              = int(show_rssi)
 
         self.plot_mode              = int(plotConfig[0])
         self.plot_y_lim             = int(plotConfig[1])
@@ -249,7 +250,12 @@ class ResultPlot:
                     if self.plot_slide_mode == 0:
                         rng_snapshot_plt_title += f'{self.y_rade_trk[-1]:.2f}m' 
                     else:
-                        rng_snapshot_plt_title += f'{y_rade_trk_valid0[-1]:.2f}m'  
+                        rng_snapshot_plt_title += f'{y_rade_trk_valid0[-1]:.2f}m'
+                        if self.show_rssi:
+                            mod0_refl_rssi = new_result.get('md0.refl.rssi', np.nan)
+                            subevt_sts_refl = new_result.get('mciq.reflector.sts', np.nan)
+                            if mod0_refl_rssi[0] < 10 and subevt_sts_refl[0] == 0:
+                                rng_snapshot_plt_title += f' | {mod0_refl_rssi[0]:d}dBm'
                 else:
                     if self.cde_enabled: 
                         rng_snapshot_plt_title += f'{self.y_cde[-1]}m'

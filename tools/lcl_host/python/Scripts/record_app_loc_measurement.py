@@ -27,8 +27,9 @@ def list_str(values):
     return values.split(',')
 
 class CSDataProcessing:
-    def __init__(self, meas_num=1000, trigger_cs_enable=False, target=['json', 'json-gz', 'npz'], algos=[0,1], plotConfig=[0,15,0,100,0,20]):
+    def __init__(self, meas_num=1000, show_rssi=0, trigger_cs_enable=False, target=['json', 'json-gz', 'npz'], algos=[0,1], plotConfig=[0,15,0,100,0,20]):
         self.meas_num = meas_num
+        self.show_rssi = show_rssi
         self.trigger_cs_enable = trigger_cs_enable
         self.target=target
         self.algos = algos
@@ -104,27 +105,27 @@ class CSDataProcessing:
 
     def dataProc_process(self, data_queue, continue_snapshot_event, snapshot_finished_event):
         self.parser = ResultParser()
-        self.plotter = ResultPlot(algos=self.algos, plotConfig=self.plotConfig)
+        self.plotter = ResultPlot(algos=self.algos, show_rssi=self.show_rssi, plotConfig=self.plotConfig)
         self.plotter.start_distance_plotter(lambda frame: self.dataProc_worker(frame, data_queue, continue_snapshot_event, snapshot_finished_event), 100)
         print("GUI Closed!")
         
 class RecordCSData:
-    def __init__(self, specified_port=None, debug=0, meas_num=1000, trigger_cs_enable=False, role='reflector', target=['json', 'json-gz','npz'], algos=[0,1], plotConfig=[0,15,0,100,0,20], multi_process=1):
+    def __init__(self, specified_port=None, debug=0, meas_num=1000, show_rssi=0, trigger_cs_enable=False, role='reflector', factoryreset=0, printLog=0, loop=False, target=['json', 'json-gz','npz'], algos=[0,1], plotConfig=[0,15,0,100,0,20], multi_process=1):
         self.multi_process = multi_process
         if multi_process == 1:
-            self.CSDataProc = CSDataProcessing(meas_num=meas_num, trigger_cs_enable=trigger_cs_enable, target=target, algos=algos, plotConfig=plotConfig)
+            self.CSDataProc = CSDataProcessing(meas_num=meas_num, show_rssi=show_rssi, trigger_cs_enable=trigger_cs_enable, target=target, algos=algos, plotConfig=plotConfig)
             self.continue_snapshot_event = multiprocessing.Event()
             self.continue_snapshot_event.clear()
             self.snapshot_finished_event = multiprocessing.Event()
             self.snapshot_finished_event.clear()
             self.set_snapshot_event_thread = threading.Thread(target=self.set_next_snapshot_event, daemon=True)
-        self.dut = DUTConfig(specified_port=specified_port, baudrate=1000000, debug=debug)
+        self.dut = DUTConfig(specified_port=specified_port, baudrate=1000000, debug=debug, printLog=printLog)
         self.meas_num = meas_num
         self.trigger_cs_enable = trigger_cs_enable
         self.target = target
         self.algos = algos
         self.plotConfig = plotConfig
-        if self.trigger_cs_enable:
+        if self.trigger_cs_enable and loop == False:
             self.trigger_cs_proc_thread = threading.Thread(target=self.send_cs_trigger_command, daemon=True)
         self.dut.start_read_thread()
         self.parser = ResultParser()
@@ -136,6 +137,11 @@ class RecordCSData:
         self.result_store_folder = f"{current_dir}\\records"
         self.raw_results = []
         self.meas_cnt = 0
+        self.N_PROCEDURE_COUNT = 5
+        self.T_PROCEDURE_INTERVAL = 350 #ms
+        if factoryreset == 1:
+            self.dut.write("factoryreset\r\n")#For scenarios that need repairing before starting
+            time.sleep(0.1)
         if role == 'initiator':
             self.dut.write("role 0\r\n")
         elif role == 'reflector':
@@ -143,7 +149,11 @@ class RecordCSData:
         else:
             print('invalid CS role')
         time.sleep(0.1)
-        self.dut.write("setnumprocs 0 0x0001\r\n")
+        if loop:
+            self.dut.write("loop\r\n")#For auto-loop from embedded
+            time.sleep(0.1)
+            print('Auto-loop enabled')
+        self.dut.write(f"setnumprocs 0 0x{self.N_PROCEDURE_COUNT:04X}\r\n")
         time.sleep(0.1)
         print('setnumprocs to 1')
         self.dut.write("sb\r\n")
@@ -155,6 +165,11 @@ class RecordCSData:
             frame_received = self.dut.FrameReceivedEvent.wait(timeout=0.2) #Limit the time slice of this thread
             if frame_received:
                 self.dut.FrameReceivedEvent.clear()
+                if self.N_PROCEDURE_COUNT > 1:
+                    delta_N = 0.5 #Manual measurement
+                    time.sleep((self.N_PROCEDURE_COUNT + delta_N) * self.T_PROCEDURE_INTERVAL/1000) 
+                else:
+                    time.sleep(0.01)
                 self.dut.write("tdm 0\r\n") #Send CS procedure triggering command
             else:
                 time_out_occured = self.dut.SerialTimeoutEvent.wait(timeout=0)
@@ -232,6 +247,8 @@ def main(argv):
     parser = argparse.ArgumentParser(description='Run measurements on RangingPlatform')
     parser.add_argument('-n', action='store', type=int, default=16, 
                         help='number of measurements to execute')
+    parser.add_argument('--rssi', action='store', type=int, default=0, 
+                        help='Show RSSI value')
     parser.add_argument('--trigger_cs_enable', action='store', type=str_to_bool, default=True,
                         help='Automatically trigger CS procedures')
     parser.add_argument('--target', action='append', type=str, default=[],
@@ -240,6 +257,12 @@ def main(argv):
     #                     help='Algorithms results to illustrate: [CDE, RADE]')
     parser.add_argument('--csrole', action='store', type=str, default="initiator",
                         help='init | refl')
+    parser.add_argument('--freset', action='store', type=int, default=0,
+                        help='0 | 1')
+    parser.add_argument('--loop', action='store', type=str_to_bool, default=False,
+                        help='Toggle embedded side auto-loop')
+    parser.add_argument('--log', action='store', type=int, default=0,
+                        help='0 | 1')
     parser.add_argument('--plot', action='store', type=list_str, default=[1,10,0,200,0,25],
                         help='Plot ranging measurements ([plot_mode, y_lim (m), x-type, snapshot_nb_points,slide_mode,time_lim]. Plot mode: 0:No plotting, 1:Realtime + History block plotting, 2: History block plotting, default: 0, x-type: 0:time index, 1:time in seconds, slide_en: 0:static, 1:sliding display rade_trk, 2: sliding display rade_raw+rade_trk, time_lim: time span of sliding display).')
 
@@ -249,7 +272,7 @@ def main(argv):
     # ------------------------------------------------------------------------------------------------------------------  
     #algos_int = [int(x) for x in args.algos]
     plot_int = [int(x) for x in args.plot]
-    recorder = RecordCSData(specified_port=None, meas_num=args.n, trigger_cs_enable=args.trigger_cs_enable, role='initiator', target=args.target, plotConfig=plot_int) #plotConfig: [plot_mode, y_lim (m), x-type, snapshot_nb_points,slide_mode,time_lim], e.g., snapshot: [1,15,0,100,0,20], sliding mode: [1,20,1,50000,1,20]
+    recorder = RecordCSData(specified_port=None, meas_num=args.n, show_rssi=args.rssi, trigger_cs_enable=args.trigger_cs_enable, role=args.csrole, factoryreset=args.freset, printLog=args.log, loop=args.loop, target=args.target, plotConfig=plot_int) #plotConfig: [plot_mode, y_lim (m), x-type, snapshot_nb_points,slide_mode,time_lim], e.g., snapshot: [1,15,0,100,0,20], sliding mode: [1,20,1,50000,1,20]
     recorder.run()    
 
 if __name__ == "__main__":
