@@ -155,6 +155,7 @@ typedef struct isp_configuration_range_tag
     uint8_t initiator_AA[4];    /*!< Initiator AA */
     uint8_t reflector_AA[4];    /*!< Reflector AA */
     uint16_t connInterval;      /*!< Connection interval */
+    uint16_t subeventInterval;  /*!< Time between consecutive CS subevents anchored off the same ACL connection event */
     uint16_t subfeaturesSupported;  /*!< CS Subfeatures Supported as reported by Read Remote Capabilities */
     bool_t inlinePctEnabled;        /*!< TRUE if IPT enabled in current CS config */
 } isp_configuration_range_t;

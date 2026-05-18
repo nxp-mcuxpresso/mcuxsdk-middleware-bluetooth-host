@@ -987,6 +987,7 @@ void measurement_populate_response
     /* Populate timing information to be used by algorithm */
     response->mparams->cfg.t_sw  = BleApp_ComputeTsw();
     response->mparams->cfg.connInterval = bleInfo.connInterval;
+    response->mparams->cfg.subeventInterval = gRangeSettings->subeventInterval;
     /* Report an error if we didn't get any step after combining both device results */
     response->cs_data->status = (localAppDataBuffer->csData.step_nb == 0) ? abortReasonProcedure:0x00;
 

@@ -274,6 +274,7 @@ void isp_mciq_ranging_compute(isp_meas_response_t *meas_response, mciq_result_t 
         radeCsPara.main_mode_type       =  meas_response->mparams->cfg.main_mode_type   ;
         radeCsPara.sub_mode_type        =  meas_response->mparams->cfg.sub_mode_type    ;
         radeCsPara.connInterval         =  meas_response->mparams->cfg.connInterval     ;
+        radeCsPara.subevtInterval       =  meas_response->mparams->cfg.subeventInterval   ;
         radeCsPara.refPowerLevel_init   =  meas_response->cs_data->subevtRefPowerLevelInit;
         radeCsPara.refPowerLevel_refl   =  meas_response->cs_data->subevtRefPowerLevelRefl;
         radeCsPara.subevtDoneStatus_local = meas_response->cs_data->subevtDoneStatusLocal  ;

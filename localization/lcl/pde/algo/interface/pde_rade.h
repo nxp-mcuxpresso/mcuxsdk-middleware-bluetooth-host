@@ -84,6 +84,7 @@ typedef struct _rade_cs_para
     uint8_t *subevtStopIdx_local;/*!< StepId of the beginning of the next subevent - local */ 
     uint8_t *subevtStopIdx_remote;/*!< StepId of the beginning of the next subevent - remote */
     uint8_t *subevtConnEvent;   /*!< Delta regarding ACL counter of first subevent */ 
+    uint16_t subevtInterval;    /*!< Subevent Interval */
     uint8_t main_mode_type;     /*!< Main mode type */
     uint8_t sub_mode_type;      /*!< Sub-mode type */
     int8_t *refPowerLevel_init; /*!< referencePowerLevel at initiator */

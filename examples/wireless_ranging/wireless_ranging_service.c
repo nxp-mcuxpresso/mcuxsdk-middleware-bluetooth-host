@@ -329,6 +329,7 @@ void wrs_CSDataInit(deviceId_t deviceId, const csProcedureEnableCompleteEvent_t 
         assert(csProcedureEnableCompleteEvent != NULL);
         /* Store given configuration */
         gWrsConn[deviceId].csProcedureEnableParams = *csProcedureEnableCompleteEvent;
+        gRangeSettings->subeventInterval = csProcedureEnableCompleteEvent->subeventInterval;
     }
 }
 

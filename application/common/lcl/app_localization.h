@@ -256,6 +256,7 @@ typedef struct appLocalization_rangeCfg_tag
     bool_t inlinePctEnabled;                    /*!< TRUE if IPT enabled in current CS config */
     /* Used by algorithm */
     uint16_t connInterval;                      /*!< Connection interval of the Bluetooth LE link (units of 1.25ms) - required by algorithm */
+    uint16_t subeventInterval;                  /*!< Time between consecutive CS subevents anchored off the same ACL connection event */
     void *csAlgoBuf;                            /*!< Buffer used by RADE */
 } appLocalization_rangeCfg_t;
 

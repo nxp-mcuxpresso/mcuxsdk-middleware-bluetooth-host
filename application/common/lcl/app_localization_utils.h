@@ -114,6 +114,7 @@ typedef struct cs_data_tag {
     uint8_t t_pm;
     uint8_t t_sw;
     uint16_t conn_interval;
+    uint16_t subevt_interval;
     void *csAlgoBuf;
     uint8_t channelMap[gMaxNumCsSteps_c];
     uint8_t modeMap[gMaxNumCsSteps_c];

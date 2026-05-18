@@ -260,6 +260,7 @@ class ResultParser:
                 'ch': 'channels',
                 'acl': 'startAclCnt',
                 'ci': 'connection_interval',
+                'si': 'subevent_interval',
                 'senb': 'subevent_number',
                 'mmdrp': 'mainmode_repeat',
                 'mmdt': 'mainmode_type',

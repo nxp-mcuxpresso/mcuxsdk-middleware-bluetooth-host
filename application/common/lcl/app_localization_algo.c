@@ -210,6 +210,7 @@ void AppLocalizationAlgo_RunMeasurement
         response.cs_data->phy               = mRangeSettings[deviceId].phy;
         response.cs_data->t_sw              = AppLocalizationAlgo_ComputeTsw(deviceId);
         response.cs_data->conn_interval     = mRangeSettings[deviceId].connInterval;
+        response.cs_data->subevt_interval   = mRangeSettings[deviceId].subeventInterval;
         response.cs_data->csAlgoBuf         = &mRangeSettings[deviceId].csAlgoBuf;
 
         /* Extract Subevent Done Status for local data */
@@ -854,6 +855,7 @@ static void isp_mciq_ranging_compute
         radeCsPara.main_mode_type           = meas_response->cs_data->main_mode_type;
         radeCsPara.sub_mode_type            = meas_response->cs_data->sub_mode_type;
         radeCsPara.connInterval             = meas_response->cs_data->conn_interval;
+        radeCsPara.subevtInterval           = meas_response->cs_data->subevt_interval;
         radeCsPara.refPowerLevel_init       = meas_response->cs_data->subevtRefPowerLevelInit;
         radeCsPara.refPowerLevel_refl       = meas_response->cs_data->subevtRefPowerLevelRefl;
         radeCsPara.subevtDoneStatus_local   = meas_response->cs_data->subevtDoneStatusLocal;

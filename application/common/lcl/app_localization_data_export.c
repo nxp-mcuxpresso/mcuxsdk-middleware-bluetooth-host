@@ -442,6 +442,9 @@ static void app_print_cs_measurement(isp_meas_response_t *meas_response, appLoca
     /* Connection interval */
     (void)printf("ci:%u,", meas_response->cs_data->conn_interval);
     
+    /* Subevent interval */
+    (void)printf("si:%u,", meas_response->cs_data->subevt_interval);
+    
     /* Subevt number */
     (void)printf("senb:%u,", meas_response->cs_data->subevt_nb);
     

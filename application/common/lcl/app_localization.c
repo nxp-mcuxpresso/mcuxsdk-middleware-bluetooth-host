@@ -3172,8 +3172,9 @@ static void AppLocalization_HandleProcedureEnabled
         return;
     }
 
-    /* Update number of procedures and reset internal counters */
+    /* Update number of procedures, subevent interval and reset internal counters */
     mRangeSettings[deviceId].maxNumProcedures = pEvent->procedureCount;
+    mRangeSettings[deviceId].subeventInterval = pEvent->subeventInterval;
 
     /* Start temperature refresh timer if not started already */
     if (TM_IsTimerActive((timer_handle_t)mTemperatureTimerId) == 0U)
