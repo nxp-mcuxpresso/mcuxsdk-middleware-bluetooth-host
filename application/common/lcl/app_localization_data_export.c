@@ -528,7 +528,7 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
 #if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1) 
     mdata = mciq_data_init;
 #endif
-    (void)printf("mciq:{cfg:{n_ap:%u,n_stp:%u},", n_ap, nb_steps);
+    (void)printf("mciq:{cfg:{n_ap:%lu,n_stp:%lu},", n_ap, nb_steps);
 
     if (engine_response->is_valid)
     {
@@ -760,7 +760,7 @@ static void app_tof_measurement_print(isp_meas_response_t *meas_response, engine
     nb_steps = (tof_data_init->nbSteps != 0U) ? tof_data_init->nbSteps:tof_data_refl->nbSteps;
 
     tdata = tof_data_init;
-    (void)printf("tof:{cfg:{n_stp:%d},", nb_steps);
+    (void)printf("tof:{cfg:{n_stp:%lu},", nb_steps);
 
     if (engine_response->is_valid)
     {
@@ -810,7 +810,7 @@ static void app_mode0_measurement_print(cs_data_t *cs_data)
     mode0_data_t *data;
     uint32_t nb_steps = cs_data->mode0_nb;
 
-    (void)printf("md0:{cfg:{n_stp:%d},", nb_steps);
+    (void)printf("md0:{cfg:{n_stp:%lu},", nb_steps);
 
     (void)printf("init:{");
     data = mGlobalRangeSettings.role == gCsRoleInitiator_c ? cs_data->mode0Data : &(cs_data->mode0Data[gMaxNumCsStepsMode0_c]);
@@ -909,7 +909,7 @@ void app_print_cs_data(isp_meas_response_t *meas_response, engine_response_t *en
             app_tof_measurement_print(meas_response, engine_response, ranging_cfg);
         }
 #endif
-        (void)printf("PrintTimeUs:%u", (uint32_t)(PLATFORM_GetTimeStamp() - now_time));
+        (void)printf("PrintTimeUs:%lu", (uint32_t)(PLATFORM_GetTimeStamp() - now_time));
 
         (void)printf("},");
     }
@@ -920,7 +920,7 @@ void app_print_cs_data(isp_meas_response_t *meas_response, engine_response_t *en
     fflush(stdout);
 #endif
     FlagCRCData = FALSE;
-    (void)printf("\nCRC32:%08x", WrsCRC32);
+    (void)printf("\nCRC32:%08lx", WrsCRC32);
     (void)printf("\nmarker:[DONE]\n");
 }
 #endif
