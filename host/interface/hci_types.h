@@ -493,6 +493,8 @@ typedef enum
     gHciLePerAdvSubeventDataRequestEventMask_c          = BIT64((4 * 8) + 6),
     gHciLePerAdvResponseReportEventMask_c               = BIT64((4 * 8) + 7),
     gHciLeEnhancedConnectionCompleteV2EventMask_c       = BIT64((5 * 8) + 0),
+    /* BLE v6.0 - LL Extended Feature Set (LLEFS) */
+    gHciLeReadAllRemoteFeaturesCompleteEventMask_c      = BIT64((5 * 8) + 2),
     /* BLE v6.0 */
     gHciLeMonitoredAdvertisersReportEventMask_c         = BIT64((6 * 8) + 3),
 } hciLeMetaSubEventMask_tag;
