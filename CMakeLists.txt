@@ -1106,7 +1106,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_host_CS_component_lib)
     )
 endif()
 
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lib)
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.rade1_algo_cm33_lib)
     mcux_add_iar_configuration(
         LD  "--config_def=gReserveCeRam_d=0"
     )
@@ -1114,11 +1114,11 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lib)
         LD "-Xlinker --defsym=gReserveCeRam_d=0"
     )
     mcux_add_library(
-        LIBS localization/lib/lib_lcl_algo_cm33_iar.a
+        LIBS localization/rade_lib/lib_rade1_algo_cm33_iar.a
         TOOLCHAINS iar
     )
     mcux_add_library(
-        LIBS localization/lib/lib_lcl_algo_cm33_gcc.a
+        LIBS localization/rade_lib/lib_rade1_algo_cm33_gcc.a
         TOOLCHAINS mcux armgcc
     )
     mcux_add_include(
@@ -1131,7 +1131,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lib)
     )
 endif()
 
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_lib)
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.rade2_algo_cm33_lce_lib)
     mcux_add_configuration(
         CC "-DLCE_ENABLED"
     )
@@ -1142,11 +1142,11 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_lib)
         LD "-Xlinker --defsym=gReserveCeRam_d=1"
     )
     mcux_add_library(
-        LIBS localization/lib/lib_lcl_algo_cm33_lce_iar.a
+        LIBS localization/rade_lib/lib_rade2_algo_cm33_lce_iar.a
         TOOLCHAINS iar
     )
     mcux_add_library(
-        LIBS localization/lib/lib_lcl_algo_cm33_lce_gcc.a
+        LIBS localization/rade_lib/lib_rade2_algo_cm33_lce_gcc.a
         TOOLCHAINS mcux armgcc
     )
     mcux_add_include(
@@ -1159,7 +1159,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_lib)
     )
 endif()
 
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_r3_lib)
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.radex1_algo_cm33_lib)
     mcux_add_iar_configuration(
         LD  "--config_def=gReserveCeRam_d=0"
     )
@@ -1167,11 +1167,11 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_r3_lib)
         LD "-Xlinker --defsym=gReserveCeRam_d=0"
     )
     mcux_add_library(
-        LIBS localization/lib_r34/lib_lcl_algo_cm33_r3_iar.a
+        LIBS localization/radex_lib/lib_radex1_algo_cm33_iar.a
         TOOLCHAINS iar
     )
     mcux_add_library(
-        LIBS localization/lib_r34/lib_lcl_algo_cm33_r3_gcc.a
+        LIBS localization/radex_lib/lib_radex1_algo_cm33_gcc.a
         TOOLCHAINS mcux armgcc
     )
     mcux_add_include(
@@ -1184,7 +1184,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_r3_lib)
     )
 endif()
 
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_r4_lib)
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.radex2_algo_cm33_lce_lib)
     mcux_add_configuration(
         CC "-DLCE_ENABLED"
     )
@@ -1195,11 +1195,11 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_r4_lib)
         LD "-Xlinker --defsym=gReserveCeRam_d=1"
     )
     mcux_add_library(
-        LIBS localization/lib_r34/lib_lcl_algo_cm33_lce_r4_iar.a
+        LIBS localization/radex_lib/lib_radex2_algo_cm33_lce_iar.a
         TOOLCHAINS iar
     )
     mcux_add_library(
-        LIBS localization/lib_r34/lib_lcl_algo_cm33_lce_r4_gcc.a
+        LIBS localization/radex_lib/lib_radex2_algo_cm33_lce_gcc.a
         TOOLCHAINS mcux armgcc
     )
     mcux_add_include(

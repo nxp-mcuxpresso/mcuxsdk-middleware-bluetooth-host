@@ -107,17 +107,17 @@ menu "bluetooth"
 endmenu
 
 menu "localization"
-    config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lib
-        bool "genfsk_wr_lcl_algo_cm33_lib"
+    config MCUX_COMPONENT_middleware.wireless.rade1_algo_cm33_lib
+        bool "rade1_algo_cm33_lib"
         select MCUX_COMPONENT_CMSIS_DSP_Source
-    config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_lib
-        bool "genfsk_wr_lcl_algo_cm33_lce_lib"
+    config MCUX_COMPONENT_middleware.wireless.rade2_algo_cm33_lce_lib
+        bool "rade2_algo_cm33_lce_lib"
         select MCUX_COMPONENT_CMSIS_DSP_Source
-    config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_r3_lib
-        bool "genfsk_wr_lcl_algo_cm33_r3_lib"
+    config MCUX_COMPONENT_middleware.wireless.radex1_algo_cm33_lib
+        bool "radex1_algo_cm33_lib"
         select MCUX_COMPONENT_CMSIS_DSP_Source
-    config MCUX_COMPONENT_middleware.wireless.genfsk_wr_lcl_algo_cm33_lce_r4_lib
-        bool "genfsk_wr_lcl_algo_cm33_lce_r4_lib"
+    config MCUX_COMPONENT_middleware.wireless.radex2_algo_cm33_lce_lib
+        bool "radex2_algo_cm33_lce_lib"
         select MCUX_COMPONENT_CMSIS_DSP_Source
     config MCUX_COMPONENT_middleware.wireless.genfsk_lcl_isp_controller_wr
         bool "genfsk_lcl_isp_controller_wr"
