@@ -850,7 +850,10 @@ static bool_t HandleLocalTofPresent
             hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)gCsTsSize_c);
         );
 
-        CheckSkipBytesDoNothing(*ppEventData, *pDataSize, 1U, bIncomplete); /* Packet_Antenna, ignored */
+        /* Store Packet_Antenna in tof buffer after TS */
+        CheckSkipBytes(*ppEventData, *pDataSize, gCsAntennaSize_c, bIncomplete,
+            hciCsStoreBytesInTofBuffer(pDstAppBuffer, *ppEventData, (int)gCsAntennaSize_c); /* Packet_Antenna */
+        );
         
         pDstAppBuffer->tof_data.nbSteps++;
     } while(FALSE);
@@ -1237,6 +1240,7 @@ static bool_t ParseMode1
     uint32_t quality = 0U;
     uint8_t aNadm[gCsNadmSize_c] = {};
     uint8_t aRssi[gCsRssiSize_c] = {};
+    uint8_t aAntenna[gCsAntennaSize_c] = {};
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
     int8_t rssiValue = 0;
 #endif
@@ -1287,7 +1291,9 @@ static bool_t ParseMode1
         if ((filter & BIT6) != 0U)
         {
             /* Data includes Packet Antenna */
-            CheckSkipBytesDoNothing(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete);
+            CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
+                FLib_MemCpy(aAntenna, *ppEventData, gCsAntennaSize_c);
+            );
         }
 
         /* Check if data includes Packet_PCT1, Packet_PCT2 information (3 octets each) */
@@ -1314,10 +1320,8 @@ static bool_t ParseMode1
         pRemoteData->step++;
         pDstAppBuffer->tof_data.nbSteps++;
 
-        if ((filter & BIT3) != 0U)
-        {
-            hciCsStoreBytesInTofBuffer(pDstAppBuffer, aNadm, (int)gCsNadmSize_c);
-        }
+        /* aNadm is zero-initialised; if BIT3 is absent the placeholder 0x00 is stored */
+        hciCsStoreBytesInTofBuffer(pDstAppBuffer, aNadm, (int)gCsNadmSize_c);
         if ((filter & BIT4) != 0U)
         {
             /* Data includes Packet RSSI */
@@ -1348,6 +1352,18 @@ static bool_t ParseMode1
             ts_diff |= (quality & 0x0FU) << gTimeStampDiffSize_c;
             hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)gCsTsSize_c);
         }
+        else
+        {
+            uint32_t ts_diff = 0U;
+            hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)gCsTsSize_c);
+        }
+
+        /* Store Packet_Antenna in tof buffer after TS.
+         * aAntenna is zero-initialised, so if BIT6 is not set in the filter
+         * (field absent from the RAS stream), 0x00 is stored as a placeholder.
+         * This keeps the per-step record layout fixed at gCsTofTsSize_c bytes,
+         * which is required by isp_tof_ranging_compute and the converter functions. */
+        hciCsStoreBytesInTofBuffer(pDstAppBuffer, aAntenna, (int)gCsAntennaSize_c);
     }
 
     return bIncomplete;
@@ -1731,6 +1747,7 @@ static void ParseMode3PacketMetrics
  * \param[in,out] pDataLength       Pointer to remaining data length
  * \param[out]  pTsDiffHci          Pointer to store timestamp difference
  * \param[out]  pAntPermIndex       Pointer to store antenna permutation index
+ * \param[out]  pAntenna            Pointer to store Packet_Antenna value
  * \param[in,out] pIncomplete       Pointer to incomplete flag
  *
  * \retval      void
@@ -1742,6 +1759,7 @@ static void ParseMode3ToFAndAntenna
     uint32_t *pDataLength,
     int16_t *pTsDiffHci,
     uint8_t *pAntPermIndex,
+    uint8_t *pAntenna,
     bool_t *pIncomplete
 )
 {
@@ -1758,7 +1776,9 @@ static void ParseMode3ToFAndAntenna
         if ((filter & BIT6) != 0U)
         {
             /* Data includes Packet Antenna */
-            CheckSkipBytesDoNothing(*ppEventData, *pDataLength, 1U, *pIncomplete);
+            CheckSkipBytes(*ppEventData, *pDataLength, 1U, *pIncomplete,
+                *pAntenna = **ppEventData;
+            );
         }
 
         /* Check if data includes Packet_PCT1, Packet_PCT2 information (3 octets each) */
@@ -1945,6 +1965,7 @@ static bool_t ParseMode3
     uint32_t quality = 0U;
     uint8_t aRssi[gCsRssiSize_c] = {};
     uint8_t aNadm[gCsNadmSize_c] = {};
+    uint8_t aAntenna[gCsAntennaSize_c] = {};
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
     int8_t rssiValue = 0;
 #endif
@@ -1968,7 +1989,7 @@ static bool_t ParseMode3
 
         /* Parse ToF and antenna information */
         ParseMode3ToFAndAntenna(filter, ppEventData, pDataLength, &ts_diff_hci, 
-                               &antPermIndex, &bIncomplete);
+                               &antPermIndex, aAntenna, &bIncomplete);
 
         if (bIncomplete)
         {
@@ -1989,11 +2010,8 @@ static bool_t ParseMode3
         /* ToF+Tone record */
         pRemoteData->step++;
 
-        if ((filter & BIT3) != 0U)
-        {
-            /* Data includes Packet NADM */
-            hciCsStoreBytesInTofBuffer(pDstAppBuffer, aNadm, (int)gCsNadmSize_c);
-        }
+        /* aNadm is zero-initialised; if BIT3 is absent the placeholder 0x00 is stored */
+        hciCsStoreBytesInTofBuffer(pDstAppBuffer, aNadm, (int)gCsNadmSize_c);
 
         if ((filter & BIT4) != 0U)
         {
@@ -2008,6 +2026,11 @@ static bool_t ParseMode3
             }
 #endif /* gAppParseRssiInfo_d */
         }
+        else
+        {
+            uint8_t rssi = 0U;
+            hciCsStoreBytesInTofBuffer(pDstAppBuffer, &rssi, (int)gCsRssiSize_c);
+        }
 
         if ((filter & BIT5) != 0U)
         {
@@ -2020,6 +2043,17 @@ static bool_t ParseMode3
             ts_diff |= (quality & 0x0FU) << gTimeStampDiffSize_c;
             hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)gCsTsSize_c);
         }
+        else
+        {
+            uint32_t ts_diff = 0U;
+            hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)gCsTsSize_c);
+        }
+
+        /* Store Packet_Antenna in tof buffer after TS.
+         * aAntenna is zero-initialised, so if BIT6 is not set in the filter
+         * (field absent from the RAS stream), 0x00 is stored as a placeholder.
+         * This keeps the per-step record layout fixed at gCsTofTsSize_c bytes. */
+        hciCsStoreBytesInTofBuffer(pDstAppBuffer, aAntenna, (int)gCsAntennaSize_c);
 
         for (uint8_t idx = 0U; idx < pDstAppBuffer->mciq_data.n_ap; idx++)
         {
@@ -2135,6 +2169,7 @@ static bool_t ParseMode1
     uint32_t quality = 0U;
     uint8_t aNadm[gCsNadmSize_c] = {};
     uint8_t aRssi[gCsRssiSize_c] = {};
+    uint8_t aAntenna[gCsAntennaSize_c] = {};
     int16_t ts_diff_hci = 0;
     
     bool_t bIncomplete = FALSE;
@@ -2170,7 +2205,9 @@ static bool_t ParseMode1
         );
 
         /* Data includes Packet Antenna */
-        CheckSkipBytesDoNothing(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete);
+        CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
+            FLib_MemCpy(aAntenna, *ppEventData, gCsAntennaSize_c);
+        );
     } while(FALSE);
 
     /* In case no error occured, store temporary variables into the actual output */
@@ -2202,6 +2239,9 @@ static bool_t ParseMode1
         ts_diff &= 0x00FFFFU;
         ts_diff |= (quality & 0x0FU) << gTimeStampDiffSize_c;
         hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)gCsTsSize_c);
+
+        /* Store Packet_Antenna in tof buffer after TS */
+        hciCsStoreBytesInTofBuffer(pDstAppBuffer, aAntenna, (int)gCsAntennaSize_c);
     }
 
     return bIncomplete;
@@ -2342,6 +2382,7 @@ static bool_t ParseMode3
     uint8_t pctQuality = 0u;
     uint8_t aRssi[gCsRssiSize_c] = {};
     uint8_t aNadm[gCsNadmSize_c] = {};
+    uint8_t aAntenna[gCsAntennaSize_c] = {};
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
     int8_t rssiValue = 0;
 #endif
@@ -2381,8 +2422,10 @@ static bool_t ParseMode3
             FLib_MemCpy(&ts_diff_hci, *ppEventData, sizeof(uint16_t)); /* Time Diff signed Q16, 2 bytes */
         );
 
-        /* Skip Antenna used by the sender */
-        CheckSkipBytesDoNothing(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete);
+        /* Data includes Packet Antenna */
+        CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
+            FLib_MemCpy(aAntenna, *ppEventData, gCsAntennaSize_c);
+        );
 
         /* Data includes Antenna Permutation Index */
         (void)GetItem(&antPermIndex);
@@ -2441,6 +2484,12 @@ static bool_t ParseMode3
         ts_diff &= 0x00FFFFU;
         ts_diff |= (quality & 0x0FU) << gTimeStampDiffSize_c;
         hciCsStoreBytesInTofBuffer(pDstAppBuffer, (uint8_t *)&ts_diff, (int)gCsTsSize_c);
+
+        /* Store Packet_Antenna in tof buffer after TS.
+         * aAntenna is zero-initialised, so if BIT6 is not set in the filter
+         * (field absent from the RAS stream), 0x00 is stored as a placeholder.
+         * This keeps the per-step record layout fixed at gCsTofTsSize_c bytes. */
+        hciCsStoreBytesInTofBuffer(pDstAppBuffer, aAntenna, (int)gCsAntennaSize_c);
 
         for (uint8_t idx = 0U; idx < pDstAppBuffer->mciq_data.n_ap; idx++)
         {

@@ -27,9 +27,10 @@
 #define gCsTsSize_c             (3U)
 #define gCsRssiSize_c           (1U)
 #define gCsNadmSize_c           (1U)
+#define gCsAntennaSize_c        (1U)
 
-/* ToF(Pkt) data size - RSSI 8 bits + Pkt Quality 4bits + TS_DIFF 20 bits */
-#define gCsTofTsSize_c          (4U)
+/* ToF(Pkt) data size - NADM 8 bits + RSSI 8 bits + Pkt Quality 4bits + TS_DIFF 20 bits + Packet_Antenna 8 bits */
+#define gCsTofTsSize_c          (6U)
 /* Tone IQ data size - PCT 3 bytes, Tone_Quality_Indicator 1 byte */
 #define gCsMciqSize_c           (4U)
 

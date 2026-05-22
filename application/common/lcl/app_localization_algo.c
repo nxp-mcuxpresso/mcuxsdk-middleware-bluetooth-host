@@ -935,8 +935,8 @@ static void isp_tof_ranging_compute
             sum_rtt_ns += (int32_t)init_ns - (int32_t)refl_ns;
             nb_steps_valid++;
         }
-        init_ts += gCsTsSize_c;
-        refl_ts += gCsTsSize_c;
+        init_ts += gCsTsSize_c + gCsAntennaSize_c;
+        refl_ts += gCsTsSize_c + gCsAntennaSize_c;
     }
 
     tof_result->dm_sr = 0;

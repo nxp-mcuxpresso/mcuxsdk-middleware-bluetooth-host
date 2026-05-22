@@ -299,7 +299,7 @@ static uint32_t convert_rtt_to_24bits(uint8_t **dataIn)
     /* dataIn not aligned on uint32_t boundary, cannot cast */
     ptr = *dataIn;
     val = ((uint32_t)ptr[2])<<16 | ((uint32_t)ptr[1])<<8 | (uint32_t)ptr[0];
-    *dataIn += gCsTsSize_c;
+    *dataIn += gCsTsSize_c + gCsAntennaSize_c;
     return val;
 }
 
@@ -328,7 +328,7 @@ static uint32_t convert_rssi(uint8_t **dataIn) {
     /* Skip NADM */
     (*dataIn) += gCsNadmSize_c;
     val = (**dataIn) ^ 0x80U;
-    (*dataIn) += gCsRssiSize_c + gCsTsSize_c;  /* Skip RSSI & TS */
+    (*dataIn) += gCsRssiSize_c + gCsTsSize_c + gCsAntennaSize_c;  /* Skip RSSI, TS & Antenna */
     return val;
 }
 
@@ -357,7 +357,22 @@ static uint32_t convert_nadm_to_4bits(uint8_t **dataIn) {
     ptr = *dataIn;
     /* Compress data from 8 bits to 4 bits. First 4 MSB bits are not used (Unknown NADM 0xFF value will be compressed to 0x0F) */
     val = (uint32_t)(*ptr) & 0x0FU;
-    *dataIn += gCsNadmSize_c + gCsRssiSize_c + gCsTsSize_c;
+    *dataIn += gCsNadmSize_c + gCsRssiSize_c + gCsTsSize_c + gCsAntennaSize_c;
+    return val;
+}
+
+/*! *********************************************************************************
+* \brief        Extract Packet_Antenna from tof buffer record
+*
+* \param[in]    dataIn      Pointer to source buffer
+********************************************************************************** */
+static uint32_t convert_antenna(uint8_t **dataIn) {
+    uint32_t val;
+
+    /* Skip NADM, RSSI & TS to reach Antenna byte */
+    (*dataIn) += gCsNadmSize_c + gCsRssiSize_c + gCsTsSize_c;
+    val = (uint32_t)(**dataIn);
+    (*dataIn) += gCsAntennaSize_c;
     return val;
 }
 #endif
@@ -743,6 +758,20 @@ static void app_tof_print_node_data(tof_data_t *data)
     else
     {
         cli_sprint_hex4b(pBuffer, (uint8_t *)data->ts, (uint8_t)data->nbSteps, convert_nadm_to_4bits);
+        (void)printf("'%s',", (char*)pBuffer);
+        (void)MEM_BufferFree(pBuffer);
+    }
+
+    /* Packet Antenna */
+    (void)printf("ant:");
+    pBuffer = MEM_BufferAlloc(2U * (uint32_t)data->nbSteps + 4U);
+    if (pBuffer == NULL)
+    {
+        (void)printf("'NA:oom'");
+    }
+    else
+    {
+        cli_sprint_hex8b(pBuffer, (uint8_t *)data->ts, (uint8_t)data->nbSteps, convert_antenna);
         (void)printf("'%s'", (char*)pBuffer);
         (void)MEM_BufferFree(pBuffer);
     }
@@ -784,44 +813,104 @@ static void app_tof_measurement_print(isp_meas_response_t *meas_response, engine
     (void)printf("},");
 }
 
-static void mode0_print_node_data(cs_data_t *cs_data, mode0_data_t *mode0Data)
+static void mode0_print_node_data(cs_data_t *cs_data, mode0_data_t *mode0Data, bool_t isInitiator)
 {
     uint8_t *pBuffer;
+    uint8_t i;
     int8_t mode0Rssi[gMaxNumCsStepsMode0_c];
-    for (uint32_t i = 0; i < cs_data->mode0_nb; i++)
+    uint8_t mode0Quality[gMaxNumCsStepsMode0_c];
+    uint8_t mode0Antenna[gMaxNumCsStepsMode0_c];
+    uint16_t mode0Cfo[gMaxNumCsStepsMode0_c];
+
+    for (i = 0U; i < cs_data->mode0_nb; i++)
     {
-        mode0Rssi[i] = mode0Data->rssi;
+        mode0Rssi[i]    = mode0Data[i].rssi;
+        mode0Quality[i] = mode0Data[i].quality;
+        mode0Antenna[i] = mode0Data[i].antenna;
+        mode0Cfo[i]     = mode0Data[i].measuredFreqOffset;
     }
+
     /* Mode0 RSSI */
     (void)printf("r:");
-    pBuffer = MEM_BufferAlloc(cs_data->mode0_nb * sizeof(mode0_data_t) + 4);
-    if (pBuffer == NULL) {
+    pBuffer = MEM_BufferAlloc(2U * (uint32_t)cs_data->mode0_nb + 4U);
+    if (pBuffer == NULL)
+    {
         (void)printf("'NA:oom'");
-    } else {
-        cli_sprint_hex8b(pBuffer, (uint8_t *)mode0Rssi, cs_data->mode0_nb, convert_mode0rssi);
-        (void)printf("'%s'", (char*)pBuffer);
-        MEM_BufferFree(pBuffer);
     }
-    (void)printf(",");
+    else
+    {
+        cli_sprint_hex8b(pBuffer, (uint8_t *)mode0Rssi, cs_data->mode0_nb, convert_mode0rssi);
+        (void)printf("'%s',", (char*)pBuffer);
+        (void)MEM_BufferFree(pBuffer);
+    }
+
+    /* Mode0 Packet Quality */
+    (void)printf("pq:");
+    pBuffer = MEM_BufferAlloc(2U * (uint32_t)cs_data->mode0_nb + 4U);
+    if (pBuffer == NULL)
+    {
+        (void)printf("'NA:oom'");
+    }
+    else
+    {
+        cli_sprint_hex8b(pBuffer, mode0Quality, cs_data->mode0_nb, NULL);
+        (void)printf("'%s',", (char*)pBuffer);
+        (void)MEM_BufferFree(pBuffer);
+    }
+
+    /* Mode0 Packet Antenna */
+    (void)printf("ant:");
+    pBuffer = MEM_BufferAlloc(2U * (uint32_t)cs_data->mode0_nb + 4U);
+    if (pBuffer == NULL)
+    {
+        (void)printf("'NA:oom'");
+    }
+    else
+    {
+        cli_sprint_hex8b(pBuffer, mode0Antenna, cs_data->mode0_nb, NULL);
+        (void)printf("'%s'", (char*)pBuffer);
+        (void)MEM_BufferFree(pBuffer);
+    }
+
+    /* Measured_Freq_Offset: initiator side only (BT Core Spec v6.3 Vol 4 Part E §7.7.65.44) */
+    if (isInitiator == TRUE)
+    {
+        (void)printf(",c:");
+        pBuffer = MEM_BufferAlloc(4U * (uint32_t)cs_data->mode0_nb + 4U);
+        if (pBuffer == NULL)
+        {
+            (void)printf("'NA:oom'");
+        }
+        else
+        {
+            /* 2 bytes per step (little-endian uint16_t) encoded as 4 hex chars */
+            cli_sprint_hex8b(pBuffer, (uint8_t *)mode0Cfo, (uint8_t)(cs_data->mode0_nb * 2U), NULL);
+            (void)printf("'%s'", (char*)pBuffer);
+            (void)MEM_BufferFree(pBuffer);
+        }
+    }
 }
 
 static void app_mode0_measurement_print(cs_data_t *cs_data)
 {
     mode0_data_t *data;
     uint32_t nb_steps = cs_data->mode0_nb;
+    bool_t isInitiator = (mGlobalRangeSettings.role == gCsRoleInitiator_c) ? TRUE : FALSE;
 
     (void)printf("md0:{cfg:{n_stp:%lu},", nb_steps);
 
     (void)printf("init:{");
-    data = mGlobalRangeSettings.role == gCsRoleInitiator_c ? cs_data->mode0Data : &(cs_data->mode0Data[gMaxNumCsStepsMode0_c]);
-    if(data != NULL) {
-        mode0_print_node_data(cs_data, data);
+    data = isInitiator ? cs_data->mode0Data : &(cs_data->mode0Data[gMaxNumCsStepsMode0_c]);
+    if (data != NULL)
+    {
+        mode0_print_node_data(cs_data, data, isInitiator);
     }
 
     (void)printf("},refl:{");
-    data = mGlobalRangeSettings.role == gCsRoleInitiator_c ? &(cs_data->mode0Data[gMaxNumCsStepsMode0_c]) : cs_data->mode0Data;
-    if(data != NULL) {
-        mode0_print_node_data(cs_data, data);
+    data = isInitiator ? &(cs_data->mode0Data[gMaxNumCsStepsMode0_c]) : cs_data->mode0Data;
+    if (data != NULL)
+    {
+        mode0_print_node_data(cs_data, data, FALSE);
     }
     (void)printf("}},");
 }
