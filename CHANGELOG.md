@@ -5,6 +5,43 @@ All notable changes to NXP Bluetooth LE Host will be documented in this file.
 **NXP Bluetooth LE Host Stack** is certified **Bluetooth 6.0**
 
 
+## [1.10.20] - mcux v2026-06-00
+
+### Added
+- Tire Pressure Monitoring System (TPMS) sample demo applications (KW4x)
+- Tire Pressure Monitoring System (TPMS) documentation added to DAUG
+- Localization accelerator LCE support for KW43/MCXW70
+- Added LE Power Control support in BLE Shell application
+- LE Read All Remote Features (LLEFS) support in HOST-GAP
+- LE Channel Assessment (CHAS) Config HCI command support in HOST-GAP
+- Sensor support enabled on KW43/MCXW70
+
+### Improved
+- CS procedure auto-loop shell command; improved RAS data drop mechanism
+- Allow 'setnumprocs' 0 for infinite CS procedure repeats
+- Synchronize code between loc_reader and ncp_loc_reader application files
+- Subevent interval added to RADE algoritm API
+- Updated connection handover setup info for FRDM-KW43 in CS application documentations
+- Documentation updates
+
+### Fixed
+- L2CAP data fragmentation fix causing inccorect fragmentation over the air
+- Fix for no valid subevents in localization
+- Allow sub_mode_type 255 in CS config params
+- Incorrect connection handle (0 instead of 0xFFFF) for non-connection enhanced notification events
+- Channel Sounding subevent abort (No CS_SYNC mode0) after rebond
+- Set 'preferredPeerAntenna' based on peer capabilities
+- Miscellaneous minor application bug fixes
+
+### Changed
+- Reduced cyclomatic complexity (CCM) in multiple localization functions
+- Decoupled buttons from LEDs in Bluetooth applications
+
+### Supported Platforms
+
+- KW45, KW47, MCXW71, MCXW72, MCXW23, KW43, MCXW70
+
+
 ## [1.10.19] - mcux v2026-06-00-pvw2
 
 ### Added
