@@ -847,19 +847,16 @@ static void BleApp_GenericCallback(gapGenericEvent_t* pGenericEvent)
 
         case gLePhyEvent_c:
         {
-            if (pGenericEvent->eventData.phyEvent.phyEventType == gPhyRead_c)
-            {
-                appLocalization_rangeCfg_t locConfig;
+            appLocalization_rangeCfg_t locConfig;
 
-                /* Read current CS config */
-                (void)AppLocalization_ReadConfig(pGenericEvent->eventData.phyEvent.deviceId, &locConfig);
+            /* Read current CS config */
+            (void)AppLocalization_ReadConfig(pGenericEvent->eventData.phyEvent.deviceId, &locConfig);
 
-                /* Set the CS PHY according to the connection PHY */
-                locConfig.phy = pGenericEvent->eventData.phyEvent.rxPhy;
+            /* Set the CS PHY according to the connection PHY */
+            locConfig.phy = pGenericEvent->eventData.phyEvent.rxPhy;
 
-                /* Update CS config with the PHY */
-                (void)AppLocalization_WriteConfig(pGenericEvent->eventData.phyEvent.deviceId, &locConfig);
-            }
+            /* Update CS config with the PHY */
+            (void)AppLocalization_WriteConfig(pGenericEvent->eventData.phyEvent.deviceId, &locConfig);
         }
         break;
 

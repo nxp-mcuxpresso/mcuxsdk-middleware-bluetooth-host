@@ -2691,28 +2691,25 @@ static void HandlePhyEvent(appEventData_t *pEventData)
 {
     gapPhyEvent_t *pPhyEvent = (gapPhyEvent_t *)pEventData->eventData.pData;
 
-    if (pPhyEvent->phyEventType == gPhyRead_c )
+    appLocalization_rangeCfg_t locConfig;
+
+    /* Read current CS config */
+    (void)AppLocalization_ReadConfig(pPhyEvent->deviceId, &locConfig);
+
+    /* Set the PHY according to the connection PHY */
+    if (pPhyEvent->rxPhy == (uint8_t)gLePhyCoded_c)
     {
-        appLocalization_rangeCfg_t locConfig;
-
-        /* Read current CS config */
-        (void)AppLocalization_ReadConfig(pPhyEvent->deviceId, &locConfig);
-
-        /* Set the PHY according to the connection PHY */
-        if (pPhyEvent->rxPhy == (uint8_t)gLePhyCoded_c)
-        {
-            /* This event does not differentiate between coding schemes,
-               but Channel Sounding does - application uses S2 */
-            locConfig.phy = (uint8_t)gPowerControlLePhyCodedS2_c;
-        }
-        else
-        {
-            locConfig.phy = pPhyEvent->rxPhy;
-        }
-
-        /* Update CS config with the PHY */
-        (void)AppLocalization_WriteConfig(pPhyEvent->deviceId, &locConfig);
+        /* This event does not differentiate between coding schemes,
+            but Channel Sounding does - application uses S2 */
+        locConfig.phy = (uint8_t)gPowerControlLePhyCodedS2_c;
     }
+    else
+    {
+        locConfig.phy = pPhyEvent->rxPhy;
+    }
+
+    /* Update CS config with the PHY */
+    (void)AppLocalization_WriteConfig(pPhyEvent->deviceId, &locConfig);
 
 #if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
     if (pPhyEvent->phyEventType == gPhyUpdateComplete_c )
