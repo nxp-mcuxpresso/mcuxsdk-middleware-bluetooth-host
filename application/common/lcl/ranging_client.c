@@ -467,7 +467,7 @@ bleResult_t RasClient_StorePeerMeasurementData
                mPeerResultData[deviceId].procedureCounter,
                AppLocalization_GetGlobalProcedureCount(deviceId));
 
-    if ((mPeerResultData[deviceId].procedureCounter < AppLocalization_GetGlobalProcedureCount(deviceId)) ||
+    if ((mPeerResultData[deviceId].procedureCounter < (AppLocalization_GetGlobalProcedureCount(deviceId) & 0x0FFFU)) ||
         (AppLocalization_GetLocState(deviceId) < gAppLclReceivingMeasData_c))
     {
         bEarlyReturn = TRUE;
@@ -1953,6 +1953,7 @@ static bool_t RasClient_CheckRealTimeProcedureCounter
         result = TRUE;
         counterCfgId = Utils_BeExtractTwoByteValue(pData);
         *pOutProcCounter = ((counterCfgId & 0xFF00U) >> 8U);
+        *pOutProcCounter |= ((counterCfgId & 0x0FU) << 8U);
     }
     return result;
 }
