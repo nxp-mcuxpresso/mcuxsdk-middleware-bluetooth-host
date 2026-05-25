@@ -1197,8 +1197,12 @@ static bool_t ParseMode0
         }
     } while(FALSE);
 
-    pRemoteData->step++;
-    
+    /* if parsing is complete, count the step */
+    if (bIncomplete == FALSE)
+    {
+        pRemoteData->step++;
+    }
+
     return bIncomplete;
 }
 
