@@ -41,6 +41,10 @@
 /* Maximum number of segments */
 #define gBTCSMaxNoOfSegments_c  15U
 
+/* Step mode array: bits per nibble */
+#define gStepModeMask_c         0x03U  /* Bits 0-1 or 4-5: Mode */
+#define gStepStatusBit_c        0x08U  /* Bit 3 or 7: Status (1=aborted) */
+
 /************************************************************************************
 *************************************************************************************
 * Private type definitions
@@ -89,7 +93,25 @@ static void parseSubEvtHeader
 (
     deviceId_t deviceId,
     uint8_t*   pMsgData,
-    uint8_t*   pOutParsedLen
+    uint8_t*   pOutParsedLen,
+    uint8_t*   pOutNumStepsInFragment
+);
+
+/* Helper function to parse the step mode array and populate mode map.
+ * Returns the number of non-aborted steps (steps with data). */
+static uint8_t parseStepModeArray
+(
+    uint8_t*              pData,
+    uint8_t               numStepsInFragment,
+    rasMeasurementData_t* pRemoteData,
+    uint8_t*              pOutParsedLen
+);
+
+/* Helper function to check if the procedure transfer is complete and
+ * finalize subevent metadata + trigger the algorithm if so. */
+static bleResult_t checkTransferComplete
+(
+    deviceId_t deviceId
 );
 
 /************************************************************************************
@@ -236,13 +258,16 @@ uint16_t BtcsClient_GetPeerRangingDataSize
 ************************************************************************************/
 /*! *********************************************************************************
 *\fn         static void parseSubEvtHeader(deviceId_t deviceId,
-*                                             uint16_t packetLen, uint8_t*   pMsgData)
+*                                          uint8_t* pMsgData,
+*                                          uint8_t* pOutParsedLen,
+*                                          uint8_t* pOutNumStepsInFragment)
 *
 *\brief      Helper function to parse a CSSubEventHeader message fragment
 *
-*\param[in]  deviceId         Peer identifier
-*\param[in]  pMsgData         Pointer to message data
-*\param[out] pOutParsedLen    Size of the parsed data
+*\param[in]  deviceId                Peer identifier
+*\param[in]  pMsgData                Pointer to message data
+*\param[out] pOutParsedLen           Size of the parsed header data
+*\param[out] pOutNumStepsInFragment  Number of steps reported in this fragment
 *
 *\retval     none
 ********************************************************************************** */
@@ -250,7 +275,8 @@ static void parseSubEvtHeader
 (
     deviceId_t deviceId,
     uint8_t*   pMsgData,
-    uint8_t*   pOutParsedLen
+    uint8_t*   pOutParsedLen,
+    uint8_t*   pOutNumStepsInFragment
 )
 {
     uint8_t *pData = pMsgData;
@@ -271,6 +297,7 @@ static void parseSubEvtHeader
         pData = &pData[sizeof(gCsSubEvtHeaderReflData_t)];
         dataLen.u32 = sizeof(gCsSubEvtHeaderReflData_t);
         *pOutParsedLen = dataLen.u8;
+        *pOutNumStepsInFragment = subEvtHeader.numStepsReported;
 
         mPeerResultData[deviceId].aSubEventData[subEvtIdx].subevtHeader.numStepsReported = subEvtHeader.totalSubEvtSteps;
         mPeerResultData[deviceId].aSubEventData[subEvtIdx].subevtHeader.startACLConnEvent = subEvtHeader.startACLConnEvt;
@@ -287,6 +314,7 @@ static void parseSubEvtHeader
         pData = &pData[sizeof(gCsSubEvtHeaderInitData_t)];
         dataLen.u32 = sizeof(gCsSubEvtHeaderInitData_t);
         *pOutParsedLen = dataLen.u8;
+        *pOutNumStepsInFragment = subEvtHeader.numStepsReported;
 
         mPeerResultData[deviceId].aSubEventData[subEvtIdx].subevtHeader.numStepsReported = subEvtHeader.totalSubEvtSteps;
         mPeerResultData[deviceId].aSubEventData[subEvtIdx].subevtHeader.startACLConnEvent = subEvtHeader.startACLConnEvt;
@@ -299,10 +327,158 @@ static void parseSubEvtHeader
 }
 
 /*! *********************************************************************************
+*\fn         static uint8_t parseStepModeArray(uint8_t* pData,
+*                                              uint8_t numStepsInFragment,
+*                                              rasMeasurementData_t* pRemoteData,
+*                                              uint8_t* pOutParsedLen)
+*
+*\brief      Parse the packed step mode array from the payload. Each byte contains
+*            two step entries packed as follows:
+*              Bits 0-1: Mode for step N (0b00=Mode-0,...,0b11=Mode-3)
+*              Bit 2:    RFU
+*              Bit 3:    Status for step N (0=OK, 1=Aborted/excluded from data)
+*              Bits 4-5: Mode for step N+1
+*              Bit 6:    RFU
+*              Bit 7:    Status for step N+1 (0=OK, 1=Aborted/excluded from data)
+*            If the number of steps is odd, bits 4-7 of the last byte are set to 0xF.
+*            The mode map in pRemoteData is populated for each non-aborted step.
+*
+*\param[in]  pData                Pointer to the step mode array bytes
+*\param[in]  numStepsInFragment   Total number of steps in this fragment
+*\param[in]  pRemoteData          Pointer to remote measurement data
+*\param[out] pOutParsedLen        Number of bytes consumed by the step mode array
+*
+*\retval     Number of non-aborted steps (steps that have data following)
+********************************************************************************** */
+static uint8_t parseStepModeArray
+(
+    uint8_t*              pData,
+    uint8_t               numStepsInFragment,
+    rasMeasurementData_t* pRemoteData,
+    uint8_t*              pOutParsedLen
+)
+{
+    csAppData_t *pDstAppBuffer = (csAppData_t*)(void*)pRemoteData->pData;
+    uint8_t nonAbortedSteps = 0U;
+    uint8_t stepsParsed = 0U;
+    /* Number of bytes in the step mode array: ceil(numStepsInFragment / 2) */
+    uint8_t arrayLen = (numStepsInFragment + 1U) / 2U;
+
+    for (uint8_t byteIdx = 0U; byteIdx < arrayLen; byteIdx++)
+    {
+        uint8_t modeByte = pData[byteIdx];
+
+        /* Lower nibble: first step in this byte */
+        if (stepsParsed < numStepsInFragment)
+        {
+            uint8_t mode = modeByte & gStepModeMask_c;
+            uint8_t aborted = (modeByte & gStepStatusBit_c) != 0U ? 1U : 0U;
+
+            if (aborted == 0U)
+            {
+                /* Store mode in the mode map at the current step position */
+                pDstAppBuffer->csData.modeMap[pRemoteData->step + nonAbortedSteps] = mode;
+                nonAbortedSteps++;
+            }
+            stepsParsed++;
+        }
+
+        /* Upper nibble: second step in this byte */
+        if (stepsParsed < numStepsInFragment)
+        {
+            uint8_t mode = (modeByte >> 4U) & gStepModeMask_c;
+            uint8_t aborted = ((modeByte >> 4U) & gStepStatusBit_c) != 0U ? 1U : 0U;
+
+            if (aborted == 0U)
+            {
+                /* Store mode in the mode map at the current step position */
+                pDstAppBuffer->csData.modeMap[pRemoteData->step + nonAbortedSteps] = mode;
+                nonAbortedSteps++;
+            }
+            stepsParsed++;
+        }
+    }
+
+    *pOutParsedLen = arrayLen;
+    return nonAbortedSteps;
+}
+
+/*! *********************************************************************************
+*\fn         static bleResult_t checkTransferComplete(deviceId_t deviceId)
+*
+*\brief      Check if all steps for the last subevent have been received and the
+*            procedure is complete. If so, populate the csData structure with
+*            subevent metadata (step counts, ACL events, power levels) and trigger
+*            the localization algorithm.
+*
+*\param[in]  deviceId         Peer identifier
+*
+*\retval     gBleSuccess_c if transfer is not complete or algo ran successfully
+*\retval     gBleUnavailable_c if transfer is complete but algo run is deferred
+********************************************************************************** */
+static bleResult_t checkTransferComplete
+(
+    deviceId_t deviceId
+)
+{
+    bleResult_t result = gBleSuccess_c;
+    rasMeasurementData_t *pRemoteData = &mPeerResultData[deviceId];
+    csAppData_t *pDstAppBuffer = (csAppData_t*)(void*)pRemoteData->pData;
+
+    /* Check if we reached the end of the transfer:
+     * - All steps for the current subevent have been received
+     * - The procedure done status indicates complete results */
+    if ((mSubEvtInfo[deviceId].parsedStepsCrtSubEvt >=
+         pRemoteData->aSubEventData[pRemoteData->subeventIndex].subevtHeader.numStepsReported) &&
+        (pRemoteData->aSubEventData[pRemoteData->subeventIndex].subevtHeader.procedureDoneStatus == (uint8_t)gCsCompleteResults_c))
+    {
+        uint16_t totalStepCounter = 0U;
+
+        /* Total number of steps */
+        pDstAppBuffer->csData.step_nb = (uint16_t)pRemoteData->step;
+
+        /* Start ACL count */
+        pDstAppBuffer->csData.startAclCnt =
+                pRemoteData->aSubEventData[pDstAppBuffer->csData.subevt_nb].subevtHeader.startACLConnEvent;
+
+        /* For every subevent */
+        for (uint8_t index = 0U; index <= pRemoteData->subeventIndex; index++)
+        {
+            /* The stop index is the total number of previous steps */
+            pDstAppBuffer->csData.subevtStopIdxRemote[index] =
+                (uint8_t)totalStepCounter + pRemoteData->aSubEventData[index].subevtHeader.numStepsReported;
+
+            /* Delta regarding ACL counter of first subevent */
+            pDstAppBuffer->csData.subevtConnEvent[index] =
+                (uint8_t)(pRemoteData->aSubEventData[index].subevtHeader.startACLConnEvent - pDstAppBuffer->csData.startAclCnt);
+
+            /* Save the reference power level in subevtRefPowerLevelInit - will be switched to the proper role by the caller */
+            pDstAppBuffer->csData.subevtRefPowerLevelInit[index] = pRemoteData->aSubEventData[index].subevtHeader.referencePowerLevel;
+
+            /* Count handled steps */
+            totalStepCounter += pRemoteData->aSubEventData[index].subevtHeader.numStepsReported;
+        }
+
+        /* Total number of subevents */
+        pDstAppBuffer->csData.subevt_nb = pRemoteData->subeventIndex + 1U;
+
+#if defined(gAppDeferAlgoRun_d) && (gAppDeferAlgoRun_d == TRUE)
+        result = gBleUnavailable_c;
+#else
+        /* Call algo (pDstAppBuffer is NULL after this call) */
+        AppLocalization_RunAlgorithm(deviceId);
+#endif
+    }
+
+    return result;
+}
+
+/*! *********************************************************************************
 *\fn         static void handleRangingProcResStart(deviceId_t deviceId,
 *                                             uint16_t packetLen, uint8_t*   pMsgData)
 *
-*\brief      Handler function for the BTCS Ranging Procedure Results Start message
+*\brief      Handler function for the BTCS Ranging Procedure Results Start message.
+*            Format: [ProcHeader][SubEvtHeader][StepModeArray][StepData...]
 *
 *\param[in]  deviceId         Peer identifier
 *\param[in]  packetLen        Size of the message
@@ -321,6 +497,7 @@ static bleResult_t handleRangingProcResStart
     gCsProcHeaderData_t procHeader;
     uint8_t* pData = pMsgData;
     uint8_t outParsedLen = 0U;
+    uint8_t numStepsInFragment = 0U;
     uint16_t parsedDataLen = 0U;
     uint32_t remainingData = 0U;
     rasMeasurementData_t *pRemoteData = &mPeerResultData[deviceId];
@@ -338,7 +515,7 @@ static bleResult_t handleRangingProcResStart
         gCsTimeInfo.transferStart = TM_GetTimestamp();
     }
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1U) */
-    
+
     /* If no local data is available do not move forward with processing. */
     if (AppLocalization_GetNumAntennaPaths(deviceId) == 0U)
     {
@@ -375,18 +552,25 @@ static bleResult_t handleRangingProcResStart
         do
         {
             uint8_t crtSteps = pRemoteData->crtNumSteps;
+            uint8_t modeArrayLen = 0U;
+            uint8_t nonAbortedSteps = 0U;
 
             /* Parse subevent header */
-            parseSubEvtHeader(deviceId, pData, &outParsedLen);
+            parseSubEvtHeader(deviceId, pData, &outParsedLen, &numStepsInFragment);
             pData = &pData[outParsedLen];
             parsedDataLen += outParsedLen;
 
-            /* Parse data */
+            /* Parse the step mode array */
+            nonAbortedSteps = parseStepModeArray(pData, numStepsInFragment, pRemoteData, &modeArrayLen);
+            pData = &pData[modeArrayLen];
+            parsedDataLen += modeArrayLen;
+
+            /* Parse step data (only non-aborted steps have data) */
             pRemoteData->totalSentRcvDataIndex += (packetLen - parsedDataLen);
             remainingData = AppLocalizationAlgo_UncompressRemoteResponseL2CAP(
                 pData, (uint32_t)packetLen - (uint32_t)parsedDataLen,
                 &mPeerResultData[deviceId],
-                pRemoteData->aSubEventData[pRemoteData->subeventIndex].subevtHeader.numStepsReported);
+                nonAbortedSteps);
 
             /* Count the received number of steps */
             mSubEvtInfo[deviceId].parsedStepsCrtSubEvt += pRemoteData->crtNumSteps - crtSteps;
@@ -408,6 +592,9 @@ static bleResult_t handleRangingProcResStart
             }
 
         } while (remainingData != 0U);
+
+        /* Check if the procedure transfer is complete */
+        result = checkTransferComplete(deviceId);
     }
 
     return result;
@@ -417,7 +604,8 @@ static bleResult_t handleRangingProcResStart
 *\fn         static void handleRangingProcResCont(deviceId_t deviceId,
 *                                             uint16_t packetLen, uint8_t*   pMsgData)
 *
-*\brief      Handler function for the BTCS Ranging Procedure Results Continue message
+*\brief      Handler function for the BTCS Ranging Procedure Results Continue message.
+*            Format: [ProcContHeader][SubEvtHeader/SubEvtContHeader][StepModeArray][StepData...]
 *
 *\param[in]  deviceId         Peer identifier
 *\param[in]  packetLen        Size of the message
@@ -452,7 +640,7 @@ static bleResult_t handleRangingProcResCont
 
     if (result == gBleSuccess_c)
     {
-        /* Parse procedure header */
+        /* Parse procedure continue header */
         gCsProcContHeaderData_t procHeader;
         FLib_MemCpy(&procHeader, pData, sizeof(gCsProcContHeaderData_t));
         pData = &pData[sizeof(gCsProcContHeaderData_t)];
@@ -469,24 +657,23 @@ static bleResult_t handleRangingProcResCont
             uint32_t remainingData = 0U;
             do
             {
-                uint8_t stepIdx = mSubEvtInfo[deviceId].crtSubEvtIdx;
                 uint8_t crtSteps = pRemoteData->crtNumSteps;
-                uint8_t remainingSteps = 0;
+                uint8_t numStepsInFragment = 0U;
+                uint8_t modeArrayLen = 0U;
+                uint8_t nonAbortedSteps = 0U;
 
                 /* Check if we have data from a new subevent or the same */
                 if (mSubEvtInfo[deviceId].parsedStepsCrtSubEvt >=
-                    pRemoteData->aSubEventData[stepIdx].subevtHeader.numStepsReported)
+                    pRemoteData->aSubEventData[mSubEvtInfo[deviceId].crtSubEvtIdx].subevtHeader.numStepsReported)
                 {
                     /* We're starting a new subevent */
                     uint8_t outParsedLen = 0U;
                     mSubEvtInfo[deviceId].crtSubEvtIdx++;
-                    stepIdx = mSubEvtInfo[deviceId].crtSubEvtIdx;
                     pRemoteData->subeventIndex++;
                     mSubEvtInfo[deviceId].parsedStepsCrtSubEvt = 0U;
-                    parseSubEvtHeader(deviceId, pData, &outParsedLen);
+                    parseSubEvtHeader(deviceId, pData, &outParsedLen, &numStepsInFragment);
                     pData = &pData[outParsedLen];
                     parsedDataLen += outParsedLen;
-                    remainingSteps = pRemoteData->aSubEventData[stepIdx].subevtHeader.numStepsReported;
                 }
                 else
                 {
@@ -496,66 +683,32 @@ static bleResult_t handleRangingProcResCont
                     pData = &pData[sizeof(gCsSubEvtContHeaderData_t)];
                     dataLen.u32 = sizeof(gCsSubEvtContHeaderData_t);
                     parsedDataLen += dataLen.u16;
-                    remainingSteps = subEvtContHeader.numStepsReported;
+                    numStepsInFragment = subEvtContHeader.numStepsReported;
                 }
 
+                /* Parse the step mode array */
+                nonAbortedSteps = parseStepModeArray(pData, numStepsInFragment, pRemoteData, &modeArrayLen);
+                pData = &pData[modeArrayLen];
+                parsedDataLen += modeArrayLen;
+
+                /* Parse step data (only non-aborted steps have data) */
                 remainingData = AppLocalizationAlgo_UncompressRemoteResponseL2CAP(
                     pData, (uint32_t)packetLen - (uint32_t)parsedDataLen,
-                    &mPeerResultData[deviceId], remainingSteps);
-                
+                    &mPeerResultData[deviceId], nonAbortedSteps);
+
                 /* Advance data pointer */
                 if (remainingData != 0U)
                 {
                     pData = &pData[(packetLen - parsedDataLen) - (uint16_t)remainingData];
                     parsedDataLen += (packetLen - parsedDataLen) - (uint16_t)remainingData;
                 }
-                
+
                 /* Count the received number of steps */
                 mSubEvtInfo[deviceId].parsedStepsCrtSubEvt += pRemoteData->crtNumSteps - crtSteps;
             } while (remainingData != 0U);
 
-            /* Check if we reached the end of the transfer */
-            if ((mSubEvtInfo[deviceId].parsedStepsCrtSubEvt >=
-                 pRemoteData->aSubEventData[pRemoteData->subeventIndex].subevtHeader.numStepsReported) &&
-                (pRemoteData->aSubEventData[pRemoteData->subeventIndex].subevtHeader.procedureDoneStatus == (uint8_t)gCsCompleteResults_c))
-            {
-                uint16_t totalStepCounter = 0U;
-    
-                /* Total number of steps */
-                pDstAppBuffer->csData.step_nb = (uint16_t)pRemoteData->step;
-
-                /* Start ACL count */
-                pDstAppBuffer->csData.startAclCnt =
-                        pRemoteData->aSubEventData[pDstAppBuffer->csData.subevt_nb].subevtHeader.startACLConnEvent;
-
-                /* For every subevent */
-                for (uint8_t index = 0U; index <= pRemoteData->subeventIndex; index++)
-                {
-                    /* The stop index is the total number of previous steps */
-                    pDstAppBuffer->csData.subevtStopIdxRemote[index] =
-                        (uint8_t)totalStepCounter + pRemoteData->aSubEventData[index].subevtHeader.numStepsReported;
-
-                    /* Delta regarding ACL counter of first subevent */
-                    pDstAppBuffer->csData.subevtConnEvent[index] =
-                        (uint8_t)(pRemoteData->aSubEventData[index].subevtHeader.startACLConnEvent - pDstAppBuffer->csData.startAclCnt);
-
-                    /* Save the reference power level in subevtRefPowerLevelInit - will be switched to the proper role by the caller */
-                    pDstAppBuffer->csData.subevtRefPowerLevelInit[index] = pRemoteData->aSubEventData[index].subevtHeader.referencePowerLevel;
-
-                    /* Count handled steps */
-                    totalStepCounter += pRemoteData->aSubEventData[index].subevtHeader.numStepsReported;
-                }
-
-                /* Total number of subevents */
-                pDstAppBuffer->csData.subevt_nb = pRemoteData->subeventIndex + 1U;
-
-#if defined(gAppDeferAlgoRun_d) && (gAppDeferAlgoRun_d == TRUE)
-                result = gBleUnavailable_c;
-#else
-                /* Call algo (pDstAppBuffer is NULL after this call) */
-                AppLocalization_RunAlgorithm(deviceId);
-#endif
-            }
+            /* Check if the procedure transfer is complete */
+            result = checkTransferComplete(deviceId);
         }
     }
 

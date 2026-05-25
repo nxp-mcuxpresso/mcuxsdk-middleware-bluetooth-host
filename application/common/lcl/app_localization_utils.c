@@ -705,14 +705,11 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
         pLastOk = pEventData;
         pRemoteData->remainingLen = dataLength;
 
-        CheckSkipBytes(pEventData, dataLength, sizeof(uint8_t), bIncomplete, 
-            mode = *pEventData;
-        );
+        /* Read mode from the pre-populated modeMap array (filled by parseStepModeArray) */
+        mode = pDstAppBuffer->csData.modeMap[pRemoteData->step];
 
-        /* Make sure the mode is valid and that local and remote mode match */
+        /* Make sure the mode is valid */
         assert(mode <= (uint8_t)gCsStepMode3_c);
-
-        pDstAppBuffer->csData.modeMap[pRemoteData->step] = mode;
 
         switch(mode)
         {
