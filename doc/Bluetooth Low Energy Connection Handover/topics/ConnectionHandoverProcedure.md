@@ -1,6 +1,9 @@
 # Connection Handover
 
-The Connection Handover procedure may be performed after a successful Anchor Search procedure and consists in the Target device taking over the connection from the Source device.
+The Connection Handover procedure consists in the Target device taking over the connection from the Source device. It may be performed in two cases:
+
+- After a successful Anchor Search procedure, as part of the standard handover flow.
+- Directly without Time Synchronization or Anchor Search, when Anchor or Packet Monitoring is already active on the Target device.
 
 **Connection Handover steps**
 1. Target device calls `Gap_HandoverConnect()` to initiate the connection handover process.
@@ -11,7 +14,7 @@ The Connection Handover procedure may be performed after a successful Anchor Sea
 6. Application context may be transferred at this point through application specific means. If Channel Sounding is enabled in the application, the Channel Sounding Context must be transferred.
 
 Additional steps for Channel Sounding applications:
-1. After step 3 above, retrieve the Channel Sounding context on the Source device by calling `Gap_HandoverGetCsLlContext()` and wait for the`gHandoverGetCsLlContextComplete` event.
+1. After step 3 above, retrieve the Channel Sounding context on the Source device by calling `Gap_HandoverGetCsLlContext()` and wait for the `gHandoverGetCsLlContextComplete` event.
 2. Send the Channel Sounding context to the Target device.
 3. Set the context in the Target device by calling `Gap_HandoverSetCsLlContext()` and wait for the `gHandoverSetCsLlContextComplete_c` event.
 4. Notify the Source device that the Channel Sounding context has been successfully set.

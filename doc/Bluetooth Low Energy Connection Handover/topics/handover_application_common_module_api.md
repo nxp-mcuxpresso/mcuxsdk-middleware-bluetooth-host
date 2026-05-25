@@ -68,6 +68,21 @@ void AppHandover_TimeSyncReceiveSetParams(gapHandoverTimeSyncReceiveParams_t *pP
 
 **Returns**: None
 
+### AppHandover_StartConnectionHandover
+```
+bleResult_t AppHandover_StartConnectionHandover(deviceId_t deviceId);
+```
+**Description**: Triggers connection handover without requiring time synchronization or anchor search. Anchor monitoring must already be in progress for the specified connection on the Target device.
+
+**Parameters**:
+- `deviceId`: Peer device identifier of the connection to be handed over.
+
+**Returns**: `bleResult_t`
+- `gBleSuccess_c`: Handover initiated successfully.
+- `gBleInvalidParameter_c`: Invalid device identifier.
+- `gBleInvalidState_c`: Handover already in progress.
+- `gBleUnavailable_c`: Anchor monitoring not active for the specified connection.
+
 ### AppHandover_SetPeerDevice
 ```
 void AppHandover_SetPeerDevice(deviceId_t deviceId);

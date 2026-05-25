@@ -99,6 +99,7 @@ typedef enum appEvent_tag{
 #if defined(gHandoverDemo_d) && (gHandoverDemo_d == 1)
     mAppEvt_Shell_HandoverTimeSync_Command_c,
     mAppEvt_Shell_Handover_Command_c,
+    mAppEvt_Shell_FastHandover_Command_c,
     mAppEvt_Shell_HandoverSendL2cap_Command_c,
     mAppEvt_Shell_HandoverStartAnchorMonitor_Command_c,
     mAppEvt_Shell_HandoverStopAnchorMonitor_Command_c,

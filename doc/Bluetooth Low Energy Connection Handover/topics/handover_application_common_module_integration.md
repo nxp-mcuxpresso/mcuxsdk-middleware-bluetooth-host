@@ -30,4 +30,6 @@ Perform the following steps to integrate Connection Handover in an application:
 5. Call `AppHandover_ConnectionCallback` in the application connection events callback to handle the following events:
     - `gConnEvtHandoverConnected_c`
     - `gHandoverDisconnected_c`
-6. To trigger connection handover call `AppHandover_SetPeerDevice()` followed by `AppHandover_StartTimeSync()`
+6. To trigger connection handover:
+   - **Standard flow** (Time Synchronization required): call `AppHandover_SetPeerDevice()` followed by `AppHandover_StartTimeSync(TRUE)`.
+   - **Fast flow** (Anchor/Packet Monitoring already active on Target): call `AppHandover_StartConnectionHandover(deviceId)`. This skips Time Synchronization and Anchor Search entirely.

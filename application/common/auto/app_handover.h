@@ -140,6 +140,7 @@ typedef enum appHandoverError_tag {
     mAppHandover_AnchorSearchFailedToSync_c,
     mAppHandover_OutOfMemory_c,
     mAppHandover_ConnParamsUpdateFail_c,
+    mAppHandover_MonitorNotActive_c,
 } appHandoverError_t;
 
 typedef void (*appHandoverEventCb_t)(appHandoverEvent_t eventType, void *pData);
@@ -210,11 +211,29 @@ bleResult_t AppHandover_TimeSyncReceive
 *\fn           void AppHandover_StartTimeSync(bool_t bTimeSyncForHandover)
 *\brief        Trigger handover time synchronization.
 *
-*\param  [in]  bTimeSyncForHandover TRUE if handover is following, FALSE is RSSI sniffing is following.
+*\param  [in]  bTimeSyncForHandover TRUE if handover is following, FALSE if RSSI sniffing is following.
 *
 *\return       None
 ********************************************************************************************************************* */
 void AppHandover_StartTimeSync(bool_t bTimeSyncForHandover);
+
+/*! ********************************************************************************************************************
+*\fn           bleResult_t AppHandover_StartConnectionHandover(deviceId_t deviceId)
+*\brief        Trigger connection handover without requiring time synchronization.
+*              Anchor monitoring must already be in progress for the specified connection.
+*
+*\param  [in]  deviceId     Peer device identifier of the connection to be handed over.
+*
+*\return       bleResult_t  Status of the operation.
+*                           gBleSuccess_c - Handover initiated successfully.
+*                           gBleInvalidState_c - Handover already in progress or module not idle.
+*                           gBleInvalidParameter_c - Invalid parameters.
+*                           gBleUnavailable_c - Anchor monitoring not active for specified connection.
+********************************************************************************************************************* */
+bleResult_t AppHandover_StartConnectionHandover
+(
+    deviceId_t deviceId
+);
 
 /*! ********************************************************************************************************************
 *\fn           void AppHandover_TimeSyncTransmitSetParams(gapHandoverTimeSyncTransmitParams_t *pParams)

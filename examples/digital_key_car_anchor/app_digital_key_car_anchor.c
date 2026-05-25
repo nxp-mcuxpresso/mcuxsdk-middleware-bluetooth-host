@@ -969,6 +969,30 @@ void App_HandleShellCmds(void *pData)
             }
         }
         break;
+
+        case mAppEvt_Shell_FastHandover_Command_c:
+        {
+            bleResult_t result = gBleSuccess_c;
+            deviceId_t handoverDeviceId = pEventData->eventData.peerDeviceId;
+            shell_write("\r\nFast handover started.\r\n");
+
+            if (maPeerInformation[handoverDeviceId].deviceId == gInvalidDeviceId_c)
+            {
+                shell_write("\r\n Handover device id error.\r\n");
+                result = gBleInvalidState_c;
+            }
+            else
+            {
+                result = AppHandover_StartConnectionHandover(maPeerInformation[handoverDeviceId].deviceId);
+            }
+
+            if (result != gBleSuccess_c)
+            {
+                shell_write("\r\nFast handover error.\r\n");
+                shell_cmd_finished();
+            }
+        }
+        break;
 #endif
 
         default:

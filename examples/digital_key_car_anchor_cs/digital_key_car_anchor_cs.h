@@ -115,6 +115,7 @@ typedef enum appEvent_tag{
     mAppEvt_FactoryReset_c,
     mAppEvt_Shell_HandoverTimeSync_Command_c,
     mAppEvt_Shell_Handover_Command_c,
+    mAppEvt_Shell_FastHandover_Command_c,
     mAppEvt_Shell_HandoverSendL2cap_Command_c,
     mAppEvt_Shell_HandoverStartAnchorMonitor_Command_c,
     mAppEvt_Shell_HandoverStopAnchorMonitor_Command_c,

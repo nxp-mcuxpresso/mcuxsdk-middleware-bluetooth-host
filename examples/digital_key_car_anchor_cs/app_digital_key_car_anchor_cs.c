@@ -724,6 +724,35 @@ static void App_HandleHandoverCommand(appEventData_t *pEventData)
         shell_cmd_finished();
     }
 }
+
+/*! *********************************************************************************
+* \brief        Handles mAppEvt_Shell_FastHandover_Command_c event.
+*
+* \param[in]    pEventData    pointer to appEventData_t.
+********************************************************************************** */
+static void App_HandleFastHandoverCommand(appEventData_t *pEventData)
+{
+    bleResult_t result = gBleSuccess_c;
+    deviceId_t handoverDeviceId = pEventData->eventData.peerDeviceId;
+    shell_write("\r\nFast handover started.\r\n");
+
+    if (maPeerInformation[handoverDeviceId].deviceId == gInvalidDeviceId_c)
+    {
+        shell_write("\r\n Handover device id error.\r\n");
+        result = gBleInvalidState_c;
+    }
+    else
+    {
+        gHandoverDeviceId = handoverDeviceId;
+        result = AppHandover_StartConnectionHandover(handoverDeviceId);
+    }
+
+    if (result != gBleSuccess_c)
+    {
+        shell_write("\r\nFast handover error.\r\n");
+        shell_cmd_finished();
+    }
+}
 #endif /* gHandoverIncluded_d */
 /*! *********************************************************************************
 * \brief        Handles Shell Commands events.
@@ -818,6 +847,12 @@ void App_HandleShellCmds(void *pData)
         case mAppEvt_Shell_Handover_Command_c:
         {
             App_HandleHandoverCommand(pEventData);
+        }
+        break;
+
+        case mAppEvt_Shell_FastHandover_Command_c:
+        {
+            App_HandleFastHandoverCommand(pEventData);
         }
         break;
 #endif /* gHandoverIncluded_d */

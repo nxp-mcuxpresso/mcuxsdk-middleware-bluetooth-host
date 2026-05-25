@@ -72,6 +72,7 @@ static shell_status_t ShellHandoverSendL2cap_Command(shell_handle_t shellHandle,
 static shell_status_t ShellHandoverAnchorMonitor_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellHandoverPacketMonitor_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellHandoverDevId_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
+static shell_status_t ShellFastHandover_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellSetCsConfigParams_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellSetCsProcedureParams_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellTriggerDistanceMeasurement_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
@@ -231,6 +232,14 @@ static shell_command_t mHandoverDevIdCmd =
     .cExpectedNumberOfParameters = SHELL_IGNORE_PARAMETER_COUNT,
     .pFuncCallBack = ShellHandoverDevId_Command,
     .pcHelpString = "\r\n\"handover\": Start handover for specific device id.\r\n",
+};
+
+static shell_command_t mFastHandoverCmd =
+{
+    .pcCommand = "fastho",
+    .cExpectedNumberOfParameters = SHELL_IGNORE_PARAMETER_COUNT,
+    .pFuncCallBack = ShellFastHandover_Command,
+    .pcHelpString = "\r\n\"fastho\": Start fast handover (monitoring active) for specific device id.\r\n",
 };
 
 static shell_command_t mSetVerbosityCmd =
@@ -394,6 +403,8 @@ static void AppShellInit_CsHandoverCommands(void)
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mHandoverPacketMonitorCmd);
     assert(kStatus_SHELL_Success == status);
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mHandoverDevIdCmd);
+    assert(kStatus_SHELL_Success == status);
+    status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mFastHandoverCmd);
     assert(kStatus_SHELL_Success == status);
     status = SHELL_RegisterCommand((shell_handle_t)g_shellHandle, &mSelectalgoCmd);
     assert(kStatus_SHELL_Success == status);
@@ -1472,12 +1483,12 @@ static shell_status_t ShellHandoverDevId_Command(shell_handle_t shellHandle, int
     {
         if(mpfShellEventHandler != NULL)
         {
-            appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
-            if(pEventData != NULL)
+            if ( sizeof(uint8_t) == BleApp_ParseHexValue(argv[1]) )
             {
-                pEventData->appEvent = mAppEvt_Shell_Handover_Command_c;
-                if ( sizeof(uint8_t) == BleApp_ParseHexValue(argv[1]) )
+                appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
+                if(pEventData != NULL)
                 {
+                    pEventData->appEvent = mAppEvt_Shell_Handover_Command_c;
                     /* Store device id to be used for handover in eventData.peerDeviceId  */
                     pEventData->eventData.peerDeviceId = (uint8_t)*argv[1];
                     if (gBleSuccess_c != App_PostCallbackMessage(mpfShellEventHandler, pEventData))
@@ -1492,6 +1503,46 @@ static shell_status_t ShellHandoverDevId_Command(shell_handle_t shellHandle, int
     {
         shell_write("\r\nUsage: \
                     \r\nhandover deviceId \
+                    \r\n");
+    }
+    return kStatus_SHELL_Success;
+}
+
+/*! *********************************************************************************
+* \brief        Trigger fast Connection Handover for the specified peer device.
+*               Monitoring must already be active on the Target.
+*
+* \param[in]    argc           Number of arguments
+* \param[in]    argv           Pointer to arguments
+*
+* \return       shell_status_t  Returns the command processing status
+********************************************************************************** */
+static shell_status_t ShellFastHandover_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
+{
+    if (argc == 2)
+    {
+        if(mpfShellEventHandler != NULL)
+        {
+            if ( sizeof(uint8_t) == BleApp_ParseHexValue(argv[1]) )
+            {
+                appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
+                if(pEventData != NULL)
+                {
+                    pEventData->appEvent = mAppEvt_Shell_FastHandover_Command_c;
+                    /* Store device id to be used for fast handover in eventData.peerDeviceId  */
+                    pEventData->eventData.peerDeviceId = (uint8_t)*argv[1];
+                    if (gBleSuccess_c != App_PostCallbackMessage(mpfShellEventHandler, pEventData))
+                    {
+                       (void)MEM_BufferFree(pEventData);
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        shell_write("\r\nUsage: \
+                    \r\nfastho deviceId \
                     \r\n");
     }
     return kStatus_SHELL_Success;
