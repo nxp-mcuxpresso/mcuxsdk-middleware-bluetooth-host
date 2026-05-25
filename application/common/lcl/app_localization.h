@@ -203,6 +203,7 @@ typedef enum
 typedef enum
 {
     gAppLclLocalHost_c = 0x1U,                  /*!< Procedure aborted error: Reason - local Host or remote request. */
+    gAppLclLocalHostSubevent_c = 0x10U,         /*!< Subevent aborted error: Reason - local Host or remote request. */
     gAppLclRequiredChannelNumber_c = 0x2U,      /*!< Procedure aborted error: Reason - filtered channel map has less than 15 channels. */
     gAppLclChannelMapInstant_c = 0x4U,          /*!< Procedure aborted error: Reason - channel map update instant has passed. */
     gAppLclNoCsSync_c = 0x20U,                  /*!< Subevent aborted error: No CS_SYNC (mode0) received. */

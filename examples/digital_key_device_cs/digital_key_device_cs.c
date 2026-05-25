@@ -1675,6 +1675,12 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
                 }
                 break;
 
+                case (uint8_t)gAppLclLocalHostSubevent_c:
+                {
+                    shell_write("Abort because of local Host or remote request.\r\n");
+                }
+                break;
+
                 case (uint8_t)gAppLclAborted_c:
                 {
                     shell_write("Aborted.\r\n");
@@ -1689,7 +1695,9 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
 
                 default:
                 {
-                    shell_write("Unknown!\r\n");
+                    shell_write("Unknown! Abort reason: 0x");
+                    shell_writeHex(&abortReason, (uint8_t)sizeof(uint8_t));
+                    shell_write("\r\n");
                 }
                 break;
             }
@@ -1732,7 +1740,9 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
 
                 default:
                 {
-                    shell_write("Unknown!\r\n");
+                    shell_write("Unknown! Abort reason: 0x");
+                    shell_writeHex(&abortReason, (uint8_t)sizeof(uint8_t));
+                    shell_write("\r\n");
                 }
                 break;
             }
