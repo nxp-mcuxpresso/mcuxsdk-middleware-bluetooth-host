@@ -813,16 +813,16 @@ static void app_tof_measurement_print(isp_meas_response_t *meas_response, engine
     (void)printf("},");
 }
 
-static void mode0_print_node_data(cs_data_t *cs_data, mode0_data_t *mode0Data, bool_t isInitiator)
+static void mode0_print_node_data(cs_data_t *cs_data, mode0_data_t *mode0Data, bool_t isInitiator, uint8_t nb_steps)
 {
     uint8_t *pBuffer;
     uint8_t i;
-    int8_t mode0Rssi[gMaxNumCsStepsMode0_c];
-    uint8_t mode0Quality[gMaxNumCsStepsMode0_c];
-    uint8_t mode0Antenna[gMaxNumCsStepsMode0_c];
-    uint16_t mode0Cfo[gMaxNumCsStepsMode0_c];
+    int8_t mode0Rssi[gMaxNumCsStepsMode0_c * gMaxNumCsSubevents_c];
+    uint8_t mode0Quality[gMaxNumCsStepsMode0_c * gMaxNumCsSubevents_c];
+    uint8_t mode0Antenna[gMaxNumCsStepsMode0_c * gMaxNumCsSubevents_c];
+    uint16_t mode0Cfo[gMaxNumCsStepsMode0_c * gMaxNumCsSubevents_c];
 
-    for (i = 0U; i < cs_data->mode0_nb; i++)
+    for (i = 0U; i < nb_steps; i++)
     {
         mode0Rssi[i]    = mode0Data[i].rssi;
         mode0Quality[i] = mode0Data[i].quality;
@@ -832,42 +832,42 @@ static void mode0_print_node_data(cs_data_t *cs_data, mode0_data_t *mode0Data, b
 
     /* Mode0 RSSI */
     (void)printf("r:");
-    pBuffer = MEM_BufferAlloc(2U * (uint32_t)cs_data->mode0_nb + 4U);
+    pBuffer = MEM_BufferAlloc(2U * (uint32_t)nb_steps + 4U);
     if (pBuffer == NULL)
     {
         (void)printf("'NA:oom'");
     }
     else
     {
-        cli_sprint_hex8b(pBuffer, (uint8_t *)mode0Rssi, cs_data->mode0_nb, convert_mode0rssi);
+        cli_sprint_hex8b(pBuffer, (uint8_t *)mode0Rssi, nb_steps, convert_mode0rssi);
         (void)printf("'%s',", (char*)pBuffer);
         (void)MEM_BufferFree(pBuffer);
     }
 
     /* Mode0 Packet Quality */
     (void)printf("pq:");
-    pBuffer = MEM_BufferAlloc(2U * (uint32_t)cs_data->mode0_nb + 4U);
+    pBuffer = MEM_BufferAlloc(2U * (uint32_t)nb_steps + 4U);
     if (pBuffer == NULL)
     {
         (void)printf("'NA:oom'");
     }
     else
     {
-        cli_sprint_hex8b(pBuffer, mode0Quality, cs_data->mode0_nb, NULL);
+        cli_sprint_hex8b(pBuffer, mode0Quality, nb_steps, NULL);
         (void)printf("'%s',", (char*)pBuffer);
         (void)MEM_BufferFree(pBuffer);
     }
 
     /* Mode0 Packet Antenna */
     (void)printf("ant:");
-    pBuffer = MEM_BufferAlloc(2U * (uint32_t)cs_data->mode0_nb + 4U);
+    pBuffer = MEM_BufferAlloc(2U * (uint32_t)nb_steps + 4U);
     if (pBuffer == NULL)
     {
         (void)printf("'NA:oom'");
     }
     else
     {
-        cli_sprint_hex8b(pBuffer, mode0Antenna, cs_data->mode0_nb, NULL);
+        cli_sprint_hex8b(pBuffer, mode0Antenna, nb_steps, NULL);
         (void)printf("'%s'", (char*)pBuffer);
         (void)MEM_BufferFree(pBuffer);
     }
@@ -876,7 +876,7 @@ static void mode0_print_node_data(cs_data_t *cs_data, mode0_data_t *mode0Data, b
     if (isInitiator == TRUE)
     {
         (void)printf(",c:");
-        pBuffer = MEM_BufferAlloc(4U * (uint32_t)cs_data->mode0_nb + 4U);
+        pBuffer = MEM_BufferAlloc(4U * (uint32_t)nb_steps + 4U);
         if (pBuffer == NULL)
         {
             (void)printf("'NA:oom'");
@@ -884,7 +884,7 @@ static void mode0_print_node_data(cs_data_t *cs_data, mode0_data_t *mode0Data, b
         else
         {
             /* 2 bytes per step (little-endian uint16_t) encoded as 4 hex chars */
-            cli_sprint_hex8b(pBuffer, (uint8_t *)mode0Cfo, (uint8_t)(cs_data->mode0_nb * 2U), NULL);
+            cli_sprint_hex8b(pBuffer, (uint8_t *)mode0Cfo, (uint8_t)(nb_steps * 2U), NULL);
             (void)printf("'%s'", (char*)pBuffer);
             (void)MEM_BufferFree(pBuffer);
         }
@@ -894,23 +894,28 @@ static void mode0_print_node_data(cs_data_t *cs_data, mode0_data_t *mode0Data, b
 static void app_mode0_measurement_print(cs_data_t *cs_data)
 {
     mode0_data_t *data;
-    uint32_t nb_steps = cs_data->mode0_nb;
+    uint8_t nb_steps_init;
+    uint8_t nb_steps_refl;
     bool_t isInitiator = (mGlobalRangeSettings.role == gCsRoleInitiator_c) ? TRUE : FALSE;
 
-    (void)printf("md0:{cfg:{n_stp:%lu},", nb_steps);
+    /* Determine total mode0 steps per role */
+    nb_steps_init = isInitiator ? cs_data->mode0_total_local : cs_data->mode0_total_remote;
+    nb_steps_refl = isInitiator ? cs_data->mode0_total_remote : cs_data->mode0_total_local;
+
+    (void)printf("md0:{cfg:{n_stp:%u,n_stp_i:%u,n_stp_r:%u},", cs_data->mode0_nb, nb_steps_init, nb_steps_refl);
 
     (void)printf("init:{");
-    data = isInitiator ? cs_data->mode0Data : &(cs_data->mode0Data[gMaxNumCsStepsMode0_c]);
+    data = isInitiator ? cs_data->mode0DataLocal : cs_data->mode0DataRemote;
     if (data != NULL)
     {
-        mode0_print_node_data(cs_data, data, isInitiator);
+        mode0_print_node_data(cs_data, data, isInitiator, nb_steps_init);
     }
 
     (void)printf("},refl:{");
-    data = isInitiator ? &(cs_data->mode0Data[gMaxNumCsStepsMode0_c]) : cs_data->mode0Data;
+    data = isInitiator ? cs_data->mode0DataRemote : cs_data->mode0DataLocal;
     if (data != NULL)
     {
-        mode0_print_node_data(cs_data, data, FALSE);
+        mode0_print_node_data(cs_data, data, FALSE, nb_steps_refl);
     }
     (void)printf("}},");
 }

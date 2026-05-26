@@ -261,10 +261,11 @@ void AppLocalizationAlgo_RunMeasurement
             response.tof_data[1].ts = csDataBuffer1->tofBuffer;
         }
 
-        /* Store remote mode0 step data - local already set */
-        FLib_MemCpy(&response.cs_data->mode0Data[gMaxNumCsStepsMode0_c],
-                    pRemoteCsAppData->csData.mode0Data,
-                    gMaxNumCsStepsMode0_c * sizeof(mode0_data_t));
+        /* Set mode0 data pointers and total counts */
+        response.cs_data->mode0DataLocal = pLocalCsAppData->mode0Buffer;
+        response.cs_data->mode0DataRemote = pRemoteCsAppData->mode0Buffer;
+        response.cs_data->mode0_total_local = (uint8_t)pLocalCsAppData->mode0BufferOffset;
+        response.cs_data->mode0_total_remote = (uint8_t)pRemoteCsAppData->mode0BufferOffset;
 
         /* Invoke ranging engine on client */
         engine_response_t engine_response = {0};

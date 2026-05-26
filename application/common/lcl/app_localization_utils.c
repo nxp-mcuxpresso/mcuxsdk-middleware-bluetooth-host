@@ -325,25 +325,27 @@ void AppLocalizationAlgo_UncompressResponse
 
         if (mode == (uint8_t)gCsStepMode0_c)
         {
+            assert(pDstAppBuffer->mode0BufferOffset < (gMaxNumCsStepsMode0_c * gMaxNumCsSubevents_c));
             CheckSkipBytes(pEventData, dataSize, sizeof(uint8_t), bIncomplete,
-                pDstAppBuffer->csData.mode0Data[pLocalData->crtStep].quality = *pEventData;
+                pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].quality = *pEventData;
             );
             CheckSkipBytes(pEventData, dataSize, sizeof(uint8_t), bIncomplete,
-                pDstAppBuffer->csData.mode0Data[pLocalData->crtStep].rssi = (int8_t)*pEventData;
+                pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].rssi = (int8_t)*pEventData;
             );
             CheckSkipBytes(pEventData, dataSize, sizeof(uint8_t), bIncomplete,
-                pDstAppBuffer->csData.mode0Data[pLocalData->crtStep].antenna = *pEventData;
+                pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].antenna = *pEventData;
             );
             if (mGlobalRangeSettings.role == gCsRoleInitiator_c)
             {
                 CheckSkipBytes(pEventData, dataSize, sizeof(uint16_t), bIncomplete,
-                    pDstAppBuffer->csData.mode0Data[pLocalData->crtStep].measuredFreqOffset = Utils_ExtractTwoByteValue(pEventData);
+                    pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].measuredFreqOffset = Utils_ExtractTwoByteValue(pEventData);
                 );
             }
             else
             {
-                pDstAppBuffer->csData.mode0Data[pLocalData->crtStep].measuredFreqOffset = 0U;
+                pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].measuredFreqOffset = 0U;
             }
+            pDstAppBuffer->mode0BufferOffset++;
             pLocalData->step++;
             continue;
         }
@@ -1027,6 +1029,7 @@ static void hciCsStoreBytesInTofBuffer
     int nbBytes
 )
 {
+    assert((appData->tofBufferOffset + (uint16_t)nbBytes) <= sizeof(appData->tofBuffer));
     FLib_MemCpy(appData->tofBuffer + appData->tofBufferOffset, source, (uint32_t)nbBytes);
     appData->tofBufferOffset += (uint16_t)nbBytes;
 }
@@ -1051,6 +1054,7 @@ static void hciCsStoreBytesInIqBuffer
     int nbBytes
 )
 {
+    assert((appData->mciqBufferOffset + (uint16_t)nbBytes) <= sizeof(appData->mciqBuffer));
     FLib_MemCpy(appData->mciqBuffer + appData->mciqBufferOffset, source, (uint32_t)nbBytes);
     appData->mciqBufferOffset += (uint16_t)nbBytes;
 }
@@ -1157,13 +1161,16 @@ static bool_t ParseMode0
 )
 {
     bool_t bIncomplete = FALSE;
+
+    assert(pDstAppBuffer->mode0BufferOffset < (gMaxNumCsStepsMode0_c * gMaxNumCsSubevents_c));
+
     do
     {
         if ((filter & BIT2) != 0U)
         {
             /* Data includes Packet Quality*/
             CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-                pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].quality = **ppEventData;
+                pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].quality = **ppEventData;
             );
         }
 
@@ -1171,7 +1178,7 @@ static bool_t ParseMode0
         {
             /* Data includes Packet RSSI */
             CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-                pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].rssi = (int8_t)**ppEventData;
+                pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].rssi = (int8_t)**ppEventData;
             );
         }
 
@@ -1179,7 +1186,7 @@ static bool_t ParseMode0
         {
             /* Data includes Packet Antenna */
             CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-                pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].antenna = **ppEventData;
+                pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].antenna = **ppEventData;
             );
         }
 
@@ -1188,18 +1195,19 @@ static bool_t ParseMode0
         {
             /* Data includes Measured_Freq_Offset information */
             CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint16_t), bIncomplete,
-                pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].measuredFreqOffset = Utils_ExtractTwoByteValue(*ppEventData);
+                pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].measuredFreqOffset = Utils_ExtractTwoByteValue(*ppEventData);
             );
         }
         else
         {
-            pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].measuredFreqOffset = 0U;
+            pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].measuredFreqOffset = 0U;
         }
     } while(FALSE);
 
     /* if parsing is complete, count the step */
     if (bIncomplete == FALSE)
     {
+        pDstAppBuffer->mode0BufferOffset++;
         pRemoteData->step++;
     }
 
@@ -2102,36 +2110,40 @@ static bool_t ParseMode0
 )
 {
     bool_t bIncomplete = FALSE;
+
+    assert(pDstAppBuffer->mode0BufferOffset < (gMaxNumCsStepsMode0_c * gMaxNumCsSubevents_c));
+
     do
     {
         /* Data includes Packet Quality */
         CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-            pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].quality = **ppEventData;
+            pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].quality = **ppEventData;
         );
 
         /* Data includes Packet RSSI */
         CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-            pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].rssi = (int8_t)**ppEventData;
+            pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].rssi = (int8_t)**ppEventData;
         );
 
         /* Data includes Packet Antenna */
         CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete,
-            pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].antenna = **ppEventData;
+            pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].antenna = **ppEventData;
         );
-        
+
         if (mGlobalRangeSettings.role == gCsRoleReflector_c)
         {
             /* Data includes Measured_Freq_Offset information */
             CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint16_t), bIncomplete,
-                pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].measuredFreqOffset = Utils_ExtractTwoByteValue(*ppEventData);
+                pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].measuredFreqOffset = Utils_ExtractTwoByteValue(*ppEventData);
             );
         }
         else
         {
-            pDstAppBuffer->csData.mode0Data[pRemoteData->crtNumSteps].measuredFreqOffset = 0U;
+            pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].measuredFreqOffset = 0U;
         }
     } while(FALSE);
-    
+
+    pDstAppBuffer->mode0BufferOffset++;
     pRemoteData->step++;
     
     return bIncomplete;

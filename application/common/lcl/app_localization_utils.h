@@ -129,7 +129,10 @@ typedef struct cs_data_tag {
     uint8_t subevtDoneStatusRemote[gMaxNumCsSubevents_c]; /* Status for each subevent - remote data */
     uint8_t subevtAbortReasonLocal[gMaxNumCsSubevents_c]; /* Abort reason for each subevent - local data */
     uint8_t subevtAbortReasonRemote[gMaxNumCsSubevents_c]; /* Abort reason for each subevent - remote data */
-    mode0_data_t mode0Data[2U * gMaxNumCsStepsMode0_c]; /* Mode0 step data - local and remote */
+    mode0_data_t *mode0DataLocal;  /* Mode0 step data - local */
+    mode0_data_t *mode0DataRemote; /* Mode0 step data - remote */
+    uint8_t mode0_total_local;     /* Total mode0 steps collected - local */
+    uint8_t mode0_total_remote;    /* Total mode0 steps collected - remote */
 } cs_data_t;
 
 /* Buffer storing last captured IQ and corresponding params */
@@ -185,10 +188,12 @@ typedef struct csAppData_tag {
     /* runtime */
     uint16_t tofBufferOffset;
     uint16_t mciqBufferOffset;
+    uint16_t mode0BufferOffset;
 
     /* Buffers */
     uint8_t tofBuffer[gCsTofTsSize_c * gMaxNumCsSteps_c];
     uint8_t mciqBuffer[gCsMciqSize_c * gMaxNumAntennaPaths_c * gMaxNumCsSteps_c];
+    mode0_data_t mode0Buffer[gMaxNumCsStepsMode0_c * gMaxNumCsSubevents_c];
 
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1)
     uint8_t rssiStepNo;
