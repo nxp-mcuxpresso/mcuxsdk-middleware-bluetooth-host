@@ -1226,16 +1226,19 @@ static void App_HandleGenericCallback(appEventData_t *pEventData)
         {
             gapPhyEvent_t *pPhyEvent = (gapPhyEvent_t *)pEventData->eventData.pData;
 
-            appLocalization_rangeCfg_t locConfig;
+            if ((pPhyEvent->phyEventType == gPhyRead_c ) || (pPhyEvent->phyEventType == gPhyUpdateComplete_c))
+            {
+                appLocalization_rangeCfg_t locConfig;
 
-            /* Read current CS config */
-            (void)AppLocalization_ReadConfig(pPhyEvent->deviceId, &locConfig);
+                /* Read current CS config */
+                (void)AppLocalization_ReadConfig(pPhyEvent->deviceId, &locConfig);
 
-            /* Set the CS PHY according to the connection PHY */
-            locConfig.phy = pPhyEvent->rxPhy;
+                /* Set the CS PHY according to the connection PHY */
+                locConfig.phy = pPhyEvent->rxPhy;
 
-            /* Update CS config with the PHY */
-            (void)AppLocalization_WriteConfig(pPhyEvent->deviceId, &locConfig);
+                /* Update CS config with the PHY */
+                (void)AppLocalization_WriteConfig(pPhyEvent->deviceId, &locConfig);
+            }
 
 #if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
             if (pPhyEvent->phyEventType == gPhyUpdateComplete_c )
