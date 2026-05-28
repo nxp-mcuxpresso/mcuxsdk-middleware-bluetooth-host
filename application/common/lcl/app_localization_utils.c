@@ -2184,12 +2184,15 @@ static bool_t ParseMode1
     uint8_t aRssi[gCsRssiSize_c] = {};
     uint8_t aAntenna[gCsAntennaSize_c] = {};
     int16_t ts_diff_hci = 0;
+#if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
+    int rssiValue = 0;
+#endif /* gAppParseRssiInfo_d */
     
     bool_t bIncomplete = FALSE;
     
     /* First parse all bytes, based on filter bits, and store data in temporary variables */
     do
-    {        
+    {
         /* Data includes Packet Quality*/
         CheckSkipBytes(*ppEventData, *pDataLength, sizeof(uint8_t), bIncomplete, 
             quality = (uint32_t)**ppEventData;
@@ -2421,7 +2424,7 @@ static bool_t ParseMode3
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
         CheckSkipBytes(*ppEventData, *pDataLength, gCsRssiSize_c, bIncomplete,
             FLib_MemCpy(aRssi, *ppEventData, gCsRssiSize_c);
-            rssiVal = (int8_t)(**ppEventData);
+            rssiValue = (int8_t)(**ppEventData);
         );
 #else
         CheckSkipBytes(*ppEventData, *pDataLength, gCsRssiSize_c, bIncomplete,
