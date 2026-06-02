@@ -417,11 +417,6 @@ static void AppLocalization_ProcessContinueStatus
     uint8_t abortReason
 );
 
-static void AppLocalization_HandleContinueCompleteResults
-(
-    deviceId_t deviceId
-);
-
 static void AppLocalization_HandleProcedureEnabled
 (
     deviceId_t deviceId,
@@ -2692,59 +2687,63 @@ static void AppLocalization_HandleCompleteResults
     deviceId_t deviceId
 )
 {
-    /* All results complete for the CS procedure - check if there is data to send */
-    if (mResultData[deviceId].dataIndex > 0U)
-    {
-        AppLocalization_ResetCsTimeInfo(deviceId);
+    AppLocalization_ResetCsTimeInfo(deviceId);
 
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
 #if defined (gRasRRSP_d) && (gRasRRSP_d == 1U)
-        Ras_SetDataPointer(deviceId, &mResultData[deviceId]);
+    bleResult_t result = gBleSuccess_c;
+    
+    Ras_SetDataPointer(deviceId, &mResultData[deviceId]);
 
-        /* Send real-time data after the subevent is completed */
-        if (Ras_CheckRealTimeData(deviceId) == FALSE)
+    if (Ras_CheckRealTimeData(deviceId) == FALSE)
+    {
+        result = Ras_SendDataReady(deviceId);
+        if (result != gBleSuccess_c)
         {
-            bleResult_t result = Ras_SendDataReady(deviceId);
-            if (result != gBleSuccess_c)
-            {
-                AppLocalizationError(deviceId, gAppLclRasSendIndicationFailed_c);
-            }
-        }
-#endif /* gRasRRSP_d */
-#elif defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-        gCsTimeInfo.transferStart = TM_GetTimestamp();
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
-
-        /* Start sending L2CAP data */
-        (void)BtcsServer_SendData(deviceId,
-                                  maPsmChannels[deviceId],
-                                  gRangingProcResStart_c);
-#endif /* gAppRasDataTransfer_d */
-
-        AppLocalization_CheckAlgoRun(deviceId);
-
-        maCsProcCount[deviceId]++;
-
-        AppLocalization_UpdateStateAfterComplete(deviceId);
-
-        if (mpfAppCsCallback != NULL)
-        {
-            mpfAppCsCallback(deviceId, NULL, gLocalMeasurementComplete_c);
+            AppLocalizationError(deviceId, gAppLclRasSendIndicationFailed_c);
         }
     }
     else
     {
-        maCsProcCount[deviceId]++;
-        /* Check if we reached the last procedure */
-        if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
+        Ras_ClearDataForTransfer(deviceId);
+
+        if ((Ras_GetDataSendPreference(deviceId) & BIT3) == 0U)
         {
-            AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+            /* Peer configured transfer through notifications */
+            result = Ras_SendRangingDataNotifs(deviceId, mRasServiceConfig.realTimeDataHandle);
         }
         else
         {
-            maAppLclState[deviceId] = gAppLclWaitingForMeasData_c;
+            /* Peer configured transfer through indications */
+            result = Ras_SendRangingDataIndication(deviceId, mRasServiceConfig.realTimeDataHandle);
         }
+        
+        if (result != gBleSuccess_c)
+        {
+            AppLocalizationError(deviceId, gAppLclRasTransferFailed_c);
+        }
+    }
+#endif /* gRasRRSP_d */
+#elif defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
+    gCsTimeInfo.transferStart = TM_GetTimestamp();
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
+
+    /* Start sending L2CAP data */
+    (void)BtcsServer_SendData(deviceId,
+                              maPsmChannels[deviceId],
+                              gRangingProcResStart_c);
+#endif /* gAppRasDataTransfer_d */
+    
+    AppLocalization_CheckAlgoRun(deviceId);
+
+    maCsProcCount[deviceId]++;
+
+    AppLocalization_UpdateStateAfterComplete(deviceId);
+
+    if (mpfAppCsCallback != NULL)
+    {
+        mpfAppCsCallback(deviceId, NULL, gLocalMeasurementComplete_c);
     }
 }
 
@@ -3010,7 +3009,7 @@ static void AppLocalization_ProcessContinueStatus
     {
         case (uint8_t)gCsCompleteResults_c:
         {
-            AppLocalization_HandleContinueCompleteResults(deviceId);
+            AppLocalization_HandleCompleteResults(deviceId);
         }
         break;
 
@@ -3031,64 +3030,6 @@ static void AppLocalization_ProcessContinueStatus
             AppLocalization_HandleProcedureError(deviceId);
         }
         break;
-    }
-}
-
-/*! **********************************************************************************
-\fn           void AppLocalization_HandleContinueCompleteResults(deviceId_t deviceId)
-\brief        Handles complete results for a CS procedure continue event.
-\param[in]    deviceId - Device ID
-\retval       none
-********************************************************************************** */
-static void AppLocalization_HandleContinueCompleteResults
-(
-    deviceId_t deviceId
-)
-{
-    /* All results complete for the CS procedure */
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-    if (gCsTimeInfo.csDistMeasStart != 0U)
-    {
-        /* Distance measurement duration for the first procedure. */
-        gCsTimeInfo.csDistMeasDuration = TM_GetTimestamp() - gCsTimeInfo.csDistMeasStart;
-        gCsTimeInfo.csDistMeasStart = 0;
-    }
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
-
-#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
-#if defined (gRasRRSP_d) && (gRasRRSP_d == 1U)
-    Ras_SetDataPointer(deviceId, &mResultData[deviceId]);
-
-    /* Send real-time data after the subevent is completed */
-    if (Ras_CheckRealTimeData(deviceId) == FALSE)
-    {
-        bleResult_t result = Ras_SendDataReady(deviceId);
-        if (result != gBleSuccess_c)
-        {
-            AppLocalizationError(deviceId, gAppLclRasSendIndicationFailed_c);
-        }
-    }
-#endif /* defined (gRasRRSP_d) && (gRasRRSP_d == 1U) */
-#elif defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-    gCsTimeInfo.transferStart = TM_GetTimestamp();
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
-
-    /* Start sending L2CAP data */
-    (void)BtcsServer_SendData(deviceId,
-                              maPsmChannels[deviceId],
-                              gRangingProcResStart_c);
-#endif /* gAppRasDataTransfer_d */
-
-    AppLocalization_CheckAlgoRun(deviceId);
-
-    maCsProcCount[deviceId]++;
-
-    AppLocalization_UpdateStateAfterComplete(deviceId);
-
-    if (mpfAppCsCallback != NULL)
-    {
-        mpfAppCsCallback(deviceId, NULL, gLocalMeasurementComplete_c);
     }
 }
 
@@ -3960,29 +3901,6 @@ static bleResult_t processEventResultData
                 subeventIndex = mResultData[deviceId].subeventIndex;
                 /* Set data index for next sub event. There is no need to set the data index for the first sub event as it is 0*/
                 mResultData[deviceId].aSubEventData[subeventIndex].dataIdx = mResultData[deviceId].dataIndex;
-            }
-            else
-            {
-#if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
-#if defined (gRasRRSP_d) && (gRasRRSP_d == 1U)
-                /* Send real-time data after the subevent is completed */
-                if ((Ras_CheckRealTimeData(deviceId)) && (result == gBleSuccess_c))
-                {
-                    Ras_ClearDataForTransfer(deviceId);
-
-                    if ((Ras_GetDataSendPreference(deviceId) & BIT3) == 0U)
-                    {
-                        /* Peer configured transfer through notifications */
-                        result = Ras_SendRangingDataNotifs(deviceId, mRasServiceConfig.realTimeDataHandle);
-                    }
-                    else
-                    {
-                        /* Peer configured transfer through indications */
-                        result = Ras_SendRangingDataIndication(deviceId, mRasServiceConfig.realTimeDataHandle);
-                    }
-                }
-#endif /* gRasRRSP_d */
-#endif /* gAppRasDataTransfer_d */
             }
          }
     }
