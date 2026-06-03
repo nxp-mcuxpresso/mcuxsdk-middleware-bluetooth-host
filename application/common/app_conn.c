@@ -59,12 +59,6 @@
 
 #include "fwk_platform_ble.h"
 
-/* SDK */
-#ifdef SDK_OS_FREE_RTOS
-#include "FreeRTOSConfig.h"
-#include "FreeRTOS.h"
-#include "portmacro.h"
-#endif /* SDK_OS_FREE_RTOS */
 /************************************************************************************
 *************************************************************************************
 * Public macros
