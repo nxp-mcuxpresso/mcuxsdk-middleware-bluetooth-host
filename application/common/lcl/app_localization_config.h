@@ -92,6 +92,25 @@
 /* The maximum number of antenna paths used. */
 #define gMaxNumAntennaPaths_c               (4U)
 
+/* Number of antennas and antenna paths used at initialization.
+   On KW47 / MCXW72 with Inline PCT Transfer (IPT) enabled, only the 1x1
+   antenna configuration is supported, so a single antenna and a single
+   antenna path are used. Otherwise 4 antenna paths are always used, and the
+   number of antennas depends on the board: 2 antennas when the localization
+   revision board is supported, 1 antenna otherwise. */
+#if (defined(KW47_core0_SERIES) || defined(MCXW72_core0_SERIES)) && \
+    defined(gAppUseInlinePctTransfer_d) && (gAppUseInlinePctTransfer_d == 1U)
+#define gNumAntennaPaths_c                  (1U)
+#define gNumAntennas_c                      (1U)
+#else
+#define gNumAntennaPaths_c                  (4U)
+#if defined(BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
+#define gNumAntennas_c                      (2U)
+#else
+#define gNumAntennas_c                      (1U)
+#endif
+#endif
+
 /* Measurement data buffer size: ToF and IQ data for the max number of steps */
 #define gMeasurementDataSizeMax_c           (4U /* HCI data header */ + (6U + 1U + 4U * (1U + gMaxNumAntennaPaths_c)) /* Mode 3 HCI length */)
 #define gMeasurementBufferSize_c            (gMeasurementDataSizeMax_c * gMaxNumCsSteps_c)

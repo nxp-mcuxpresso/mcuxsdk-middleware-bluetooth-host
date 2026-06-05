@@ -570,19 +570,21 @@ bleResult_t AppLocalization_Init
         /* Antenna switching enabled also in Debug mode */
         PLATFORM_InitLclGpioDebug(false);
 
-#if defined(gAppUseInlinePctTransfer_d) && (gAppUseInlinePctTransfer_d == 1U)
-        /* IPT is only supported in 1x1 antenna config
-           Do not change the ant_type for LOC boards if IPT is enabled */
-#elif defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
+#if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
         /* Set antenna type according to board used */
         /* KW47 and more series */
         mGlobalRangeSettings.ant_type = CS_ANT_BOARD_LOC_PRINTED;
 
+#if !((defined(KW47_core0_SERIES) || defined(MCXW72_core0_SERIES)) && \
+      defined(gAppUseInlinePctTransfer_d) && (gAppUseInlinePctTransfer_d == 1U))
+        /* IPT is only supported in 1x1 antenna config, so the antenna configuration
+           index is left unchanged on KW47 / MCXW72 with Inline PCT Transfer enabled */
         /* Set antenna configuration to 2 antennas of both initiator and reflector */
         for (uint8_t index = 0U; index < (uint8_t)gAppMaxConnections_c; index++)
         {
             mRangeSettings[index].ant_cfg_index = gAntennaCfgIdx7_c;
         }
+#endif
 #endif
     }
 
@@ -665,8 +667,9 @@ bleResult_t AppLocalization_HostInitHandler(void)
 
         /* Antenna configuration */
         aAppData[0U] = 2U; /* Default antenna switch time */
-        aAppData[1U] = 4U; /* Number of antenna paths */
-        aAppData[2U] = (mGlobalRangeSettings.ant_type == CS_ANT_BOARD_ANTDIV_4_ANT) ? 4U : 2U; /* Number of antennas (only 2 antennas on reference designs) */
+        aAppData[1U] = gNumAntennaPaths_c; /* Number of antenna paths */
+        /* Use 4 antennas on the ANTDIV 4-antenna board, gNumAntennas_c otherwise */
+        aAppData[2U] = (mGlobalRangeSettings.ant_type == CS_ANT_BOARD_ANTDIV_4_ANT) ? 4U : gNumAntennas_c; /* Number of antennas */
         FLib_MemCpy((void *)(&aAppData[3U]), ant2gpio_p, gMaxNumAntennaPaths_c);
 
         /* RTT fine tuning */
