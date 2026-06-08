@@ -43,6 +43,11 @@
 /*! If the Antenna Path Filter is defined as 0bxxxx1111, then report all 4 antenna paths */
 #define gAntennaPathFilterAllowAll_c    15U
 
+/*! Number of entries in gaAntPermNAp (first dimension of the array) */
+#define gAntPermNApMaxIndex_c           24U
+/*! Last valid index in gaAntPermNAp */
+#define gAntPermNApLastValidIndex_c     (gAntPermNApMaxIndex_c - 1U)
+
 /*! Antenna Path 1 */
 #define gAP1_c    0b0000001
 /*! Antenna Path 2 */
@@ -1587,7 +1592,11 @@ static uint8_t* processMode2Data
 {
     uint8_t* pData = pStepDataAux;
     uint8_t antPermIndex = *pData++;
-    assert(antPermIndex < 25);
+    /* Clamp to valid range to prevent out-of-bounds read on gaAntPermNAp */
+    if (antPermIndex >= gAntPermNApMaxIndex_c)
+    {
+        antPermIndex = gAntPermNApLastValidIndex_c;
+    }
     uint8_t antIdx = 0U;
     const uint8_t *antIndex_p = NULL;
     antIndex_p = &gaAntPermNAp[antPermIndex][0];
@@ -1730,6 +1739,11 @@ static uint8_t* processMode3Data
     }
 
     antPermIndex = *pData;
+    /* Clamp to valid range to prevent out-of-bounds read on gaAntPermNAp */
+    if (antPermIndex >= gAntPermNApMaxIndex_c)
+    {
+        antPermIndex = gAntPermNApLastValidIndex_c;
+    }
     antIndex_p = &gaAntPermNAp[antPermIndex][0];
 
     if ((maModeFilters[devIdIdx] & BIT9) != 0U)
