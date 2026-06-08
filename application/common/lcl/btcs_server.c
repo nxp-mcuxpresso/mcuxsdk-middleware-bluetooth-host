@@ -972,6 +972,10 @@ static void buildSubEvtNew
         mpSegmIdx[deviceId]->crtIdx++;
         segmIdx++;
     }
+    else
+    {
+        /* For MISRA compliance */
+    }
 
     /* Mark the index of the beginning of the segment */
     if ((mpRangingData[deviceId].pCfg->dataParsedLen != 0U) &&
