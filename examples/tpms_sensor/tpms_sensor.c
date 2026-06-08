@@ -61,6 +61,11 @@
 * Private macros
 *************************************************************************************
 ************************************************************************************/
+/* NVM dataset identifier for the application-owned TPMS Signing Key */
+#define nvmId_TpmsSigningKeyId_c        0x4101
+
+/* NVM dataset identifier for the application-owned TPMS advertising sequence number */
+#define nvmId_TpmsSeqNumId_c            0x4102
 
 /************************************************************************************
 *************************************************************************************
@@ -85,43 +90,6 @@ typedef enum appBtnAction_tag {
     appBtnAction_UpdateSigningKey_c,
     appBtnAction_FactoryReset_c
 } appBtnAction_t;
-
-/************************************************************************************
-*************************************************************************************
-* Private memory declarations
-*************************************************************************************
-************************************************************************************/
-/* Adv State */
-static advState_t   mAdvState;
-static bool_t       mConnected;
-
-/* Service Data*/
-static bool_t           basValidClientList[gAppMaxConnections_c] = {FALSE};
-static basConfig_t      basServiceConfig = {(uint16_t)service_battery, 0, basValidClientList, gAppMaxConnections_c};
-static disConfig_t      disServiceConfig = {(uint16_t)service_device_info};
-static bool_t           tpmValidClientList[gAppMaxConnections_c] = {FALSE};
-static tpmConfig_t      tpmServiceConfig = {(uint16_t)service_tpms, tpmValidClientList, gAppMaxConnections_c};
-
-/* Application specific data*/
-static TIMER_MANAGER_HANDLE_DEFINE(appTimerId);
-
-static serial_handle_t gAppSerMgrIf;
-static SERIAL_MANAGER_WRITE_HANDLE_DEFINE(s_writeHandle);
-
-static appAdvertisingParams_t mAppAdvParams = {
-    &gAdvParams,
-    &gAppAdvertisingData,
-    &gAppScanRspData
-};
-
-static uint16_t mCharWriteMonitoredHandles[2] = { (uint16_t)value_tpms_monitoring_duty_cycle,
-                                                  (uint16_t)value_tpms_position };
-static uint16_t mCharReadMonitoredHandles[4] = { (uint16_t)value_tire_pressure, 
-                                                 (uint16_t)value_tire_temperature, 
-                                                 (uint16_t)value_tire_acceleration, 
-                                                 (uint16_t)value_tpms_signing_key };
-
-static uint8_t mState = (uint8_t)gParkedState_c;
 
 /************************************************************************************
 *************************************************************************************
@@ -151,9 +119,64 @@ static void BleApp_HandleFactoryReset(void *pData);
 static void BleApp_PostButtonAction(appBtnAction_t action);
 static void BleApp_Start(void);
 static void BleApp_ReadSensorData(tpmsSensorReadData_t *pSensorReadData);
-
+static void BleApp_SaveSigningKey(const uint8_t *pKey, uint16_t keyLength);
+static void BleApp_SaveSeqNum(uint32_t seqNum);
 button_status_t BleApp_HandleKeys0(void *pButtonHandle, button_callback_message_t *pMessage, void *pCallbackParam);
 button_status_t BleApp_HandleKeys1(void *pButtonHandle, button_callback_message_t *pMessage, void *pCallbackParam);
+
+/************************************************************************************
+*************************************************************************************
+* Private memory declarations
+*************************************************************************************
+************************************************************************************/
+/* Adv State */
+static advState_t   mAdvState;
+static bool_t       mConnected;
+
+/* Service Data*/
+static bool_t           basValidClientList[gAppMaxConnections_c] = {FALSE};
+static basConfig_t      basServiceConfig = {(uint16_t)service_battery, 0, basValidClientList, gAppMaxConnections_c};
+static disConfig_t      disServiceConfig = {(uint16_t)service_device_info};
+static bool_t           tpmValidClientList[gAppMaxConnections_c] = {FALSE};
+static tpmConfig_t      tpmServiceConfig = {(uint16_t)service_tpms, tpmValidClientList, gAppMaxConnections_c, BleApp_SaveSigningKey, BleApp_SaveSeqNum};
+
+/* Application-owned NVM storage for the TPMS Signing Key */
+static uint8_t          maSigningKey[gTpmsSigningKeyLength_c] = {0U};
+NVM_RegisterDataSet(maSigningKey,
+                    1U,
+                    (uint16_t)sizeof(maSigningKey),
+                    nvmId_TpmsSigningKeyId_c,
+                    (uint16_t)gNVM_MirroredInRam_c);
+
+/* Application-owned NVM storage for the TPMS advertising sequence number */
+static uint32_t         mSeqNum = 0U;
+NVM_RegisterDataSet(&mSeqNum,
+                    1U,
+                    (uint16_t)sizeof(mSeqNum),
+                    nvmId_TpmsSeqNumId_c,
+                    (uint16_t)gNVM_MirroredInRam_c);
+
+
+/* Application specific data*/
+static TIMER_MANAGER_HANDLE_DEFINE(appTimerId);
+
+static serial_handle_t gAppSerMgrIf;
+static SERIAL_MANAGER_WRITE_HANDLE_DEFINE(s_writeHandle);
+
+static appAdvertisingParams_t mAppAdvParams = {
+    &gAdvParams,
+    &gAppAdvertisingData,
+    &gAppScanRspData
+};
+
+static uint16_t mCharWriteMonitoredHandles[2] = { (uint16_t)value_tpms_monitoring_duty_cycle,
+                                                  (uint16_t)value_tpms_position };
+static uint16_t mCharReadMonitoredHandles[4] = { (uint16_t)value_tire_pressure, 
+                                                 (uint16_t)value_tire_temperature, 
+                                                 (uint16_t)value_tire_acceleration, 
+                                                 (uint16_t)value_tpms_signing_key };
+
+static uint8_t mState = (uint8_t)gParkedState_c;
 
 /************************************************************************************
 *************************************************************************************
@@ -320,6 +343,21 @@ static void BluetoothLEHost_Initialized(void)
     (void)Bas_Start(&basServiceConfig);
     (void)Dis_Start(&disServiceConfig);
     Tpms_Start(&tpmServiceConfig);
+
+    /* Restore a previously persisted Signing Key from NVM */
+    if (gNVM_OK_c == NvRestoreDataSet((void*)maSigningKey, TRUE))
+    {
+        (void)Tpms_SetSigningKey(&tpmServiceConfig, maSigningKey, gTpmsSigningKeyLength_c);
+    }
+
+    /* Restore a previously persisted advertising sequence number from NVM.
+       The sequence number is only saved once every gTpmsSeqNumSaveInterval_c
+       updates, so advance the restored value by that amount to ensure a value
+       is never reused with the same signing key after a reset. */
+    if (gNVM_OK_c == NvRestoreDataSet((void*)&mSeqNum, TRUE))
+    {
+        Tpms_SetSeqNum(mSeqNum + gTpmsSeqNumSaveInterval_c);
+    }
 
     /* Allocate application timer */
     (void)TM_Open(appTimerId);
@@ -782,6 +820,38 @@ static void BleApp_HandleUpdateSigningKey(void *pData)
     
     AppPrintString("Updating signing key.\r\n");
     Tpms_UpdateSigningKey(&tpmServiceConfig);
+}
+
+/*! *********************************************************************************
+* \brief        Persists the TPMS Signing Key into NVM. Registered with the TPM
+*               service as the signingKeyChangedCb and invoked whenever the key
+*               changes (button press, new bond, sequence number rollover, or a
+*               write from the Primary Monitor).
+*
+* \param[in]    pKey        Pointer to the new Signing Key bytes.
+* \param[in]    keyLength   Length of the key in bytes.
+********************************************************************************** */
+static void BleApp_SaveSigningKey(const uint8_t *pKey, uint16_t keyLength)
+{
+    if ((pKey != NULL) && (keyLength == gTpmsSigningKeyLength_c))
+    {
+        FLib_MemCpy(maSigningKey, pKey, gTpmsSigningKeyLength_c);
+        (void)NvSaveOnIdle((void*)maSigningKey, FALSE);
+    }
+}
+
+/*! *********************************************************************************
+* \brief        Persists the TPMS advertising sequence number into NVM. Registered
+*               with the TPM service as the seqNumSaveCb and invoked periodically
+*               (once every gTpmsSeqNumSaveInterval_c updates) rather than on every
+*               update, to limit NVM wear.
+*
+* \param[in]    seqNum    The current sequence-number value to persist.
+********************************************************************************** */
+static void BleApp_SaveSeqNum(uint32_t seqNum)
+{
+    mSeqNum = seqNum;
+    (void)NvSaveOnIdle((void*)&mSeqNum, FALSE);
 }
 
 /*! *********************************************************************************

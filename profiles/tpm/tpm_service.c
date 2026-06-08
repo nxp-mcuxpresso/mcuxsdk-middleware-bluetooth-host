@@ -28,7 +28,6 @@
 * Private constants & macros
 *************************************************************************************
 ************************************************************************************/
-#define gTpmsSigningKeyLength_c         (16U)
 #define gTpmsDutyCycleCharValueLength_c (13U)
 
 #define TPMS_DUTY_CYCLE_OFFSET_PARKED           (1U)
@@ -66,6 +65,9 @@ static tpmConfig_t *mpTpmConfig = NULL;
 *************************************************************************************
 ************************************************************************************/
 static bool_t isValidAttributeValue(gattServerEvent_t* pServerEvent);
+static void notifySigningKeyChanged(tpmConfig_t *pServiceConfig, const uint8_t *pKey);
+static void notifySeqNumSave(tpmConfig_t *pServiceConfig, uint32_t seqNum);
+
 /************************************************************************************
 *************************************************************************************
 * Public functions
@@ -257,6 +259,13 @@ void Tpms_UpdateAdvData(uint8_t *pData, tpmsSensorReadData_t *pSensorReadData)
            (i.e., the value of the TPMS Signing Key characteristic is modified (see Section 3.7 in [1]) and reset the SEQ to 0. */
         if (mSeqNum < UINT32_MAX)
         {
+            /* Persist the sequence number periodically rather than on every update.
+               The application advances the restored value by gTpmsSeqNumSaveInterval_c
+               so that a value is never reused with the same signing key. */
+            if ((mSeqNum % gTpmsSeqNumSaveInterval_c) == 0U)
+            {
+                notifySeqNumSave(mpTpmConfig, mSeqNum);
+            }
             mSeqNum++;
         }
         else
@@ -265,7 +274,7 @@ void Tpms_UpdateAdvData(uint8_t *pData, tpmsSensorReadData_t *pSensorReadData)
             Tpms_UpdateSigningKey(mpTpmConfig);
         }
         FLib_MemCpy(&pData[TPMS_AD_OFFSET_SEQNUM], (uint8_t*)&mSeqNum, 4U);
-     
+
         /* Compute and add the MAC */
         (void)GattDb_ReadAttribute((uint16_t)value_tpms_signing_key, gTpmsSigningKeyLength_c, aKey, &length);
         FLib_MemCpyReverseOrder(aKeyReversed, aKey, gTpmsSigningKeyLength_c);
@@ -306,6 +315,9 @@ void Tpms_HandleAttributeWritten(deviceId_t deviceId, gattServerEvent_t* pServer
             if (pServerEvent->eventData.attributeWrittenEvent.handle == (uint16_t)value_tpms_signing_key)
             {
                 mSeqNum = 0U;
+
+                /* Notify the application so it can persist the new key in NVM */
+                notifySigningKeyChanged(mpTpmConfig, pServerEvent->eventData.attributeWrittenEvent.aValue);
             }
         }
         else
@@ -427,7 +439,10 @@ void Tpms_UpdateSigningKey(tpmConfig_t *pServiceConfig)
     }
     
     (void)GattDb_WriteAttribute((uint16_t)value_tpms_signing_key, gTpmsSigningKeyLength_c, aNewKey);
-    
+
+    /* Notify the application so it can persist the new key in NVM */
+    notifySigningKeyChanged(pServiceConfig, aNewKey);
+
     /* Send to all subscribed peers */
     for (mClientId = 0; mClientId < pServiceConfig->validSubscriberListSize; mClientId++)
     {
@@ -445,11 +460,90 @@ void Tpms_UpdateSigningKey(tpmConfig_t *pServiceConfig)
     mSeqNum = 0U;
 }
 
+/*!**********************************************************************************
+* \brief        Sets the Signing Key characteristic to a known value. Used by the
+*               application to restore a previously persisted key (e.g. from NVM).
+*               The application owns the storage, so no indication is generated and
+*               the application callback is not invoked.
+*
+* \param[in]    pServiceConfig  Pointer to structure that contains server
+*                               configuration information.
+* \param[in]    pKey            Pointer to the key bytes to set.
+* \param[in]    keyLength       Length of the key in bytes.
+*
+* \return       gBleSuccess_c or error.
+************************************************************************************/
+bleResult_t Tpms_SetSigningKey(tpmConfig_t *pServiceConfig, const uint8_t *pKey, uint16_t keyLength)
+{
+    bleResult_t result = gBleSuccess_c;
+
+    if ((pServiceConfig == NULL) || (pKey == NULL) || (keyLength != gTpmsSigningKeyLength_c))
+    {
+        result = gBleInvalidParameter_c;
+    }
+    else
+    {
+        result = GattDb_WriteAttribute((uint16_t)value_tpms_signing_key, gTpmsSigningKeyLength_c, pKey);
+    }
+
+    return result;
+}
+
+/*!**********************************************************************************
+* \brief        Sets the advertising sequence number to a known value. Used by the
+*               application to restore a previously persisted sequence number
+*               (e.g. from NVM) so that values are not reused with the same key.
+*               The seqNumSaveCb is not invoked.
+*
+* \param[in]    seqNum  The sequence-number value to set.
+*
+* \return       None.
+************************************************************************************/
+void Tpms_SetSeqNum(uint32_t seqNum)
+{
+    mSeqNum = seqNum;
+}
+
 /************************************************************************************
 *************************************************************************************
 * Private functions
 *************************************************************************************
 ************************************************************************************/
+/*!**********************************************************************************
+* \brief        Invokes the application callback (if registered) to inform it that
+*               the Signing Key has changed, so the application can persist it.
+*
+* \param[in]    pServiceConfig  Pointer to service configuration structure.
+* \param[in]    pKey            Pointer to the current Signing Key bytes.
+*
+* \return       None.
+************************************************************************************/
+static void notifySigningKeyChanged(tpmConfig_t *pServiceConfig, const uint8_t *pKey)
+{
+    if ((pServiceConfig != NULL) && (pServiceConfig->signingKeyChangedCb != NULL) && (pKey != NULL))
+    {
+        pServiceConfig->signingKeyChangedCb(pKey, gTpmsSigningKeyLength_c);
+    }
+}
+
+/*!**********************************************************************************
+* \brief        Invokes the application callback (if registered) so the application
+*               can persist the current sequence number. Called periodically rather
+*               than on every update.
+*
+* \param[in]    pServiceConfig  Pointer to service configuration structure.
+* \param[in]    seqNum          The current sequence-number value to persist.
+*
+* \return       None.
+************************************************************************************/
+static void notifySeqNumSave(tpmConfig_t *pServiceConfig, uint32_t seqNum)
+{
+    if ((pServiceConfig != NULL) && (pServiceConfig->seqNumSaveCb != NULL))
+    {
+        pServiceConfig->seqNumSaveCb(seqNum);
+    }
+}
+
 /*!**********************************************************************************
 * \brief        Checks if the value written by the TPMS Monitor is valid.
 *
