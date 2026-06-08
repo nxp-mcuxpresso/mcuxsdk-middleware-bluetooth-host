@@ -74,7 +74,7 @@
 /* The following stack sizes have been chosen based on a worst case scenario. 
  * For different compilers and optimization levels they can be reduced. */
 
-#define gHost_TaskStackSize_c           1800
+#define gHost_TaskStackSize_c           2200
 
 #define BUTTON_TASK_STACK_SIZE          400
 
