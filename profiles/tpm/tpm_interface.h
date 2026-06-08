@@ -25,6 +25,18 @@
 * Public constants & macros
 *************************************************************************************
 ************************************************************************************/
+/*! Length in bytes of the TPMS Signing Key */
+#define gTpmsSigningKeyLength_c         (16U)
+
+/*! Number of advertising sequence-number updates between successive saves of the
+    sequence number to non-volatile storage. The sequence number is not saved on
+    every update (that would be too frequent); instead it is saved once every
+    gTpmsSeqNumSaveInterval_c updates. On restore the application advances the
+    value by this amount to account for updates that may not have been persisted,
+    so that the same sequence number is never reused with a given signing key. */
+#define gTpmsSeqNumSaveInterval_c       (100U)
+
+
 typedef enum
 {
     gParkedState_c                            = 0x00U,
@@ -48,13 +60,30 @@ typedef struct
     uint8_t    tireTemperatureAccuracy;
 } tpmsSensorReadData_t;
 
+/*! Callback invoked by the service when the Signing Key changes, so the
+    application can persist the new key (e.g. into NVM).
+
+    \param[in] pKey       Pointer to the new Signing Key bytes.
+    \param[in] keyLength  Length of the key in bytes. */
+typedef void (*tpmsSigningKeyChangedCb_t)(const uint8_t *pKey, uint16_t keyLength);
+
+/*! Callback invoked periodically by the service so the application can persist
+    the advertising sequence number (e.g. into NVM). It is called once every
+    gTpmsSeqNumSaveInterval_c sequence-number updates rather than on every update.
+
+    \param[in] seqNum  The current sequence-number value to persist. */
+typedef void (*tpmsSeqNumSaveCb_t)(uint32_t seqNum);
+
 /*! TPM Service - Configuration */
 typedef struct tpmConfig_tag
 {
-    uint16_t    serviceHandle;
-    bool_t*     aValidSubscriberList;
-    uint8_t     validSubscriberListSize;
+    uint16_t                    serviceHandle;
+    bool_t*                     aValidSubscriberList;
+    uint8_t                     validSubscriberListSize;
+    tpmsSigningKeyChangedCb_t   signingKeyChangedCb;
+    tpmsSeqNumSaveCb_t          seqNumSaveCb;
 } tpmConfig_t;
+
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -165,6 +194,32 @@ void Tpms_NotifyTirePressure(tpmConfig_t *pServiceConfig, tpmsSensorReadData_t *
 * \return       None.
 ************************************************************************************/
 void Tpms_UpdateSigningKey(tpmConfig_t *pServiceConfig);
+
+/*!**********************************************************************************
+* \brief        Sets the Signing Key characteristic to a known value. Used by the
+*               application to restore a previously persisted key (e.g. from NVM).
+*               No indication is sent and the signingKeyChangedCb is not invoked.
+*
+* \param[in]    pServiceConfig  Pointer to structure that contains server
+*                               configuration information.
+* \param[in]    pKey            Pointer to the key bytes to set.
+* \param[in]    keyLength       Length of the key in bytes (gTpmsSigningKeyLength_c).
+*
+* \return       gBleSuccess_c or error.
+************************************************************************************/
+bleResult_t Tpms_SetSigningKey(tpmConfig_t *pServiceConfig, const uint8_t *pKey, uint16_t keyLength);
+
+/*!**********************************************************************************
+* \brief        Sets the advertising sequence number to a known value. Used by the
+*               application to restore a previously persisted sequence number
+*               (e.g. from NVM) so that values are not reused with the same key.
+*               The seqNumSaveCb is not invoked.
+*
+* \param[in]    seqNum  The sequence-number value to set.
+*
+* \return       None.
+************************************************************************************/
+void Tpms_SetSeqNum(uint32_t seqNum);
 #ifdef __cplusplus
 }
 #endif
