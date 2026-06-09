@@ -186,7 +186,7 @@ TPMS Monitor
 ===================
 |  Platform    | SCANSW | FACTORYRESETSW | CONNLED  |
 |:------------:|:------:|:--------------:|:--------:|
-| FRDM-KW43    | SW2    | SW3            | Blue LED |
+| FRDM-KW43    | SW4    | SW3            | Blue LED |
 | KW45B41Z-EVK | SW2    | SW3            | LED2     |
 | KW47-EVK     | SW2    | SW3            | LED2     |
 
@@ -194,7 +194,7 @@ TPMS Sensor
 ===================
 |  Platform    | CONNADVSW | NCONNADVSW | CONNLED  |
 |:------------:|:---------:|:----------:|:--------:|
-| FRDM-KW43    | SW2       | SW3        | Blue LED |
+| FRDM-KW43    | SW3       | SW4        | Blue LED |
 | KW45B41Z-EVK | SW2       | SW3        | LED2     |
 | KW47-EVK     | SW2       | SW3        | LED2     |
 
