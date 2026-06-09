@@ -366,29 +366,47 @@ bool_t BluetoothLEHost_IsConnectivityTaskToProcess(void)
 ********************************************************************************** */
 void vPortSuppressTicksAndSleep(TickType_t xExpectedIdleTime)
 {
-    if (BluetoothLEHost_IsConnectivityTaskToProcess() == FALSE)
+    if (PWR_IsDeviceAllowedToSleep() != 0U)
     {
-        bool abortIdle = false;
-        uint64_t actualIdleTimeUs = 0U, expectedIdleTimeUs = 0U;
-
-        /* The OSA_InterruptDisable() API will prevent us to wakeup so we use
-         * OSA_DisableIRQGlobal() */
+        /* Sleep is disallowed by the application (e.g. PWR_DisallowDeviceToSleep() was called).
+         * Execute a plain WFI to reduce power consumption while keeping systicks enabled.
+         * This avoids calling PWR_SysticksPreProcess/PostProcess, which would accumulate
+         * timing errors by repeatedly stopping and restarting the systick timer.
+         * NOTE: PWR_DisallowDeviceToSleep() should be avoided; prefer
+         * PWR_SetLowPowerModeConstraint(PWR_WFI) instead. */
         OSA_DisableIRQGlobal();
-
-        /* Disable and prepare systicks for low power */
-        abortIdle = PWR_SysticksPreProcess((uint32_t)xExpectedIdleTime, &expectedIdleTimeUs);
-
-        if (abortIdle == false)
+        SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
+        __DSB();
+        __WFI();
+        __ISB();
+        OSA_EnableIRQGlobal();
+    }
+    else
+    {
+        if (BluetoothLEHost_IsConnectivityTaskToProcess() == FALSE)
         {
+            bool abortIdle = false;
+            uint64_t actualIdleTimeUs = 0U, expectedIdleTimeUs = 0U;
+
+            /* The OSA_InterruptDisable() API will prevent us to wakeup so we use
+             * OSA_DisableIRQGlobal() */
+            OSA_DisableIRQGlobal();
+
+            /* Disable and prepare systicks for low power */
+            abortIdle = PWR_SysticksPreProcess((uint32_t)xExpectedIdleTime, &expectedIdleTimeUs);
+
+            if (abortIdle == false)
+            {
                 /* Enter low power with a maximal timeout */
                 actualIdleTimeUs = PWR_EnterLowPower(expectedIdleTimeUs);
 
                 /* Re enable systicks and compensate systick timebase */
                 PWR_SysticksPostProcess(expectedIdleTimeUs, actualIdleTimeUs);
-        }
+            }
 
-        /* Exit from critical section */
-        OSA_EnableIRQGlobal();
+            /* Exit from critical section */
+            OSA_EnableIRQGlobal();
+        }
     }
 }
 #endif /* defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0) */
