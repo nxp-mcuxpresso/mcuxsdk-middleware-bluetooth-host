@@ -5168,6 +5168,7 @@ static void GetInitializationCompleteEventFromBuffer
 )
 {
     fsciBleGetUint64ValueFromBuffer(pGenericEvent->eventData.initCompleteData.supportedFeatures, *ppBuffer);
+    fsciBleGetArrayFromBuffer(pGenericEvent->eventData.initCompleteData.leExtendedFeatures, *ppBuffer, (uint32_t)gLeExtendedFeaturesSize_c);
     fsciBleGetUint16ValueFromBuffer(pGenericEvent->eventData.initCompleteData.maxAdvDataSize, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pGenericEvent->eventData.initCompleteData.numOfSupportedAdvSets, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(pGenericEvent->eventData.initCompleteData.periodicAdvListSize, *ppBuffer);  
@@ -5658,6 +5659,8 @@ static void GetBufferFromInitializationCompleteEvent
 )
 {
     fsciBleGetBufferFromUint64Value(pGenericEvent->eventData.initCompleteData.supportedFeatures, *ppBuffer);
+    fsciBleGetBufferFromUint8Value((uint8_t)gLeExtendedFeaturesSize_c, *ppBuffer);
+    fsciBleGetBufferFromArray(pGenericEvent->eventData.initCompleteData.leExtendedFeatures, *ppBuffer, (uint32_t)gLeExtendedFeaturesSize_c);
     fsciBleGetBufferFromUint16Value(pGenericEvent->eventData.initCompleteData.maxAdvDataSize, *ppBuffer);
     fsciBleGetBufferFromUint8Value(pGenericEvent->eventData.initCompleteData.numOfSupportedAdvSets, *ppBuffer);
     fsciBleGetBufferFromUint8Value(pGenericEvent->eventData.initCompleteData.periodicAdvListSize, *ppBuffer);
@@ -6369,7 +6372,8 @@ static uint32_t GetInitializationCompleteEventBufferSize
     gapGenericEvent_t   *pGenericEvent
 )
 {
-    return sizeof(uint64_t) + sizeof(uint16_t) + 2U * sizeof(uint8_t);
+    return sizeof(uint64_t) + sizeof(uint8_t) + (uint32_t)gLeExtendedFeaturesSize_c +
+           sizeof(uint16_t) + 2U * sizeof(uint8_t);
 }
 
 /*! *********************************************************************************

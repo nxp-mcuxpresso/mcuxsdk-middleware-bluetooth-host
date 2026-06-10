@@ -475,6 +475,7 @@ static void idle_task(void* param)
     {
         NBU_Idle();
         NB_API_Idle();
+        LL_API_NotifyWakeUp();
     }
 }
 
