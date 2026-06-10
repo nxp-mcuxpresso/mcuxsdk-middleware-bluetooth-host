@@ -216,16 +216,22 @@ void AppLocalizationAlgo_RunMeasurement
         /* Extract Subevent Done Status for local data */
         for (uint8_t idx = 0U; idx <= pLocalData->subeventIndex; idx++)
         {
-            response.cs_data->subevtDoneStatusLocal[idx] = pLocalData->aSubEventData[idx].subevtHeader.subeventDoneStatus;
-            response.cs_data->subevtAbortReasonLocal[idx] = pLocalData->aSubEventData[idx].subevtHeader.abortReason;
+            if (idx < gMaxNumCsSubevents_c)
+            {
+                response.cs_data->subevtDoneStatusLocal[idx] = pLocalData->aSubEventData[idx].subevtHeader.subeventDoneStatus;
+                response.cs_data->subevtAbortReasonLocal[idx] = pLocalData->aSubEventData[idx].subevtHeader.abortReason;
+            }
         }
 
         /* Extract Subevent Done Status and Stop Index for remote data */
         for (uint8_t idx = 0U; idx <= pPeerData->subeventIndex; idx++)
         {
-            response.cs_data->subevtDoneStatusRemote[idx] = pPeerData->aSubEventData[idx].subevtHeader.subeventDoneStatus;
-            response.cs_data->subevtStopIdxRemote[idx] = pRemoteCsAppData->csData.subevtStopIdxRemote[idx];
-            response.cs_data->subevtAbortReasonRemote[idx] = pPeerData->aSubEventData[idx].subevtHeader.abortReason;
+            if (idx < gMaxNumCsSubevents_c)
+            {
+                response.cs_data->subevtDoneStatusRemote[idx] = pPeerData->aSubEventData[idx].subevtHeader.subeventDoneStatus;
+                response.cs_data->subevtStopIdxRemote[idx] = pRemoteCsAppData->csData.subevtStopIdxRemote[idx];
+                response.cs_data->subevtAbortReasonRemote[idx] = pPeerData->aSubEventData[idx].subevtHeader.abortReason;
+            }
         }
 
         /* Reorder data so that index 0 represents initiator, index 1 represents reflector whatever the device role is */
