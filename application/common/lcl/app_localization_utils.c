@@ -815,6 +815,9 @@ static bool_t HandleLocalTofPresent
     /* ToF record */
     uint32_t quality = 0U;
     bool_t bIncomplete = FALSE;
+#if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
+    int8_t rssiValue = (int8_t)gRssiNotAvailable_c;
+#endif /* gAppParseRssiInfo_d */
 
     do
     {
@@ -826,17 +829,22 @@ static bool_t HandleLocalTofPresent
             hciCsStoreBytesInTofBuffer(pDstAppBuffer, *ppEventData, (int)gCsNadmSize_c); /* Packet_NADM */
         );
 
+#if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
+        CheckSkipBytes(*ppEventData, *pDataSize, gCsRssiSize_c, bIncomplete, 
+            hciCsStoreBytesInTofBuffer(pDstAppBuffer, *ppEventData, (int)gCsRssiSize_c); /* Packet_RSSI */
+            rssiValue = (int8_t)(**ppEventData); /* capture before pointer advances */
+        );
+
+        if (rssiValue != (int8_t)gRssiNotAvailable_c)
+        {
+            /* Count RSSI if available */
+            pDstAppBuffer->aRssiValue[pDstAppBuffer->rssiStepNo] = rssiValue;
+            pDstAppBuffer->rssiStepNo++;
+        }
+#else
         CheckSkipBytes(*ppEventData, *pDataSize, gCsRssiSize_c, bIncomplete, 
             hciCsStoreBytesInTofBuffer(pDstAppBuffer, *ppEventData, (int)gCsRssiSize_c); /* Packet_RSSI */
         );
-
-#if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1U)
-        if ((int8_t)(**ppEventData) != gRssiNotAvailable_c)
-        {
-            /* Count RSSI if available */
-            pDstAppBuffer->aRssiValue[pDstAppBuffer->rssiStepNo] = (int8_t)(**ppEventData);
-            pDstAppBuffer->rssiStepNo++;
-        }
 #endif /* gAppParseRssiInfo_d */
 
         CheckSkipBytes(*ppEventData, *pDataSize, sizeof(uint16_t), bIncomplete, 
