@@ -977,7 +977,7 @@ static shell_status_t ShellFilter_Command(shell_handle_t shellHandle, int32_t ar
         deviceId_t deviceId = (uint8_t)BleApp_AsciiToHex(argv[1], FLib_StrLen(argv[1]));
 
         if (sizeof(uint8_t) != BleApp_ParseHexValue(argv[1]) ||
-            deviceId > (uint8_t)gAppMaxConnections_c)
+            deviceId >= (uint8_t)gAppMaxConnections_c)
         {
             status = gBleInvalidParameter_c;
         }
