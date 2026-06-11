@@ -76,7 +76,7 @@ static btcsSegmIdx_t* mpSegmIdx[gAppMaxConnections_c];
 static bool_t mbpTransferInProgress[gAppMaxConnections_c] = {FALSE};
 
 /* Antenna permutation order */
-static const uint8_t maAntPermNAp[24][4] = {
+static const uint8_t maAntPermNAp[24][gMaxNumAntennaPaths_c] = {
     {0,1,2,3}, /* A1,A2,A3,A4 */
     {1,0,2,3}, /* A2,A1,A3,A4 */
     {0,2,1,3}, /* A1,A3,A2,A4 */

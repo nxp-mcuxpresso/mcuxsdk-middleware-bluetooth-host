@@ -3688,39 +3688,49 @@ static bleResult_t processCsResultsEvent
             mResultData[deviceId].procedureCounter = pEvent->procedureCounter;
             mResultData[deviceId].numAntennaPaths = pEvent->numAntennaPaths;
 
+            if (mResultData[deviceId].numAntennaPaths > 0U && mResultData[deviceId].numAntennaPaths <= gMaxNumAntennaPaths_c)
+            {
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1U)
-            gCsTimeInfo.csDistMeasStart = TM_GetTimestamp();
-            gCsTimeInfo.csDistMeasDuration  = 0U;
+                gCsTimeInfo.csDistMeasStart = TM_GetTimestamp();
+                gCsTimeInfo.csDistMeasDuration  = 0U;
 #endif
 
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
 #if defined(gRasRREQ_d) && (gRasRREQ_d == 1U)
-            /* First results event - Expecting Data Ready from peer */
-            mRreqTimeoutData.deviceId = deviceId;
-            mRreqTimeoutData.reason = (uint8_t)rreqWaitingForDataReady_c;
-            /* Start Data Ready (On demad)/Real-time data timer */
-            RasClient_SartRapTimer(deviceId, mRreqTimeoutData);
+                /* First results event - Expecting Data Ready from peer */
+                mRreqTimeoutData.deviceId = deviceId;
+                mRreqTimeoutData.reason = (uint8_t)rreqWaitingForDataReady_c;
+                /* Start Data Ready (On demad)/Real-time data timer */
+                RasClient_SartRapTimer(deviceId, mRreqTimeoutData);
 #endif /* gRasRREQ_d */
 #endif /* gAppRasDataTransfer_d */
+            }
+            else
+            {
+                result = gBleInvalidParameter_c;
+            }
         }
 
-        /* Update subevent information */
-        pSubevtHeader->startACLConnEvent = pEvent->startACLConnEvent;
-        pSubevtHeader->frequencyCompensation = pEvent->frequencyCompensation;
-        pSubevtHeader->referencePowerLevel = pEvent->referencePowerLevel;
-        pSubevtHeader->procedureDoneStatus = pEvent->procedureDoneStatus;
-        pSubevtHeader->subeventDoneStatus = pEvent->subeventDoneStatus;
-        pSubevtHeader->abortReason = pEvent->abortReason;
-        pSubevtHeader->numStepsReported = pEvent->numStepsReported;
+        if (result != gBleInvalidParameter_c)
+        {
+            /* Update subevent information */
+            pSubevtHeader->startACLConnEvent = pEvent->startACLConnEvent;
+            pSubevtHeader->frequencyCompensation = pEvent->frequencyCompensation;
+            pSubevtHeader->referencePowerLevel = pEvent->referencePowerLevel;
+            pSubevtHeader->procedureDoneStatus = pEvent->procedureDoneStatus;
+            pSubevtHeader->subeventDoneStatus = pEvent->subeventDoneStatus;
+            pSubevtHeader->abortReason = pEvent->abortReason;
+            pSubevtHeader->numStepsReported = pEvent->numStepsReported;
 
-        mResultData[deviceId].totalNumSteps += pEvent->numStepsReported;
+            mResultData[deviceId].totalNumSteps += pEvent->numStepsReported;
 
-        /* Use free bits of packet_AA_quality of first mode0 step to store eventIdx (we do not keep track of all subevent headers) */
-        eventIdx = pEvent->startACLConnEvent - pSubevtHeader->startACLConnEvent;
-        *(pEvent->pData + 3U * sizeof(uint8_t)) |= (uint8_t)(eventIdx << CS_EVTIDX_SHIFT);
+            /* Use free bits of packet_AA_quality of first mode0 step to store eventIdx (we do not keep track of all subevent headers) */
+            eventIdx = pEvent->startACLConnEvent - pSubevtHeader->startACLConnEvent;
+            *(pEvent->pData + 3U * sizeof(uint8_t)) |= (uint8_t)(eventIdx << CS_EVTIDX_SHIFT);
 
-        result = processEventResultData(deviceId, pEvent->numStepsReported,
-                                        pEvent->subeventDoneStatus, pEvent->procedureDoneStatus, pEvent->pData);
+            result = processEventResultData(deviceId, pEvent->numStepsReported,
+                                            pEvent->subeventDoneStatus, pEvent->procedureDoneStatus, pEvent->pData);
+        }
     }
 
     return result;
