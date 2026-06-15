@@ -252,7 +252,8 @@ bool dm_cde_distance_estimation(int16_t *pIQin1, int16_t *pIQin2, int16_t *Phase
  */
 bool dm_cde_get_estimate_by_index(dm_cde_estimate_t* pEstimateResult, uint16_t index);
 
-#define IS_FREQ_SMP_VALID(index, mask) (((mask) == NULL) || ((((mask)[(index) / 32] >> ((index) % 32)) & 0x1) == 1U))
+#define IS_FREQ_SMP_VALID(index, mask) \
+    (((mask) == NULL) || ((((mask)[(index) / 32U] >> ((index) % 32U)) & 0x1U) == 1U))
 
 /*******************************************************************************
  * Types
