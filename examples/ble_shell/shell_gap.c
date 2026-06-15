@@ -229,6 +229,7 @@ static void ShellGap_GenericCallbackAdv (gapGenericEvent_t* pGenericEvent);
 #if (defined(gAppUseTAK_d) && gAppUseTAK_d)
 static shell_status_t ShellGap_Tak(uint8_t argc, char * argv[]);
 #endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
+static void ShellGap_HandlePeriodicDeviceScannedEvt(gapScanningEvent_t* pScanningEvent);
 
 /************************************************************************************
 *************************************************************************************
@@ -4289,7 +4290,7 @@ void ShellGap_ConnectionCallback
 void ShellGap_ScanningCallback (gapScanningEvent_t* pScanningEvent)
 {
     uint8_t aux;
-	
+
     /* Handle scanning events */
     switch (pScanningEvent->eventType)
     {
@@ -4386,25 +4387,12 @@ void ShellGap_ScanningCallback (gapScanningEvent_t* pScanningEvent)
             break;
 
         case gPeriodicDeviceScanned_c:
-            shell_write("\r\n-->  GAP Event: Periodic Device Scanned");
-            if (mRSSIMonitor)
-            {
-                shell_write(" RSSI: ");
-                if(((uint8_t)pScanningEvent->eventData.periodicScannedDevice.rssi >> 7) != 0U)
-                {
-                    /* Negative Value */
-                    (void)SHELL_PrintfSynchronization((shell_handle_t)g_shellHandle, "-");
-                    aux = ~((uint8_t)pScanningEvent->eventData.periodicScannedDevice.rssi - 1U);
-                    pScanningEvent->eventData.periodicScannedDevice.rssi = (int8_t)aux;
-                }
-                shell_writeDec((uint32_t)pScanningEvent->eventData.periodicScannedDevice.rssi);
-                shell_write(" dBm");
-            }
+             ShellGap_HandlePeriodicDeviceScannedEvt(pScanningEvent);
             break;
-
-#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
         case gPeriodicDeviceScannedV2_c:
         {
+            ShellGap_HandlePeriodicDeviceScannedEvt(pScanningEvent);
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
             /* Periodic information variables */
             uint16_t eventIdx = pScanningEvent->eventData.periodicScannedDeviceV2.periodicEventCounter;
             uint8_t subeventIdx = pScanningEvent->eventData.periodicScannedDeviceV2.subevent;
@@ -4413,8 +4401,6 @@ void ShellGap_ScanningCallback (gapScanningEvent_t* pScanningEvent)
             uint16_t dataLength = pScanningEvent->eventData.periodicScannedDeviceV2.dataLength;
             uint8_t *pData = (uint8_t*)pScanningEvent->eventData.periodicScannedDeviceV2.pData;
             uint16_t index = 0U;
-
-            shell_write("\r\n-->  GAP Event: Periodic V2 Device Scanned");
 
             /* The responder will always set the data for the ongoing event */
             shell_write("\r\n\tEvent Counter: ");
@@ -4485,10 +4471,9 @@ void ShellGap_ScanningCallback (gapScanningEvent_t* pScanningEvent)
                     shell_write("\r\nResponse Data Set\r\n");
                 }
             }
-
+#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
             break;
         }
-#endif /* (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1) */
 
 #if defined(BLE_SHELL_MONADV_SUPPORT) && (BLE_SHELL_MONADV_SUPPORT)
         case gMonAdvReportEventReceived_c:
@@ -5735,9 +5720,9 @@ static shell_status_t ShellGap_ConnSbrReq(uint8_t argc, char * argv[])
 /*! *********************************************************************************
  * \brief        Handles the gConnEvtLeSubrateChange_c connection event.
  *
- * \param[in]    peerDeviceId   ID of the peer device 
+ * \param[in]    peerDeviceId   ID of the peer device
  *
- * \param[in]    pEvent         pointer to the event data   
+ * \param[in]    pEvent         pointer to the event data
  *
  * \return       void
  ********************************************************************************** */
@@ -5925,6 +5910,37 @@ static shell_status_t ShellGap_Tak(uint8_t argc, char * argv[])
 }
 
 #endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
+
+/*! *********************************************************************************
+ * \brief        Handles the gPeriodicDeviceScanned_c scanning event.
+ *
+ * \param[in]    pScanningEvent   pointer to the scanning event.
+ *
+ * \return       void
+ ********************************************************************************** */
+static void ShellGap_HandlePeriodicDeviceScannedEvt(gapScanningEvent_t* pScanningEvent)
+{
+    uint8_t aux;
+    shell_write("\r\n-->  GAP Event: Periodic Device Scanned");
+#if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
+    bool_t printRSSI = mRSSIMonitor && (pScanningEvent->eventType == gPeriodicDeviceScanned_c);
+#else
+    bool_t printRSSI = mRSSIMonitor;
+#endif
+    if (printRSSI)
+    {
+        shell_write("\r\n\tRSSI: ");
+        if(((uint8_t)pScanningEvent->eventData.periodicScannedDevice.rssi >> 7) != 0U)
+        {
+            /* Negative Value */
+            shell_write("-");
+            aux = ~((uint8_t)pScanningEvent->eventData.periodicScannedDevice.rssi - 1U);
+            pScanningEvent->eventData.periodicScannedDevice.rssi = (int8_t)aux;
+        }
+        shell_writeDec((uint32_t)pScanningEvent->eventData.periodicScannedDevice.rssi);
+        shell_write(" dBm");
+    }
+}
 /*! *********************************************************************************
  * @}
  ********************************************************************************** */

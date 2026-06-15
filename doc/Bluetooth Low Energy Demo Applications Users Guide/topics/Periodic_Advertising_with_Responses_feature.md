@@ -102,7 +102,7 @@ To showcase the functionality, two platforms are used in the following setup.
 
     ```
     -->  GAP Event: Periodic Advertising Sync Established
-    -->  GAP Event: Periodic V2 Device Scanned
+    -->  GAP Event: Periodic Device Scanned
             Event Counter: 8
             Subevent Synced: 0
             RSSI: -38 dBm
@@ -117,15 +117,15 @@ To showcase the functionality, two platforms are used in the following setup.
     BLE Shell>Set Sync Subevent command successfully completed.
     ```
 
-    After this, GAP Events of type Periodic V2 Device Scanned should be displayed in the console for each of the subevents synchronized.
+    After this, GAP Events of type Periodic Device Scanned should be displayed in the console for each of the subevents synchronized.
 
     ```
-    -->  GAP Event: Periodic V2 Device Scanned
+    -->  GAP Event: Periodic Device Scanned
             Event Counter: 169
             Subevent Synced: 0
             RSSI: -34 dBm
             Advertising Data: info1
-    -->  GAP Event: Periodic V2 Device Scanned
+    -->  GAP Event: Periodic Device Scanned
             Event Counter: 169
             Subevent Synced: 1
             RSSI: -38 dBm
