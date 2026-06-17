@@ -554,6 +554,12 @@ bleResult_t AppLocalization_Init
         BtcsServer_Init();
 #endif /* gAppRasDataTransfer_d */
 
+#if defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
+        /* Open the BTCS client transfer watchdog that keeps the CS procedure
+         * auto-restart loop alive if an L2CAP transfer stalls. */
+        BtcsClient_OpenTimer();
+#endif /* gAppBtcsClient_d */
+
         /* Set default values */
         mGlobalRangeSettings.role = role;
         for (uint8_t index = 0U; index < (uint8_t)gAppMaxConnections_c; index++)
@@ -3703,6 +3709,11 @@ static bleResult_t processCsResultsEvent
                 /* Start Data Ready (On demad)/Real-time data timer */
                 RasClient_SartRapTimer(deviceId, mRreqTimeoutData);
 #endif /* gRasRREQ_d */
+#elif defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
+                /* First local results event - arm the BTCS transfer watchdog so the
+                 * CS procedure auto-restart loop recovers if the peer L2CAP transfer
+                 * never completes. */
+                BtcsClient_StartTimer(deviceId);
 #endif /* gAppRasDataTransfer_d */
             }
             else

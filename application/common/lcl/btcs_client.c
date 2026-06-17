@@ -24,9 +24,7 @@
 #include "channel_sounding.h"
 #include "btcs_client_interface.h"
 #include "app_localization.h"
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1U)
 #include "fsl_component_timer_manager.h"
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1U) */
 #include "app_localization_algo.h"
 #include "app_localization_debug.h"
 
@@ -66,6 +64,15 @@ static rasMeasurementData_t mPeerResultData[gAppMaxConnections_c];
 
 /* Subevent index and number of steps information for each peer */
 static btcsClientSubEvtInfo_t mSubEvtInfo[gAppMaxConnections_c];
+
+/* Per-connection watchdog timers used to recover the CS procedure auto-restart
+ * loop if a BTCS L2CAP transfer stalls or is lost. Proprietary, not part of the
+ * CCC BTCS spec. */
+static TIMER_MANAGER_HANDLE_DEFINE(mBtcsTimerId[gAppMaxConnections_c]);
+
+/* Stable storage for the peer identifier passed to each watchdog callback.
+ * A pointer to the matching element is supplied to TM_InstallCallback. */
+static deviceId_t mBtcsTimerDeviceId[gAppMaxConnections_c];
 
 /************************************************************************************
 *************************************************************************************
@@ -114,6 +121,13 @@ static bleResult_t checkTransferComplete
     deviceId_t deviceId
 );
 
+/* Watchdog timer callback - recovers the CS procedure loop when a BTCS L2CAP
+ * transfer fails to complete in time. */
+static void BtcsTimerCallback
+(
+    void *param
+);
+
 /************************************************************************************
 *************************************************************************************
 * Public functions
@@ -154,6 +168,9 @@ void BtcsClient_ResetPeer
     bool_t     disconnected
 )
 {
+    /* Stop the watchdog timer whenever the peer is reset or disconnected. */
+    BtcsClient_StopTimer(deviceId);
+
     /* Clean up ranging data */
     if (mPeerResultData[deviceId].pData != NULL)
     {
@@ -434,6 +451,9 @@ static bleResult_t checkTransferComplete
     {
         uint16_t totalStepCounter = 0U;
 
+        /* Transfer completed in time - stop the watchdog timer. */
+        BtcsClient_StopTimer(deviceId);
+
         /* Total number of steps */
         pDstAppBuffer->csData.step_nb = (uint16_t)pRemoteData->step;
 
@@ -713,6 +733,91 @@ static bleResult_t handleRangingProcResCont
     }
 
     return result;
+}
+
+/*! *********************************************************************************
+*\fn            void BtcsClient_OpenTimer(void)
+*
+*\brief         Open the BTCS client transfer watchdog timer.
+*
+*\retval        none
+********************************************************************************** */
+void BtcsClient_OpenTimer(void)
+{
+    for (uint8_t idx = 0U; idx < (uint8_t)gAppMaxConnections_c; idx++)
+    {
+        (void)TM_Open((timer_handle_t)mBtcsTimerId[idx]);
+    }
+}
+
+/*! *********************************************************************************
+*\fn            void BtcsClient_StartTimer(deviceId_t deviceId)
+*
+*\brief         (Re)arm the BTCS client transfer watchdog timer for the given peer.
+*
+*\param[in]     deviceId         Peer identifier
+*
+*\retval        none
+********************************************************************************** */
+void BtcsClient_StartTimer
+(
+    deviceId_t deviceId
+)
+{
+    /* Pass a pointer to the peer identifier so the callback can act on it. */
+    mBtcsTimerDeviceId[deviceId] = deviceId;
+    (void)TM_InstallCallback((timer_handle_t)mBtcsTimerId[deviceId], BtcsTimerCallback, &mBtcsTimerDeviceId[deviceId]);
+    (void)TM_Start((timer_handle_t)mBtcsTimerId[deviceId],
+                   (uint8_t)kTimerModeLowPowerTimer | (uint8_t)kTimerModeSingleShot | (uint8_t)kTimerModeSetSecondTimer,
+                   gBtcsTimeoutSeconds_c);
+}
+
+/*! *********************************************************************************
+*\fn            void BtcsClient_StopTimer(deviceId_t deviceId)
+*
+*\brief         Stop the BTCS client transfer watchdog timer for the given peer.
+*
+*\param[in]     deviceId         Peer identifier
+*
+*\retval        none
+********************************************************************************** */
+void BtcsClient_StopTimer
+(
+    deviceId_t deviceId
+)
+{
+    (void)TM_Stop((timer_handle_t)mBtcsTimerId[deviceId]);
+}
+
+/*! *********************************************************************************
+*\fn            static void BtcsTimerCallback(void *param)
+*
+*\brief         Watchdog timer callback. On a stalled transfer, restart the CS
+*               procedure loop only when the full sequence (maxNumProcedures) has
+*               completed; otherwise go back to waiting for measurement data.
+*
+*\param[in]     param            Pointer to the peer identifier the timer was armed for
+*
+*\retval        none
+********************************************************************************** */
+static void BtcsTimerCallback
+(
+    void *param
+)
+{
+    deviceId_t deviceId = *(deviceId_t*)param;
+    uint16_t procCount = AppLocalization_GetProcedureCount(deviceId);
+    uint16_t maxProcs = AppLocalization_GetNumberOfProcedures(deviceId);
+
+    if (procCount == maxProcs)
+    {
+        AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
+        AppLocalization_ProcedureRestart(deviceId);
+    }
+    else
+    {
+        AppLocalization_SetLocState(deviceId, gAppLclWaitingForMeasData_c);
+    }
 }
 
 #endif /* gAppBtcsClient_d */

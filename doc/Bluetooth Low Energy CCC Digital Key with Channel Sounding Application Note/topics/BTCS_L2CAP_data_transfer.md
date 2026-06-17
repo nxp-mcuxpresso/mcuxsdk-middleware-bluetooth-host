@@ -23,5 +23,10 @@ Both `digital_key_car_anchor_cs` and `digital_key_device_cs` applications suppor
 
 ![](../images/dev_cs_btcs_both.png "BTCS transfer - Algo run on both sides")
 
+**BTCS L2CAP transfer watchdog (NXP proprietary extension)**
+
+The CCC BTCS specification does not define any timeout for the L2CAP measurement transfer. As an NXP proprietary extension, the BTCS client provides a watchdog timer that prevents the CS procedure auto-restart loop from stalling when a BTCS L2CAP transfer is lost or never completes. The watchdog is client-side only and is always enabled. Its duration in seconds is configured through `gBtcsTimeoutSeconds_c` (default `3`). The timer is armed when the client starts waiting for the peer transfer and is stopped as soon as the transfer completes. If it expires, the loop is only restarted once the full procedure sequence (`maxNumProcedures`) has been reached; otherwise the client just returns to waiting for the next procedure's measurement data.
+
 **Parent topic:**[Localization scenarios](../topics/localization_scenarios.md)
+
 

@@ -43,6 +43,12 @@
 /* Mode 1 data : Packet Quality, NADM, RSSI, Time Diff, Packet Antenna */
 #define gMode1DataSize_c  6U
 
+/* Duration in seconds of the BTCS client transfer watchdog. Proprietary, not
+ * part of the CCC BTCS spec. */
+#ifndef gBtcsTimeoutSeconds_c
+#define gBtcsTimeoutSeconds_c      3U
+#endif
+
 /************************************************************************************
 *************************************************************************************
 * Public type definitions
@@ -135,6 +141,43 @@ void BtcsClient_ResetPeer
 (
     deviceId_t deviceId,
     bool_t     disconnected
+);
+
+/*! *********************************************************************************
+*\fn            void BtcsClient_OpenTimer(void)
+*
+*\brief         Open the BTCS client transfer watchdog timer.
+*
+*\retval        none
+********************************************************************************** */
+void BtcsClient_OpenTimer(void);
+
+/*! *********************************************************************************
+*\fn            void BtcsClient_StartTimer(deviceId_t deviceId)
+*
+*\brief         (Re)arm the BTCS client transfer watchdog timer for the given peer.
+*
+*\param[in]     deviceId         Peer identifier
+*
+*\retval        none
+********************************************************************************** */
+void BtcsClient_StartTimer
+(
+    deviceId_t deviceId
+);
+
+/*! *********************************************************************************
+*\fn            void BtcsClient_StopTimer(deviceId_t deviceId)
+*
+*\brief         Stop the BTCS client transfer watchdog timer for the given peer.
+*
+*\param[in]     deviceId         Peer identifier
+*
+*\retval        none
+********************************************************************************** */
+void BtcsClient_StopTimer
+(
+    deviceId_t deviceId
 );
 
 #if defined(__cplusplus)
