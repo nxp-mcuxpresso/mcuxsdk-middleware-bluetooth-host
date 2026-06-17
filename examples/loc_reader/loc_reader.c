@@ -2866,34 +2866,72 @@ static void BleApp_PrintRssiInfo
     if (pResult->rssiInfo.rssiLocalNo != 0U)
     {
         int8_t rssiLocalAverage = 0;
+        int16_t rssiLocalSum = 0;
+        uint8_t rssiLocalValid = 0U;
         shell_write("Local Average: ");
+        /* Sum all valid samples first, then divide once. Dividing each sample
+           by the count before summing truncates every term toward zero and
+           collapses the average when there are many steps. Skip any
+           not-available sentinel samples so they do not skew the result. */
         for (uint8_t idx = 0U; idx < pResult->rssiInfo.rssiLocalNo; idx++)
         {
-            rssiLocalAverage += (pResult->rssiInfo.aRssiLocal[idx]/pResult->rssiInfo.rssiLocalNo);
+            if ((idx < gMaxNumCsSteps_c) &&
+                (pResult->rssiInfo.aRssiLocal[idx] != (int8_t)gRssiNotAvailable_c))
+            {
+                rssiLocalSum += (int16_t)pResult->rssiInfo.aRssiLocal[idx];
+                rssiLocalValid++;
+            }
         }
-        if (((uint8_t)rssiLocalAverage >> 7U) != 0U)
+        if (rssiLocalValid != 0U)
         {
-            shell_write("-");
-            rssiLocalAverage = ~((uint8_t)rssiLocalAverage - 1U);
+            rssiLocalAverage = (int8_t)(rssiLocalSum / (int16_t)rssiLocalValid);
         }
-        shell_writeDec(rssiLocalAverage);
+        if (rssiLocalAverage < 0)
+        {
+            int16_t rssiLocalMagnitude = -(int16_t)rssiLocalAverage;
+            shell_write("-");
+            shell_writeDec((uint32_t)rssiLocalMagnitude);
+        }
+        else
+        {
+            shell_writeDec((uint32_t)rssiLocalAverage);
+        }
         shell_write("    ");
     }
 
     if (pResult->rssiInfo.rssiRemoteNo != 0U)
     {
         int8_t rssiRemoteAverage = 0;
+        int16_t rssiRemoteSum = 0;
+        uint8_t rssiRemoteValid = 0U;
         shell_write("Remote Average: ");
+        /* Sum all valid samples first, then divide once. Dividing each sample
+           by the count before summing truncates every term toward zero and
+           collapses the average when there are many steps. Skip any
+           not-available sentinel samples so they do not skew the result. */
         for (uint8_t idx = 0U; idx < pResult->rssiInfo.rssiRemoteNo; idx++)
         {
-            rssiRemoteAverage += (pResult->rssiInfo.aRssiRemote[idx]/pResult->rssiInfo.rssiRemoteNo);
+            if ((idx < gMaxNumCsSteps_c) &&
+                (pResult->rssiInfo.aRssiRemote[idx] != (int8_t)gRssiNotAvailable_c))
+            {
+                rssiRemoteSum += (int16_t)pResult->rssiInfo.aRssiRemote[idx];
+                rssiRemoteValid++;
+            }
         }
-        if (((uint8_t)rssiRemoteAverage >> 7U) != 0U)
+        if (rssiRemoteValid != 0U)
         {
-            shell_write("-");
-            rssiRemoteAverage = ~((uint8_t)rssiRemoteAverage - 1U);
+            rssiRemoteAverage = (int8_t)(rssiRemoteSum / (int16_t)rssiRemoteValid);
         }
-        shell_writeDec(rssiRemoteAverage);
+        if (rssiRemoteAverage < 0)
+        {
+            int16_t rssiRemoteMagnitude = -(int16_t)rssiRemoteAverage;
+            shell_write("-");
+            shell_writeDec((uint32_t)rssiRemoteMagnitude);
+        }
+        else
+        {
+            shell_writeDec((uint32_t)rssiRemoteAverage);
+        }
         shell_write("\r\n");
     }
 }
@@ -2916,6 +2954,39 @@ static void BleApp_PrintMeasurementResults
     (defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)))
     bool_t bUIUpdated = FALSE;
 #endif
+
+#if defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U)
+    /* Accumulate the remote RSSI average of this completed procedure. At the end
+       of the loop iteration AppLocalization_ProcedureRestart computes the average
+       of these per-procedure averages and adapts the CS procedure interval for
+       the next iteration. */
+    {
+        int8_t rssiRemoteAverage = (int8_t)gRssiNotAvailable_c;
+
+        if (pResult->rssiInfo.rssiRemoteNo != 0U)
+        {
+            int16_t rssiSum = 0;
+            uint8_t rssiValid = 0U;
+            /* Sum the valid remote samples first, then divide once. Skip any
+               not-available sentinel samples so they do not skew the average. */
+            for (uint8_t idx = 0U; idx < pResult->rssiInfo.rssiRemoteNo; idx++)
+            {
+                if ((idx < gMaxNumCsSteps_c) &&
+                    (pResult->rssiInfo.aRssiRemote[idx] != (int8_t)gRssiNotAvailable_c))
+                {
+                    rssiSum += (int16_t)pResult->rssiInfo.aRssiRemote[idx];
+                    rssiValid++;
+                }
+            }
+            if (rssiValid != 0U)
+            {
+                rssiRemoteAverage = (int8_t)(rssiSum / (int16_t)rssiValid);
+            }
+        }
+
+        AppLocalization_AccumulateProcedureRssi(deviceId, rssiRemoteAverage);
+    }
+#endif /* defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U) */
 
     if ((mVerbosityLevel != 0U) || (mProcedureCount == mRangeSettings[deviceId].maxNumProcedures))
     {

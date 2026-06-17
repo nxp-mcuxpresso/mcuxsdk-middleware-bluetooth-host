@@ -121,6 +121,19 @@
    Information available in algorithm result structure */
 #define gAppParseRssiInfo_d                     0
 
+/* Enable/Disable adaptive CS procedure interval based on the RSSI average.
+   EXPERIMENTAL: this feature is provided for evaluation only and is disabled
+   by default.
+   When the procedure auto-restart loop is active, the RSSI average of each
+   iteration is used to adjust the CS procedure interval for the next iteration:
+     - good RSSI -> decrease interval (faster distance report rate)
+     - bad RSSI  -> increase interval (more time for the RAS transfer to finish)
+   The auto-restart loop runs on the NCP core (ncp_loc_reader) while the RSSI
+   samples are produced on the host core (loc_reader_host), so the host forwards
+   the per-procedure RSSI average to the NCP core over FSCI.
+   Requires gAppParseRssiInfo_d to be enabled. */
+#define gAppAdaptiveProcInterval_d              0
+
 /*! *********************************************************************************
  *     BLE LL Configuration
  ***********************************************************************************/

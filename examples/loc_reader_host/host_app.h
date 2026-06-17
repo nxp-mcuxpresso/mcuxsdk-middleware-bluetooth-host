@@ -36,6 +36,7 @@
 #define gAppSendRangeSettingsOpCode_c          0x01U
 #define gAppSetAlgoTypeIDOpCode_c              0x02U
 #define gAppSendDisconnectNotifOpCode_c        0x03U
+#define gAppSendProcRssiOpCode_c               0x04U
 
 /************************************************************************************
 *************************************************************************************

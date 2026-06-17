@@ -53,6 +53,17 @@ static void sendMeasurementResultHelper
     void* pData
 );
 
+#if defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U)
+/* FSCI callback handling messages received from core 0 on the NCP App group */
+static void App_NcpAppFsciCbHandler
+(
+    void*       pData,
+    void*       param,
+    uint32_t    fsciInterface
+);
+#endif /* defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U) */
+
+
 /************************************************************************************
 *************************************************************************************
 * Public functions
@@ -81,10 +92,18 @@ bleResult_t App_NcpAppFsciInit(void)
     {
         gFsciStatus_t status = gFsciSuccess_c;
 
-        /* Initialize FSCI for core 0 communication */
+        /* Initialize FSCI for core 0 communication. When the adaptive CS procedure
+           interval is enabled, register a callback so the per-procedure remote RSSI
+           average forwarded by core 0 can be consumed on this core. */
+#if defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U)
+        status = FSCI_RegisterOpGroup(gFsciNcpAppOpcodeGroup_c,
+                                      gFsciMonitorMode_c,
+                                      App_NcpAppFsciCbHandler, NULL, mFsciInterfaceId);
+#else
         status = FSCI_RegisterOpGroup(gFsciNcpAppOpcodeGroup_c,
                                       gFsciMonitorMode_c,
                                       NULL, NULL, mFsciInterfaceId);
+#endif /* defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U) */
 
         if (status != gFsciSuccess_c)
         {
@@ -280,3 +299,53 @@ static void sendMeasurementResultHelper
        (void)MEM_BufferFree(pEventData);
    }
 }
+
+#if defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U)
+/*! *********************************************************************************
+ * \brief  FSCI callback for messages received from core 0 on the NCP App group.
+ *         Consumes the per-procedure remote RSSI average forwarded by core 0 and
+ *         feeds it into the adaptive CS procedure interval logic.
+ *
+ * \param[in]    pData           Pointer to the received FSCI packet
+ * \param[in]    param           Unused
+ * \param[in]    fsciInterface   FSCI interface identifier
+ *
+ * \return       none
+********************************************************************************** */
+static void App_NcpAppFsciCbHandler
+(
+    void*       pData,
+    void*       param,
+    uint32_t    fsciInterface
+)
+{
+    clientPacket_t* pClientPacket = (clientPacket_t*)pData;
+    uint8_t*        pBuffer       = &pClientPacket->structured.payload[0];
+
+    (void)param;
+    (void)fsciInterface;
+
+    switch (pClientPacket->structured.header.opCode)
+    {
+        case gAppSendProcRssiOpCode_c:
+        {
+            deviceId_t deviceId;
+            int8_t     procRssiAverage;
+
+            fsciBleGetDeviceIdFromBuffer(&deviceId, &pBuffer);
+            fsciBleGetUint8ValueFromBuffer(procRssiAverage, pBuffer);
+
+            AppLocalization_AccumulateProcedureRssi(deviceId, procRssiAverage);
+        }
+        break;
+
+        default:
+        {
+            ; /* skip unknown event */
+        }
+        break;
+    }
+
+    (void)MEM_BufferFree(pData);
+}
+#endif /* defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U) */

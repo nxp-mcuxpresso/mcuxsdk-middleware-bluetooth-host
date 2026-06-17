@@ -1369,16 +1369,109 @@ void AppLocalization_EnableProcedureRestart
     mAutoRestart = bRestart;
 }
 
+#if defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U)
 /*! *********************************************************************************
-*\fn            void AppLocalization_RestartProcedure(deviceId_t deviceId);
+*\fn            static void AppLocalization_AdaptProcIntervalToRssi(deviceId_t deviceId,
+*                                                                   int8_t loopRssiAverage);
 *
-*\brief         Restart CS procedure if previously configured to do so via 
-*               AppLocalization_EnableProcedureRestart.
+*\brief         Adjust the CS procedure interval of the next loop iteration based
+*               on the RSSI average (average of the per-procedure averages)
+*               of the iteration that just completed. Good RSSI decreases the
+*               interval (faster report rate), bad RSSI increases it (more time
+*               for the RAS transfer to finish). The new interval is clamped
+*               between gAdaptiveProcIntervalMin_d and gAdaptiveProcIntervalMax_d.
 *
-*\param[in]     deviceId_t   Peer device ID.
+*\param[in]     deviceId           Peer device ID.
+*\param[in]     loopRssiAverage    RSSI average for the completed loop iteration (signed dBm).
 *
 *\retval        none
 ********************************************************************************** */
+static void AppLocalization_AdaptProcIntervalToRssi
+(
+    deviceId_t deviceId,
+    int8_t loopRssiAverage
+)
+{
+    uint16_t curInterval = mRangeSettings[deviceId].minPeriodBetweenProcedures;
+    uint16_t newInterval = curInterval;
+
+    if (loopRssiAverage >= (int8_t)gAdaptiveRssiGoodThreshold_d)
+    {
+        /* Good RSSI: decrease interval (faster report rate), clamped to minimum */
+        if (curInterval > ((uint16_t)gAdaptiveProcIntervalMin_d + (uint16_t)gAdaptiveProcIntervalStep_d))
+        {
+            newInterval = curInterval - (uint16_t)gAdaptiveProcIntervalStep_d;
+        }
+        else
+        {
+            newInterval = (uint16_t)gAdaptiveProcIntervalMin_d;
+        }
+    }
+    else if (loopRssiAverage <= (int8_t)gAdaptiveRssiBadThreshold_d)
+    {
+        /* Bad RSSI: increase interval (more RAS transfer headroom), clamped to maximum */
+        if ((curInterval + (uint16_t)gAdaptiveProcIntervalStep_d) < (uint16_t)gAdaptiveProcIntervalMax_d)
+        {
+            newInterval = curInterval + (uint16_t)gAdaptiveProcIntervalStep_d;
+        }
+        else
+        {
+            newInterval = (uint16_t)gAdaptiveProcIntervalMax_d;
+        }
+    }
+    else
+    {
+        /* RSSI in the hysteresis band: leave the interval unchanged */
+    }
+
+    if (newInterval != curInterval)
+    {
+        mRangeSettings[deviceId].minPeriodBetweenProcedures = newInterval;
+        mRangeSettings[deviceId].maxPeriodBetweenProcedures = newInterval;
+
+        /* Recompute the dependent procedure duration for the new interval */
+        AppLocalization_ComputeMaxProcedureDuration((uint32_t)newInterval,
+                                                    mRangeSettings[deviceId].connInterval,
+                                                    &mRangeSettings[deviceId].maxProcedureDuration);
+    }
+    CS_LOG_INFO("AdaptProcInterval: devId=%d rssiAvg=%s%u interval %d -> %d",
+                deviceId,
+                (loopRssiAverage < 0) ? "-" : "",
+                (loopRssiAverage < 0) ? (unsigned)(-(int)loopRssiAverage) : (unsigned)loopRssiAverage,
+                curInterval, newInterval);
+}
+
+/*! *********************************************************************************
+*\fn            void AppLocalization_AccumulateProcedureRssi(deviceId_t deviceId,
+*                                                            int8_t procRssiAverage);
+*
+*\brief         Accumulate the remote RSSI average of a single completed CS procedure
+*               into the running sum of the current loop iteration. At the end of
+*               the loop iteration AppLocalization_ProcedureRestart computes the
+*               average of these per-procedure averages and adapts the CS procedure
+*               interval accordingly. Procedures with no valid RSSI are ignored.
+*
+*\param[in]     deviceId           Peer device ID.
+*\param[in]     procRssiAverage    Remote RSSI average for the completed procedure (signed dBm).
+*
+*\retval        none
+********************************************************************************** */
+void AppLocalization_AccumulateProcedureRssi
+(
+    deviceId_t deviceId,
+    int8_t procRssiAverage
+)
+{
+    if ((deviceId < (deviceId_t)gAppMaxConnections_c) &&
+        (mAutoRestart == TRUE) &&
+        (procRssiAverage != (int8_t)gRssiNotAvailable_c))
+    {
+        mRangeSettings[deviceId].adaptiveRssiSum += (int16_t)procRssiAverage;
+        mRangeSettings[deviceId].adaptiveRssiCount++;
+    }
+}
+#endif /* gAppAdaptiveProcInterval_d */
+
 void AppLocalization_ProcedureRestart
 (
     deviceId_t deviceId
@@ -1386,9 +1479,41 @@ void AppLocalization_ProcedureRestart
 {
     if (mAutoRestart == TRUE)
     {
+#if defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U)
+       /* End of the loop iteration: adapt the CS procedure interval of the next
+          iteration. The loop expected maxNumProcedures procedures; any procedure
+          that did not complete (no valid RSSI) is treated as a very bad link so
+          that an unstable connection increases the interval. The loop average is
+          therefore computed over the full expected count, with each missing
+          procedure contributing gAdaptiveRssiNotCompleted_d to the sum. */
+       if ((deviceId < (deviceId_t)gAppMaxConnections_c) &&
+           (mRangeSettings[deviceId].maxNumProcedures != 0U))
+       {
+           uint16_t expectedProcedures = mRangeSettings[deviceId].maxNumProcedures;
+           uint16_t missingProcedures = 0U;
+
+           if (expectedProcedures > (uint16_t)mRangeSettings[deviceId].adaptiveRssiCount)
+           {
+               missingProcedures = expectedProcedures - (uint16_t)mRangeSettings[deviceId].adaptiveRssiCount;
+           }
+
+           int32_t totalSum = (int32_t)mRangeSettings[deviceId].adaptiveRssiSum +
+                              ((int32_t)missingProcedures * (int32_t)gAdaptiveRssiNotCompleted_d);
+           int8_t loopRssiAverage = (int8_t)(totalSum / (int32_t)expectedProcedures);
+
+           AppLocalization_AdaptProcIntervalToRssi(deviceId, loopRssiAverage);
+
+           mRangeSettings[deviceId].adaptiveRssiSum = 0;
+           mRangeSettings[deviceId].adaptiveRssiCount = 0U;
+       }
+#endif /* gAppAdaptiveProcInterval_d */
+
        /* Reset peer and restart procedure */
-       AppLocalization_ResetPeer(deviceId, FALSE, gInvalidNvmIndex_c);
-       (void)AppLocalization_SetProcedureParameters(deviceId);
+       if (deviceId < (deviceId_t)gAppMaxConnections_c)
+       {
+            AppLocalization_ResetPeer(deviceId, FALSE, gInvalidNvmIndex_c);
+            (void)AppLocalization_SetProcedureParameters(deviceId);
+       }
     }
 }
 

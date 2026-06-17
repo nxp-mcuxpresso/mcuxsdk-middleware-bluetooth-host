@@ -51,6 +51,7 @@
 
 #include "rpmsg_config.h"
 #include "ble_port_fsci.h"
+#include "ble_port_fsci_op.h"
 #include "host_app.h"
 
 #ifdef LCE_ENABLED
@@ -456,6 +457,56 @@ static void App_RunAlgo
     RasClient_SetPeerRangingData(deviceId, pPeerData);
     AppLocalizationAlgo_RunMeasurement(deviceId, pLocalData, pPeerData, mGlobalRangeSettings.role,  &mAlgoResult);
     BleApp_PrintMeasurementResults(deviceId, &mAlgoResult);
+
+#if defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U)
+    /* The adaptive CS procedure interval logic and the auto-restart loop run on
+       the NCP core (Core 1), but the per-procedure remote RSSI samples are only
+       available here, in the algorithm result on the host core (Core 0).
+       Compute the per-procedure remote RSSI average and forward it to the NCP
+       core over FSCI, where AppLocalization_AccumulateProcedureRssi consumes it. */
+    {
+        int8_t rssiRemoteAverage = (int8_t)gRssiNotAvailable_c;
+
+        if (mAlgoResult.rssiInfo.rssiRemoteNo != 0U)
+        {
+            int16_t rssiSum = 0;
+            uint8_t rssiValid = 0U;
+
+            /* Skip the not-available sentinel samples so they do not skew the average. */
+            for (uint8_t idx = 0U; idx < mAlgoResult.rssiInfo.rssiRemoteNo; idx++)
+            {
+                if ((idx < gMaxNumCsSteps_c) &&
+                    (mAlgoResult.rssiInfo.aRssiRemote[idx] != (int8_t)gRssiNotAvailable_c))
+                {
+                    rssiSum += (int16_t)mAlgoResult.rssiInfo.aRssiRemote[idx];
+                    rssiValid++;
+                }
+            }
+
+            if (rssiValid != 0U)
+            {
+                rssiRemoteAverage = (int8_t)(rssiSum / (int16_t)rssiValid);
+            }
+        }
+
+        /* Pack deviceId + remote RSSI average and send to the NCP core. */
+        {
+            uint8_t* pBuff = MEM_BufferAlloc(sizeof(deviceId_t) + sizeof(int8_t));
+
+            if (pBuff != NULL)
+            {
+                pBuff[0] = (uint8_t)deviceId;
+                pBuff[1] = (uint8_t)rssiRemoteAverage;
+
+                FSCI_transmitPayload(gFsciNcpAppOpcodeGroup_c, gAppSendProcRssiOpCode_c,
+                                     pBuff, (sizeof(deviceId_t) + sizeof(int8_t)), gFsciInterface_c);
+
+                (void)MEM_BufferFree(pBuff);
+            }
+        }
+    }
+#endif /* defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U) */
+
 
     /* Free local data */
     if (pLocalData->pData != NULL)

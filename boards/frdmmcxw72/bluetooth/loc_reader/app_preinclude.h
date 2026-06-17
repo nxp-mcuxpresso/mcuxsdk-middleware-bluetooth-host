@@ -61,6 +61,16 @@
 /*! Display distance measurement related timing information */
 #define gAppCsTimeInfo_d                0
 
+/* Enable/Disable adaptive CS procedure interval based on the RSSI average.
+   EXPERIMENTAL: this feature is provided for evaluation only and is disabled
+   by default.
+   When the procedure auto-restart loop is active, the RSSI average of each
+   iteration is used to adjust the CS procedure interval for the next iteration:
+     - good RSSI -> decrease interval (faster distance report rate)
+     - bad RSSI  -> increase interval (more time for the RAS transfer to finish)
+   Requires gAppParseRssiInfo_d to be enabled. */
+#define gAppAdaptiveProcInterval_d              0
+
 /* CS data logging support
    0 = disabled
    1 = export CS config data + ranging results

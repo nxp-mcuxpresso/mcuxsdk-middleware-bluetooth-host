@@ -181,10 +181,13 @@ void AppLocalizationAlgo_RunMeasurement
     csAppData_t *csDataBuffer0, *csDataBuffer1;
 
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1)
-    pResult->rssiInfo.rssiLocalNo = 0U;
-    pResult->rssiInfo.rssiRemoteNo = 0U;
-    FLib_MemSet(pResult->rssiInfo.aRssiLocal, gRssiNotAvailable_c, gMaxNumCsSteps_c);
-    FLib_MemSet(pResult->rssiInfo.aRssiRemote, gRssiNotAvailable_c, gMaxNumCsSteps_c);
+    if (pResult != NULL)
+    {
+        pResult->rssiInfo.rssiLocalNo = 0U;
+        pResult->rssiInfo.rssiRemoteNo = 0U;
+        FLib_MemSet(pResult->rssiInfo.aRssiLocal, gRssiNotAvailable_c, gMaxNumCsSteps_c);
+        FLib_MemSet(pResult->rssiInfo.aRssiRemote, gRssiNotAvailable_c, gMaxNumCsSteps_c);
+    }
 #endif /* gAppParseRssiInfo_d */
 
     if (pResult != NULL)

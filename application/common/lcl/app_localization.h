@@ -259,6 +259,10 @@ typedef struct appLocalization_rangeCfg_tag
     uint16_t connInterval;                      /*!< Connection interval of the Bluetooth LE link (units of 1.25ms) - required by algorithm */
     uint16_t subeventInterval;                  /*!< Time between consecutive CS subevents anchored off the same ACL connection event */
     void *csAlgoBuf;                            /*!< Buffer used by RADE */
+#if defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U)
+    int16_t adaptiveRssiSum;                    /*!< Running sum of the per-procedure remote RSSI averages of the current loop iteration */
+    uint8_t adaptiveRssiCount;                  /*!< Number of procedures contributing to adaptiveRssiSum */
+#endif /* gAppAdaptiveProcInterval_d */
 } appLocalization_rangeCfg_t;
 
 typedef enum
@@ -734,12 +738,12 @@ void AppLocalization_EnableProcedureRestart
 );
 
 /*! *********************************************************************************
-*\fn            void AppLocalization_RestartProcedure(deviceId_t deviceId);
+*\fn            void AppLocalization_ProcedureRestart(deviceId_t deviceId);
 *
-*\brief         Restart CS procedure if previously configured to do so via 
+*\brief         Restart CS procedure if previously configured to do so via
 *               AppLocalization_EnableProcedureRestart.
 *
-*\param[in]     deviceId_t   Peer device ID.
+*\param[in]     deviceId   Peer device ID.
 *
 *\retval        none
 ********************************************************************************** */
@@ -748,8 +752,32 @@ void AppLocalization_ProcedureRestart
     deviceId_t deviceId
 );
 
+#if defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U)
+/*! *********************************************************************************
+*\fn            void AppLocalization_AccumulateProcedureRssi(deviceId_t deviceId,
+*                                                            int8_t procRssiAverage);
+*
+*\brief         Accumulate the remote RSSI average of a single completed CS procedure.
+*               The samples collected over a loop iteration (maxNumProcedures) are
+*               combined into a loop average that is consumed by
+*               AppLocalization_ProcedureRestart to adapt the CS procedure interval
+*               for the next iteration.
+*
+*\param[in]     deviceId           Peer device ID.
+*\param[in]     procRssiAverage    Remote RSSI average for the completed procedure (signed dBm).
+*
+*\retval        none
+********************************************************************************** */
+void AppLocalization_AccumulateProcedureRssi
+(
+    deviceId_t deviceId,
+    int8_t procRssiAverage
+);
+#endif /* gAppAdaptiveProcInterval_d */
+
 /*! *********************************************************************************
 *\fn            void AppLocalization_GetRemoteCachedSupportedCapabilities(uint8_t nvmIndex);
+
 *
 *\brief         Get the supported capabilities for the specified peer.
 *

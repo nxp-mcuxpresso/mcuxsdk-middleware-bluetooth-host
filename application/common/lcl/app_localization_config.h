@@ -119,4 +119,63 @@
 #ifndef gChannelSoundingMaxConcurrentProcedures_c
 #define gChannelSoundingMaxConcurrentProcedures_c  (1U)
 #endif
+
+/* Adaptive CS procedure interval based on RSSI.
+   When enabled (and the procedure auto-restart loop is active), the remote RSSI
+   average of each procedure iteration is used to adjust the CS procedure
+   interval for the next iteration:
+     - good RSSI -> decrease interval (faster distance report rate)
+     - bad RSSI  -> increase interval (more time for the RAS transfer to finish)
+   This feature requires gAppParseRssiInfo_d to be enabled (the remote RSSI
+   samples are only available in the algorithm result when RSSI parsing is on). */
+#ifndef gAppAdaptiveProcInterval_d
+#define gAppAdaptiveProcInterval_d          (0U)
+#endif
+
+#if defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U)
+#if !defined(gAppParseRssiInfo_d) || (gAppParseRssiInfo_d != 1U)
+#error "gAppAdaptiveProcInterval_d requires gAppParseRssiInfo_d to be enabled"
+#endif
+
+/* Remote RSSI average (signed dBm) at or above which the link is considered good
+   and the CS procedure interval can be decreased. */
+#ifndef gAdaptiveRssiGoodThreshold_d
+#define gAdaptiveRssiGoodThreshold_d        (-60)
+#endif
+
+/* Remote RSSI average (signed dBm) at or below which the link is considered bad
+   and the CS procedure interval should be increased. */
+#ifndef gAdaptiveRssiBadThreshold_d
+#define gAdaptiveRssiBadThreshold_d         (-80)
+#endif
+
+/* Substitute remote RSSI average (signed dBm) assigned to a CS procedure that did
+   not complete during a loop iteration. Procedures that fail to produce a valid
+   RSSI are treated as a very bad link so that an unstable connection increases
+   the interval. Kept below gAdaptiveRssiBadThreshold_d on purpose. */
+#ifndef gAdaptiveRssiNotCompleted_d
+#define gAdaptiveRssiNotCompleted_d         (-100)
+#endif
+
+#if (gAdaptiveRssiBadThreshold_d >= gAdaptiveRssiGoodThreshold_d)
+#error "gAdaptiveRssiBadThreshold_d must be less than gAdaptiveRssiGoodThreshold_d"
+#endif
+
+/* Step (in connection interval units) by which the CS procedure interval is
+   adjusted on each iteration. */
+#ifndef gAdaptiveProcIntervalStep_d
+#define gAdaptiveProcIntervalStep_d         (1U)
+#endif
+
+/* Lower bound (in connection interval units) for the adaptive procedure interval. */
+#ifndef gAdaptiveProcIntervalMin_d
+#define gAdaptiveProcIntervalMin_d          (10U)
+#endif
+
+/* Upper bound (in connection interval units) for the adaptive procedure interval. */
+#ifndef gAdaptiveProcIntervalMax_d
+#define gAdaptiveProcIntervalMax_d          (100U)
+#endif
+#endif /* gAppAdaptiveProcInterval_d */
+
 #endif /* APP_LOCALIZATION_CONFIG_H */
