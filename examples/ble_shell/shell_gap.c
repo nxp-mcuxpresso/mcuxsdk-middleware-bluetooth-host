@@ -2559,7 +2559,7 @@ static shell_status_t ShellGap_SetPeriodicAdvParameters(uint8_t argc, char * arg
         shell_writeDec(gPeriodicAdvParams.handle);
         /* print advertising interval */
         shell_write("\r\n    -->  Periodic Advertising Interval: ");
-        shell_writeDec((uint32_t)gPeriodicAdvParams.maxInterval * 625U / 1000U);
+        shell_writeDec((uint32_t)gPeriodicAdvParams.maxInterval * 125U / 100U);
         shell_write(" ms");
 
 #if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)

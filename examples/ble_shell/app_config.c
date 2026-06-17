@@ -182,8 +182,8 @@ gapPeriodicAdvParameters_t gPeriodicAdvParams =
 {
     /* handle */                    1U, \
     /* addTxPowerInAdv*/            TRUE, \
-    /* minInterval */               1600 /* 1 s */, \
-    /* maxInterval */               3200 /* 2 s */,
+    /* minInterval */               800 /* 1 s Time = N × 1.25 ms */, \
+    /* maxInterval */               800 /* 1 s Time = N × 1.25 ms */,
 #if (defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)
     /* numSubevents */              2, \
     /* subeventInterval */          125 /* 156.25 ms */, \
