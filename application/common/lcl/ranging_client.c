@@ -1371,7 +1371,9 @@ static void parseBufferedNotifs
     uint16_t rangingLength = 0U;
     uint8_t segmentHeader = 0U;
 
-    for (uint8_t recvIdx = 0U; recvIdx < mRasTransferInfo[deviceId].currentIdxRecvIntermSegm; recvIdx++)
+    for (uint8_t recvIdx = 0U;
+         (recvIdx < mRasTransferInfo[deviceId].currentIdxRecvIntermSegm) && (recvIdx < gRASMaxNoOfSegments_c);
+         recvIdx++)
     {
         if ((mRasTransferInfo[deviceId].recvIntermSegm[recvIdx] != 0U) &&
             (mRasTransferInfo[deviceId].recvIntermSegm[recvIdx] != 0xFFU))
@@ -1434,7 +1436,7 @@ static void handleRetrLostRangingData
 
     for (idx = 0U; idx < mRasTransferInfo[deviceId].currentIdxLostSegm; idx++)
     {
-        if ((startSegm == 0U) && (mRasTransferInfo[deviceId].lostSegm[idx] != 0U))
+        if ((startSegm == 0U) && (idx < gRASMaxNoOfSegments_c) && (mRasTransferInfo[deviceId].lostSegm[idx] != 0U))
         {
             /* set start segment */
             startSegm = mRasTransferInfo[deviceId].lostSegm[idx];
@@ -1448,7 +1450,8 @@ static void handleRetrLostRangingData
                 break;
             }
 
-            if (idx < (mRasTransferInfo[deviceId].currentIdxLostSegm -1U))
+            if ((idx < (mRasTransferInfo[deviceId].currentIdxLostSegm - 1U)) &&
+                (idx < (gRASMaxNoOfSegments_c - 1U)))
             {
                 endSegm = mRasTransferInfo[deviceId].lostSegm[idx+1U];
             }
@@ -1562,7 +1565,9 @@ static bool_t checkForLastSegment
 {
     bool_t lastSegmPresent = FALSE;
 
-    for (uint8_t idx = 0U; idx < mRasTransferInfo[deviceId].currentIdxRecvSegm; idx++)
+    for (uint8_t idx = 0U;
+         (idx < mRasTransferInfo[deviceId].currentIdxRecvSegm) && (idx < gRASMaxNoOfSegments_c);
+         idx++)
     {
         if ((mRasTransferInfo[deviceId].recvSegm[idx] & ((uint8_t)gRasNotifLastSegment_c)) != 0U)
         {
@@ -1593,7 +1598,9 @@ static bool_t checkIfSegmWasReceived
 {
     bool_t segmPresent = FALSE;
 
-    for (uint8_t idx = 0U; idx < mRasTransferInfo[deviceId].currentIdxRecvSegm; idx++)
+    for (uint8_t idx = 0U;
+         (idx < mRasTransferInfo[deviceId].currentIdxRecvSegm) && (idx < gRASMaxNoOfSegments_c);
+         idx++)
     {
         if (mRasTransferInfo[deviceId].recvSegm[idx] == segmHeader)
         {
@@ -1713,7 +1720,7 @@ static bleResult_t RasClient_CPRspCompleteLostDataSegment
     /* Check if there are more segments to be received */
     do
     {
-        if (mRasTransferInfo[deviceId].lostSegm[idx] != 0U)
+        if ((idx < gRASMaxNoOfSegments_c) && (mRasTransferInfo[deviceId].lostSegm[idx] != 0U))
         {
             break;
         }
