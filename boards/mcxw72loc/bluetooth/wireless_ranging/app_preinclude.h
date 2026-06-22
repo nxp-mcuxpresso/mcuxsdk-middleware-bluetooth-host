@@ -15,6 +15,11 @@
 /* Customize application */
 #define INCLUDE_EMBEDDED_COMPUTATION_SUPPORT
 
+#define BOARD_APP_UART_BAUDRATE (115200)
+
+/* Disable HCI logging by default */
+#undef BOARD_NBUDBG_HCI_LOGGER
+
 /*! *********************************************************************************
  * 	Drivers Configuration
  ********************************************************************************** */
