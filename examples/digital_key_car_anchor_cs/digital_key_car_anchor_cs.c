@@ -165,6 +165,7 @@ static void BleApp_StateMachineHandler_LocalizationSetup(deviceId_t peerDeviceId
 
 static void BleApp_GenericCallback_ControllerNotificationEvent(gapGenericEvent_t* pGenericEvent);
 static void BleApp_GenericCallback_HandlePrivacyEvents(gapGenericEvent_t* pGenericEvent);
+static void BleApp_UpdateLocalizationConfig(deviceId_t peerDeviceId, uint16_t connInterval);
 /* Get a simulated UWB clock. */
 static uint64_t GetUwbClock(void);
 
@@ -506,6 +507,50 @@ void BleApp_GenericCallback (gapGenericEvent_t* pGenericEvent)
     }
 }
 
+/*! *********************************************************************************
+* \brief        Recomputes and stores the CS localization config that depends on
+*               the connection interval. Called when a connection is established
+*               and whenever the connection parameters are updated.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    connInterval    Current connection interval.
+********************************************************************************** */
+static void BleApp_UpdateLocalizationConfig(deviceId_t peerDeviceId, uint16_t connInterval)
+{
+    appLocalization_rangeCfg_t locConfig;
+
+    /* Read current CS config and update procedure repeat interval */
+    (void)AppLocalization_ReadConfig(peerDeviceId, &locConfig);
+
+    /* Estimated algo durations (4 AP, 80 channels) for procedure repeat frequency calculation */
+    uint32_t algoDurationMs = 0U;
+#if defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)
+    algoDurationMs += 45U;
+#endif /* gAppUseRADEAlgorithm_d */
+#if defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)
+    algoDurationMs += 25U;
+#endif /* gAppUseCDEAlgorithm_d */
+#if defined(gAppSlopeBasedCalibrationSupport_d) && (gAppSlopeBasedCalibrationSupport_d == 1)
+    algoDurationMs += 25U;
+#endif /* gAppSlopeBasedCalibrationSupport_d */
+
+    uint32_t procInterval = (uint32_t)(gMaxCsProcDurationMs_c + gPostProcVerbDurationMs_c + gAppOffsetDurationMs_c + algoDurationMs);
+#if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
+    procInterval +=  gLocBoardDelayMs_c;
+#endif
+    /* Convert ms to connection intervals */
+    procInterval = 1U + (procInterval * 1000U)/(((uint32_t)(connInterval)) * 1250U);
+    locConfig.minPeriodBetweenProcedures = (uint16_t)procInterval;
+    locConfig.maxPeriodBetweenProcedures = (uint16_t)procInterval;
+    AppLocalization_ComputeMaxProcedureDuration(procInterval, connInterval, &locConfig.maxProcedureDuration);
+
+    (void)AppLocalization_WriteConfig(peerDeviceId, &locConfig);
+    AppLocalization_SetConnectionInterval(peerDeviceId, connInterval);
+
+#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
+    AppLocalization_TimeInfoSetConnInterval(connInterval);
+#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
+}
 
 /*! *********************************************************************************
 * \brief        Handles BLE Connection callback from host stack.
@@ -600,40 +645,11 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
             /* UI */
             Led1On();
 
-            appLocalization_rangeCfg_t locConfig;
-            /* Read current CS config and update procedure repeat interval */
-            (void)AppLocalization_ReadConfig(peerDeviceId, &locConfig);
+            /* Compute the CS config that depends on the connection interval */
+            BleApp_UpdateLocalizationConfig(peerDeviceId, connInterval);
 
-            /* Estimated algo durations (4 AP, 80 channels) for procedure repeat frequency calculation */
-            uint32_t algoDurationMs = 0U;
-#if defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)
-            algoDurationMs += 45U;
-#endif /* gAppUseRADEAlgorithm_d */
-#if defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)
-            algoDurationMs += 25U;
-#endif /* gAppUseCDEAlgorithm_d */
-#if defined(gAppSlopeBasedCalibrationSupport_d) && (gAppSlopeBasedCalibrationSupport_d == 1)
-            algoDurationMs += 25U;
-#endif /* gAppSlopeBasedCalibrationSupport_d */
-
-            uint32_t procInterval = (uint32_t)(gMaxCsProcDurationMs_c + gPostProcVerbDurationMs_c + gAppOffsetDurationMs_c + algoDurationMs);
-#if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
-            procInterval +=  gLocBoardDelayMs_c;
-#endif
-            /* Convert ms to connection intervals */
-            procInterval = 1U + (procInterval * 1000U)/(((uint32_t)(connInterval)) * 1250U);
-            locConfig.minPeriodBetweenProcedures = (uint16_t)procInterval;
-            locConfig.maxPeriodBetweenProcedures = (uint16_t)procInterval;
-            AppLocalization_ComputeMaxProcedureDuration(procInterval, connInterval, &locConfig.maxProcedureDuration);
-
-            (void)AppLocalization_WriteConfig(peerDeviceId, &locConfig); 
-            AppLocalization_SetConnectionInterval(peerDeviceId, connInterval);
             /* Read the PHY on which the connection was establihed */
             (void)Gap_LeReadPhy(peerDeviceId);
-
-#if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
-            AppLocalization_TimeInfoSetConnInterval(connInterval);
-#endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
         }
         break;
 
@@ -695,8 +711,10 @@ void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* p
 
         case gConnEvtParameterUpdateComplete_c:
         {
-            /* Update connection interval when a Parameter Update procedure completes */
-            AppLocalization_SetConnectionInterval(peerDeviceId, pConnectionEvent->eventData.connectionUpdateComplete.connInterval);
+            uint16_t connInterval = pConnectionEvent->eventData.connectionUpdateComplete.connInterval;
+
+            /* Recompute the CS config for the new connection interval */
+            BleApp_UpdateLocalizationConfig(peerDeviceId, connInterval);
         }
         break;
 

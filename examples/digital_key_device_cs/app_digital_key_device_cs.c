@@ -197,6 +197,7 @@ static void App_HandleKeys(appEventData_t *pEventData);
 static void App_HandleGattClientCallback(appEventData_t *pEventData);
 static void App_HandleGenericCallback(appEventData_t *pEventData);
 static void App_HandleConnectionCallback(appEventData_t *pEventData);
+static void App_UpdateLocalizationConfig(deviceId_t peerDeviceId, uint16_t connInterval);
 static void App_HandleL2capPsmDataCallback(appEventData_t *pEventData);
 static void App_HandleL2capPsmControlCallback(appEventData_t *pEventData);
 
@@ -1344,6 +1345,48 @@ static void App_HandleGenericCallback(appEventData_t *pEventData)
 }
 
 /*! *********************************************************************************
+* \brief        Updates the localization config based on the connection interval.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    connInterval    Connection interval (in 1.25 ms units).
+********************************************************************************** */
+static void App_UpdateLocalizationConfig(deviceId_t peerDeviceId, uint16_t connInterval)
+{
+    appLocalization_rangeCfg_t locConfig;
+    /* Read current CS config and update procedure repeat interval */
+    (void)AppLocalization_ReadConfig(peerDeviceId, &locConfig);
+
+    /* Estimated algo durations (4 AP, 80 channels) for procedure repeat frequency calculation */
+    uint32_t algoDurationMs = 0U;
+#if defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)
+    algoDurationMs += 45U;
+#endif /* gAppUseRADEAlgorithm_d */
+#if defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)
+    algoDurationMs += 25U;
+#endif /* gAppUseCDEAlgorithm_d */
+#if defined(gAppSlopeBasedCalibrationSupport_d) && (gAppSlopeBasedCalibrationSupport_d == 1)
+    algoDurationMs += 25U;
+#endif /* gAppSlopeBasedCalibrationSupport_d */
+
+    uint32_t procInterval = (uint32_t)(gMaxCsProcDurationMs_c + gPostProcVerbDurationMs_c + gAppOffsetDurationMs_c + algoDurationMs);
+#if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
+    procInterval +=  gLocBoardDelayMs_c;
+#endif
+    /* Convert ms to connection intervals */
+    if (connInterval >= gGapConnIntervalMin_d && connInterval <= gGapConnIntervalMax_d)
+    {
+        procInterval = 1U + (procInterval * 1000U)/(((uint32_t)(connInterval)) * 1250U);
+        locConfig.minPeriodBetweenProcedures = (uint16_t)procInterval;
+        locConfig.maxPeriodBetweenProcedures = (uint16_t)procInterval;
+        /* Recompute the procedure duration for the connection interval */
+        AppLocalization_ComputeMaxProcedureDuration(procInterval, connInterval, &locConfig.maxProcedureDuration);
+    }
+
+    (void)AppLocalization_WriteConfig(peerDeviceId, &locConfig);
+    AppLocalization_SetConnectionInterval(peerDeviceId, connInterval);
+}
+
+/*! *********************************************************************************
 * \brief        Handles ConnectionCallback events.
 *
 * \param[in]    pEventData    pointer to appEventData_t.
@@ -1379,40 +1422,8 @@ static void App_HandleConnectionCallback(appEventData_t *pEventData)
             maPeerInformation[pConnectedEventData->peerDeviceId].isBonded = FALSE;
             maPeerInformation[pConnectedEventData->peerDeviceId].nvmIndex = gInvalidNvmIndex_c;
 
-            appLocalization_rangeCfg_t locConfig;
-            /* Read current CS config and update procedure repeat interval */
-            (void)AppLocalization_ReadConfig(pConnectedEventData->peerDeviceId, &locConfig);
-
-            /* Estimated algo durations (4 AP, 80 channels) for procedure repeat frequency calculation */
-            uint32_t algoDurationMs = 0U;
-#if defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)
-            algoDurationMs += 45U;
-#endif /* gAppUseRADEAlgorithm_d */
-#if defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)
-            algoDurationMs += 25U;
-#endif /* gAppUseCDEAlgorithm_d */
-#if defined(gAppSlopeBasedCalibrationSupport_d) && (gAppSlopeBasedCalibrationSupport_d == 1)
-            algoDurationMs += 25U;
-#endif /* gAppSlopeBasedCalibrationSupport_d */
-
-            uint32_t procInterval = (uint32_t)(gMaxCsProcDurationMs_c + gPostProcVerbDurationMs_c + gAppOffsetDurationMs_c + algoDurationMs);
-#if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
-            procInterval +=  gLocBoardDelayMs_c;
-#endif
-            /* Convert ms to connection intervals */
-            uint32_t connInterval = (uint32_t)(pConnectedEventData->eventData.pConnectedEvent.connParameters.connInterval);
-            if (connInterval >= gGapConnIntervalMin_d && connInterval <= gGapConnIntervalMax_d)
-            {
-                procInterval = 1U + (procInterval * 1000U)/(connInterval * 1250U);
-                locConfig.minPeriodBetweenProcedures = (uint16_t)procInterval;
-                locConfig.maxPeriodBetweenProcedures = (uint16_t)procInterval;
-                AppLocalization_ComputeMaxProcedureDuration(procInterval,
-                                                            pConnectedEventData->eventData.pConnectedEvent.connParameters.connInterval,
-                                                            &locConfig.maxProcedureDuration);
-            }
-
-            (void)AppLocalization_WriteConfig(pConnectedEventData->peerDeviceId, &locConfig);
-            AppLocalization_SetConnectionInterval(pConnectedEventData->peerDeviceId, pConnectedEventData->eventData.pConnectedEvent.connParameters.connInterval);
+            /* Update the localization config based on the connection interval */
+            App_UpdateLocalizationConfig(pConnectedEventData->peerDeviceId, pConnectedEventData->eventData.pConnectedEvent.connParameters.connInterval);
 
             /* Read the PHY on which the connection was establihed */
             (void)Gap_LeReadPhy(pConnectedEventData->peerDeviceId);
@@ -1479,9 +1490,10 @@ static void App_HandleConnectionCallback(appEventData_t *pEventData)
 
         case mAppEvt_ConnectionCallback_ConnEvtParameterUpdateComplete_c:
         {
-            /* Update connection interval when a Parameter Update procedure completes */
             appConnectionCallbackEventData_t *pConnParamUpdateCompleteEvent = (appConnectionCallbackEventData_t *)pEventData->eventData.pData;
-            AppLocalization_SetConnectionInterval(pConnParamUpdateCompleteEvent->peerDeviceId, pConnParamUpdateCompleteEvent->eventData.pConnParamUpdateCompleteEvent.connInterval); 
+
+            /* Recompute the localization config for the new connection interval */
+            App_UpdateLocalizationConfig(pConnParamUpdateCompleteEvent->peerDeviceId, pConnParamUpdateCompleteEvent->eventData.pConnParamUpdateCompleteEvent.connInterval);
         }
         break;
 

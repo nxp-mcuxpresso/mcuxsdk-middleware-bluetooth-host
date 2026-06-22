@@ -199,6 +199,7 @@ static bool_t CheckScanEventLegacy(gapScannedDevice_t* pData);
 #endif /* gAppIsPeripheral_d */
 
 static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventType_t eventType);
+static void BleApp_UpdateLocalizationConfig(deviceId_t peerDeviceId, uint16_t connInterval);
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
 static void BleApp_PrintMeasurementResults(deviceId_t deviceId, localizationAlgoResult_t *pResult);
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1) */
@@ -1148,6 +1149,47 @@ static void BleApp_ScanningCallback (gapScanningEvent_t* pScanningEvent)
 #endif /* gAppIsPeripheral_d */
 
 /*! *********************************************************************************
+* \brief        Recomputes and stores the CS localization config that depends on
+*               the connection interval. Called when a connection is established
+*               and whenever the connection parameters are updated.
+*
+* \param[in]    peerDeviceId    Peer device ID.
+* \param[in]    connInterval    Current connection interval.
+********************************************************************************** */
+static void BleApp_UpdateLocalizationConfig(deviceId_t peerDeviceId, uint16_t connInterval)
+{
+    appLocalization_rangeCfg_t locConfig;
+
+    /* Read current CS config and update procedure repeat interval */
+    (void)AppLocalization_ReadConfig(peerDeviceId, &locConfig);
+
+    /* Estimated algo durations (4 AP, 80 channels) for procedure repeat frequency calculation */
+    uint32_t algoDurationMs = 0U;
+#if defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)
+    algoDurationMs += 45U;
+#endif /* gAppUseRADEAlgorithm_d */
+#if defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)
+    algoDurationMs += 25U;
+#endif /* gAppUseCDEAlgorithm_d */
+#if defined(gAppSlopeBasedCalibrationSupport_d) && (gAppSlopeBasedCalibrationSupport_d == 1)
+    algoDurationMs += 25U;
+#endif /* gAppSlopeBasedCalibrationSupport_d */
+
+    uint32_t procInterval = gMaxCsProcDurationMs_c + gPostProcVerbDurationMs_c + gAppOffsetDurationMs_c + algoDurationMs;
+#if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
+    procInterval +=  gLocBoardDelayMs_c;
+#endif
+
+    /* Convert ms to connection intervals */
+    procInterval = 1U + (procInterval * 1000U)/(((uint32_t)(connInterval)) * 1250U);
+    locConfig.minPeriodBetweenProcedures = (uint16_t)procInterval;
+    locConfig.maxPeriodBetweenProcedures = (uint16_t)procInterval;
+    AppLocalization_ComputeMaxProcedureDuration(procInterval, connInterval, &locConfig.maxProcedureDuration);
+
+    (void)AppLocalization_WriteConfig(peerDeviceId, &locConfig);
+}
+
+/*! *********************************************************************************
 * \brief        Handles BLE Connection callback from host stack.
 *
 * \param[in]    peerDeviceId        Peer device ID.
@@ -1167,7 +1209,6 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
         case gConnEvtConnected_c:
         {
             uint16_t connInterval = pConnectionEvent->eventData.connectedEvent.connParameters.connInterval;
-            appLocalization_rangeCfg_t locConfig;
             /* Update UI */
             LedStopFlashingAllLeds();
             Led1On();
@@ -1175,35 +1216,12 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
             maPeerInformation[peerDeviceId].isBonded = FALSE;
             maPeerInformation[peerDeviceId].nvmIndex = gInvalidNvmIndex_c;
 
-            /* Read current CS config and update procedure repeat interval */
-            (void)AppLocalization_ReadConfig(peerDeviceId, &locConfig);
 #if defined(gAppIsPeripheral_d) && (gAppIsPeripheral_d == 1U)
              mAdvOn = FALSE;
 #endif
-            /* Estimated algo durations (4 AP, 80 channels) for procedure repeat frequency calculation */
-            uint32_t algoDurationMs = 0U;
-#if defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)
-            algoDurationMs += 45U;
-#endif /* gAppUseRADEAlgorithm_d */
-#if defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1)
-            algoDurationMs += 25U;
-#endif /* gAppUseCDEAlgorithm_d */
-#if defined(gAppSlopeBasedCalibrationSupport_d) && (gAppSlopeBasedCalibrationSupport_d == 1)
-            algoDurationMs += 25U;
-#endif /* gAppSlopeBasedCalibrationSupport_d */
 
-            uint32_t procInterval = gMaxCsProcDurationMs_c + gPostProcVerbDurationMs_c + gAppOffsetDurationMs_c + algoDurationMs;
-#if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
-            procInterval +=  gLocBoardDelayMs_c;
-#endif
-
-            /* Convert ms to connection intervals */
-            procInterval = 1U + (procInterval * 1000U)/(((uint32_t)(connInterval)) * 1250U);
-            locConfig.minPeriodBetweenProcedures = (uint16_t)procInterval;
-            locConfig.maxPeriodBetweenProcedures = (uint16_t)procInterval;
-            AppLocalization_ComputeMaxProcedureDuration(procInterval, connInterval, &locConfig.maxProcedureDuration);
-
-            (void)AppLocalization_WriteConfig(peerDeviceId, &locConfig);
+            /* Compute the CS config that depends on the connection interval */
+            BleApp_UpdateLocalizationConfig(peerDeviceId, connInterval);
 
             (void)Gap_CheckIfBonded(peerDeviceId, &maPeerInformation[peerDeviceId].isBonded, &maPeerInformation[peerDeviceId].nvmIndex);
 
@@ -1252,6 +1270,15 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
                 }
                 BleApp_StateMachineHandler(peerDeviceId, mAppEvt_PairingComplete_c);
             }
+        }
+        break;
+
+        case gConnEvtParameterUpdateComplete_c:
+        {
+            uint16_t connInterval = pConnectionEvent->eventData.connectionUpdateComplete.connInterval;
+
+            /* Recompute the CS config for the new connection interval */
+            BleApp_UpdateLocalizationConfig(peerDeviceId, connInterval);
         }
         break;
 
