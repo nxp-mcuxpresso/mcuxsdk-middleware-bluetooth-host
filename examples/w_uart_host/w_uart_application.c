@@ -344,6 +344,7 @@ static uint8_t mSwitchPressCnt = 0;
 /* Adv Parameters */
 #if gWuart_PeripheralRole_c == 1
 static advState_t mAdvState;
+static bool_t mAdvPending = FALSE;
 #endif /* gWuart_PeripheralRole_c */
 
 uint8_t uuid_service_wireless_uart[16] = {0xE0, 0x1C, 0x4B, 0x5E, 0x1E, 0xEB, 0xA1, 0x5C, 0xEE, 0xF4, 0x5E, 0xBA, 0x00, 0x01, 0xFF, 0x01};
@@ -584,6 +585,7 @@ static void BleApp_EventCallback3
 #endif
         case (uint16_t)GAPAdvertisingEventCommandFailedIndication_FSCI_ID:
         {
+            mAdvPending = FALSE;
             panic(0, 0, 0, 0);
         }
         break;
@@ -877,6 +879,7 @@ void BleApp_EventCallback
 
         case (uint16_t)GAPAdvertisingEventStateChangedIndication_FSCI_ID:
         {
+            mAdvPending = FALSE;
             BleApp_AdvertisingEvtStateChangedHandler();
         }
         break;
@@ -1785,8 +1788,9 @@ static void BleApp_Start
 #endif /* gAppUsePairing_d */
 
             /* Start ADV only if it's not already started */
-            if (!mAdvState.advOn)
+            if (!mAdvState.advOn && !mAdvPending)
             {
+                mAdvPending = TRUE;
                 /* Register GATT Callbacks. When done set advertising parameters and data and start Advertising */
                 if (mGattCallbacksInitialized == FALSE)
                 {

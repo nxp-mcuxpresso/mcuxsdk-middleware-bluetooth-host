@@ -227,6 +227,7 @@ static deviceId_t mcActiveConnNo;
 /* Adv Parameters */
 #if gWuart_PeripheralRole_c == 1
 static advState_t mAdvState;
+static bool_t mAdvPending = FALSE;
 #endif /* gWuart_PeripheralRole_c */
 #if gWuart_CentralRole_c == 1
 static bool_t mScanningOn = FALSE;
@@ -565,9 +566,10 @@ static void BleApp_Start
             gPairingParameters.localIoCapabilities = gIoDisplayOnly_c;
 #endif /* gAppUsePairing_d */
 
-            /* Start ADV only if it's not already started */
-            if (!mAdvState.advOn)
+            /* Start ADV only if not already on AND no request already pending */
+            if (!mAdvState.advOn && !mAdvPending)
             {
+                mAdvPending = TRUE;
                 (void)BluetoothLEHost_StartAdvertising(&mAppAdvParams, BleApp_AdvertisingCallback, BleApp_ConnectionCallback);
             }
             break;
@@ -668,6 +670,7 @@ static void BleApp_AdvertisingCallback
     {
         case gAdvertisingStateChanged_c:
         {
+            mAdvPending = FALSE;
             mAdvState.advOn = !mAdvState.advOn;
             LedStopFlashingAllLeds();
             if (mAdvState.advOn)
@@ -690,6 +693,7 @@ static void BleApp_AdvertisingCallback
 
         case gAdvertisingCommandFailed_c:
         {
+            mAdvPending = FALSE;
             panic(0, 0, 0, 0);
         }
         break;
