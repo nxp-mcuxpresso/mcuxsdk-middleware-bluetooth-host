@@ -102,8 +102,6 @@
 
 /* Use Fro32k instead of Osc32k */
 #define gBoardUseFro32k_d                 1
-/* FRO32k only supports 500ppm accuracy */
-#define BOARD_32KHZ_SRC_CLK_ACCURACY      0
 #endif
 
 /*! *********************************************************************************
