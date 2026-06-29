@@ -691,6 +691,50 @@ static shell_status_t ShellSetCsConfigParams_Command(shell_handle_t shellHandle,
 }
 
 /*! *********************************************************************************
+* \brief        Parse and validate the CS Procedure parameters.
+*
+* \param[in]    argv           Pointer to arguments
+* \param[out]   pCfg           Pointer to the configuration structure to update
+*
+* \return       bleResult_t    gBleSuccess_c on success, error code otherwise
+********************************************************************************** */
+static bleResult_t ShellSetCsProcedureParams_Parse(char * argv[], appLocalization_rangeCfg_t *pCfg)
+{
+    bleResult_t status = gBleSuccess_c;
+
+    pCfg->maxProcedureDuration = (uint16_t)BleApp_atoi(argv[2]);
+
+    if (pCfg->maxProcedureDuration == 0U)
+    {
+        status = gBleInvalidParameter_c;
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        pCfg->minPeriodBetweenProcedures = (uint16_t)BleApp_atoi(argv[3]);
+        pCfg->maxPeriodBetweenProcedures = (uint16_t)BleApp_atoi(argv[4]);
+        pCfg->maxNumProcedures = (uint16_t)BleApp_atoi(argv[5]);
+        pCfg->minSubeventLen = (uint32_t)BleApp_atoi(argv[6]);
+        pCfg->maxSubeventLen = (uint32_t)BleApp_atoi(argv[7]);
+        pCfg->ant_cfg_index = (uint8_t)BleApp_atoi(argv[8]);
+        pCfg->snr_control_init = (uint8_t)BleApp_atoi(argv[9]);
+        pCfg->snr_control_refl = (uint8_t)BleApp_atoi(argv[10]);
+
+        if (pCfg->ant_cfg_index > 7U)
+        {
+            status = gBleInvalidParameter_c;
+        }
+
+        if(!isValidSnrControl(pCfg->snr_control_init) || !isValidSnrControl(pCfg->snr_control_refl))
+        {
+            status = gBleInvalidParameter_c;
+        }
+    }
+
+    return status;
+}
+
+/*! *********************************************************************************
 * \brief        Set CS Procedure default parameters.
 *
 * \param[in]    argc           Number of arguments
@@ -718,35 +762,8 @@ static shell_status_t ShellSetCsProcedureParams_Command(shell_handle_t shellHand
             /* Read current configuration. */
             (void)AppLocalization_ReadConfig(deviceId, &csConfigParams);
 
-            /* Update configuration with the new values. */
-            csConfigParams.maxProcedureDuration = (uint16_t)BleApp_atoi(argv[2]);
-
-            if (csConfigParams.maxProcedureDuration == 0U)
-            {
-                status = gBleInvalidParameter_c;
-            }
-
-            if (status == gBleSuccess_c)
-            {
-                csConfigParams.minPeriodBetweenProcedures = (uint16_t)BleApp_atoi(argv[3]);
-                csConfigParams.maxPeriodBetweenProcedures = (uint16_t)BleApp_atoi(argv[4]);
-                csConfigParams.maxNumProcedures = (uint16_t)BleApp_atoi(argv[5]);
-                csConfigParams.minSubeventLen = (uint32_t)BleApp_atoi(argv[6]);
-                csConfigParams.maxSubeventLen = (uint32_t)BleApp_atoi(argv[7]);
-                csConfigParams.ant_cfg_index = (uint8_t)BleApp_atoi(argv[8]);
-                csConfigParams.snr_control_init = (uint8_t)BleApp_atoi(argv[9]);
-                csConfigParams.snr_control_refl = (uint8_t)BleApp_atoi(argv[10]);
-
-                if (csConfigParams.ant_cfg_index > 7U)
-                {
-                    status = gBleInvalidParameter_c;
-                }
-
-                if(!isValidSnrControl(csConfigParams.snr_control_init) || !isValidSnrControl(csConfigParams.snr_control_refl))
-                {
-                    status = gBleInvalidParameter_c;
-                }
-            }
+            /* Update and validate configuration with the new values. */
+            status = ShellSetCsProcedureParams_Parse(argv, &csConfigParams);
 
             if (status == gBleSuccess_c)
             {
