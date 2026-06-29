@@ -493,6 +493,138 @@ static shell_status_t ShellDisconnect_Command(shell_handle_t shellHandle, int32_
 }
 
 /*! *********************************************************************************
+* \brief        Parse and validate the first group of CS Create Config parameters.
+*
+* \param[in]    argv           Pointer to arguments
+* \param[out]   pCfg           Pointer to the configuration structure to update
+*
+* \return       bleResult_t    gBleSuccess_c on success, error code otherwise
+********************************************************************************** */
+static bleResult_t ShellSetCsConfigParams_ParseGroup1(char * argv[], appLocalization_rangeCfg_t *pCfg)
+{
+    bleResult_t status = gBleSuccess_c;
+
+    pCfg->main_mode_type = (uint8_t)BleApp_atoi(argv[2]);
+
+    if ((pCfg->main_mode_type == 0U) || (pCfg->main_mode_type > 3U))
+    {
+        status = gBleInvalidParameter_c;
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        pCfg->sub_mode_type = (uint8_t)BleApp_atoi(argv[3]);
+
+        if ((pCfg->sub_mode_type == 0U) ||
+            ((pCfg->sub_mode_type > 3U) && (pCfg->sub_mode_type != 255U)))
+        {
+            status = gBleInvalidParameter_c;
+        }
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        pCfg->main_mode_min = (uint8_t)BleApp_atoi(argv[4]);
+        pCfg->main_mode_max = (uint8_t)BleApp_atoi(argv[5]);
+        pCfg->main_mode_repeat = (uint8_t)BleApp_atoi(argv[6]);
+
+        if (pCfg->main_mode_repeat > 3U)
+        {
+            status = gBleInvalidParameter_c;
+        }
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        pCfg->mode0_nb = (uint8_t)BleApp_atoi(argv[7]);
+
+        if ((pCfg->mode0_nb == 0U) || (pCfg->mode0_nb > 3U))
+        {
+            status = gBleInvalidParameter_c;
+        }
+    }
+
+    return status;
+}
+
+/*! *********************************************************************************
+* \brief        Parse and validate the second group of CS Create Config parameters.
+*
+* \param[in]    argv           Pointer to arguments
+* \param[out]   pCfg           Pointer to the configuration structure to update
+*
+* \return       bleResult_t    gBleSuccess_c on success, error code otherwise
+********************************************************************************** */
+static bleResult_t ShellSetCsConfigParams_ParseGroup2(char * argv[], appLocalization_rangeCfg_t *pCfg)
+{
+    bleResult_t status = gBleSuccess_c;
+    uint8_t role = (uint8_t)BleApp_atoi(argv[8]);
+
+    if (role > 1U)
+    {
+        status = gBleInvalidParameter_c;
+    }
+    else
+    {
+        mGlobalRangeSettings.role = role;
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        pCfg->rtt_type = (uint8_t)BleApp_atoi(argv[9]);
+
+        if (pCfg->rtt_type > 6U)
+        {
+            status = gBleInvalidParameter_c;
+        }
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        if (gCsChannelMapLength_c ==  BleApp_ParseHexValue(argv[10]))
+        {
+            FLib_MemCpy(pCfg->ch_map, argv[10], gCsChannelMapLength_c);
+        }
+        else
+        {
+            status = gBleInvalidParameter_c;
+        }
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        pCfg->ch_map_repeat = (uint8_t)BleApp_atoi(argv[11]);
+
+        if (pCfg->ch_map_repeat == 0U)
+        {
+            status = gBleInvalidParameter_c;
+        }
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        pCfg->channelSelectionType = (uint8_t)BleApp_atoi(argv[12]);
+
+        if (pCfg->channelSelectionType > 1U)
+        {
+            status = gBleInvalidParameter_c;
+        }
+    }
+
+    if (status == gBleSuccess_c)
+    {
+        pCfg->cs_sync_phy = (uint8_t)BleApp_atoi(argv[13]);
+
+        if ((pCfg->cs_sync_phy < 1U) || (pCfg->cs_sync_phy > 3U))
+        {
+            status = gBleInvalidParameter_c;
+        }
+    }
+
+    return status;
+}
+
+/*! *********************************************************************************
 * \brief        Set CS Create Config default parameters.
 *
 * \param[in]    argc           Number of arguments
@@ -520,111 +652,12 @@ static shell_status_t ShellSetCsConfigParams_Command(shell_handle_t shellHandle,
             /* Read current configuration. */
             (void)AppLocalization_ReadConfig(deviceId, &csConfigParams);
 
-            /* Update configuration with the new values. */
-            csConfigParams.main_mode_type = (uint8_t)BleApp_atoi(argv[2]);
-
-            if ((csConfigParams.main_mode_type == 0U) || (csConfigParams.main_mode_type > 3U))
-            {
-                status = gBleInvalidParameter_c;
-            }
+            /* Update and validate configuration with the new values. */
+            status = ShellSetCsConfigParams_ParseGroup1(argv, &csConfigParams);
 
             if (status == gBleSuccess_c)
             {
-                csConfigParams.sub_mode_type = (uint8_t)BleApp_atoi(argv[3]);
-
-                if ((csConfigParams.sub_mode_type == 0U) ||
-                    ((csConfigParams.sub_mode_type > 3U) && (csConfigParams.sub_mode_type != 255U)))
-                {
-                    status = gBleInvalidParameter_c;
-                }
-            }
-
-            if (status == gBleSuccess_c)
-            {
-                csConfigParams.main_mode_min = (uint8_t)BleApp_atoi(argv[4]);
-                csConfigParams.main_mode_max = (uint8_t)BleApp_atoi(argv[5]);
-                csConfigParams.main_mode_repeat = (uint8_t)BleApp_atoi(argv[6]);
-
-                if (csConfigParams.main_mode_repeat > 3U)
-                {
-                    status = gBleInvalidParameter_c;
-                }
-            }
-
-            if (status == gBleSuccess_c)
-            {
-                csConfigParams.mode0_nb = (uint8_t)BleApp_atoi(argv[7]);
-
-                if ((csConfigParams.mode0_nb == 0U) || (csConfigParams.mode0_nb > 3U))
-                {
-                    status = gBleInvalidParameter_c;
-                }
-            }
-
-            if (status == gBleSuccess_c)
-            {
-                uint8_t role = (uint8_t)BleApp_atoi(argv[8]);
-
-                if (role > 1U)
-                {
-                    status = gBleInvalidParameter_c;
-                }
-                else
-                {
-                    mGlobalRangeSettings.role = role;
-                }
-            }
-
-            if (status == gBleSuccess_c)
-            {
-                csConfigParams.rtt_type = (uint8_t)BleApp_atoi(argv[9]);
-
-                if (csConfigParams.rtt_type > 6U)
-                {
-                    status = gBleInvalidParameter_c;
-                }
-            }
-
-            if (status == gBleSuccess_c)
-            {
-                if (gCsChannelMapLength_c ==  BleApp_ParseHexValue(argv[10]))
-                {
-                    FLib_MemCpy(csConfigParams.ch_map, argv[10], gCsChannelMapLength_c);
-                }
-                else
-                {
-                    status = gBleInvalidParameter_c;
-                }
-            }
-
-            if (status == gBleSuccess_c)
-            {
-                csConfigParams.ch_map_repeat = (uint8_t)BleApp_atoi(argv[11]);
-
-                if (csConfigParams.ch_map_repeat == 0U)
-                {
-                    status = gBleInvalidParameter_c;
-                }
-            }
-
-            if (status == gBleSuccess_c)
-            {
-                csConfigParams.channelSelectionType = (uint8_t)BleApp_atoi(argv[12]);
-
-                if (csConfigParams.channelSelectionType > 1U)
-                {
-                    status = gBleInvalidParameter_c;
-                }
-            }
-
-            if (status == gBleSuccess_c)
-            {
-                csConfigParams.cs_sync_phy = (uint8_t)BleApp_atoi(argv[13]);
-
-                if ((csConfigParams.cs_sync_phy < 1U) || (csConfigParams.cs_sync_phy > 3U))
-                {
-                    status = gBleInvalidParameter_c;
-                }
+                status = ShellSetCsConfigParams_ParseGroup2(argv, &csConfigParams);
             }
 
             if (status == gBleSuccess_c)
