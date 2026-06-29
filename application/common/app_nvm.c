@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2021-2023 NXP
+* Copyright 2021-2023, 2026 NXP
 *
 * \file
 *
@@ -397,8 +397,9 @@ bleResult_t App_NvmWrite
                     }
                 }
                 break;
-                case 5U:
+                default:
                 {
+                    /* case 5U */
                     if(pBondDataDescriptor != NULL)
                     {
                         if(mDescriptorIndex < gcGapMaximumSavedCccds_c)
@@ -411,9 +412,6 @@ bleResult_t App_NvmWrite
                         }
                     }
                 }
-                break;
-                default:
-                ; /* No action required */
                 break;
             }
 
@@ -490,8 +488,9 @@ bleResult_t App_NvmWrite
                     }
                 }
                 break;
-                case 5U:
+                default:
                 {
+                    /* case 5U */
                     if(pBondDataDescriptor != NULL)
                     {
                         if(mDescriptorIndex < gcGapMaximumSavedCccds_c)
@@ -502,11 +501,6 @@ bleResult_t App_NvmWrite
                                                      gcGapMaximumSavedCccds_c + mDescriptorIndex], FALSE);
                         }
                     }
-                }
-                break;
-                default:
-                {
-                    ; /* No action required */
                 }
                 break;
             }
@@ -677,8 +671,9 @@ bleResult_t App_NvmRead
                     }
                 }
                 break;
-                case 5U:
+                default:
                 {
+                    /* case 5U */
                     if(pBondDataDescriptor != NULL)
                     {
                         if(mDescriptorIndex < gcGapMaximumSavedCccds_c)
@@ -690,11 +685,6 @@ bleResult_t App_NvmRead
                             mSize     = gBleBondDataDescriptorSize_c;
                         }
                     }
-                }
-                break;
-                default:
-                {
-                    ; /* No action required */
                 }
                 break;
             }
@@ -796,8 +786,9 @@ bleResult_t App_NvmRead
                     }
                 }
                 break;
-                case 5U:
+                default:
                 {
+                    /* case 5U */
                     if(pBondDataDescriptor != NULL)
                     {
                         if(mDescriptorIndex < gcGapMaximumSavedCccds_c)
@@ -814,11 +805,6 @@ bleResult_t App_NvmRead
                             }
                         }
                     }
-                }
-                break;
-                default:
-                {
-                    ; /* No action required */
                 }
                 break;
             }
