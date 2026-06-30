@@ -39,7 +39,7 @@
 #define DM_CDE_THRESHOLD_DIVERSITY_DEFAULT    (10650U) /* 0.65 in Q14 */
 
 /* Constants */
-#define C_LIGHT    (300000000U)
+#define C_LIGHT    (300000000UL)
 #define DM_FREQUENCY_RASTER   (1000U) /* in kHz */
 #define Q7_SCALING_FACTOR     (128)
 #define Q10_SCALING_FACTOR    (1024)
