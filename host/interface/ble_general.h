@@ -193,7 +193,7 @@
 #define gVendorUnitaryTestSize_c             (255U)   /*!< Maximum size of the VENDOR_UNITARY_TEST response */
 
 #define gVendorDebugEventSize_c              (254U)   /*!< Maximum size of the debug payload */
-#define gLeExtendedFeaturesSize_c            (1U)     /*!< Current size of the leExtendedFeatures, can be raised up to 240 */
+#define gLeExtendedFeaturesSize_c            (2U)     /*!< Current size of the leExtendedFeatures, can be raised up to 240 */
 
 /* Macros for checking extended features */
 #define getLeExtendedFeatureByte(bitNumber)     ((bitNumber) / 8U)
@@ -852,6 +852,7 @@ typedef enum
 {
     /* Features starting from bit 64 (byte 8) */
     gLeMonitoringAdvertisers_c                  = 0U,   /* Bit 0 of byte 8, bit position 64 in Link Layer Feature table */
+    gCsEnhancements1_c                          = 11U,  /* Bit 3 of byte 9, bit position 75 in Link Layer Feature table */
 } leExtendedSupportedFeatures_tag;
 
 /*! Generic Event Type */
