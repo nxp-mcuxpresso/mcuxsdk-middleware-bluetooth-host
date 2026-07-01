@@ -198,7 +198,7 @@
 #define gBleSetMacAddrFromVendorCommand_d       (1)
 
 #ifndef gHost_TaskStackSize_c
-#define gHost_TaskStackSize_c       1850
+#define gHost_TaskStackSize_c       1900
 #endif
 
 /*! *********************************************************************************
