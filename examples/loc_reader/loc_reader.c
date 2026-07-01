@@ -185,6 +185,9 @@ static bool_t gAppOutAuth;
 *************************************************************************************
 ************************************************************************************/
 static void BleApp_StateMachineHandler(deviceId_t peerDeviceId, appEvent_t event);
+static void BleApp_HandleStateIdle(deviceId_t peerDeviceId, appEvent_t event);
+static void BleApp_HandleStateLocalizationSetup(deviceId_t peerDeviceId, appEvent_t event);
+
 static void BleApp_GenericCallback(gapGenericEvent_t* pGenericEvent);
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
 static button_status_t BleApp_HandleKeys0(void *pButtonHandle,
@@ -902,6 +905,146 @@ void BleApp_RunPtsTest(void *pParam)
 *************************************************************************************
 ************************************************************************************/
 /*! *********************************************************************************
+ * \brief        Handle the mAppIdle_c state of the application state machine.
+ *
+ * \param[in]    peerDeviceId       The remote device ID.
+ * \param[in]    event              The application event.
+ ********************************************************************************** */
+static void BleApp_HandleStateIdle
+(
+    deviceId_t peerDeviceId,
+    appEvent_t event
+)
+{
+    if (event == mAppEvt_PeerConnected_c)
+    {
+        shell_write("Connected\r\n");
+
+        if (maPeerInformation[peerDeviceId].isBonded == TRUE)
+        {
+            maPeerInformation[peerDeviceId].appState = mAppEncryptLink_c;
+            mRestoringBondedLink = TRUE;
+#if defined(gAppIsPeripheral_d) && (gAppIsPeripheral_d != 1U)
+            /* Restored custom connection information. Encrypt link */
+            (void)Gap_EncryptLink(peerDeviceId);
+#endif
+        }
+        else
+        {
+#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
+            if (mbDeviceToConnectHasTAK == TRUE)
+            {
+                takEntry_t *pTakEntry = NULL;
+
+                maPeerInformation[peerDeviceId].appState = mAppEncryptLink_c;
+
+                pTakEntry = BleConnManager_GetTak(peerDeviceId, FALSE);
+                if (pTakEntry != NULL)
+                {
+                    (void)Gap_EncryptLinkTak(peerDeviceId, pTakEntry->aTak);
+
+                    /* Clear Transient Key after usage */
+                    FLib_MemSet(pTakEntry->aTak, 0, sizeof(pTakEntry->aTak));
+
+                    AppLocalization_SetTakEnable(peerDeviceId);
+                }
+            }
+            else
+#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
+            {
+                maPeerInformation[peerDeviceId].appState = mAppPairing;
+#if defined(gAppIsPeripheral_d) && (gAppIsPeripheral_d != 1U)
+#if gAppUsePairing_d
+                (void)Gap_Pair(peerDeviceId, &gPairingParameters);
+#endif
+#endif
+            }
+        }
+    }
+}
+
+/*! *********************************************************************************
+ * \brief        Handle the mAppLocalizationSetup_c state of the application state
+ *               machine.
+ *
+ * \param[in]    peerDeviceId       The remote device ID.
+ * \param[in]    event              The application event.
+ ********************************************************************************** */
+static void BleApp_HandleStateLocalizationSetup
+(
+    deviceId_t peerDeviceId,
+    appEvent_t event
+)
+{
+    if (event == mAppEvt_ServiceDiscoveryComplete_c)
+    {
+        /* Read RAS features characteristic */
+        mpRasCharacteristic.value.handle = maPeerInformation[peerDeviceId].rasConfigInfo.featuresHandle;
+        mpRasCharacteristic.value.uuidType = gBleUuidType16_c;
+        mpRasCharacteristic.value.uuid.uuid16 = gBleSig_RasFeature_d;
+        mpRasCharacteristic.value.paValue = MEM_BufferAlloc(sizeof(uint32_t));
+        if (mpRasCharacteristic.value.paValue != NULL)
+        {
+            (void)GattClient_ReadCharacteristicValue(peerDeviceId,
+                                                    &mpRasCharacteristic,
+                                                    (uint16_t)(sizeof(uint32_t)));
+        }
+    }
+    /* Wrote Filter command */
+    else if (event == mAppEvt_WriteCharacteristicValueComplete_c)
+    {
+        if( mpCharProcBuffer == NULL )
+        {
+            mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
+        }
+
+        if( mpCharProcBuffer != NULL )
+        {
+            BleApp_HandleRasSubscription(peerDeviceId);
+        }
+    }
+    else if (event == mAppEvt_ReadCharacteristicValueComplete_c)
+    {
+        if ((mpRasCharacteristic.value.handle == maPeerInformation[peerDeviceId].rasConfigInfo.featuresHandle) &&
+            (mpRasCharacteristic.value.paValue != NULL))
+        {
+            uint32_t rasFeatures = Utils_ExtractFourByteValue(mpRasCharacteristic.value.paValue);
+            RasClient_SetRasSupportedFeatures(peerDeviceId, rasFeatures);
+
+            if( mpCharProcBuffer == NULL )
+            {
+                mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
+            }
+
+            if( mpCharProcBuffer != NULL )
+            {
+                BleApp_HandleRasSubscription(peerDeviceId);
+            }
+        }
+    }
+    else if (event == mAppEvt_WriteCharacteristicDescriptorComplete_c)
+    {
+        if( mpCharProcBuffer == NULL )
+        {
+            mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
+        }
+
+        if( mpCharProcBuffer != NULL )
+        {
+            BleApp_HandleRasSubscription(peerDeviceId);
+        }
+    }
+    else if (event == mAppEvt_ServiceDiscoveryFailed_c)
+    {
+        (void)Gap_Disconnect(peerDeviceId);
+    }
+    else
+    {
+        /* For MISRA compliance */
+    }
+}
+
+/*! *********************************************************************************
  * \brief        Handle the main application state machine
  *
  * \param[in]    peerDeviceId       The remote device ID.
@@ -919,51 +1062,7 @@ static void BleApp_StateMachineHandler
         {
         case mAppIdle_c:
         {
-            if (event == mAppEvt_PeerConnected_c)
-            {
-                shell_write("Connected\r\n");
-
-                if (maPeerInformation[peerDeviceId].isBonded == TRUE)
-                {
-                    maPeerInformation[peerDeviceId].appState = mAppEncryptLink_c;
-                    mRestoringBondedLink = TRUE;
-#if defined(gAppIsPeripheral_d) && (gAppIsPeripheral_d != 1U)
-                    /* Restored custom connection information. Encrypt link */
-                    (void)Gap_EncryptLink(peerDeviceId);
-#endif
-                }
-                else
-                {
-#if (defined(gAppUseTAK_d) && gAppUseTAK_d)
-                    if (mbDeviceToConnectHasTAK == TRUE)
-                    {
-                        takEntry_t *pTakEntry = NULL;
-
-                        maPeerInformation[peerDeviceId].appState = mAppEncryptLink_c;
-
-                        pTakEntry = BleConnManager_GetTak(peerDeviceId, FALSE);
-                        if (pTakEntry != NULL)
-                        {
-                            (void)Gap_EncryptLinkTak(peerDeviceId, pTakEntry->aTak);
-                            
-                            /* Clear Transient Key after usage */
-                            FLib_MemSet(pTakEntry->aTak, 0, sizeof(pTakEntry->aTak));
-                            
-                            AppLocalization_SetTakEnable(peerDeviceId);
-                        }
-                    }
-                    else
-#endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
-                    {
-                        maPeerInformation[peerDeviceId].appState = mAppPairing;
-#if defined(gAppIsPeripheral_d) && (gAppIsPeripheral_d != 1U)
-#if gAppUsePairing_d
-                        (void)Gap_Pair(peerDeviceId, &gPairingParameters);
-#endif
-#endif
-                    }
-                }
-            }
+            BleApp_HandleStateIdle(peerDeviceId, event);
         }
         break;
 
@@ -1015,72 +1114,7 @@ static void BleApp_StateMachineHandler
 
         case mAppLocalizationSetup_c:
         {
-            if (event == mAppEvt_ServiceDiscoveryComplete_c)
-            {
-                /* Read RAS features characteristic */
-                mpRasCharacteristic.value.handle = maPeerInformation[peerDeviceId].rasConfigInfo.featuresHandle;
-                mpRasCharacteristic.value.uuidType = gBleUuidType16_c;
-                mpRasCharacteristic.value.uuid.uuid16 = gBleSig_RasFeature_d;
-                mpRasCharacteristic.value.paValue = MEM_BufferAlloc(sizeof(uint32_t));
-                if (mpRasCharacteristic.value.paValue != NULL)
-                {
-                    (void)GattClient_ReadCharacteristicValue(peerDeviceId,
-                                                            &mpRasCharacteristic,
-                                                            (uint16_t)(sizeof(uint32_t)));
-                }
-            }
-
-            /* Wrote Filter command */
-            else if (event == mAppEvt_WriteCharacteristicValueComplete_c)
-            {
-                if( mpCharProcBuffer == NULL )
-                {
-                    mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
-                }
-
-                if( mpCharProcBuffer != NULL )
-                {
-                    BleApp_HandleRasSubscription(peerDeviceId);
-                }
-            }
-            else if (event == mAppEvt_ReadCharacteristicValueComplete_c)
-            {
-                if (mpRasCharacteristic.value.handle == maPeerInformation[peerDeviceId].rasConfigInfo.featuresHandle)
-                {
-                    uint32_t rasFeatures = Utils_ExtractFourByteValue(mpRasCharacteristic.value.paValue);
-                    RasClient_SetRasSupportedFeatures(peerDeviceId, rasFeatures);
-
-                    if( mpCharProcBuffer == NULL )
-                    {
-                        mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
-                    }
-
-                    if( mpCharProcBuffer != NULL )
-                    {
-                        BleApp_HandleRasSubscription(peerDeviceId);
-                    }
-                }
-            }
-            else if (event == mAppEvt_WriteCharacteristicDescriptorComplete_c)
-            {
-                if( mpCharProcBuffer == NULL )
-                {
-                    mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
-                }
-
-                if( mpCharProcBuffer != NULL )
-                {
-                    BleApp_HandleRasSubscription(peerDeviceId);
-                }
-            }
-            else if (event == mAppEvt_ServiceDiscoveryFailed_c)
-            {
-                (void)Gap_Disconnect(peerDeviceId);
-            }
-            else
-            {
-                /* For MISRA compliance */
-            }
+            BleApp_HandleStateLocalizationSetup(peerDeviceId, event);
         }
         break;
 
