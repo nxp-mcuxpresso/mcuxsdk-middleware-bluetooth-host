@@ -33,4 +33,4 @@ The examples described in this document use a KW45B41Z-EVK, KW45B41Z-LOC, MCX-W7
 ![FRDM-MCXW72 board](../images/boards/FRDM-MCXW72.png "FRDM-MCXW72 board")
 
 **FRDM-KW43 board**
-![FRDM-MKW43 board](../images/boards/FRDM-KW43.png "FRDM-KW43 board")
+![FRDM-KW43 board](../images/boards/FRDM-KW43.png "FRDM-KW43 board")

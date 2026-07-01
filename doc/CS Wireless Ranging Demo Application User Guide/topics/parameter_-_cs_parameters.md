@@ -30,7 +30,7 @@ timings | Timings commands
 | cs_algo      | 0         | Used to define channel selection algorithm type (0=3b, 1=3c), and for #3c: shape (0=hat, 1=X) and jump                                                                                 |
 | main_mode_nb | 4, 4, 0   | Numbers of CS main mode steps (min, max, repetition)                                                                                                                                   |
 | mode0_nb     | 2         | Set/show numbers of CS mode 0 steps                                                                                                                                                    |
-| mode_type    | 2,1       | Set/show main mode and submode types as defined by CS<br>**Note that the step mode 3 is only supported on KW47 family and FRDM-KW43 platforms.**                                                         |
+| mode_type    | 2,1       | Set/show main mode and submode types as defined by CS<br>**Note that the step mode 3 is only supported on KW47 and KW43 platforms.**                                                         |
 | role         | Initiator | Set/show CS role                                                                                                                                                                       |
 | rtt_phy      | 0         | Set/show RTT PHY rate (0=1 Mbit/s, 1=2 Mbit/s)                                                                                                                                         |
 | tx_pwr       | 0         | TX power in dBm used during the CS measurement;<br>[-12…10] dBm                                                                                                                           |

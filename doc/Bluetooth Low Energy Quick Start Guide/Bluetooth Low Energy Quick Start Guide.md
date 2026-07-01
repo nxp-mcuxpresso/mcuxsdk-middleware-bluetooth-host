@@ -1,4 +1,4 @@
-# KW45, MCXW71, KW47, MCXW72, FRDM-KW43 Bluetooth Low Energy Software Quick Start Guide
+# KW45, MCXW71, KW47, MCXW72, KW43 Bluetooth Low Energy Software Quick Start Guide
 
 
 ```{tocTree}
