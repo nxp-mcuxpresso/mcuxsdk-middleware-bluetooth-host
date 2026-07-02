@@ -429,6 +429,187 @@ void* AppLocalizationAlgo_AllocData(void)
 
 #if defined (gRasRREQ_d) && (gRasRREQ_d == 1)
 /*! *********************************************************************************
+*\brief     Merge previously buffered remote event data with the new chunk.
+*
+*\param[in,out] ppEventData   Pointer to the current event data pointer.
+*\param[in,out] pDataLength   Pointer to the current data length.
+*\param[out]    ppTemp        Pointer to the intermediate buffer pointer (allocated here).
+*\param[in,out] pRemoteData   Pointer to the remote measurement data structure.
+*
+*\retval    none
+********************************************************************************** */
+static void MergeRemainingRemoteData
+(
+    uint8_t **ppEventData,
+    uint32_t *pDataLength,
+    uint8_t **ppTemp,
+    rasMeasurementData_t *pRemoteData
+)
+{
+    /* Check if we have uncompressed event data left from a previous event */
+    if (pRemoteData->pRemaining != NULL)
+    {
+        uint8_t *pTemp = MEM_BufferAlloc(*pDataLength + pRemoteData->remainingLen);
+        if (pTemp != NULL)
+        {
+            /* Merge previous event data with this new event data */
+            FLib_MemCpy(pTemp, pRemoteData->pRemaining, pRemoteData->remainingLen);
+            FLib_MemCpy(pTemp + pRemoteData->remainingLen, *ppEventData, *pDataLength);
+            *ppEventData = pTemp;
+            *pDataLength += pRemoteData->remainingLen;
+            *ppTemp = pTemp;
+
+            /* Clear previous event data */
+            (void)MEM_BufferFree(pRemoteData->pRemaining);
+            pRemoteData->pRemaining = NULL;
+            pRemoteData->remainingLen = 0U;
+        }
+        else
+        {
+            panic(0, 0, 0, 0);
+        }
+    }
+}
+
+/*! *********************************************************************************
+*\brief     Proprietary IPT solution: filter out mode-2 and mode-3 PCT data.
+*
+*\param[in] mode      Current CS step mode.
+*\param[in] filter    Filter value to be adjusted.
+*
+*\retval    uint16_t  The adjusted filter value.
+********************************************************************************** */
+static uint16_t FilterInlinePctData(uint8_t mode, uint16_t filter)
+{
+    if (mode == 2U)
+    {
+        filter &= ~((uint16_t)1U << 2U);
+        filter &= ~((uint16_t)1U << 3U);
+        filter &= ~((uint16_t)1U << 4U);
+    }
+    else if (mode == 3U)
+    {
+        filter &= ~((uint16_t)1U << 9U);
+        filter &= ~((uint16_t)1U << 10U);
+        filter &= ~((uint16_t)1U << 11U);
+    }
+    else
+    {
+        /* MISRA */
+    }
+
+    return filter;
+}
+
+/*! *********************************************************************************
+*\brief     Parse the mode byte and the mode data for a single remote CS step.
+*
+*\param[in,out] ppEventData   Pointer to the current event data pointer.
+*\param[in,out] pDataLength   Pointer to the current data length.
+*\param[in,out] pDstAppBuffer Pointer to the destination application buffer.
+*\param[in,out] pRemoteData   Pointer to the remote measurement data structure.
+*
+*\retval    bool_t  TRUE if the step data is incomplete, FALSE otherwise.
+********************************************************************************** */
+static bool_t ParseRemoteStepMode
+(
+    uint8_t **ppEventData,
+    uint32_t *pDataLength,
+    csAppData_t *pDstAppBuffer,
+    rasMeasurementData_t *pRemoteData
+)
+{
+    bool_t bIncomplete = FALSE;
+    uint8_t mode = 0U;
+    uint16_t filter = 0U;
+    uint8_t *pEventData = *ppEventData;
+    uint32_t dataLength = *pDataLength;
+
+    do
+    {
+        CheckSkipBytes(pEventData, dataLength, sizeof(uint8_t), bIncomplete,
+            mode = *pEventData;
+        );
+    } while(FALSE);
+
+    if (bIncomplete == FALSE)
+    {
+        if ((mode & BIT7) != 0U)
+        {
+            /* Step aborted, assume length zero */
+        }
+        else
+        {
+            assert(mode <= 3U);
+
+            pDstAppBuffer->csData.modeMap[pRemoteData->step] = mode;
+            /* Get filter for the current mode */
+            filter = RasClient_GetModeFilter(pRemoteData->deviceId, mode);
+            /* Proprietary IPT solution: filter out mode-2 and mode-3 PCT data */
+            if (mRangeSettings[pRemoteData->deviceId].inlinePctEnabled == TRUE)
+            {
+                filter = FilterInlinePctData(mode, filter);
+            }
+            /* Unpack mode data */
+            bIncomplete = HandleRemoteModes(mode, filter, &pEventData,
+                                            &dataLength, pDstAppBuffer,
+                                            pRemoteData);
+        }
+    }
+
+    *ppEventData = pEventData;
+    *pDataLength = dataLength;
+
+    return bIncomplete;
+}
+
+/*! *********************************************************************************
+*\brief     Populate the additional destination buffer fields once the last
+*           segment has been received.
+*
+*\param[in,out] pRemoteData   Pointer to the remote measurement data structure.
+*\param[in,out] pDstAppBuffer Pointer to the destination application buffer.
+*
+*\retval    none
+********************************************************************************** */
+static void PopulateRemoteLastSegmentInfo
+(
+    rasMeasurementData_t *pRemoteData,
+    csAppData_t *pDstAppBuffer
+)
+{
+    uint16_t totalStepCounter = 0U;
+
+    /* Total number of steps */
+    pDstAppBuffer->csData.step_nb = (uint16_t)pRemoteData->step;
+
+    /* Start ACL count */
+    pDstAppBuffer->csData.startAclCnt =
+            pRemoteData->aSubEventData[pDstAppBuffer->csData.subevt_nb].subevtHeader.startACLConnEvent;
+
+    /* For every subevent */
+    for (uint8_t index = 0U; index <= pRemoteData->subeventIndex; index++)
+    {
+        /* The stop index is the total number of previous steps */
+        pDstAppBuffer->csData.subevtStopIdxRemote[index] =
+            (uint8_t)totalStepCounter + pRemoteData->aSubEventData[index].subevtHeader.numStepsReported;
+
+        /* Delta regarding ACL counter of first subevent */
+        pDstAppBuffer->csData.subevtConnEvent[index] =
+            (uint8_t)(pRemoteData->aSubEventData[index].subevtHeader.startACLConnEvent - pDstAppBuffer->csData.startAclCnt);
+
+        /* Save the reference power level in subevtRefPowerLevelInit - will be switched to the proper role by the caller */
+        pDstAppBuffer->csData.subevtRefPowerLevelInit[index] = pRemoteData->aSubEventData[index].subevtHeader.referencePowerLevel;
+
+        /* Count handled steps */
+        totalStepCounter += pRemoteData->aSubEventData[index].subevtHeader.numStepsReported;
+    }
+
+    /* Total number of subevents */
+    pDstAppBuffer->csData.subevt_nb = pRemoteData->subeventIndex + 1U;
+}
+
+/*! *********************************************************************************
 *\fn        void AppLocalizationAlgo_UncompressRemoteResponse(uint8_t *pEventData,
 *           uint32_t dataLength, rasMeasurementData_t *pRemoteData, bool_t lastSegment);
 *
@@ -450,10 +631,8 @@ void AppLocalizationAlgo_UncompressRemoteResponse
     bool_t lastSegment
 )
 {
-    uint16_t totalStepCounter = 0U;
     csAppData_t *pDstAppBuffer = (csAppData_t*)(void*)pRemoteData->pData;
 
-    uint8_t mode;
     bool_t bIncomplete = FALSE;
     uint8_t *pLastOk = NULL;
     uint8_t *pTemp = NULL;
@@ -465,35 +644,13 @@ void AppLocalizationAlgo_UncompressRemoteResponse
     {
         pDstAppBuffer->mciq_data.n_ap = pRemoteData->numAntennaPaths;
     }
-    
-    /* Check if we have uncompressed event data left from a previous event */
-    if (pRemoteData->pRemaining != NULL)
-    {
-        pTemp = MEM_BufferAlloc(dataLength + pRemoteData->remainingLen);
-        if (pTemp != NULL)
-        {
-            /* Merge previous event data with this new event data */
-            FLib_MemCpy(pTemp, pRemoteData->pRemaining, pRemoteData->remainingLen);
-            FLib_MemCpy(pTemp + pRemoteData->remainingLen, pEventData, dataLength);
-            pEventData = pTemp;
-            dataLength += pRemoteData->remainingLen;
 
-            /* Clear previous event data */
-            (void)MEM_BufferFree(pRemoteData->pRemaining);
-            pRemoteData->pRemaining = NULL;
-            pRemoteData->remainingLen = 0U;
-        }
-        else
-        {
-            panic(0, 0, 0, 0);
-        }
-    }
+    /* Merge any uncompressed event data left from a previous event with this chunk */
+    MergeRemainingRemoteData(&pEventData, &dataLength, &pTemp, pRemoteData);
 
     /* Loop through all of the received bytes */
     while ((dataLength > 0U) && (bIncomplete == FALSE))
     {
-        uint16_t filter = 0U;
-
         /* Keep a pointer to the end of the last completed parse */
         pLastOk = pEventData;
         pRemoteData->remainingLen = dataLength;
@@ -527,52 +684,7 @@ void AppLocalizationAlgo_UncompressRemoteResponse
 
         if (bIncomplete == FALSE)
         {
-            do
-            {
-                CheckSkipBytes(pEventData, dataLength, sizeof(uint8_t), bIncomplete, 
-                    mode = *pEventData;
-                );
-            } while(FALSE);
-            
-            if (bIncomplete == FALSE)
-            {
-                if ((mode & BIT7) != 0U)
-                {
-                    /* Step aborted, assume length zero */
-                }
-                else
-                {
-                    assert(mode <= 3U);
-
-                    pDstAppBuffer->csData.modeMap[pRemoteData->step] = mode;
-                    /* Get filter for the current mode */
-                    filter = RasClient_GetModeFilter(pRemoteData->deviceId, mode);
-                    /* Proprietary IPT solution: filter out mode-2 and mode-3 PCT data */
-                    if (mRangeSettings[pRemoteData->deviceId].inlinePctEnabled == TRUE)
-                    {
-                        if (mode == 2U)
-                        {
-                            filter &= ~((uint16_t)1U << 2U);
-                            filter &= ~((uint16_t)1U << 3U);
-                            filter &= ~((uint16_t)1U << 4U);
-                        }
-                        else if (mode == 3U)
-                        {
-                            filter &= ~((uint16_t)1U << 9U);
-                            filter &= ~((uint16_t)1U << 10U);
-                            filter &= ~((uint16_t)1U << 11U);
-                        }
-                        else
-                        {
-                            /* MISRA */
-                        }
-                    }
-                    /* Unpack mode data */
-                    bIncomplete = HandleRemoteModes(mode, filter, &pEventData, 
-                                                    &dataLength, pDstAppBuffer, 
-                                                    pRemoteData);
-                }
-            }
+            bIncomplete = ParseRemoteStepMode(&pEventData, &dataLength, pDstAppBuffer, pRemoteData);
         }
 
         /* Data is complete */
@@ -614,33 +726,7 @@ void AppLocalizationAlgo_UncompressRemoteResponse
     /* Populate additional fields in pDstAppBuffer */
     if (lastSegment == TRUE)
     {
-        /* Total number of steps */
-        pDstAppBuffer->csData.step_nb = (uint16_t)pRemoteData->step;
-    
-        /* Start ACL count */
-        pDstAppBuffer->csData.startAclCnt =
-                pRemoteData->aSubEventData[pDstAppBuffer->csData.subevt_nb].subevtHeader.startACLConnEvent;
-
-        /* For every subevent */
-        for (uint8_t index = 0U; index <= pRemoteData->subeventIndex; index++)
-        {
-            /* The stop index is the total number of previous steps */
-            pDstAppBuffer->csData.subevtStopIdxRemote[index] =
-                (uint8_t)totalStepCounter + pRemoteData->aSubEventData[index].subevtHeader.numStepsReported;
-
-            /* Delta regarding ACL counter of first subevent */
-            pDstAppBuffer->csData.subevtConnEvent[index] =
-                (uint8_t)(pRemoteData->aSubEventData[index].subevtHeader.startACLConnEvent - pDstAppBuffer->csData.startAclCnt);
-
-            /* Save the reference power level in subevtRefPowerLevelInit - will be switched to the proper role by the caller */
-            pDstAppBuffer->csData.subevtRefPowerLevelInit[index] = pRemoteData->aSubEventData[index].subevtHeader.referencePowerLevel;
-
-            /* Count handled steps */
-            totalStepCounter += pRemoteData->aSubEventData[index].subevtHeader.numStepsReported;
-        }
-
-        /* Total number of subevents */
-        pDstAppBuffer->csData.subevt_nb = pRemoteData->subeventIndex + 1U;
+        PopulateRemoteLastSegmentInfo(pRemoteData, pDstAppBuffer);
     }
 }
 #endif /* defined (gRasRREQ_d) && (gRasRREQ_d == 1) */
