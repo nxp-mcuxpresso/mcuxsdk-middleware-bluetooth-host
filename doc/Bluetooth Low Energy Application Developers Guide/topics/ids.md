@@ -73,6 +73,13 @@ The `idsEventType_t` enumeration defines various security events that can be det
 - **Description**: During the pairing process, the attacker sends a DHKey Check message that fails cryptographic verification, attempting to bypass the key confirmation step of the pairing process.
 - **Preventive Action**: Verify that the received DHKey Check value matches the computed expected value and reject the pairing if it does not.
 
+ `gSecEvt_SameConfirmValue_c` (BIT21)
+- **Attack**: Confirm Value Replay Attack (Same Confirm Value)
+- **Target**: Pairing process
+- **Stack Location**: Host
+- **Description**: During Legacy Pairing Phase 2, the attacker (acting as Responder) sends LP_CONFIRM_R equal to LP_CONFIRM_I received from the Initiator, attempting to bypass the confirm value verification step and force the Initiator into an incorrect STK encryption attempt. Per Core Spec 6.3 Section 2.3.5.5, the Initiator SHALL verify that LP_CONFIRM_R is not equal to LP_CONFIRM_I.
+- **Preventive Action**: Verify that LP_CONFIRM_R != LP_CONFIRM_I and reject the pairing with Confirm Value Failed (0x04) if equal. The IDS event allows the application to take additional defensive action (e.g., disconnect, block device).
+
 ### Connection-Related Events
 
  `gSecEvt_MicFailureDisconnect_c` (BIT5)

@@ -90,6 +90,9 @@ typedef enum {
 
     /*! DH Key Check failed. Target: Pairing. Stack location: Host. */
     gSecEvt_DHKeyCheckFailed_c              = BIT20,
+
+    /*! Same Confirm Value. Target: Pairing. Stack location: Host.*/
+    gSecEvt_SameConfirmValue_c              = BIT21,
 } idsEventType_t;
 
 
