@@ -159,6 +159,16 @@ static void antennaPathFilterStepData
     uint16_t*  pOutLen
 );
 
+static uint8_t* processMode3AntennaPaths
+(
+    deviceId_t     deviceId,
+    uint8_t        devIdIdx,
+    const uint8_t* antIndex_p,
+    uint8_t*       pData,
+    uint8_t*       pNotifData,
+    uint16_t*      pOutLen
+);
+
 static bleResult_t handleGetRangingDataSegmNotif
 (
     deviceId_t deviceId,
@@ -1653,6 +1663,74 @@ static uint8_t* processMode2Data
 }
 
 /*!**********************************************************************************
+ * \brief            Process Mode 3 antenna path tone data filtering
+ *
+ * \param[in]        deviceId          Peer identifier
+ * \param[in]        devIdIdx          Device index for mode filters
+ * \param[in]        antIndex_p        Antenna permutation switching sequence
+ * \param[in]        pData             Pointer to the current step data position
+ * \param[out]       pNotifData        Pointer to notification data buffer
+ * \param[in,out]    pOutLen           Length of stored data (updated)
+ *
+ * \return           Pointer to next step data position
+************************************************************************************/
+static uint8_t* processMode3AntennaPaths
+(
+    deviceId_t     deviceId,
+    uint8_t        devIdIdx,
+    const uint8_t* antIndex_p,
+    uint8_t*       pData,
+    uint8_t*       pNotifData,
+    uint16_t*      pOutLen
+)
+{
+    uint8_t antIdx = 0U;
+
+    for (uint8_t idx = 0U; idx <= maRasDynamicCfg[deviceId].pCfg->numAntennaPaths; idx++)
+    {
+        if (idx < maRasDynamicCfg[deviceId].pCfg->numAntennaPaths)
+        {
+            antIdx = antIndex_p[idx];
+        }
+        else
+        {
+            /* extension slot - repeat last antenna path in the switching sequence */
+            antIdx = antIndex_p[maRasDynamicCfg[deviceId].pCfg->numAntennaPaths - 1U];
+        }
+
+        /* Check if the corresponding Antenna Path is enabled */
+        if (((antIdx == 0U) && ((maModeFilters[devIdIdx] & BIT12) != 0U)) ||
+            ((antIdx == 1U) && ((maModeFilters[devIdIdx] & BIT13) != 0U)) ||
+            ((antIdx == 2U) && ((maModeFilters[devIdIdx] & BIT14) != 0U)) ||
+            ((antIdx == 3U) && ((maModeFilters[devIdIdx] & BIT15) != 0U)))
+        {
+            if ((maModeFilters[devIdIdx] & BIT10) != 0U)
+            {
+                /* Copy Tone_PCT information in IQ format */
+                FLib_MemCpy(pNotifData + (*pOutLen), pData, gTone_PCTSize_c);
+
+                (*pOutLen) += (uint16_t)gTone_PCTSize_c;
+            }
+            pData = &pData[gTone_PCTSize_c];
+
+            if ((maModeFilters[devIdIdx] & BIT11) != 0U)
+            {
+                /* Copy Tone_PCT information */
+                *(pNotifData + (*pOutLen)) = *pData;
+                (*pOutLen) += (uint16_t)sizeof(uint8_t);
+            }
+            pData = &pData[sizeof(uint8_t)];
+        }
+        else
+        {
+            pData = &pData[sizeof(uint8_t) + gTone_PCTSize_c];
+        }
+    }
+
+    return pData;
+}
+
+/*!**********************************************************************************
  * \brief            Process Mode 3 step data filtering
  *
  * \param[in]        deviceId          Peer identifier
@@ -1676,7 +1754,6 @@ static uint8_t* processMode3Data
 {
     uint8_t* pData = pStepDataAux;
     uint8_t antPermIndex = 0U;
-    uint8_t antIdx = 0U;
     const uint8_t *antIndex_p = NULL;
 
     if ((maModeFilters[devIdIdx] & BIT2) != 0U)
@@ -1754,46 +1831,7 @@ static uint8_t* processMode3Data
     }
     pData = &pData[sizeof(uint8_t)];
 
-    for (uint8_t idx = 0U; idx <= maRasDynamicCfg[deviceId].pCfg->numAntennaPaths; idx++)
-    {
-        if (idx < maRasDynamicCfg[deviceId].pCfg->numAntennaPaths)
-        {
-            antIdx = antIndex_p[idx];
-        }
-        else
-        {
-            /* extension slot - repeat last antenna path in the switching sequence */
-            antIdx = antIndex_p[maRasDynamicCfg[deviceId].pCfg->numAntennaPaths - 1U];
-        }
-
-        /* Check if the corresponding Antenna Path is enabled */
-        if (((antIdx == 0U) && ((maModeFilters[devIdIdx] & BIT12) != 0U)) ||
-            ((antIdx == 1U) && ((maModeFilters[devIdIdx] & BIT13) != 0U)) ||
-            ((antIdx == 2U) && ((maModeFilters[devIdIdx] & BIT14) != 0U)) ||
-            ((antIdx == 3U) && ((maModeFilters[devIdIdx] & BIT15) != 0U)))
-        {
-            if ((maModeFilters[devIdIdx] & BIT10) != 0U)
-            {
-                /* Copy Tone_PCT information in IQ format */
-                FLib_MemCpy(pNotifData + (*pOutLen), pData, gTone_PCTSize_c);
-
-                (*pOutLen) += (uint16_t)gTone_PCTSize_c;
-            }
-            pData = &pData[gTone_PCTSize_c];
-
-            if ((maModeFilters[devIdIdx] & BIT11) != 0U)
-            {
-                /* Copy Tone_PCT information */
-                *(pNotifData + (*pOutLen)) = *pData;
-                (*pOutLen) += (uint16_t)sizeof(uint8_t);
-            }
-            pData = &pData[sizeof(uint8_t)];
-        }
-        else
-        {
-            pData = &pData[sizeof(uint8_t) + gTone_PCTSize_c];
-        }
-    }
+    pData = processMode3AntennaPaths(deviceId, devIdIdx, antIndex_p, pData, pNotifData, pOutLen);
 
     return pData;
 }

@@ -374,13 +374,12 @@ bleResult_t BleApp_TriggerCsDistanceMeasurement(deviceId_t deviceId)
                 if (Ras_CheckIfSubscribed(i) == TRUE)
                 {
                     AppLocalization_ResetPeer(i, FALSE, gInvalidNvmIndex_c);
-                    (void)AppLocalization_SetProcedureParameters(i);
-                }
-                else
-                {
-                    shell_write("\r\n[");
-                    shell_writeDec(i);
-                    shell_write("] Skipping, RAS client not subscribed\r\n");
+                    result = AppLocalization_SetProcedureParameters(i);
+
+                    if (result == gBleOverflow_c)
+                    {
+                        shell_write("Maximum concurrent CS procedures reached!\r\n");
+                    }
                 }
             }
         }

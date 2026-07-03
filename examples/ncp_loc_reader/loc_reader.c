@@ -418,12 +418,6 @@ bleResult_t BleApp_TriggerCsDistanceMeasurement(deviceId_t deviceId)
                         shell_write("Maximum concurrent CS procedures reached!\r\n");
                     }
                 }
-                else
-                {
-                    shell_write("\r\n[");
-                    shell_writeDec(i);
-                    shell_write("] Skipping, not subscribed to RAS service\r\n");
-                }
             }
         }
     }
