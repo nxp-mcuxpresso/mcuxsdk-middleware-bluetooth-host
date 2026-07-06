@@ -120,6 +120,7 @@ typedef enum appEvent_tag{
     mAppEvt_GattProcComplete_c,
     mAppEvt_GattProcError_c,
     mAppEvt_ReadCharacteristicValueComplete_c,
+    mAppEvt_AllCharReadsComplete_c,
     mAppEvt_ExchangeMtuComplete_c,
     mAppEvt_PsmChannelCreated_c,
     mAppEvt_SentSPAKEResponse_c,

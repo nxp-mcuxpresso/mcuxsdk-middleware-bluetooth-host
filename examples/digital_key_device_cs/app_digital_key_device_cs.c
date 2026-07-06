@@ -204,6 +204,7 @@ static void App_HandleL2capPsmControlCallback(appEventData_t *pEventData);
 static void BleApp_HandleIdleState(deviceId_t peerDeviceId, appEvent_t event);
 static void BleApp_HandleServiceDiscState(deviceId_t peerDeviceId, appEvent_t event);
 static void BleApp_HandlePairState(deviceId_t peerDeviceId, appEvent_t event);
+static void BleApp_TryEnterLocalizationSetup(deviceId_t peerDeviceId);
 /************************************************************************************
 *************************************************************************************
 * Public functions
@@ -827,17 +828,56 @@ static void BleApp_HandleIdleState(deviceId_t peerDeviceId, appEvent_t event)
 ************************************************************************************/
 static void BleApp_HandleServiceDiscState(deviceId_t peerDeviceId, appEvent_t event)
 {
-    bleResult_t status = gBleUnexpectedError_c;
-
     if (event == mAppEvt_ReadCharacteristicValueComplete_c)
     {
         (void)L2ca_ConnectLePsm((uint16_t)Utils_BeExtractTwoByteValue(maCharacteristics[mcCharVehiclePsmIndex_c].value.paValue),
                                 peerDeviceId, mAppLeCbInitialCredits_c);
     }
-
-    if (event == mAppEvt_PsmChannelCreated_c)
+    else if (event == mAppEvt_PsmChannelCreated_c)
     {
-        if (maPeerInformation[peerDeviceId].isBonded)
+        /* The L2CAP channel is up. On the bonded path, defer the Exchange MTU
+           until all vehicle characteristic reads have also completed to avoid
+           colliding with a still-pending ATT read (single-transaction rule). */
+        maPeerInformation[peerDeviceId].bPsmChannelCreated = TRUE;
+        BleApp_TryEnterLocalizationSetup(peerDeviceId);
+    }
+    else if (event == mAppEvt_AllCharReadsComplete_c)
+    {
+        /* All vehicle characteristic reads have completed. */
+        maPeerInformation[peerDeviceId].bAllCharsRead = TRUE;
+        BleApp_TryEnterLocalizationSetup(peerDeviceId);
+    }
+    else
+    {
+        /* For MISRA compliance */
+    }
+}
+
+/*! *********************************************************************************
+* \brief        Rendezvous point for the bonded reconnection localization setup.
+*
+*               On the bonded path, the Exchange MTU (an ATT client transaction)
+*               must be issued only after BOTH the L2CAP channel has been created
+*               AND all vehicle characteristic reads have completed. Issuing it
+*               earlier could collide with a still-pending characteristic read and
+*               get dropped, because ATT permits only one outstanding
+*               client-initiated transaction at a time.
+*
+*               The non-bonded path does not use an ATT transaction here (it sends
+*               the Request_owner_pairing SubEvent over L2CAP), so it only needs the
+*               L2CAP channel to be created.
+*
+* \param[in]    peerDeviceId        Peer device ID.
+************************************************************************************/
+static void BleApp_TryEnterLocalizationSetup(deviceId_t peerDeviceId)
+{
+    bleResult_t status = gBleUnexpectedError_c;
+
+    if (maPeerInformation[peerDeviceId].isBonded)
+    {
+        /* Bonded path: wait for BOTH the L2CAP channel and all char reads. */
+        if ((maPeerInformation[peerDeviceId].bPsmChannelCreated) &&
+            (maPeerInformation[peerDeviceId].bAllCharsRead))
         {
             uint64_t devEvtCnt = 0U;
             /* Send Time Sync */
@@ -845,16 +885,20 @@ static void BleApp_HandleServiceDiscState(deviceId_t peerDeviceId, appEvent_t ev
 
             shell_cmd_finished();
 
-            /* Localizaion setup - Exchange MTU */
+            /* Localization setup - Exchange MTU */
             shell_write("MTU Exchange\r\n");
             maPeerInformation[peerDeviceId].appState = mAppLocalizationSetup_c;
             (void)GattClient_ExchangeMtu(peerDeviceId, gAttMaxMtu_c);
         }
-        else
+    }
+    else
+    {
+        /* Non-bonded path: only the L2CAP channel is required here. */
+        if (maPeerInformation[peerDeviceId].bPsmChannelCreated)
         {
             /* Send request_owner_pairing */
             shell_write("\r\nSending Command Complete SubEvent: Request_owner_pairing\r\n");
-            status =  CCC_SendSubEvent(peerDeviceId, gCommandComplete_c, gRequestOwnerPairing_c);
+            status = CCC_SendSubEvent(peerDeviceId, gCommandComplete_c, gRequestOwnerPairing_c);
             if (status == gBleSuccess_c)
             {
                 maPeerInformation[peerDeviceId].appState = mAppCCCPhase2WaitingForRequest_c;
@@ -1154,6 +1198,13 @@ static void App_HandleGattClientCallback(appEventData_t *pEventData)
                                                                      mCharReadBufferLength_c,
                                                                      &mOutCharReadByteCount);
                     }
+                    else
+                    {
+                        /* No optional characteristics present - all reads done.
+                           Signal the rendezvous so the bonded path can proceed. */
+                        mCurrentCharReadingIndex = mcCharVehiclePsmIndex_c;
+                        BleApp_StateMachineHandler(pEventData->peerDeviceId, mAppEvt_AllCharReadsComplete_c);
+                    }
                 }
             }
             else if (mCurrentCharReadingIndex == mcCharVehicleAntennaIdIndex_c)
@@ -1178,6 +1229,13 @@ static void App_HandleGattClientCallback(appEventData_t *pEventData)
                                                                  mCharReadBufferLength_c,
                                                                  &mOutCharReadByteCount);
                 }
+                else
+                {
+                    /* Antenna ID read but no Tx Power char - all reads done.
+                       Signal the rendezvous so the bonded path can proceed. */
+                    mCurrentCharReadingIndex = mcCharVehiclePsmIndex_c;
+                    BleApp_StateMachineHandler(pEventData->peerDeviceId, mAppEvt_AllCharReadsComplete_c);
+                }
             }
             else
             {
@@ -1186,8 +1244,10 @@ static void App_HandleGattClientCallback(appEventData_t *pEventData)
                 maCharacteristics[mcCharTxPowerLevelIndex_c].value.handle = (((uint16_t)maOutCharReadBuffer[2]) << 8) | (uint16_t)maOutCharReadBuffer[1];
                 maCharacteristics[mcCharTxPowerLevelIndex_c].value.paValue[0] = maOutCharReadBuffer[3];
 
-                /* All chars read - reset index */
+                /* All chars read - reset index and signal the rendezvous so the
+                   bonded path can proceed once the L2CAP channel is also up. */
                 mCurrentCharReadingIndex = mcCharVehiclePsmIndex_c;
+                BleApp_StateMachineHandler(pEventData->peerDeviceId, mAppEvt_AllCharReadsComplete_c);
             }
             break;
         }
@@ -1421,6 +1481,10 @@ static void App_HandleConnectionCallback(appEventData_t *pEventData)
             maPeerInformation[pConnectedEventData->peerDeviceId].deviceId = pConnectedEventData->peerDeviceId;
             maPeerInformation[pConnectedEventData->peerDeviceId].isBonded = FALSE;
             maPeerInformation[pConnectedEventData->peerDeviceId].nvmIndex = gInvalidNvmIndex_c;
+            /* Reset the bonded-reconnection rendezvous flags. The Exchange MTU on
+               the bonded path is deferred until BOTH of these become TRUE. */
+            maPeerInformation[pConnectedEventData->peerDeviceId].bPsmChannelCreated = FALSE;
+            maPeerInformation[pConnectedEventData->peerDeviceId].bAllCharsRead = FALSE;
 
             /* Update the localization config based on the connection interval */
             App_UpdateLocalizationConfig(pConnectedEventData->peerDeviceId, pConnectedEventData->eventData.pConnectedEvent.connParameters.connInterval);

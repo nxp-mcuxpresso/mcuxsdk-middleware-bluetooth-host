@@ -81,6 +81,8 @@ typedef struct appPeerInfo_tag
     bool_t                      isBonded;
     uint8_t                     nvmIndex;
     bool_t                      btcsSupported;
+    bool_t                      bPsmChannelCreated;
+    bool_t                      bAllCharsRead;
     appState_t                  appState;
     gapLeScOobData_t            oobData;
     gapLeScOobData_t            peerOobData;
