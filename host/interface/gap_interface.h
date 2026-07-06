@@ -1262,7 +1262,7 @@ bleResult_t Gap_CheckIfBonded
 *                               address of a resolved RPA.
 *\param [out]  pOutIsConnected  TRUE if the device is found
 *
-* \retval  bleResult_t
+* \retval  gBleSuccess_c
 * \retval  gBleInvalidParameter_c       A parameter has an invalid value or is
 *                                       outside the accepted range.
 ********************************************************************************** */
