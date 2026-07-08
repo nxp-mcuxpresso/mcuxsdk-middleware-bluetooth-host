@@ -1285,6 +1285,8 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.lcl_pts_test)
     mcux_add_source(
         SOURCES application/common/lcl/pts_test_vectors.c
                 application/common/lcl/pts_test_vectors.h
+                application/common/lcl/pts_test.c
+                application/common/lcl/pts_test.h
     )
     mcux_add_include(
         INCLUDES application/common/lcl

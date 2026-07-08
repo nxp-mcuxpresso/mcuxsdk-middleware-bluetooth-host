@@ -55,6 +55,7 @@
 #include "loc_user_device.h"
 #include "shell_loc_user_device.h"
 #include "app_localization.h"
+#include "pts_test.h"
 #include "channel_sounding.h"
 
 /************************************************************************************
@@ -453,144 +454,18 @@ void BleApp_ListBondingData(void)
 #if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
 /*! *********************************************************************************
 * \brief        Run commands to test PTS.
+*               Thin wrapper over the shared RAS Server engine located in
+*               application/common/lcl/pts_test.c. The RAS Server role does not
+*               require any application-specific callbacks.
 *
+* \param[in]    pParam      Heap-allocated C-string with the PTS test-case ID.
 ********************************************************************************** */
 void BleApp_RunPtsTest(void *pParam)
 {
-    const deviceId_t deviceId = 0U;
-    char *arg = (char*)pParam;
+    static const ptsTestCallbacks_t mLocUserDevPtsCbs = {NULL, NULL, NULL};
 
-    if (strcmp(arg, "RAS/SR/RCO/BV-02-C") == 0 ||
-        strcmp(arg, "RAS/SR/RCO/BV-03-C") == 0 ||
-        strcmp(arg, "RAS/SR/RCO/BV-04-C") == 0 ||
-        strcmp(arg, "RAS/SR/RCO/BV-08-C") == 0 ||
-        strcmp(arg, "RAS/SR/RCO/BV-09-C") == 0)
-    {
-        /* BIT0 - Send a Data Ready for On-Demand       */
-        /* BIT1 - Send a Data Overwritten               */
-        AppLocalization_RunPtsTest(deviceId, 1U, BIT0 | BIT1);
-    }
-    else if (strcmp(arg, "RAS/SR/RRD/BV-04-C") == 0)
-    {
-        AppLocalization_RunPtsTest(deviceId, 11U, 0U);
-    }
-    else if (strcmp(arg, "RAS/SR/RCO/BV-05-C") == 0    ||
-             strcmp(arg, "RAS/SR/RCO/BV-06-C") == 0    ||
-             strcmp(arg, "RAS/SR/RCO/BV-07-C") == 0    ||
-             strcmp(arg, "RAS/SR/RCP/BV-05-C") == 0    ||
-             strcmp(arg, "RAP/RES/RSPF/BV-02-C") == 0)
-    {
-        /* BIT0 - Send a Data Ready for On-Demand       */
-        AppLocalization_RunPtsTest(deviceId, 1U, BIT0);
-    }
-    else if (strcmp(arg, "RAS/SR/RCP/BV-02-C") == 0)
-    {
-        /* BIT0 - Send a Data Ready for On-Demand       */
-        AppLocalization_RunPtsTest(deviceId, 8U, BIT0);
-    }
-    else if (strcmp(arg, "RAP/RES/RSPF/BV-02-C_LT2") == 0 ||
-             strcmp(arg, "RAP/RES/RSPF/BV-03-C_LT2") == 0 ||
-             strcmp(arg, "RAP/RES/RSPF/BV-05-C_LT2") == 0)
-    {
-        /* BIT0 - Send a Data Ready for On-Demand       */
-        AppLocalization_RunPtsTest(deviceId + 1U, 2U, BIT0);
-    }
-    else if (strcmp(arg, "RAS/SR/RRD/BV-03-C") == 0 ||
-             strcmp(arg, "RAS/SR/RRD/BV-05-C") == 0 ||
-             strcmp(arg, "RAP/RES/RSPF/BV-03-C") == 0)
-    {
-        AppLocalization_RunPtsTest(deviceId, 1U, 0U);
-    }
-    else if (strcmp(arg, "RAS/SR/RRD/BV-01-C") == 0)
-    {
-        AppLocalization_RunPtsTest(deviceId, 8U, 0U);
-    }
-    else if (strcmp(arg, "RAS/SR/RCP/BV-01-C") == 0 ||
-             strcmp(arg, "RAS/SR/RCP/BV-03-C") == 0 ||
-             strcmp(arg, "RAS/SR/SPE/BI-05-C") == 0 ||
-             strcmp(arg, "RAS/SR/SPE/BI-06-C") == 0 ||
-             strcmp(arg, "RAS/SR/SPE/BI-07-C") == 0 ||
-             strcmp(arg, "RAS/SR/SPE/BI-10-C") == 0 ||
-             strcmp(arg, "RAP/RES/RSPF/BV-05-C") == 0)
-    {
-        uint8_t rasPreferenceValue = Ras_GetDataSendPreference(deviceId);
-        /* Force the use of indications instead of notifications */
-        rasPreferenceValue |= BIT0;
-        (void)Ras_SetDataSendPreference(deviceId, rasPreferenceValue);
-
-        /* BIT0 - Send a Data Ready for On-Demand       */
-        AppLocalization_RunPtsTest(deviceId, 8U, BIT0);
-    }
-    else if (strcmp(arg, "RAS/SR/RRD/BV-02-C") == 0)
-    {
-        AppLocalization_RunPtsTest(deviceId, 9U, 0U);
-    }
-    else if (strcmp(arg, "RAS/SR/RCP/BV-04-C") == 0    ||
-             strcmp(arg, "RAP/RES/RSPF/BV-04-C") == 0)
-    {
-        /* BIT0 - Send a Data Ready for On-Demand       */
-        AppLocalization_RunPtsTest(deviceId, 9U, BIT0);
-    }
-    else if (strcmp(arg, "RAP/RES/RSPF/BV-04-C_LT2") == 0)
-    {
-        /* BIT0 - Send a Data Ready for On-Demand       */
-        AppLocalization_RunPtsTest(deviceId + 1U, 9U, BIT0);
-    }
-    else if (strcmp(arg, "0") == 0)
-    {
-        /* BIT0 - Send a Data Ready for On-Demand       */
-        AppLocalization_RunPtsTest(deviceId, 1U, BIT0);
-    }
-    else if (strcmp(arg, "1") == 0)
-    {
-        AppLocalization_RunPtsTest(deviceId, 1U, 0U);
-    }
-    else if (strcmp(arg, "2") == 0)
-    {
-        AppLocalization_RunPtsTest(deviceId, 2U, 0U);
-    }
-    else if (strcmp(arg, "3") == 0)
-    {
-        AppLocalization_RunPtsTest(deviceId, 3U, 0U);
-    }
-    else if (strcmp(arg, "4") == 0)
-    {
-        AppLocalization_RunPtsTest(deviceId, 4U, 0U);
-    }
-    else if (strcmp(arg, "5") == 0)
-    {
-        AppLocalization_RunPtsTest(deviceId, 5U, 0U);
-    }
-    else if (strcmp(arg, "6") == 0)
-    {
-        AppLocalization_RunPtsTest(deviceId, 6U, 0U);
-    }
-    else if (strcmp(arg, "7") == 0)
-    {
-        AppLocalization_RunPtsTest(deviceId, 7U, 0U);
-    }
-    else if (strcmp(arg, "8") == 0)
-    {
-        AppLocalization_RunPtsTest(deviceId, 8U, 0U);
-    }
-    else if (strcmp(arg, "9") == 0)
-    {
-        AppLocalization_RunPtsTest(deviceId, 9U, 0U);
-    }
-    else if (strcmp(arg, "10") == 0)
-    {
-        AppLocalization_RunPtsTest(deviceId, 10U, 0U);
-    }
-    else if (strcmp(arg, "11") == 0)
-    {
-        AppLocalization_RunPtsTest(deviceId, 11U, 0U);
-    }
-    else
-    {
-        ; /* MISRA */
-    }
-
-    (void)MEM_BufferFree(pParam);
+    PtsTest_RegisterCallbacks(&mLocUserDevPtsCbs);
+    PtsTest_RunRasServer(pParam);
 }
 #endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */
 
