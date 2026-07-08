@@ -45,6 +45,8 @@
 #define gActiveDevicesStorageSize_c      (96U)
 #define gL2caLeCbChannelEntrySize_c      (52U)
 #define gL2caLePsmEntrySize_c            (4U)
+#define gExtHostPrivacyInfoStorageSize_c (16U)
+#define gAdvDeviceAddrInfoStorageSize_c  (8U)
 
 #if defined(gBLE52_d) && (gBLE52_d == TRUE) && defined(gEATT_d) && (gEATT_d == TRUE)
 #define gEattConnStorageSize             (8U)
@@ -354,6 +356,32 @@ const bool_t gUseHciCommandFlowControl = FALSE;
 extern bool_t gDisablePrivacyPerAdvSet[gMaxAdvSets_c];
 bool_t gDisablePrivacyPerAdvSet[gMaxAdvSets_c] = {FALSE};
 #endif
+
+/* Number of advertising sets supported at application level, exported to the Host library */
+const uint8_t gBleMaxAdvSets = gMaxAdvSets_c;
+
+/* Peer address used for directed advertising for each advertising set. */
+extern bleDeviceAddress_t gaDirectedAdvPeerAddress[gMaxAdvSets_c];
+bleDeviceAddress_t gaDirectedAdvPeerAddress[gMaxAdvSets_c];
+
+
+/* Extended Advertising Host Privacy state machine storage. */
+extern uint32_t gaExtHostPrivacySMStorage[(gExtHostPrivacyInfoStorageSize_c * gMaxAdvSets_c + 3) / 4];
+uint32_t gaExtHostPrivacySMStorage[(gExtHostPrivacyInfoStorageSize_c * gMaxAdvSets_c + 3) / 4];
+
+/* Remaining LDM advertising time for each advertising set. */
+extern uint32_t gaGapLdmRemainingTime[gMaxAdvSets_c];
+uint32_t gaGapLdmRemainingTime[gMaxAdvSets_c];
+
+/* Address used for advertising for each advertising set. */
+extern uint32_t gaAddrUsedForAdvStorage[(gAdvDeviceAddrInfoStorageSize_c * gMaxAdvSets_c + 3) / 4];
+uint32_t gaAddrUsedForAdvStorage[(gAdvDeviceAddrInfoStorageSize_c * gMaxAdvSets_c + 3) / 4];
+
+/* Storage used to reassemble incomplete periodic advertising responses for each advertising set. */
+extern gapPerAdvResponse_t gaPerAdvResponse[gMaxAdvSets_c];
+gapPerAdvResponse_t gaPerAdvResponse[gMaxAdvSets_c];
+
+
 
 /*! Enable the reporting of intrusion detection events from the Host stack */
 extern const bool_t gEnableIntrusionDetectionSystem;

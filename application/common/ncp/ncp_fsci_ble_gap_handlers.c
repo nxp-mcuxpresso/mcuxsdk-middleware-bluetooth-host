@@ -7903,7 +7903,7 @@ void HandleCmdDisablePrivacyPerAdvSetOpCode(uint8_t *pBuffer, uint32_t fsciInter
     fsciBleGetUint8ValueFromBuffer(adv_handle, pBuffer);
     fsciBleGetBoolValueFromBuffer(bBypassPrivacySetting, pBuffer);
 
-    if (adv_handle < gMaxAdvSets_c)
+    if (adv_handle < gBleMaxAdvSets)
     {
         gDisablePrivacyPerAdvSet[adv_handle] = bBypassPrivacySetting;
         result = gBleSuccess_c;

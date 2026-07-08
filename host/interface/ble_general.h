@@ -32,8 +32,6 @@
 * Public constants & macros
 *************************************************************************************
 ************************************************************************************/
-/* Maximum number of Advertising sets handled by the Host tables. */
-#define gMaxAdvSets_c                               5U
 
 #define gInvalidDeviceId_c                          (0xFFU)
 #define gInvalidNvmIndex_c                          (0xFFU)
@@ -1822,6 +1820,8 @@ typedef enum
 *************************************************************************************
 ************************************************************************************/
 extern const uint8_t  gBleMaxActiveConnections;
+extern const uint8_t  gBleMaxAdvSets;
+
 extern const uint16_t gcConnectionEventMinDefault_c;
 extern const uint16_t gcConnectionEventMaxDefault_c;
 

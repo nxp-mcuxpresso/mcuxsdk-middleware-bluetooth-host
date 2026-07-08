@@ -40,6 +40,16 @@
 #define gMaxResolvingListSize_c         8
 #endif
 
+/*! Maximum number of advertising sets supported at application level. */
+#ifndef gMaxAdvSets_c
+#define gMaxAdvSets_c                   5U
+#endif
+
+/* gMaxAdvSets_c must be set to a value in the range 1U to 5U. */
+#if (gMaxAdvSets_c < 1U) || (gMaxAdvSets_c > 5U)
+#error gMaxAdvSets_c must be set to a value in the range 1U to 5U.
+#endif
+
 /*! Maximum number of handles that can be registered for write notifications. */
 #ifndef gMaxWriteNotificationHandles_c
 #define gMaxWriteNotificationHandles_c        10
