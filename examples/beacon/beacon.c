@@ -93,6 +93,7 @@ static appAdvertisingParams_t mAppAdvParams = {
     &gAppAdvertisingData,
     NULL
 };
+#if defined(gBeaconAE_c) && (gBeaconAE_c)
 static appExtAdvertisingParams_t mAppExtAdvParams = {
     &gExtAdvParams,
     &gAppExtAdvertisingData,
@@ -101,6 +102,7 @@ static appExtAdvertisingParams_t mAppExtAdvParams = {
     gBleExtAdvNoDuration_c,
     gBleExtAdvNoMaxEvents_c
 };
+#endif /* defined(gBeaconAE_c) && (gBeaconAE_c) */
 
 /************************************************************************************
 *************************************************************************************
