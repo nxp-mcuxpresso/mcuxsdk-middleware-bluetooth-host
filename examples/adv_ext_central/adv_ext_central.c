@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2020 - 2025 NXP
+* Copyright 2020 - 2026 NXP
 *
 *
 * \file
@@ -250,6 +250,7 @@ static void BleApp_SerialInit(void);
 
 static void BleApp_HandleScanStateChanged(void);
 static void BleApp_HandleDeviceScanned(gapScanningEvent_t* pScanningEvent);
+static uint8_t BleApp_GetInitiatorPhy(uint8_t advPrimaryPHY, uint8_t advSecondaryPHY);
 static void BleApp_HandleExtDeviceScanned(gapScanningEvent_t* pScanningEvent);
 static void BleApp_HandlePeriodicSyncEstablished(gapSyncEstbEventData_t* pSyncEstb);
 #if (gAppPAWRSupport_d == TRUE)
@@ -1446,6 +1447,11 @@ static void AppPrintExtAdvEvent( gapExtScannedDevice_t* pExtScannedDevice)
     pData = pExtScannedDevice->pData;
     while( dataLength < pExtScannedDevice->dataLength )
     {
+        if((pData[0U] < 2U) || ((dataLength +(uint16_t)*pData + 1U) > pExtScannedDevice->dataLength))
+        {
+            /* advertising data is not correctly formatted */
+            break;
+        }
         dataLength += ((uint16_t)*pData + 1U);
         if (pData[1] == (uint8_t)gAdManufacturerSpecificData_c)
         {
@@ -1471,7 +1477,7 @@ static void AppPrintExtAdvEvent( gapExtScannedDevice_t* pExtScannedDevice)
 ********************************************************************************** */
 static void AppHandleExtAdvEvent( gapExtScannedDevice_t* pExtScannedDevice)
 {
-    uint8_t advIndex;
+    uint8_t advIndex = mAppExtAdvListSize_c;
     bool_t advPresent = FALSE;
     bool_t advDataChanged = FALSE;
     bool_t handlePriodicAdv = FALSE;
@@ -1593,6 +1599,11 @@ static void AppHandlePeriodicDeviceScanEvent( gapPeriodicScannedDevice_t* pGapPe
         pData = pGapPeriodicScannedDevice->pData;
         while ( dataLength < pGapPeriodicScannedDevice->dataLength )
         {
+            if((pData[0U] < 2U) || ((dataLength +(uint16_t)*pData + 1U) > pGapPeriodicScannedDevice->dataLength))
+            {
+                /* advertising data is not correctly formatted */
+                break;
+            }
             dataLength += ((uint16_t)*pData + 1U);
             if(pData[1] == (uint8_t)gAdManufacturerSpecificData_c)
             {
@@ -1738,6 +1749,29 @@ static void BleApp_HandleDeviceScanned(gapScanningEvent_t* pScanningEvent)
 }
 
 /*! *********************************************************************************
+* \brief        Computes the PHY used for initiating based on the receiving advertising PHY
+*
+* \param[in]    uint8_t advPrimaryPHY - the PHY used on the primary advertising channels
+*
+* \param[in]    uint8_t advSecondaryPHY - the PHY used on the secondary advertising channels
+********************************************************************************** */
+static uint8_t BleApp_GetInitiatorPhy(uint8_t advPrimaryPHY, uint8_t advSecondaryPHY)
+{
+    uint8_t initiatorPHY = 0U;
+    uint8_t primary[] = {0U, (uint8_t)gLePhy1MFlag_c, 0U, (uint8_t)gLePhyCodedFlag_c, (uint8_t)gLePhyCodedFlag_c};
+    uint8_t secondary[] = {0U, (uint8_t)gLePhy1MFlag_c, (uint8_t)gLePhy2MFlag_c, (uint8_t)gLePhyCodedFlag_c, (uint8_t)gLePhyCodedFlag_c};
+    if((uint32_t)advPrimaryPHY < sizeof(primary))
+    {
+        initiatorPHY = primary[advPrimaryPHY];
+    }
+    if((uint32_t)advSecondaryPHY < sizeof(secondary))
+    {
+        initiatorPHY |= secondary[advSecondaryPHY];
+    }
+    return initiatorPHY;
+}
+
+/*! *********************************************************************************
 * \brief        Handles extended device scanned events and processes extended 
 *               advertising.
 *
@@ -1763,7 +1797,7 @@ static void BleApp_HandleExtDeviceScanned(gapScanningEvent_t* pScanningEvent)
                     /* Set connection parameters and stop scanning. Connect on gScanStateChanged_c. */
                     gConnReqParams.peerAddressType = pScanningEvent->eventData.extScannedDevice.addressType;
                     FLib_MemCpy(gConnReqParams.peerAddress, pScanningEvent->eventData.extScannedDevice.aAddress, sizeof(bleDeviceAddress_t));
-                    gConnReqParams.initiatingPHYs = ((1U)<<(pScanningEvent->eventData.extScannedDevice.secondaryPHY - 1U)) | ((1U)<<(pScanningEvent->eventData.extScannedDevice.primaryPHY - 1U));
+                    gConnReqParams.initiatingPHYs = BleApp_GetInitiatorPhy(pScanningEvent->eventData.extScannedDevice.primaryPHY, pScanningEvent->eventData.extScannedDevice.secondaryPHY);
                     (void)Gap_StopScanning();
 #if defined(gAppUsePrivacy_d) && (gAppUsePrivacy_d)
                     gConnReqParams.usePeerIdentityAddress = pScanningEvent->eventData.extScannedDevice.advertisingAddressResolved;
@@ -1880,11 +1914,16 @@ static void BleApp_PrintPeriodicDeviceScannedV2(gapPeriodicScannedDeviceV2_t* pP
     AppPrintString("\n\rSubevent: ");
     AppPrintDec((uint32_t)pPeriodicScannedDeviceV2->subevent);
     AppPrintString("\n\rSubevent data: ");
-    uint16_t  dataLength = 0;
+    uint16_t  dataLength = 0U;
     uint8_t* pData = pPeriodicScannedDeviceV2->pData;
     pData = pPeriodicScannedDeviceV2->pData;
     while ( dataLength < pPeriodicScannedDeviceV2->dataLength )
     {
+        if((pData[0U] < 2U) || ((dataLength +(uint16_t)*pData + 1U) > pPeriodicScannedDeviceV2->dataLength))
+        {
+            /* advertising data is not correctly formatted */
+            break;
+        }
         dataLength += ((uint16_t)*pData + 1U);
         if (pData[1] == (uint8_t)gAdManufacturerSpecificData_c)
         {

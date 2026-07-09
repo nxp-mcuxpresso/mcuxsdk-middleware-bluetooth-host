@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2020 - 2025 NXP
+* Copyright 2020 - 2026 NXP
 *
 *
 * \file
@@ -1675,13 +1675,20 @@ static void BleApp_HandlePeriodicAdvertisingResponse(gapPerAdvResponse_t *pAdvRe
     AppPrintString("\n\rResponse data: ");
     {
          uint8_t  dataLength = 0U;
+         uint8_t  advStructLength = 0U;
          uint8_t* pData = pAdvResponse->aData;
          uint8_t connSubevent = gAppPAWRSubeventsData.aSubeventDataStructures[0U].subevent;
          while ( dataLength < pAdvResponse->dataLength )
          {
-             dataLength += (pData[0] + 1U);
+             if ((pData[0] < 2U) || ((dataLength + pData[0] + 1U) > pAdvResponse->dataLength))
+             {
+                 /* advertising data is not correctly formatted */
+                 break;
+             }
+             advStructLength = (pData[0] + 1U);
+             dataLength += advStructLength;
              /* Check whether the response has the format eligilbe for connect.*/
-             if ((pData[1] == (uint8_t)gAdManufacturerSpecificData_c)  && ( dataLength == (gcBleDeviceAddressSize_c + 2U)))
+             if ((pData[1] == (uint8_t)gAdManufacturerSpecificData_c)  && ( advStructLength == (gcBleDeviceAddressSize_c + 2U)))
              {
                  AppPrintHexLe((uint8_t *)&pData[2], gcBleDeviceAddressSize_c);
                  /* Check whether the response received is from a device eligible to connect and proceed to connect in case it is. */
