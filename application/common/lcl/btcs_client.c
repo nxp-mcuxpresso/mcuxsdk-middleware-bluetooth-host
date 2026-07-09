@@ -520,6 +520,7 @@ static bleResult_t handleRangingProcResStart
     uint8_t numStepsInFragment = 0U;
     uint16_t parsedDataLen = 0U;
     uint32_t remainingData = 0U;
+    bool_t bInvalidMode = FALSE;
     rasMeasurementData_t *pRemoteData = &mPeerResultData[deviceId];
 
     union
@@ -590,7 +591,13 @@ static bleResult_t handleRangingProcResStart
             remainingData = AppLocalizationAlgo_UncompressRemoteResponseL2CAP(
                 pData, (uint32_t)packetLen - (uint32_t)parsedDataLen,
                 &mPeerResultData[deviceId],
-                nonAbortedSteps);
+                nonAbortedSteps, &bInvalidMode);
+
+            /* Corrupted ranging data - drop the procedure and skip the algorithm */
+            if (bInvalidMode == TRUE)
+            {
+                break;
+            }
 
             /* Count the received number of steps */
             mSubEvtInfo[deviceId].parsedStepsCrtSubEvt += pRemoteData->crtNumSteps - crtSteps;
@@ -613,8 +620,16 @@ static bleResult_t handleRangingProcResStart
 
         } while (remainingData != 0U);
 
-        /* Check if the procedure transfer is complete */
-        result = checkTransferComplete(deviceId);
+        if (bInvalidMode == TRUE)
+        {
+            /* Corrupted ranging data - drop the procedure and skip the algorithm */
+            BtcsClient_ResetPeer(deviceId, FALSE);
+        }
+        else
+        {
+            /* Check if the procedure transfer is complete */
+            result = checkTransferComplete(deviceId);
+        }
     }
 
     return result;
@@ -643,6 +658,7 @@ static bleResult_t handleRangingProcResCont
     bleResult_t result = gBleSuccess_c;
     uint8_t* pData = pMsgData;
     uint16_t parsedDataLen = 0U;
+    bool_t bInvalidMode = FALSE;
     rasMeasurementData_t *pRemoteData = &mPeerResultData[deviceId];
     csAppData_t *pDstAppBuffer = (csAppData_t*)(void*)pRemoteData->pData;
 
@@ -714,7 +730,13 @@ static bleResult_t handleRangingProcResCont
                 /* Parse step data (only non-aborted steps have data) */
                 remainingData = AppLocalizationAlgo_UncompressRemoteResponseL2CAP(
                     pData, (uint32_t)packetLen - (uint32_t)parsedDataLen,
-                    &mPeerResultData[deviceId], nonAbortedSteps);
+                    &mPeerResultData[deviceId], nonAbortedSteps, &bInvalidMode);
+
+                /* Corrupted ranging data - drop the procedure and skip the algorithm */
+                if (bInvalidMode == TRUE)
+                {
+                    break;
+                }
 
                 /* Advance data pointer */
                 if (remainingData != 0U)
@@ -727,8 +749,16 @@ static bleResult_t handleRangingProcResCont
                 mSubEvtInfo[deviceId].parsedStepsCrtSubEvt += pRemoteData->crtNumSteps - crtSteps;
             } while (remainingData != 0U);
 
-            /* Check if the procedure transfer is complete */
-            result = checkTransferComplete(deviceId);
+            if (bInvalidMode == TRUE)
+            {
+                /* Corrupted ranging data - drop the procedure and skip the algorithm */
+                BtcsClient_ResetPeer(deviceId, FALSE);
+            }
+            else
+            {
+                /* Check if the procedure transfer is complete */
+                result = checkTransferComplete(deviceId);
+            }
         }
     }
 

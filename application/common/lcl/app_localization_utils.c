@@ -16,6 +16,7 @@
  *************************************************************************************/
 #include "EmbeddedTypes.h"
 #include "app_localization_utils.h"
+#include "app_localization_debug.h"
 #if defined(gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1U)
 #include "ranging_interface.h"
 #include "ranging_client_interface.h"
@@ -427,6 +428,36 @@ void* AppLocalizationAlgo_AllocData(void)
     return pResult;
 }
 
+#if defined (gRasRREQ_d) && (gRasRREQ_d == 1) || defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1)
+/*! *********************************************************************************
+*\brief     Release any partial parse state kept for the remote procedure.
+*
+*\details   Used on the graceful-drop path so that a malformed procedure
+*           does not leave an allocated remainder buffer behind. Clearing
+*           the remainder ensures the next received chunk is parsed cleanly and the
+*           stack can accept a subsequent procedure.
+*
+*\param[in,out] pRemoteData   Pointer to the remote measurement data structure.
+*
+*\retval    none
+********************************************************************************** */
+static void DropRemoteProcedureState
+(
+    rasMeasurementData_t *pRemoteData
+)
+{
+    if (pRemoteData != NULL)
+    {
+        if (pRemoteData->pRemaining != NULL)
+        {
+            (void)MEM_BufferFree(pRemoteData->pRemaining);
+            pRemoteData->pRemaining = NULL;
+        }
+        pRemoteData->remainingLen = 0U;
+    }
+}
+#endif /* defined (gRasRREQ_d) && (gRasRREQ_d == 1) || defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1) */
+
 #if defined (gRasRREQ_d) && (gRasRREQ_d == 1)
 /*! *********************************************************************************
 *\brief     Merge previously buffered remote event data with the new chunk.
@@ -508,6 +539,8 @@ static uint16_t FilterInlinePctData(uint8_t mode, uint16_t filter)
 *\param[in,out] pDataLength   Pointer to the current data length.
 *\param[in,out] pDstAppBuffer Pointer to the destination application buffer.
 *\param[in,out] pRemoteData   Pointer to the remote measurement data structure.
+*\param[out]    pbInvalidMode  Set to TRUE when the parsed step mode is out of the
+*                              valid range and the procedure must be dropped.
 *
 *\retval    bool_t  TRUE if the step data is incomplete, FALSE otherwise.
 ********************************************************************************** */
@@ -516,7 +549,8 @@ static bool_t ParseRemoteStepMode
     uint8_t **ppEventData,
     uint32_t *pDataLength,
     csAppData_t *pDstAppBuffer,
-    rasMeasurementData_t *pRemoteData
+    rasMeasurementData_t *pRemoteData,
+    bool_t *pbInvalidMode
 )
 {
     bool_t bIncomplete = FALSE;
@@ -538,10 +572,13 @@ static bool_t ParseRemoteStepMode
         {
             /* Step aborted, assume length zero */
         }
+        else if (mode > (uint8_t)gCsStepMode3_c)
+        {
+            CS_LOG_ERROR("[RREQ]: Remote ranging data corrupted, dropping procedure");
+            *pbInvalidMode = TRUE;
+        }
         else
         {
-            assert(mode <= 3U);
-
             pDstAppBuffer->csData.modeMap[pRemoteData->step] = mode;
             /* Get filter for the current mode */
             filter = RasClient_GetModeFilter(pRemoteData->deviceId, mode);
@@ -610,20 +647,23 @@ static void PopulateRemoteLastSegmentInfo
 }
 
 /*! *********************************************************************************
-*\fn        void AppLocalizationAlgo_UncompressRemoteResponse(uint8_t *pEventData,
-*           uint32_t dataLength, rasMeasurementData_t *pRemoteData, bool_t lastSegment);
+*\fn         bool_t AppLocalizationAlgo_UncompressRemoteResponse(uint8_t* pEventData,
+*            uint32_t dataLength, rasMeasurementData_t *pRemoteData, bool_t lastSegment);
 *
-*\brief     Uncompress CS data, received from the peer, on-the-fly.
+*\brief      Uncompress CS data, received from the peer, on-the-fly.
 *
-*\param[in] pData               Pointer to the received chhunk of data.
-*\param[in] dataLength          Size of the received data chunk.
-*\param[in] pRemoteData         Pointer to rasMeasurementData_t structure containing 
-*                               the unpacked data information.
-*\param[in] lastSegment         Is this the last segment or not.
+*\param[in]  pData               Pointer to the received chhunk of data.
+*\param[in]  dataLength          Size of the received data chunk.
+*\param[out] pRemoteData         Pointer to rasMeasurementData_t structure containing 
+*                                the unpacked data information.
+*\param[in]  lastSegment         Is this the last segment or not.
 *
-*\retval    none
+*\retval     TRUE                Remote ranging data was corrupted (invalid CS step mode);
+*                                the in-progress procedure state has been dropped and the
+*                                caller must reset the peer and skip running the algorithm.
+*\retval     FALSE               Data parsed successfully (or segment still incomplete).
 ********************************************************************************** */
-void AppLocalizationAlgo_UncompressRemoteResponse
+bool_t AppLocalizationAlgo_UncompressRemoteResponse
 (
     uint8_t *pEventData,
     uint32_t dataLength,
@@ -634,6 +674,7 @@ void AppLocalizationAlgo_UncompressRemoteResponse
     csAppData_t *pDstAppBuffer = (csAppData_t*)(void*)pRemoteData->pData;
 
     bool_t bIncomplete = FALSE;
+    bool_t bInvalidMode = FALSE;
     uint8_t *pLastOk = NULL;
     uint8_t *pTemp = NULL;
     uint8_t crtNumSteps = 0U;
@@ -684,7 +725,12 @@ void AppLocalizationAlgo_UncompressRemoteResponse
 
         if (bIncomplete == FALSE)
         {
-            bIncomplete = ParseRemoteStepMode(&pEventData, &dataLength, pDstAppBuffer, pRemoteData);
+            bIncomplete = ParseRemoteStepMode(&pEventData, &dataLength, pDstAppBuffer, pRemoteData, &bInvalidMode);
+        }
+        if (bInvalidMode == TRUE)
+        {
+            DropRemoteProcedureState(pRemoteData);
+            break;
         }
 
         /* Data is complete */
@@ -723,11 +769,12 @@ void AppLocalizationAlgo_UncompressRemoteResponse
         (void)MEM_BufferFree(pTemp);
     }
 
-    /* Populate additional fields in pDstAppBuffer */
-    if (lastSegment == TRUE)
+    if ((lastSegment == TRUE) && (bInvalidMode == FALSE))
     {
         PopulateRemoteLastSegmentInfo(pRemoteData, pDstAppBuffer);
     }
+
+    return bInvalidMode;
 }
 #endif /* defined (gRasRREQ_d) && (gRasRREQ_d == 1) */
 
@@ -746,7 +793,8 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
     uint8_t*   pEventData,
     uint32_t   dataLength,
     rasMeasurementData_t *pRemoteData,
-    uint8_t maxSteps
+    uint8_t maxSteps,
+    bool_t *pbInvalidMode
 )
 {
     csAppData_t *pDstAppBuffer = (csAppData_t*)(void*)pRemoteData->pData;
@@ -796,8 +844,14 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
         /* Read mode from the pre-populated modeMap array (filled by parseStepModeArray) */
         mode = pDstAppBuffer->csData.modeMap[pRemoteData->step];
 
-        /* Make sure the mode is valid */
-        assert(mode <= (uint8_t)gCsStepMode3_c);
+        /* Drop the procedure gracefully on an invalid mode instead of asserting */
+        if (mode > (uint8_t)gCsStepMode3_c)
+        {
+            CS_LOG_ERROR("[BTCS]: Remote ranging data corrupted, dropping procedure");
+            *pbInvalidMode = TRUE;
+            DropRemoteProcedureState(pRemoteData);
+            break;
+        }
 
         switch(mode)
         {

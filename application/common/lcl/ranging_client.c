@@ -66,6 +66,8 @@ static bool_t mbRealTimeTransfer[gAppMaxConnections_c] = {FALSE};
 static pfAppCsCallback_t mpfAppCallback = NULL;
 /* Tracker if Retrieve Lost Ranging Data Segments was requested */
 static bool_t mbRetrLostRangingDataOngoing[gAppMaxConnections_c] = {FALSE};
+/* Tracker for a procedure dropped due to corrupted data (invalid CS step mode) */
+static bool_t mbProcedureDropped[gAppMaxConnections_c] = {FALSE};
 
 /* Mechanism to handle RAP-defined timeouts on the RREQ */
 static rreqTimeoutData_t mRreqTimeoutData;
@@ -82,8 +84,8 @@ static void RreqTimerCallback
     void *param
 );
 
-/* Helper function to parse and save buffered data in case of lost segments */
-static void parseBufferedNotifs
+/* Parse buffered data for lost segments. Returns TRUE if the data was corrupted */
+static bool_t parseBufferedNotifs
 (
     deviceId_t deviceId
 );
@@ -201,6 +203,7 @@ void RasClient_Init
     maRASFeatures[deviceId] = 0U;
     mbRealTimeTransfer[deviceId] = FALSE;
     mbRetrLostRangingDataOngoing[deviceId] = FALSE;
+    mbProcedureDropped[deviceId] = FALSE;
 }
 
 /*! **********************************************************************************
@@ -228,6 +231,7 @@ static bleResult_t RasClient_ProcessMatchingSegment
 {
     bleResult_t result = gBleSuccess_c;
     uint8_t currentIdx;
+    bool_t bInvalidMode = FALSE;
 
     /* Uncompress this chunk of data */
     if (mRasTransferInfo[deviceId].pNotifTempBuffer == NULL)
@@ -239,28 +243,46 @@ static bleResult_t RasClient_ProcessMatchingSegment
             this might be a testing data and may not be valid */
         if ((pLocalData != NULL) && (pLocalData->dataIndex != 0U))
         {
-            AppLocalizationAlgo_UncompressRemoteResponse(
+            bInvalidMode = AppLocalizationAlgo_UncompressRemoteResponse(
                 pRangingData,
                 rangingLength,
                 &mPeerResultData[deviceId],
                 (segmentHeader & ((uint8_t)gRasNotifLastSegment_c)) != 0U);
         }
 
-        /* Copy segmentation header information for the received segments */
-        currentIdx = mRasTransferInfo[deviceId].currentIdxRecvSegm;
-        mRasTransferInfo[deviceId].recvSegm[currentIdx] = segmentHeader;
-        mRasTransferInfo[deviceId].currentIdxRecvSegm++;
-
-        if ((segmentHeader & ((uint8_t)gRasNotifLastSegment_c)) != 0U)
+        if (bInvalidMode == TRUE)
         {
+            /* Remote ranging data was corrupted (invalid CS step mode). The in-progress
+               procedure state has already been dropped by the uncompress routine; reset
+               the peer so the stack is ready for the next procedure and skip running the
+               algorithm on garbage data. */
+            RasClient_ResetPeer(deviceId, FALSE);
+            /* Ignore remaining segments and skip lost segment retransmission */
+            mbProcedureDropped[deviceId] = TRUE;
             if (mbRealTimeTransfer[deviceId] == TRUE)
             {
                 (void)TM_Stop((timer_handle_t)mRreqTimerId);
+            }
+            result = gBleInvalidParameter_c;
+        }
+        else
+        {
+            /* Copy segmentation header information for the received segments */
+            currentIdx = mRasTransferInfo[deviceId].currentIdxRecvSegm;
+            mRasTransferInfo[deviceId].recvSegm[currentIdx] = segmentHeader;
+            mRasTransferInfo[deviceId].currentIdxRecvSegm++;
+
+            if ((segmentHeader & ((uint8_t)gRasNotifLastSegment_c)) != 0U)
+            {
+                if (mbRealTimeTransfer[deviceId] == TRUE)
+                {
+                    (void)TM_Stop((timer_handle_t)mRreqTimerId);
 #if defined(gAppDeferAlgoRun_d) && (gAppDeferAlgoRun_d == TRUE)
-                result = gBleUnavailable_c;
+                    result = gBleUnavailable_c;
 #else
-                AppLocalization_RunAlgorithm(deviceId);
+                    AppLocalization_RunAlgorithm(deviceId);
 #endif
+                }
             }
         }
     }
@@ -384,6 +406,8 @@ static bleResult_t RasClient_ProcessSegments
         if (mbRealTimeTransfer[deviceId] == TRUE)
         {
             RasClient_ResetPeerInfo(deviceId);
+            /* Clear dropped procedure tracker for the new procedure */
+            mbProcedureDropped[deviceId] = FALSE;
         }
 
         /* Get first header and subevent here */
@@ -552,6 +576,8 @@ bleResult_t RasClient_ProcessRasDataReadyIndications
     mRasTransferInfo[deviceId].currentIdxLostSegm = 0U;
     mRasTransferInfo[deviceId].currentIdxRecvIntermSegm = 0U;
     mRasTransferInfo[deviceId].currentIdxRecvSegm = 0U;
+    /* Clear dropped procedure tracker for the new procedure */
+    mbProcedureDropped[deviceId] = FALSE;
 
     /* Check if the received procedure index matches the local one */
     if (pRasIndication->procedureIndex != procedureCounter)
@@ -1352,15 +1378,17 @@ uint16_t RasClient_GetPeerRangingDataSize
 ************************************************************************************/
 
 /*! *********************************************************************************
-*\fn         static void parseBufferedNotifs(deviceId_t deviceId)
+*\fn         static bool_t parseBufferedNotifs(deviceId_t deviceId)
 *
 *\brief      Parse the notifications buffered in case of lost ranging segments
 *
 *\param[in]  deviceId         Peer identifier
 *
-*\retval     none
+*\retval     TRUE   Remote ranging data was corrupted (invalid CS step mode); the peer
+*                   was reset and the caller must not run the algorithm.
+*\retval     FALSE  Buffered notifications parsed successfully.
 ********************************************************************************** */
-static void parseBufferedNotifs
+static bool_t parseBufferedNotifs
 (
     deviceId_t deviceId
 )
@@ -1370,6 +1398,7 @@ static void parseBufferedNotifs
     uint8_t currentIdx = 0U;
     uint16_t rangingLength = 0U;
     uint8_t segmentHeader = 0U;
+    bool_t bInvalidMode = FALSE;
 
     for (uint8_t recvIdx = 0U;
          (recvIdx < mRasTransferInfo[deviceId].currentIdxRecvIntermSegm) && (recvIdx < gRASMaxNoOfSegments_c);
@@ -1393,11 +1422,19 @@ static void parseBufferedNotifs
                this might be a testing data and may not be valid */
             if ((pLocalData != NULL) && (pLocalData->dataIndex != 0U))
             {
-                AppLocalizationAlgo_UncompressRemoteResponse(
+                bInvalidMode = AppLocalizationAlgo_UncompressRemoteResponse(
                     pRangingData,
                     rangingLength,
                     &mPeerResultData[deviceId],
                     (segmentHeader & ((uint8_t)gRasNotifLastSegment_c)) != 0U);
+            }
+
+            if (bInvalidMode == TRUE)
+            {
+                /* Remote ranging data was corrupted (invalid CS step mode). Stop parsing the
+                   buffered notifications; the peer is reset below so the stack is ready for the
+                   next procedure and the algorithm is not run on garbage data. */
+                break;
             }
 
             mRasTransferInfo[deviceId].crtTempDataIdx += dataLen;
@@ -1412,6 +1449,14 @@ static void parseBufferedNotifs
     /* Data cleanup */
     (void)MEM_BufferFree(mRasTransferInfo[deviceId].pNotifTempBuffer);
     mRasTransferInfo[deviceId].pNotifTempBuffer = NULL;
+
+    if (bInvalidMode == TRUE)
+    {
+        /* Drop the corrupted procedure and reset the peer state completely */
+        RasClient_ResetPeer(deviceId, FALSE);
+    }
+
+    return bInvalidMode;
 }
 
 /*! *********************************************************************************
@@ -1637,8 +1682,18 @@ static bleResult_t RasClient_CPRspCompleteProcData
 
     bool_t lastSegmPresent = checkForLastSegment(deviceId);
 
+    /* Procedure was dropped due to corrupted data - acknowledge it to the peer
+       without requesting lost segments */
+    if (mbProcedureDropped[deviceId] == TRUE)
+    {
+        (void)RasClient_SendRasCommand(deviceId, ackRangingDataOpCode_c,
+                                       0U, 0U,
+                                       AppLocalization_GetGlobalProcedureCount(deviceId),
+                                       gAntennaPathFilterAllowAll_c);
+        result = gBleInvalidParameter_c;
+    }
     /* Check if all segments have received from the RRSP */
-    if ((lastSegmPresent == TRUE) && (mRasTransferInfo[deviceId].currentIdxLostSegm == 0U))
+    else if ((lastSegmPresent == TRUE) && (mRasTransferInfo[deviceId].currentIdxLostSegm == 0U))
     {
 #if defined(gAppDeferAlgoRun_d) && (gAppDeferAlgoRun_d == TRUE)
         result = gBleUnavailable_c;
@@ -1732,15 +1787,23 @@ static bleResult_t RasClient_CPRspCompleteLostDataSegment
     {
         /* All segments received - check if last segment was included */
         bool_t lastSegmPresent = checkForLastSegment(deviceId);
+        bool_t bInvalidMode = FALSE;
 
         /* Parse buffered data, if it exists */
         mRasTransferInfo[deviceId].expectingSegments = FALSE;
         if (mRasTransferInfo[deviceId].pNotifTempBuffer != NULL)
         {
-            parseBufferedNotifs(deviceId);
+            bInvalidMode = parseBufferedNotifs(deviceId);
         }
 
-        if (lastSegmPresent == TRUE)
+        if (bInvalidMode == TRUE)
+        {
+            /* Remote ranging data was corrupted (invalid CS step mode). The peer has already
+               been reset by parseBufferedNotifs; report the error and do not run the algorithm
+               on garbage data. */
+            result = gBleInvalidParameter_c;
+        }
+        else if (lastSegmPresent == TRUE)
         {
 #if defined(gAppDeferAlgoRun_d) && (gAppDeferAlgoRun_d == TRUE)
             result = gBleUnavailable_c;
@@ -1856,6 +1919,7 @@ static bleResult_t RasClient_ProcessGetRecordSegmentsResponse
     uint8_t* pData;
     uint8_t crtIdx = mRasTransferInfo[deviceId].crtIdxRecvLost;
     uint16_t rangingLength = 0;
+    bool_t bInvalidMode = FALSE;
 
     /* Extract Segment Header */
     segmentHeader = *pRangingData++;
@@ -1872,11 +1936,20 @@ static bleResult_t RasClient_ProcessGetRecordSegmentsResponse
            this might be a testing data and may not be valid */
         if ((pLocalData != NULL) && (pLocalData->dataIndex != 0U))
         {
-            AppLocalizationAlgo_UncompressRemoteResponse(
+            bInvalidMode = AppLocalizationAlgo_UncompressRemoteResponse(
                 pRangingData,
                 rangingLength,
                 &mPeerResultData[deviceId],
                 (segmentHeader & ((uint8_t)gRasNotifLastSegment_c)) != 0U);
+        }
+
+        if (bInvalidMode == TRUE)
+        {
+            /* Remote ranging data was corrupted (invalid CS step mode). Drop the corrupted
+               procedure, reset the peer so the stack is ready for the next procedure and skip
+               running the algorithm on garbage data. */
+            RasClient_ResetPeer(deviceId, FALSE);
+            return gBleInvalidParameter_c;
         }
 
         /* Mark segment as received */

@@ -221,7 +221,7 @@ void* AppLocalizationAlgo_AllocData(void);
 
 #if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U))
 /*! *********************************************************************************
-*\fn         void AppLocalizationAlgo_UncompressRemoteResponse(uint8_t* pEventData,
+*\fn         bool_t AppLocalizationAlgo_UncompressRemoteResponse(uint8_t* pEventData,
 *            uint32_t dataLength, rasMeasurementData_t *pRemoteData, bool_t lastSegment);
 *
 *\brief      Uncompress CS data, received from the peer, on-the-fly.
@@ -232,15 +232,19 @@ void* AppLocalizationAlgo_AllocData(void);
 *                                the unpacked data information.
 *\param[in]  lastSegment         Is this the last segment or not.
 *
-*\retval     none
+*\retval     TRUE                Remote ranging data was corrupted (invalid CS step mode);
+*                                the in-progress procedure state has been dropped and the
+*                                caller must reset the peer and skip running the algorithm.
+*\retval     FALSE               Data parsed successfully (or segment still incomplete).
 ********************************************************************************** */
-void AppLocalizationAlgo_UncompressRemoteResponse
+bool_t AppLocalizationAlgo_UncompressRemoteResponse
 (
     uint8_t *pEventData,
     uint32_t dataLength,
     rasMeasurementData_t *pRemoteData,
     bool_t lastSegment
 );
+
 #elif (defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1U))
 /*! *********************************************************************************
 *\fn        uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP(uint8_t *pEventData,
@@ -252,14 +256,16 @@ void AppLocalizationAlgo_UncompressRemoteResponse
 *\param[in] dataLength          Size of the received data chunk.
 *\param[in] pRemoteData         Pointer to rasMeasurementData_t structure containing 
 *                               the unpacked data information.
-*\param[in] maxSteps            Maximum number of steps to unpack 
+*\param[in] maxSteps            Maximum number of steps to unpack
+*\param[out] pbInvalidMode      Set to TRUE on invalid CS step mode (drop procedure)
  ********************************************************************************** */
 uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
 (
     uint8_t *pEventData,
     uint32_t dataLength,
     rasMeasurementData_t *pRemoteData,
-    uint8_t maxSteps
+    uint8_t maxSteps,
+    bool_t *pbInvalidMode
 );
 #endif
 
