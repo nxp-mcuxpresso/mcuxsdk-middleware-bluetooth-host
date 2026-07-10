@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2024, 2026 NXP
 *
 *
 * \file
@@ -737,28 +737,43 @@ static shell_status_t ShellGatt_Discover(uint8_t argc, char * argv[])
                 {
                     if(0 == strcmp((char*)argv[1], "-all"))
                     {
-                        /* Allocate memory for Service Discovery */
-                        mpServiceDiscoveryBuffer = MEM_BufferAlloc(sizeof(gattService_t) * mMaxServicesCount_d);
-                        mpCharBuffer = MEM_BufferAlloc(sizeof(gattCharacteristic_t) * mMaxServiceCharCount_d);
-                        mpCharDescriptorBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) * mMaxServiceCharCount_d * mMaxCharDescriptorsCount_d);
-
-                        if ((NULL == mpServiceDiscoveryBuffer) ||
-                            (NULL == mpCharBuffer)             ||
-                            (NULL == mpCharDescriptorBuffer))
+                        do
                         {
-                            shell_write("\r\nMemory allocation error!\r\n\r\n");
                             result = kStatus_SHELL_Error;
-                        }
-                        else
-                        {
+                            /* Allocate memory for Service Discovery */
+                            mpServiceDiscoveryBuffer = MEM_BufferAlloc(sizeof(gattService_t) * mMaxServicesCount_d);
+                            if (mpServiceDiscoveryBuffer == NULL)
+                            {
+                                break;
+                            }
+                            mpCharBuffer = MEM_BufferAlloc(sizeof(gattCharacteristic_t) * mMaxServiceCharCount_d);
+                            if (mpCharBuffer == NULL)
+                            {
+                                (void)MEM_BufferFree(mpServiceDiscoveryBuffer);
+                                mpServiceDiscoveryBuffer = NULL;
+                                break;
+                            }
+                            mpCharDescriptorBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) * mMaxServiceCharCount_d * mMaxCharDescriptorsCount_d);
+                            if (mpCharDescriptorBuffer == NULL)
+                            {
+                                (void)MEM_BufferFree(mpServiceDiscoveryBuffer);
+                                mpServiceDiscoveryBuffer = NULL;
+                                (void)MEM_BufferFree(mpCharBuffer);
+                                mpCharBuffer = NULL;
+                                break;
+                            }
                             /* Start Service Discovery*/
                             (void)GattClient_DiscoverAllPrimaryServices(
-                                                        peerId,
-                                                        mpServiceDiscoveryBuffer,
-                                                        mMaxServicesCount_d,
-                                                        &mcPrimaryServices);
-
+                                                                        peerId,
+                                                                        mpServiceDiscoveryBuffer,
+                                                                        mMaxServicesCount_d,
+                                                                        &mcPrimaryServices);
                             result = kStatus_SHELL_Success;
+                        }
+                        while(FALSE);
+                        if (result == kStatus_SHELL_Error)
+                        {
+                            shell_write("\r\nMemory allocation error!\r\n\r\n");
                         }
                     }
                 }
@@ -850,22 +865,33 @@ static shell_status_t ShellGatt_Read(uint8_t argc, char * argv[])
     else
     {
         /* Get the handle of the characteristic to be read and allocate memory for response */
-        mpCharBuffer = MEM_BufferAlloc(sizeof(gattCharacteristic_t));
-        pValue = MEM_BufferAlloc(mMaxCharValueLength_d);
-
-        if ((NULL == mpCharBuffer) || (NULL == pValue))
+        do
+        {
+            mpCharBuffer = MEM_BufferAlloc(sizeof(gattCharacteristic_t));
+            if (mpCharBuffer == NULL)
+            {
+                result = kStatus_SHELL_Error;
+                break;
+            }
+            pValue = MEM_BufferAlloc(mMaxCharValueLength_d);
+            if (pValue == NULL)
+            {
+                (void)MEM_BufferFree(mpCharBuffer);
+                mpCharBuffer = NULL;
+                result = kStatus_SHELL_Error;
+                break;
+            }
+                mpCharBuffer->value.handle = (uint16_t)BleApp_atoi(argv[1]);
+                mpCharBuffer->value.paValue = pValue;
+                
+                /* 50 - Maximum number of bytes to be read */
+                (void)GattClient_ReadCharacteristicValue(peerId, mpCharBuffer, 50);
+        }
+        while(FALSE);
+        if (result == kStatus_SHELL_Error)
         {
             /* Memory allocation issue */
             shell_write("\r\nMemory allocation error!\r\n\r\n");
-            result = kStatus_SHELL_Error;
-        }
-        else
-        {
-            mpCharBuffer->value.handle = (uint16_t)BleApp_atoi(argv[1]);
-            mpCharBuffer->value.paValue = pValue;
-
-            /* 50 - Maximum number of bytes to be read */
-            (void)GattClient_ReadCharacteristicValue(peerId, mpCharBuffer, 50);
         }
     }
     return result;

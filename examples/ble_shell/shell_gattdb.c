@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2024 NXP
+* Copyright 2016-2024, 2026 NXP
 *
 *
 * \file
@@ -372,7 +372,7 @@ static shell_status_t   ShellGattDb_AddService(uint8_t argc, char * argv[])
     }
 
     /* Add service to database */
-    if (pServiceInfo != gBleSuccess_c)
+    if (pServiceInfo != NULL)
     {
         result = ShellGattDb_AddServiceInDatabase(pServiceInfo);
         if (gBleSuccess_c == result)
@@ -380,14 +380,14 @@ static shell_status_t   ShellGattDb_AddService(uint8_t argc, char * argv[])
             shell_write("\r\n-->  GATTDB Event: Service Added in database. ");
             SHELL_NEWLINE();
         }
+        /* Free memory allocated for service */
+        (void)MEM_BufferFree(pServiceInfo);
     }
     else
     {
         shell_write("\r\n-->  GATTDB Event: Insufficient memory. ");
         SHELL_NEWLINE();
     }
-    /* Free memory allocated for service */
-    (void)MEM_BufferFree(pServiceInfo);
     return kStatus_SHELL_Success;
 }
 
