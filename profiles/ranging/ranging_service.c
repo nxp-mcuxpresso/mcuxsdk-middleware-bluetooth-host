@@ -761,14 +761,8 @@ bleResult_t Ras_HandleGetRangingDataSegmInd
 {
     bleResult_t result = gBleSuccess_c;
     rasControlPointRsp_t    rasCPResponse;
-    union
-    {
-        uint32_t dataLen32;
-        uint16_t dataLen16;
-    } dataLen = {0U};
-
-    dataLen.dataLen16 = gAttMaxNotifIndDataSize_d(gAttMtu[deviceId]);
-    uint8_t *pNotificationData = MEM_BufferAlloc(dataLen.dataLen32);
+    uint16_t dataLen = gAttMaxNotifIndDataSize_d(gAttMtu[deviceId]);
+    uint8_t *pNotificationData = MEM_BufferAlloc((uint32_t)dataLen);
 
     if ((maRasDynamicCfg[deviceId].pCfg == NULL) ||
         (Ras_CheckIfSubscribed(deviceId) == FALSE))
@@ -1860,20 +1854,11 @@ static void antennaPathFilterStepData
     uint8_t mode = 0U;
     uint8_t stepDataLength = 0U;
     uint8_t devIdIdx = deviceId * 4U;
-    union
-    {
-        uint8_t stepLen8;
-        uint16_t stepLen16;
-    } stepLen = {0U};
-    union
-    {
-        uint16_t dataIndex16;
-        uint32_t dataIndex32;
-    } dataIndex = {0U};
-    bool_t bHasData = FALSE;
-    dataIndex.dataIndex32 = maRasDynamicCfg[deviceId].pCfg->dataIndex;
+    uint16_t dataIndex = (uint16_t)maRasDynamicCfg[deviceId].pCfg->dataIndex;
 
-    while (maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex < dataIndex.dataIndex16)
+    bool_t bHasData = FALSE;
+
+    while ((uint32_t)maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex < dataIndex)
     {
         bHasData = TRUE;
 
@@ -1968,9 +1953,9 @@ static void antennaPathFilterStepData
         }
 
         /* Account for the data we parsed so far: step mode, channel, length and data */
-        stepLen.stepLen8 = stepDataLength;
-        maRasDynamicCfg[deviceId].pCfg->aSubEventData[gRasSubeventStepIndex].currentDataSize += stepLen.stepLen16 + 3U;
-        maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex += stepLen.stepLen16 + 3U;
+        maRasDynamicCfg[deviceId].pCfg->aSubEventData[gRasSubeventStepIndex].currentDataSize += (uint16_t)stepDataLength + 3U;
+        maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex += (uint16_t)stepDataLength + 3U;
+
 
         /* Check if we reached the end of the subevent */
         if (((maRasDynamicCfg[deviceId].pCfg->aSubEventData[gRasSubeventStepIndex].currentDataSize ==
@@ -2032,11 +2017,6 @@ static bleResult_t handleGetRangingDataSegmNotif
     bleResult_t result = gBleSuccess_c;
     uint16_t    res = gAttMaxNotifIndDataSize_d(gAttMtu[deviceId]);
     uint8_t*    pNotificationData = MEM_BufferAlloc((uint32_t)res);
-    union
-    {
-        uint32_t dataLen32;
-        uint16_t dataLen16;
-    } dataLen = {0U};
     uint16_t noOfSegm = 0U;
 
     /* get number of segments */
@@ -2082,12 +2062,11 @@ static bleResult_t handleGetRangingDataSegmNotif
                         maRasDynamicCfg[deviceId].pRangingDataBody + pData->dataIdxStart,
                         pData->dataSize);
 
-            dataLen.dataLen32 = pData->dataSize + sizeof(uint8_t);
-            /* Send instant notification instead of writing the data in the database */
-            result = GattServer_SendInstantValueNotification(deviceId,
-                                                             mpRasServiceConfig->onDemandDataHandle,
-                                                             dataLen.dataLen16,
-                                                             pNotificationData);
+                /* Send instant notification instead of writing the data in the database */
+                result = GattServer_SendInstantValueNotification(deviceId,
+                                                                 mpRasServiceConfig->onDemandDataHandle,
+                                                                 (uint16_t)(pData->dataSize + sizeof(uint8_t)),
+                                                                 pNotificationData);
 
             startAbsSegment++;
         }

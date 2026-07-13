@@ -729,13 +729,9 @@ static void AppLocalizationAlgo_ProcessAlgoResult
 static int16_t AppLocalizationAlgo_CombinePhases(int16_t iSample1, int16_t qSample1, int16_t iSample2, int16_t qSample2)
 {
     int32_t phase1, phase2;
-    union
-    {
-        int32_t i32;
-        int16_t i16;
-    } phaseConv;
-    
+
     /* Compute phase = atan(Q/I) */
+
     phase1 = atan2fp(qSample1, iSample1);
     /* Normalize phase to Pi in Q3.12 and convert to Q15 */
     phase1 = (phase1 * 32768) / 12867;
@@ -760,8 +756,7 @@ static int16_t AppLocalizationAlgo_CombinePhases(int16_t iSample1, int16_t qSamp
         /* MISRA rule 15.7 */
     }
 
-    phaseConv.i32 = phase1;
-    return phaseConv.i16;
+    return (int16_t)(uint16_t)((uint32_t)phase1 & 0xFFFFU);
 }
 
 /*! *********************************************************************************
@@ -777,14 +772,8 @@ static int32_t AppLocalizationAlgo_GetAbsoluteValue(int32_t value)
 {
     if (value < 0)
     {
-        union
-        {
-            uint32_t u32;
-            int32_t  i32;
-        } conv;
-
-        conv.u32 = (0xFFFFFFFFUL ^ (uint32_t)value) + 1UL;
-        value = conv.i32;
+        uint32_t absValue = (0xFFFFFFFFUL ^ (uint32_t)value) + 1UL;
+        value = (int32_t)absValue;
     }
     return value;
 }
@@ -1025,11 +1014,6 @@ static uint8_t AppLocalizationAlgo_CountLeadingZeroes
     uint16_t decimalPart
 )
 {
-    union 
-    {
-        uint16_t u16;
-        uint8_t u8;
-    } tmp;
     uint16_t leadingZeroes = 0U;
 
     while (((uint32_t)decimalPart != 0U) && ((uint32_t)decimalPart * 10U < mPrecisionScaler))
@@ -1037,9 +1021,9 @@ static uint8_t AppLocalizationAlgo_CountLeadingZeroes
         leadingZeroes++;
         decimalPart *= 10U;
     }
-    tmp.u16 = leadingZeroes;
 
-    return tmp.u8;
+    return (uint8_t)(leadingZeroes & 0xFFU);
+
 }
 
 /*! *********************************************************************************

@@ -994,14 +994,8 @@ bleResult_t RasClient_RasSetFilter
 {
     bleResult_t result = gBleSuccess_c;
     static uint8_t filterIdx[gAppMaxConnections_c] = {0x0U};
-    union
-    {
-        uint32_t val32;
-        uint16_t val16;
-    } filterVal = {0U};
 
     *pOutFilterSetDone = FALSE;
-    filterVal.val16 = filterValue;
 
     /* Check the Mode bits and save the filter value */
     if (sendCommand == FALSE)
@@ -1033,7 +1027,7 @@ bleResult_t RasClient_RasSetFilter
             modeIndex = gMode3Idx_c;
         }
 
-        maRasClientFilter[deviceId * 4U + modeIndex].filterVal = filterVal.val32;
+        maRasClientFilter[deviceId * 4U + modeIndex].filterVal = filterValue;
         maRasClientFilter[deviceId * 4U + modeIndex].filterSet = FALSE;
     }
     else
@@ -1861,14 +1855,15 @@ static bleResult_t RasClient_CPRspResponse
        (pRasIndication->cmdParameters.rspPayload.rspValue != ((uint8_t)gRasErrorRfu_c)))
     {
         /* An error occured - free resources on server  */
-        union
-        {
-            appCsEventType_t evtType;
-            uint8_t evtTypeu8;
-        } revEvt;
+        appCsEventType_t revEvtType = gErrorEvent_c;
+        uint8_t revEvtTypeRaw = (uint8_t)((uint8_t)pRasIndication->cmdParameters.rspPayload.rspValue +
+                                (uint8_t)(gErrRasOpCodeNotSupported_c)-(uint8_t)(gRasOpCodeNotSupportedError_c));
+        uint32_t revEvtTypeVal = (uint32_t)revEvtTypeRaw;
 
-        revEvt.evtTypeu8 = (uint8_t)pRasIndication->cmdParameters.rspPayload.rspValue +
-                           (uint8_t)(gErrRasOpCodeNotSupported_c)-(uint8_t)(gRasOpCodeNotSupportedError_c);
+        if (revEvtTypeVal <= (uint32_t)gErrRasNoRecordsFound_c)
+        {
+            revEvtType = (appCsEventType_t)revEvtTypeVal;
+        }
 
         /* Ignore RFU error codes */
         if (pRasIndication->cmdParameters.rspPayload.rspValue < ((uint8_t)gRasNoRecordsFoundError_c))
@@ -1886,7 +1881,7 @@ static bleResult_t RasClient_CPRspResponse
 
             if (mpfAppCallback != NULL)
             {
-                mpfAppCallback(deviceId, NULL, revEvt.evtType);
+                mpfAppCallback(deviceId, NULL, revEvtType);
             }
         }
     }

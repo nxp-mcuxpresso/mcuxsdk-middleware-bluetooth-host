@@ -1672,12 +1672,6 @@ void App_ConnectionCallback
 
         if(pConnectionEvent->eventType == gConnEvtKeysReceived_c)
         {
-            union
-            {
-                uint8_t      *pu8;
-                gapSmpKeys_t *pObject;
-            } temp = {0}; /* MISRA rule 11.3 */
-
             gapSmpKeys_t    *pKeys = pConnectionEvent->eventData.keysReceivedEvent.pKeys;
             uint8_t         *pCursor =
                 (uint8_t*)&pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys;
@@ -1685,9 +1679,9 @@ void App_ConnectionCallback
             pMsgIn->msgData.connMsg.connEvent.eventType = gConnEvtKeysReceived_c;
             pCursor += sizeof(void*); /* skip pKeys pointer */
 
-            temp.pu8 = pCursor;
             pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys =
-                       temp.pObject;
+                (gapSmpKeys_t *)(void *)pCursor;
+
 
             /* Copy SMP Keys structure */
             FLib_MemCpy(pCursor,

@@ -258,13 +258,8 @@ static void BleApp_SwitchRealTimeDataState(
 ********************************************************************************** */
 void BluetoothLEHost_AppInit(void)
 {
-    union Prompt_tag
-    {
-        const char * constPrompt;
-        char * prompt;
-    } shellPrompt;
-
     uint8_t mPeerId = 0;
+
 
     /* Initialize table with peer devices information  */
     for (mPeerId = 0; mPeerId < (uint8_t)gAppMaxConnections_c; mPeerId++)
@@ -287,8 +282,9 @@ void BluetoothLEHost_AppInit(void)
     /* Initialize Bluetooth Host Stack */
     BluetoothLEHost_Init(BluetoothLEHost_Initialized);
     /* UI */
-    shellPrompt.constPrompt = "Reader>";
-    AppShellInit(shellPrompt.prompt);
+    static char shellPromptReader[] = "Reader>";
+    AppShellInit(shellPromptReader);
+
     /* Register CS callback and initialize localization */
     (void)AppLocalization_Init(gCsDefaultRole_c,
                                BleApp_CsEventHandler,

@@ -664,12 +664,8 @@ bleResult_t AppLocalization_HostInitHandler(void)
 
     if (ant2gpio_p[0] != LCL_HAL_LOC_UNAVAILABLE)
     {
-        union
-        {
-            int16_t i16;
-            uint16_t u16;
-        } temp = {0};
         /* Fill command data */
+
 
         /* Antenna configuration */
         aAppData[0U] = 2U; /* Default antenna switch time */
@@ -681,8 +677,8 @@ bleResult_t AppLocalization_HostInitHandler(void)
         /* RTT fine tuning */
         for (uint8_t index = 0U; index < 3U; index++)
         {
-            temp.i16 = maRttFineTuningParams[index];
-            Utils_PackTwoByteValue(temp.u16, &aAppData[3U + gMaxNumAntennaPaths_c + index * sizeof(uint16_t)]);
+            Utils_PackTwoByteValue((uint16_t)maRttFineTuningParams[index], &aAppData[3U + gMaxNumAntennaPaths_c + index * sizeof(uint16_t)]);
+
         }
 
         /* PCT rotation calibration */
