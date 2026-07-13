@@ -105,6 +105,8 @@ typedef struct appMonitorFilter_tag
     uint32_t eventCount;
     int32_t rssiRemoteSum;
     int32_t rssiActiveSum;
+    uint32_t rssiRemoteCount;
+    uint32_t rssiActiveCount;
 } appMonitorFilter_t;
 
 /***********************************************************************************************************************
@@ -166,7 +168,7 @@ static appMonitorContext_t* allocMonitorCtx(deviceId_t deviceId);
 static void freeMonitorCtx(appMonitorContext_t *pCtx);
 static deviceId_t getMonitoredDeviceId(uint16_t monitorConnectionHandle);
 static uint16_t getMonitoredConnHandle(deviceId_t deviceId);
-static bool_t checkMonitorFilterCounter(uint16_t connHandle, int8_t rssiRemote, int8_t rssiActive);
+static bool_t checkMonitorFilterCounter(uint16_t connHandle, int8_t rssiRemote, int8_t rssiActive, bool_t rssiRemoteValid, bool_t rssiActiveValid);
 static void addMonitorFilter(uint16_t connHandle);
 static void removeMonitorFilter(uint16_t connHandle);
 static int8_t getMonitorFilterAverageActiveRssi(uint16_t connHandle);
@@ -1325,8 +1327,10 @@ static uint16_t getMonitoredConnHandle(deviceId_t deviceId)
 }
 
 /*! ********************************************************************************************************************
-*\fn            static bool_t checkMonitorFilterCounter(uint16_t connHandle, int8_t rssiRemote, int8_t rssiActive)
-*\brief         Check monitor filter counter and accumulate RSSI values.
+*\fn            static bool_t checkMonitorFilterCounter(uint16_t connHandle, int8_t rssiRemote, int8_t rssiActive, bool_t rssiRemoteValid, bool_t rssiActiveValid)
+*\brief         Check monitor filter counter and accumulate valid RSSI values.
+*\param[in]     rssiRemoteValid  TRUE if rssiRemote should be accumulated.
+*\param[in]     rssiActiveValid  TRUE if rssiActive should be accumulated.
 *
 *\param  [in]   connHandle  Connection identifier.
 *\param  [in]   rssiRemote  RSSI of the packet from the remote device.
@@ -1334,7 +1338,7 @@ static uint16_t getMonitoredConnHandle(deviceId_t deviceId)
 *
 *\return        bool_t      TRUE if event should be forwarded, FALSE otherwise.
 ********************************************************************************************************************* */
-static bool_t checkMonitorFilterCounter(uint16_t connHandle, int8_t rssiRemote, int8_t rssiActive)
+static bool_t checkMonitorFilterCounter(uint16_t connHandle, int8_t rssiRemote, int8_t rssiActive, bool_t rssiRemoteValid, bool_t rssiActiveValid)
 {
     bool_t result = FALSE;
 
@@ -1342,9 +1346,20 @@ static bool_t checkMonitorFilterCounter(uint16_t connHandle, int8_t rssiRemote, 
     {
         if (maMonitorFilter[i].connHandle == connHandle)
         {
-            maMonitorFilter[i].rssiActiveSum += rssiActive;
-            maMonitorFilter[i].rssiRemoteSum += rssiRemote;
+            /* Only accumulate valid RSSI samples */
+            if (rssiActiveValid != FALSE)
+            {
+                maMonitorFilter[i].rssiActiveSum += rssiActive;
+                maMonitorFilter[i].rssiActiveCount++;
+            }
 
+            if (rssiRemoteValid != FALSE)
+            {
+                maMonitorFilter[i].rssiRemoteSum += rssiRemote;
+                maMonitorFilter[i].rssiRemoteCount++;
+            }
+
+            /* Always count the event to keep the forwarding cadence */
             if ((maMonitorFilter[i].eventCount != 0U) &&
                 ((maMonitorFilter[i].eventCount % gHandoverMonitorPacketNumberFilter_c) == 0U))
             {
@@ -1399,6 +1414,8 @@ static void addMonitorFilter(uint16_t connHandle)
         maMonitorFilter[firstFreeIdx].eventCount = 0U;
         maMonitorFilter[firstFreeIdx].rssiActiveSum = 0;
         maMonitorFilter[firstFreeIdx].rssiRemoteSum = 0;
+        maMonitorFilter[firstFreeIdx].rssiActiveCount = 0U;
+        maMonitorFilter[firstFreeIdx].rssiRemoteCount = 0U;
     }
 
     return;
@@ -1442,8 +1459,13 @@ static int8_t getMonitorFilterAverageActiveRssi(uint16_t connHandle)
     {
         if (maMonitorFilter[i].connHandle == connHandle)
         {
-            averageRssi = (int)((int)maMonitorFilter[i].rssiActiveSum / (int)gHandoverMonitorPacketNumberFilter_c);
+            /* Divide by the number of valid samples accumulated */
+            if (maMonitorFilter[i].rssiActiveCount != 0U)
+            {
+                averageRssi = (int)(maMonitorFilter[i].rssiActiveSum / (int32_t)maMonitorFilter[i].rssiActiveCount);
+            }
             maMonitorFilter[i].rssiActiveSum = 0;
+            maMonitorFilter[i].rssiActiveCount = 0U;
             break;
         }
     }
@@ -1467,8 +1489,13 @@ static int8_t getMonitorFilterAverageRemoteRssi(uint16_t connHandle)
     {
         if (maMonitorFilter[i].connHandle == connHandle)
         {
-            averageRssi = (int8_t)(maMonitorFilter[i].rssiRemoteSum / (int32_t)gHandoverMonitorPacketNumberFilter_c);
+            /* Divide by the number of valid samples accumulated */
+            if (maMonitorFilter[i].rssiRemoteCount != 0U)
+            {
+                averageRssi = (int)(maMonitorFilter[i].rssiRemoteSum / (int32_t)maMonitorFilter[i].rssiRemoteCount);
+            }
             maMonitorFilter[i].rssiRemoteSum = 0;
+            maMonitorFilter[i].rssiRemoteCount = 0U;
             break;
         }
     }
@@ -1840,28 +1867,30 @@ static bleResult_t HandleAnchorMonitorEvent
         {
             handoverAnchorMonitorEvent_t *pAnchMntEvt = &pGenericEvent->eventData.handoverAnchorMonitor;
             appMonitorContext_t *pMonCtx = findMonitorCtxByConnHandle(pAnchMntEvt->connectionHandle);
-
-            if (checkMonitorFilterCounter(pAnchMntEvt->connectionHandle, pAnchMntEvt->rssiRemote, pAnchMntEvt->rssiActive))
+            bool_t rssiRemoteValid = ((pAnchMntEvt->statusRemote & gHandoverAnchorMonitorStatusRssi_c) != 0U);
+            bool_t rssiActiveValid = ((pAnchMntEvt->statusActive & gHandoverAnchorMonitorStatusRssi_c) != 0U);
             {
-                uint8_t buf[gHandoverAnchorMonitorLen_c] = {0U};
-                Utils_PackTwoByteValue(pAnchMntEvt->connectionHandle, &buf[0]);
-                Utils_PackTwoByteValue(pAnchMntEvt->connEvent, &buf[2]);
-                buf[4] = (uint8_t)(pAnchMntEvt->rssiRemote);
-                buf[5] = pAnchMntEvt->lqiRemote;
-                buf[6] = pAnchMntEvt->statusRemote;
-                buf[7] = (uint8_t)(pAnchMntEvt->rssiActive);
-                buf[8] = pAnchMntEvt->lqiActive;
-                buf[9] = pAnchMntEvt->statusActive;
-                Utils_PackFourByteValue(pAnchMntEvt->anchorClock625Us, &buf[10]);
-                Utils_PackTwoByteValue(pAnchMntEvt->anchorDelay, &buf[14]);
-                buf[16] = pAnchMntEvt->chIdx;
-                buf[17] = pAnchMntEvt->ucNbReports;
-                buf[18] = (uint8_t)getMonitorFilterAverageActiveRssi(pAnchMntEvt->connectionHandle);
-                buf[19] = (uint8_t)getMonitorFilterAverageRemoteRssi(pAnchMntEvt->connectionHandle);
-                /* Send data to remote anchor */
-                notifyRemoteDevice(gHandoverAnchorMonitorCommandOpCode_c, gHandoverAnchorMonitorLen_c, buf);
+                if (checkMonitorFilterCounter(pAnchMntEvt->connectionHandle, pAnchMntEvt->rssiRemote, pAnchMntEvt->rssiActive, rssiRemoteValid, rssiActiveValid))
+                {
+                    uint8_t buf[gHandoverAnchorMonitorLen_c] = {0U};
+                    Utils_PackTwoByteValue(pAnchMntEvt->connectionHandle, &buf[0]);
+                    Utils_PackTwoByteValue(pAnchMntEvt->connEvent, &buf[2]);
+                    buf[4] = (uint8_t)(pAnchMntEvt->rssiRemote);
+                    buf[5] = pAnchMntEvt->lqiRemote;
+                    buf[6] = pAnchMntEvt->statusRemote;
+                    buf[7] = (uint8_t)(pAnchMntEvt->rssiActive);
+                    buf[8] = pAnchMntEvt->lqiActive;
+                    buf[9] = pAnchMntEvt->statusActive;
+                    Utils_PackFourByteValue(pAnchMntEvt->anchorClock625Us, &buf[10]);
+                    Utils_PackTwoByteValue(pAnchMntEvt->anchorDelay, &buf[14]);
+                    buf[16] = pAnchMntEvt->chIdx;
+                    buf[17] = pAnchMntEvt->ucNbReports;
+                    buf[18] = (uint8_t)getMonitorFilterAverageActiveRssi(pAnchMntEvt->connectionHandle);
+                    buf[19] = (uint8_t)getMonitorFilterAverageRemoteRssi(pAnchMntEvt->connectionHandle);
+                    /* Send data to remote anchor */
+                    notifyRemoteDevice(gHandoverAnchorMonitorCommandOpCode_c, gHandoverAnchorMonitorLen_c, buf);
+                }
             }
-
             if ((pAnchMntEvt->ucNbReports == 1U) && (pMonCtx != NULL) && (pMonCtx->continuous == FALSE))
             {
                 /* Anchor monitor complete */
@@ -1873,10 +1902,9 @@ static bleResult_t HandleAnchorMonitorEvent
             /* MISRA compliance */
         }
     } while(FALSE);
-    
+
     return result;
 }
-
 
 /*! ********************************************************************************************************************
 *\fn            static bleResult_t HandleGetConnParamsComplete(gapGenericEvent_t *pGenericEvent, appHandoverError_t *pError)
@@ -2299,7 +2327,7 @@ static bleResult_t HandleAnchorMonitorPacketEvent(gapGenericEvent_t *pGenericEve
     }
     else if (mHandoverCtx.state == gHandoverIdle_c)
     {
-        if (checkMonitorFilterCounter(pAnchMntPktEvt->connectionHandle, 0, 0))
+        if (checkMonitorFilterCounter(pAnchMntPktEvt->connectionHandle, 0, 0, FALSE, FALSE))
         {
             uint8_t buf[gHandoverPacketMonitorMaxLen_c] = {0U};
             buf[0] = pAnchMntPktEvt->packetCounter;
