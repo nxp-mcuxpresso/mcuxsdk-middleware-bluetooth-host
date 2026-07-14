@@ -873,14 +873,12 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
             }
             break;
 
-            case (uint8_t)gCsStepMode3_c:
-            {
-                bIncomplete = ParseMode3(0, &pEventData, &dataLength, pDstAppBuffer, pRemoteData);
-            }
-            break;
-
             default:
             {
+                if (mode == (uint8_t)gCsStepMode3_c)
+                {
+                    bIncomplete = ParseMode3(0, &pEventData, &dataLength, pDstAppBuffer, pRemoteData);
+                }
                 /* mode not yet implemented, skip data */
             }
             break;
