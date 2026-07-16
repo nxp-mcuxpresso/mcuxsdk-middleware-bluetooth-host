@@ -992,7 +992,9 @@ void app_print_cs_data(isp_meas_response_t *meas_response, engine_response_t *en
         (void)printf("{");
         
         app_print_cs_measurement(meas_response, ranging_cfg);
+#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1)
         app_mode0_measurement_print(meas_response->cs_data);
+#endif
         if (meas_response->mciq_data[0].iq != NULL)
         {
             app_mciq_measurement_print(meas_response, engine_response, ranging_cfg);
