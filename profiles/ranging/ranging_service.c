@@ -244,6 +244,14 @@ static bleResult_t sendGattIndication
     const uint8_t *pValue
 );
 
+static bleResult_t storeSegmentData
+(
+    uint8_t  *pSegmDataIdx,
+    uint16_t dataIdxStart,
+    uint8_t  segmentationHeader,
+    uint16_t dataSize
+);
+
 /************************************************************************************
 *************************************************************************************
 * Public functions
@@ -884,11 +892,12 @@ bleResult_t Ras_SendRangingDataIndication
     uint16_t             availableLen = gAttMaxNotifIndDataSize_d(gAttMtu[deviceId]);
     uint16_t             notifDataLen = 0U;
     bleResult_t          result = gBleSuccess_c;
+    bleResult_t          storeResult = gBleSuccess_c;
     uint8_t              segmentationHeader = 0U;
     uint16_t             procCounter = maRasDynamicCfg[deviceId].pCfg->procedureCounter;
     uint8_t*             pNotificationData = MEM_BufferAlloc((uint32_t)availableLen);
     rasControlPointRsp_t rasCPResponse;
-
+    uint16_t             segDataStart = 0U;
     static uint8_t       segmDataIdx = 0U;
     static uint8_t       segmentCounter = gRasSegmentCounterMinValue_c;
 
@@ -946,7 +955,8 @@ bleResult_t Ras_SendRangingDataIndication
 
         if (mbServRealTimeTransfer[deviceId] == FALSE)
         {
-            maSegmentData[segmDataIdx].dataIdxStart = maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex;
+            /* Capture the segment start before totalSentRcvDataIndex is advanced */
+            segDataStart = maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex;
         }
 
         /* Set segment header */
@@ -985,21 +995,27 @@ bleResult_t Ras_SendRangingDataIndication
         /* Update counters */
         if (mbServRealTimeTransfer[deviceId] == FALSE)
         {
-            maSegmentData[segmDataIdx].segmentIdx = segmentationHeader;
-            /* Subtract the segmentationHeader size from the notifDataLen */
-            maSegmentData[segmDataIdx].dataSize = notifDataLen - 1U;
-            segmDataIdx++;
+            /* Keep the store status separate so the sendGattIndication result is not lost */
+            storeResult = storeSegmentData(&segmDataIdx, segDataStart, segmentationHeader, notifDataLen - 1U);
+            if (result == gBleSuccess_c)
+            {
+                result = storeResult;
+            }
         }
 
-        if ((segmentCounter == (uint8_t)gRasSegmentCounterMaxValue_c) ||
-            ((segmentationHeader & (uint8_t)gRasNotifLastSegment_c) != 0U))
+        /* Advance the counter only when the segment was stored, so a full segment
+           array does not desync the segmentation counter */
+        if (storeResult == gBleSuccess_c)
         {
-            segmentCounter = gRasSegmentCounterMinValue_c;
-        }
-        else
-        {
-            /* Update counters */
-            segmentCounter++;
+            if ((segmentCounter == (uint8_t)gRasSegmentCounterMaxValue_c) ||
+                ((segmentationHeader & (uint8_t)gRasNotifLastSegment_c) != 0U))
+            {
+                segmentCounter = gRasSegmentCounterMinValue_c;
+            }
+            else
+            {
+                segmentCounter++;
+            }
         }
     }
     else
@@ -1046,6 +1062,7 @@ bleResult_t Ras_SendRangingDataNotifs
     uint16_t    res = gAttMaxNotifIndDataSize_d(gAttMtu[deviceId]);
     uint8_t*    pNotificationData = MEM_BufferAlloc((uint32_t)res);
     uint8_t     segmDataIdx = 0U;
+    uint16_t    segDataStart = 0U;
 
     if (Ras_CheckIfSubscribed(deviceId) == FALSE)
     {
@@ -1075,7 +1092,8 @@ bleResult_t Ras_SendRangingDataNotifs
 
             if (mbServRealTimeTransfer[deviceId] == FALSE)
             {
-                maSegmentData[segmDataIdx].dataIdxStart = maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex;
+                /* Capture the segment start before totalSentRcvDataIndex is advanced */
+                segDataStart = maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex;
             }
 
             /* Compute how much data there is left in this subevent */
@@ -1117,13 +1135,7 @@ bleResult_t Ras_SendRangingDataNotifs
 
             if (mbServRealTimeTransfer[deviceId] == FALSE)
             {
-                if (segmDataIdx < gRASMaxNoOfSegments_c)
-                {
-                    maSegmentData[segmDataIdx].segmentIdx = segmentationHeader;
-                    maSegmentData[segmDataIdx].dataSize = notifDataLen - 1U;
-                    segmDataIdx++;
-                }
-                else
+                if (storeSegmentData(&segmDataIdx, segDataStart, segmentationHeader, notifDataLen - 1U) != gBleSuccess_c)
                 {
                     result = gBleOutOfMemory_c;
                     break;
@@ -1995,6 +2007,39 @@ static bleResult_t sendCommandResponse
                               mpRasServiceConfig->controlPointHandle,
                               ((uint16_t)valueLength),
                               pNotifPayload);
+}
+
+/*!**********************************************************************************
+* \brief        Records one transmitted segment in maSegmentData for later
+*               retransmission, guarding against overflow of the fixed-size array.
+*
+* \param[in,out] pSegmDataIdx         Current segment index, incremented on success
+* \param[in]     dataIdxStart         Offset of the segment in the ranging data body
+* \param[in]     segmentationHeader   Segmentation header byte of the segment
+* \param[in]     dataSize             Segment payload size (without the header byte)
+*
+* \return       gBleSuccess_c if stored, gBleOutOfMemory_c if the array is full
+************************************************************************************/
+static bleResult_t storeSegmentData
+(
+    uint8_t  *pSegmDataIdx,
+    uint16_t dataIdxStart,
+    uint8_t  segmentationHeader,
+    uint16_t dataSize
+)
+{
+    bleResult_t result = gBleOutOfMemory_c;
+    /* Only store when there is room, so a low peer MTU that raises the segment
+       count cannot write past maSegmentData */
+    if (*pSegmDataIdx < gRASMaxNoOfSegments_c)
+    {
+        maSegmentData[*pSegmDataIdx].dataIdxStart = dataIdxStart;
+        maSegmentData[*pSegmDataIdx].segmentIdx = segmentationHeader;
+        maSegmentData[*pSegmDataIdx].dataSize = dataSize;
+        (*pSegmDataIdx)++;
+        result = gBleSuccess_c;
+    }
+    return result;
 }
 
 /*!**********************************************************************************
