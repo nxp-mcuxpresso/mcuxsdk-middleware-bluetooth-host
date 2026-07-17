@@ -170,6 +170,12 @@ uint32_t gL2caCbChannelStorage[(gL2caLeCbChannelEntrySize_c * gL2caMaxLeCbChanne
 extern const uint16_t gcL2caLowPeerCreditsThreshold;
 const uint16_t gcL2caLowPeerCreditsThreshold = gL2caLowPeerCreditsThreshold_c;
 
+/* L2CAP credit-based channel connection and reconfigure procedure timeouts, in seconds */
+extern const uint8_t gL2caLinkConnectionTimeout;
+const uint8_t gL2caLinkConnectionTimeout = gL2caLinkConnectionTimeout_c;
+extern const uint8_t gL2caLinkReconfigureTimeout;
+const uint8_t gL2caLinkReconfigureTimeout = gL2caLinkReconfigureTimeout_c;
+
 /* EATT connection storage */
 const uint8_t gBleEattMaxConnectionChannels = gAppEattMaxNoOfBearers_c;
 const uint16_t gBleEattPsmMtu = gAppEattDefaultMtu_c;

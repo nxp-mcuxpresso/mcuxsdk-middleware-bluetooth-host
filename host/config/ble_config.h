@@ -205,6 +205,34 @@
 #define gL2caLowPeerCreditsThreshold_c      (0U)
 #endif
 
+/* Timeout for L2CAP credit-based channel connection procedure.
+ *
+ * Unit: 1 second
+ * Range: 1 - 60
+ * Default: 20
+ */
+#ifndef gL2caLinkConnectionTimeout_c
+#define gL2caLinkConnectionTimeout_c        (20U)
+#endif
+
+#if (gL2caLinkConnectionTimeout_c < 1U) || (gL2caLinkConnectionTimeout_c > 60U)
+#error gL2caLinkConnectionTimeout_c must be set to a value in the range 1U to 60U.
+#endif
+
+/* Timeout for L2CAP enhanced credit-based channel reconfigure procedure.
+ *
+ * Unit: 1 second
+ * Range: 1 - 60
+ * Default: 20
+ */
+#ifndef gL2caLinkReconfigureTimeout_c
+#define gL2caLinkReconfigureTimeout_c       (20U)
+#endif
+
+#if (gL2caLinkReconfigureTimeout_c < 1U) || (gL2caLinkReconfigureTimeout_c > 60U)
+#error gL2caLinkReconfigureTimeout_c must be set to a value in the range 1U to 60U.
+#endif
+
 /*! Maximum number of pending L2CA packets.
     This queue is used by the L2CAP layer to buffer packets when the LE controller cannot accept ACL Data packets any more.
     Any new requests sent from the Host or application layer after this queue is full will generate a gBleOverflow_c event.
