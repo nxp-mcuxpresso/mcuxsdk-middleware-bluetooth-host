@@ -214,6 +214,11 @@
 #endif
 #endif
 
+#if defined(gHost_TaskStackSize_c) && (gHost_TaskStackSize_c < 3500)
+#undef gHost_TaskStackSize_c
+#define gHost_TaskStackSize_c       3500
+#endif
+
 /*! *********************************************************************************
  *   NVM Module Configuration - gAppUseNvm_d shall be defined above as 1 or 0
  ********************************************************************************** */
