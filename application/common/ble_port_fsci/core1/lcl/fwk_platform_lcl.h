@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 * \file btcs_server_interface.h
 *
@@ -18,6 +18,9 @@
 #include "EmbeddedTypes.h"
 #include "ble_general.h"
 #include "app_localization.h"
+#include "ble_port_fsci_op.h"
+#include "FsciInterface.h"
+
 
 /************************************************************************************
 *************************************************************************************
@@ -54,7 +57,8 @@ extern "C" {
 *
 *\retval       none
 ********************************************************************************** */
-void PLATFORM_InitLcl(void);
+#define PLATFORM_InitLcl()    FSCI_transmitPayload(BLE_PORT_FSCI_OG, \
+                                  (uint8_t)g_PlatformInitLclOpCode_c, NULL, 0U, gFsciInterface_c)
 
 /*! *********************************************************************************
 *\brief        Setup debug GPIOs for BLE localization apps
@@ -63,7 +67,10 @@ void PLATFORM_InitLcl(void);
 *
 *\retval       none
 ********************************************************************************** */
-void PLATFORM_InitLclGpioDebug(bool_t debug);
+#define PLATFORM_InitLclGpioDebug(debug)    FSCI_transmitPayload(BLE_PORT_FSCI_OG, \
+                                                (uint8_t)g_PlatformInitLclGpioDebugOpCode_c, \
+                                                NULL, 0U, gFsciInterface_c)
+
 
 #if defined(__cplusplus)
 }

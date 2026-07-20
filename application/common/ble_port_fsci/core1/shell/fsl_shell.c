@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 *
 * \file
@@ -173,19 +173,6 @@ int SHELL_PrintfSynchronization(shell_handle_t shellHandle, const char *formatSt
     va_end(ap);
 
     return (int)kStatus_SHELL_Success;
-}
-
-/*! *********************************************************************************
-*\brief        Print shell prompt
-*
-*\param  [in]  shellHandle    Shell handle to be used
-*
-*\retval       none
-********************************************************************************** */
-void SHELL_PrintPrompt(shell_handle_t shellHandle)
-{
-    FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_SHELL_PrintPrompt_c,
-                         NULL, 0, gFsciInterface_c);
 }
 
 /************************************************************************************

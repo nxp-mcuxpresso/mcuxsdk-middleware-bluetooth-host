@@ -986,6 +986,8 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_port_fsci)
     mcux_add_source(
         SOURCES application/common/ble_port_fsci/ble_port_fsci_op.h
             application/common/ble_port_fsci/ble_port_fsci_types.h
+            application/common/ble_port_fsci/ble_port_fsci.c
+            application/common/ble_port_fsci/ble_port_fsci.h
     )
     mcux_add_include(
         INCLUDES application/common/ble_port_fsci

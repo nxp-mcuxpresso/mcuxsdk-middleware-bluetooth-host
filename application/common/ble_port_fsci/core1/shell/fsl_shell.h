@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 *
 * \file
@@ -18,6 +18,8 @@
 ************************************************************************************/
 #include "fsl_common.h"
 #include "fsl_component_serial_manager.h"
+#include "ble_port_fsci_op.h"
+#include "FsciInterface.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -174,7 +176,9 @@ typedef void *serial_handle_t;
      *
      * @return  NULL.
      */
-    void SHELL_PrintPrompt(shell_handle_t shellHandle);
+#define SHELL_PrintPrompt(shellHandle)    FSCI_transmitPayload(BLE_PORT_FSCI_OG, \
+                                              (uint8_t)g_SHELL_PrintPrompt_c, \
+                                              NULL, 0U, gFsciInterface_c)
     /* @} */
 
 #if defined(__cplusplus)

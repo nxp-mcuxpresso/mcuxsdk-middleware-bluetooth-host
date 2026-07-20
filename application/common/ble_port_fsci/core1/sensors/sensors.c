@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2024-2025 NXP
+* Copyright 2024-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -30,20 +30,6 @@
 uint8_t SENSORS_GetBatteryLevel(void)
 {
     return 0;
-}
-
-/*! *********************************************************************************
-*\brief        Sends message to core0 to trigger temperature measurement.
-*
-*\param[in]    none
-*
-*\retval       void.
-********************************************************************************** */
-void SENSORS_TriggerTemperatureMeasurement(void)
-{
-    /* Send message */
-    FSCI_transmitPayload(BLE_PORT_FSCI_OG, g_SensorsTriggerTemperatureMeasurement_c,
-                         NULL, 0, gFsciInterface_c);
 }
 
 /*! *********************************************************************************

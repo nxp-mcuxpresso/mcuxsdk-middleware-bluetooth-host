@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 *
 * \file
@@ -285,7 +285,7 @@ void NBU_Init()
     PLATFORM_InitBle();
 #endif
     /* Init HCI Transport module */
-    PLATFORM_SetHciRxCallback(AppFSCI_RxCallBack);
+    PLATFORM_SetHciRxCallback(BLE_PortFsciRxCallBack);
 #ifndef SIMULATOR
     /* Init Framework Intercore Service */
     PLATFORM_FwkSrvInit();

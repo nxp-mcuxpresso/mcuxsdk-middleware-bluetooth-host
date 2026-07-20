@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2024-2025 NXP
+* Copyright 2024-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -12,6 +12,8 @@
 *************************************************************************************
 ************************************************************************************/
 #include "EmbeddedTypes.h"
+#include "ble_port_fsci_op.h"
+#include "FsciInterface.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -39,7 +41,10 @@ uint8_t SENSORS_GetBatteryLevel(void);
 *
 *\retval       void.
 ********************************************************************************** */
-void SENSORS_TriggerTemperatureMeasurement(void);
+#define SENSORS_TriggerTemperatureMeasurement()    FSCI_transmitPayload(BLE_PORT_FSCI_OG, \
+                                                       (uint8_t)g_SensorsTriggerTemperatureMeasurement_c, \
+                                                       NULL, 0U, gFsciInterface_c)
+
 
 /*! *********************************************************************************
 *\brief        Sends message to core0 to refresh temperature value in RAM.

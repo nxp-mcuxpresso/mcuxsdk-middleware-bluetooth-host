@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025 - 2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -15,21 +15,28 @@
 #include "FunctionLib.h"
 #include "FsciInterface.h"
 #include "FsciCommunication.h"
-
-/* Application */
-#include "app.h"
+#include "fsci_ble_interface.h"
 #include "fwk_platform_ble.h"
+#include "ble_port_fsci.h"
+#include "ble_port_fsci_op.h"
+
+#ifndef NBU_PROJECT_ENABLE
+#include "app.h"
 #include "platform_core0.h"
 #include "app_nvm_core0.h"
-
-#include "ble_port_fsci_op.h"
 #include "fsl_component_led_core0.h"
 #include "fsl_component_button_core0.h"
 #include "fsl_shell_core0.h"
 #include "fsl_adapter_reset_core0.h"
 #include "sensors_core0.h"
+#endif /* NBU_PROJECT_ENABLE */
 
-#include "fsci_ble_interface.h"
+#ifdef NBU_PROJECT_ENABLE
+#include "RNG_Interface.h"
+#include "app_conn.h"
+#include "platform.h"
+#include "app_nvm.h"
+#endif /* NBU_PROJECT_ENABLE */
 
 /*************************************************************************************
 **************************************************************************************
@@ -44,10 +51,21 @@
 
 /************************************************************************************
 *************************************************************************************
-* Private memory declarations
+* Public / Private memory declarations
 *************************************************************************************/
 uint32_t mFsciInterfaceId = 0;
-pfFsciPortOpHandler_t mOpHandlers[255] = {0};
+static pfFsciPortOpHandler_t mOpHandlers[255] = {0};
+
+#ifndef NBU_PROJECT_ENABLE
+/* Defined externally by the FSCI framework for the Core 0 build */
+extern serial_handle_t g_fsciHandleList[];
+#endif /* NBU_PROJECT_ENABLE */
+
+#ifdef NBU_PROJECT_ENABLE
+serial_handle_t g_fsciHandleList[gFsciIncluded_c];
+OSA_EVENT_HANDLE_DEFINE(mNcpHostEvent);
+static uint8_t mpBlockOpIdx = (1U << 0U); /* First OSA event index */
+#endif /* NBU_PROJECT_ENABLE */
 
 /************************************************************************************
 *************************************************************************************
@@ -55,7 +73,7 @@ pfFsciPortOpHandler_t mOpHandlers[255] = {0};
 *************************************************************************************
 ************************************************************************************/
 static void BLE_PortFsciSend(uint8_t *pPacket, uint16_t packetLen, bool_t freePacket);
-static void BLE_PortFsciRxCallBack(uint8_t packetType, uint8_t *data, uint16_t len);
+void BLE_PortFsciRxCallBack(uint8_t packetType, uint8_t *data, uint16_t len);
 static void BLE_PortFsciRxHandler(void* pData, void* param, uint32_t fsciInterface);
 
 /************************************************************************************
@@ -84,6 +102,7 @@ void BLE_PortFsciInit(void)
     /* Init FSCI */
     FSCI_commInit(g_fsciHandleList);
 
+#ifndef NBU_PROJECT_ENABLE
     RFMC->RF2P4GHZ_CFG |= RFMC_RF2P4GHZ_CFG_FORCE_DBG_PWRUP_ACK_MASK;
     CMC0->DBGCTL &= ~CMC_DBGCTL_SOD_MASK;
 
@@ -111,6 +130,7 @@ void BLE_PortFsciInit(void)
     PLATFORM_SetLdoCoreNormalDriveVoltage();
     PLATFORM_SetNbuConstraintFrequency(PLATFORM_NBU_MIN_FREQ_64MHZ);
 #endif
+#endif /* NBU_PROJECT_ENABLE */
 
     /* Register BLE handlers in FSCI */
     FSCI_RegisterOpGroup(BLE_PORT_FSCI_OG,
@@ -119,7 +139,8 @@ void BLE_PortFsciInit(void)
         NULL,
         mFsciInterfaceId);
 
-    /* Initialize core1 components */
+#ifndef NBU_PROJECT_ENABLE
+    /* Initialize core0 components */
 #if defined (gFsciComponentLedCore0_d) && (gFsciComponentLedCore0_d > 0)
     LED_InitCore0Handlers();
 #endif
@@ -141,12 +162,94 @@ void BLE_PortFsciInit(void)
 #if defined (gFsciComponentSensorsCore0_d) && (gFsciComponentSensorsCore0_d > 0)
     SENSORS_InitCore0Handlers();
 #endif
+#endif /* NBU_PROJECT_ENABLE */
+
+#ifdef NBU_PROJECT_ENABLE
+    RNG_Init();
+
+    /* Initialize events */
+    (void)OSA_EventCreate(mNcpHostEvent, (uint8_t)TRUE);
+
+    /* Read and set device address */
+    BleApp_ReadPublicDeviceAddress();
+
+#if (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U))
+    /* Init NVM */
+    (void)App_NcpNvmInit();
+#endif /* (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U)) */
+
+    /* Initialize core1 application */
+    BluetoothLEHost_AppInit();
+#endif /* NBU_PROJECT_ENABLE */
 }
 
+/*! *********************************************************************************
+*\fn           void BLE_PortFsciRegisterOpHandler(uint8_t op, pfFsciPortOpHandler_t pfHandler)
+*\brief        Register a FSCI handler for the specified opcode
+*
+*\param  [in]  op           opcode corresponding to the given handler.
+*\param  [in]  pfHandler    Pointer to the command handler
+*
+*\retval       void.
+********************************************************************************** */
 void BLE_PortFsciRegisterOpHandler(uint8_t op, pfFsciPortOpHandler_t pfHandler)
 {
     mOpHandlers[op] = pfHandler;
 }
+
+#ifdef NBU_PROJECT_ENABLE
+/*! *********************************************************************************
+*\fn           void BLE_PortFsciRegisterBlockingEvent(void)
+*\brief        Register a index to be used to unblock Core 0 for a specific blocking operation
+*
+*\param  [in]  none
+*
+*\retval       Index to be used when calliing BLE_PortFsciUnblock()
+********************************************************************************** */
+uint8_t BLE_PortFsciRegisterBlockingEvent (void)
+{
+    uint8_t currntIdx = mpBlockOpIdx;
+
+    /* Increase index */
+    mpBlockOpIdx = (mpBlockOpIdx << 1U);
+
+    return currntIdx;
+}
+
+/*! *********************************************************************************
+*\fn           void BLE_PortFsciBlock(uint8_t evtFlag)
+*\brief        Block core 1 waiting for the corresponding event to be set after a message
+*              is received from core 0
+*
+*\param  [in]  evtFlag        Event flag to wait for
+*
+*\retval       void.
+********************************************************************************** */
+void BLE_PortFsciBlock(uint8_t evtFlag)
+{
+    osa_event_flags_t event = 0U;
+
+    (void)OSA_EventWait((osa_event_handle_t)mNcpHostEvent,
+                        evtFlag,
+                        (uint8_t)FALSE,
+                        osaWaitForever_c,
+                        &event);
+
+}
+
+/*! *********************************************************************************
+*\fn           void BLE_PortFsciUnblock(uint8_t operation)
+*\brief        Unblock core 1 after receiving a message from core 0
+*
+*\param  [in]  operation    Blocking operation from which to free core 1
+*
+*\retval       void.
+********************************************************************************** */
+void BLE_PortFsciUnblock(uint8_t operation)
+{
+    (void)OSA_EventSet(mNcpHostEvent, operation);
+}
+#endif /* NBU_PROJECT_ENABLE */
 
 /************************************************************************************
 *************************************************************************************
@@ -172,7 +275,7 @@ static void BLE_PortFsciSend(uint8_t *pPacket, uint16_t packetLen, bool_t freePa
 }
 
 /*! *********************************************************************************
-*\brief        RPMSG callback function. Transfers the message to the FSIC module.
+*\brief        RPMSG callback function. Transfers the message to the FSCI module.
 *
 *\param  [in]  packetType   Packet type (ignored)
 *\param  [in]  data         Pointer to the FSCI message
@@ -180,7 +283,7 @@ static void BLE_PortFsciSend(uint8_t *pPacket, uint16_t packetLen, bool_t freePa
 *
 *\retval       void.
 ********************************************************************************** */
-static void BLE_PortFsciRxCallBack(uint8_t packetType, uint8_t *data, uint16_t len)
+void BLE_PortFsciRxCallBack(uint8_t packetType, uint8_t *data, uint16_t len)
 {
     uint8_t *pPacketBuffer = MEM_BufferAlloc((uint32_t)len + 1U);
 
@@ -189,6 +292,7 @@ static void BLE_PortFsciRxCallBack(uint8_t packetType, uint8_t *data, uint16_t l
         pPacketBuffer[0] = packetType;
         FLib_MemCpy(&pPacketBuffer[1], data, len);
 
+        /* Pass message on to FSCI task */
         FSCI_receivePacket(pPacketBuffer);
     }
 }
@@ -206,6 +310,7 @@ static void BLE_PortFsciRxHandler(void* pData, void* param, uint32_t fsciInterfa
 {
     clientPacket_t* pClientPacket   = (clientPacket_t*)pData;
 
+    /* Call registered handler function */
     if (mOpHandlers[pClientPacket->structured.header.opCode] != NULL)
     {
         mOpHandlers[pClientPacket->structured.header.opCode](

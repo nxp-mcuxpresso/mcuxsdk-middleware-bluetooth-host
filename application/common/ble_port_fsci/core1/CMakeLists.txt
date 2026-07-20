@@ -29,8 +29,7 @@ endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_port_fsci_component_reset_core1)
     mcux_add_source(
-        SOURCES reset/fsl_adapter_reset.c
-            reset/fsl_adapter_reset.h
+        SOURCES reset/fsl_adapter_reset.h
     )
     mcux_add_include(
         INCLUDES reset
@@ -39,8 +38,7 @@ endif()
 
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_port_fsci_component_lcl_core1)
     mcux_add_source(
-        SOURCES lcl/fwk_platform_lcl.c
-            lcl/fwk_platform_lcl.h
+        SOURCES lcl/fwk_platform_lcl.h
     )
     mcux_add_include(
         INCLUDES lcl
