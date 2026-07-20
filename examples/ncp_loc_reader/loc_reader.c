@@ -51,11 +51,11 @@
 #include "loc_reader.h"
 #include "shell_loc_reader.h"
 #include "app_localization.h"
+#include "pts_test.h"
 #include "app_localization_algo.h"
 #include "app_scanner.h"
 #include "ranging_client_interface.h"
 #include "ranging_interface.h"
-#include "pts_test.h"
 #include "ncp_app.h"
 #include "NVM_Interface.h"
 
@@ -491,114 +491,406 @@ void BleApp_ListBondingData(void)
 
 #if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
 /*! *********************************************************************************
-* \brief        Resolve a RAS characteristic CCCD handle from the local peer info
-*               table and configure it on the remote RAS server. The working
-*               buffer is allocated here so the common PTS code stays free of
-*               application internals.
-*
-* \param[in]    deviceId    Connection handle.
-* \param[in]    cccd        New CCCD value.
-* \param[in]    charId      Target RAS characteristic (see ptsCharId_t).
-*
-* \return       bleResult_t Result of the configuration attempt.
-********************************************************************************** */
-static bleResult_t BleApp_PtsConfigureRas(deviceId_t deviceId, uint16_t cccd, ptsCharId_t charId)
-{
-    bleResult_t result = gBleOutOfMemory_c;
-    uint16_t handle = gGattDbInvalidHandle_d;
-
-    switch (charId)
-    {
-        case gPtsCharOnDemandData_c:
-        {
-            handle = (uint16_t)(maPeerInformation[deviceId].rasConfigInfo.onDemandDataHandle + 1U);
-            break;
-        }
-        case gPtsCharDataReady_c:
-        {
-            handle = (uint16_t)(maPeerInformation[deviceId].rasConfigInfo.dataReadyHandle + 1U);
-            break;
-        }
-        case gPtsCharDataOverwritten_c:
-        {
-            handle = (uint16_t)(maPeerInformation[deviceId].rasConfigInfo.dataOverwrittenHandle + 1U);
-            break;
-        }
-        default:
-        {
-            ; /* No action required */
-            break;
-        }
-    }
-
-    if (mpCharProcBuffer == NULL)
-    {
-        mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
-    }
-
-    if (mpCharProcBuffer != NULL)
-    {
-        result = BleApp_ConfigureRasServer(deviceId, cccd, handle);
-    }
-
-    return result;
-}
-
-/*! *********************************************************************************
-* \brief        Read a RAS characteristic value from the remote RAS server. Only
-*               the Data Ready and Data Overwritten characteristics are read in
-*               PTS test flows.
-*
-* \param[in]    deviceId    Connection handle.
-* \param[in]    charId      Target RAS characteristic (see ptsCharId_t).
-********************************************************************************** */
-static void BleApp_PtsReadChar(deviceId_t deviceId, ptsCharId_t charId)
-{
-    if (charId == gPtsCharDataReady_c)
-    {
-        mpRasCharacteristic.value.handle = maPeerInformation[deviceId].rasConfigInfo.dataReadyHandle;
-        mpRasCharacteristic.value.uuidType = gBleUuidType16_c;
-        mpRasCharacteristic.value.uuid.uuid16 = gBleSig_RasProcDataReady_d;
-    }
-    else if (charId == gPtsCharDataOverwritten_c)
-    {
-        mpRasCharacteristic.value.handle = maPeerInformation[deviceId].rasConfigInfo.dataOverwrittenHandle;
-        mpRasCharacteristic.value.uuidType = gBleUuidType16_c;
-        mpRasCharacteristic.value.uuid.uuid16 = gBleSig_RasprocDataOverwritten_d;
-    }
-    else
-    {
-        return; /* No other characteristic is read in PTS flows */
-    }
-
-    mpRasCharacteristic.value.paValue = MEM_BufferAlloc(sizeof(uint32_t));
-    if (mpRasCharacteristic.value.paValue != NULL)
-    {
-        (void)GattClient_ReadCharacteristicValue(deviceId,
-                                                 &mpRasCharacteristic,
-                                                 (uint16_t)(sizeof(uint32_t)));
-    }
-}
-
-/*! Application callbacks injected into the shared RAP Requester PTS engine. */
-static const ptsTestCallbacks_t mNcpLocReaderPtsCbs =
-{
-    .pfSwitchRtData = BleApp_SwitchRealTimeDataState,
-    .pfConfigureRas = BleApp_PtsConfigureRas,
-    .pfReadChar     = BleApp_PtsReadChar,
-};
-
-/*! *********************************************************************************
 * \brief        Run commands to test PTS.
-*               Thin wrapper over the shared RAP Requester engine located in
-*               application/common/lcl/pts_test.c.
 *
-* \param[in]    pParam      Heap-allocated C-string with the PTS test-case ID.
 ********************************************************************************** */
 void BleApp_RunPtsTest(void *pParam)
 {
-    PtsTest_RegisterCallbacks(&mNcpLocReaderPtsCbs);
-    PtsTest_RunRapRequester(pParam);
+    const deviceId_t deviceId = 0U;
+    char *pArg = (char*)pParam;
+
+    if (strcmp(pArg, "RAP/REQ/RRD/BV-01-C") == 0)
+    {
+        static uint8_t testStep = 0U;
+
+        switch(testStep)
+        {
+            case 0U:
+            {
+                AppLocalization_RunPtsTest(deviceId, 101U, 0U);
+                testStep++;
+                break;
+            }
+            case 1U:
+            case 3U:
+            {
+                /* Disable Real-Time data transfer */
+                BleApp_SwitchRealTimeDataState(deviceId, gCccdEmpty_c, &testStep);
+                break;
+            }
+            case 2U:
+            {
+                /* Enable Real-Time data transfer */
+                BleApp_SwitchRealTimeDataState(deviceId, gCccdIndication_c, &testStep);
+                break;
+            }
+            case 4U:
+            {
+                testStep = 0U;
+                break;
+            }
+
+            default:
+            {
+                ; /* No action required */
+            }
+            break;
+        }
+    }
+    else if (strcmp(pArg, "RAP/REQ/RRD/BV-02-C") == 0)
+    {
+        static uint8_t testStep = 0U;
+
+        switch(testStep)
+        {
+            case 0U: /* Fall-through */
+            case 4U: /* Fall-through */
+            case 8U: /* Fall-through */
+            case 12U:
+            {
+                /* Disable Real-Time data transfer */
+                BleApp_SwitchRealTimeDataState(deviceId, gCccdEmpty_c, &testStep);
+                break;
+            }
+            case 1U:
+            case 9U:
+            {
+                /* Enable Real-Time data transfer notification */
+                BleApp_SwitchRealTimeDataState(deviceId, gCccdNotification_c, &testStep);
+                break;
+            }
+            /* Round 1 cli commands:
+             * filter 0 0x0028 0
+             * filter 0 0x0028 1
+             * filter 0 0x0031 0
+             * filter 0 0x0031 1
+             * filter 0 0x004E 0
+             * filter 0 0x004E 1
+             * filter 0 0x15A3 0
+             * filter 0 0x15A3 1
+             * 
+             * Round 2 cli commands:
+             * filter 0 0x0020 0
+             * filter 0 0x0020 1
+             * filter 0 0x0021 0
+             * filter 0 0x0021 1
+             * filter 0 0x000A 0
+             * filter 0 0x000A 1
+             * filter 0 0x0423 0
+             * filter 0 0x0423 1
+             */
+            case 5U:
+            case 13U:
+            {
+                /* Enable Real-Time data transfer indication */
+                BleApp_SwitchRealTimeDataState(deviceId, gCccdIndication_c, &testStep);
+                break;
+            }
+            case 2U: /* Fall-through */
+            case 3U: /* Fall-through */
+            case 6U: /* Fall-through */
+            case 7U: /* Fall-through */
+            case 10U: /* Fall-through */
+            case 11U: /* Fall-through */
+            case 14U: /* Fall-through */
+            case 15U:
+            {
+                AppLocalization_RunPtsTest(deviceId, 101U, 0U);
+                testStep++;
+                break;
+            }
+            case 16U:
+            {
+                testStep = 0U;
+                break;
+            }
+
+            default:
+            {
+                ; /* No action required */
+            }
+            break;
+        }
+    }
+    else if (strcmp(pArg, "RAP/REQ/RRD/BI-01-C") == 0 ||
+             strcmp(pArg, "RAP/REQ/RRD/BI-02-C") == 0)
+    {
+        AppLocalization_RunPtsTest(deviceId, 1U, 0U);
+    }
+    else if (strcmp(pArg, "RAP/REQ/ORD/BV-01-C") == 0 ||
+             strcmp(pArg, "RAP/REQ/ORD/BV-03-C") == 0)
+    {
+        AppLocalization_RunPtsTest(deviceId, 101U, 0U);
+    }
+    else if (strcmp(pArg, "RAP/REQ/ORD/BV-02-C") == 0)
+    {
+        static uint8_t testStep = 0U;
+        bleResult_t result = gBleSuccess_c;
+        uint16_t handle = gGattDbInvalidHandle_d;
+
+        switch(testStep)
+        {
+            case 0U: /* Fall-through */
+            case 3U: /* Fall-through */
+            case 6U: /* Fall-through */
+            case 9U:
+            {
+                /* Disable On-Demand data transfer */
+                handle = (uint16_t)(maPeerInformation[deviceId].rasConfigInfo.onDemandDataHandle + 1U);
+
+                if (mpCharProcBuffer == NULL)
+                {
+                    mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
+                }
+
+                if (mpCharProcBuffer != NULL)
+                {
+                    result = BleApp_ConfigureRasServer(deviceId, gCccdEmpty_c, handle);
+                }
+
+                if (result == gBleSuccess_c)
+                {
+                    testStep++;
+                }
+                break;
+            }
+            /* Round 1 cli commands:
+             * filter 0 0x0028 0
+             * filter 0 0x0028 1
+             * filter 0 0x0031 0
+             * filter 0 0x0031 1
+             * filter 0 0x004E 0
+             * filter 0 0x004E 1
+             * filter 0 0x15A3 0
+             * filter 0 0x15A3 1
+             * 
+             * Round 2 cli commands:
+             * filter 0 0x0020 0
+             * filter 0 0x0020 1
+             * filter 0 0x0021 0
+             * filter 0 0x0021 1
+             * filter 0 0x000A 0
+             * filter 0 0x000A 1
+             * filter 0 0x0423 0
+             * filter 0 0x0423 1
+             */
+            case 1U: /* Fall-through */
+            case 2U: /* Fall-through */
+            case 4U: /* Fall-through */
+            case 5U: /* Fall-through */
+            case 7U: /* Fall-through */
+            case 8U: /* Fall-through */
+            case 10U: /* Fall-through */
+            case 11U:
+            {
+                AppLocalization_RunPtsTest(deviceId, 101U, 0U);
+                testStep++;
+                break;
+            }
+            case 12U:
+            {
+                testStep = 0U;
+                break;
+            }
+
+            default:
+            {
+                ; /* No action required */
+            }
+            break;
+        }
+    }
+    else if (strcmp(pArg, "RAP/REQ/ORD/BV-04-C") == 0)
+    {
+        static uint8_t testStep = 0U;
+
+        switch(testStep)
+        {
+            case 0U:
+            {
+                AppLocalization_RunPtsTest(deviceId, 103U, 0U);
+                testStep++;
+                break;
+            }
+            case 1U:
+            {
+                AppLocalization_RunPtsTest(deviceId, 102U, 0U);
+                testStep++;
+                break;
+            }
+            case 2U:
+            {
+                testStep = 0U;
+                break;
+            }
+
+            default:
+            {
+                ; /* No action required */
+            }
+            break;
+        }
+    }
+    else if (strcmp(pArg, "RAP/REQ/ORD/BV-05-C") == 0)
+    {
+        uint16_t handle = gGattDbInvalidHandle_d;
+
+        /* Enable Data Ready optional notifications */
+        handle = (uint16_t)(maPeerInformation[deviceId].rasConfigInfo.dataReadyHandle + 1U);
+
+        if (mpCharProcBuffer == NULL)
+        {
+            mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
+        }
+
+        if (mpCharProcBuffer != NULL)
+        {
+            (void)BleApp_ConfigureRasServer(deviceId, gCccdNotification_c, handle);
+        }
+    }
+    else if (strcmp(pArg, "RAP/REQ/ORD/BV-06-C") == 0)
+    {
+        static uint8_t testStep = 0U;
+        bleResult_t result = gBleSuccess_c;
+        uint16_t handle = gGattDbInvalidHandle_d;
+
+        switch(testStep)
+        {
+            case 0U:
+            {
+                /* Enable Data Ready optional notifications */
+                handle = (uint16_t)(maPeerInformation[deviceId].rasConfigInfo.dataReadyHandle + 1U);
+
+                if (mpCharProcBuffer == NULL)
+                {
+                    mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
+                }
+
+                if (mpCharProcBuffer != NULL)
+                {
+                    result = BleApp_ConfigureRasServer(deviceId, gCccdNotification_c, handle);
+                }
+
+                if (result == gBleSuccess_c)
+                {
+                    testStep++;
+                }
+                break;
+            }
+            case 1U:
+            {
+                /* Read Data Ready characteristic */
+                mpRasCharacteristic.value.handle = maPeerInformation[deviceId].rasConfigInfo.dataReadyHandle;
+                mpRasCharacteristic.value.uuidType = gBleUuidType16_c;
+                mpRasCharacteristic.value.uuid.uuid16 = gBleSig_RasProcDataReady_d;
+                mpRasCharacteristic.value.paValue = MEM_BufferAlloc(sizeof(uint32_t));
+                if (mpRasCharacteristic.value.paValue != NULL)
+                {
+                    (void)GattClient_ReadCharacteristicValue(deviceId,
+                                                            &mpRasCharacteristic,
+                                                            (uint16_t)(sizeof(uint32_t)));
+                }
+                testStep++;
+                break;
+            }
+            case 2U:
+            {
+                testStep = 0U;
+                break;
+            }
+
+            default:
+            {
+                ; /* No action required */
+            }
+            break;
+        }
+    }
+    else if (strcmp(pArg, "RAP/REQ/ORD/BV-08-C") == 0)
+    {
+        uint16_t handle = gGattDbInvalidHandle_d;
+
+        /* Enable Data Overwritten optional notifications */
+        handle = (uint16_t)(maPeerInformation[deviceId].rasConfigInfo.dataOverwrittenHandle + 1U);
+
+        if (mpCharProcBuffer == NULL)
+        {
+            mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
+        }
+
+        if (mpCharProcBuffer != NULL)
+        {
+            (void)BleApp_ConfigureRasServer(deviceId, gCccdNotification_c, handle);
+        }
+    }
+    else if (strcmp(pArg, "RAP/REQ/ORD/BV-09-C") == 0)
+    {
+        static uint8_t testStep = 0U;
+        bleResult_t result = gBleSuccess_c;
+        uint16_t handle = gGattDbInvalidHandle_d;
+
+        switch(testStep)
+        {
+            case 0U:
+            {
+                /* Enable Data Overwritten optional notifications */
+                handle = (uint16_t)(maPeerInformation[deviceId].rasConfigInfo.dataOverwrittenHandle + 1U);
+
+                if (mpCharProcBuffer == NULL)
+                {
+                    mpCharProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
+                }
+
+                if (mpCharProcBuffer != NULL)
+                {
+                    result = BleApp_ConfigureRasServer(deviceId, gCccdNotification_c, handle);
+                }
+
+                if (result == gBleSuccess_c)
+                {
+                    testStep++;
+                }
+                break;
+            }
+            case 1U:
+            {
+                /* Read Data Overwritten characteristic */
+                mpRasCharacteristic.value.handle = maPeerInformation[deviceId].rasConfigInfo.dataOverwrittenHandle;
+                mpRasCharacteristic.value.uuidType = gBleUuidType16_c;
+                mpRasCharacteristic.value.uuid.uuid16 = gBleSig_RasprocDataOverwritten_d;
+                mpRasCharacteristic.value.paValue = MEM_BufferAlloc(sizeof(uint32_t));
+                if (mpRasCharacteristic.value.paValue != NULL)
+                {
+                    (void)GattClient_ReadCharacteristicValue(deviceId,
+                                                            &mpRasCharacteristic,
+                                                            (uint16_t)(sizeof(uint32_t)));
+                }
+                testStep++;
+                break;
+            }
+            case 2U:
+            {
+                testStep = 0U;
+                break;
+            }
+
+            default:
+            {
+                ; /* No action required */
+            }
+            break;
+        }
+    }
+    else if (strcmp(pArg, "RAP/REQ/ORD/BI-03-C") == 0)
+    {
+        AppLocalization_RunPtsTest(deviceId, 101U, 0U);
+    }
+    else
+    {
+        ; /* MISRA */
+    }
+
+    (void)MEM_BufferFree(pParam);
 }
 #endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */
 #endif /* defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1) */

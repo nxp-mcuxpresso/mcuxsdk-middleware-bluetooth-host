@@ -1075,17 +1075,6 @@ void AppLocalization_SetDefaultConfig
 void AppLocalization_SetTakEnable(deviceId_t deviceId);
 #endif /* #if (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 
-#if defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1)
-/*! *********************************************************************************
-*\fn         AppLocalization_RunPtsTest(deviceId_t deviceId, uint8_t index, uint8_t actionMask)
-*
-*\brief      Test vector parsing to process the data.
-*
-*\return     None
-********************************************************************************** */
-void AppLocalization_RunPtsTest(deviceId_t deviceId, uint8_t index, uint8_t actionMask);
-#endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */
-
 /*! *********************************************************************************
 *\fn            void AppLocalization_SetMaxNumConcurrentProcs(uint8_t maxProcs)
 *
