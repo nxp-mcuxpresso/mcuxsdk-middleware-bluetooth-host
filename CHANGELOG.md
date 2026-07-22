@@ -5,6 +5,33 @@ All notable changes to NXP Bluetooth LE Host will be documented in this file.
 **NXP Bluetooth LE Host Stack** is certified **Bluetooth 6.0**
 
 
+## [1.10.22] - mcux v2026-09-00-pvw2
+
+### Added
+
+- Added `gSecEvt_SameConfirmValue_c` IDS event to detect Legacy Pairing Confirm Value replay attacks
+
+### Improved
+
+- Replaced mode assert with graceful drop and cleanup in localization applications
+- RAS/RAP: handle case where MTU size reduction forces use of more segments than predefined `gRASMaxNoOfSegments_c`
+- Advertising-set-related BLE Host storage is now allocated by the application and scales with the configurable `gMaxAdvSets_c`
+
+### Fixed
+- Fixed CS measurement not starting after handover in digital_key_car_anchor_cs
+- Fixed Insufficient Encryption returned instead of Insufficient Authentication
+- Fixed RSSI filter not excluding invalid RSSI values in CCC monitoring
+- Fixed missing CCC characteristics in digital_key_car_anchor_cs example
+- Fixed mismatch between ExtendedFeatures from GAPInit and HCI LE Read All Remote Features Complete event
+- Miscellaneous Sample Applications fixes
+- Miscellaneous Coverity fixes
+- Miscellaneous MISRA fixes
+
+### Supported Platforms
+
+- KW45, KW47, MCXW71, MCXW72, MCXW23, KW43, MCXW70
+
+
 ## [1.10.21] - mcux v2026-09-00-pvw1
 
 ### Added
