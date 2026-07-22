@@ -3,7 +3,7 @@
 The following command triggers a series of 5 CS measurements using RTP/RTT:
 
 ```
-pipenv run python record_range_measurement.py --mainmode 2 --submode 1 -n5
+python record_range_measurement.py --mainmode 2 --submode 1 -n5
 ```
 
 Expected output is as follows where SRDE and RTT distance are computed:

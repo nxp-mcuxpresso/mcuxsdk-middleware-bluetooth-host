@@ -1,0 +1,10 @@
+pyserial
+numpy
+pandas
+scipy
+pyyaml
+colorlog
+cerberus
+websocket-server
+openpyxl
+matplotlib

@@ -3,7 +3,7 @@
 The following command triggers CS measurements using the embedded CDE + RADE algorithms and RTP/RTT with minimal verbosity output:
 
 ```
-pipenv run python record_range_measurement.py --mainmode 2 --submode 1 --algo 0,5
+python record_range_measurement.py --mainmode 2 --submode 1 --algo 0,5
 ```
 
 ```

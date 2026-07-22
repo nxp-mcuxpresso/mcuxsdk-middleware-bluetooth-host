@@ -3,7 +3,7 @@
 The following command triggers a series of 5 CS measurements using RTP:
 
 ```
-pipenv run python record_range_measurement.py --mainmode 2 -n 5
+python record_range_measurement.py --mainmode 2 -n 5
 ```
 
 The above command uses default CS parameters configured in the firmware.

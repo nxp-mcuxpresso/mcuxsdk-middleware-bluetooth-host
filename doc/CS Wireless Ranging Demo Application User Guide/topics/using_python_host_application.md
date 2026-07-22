@@ -11,7 +11,7 @@ The application is in the form of a Python script located in: `<app_folder>\pyth
 To check that everything is installed properly, enter:
 
 ```
-pipenv run python record_range_measurement.py --help
+python record_range_measurement.py --help
 ```
 
 It should display command usage. If any Python issue shows up, revisit the installation section.

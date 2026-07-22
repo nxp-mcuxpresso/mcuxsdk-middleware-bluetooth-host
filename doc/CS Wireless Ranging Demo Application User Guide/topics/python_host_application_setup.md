@@ -1,52 +1,45 @@
 # Python host application setup
 
-To use the Python host application, go to `tools\wireless\wireless_ranging_host`. This folder is referred later in the document as `<app_folder>`.
+To use the Python host application, go to `tools\lcl_host`. This folder is referred later in the document as `<app_folder>`.
 
-This application is a Python application which requires several packages and a specific version of Python, namely 3.6. The supported OS is Windows. It has not been tested on other Python-capable OS.
+This application is a Python application which requires several packages and Python 3.12 or newer. The supported OS is Windows. It has not been tested on other Python-capable OS.
 
-The recommended and documented approach is to use pipenv** to ease installation of mandatory packages.
+The recommended approach is to install the required packages inside a Python virtual environment. This keeps the packages isolated from your system-wide Python installation and avoids conflicts with existing packages.
 
-If you do not want to use pipenv, you can install Python packages one by one. You can find the list of mandatory packages in `<app_folder>\python\Pipfile`.
+The list of required packages is provided in `<app_folder>\python\requirements.txt`. The same packages are also listed in `<app_folder>\python\Pipfile`.
 
-**Note:** The wireless ranging host application only works with Python 3.6. Any attempt to use another version causes issues.
-
-To use the Python host application using pipenv, follow the steps below:
+To use the Python host application, follow the steps below:
 
 **Note:** The following installation procedure is provided for Windows. Use Windows command prompt to execute commands below.
 
-1.  Install [Python 3.6 for 64-bit platform](https://www.python.org/downloads/release/python-368/).
-2.  Install pipenv package version 2021.5.29. Note that newer version of pipenv might not be compatible with Python 3.6.
+1.  Install [Python 3.12 or newer](https://www.python.org/downloads/) for 64-bit platform.
 
-    ```
-    pip install 'pipenv==2021.5.29'
-    ```
+    **Note:** The "python" executable must point to Python 3.12 or newer (use `python -V` to check the version).
 
-    **Note:**
-
-    -   "python" executable must point to Python 3.6 \(use `python -V` to check the version\).
-    -   If using `py` command to manage several Python versions installed on your system, replace "python" with `py -3.6` everywhere in the sections below.
-    -   Use `python -m pipenv` instead of pipenv if you did not choose to update your PATH to pipenv executable.
-3.  Generate a virtual environment in `<app_folder>/python` folder using Pipfile located there.
+2.  Go to the `<app_folder>/python` folder and create a virtual environment.
 
     ```
     cd <app_folder>/python
-            pipenv --python 3.6 install (or py -3.6 -m pipenv --python 3.6 install)
+    python -m venv .venv
     ```
 
-    Expected output \(for windows\):
+3.  Activate the virtual environment.
 
     ```
-    Creating a virtualenv for this project…
-    Pipfile: <app_folder>\python\Pipfile
-    Using <yourPythonPath>/Python36/python.exe (3.6.6) to create virtualenv…
-    [=   ] Creating virtual environment...
-    [...]
+    source .venv\Scripts\activate
     ```
 
-    Be sure that in the output above, `python.exe` is version 3.6.
+    After activation, the command prompt is prefixed with `(.venv)`.
+
+4.  Install the required packages inside the virtual environment.
+
+    ```
+    pip install -r requirements.txt
+    ```
+
+    This command may take several minutes to complete.
 
 
-This command may take several minutes \(~10 mins\). If pipenv fails \(timeout\) to update packages, adding `--skip-lock` option might work around the problem.
+When you are done, you can leave the virtual environment by running `deactivate`. Remember to activate the virtual environment again \(step 3\) before running the host application in a new terminal session.
 
 **Parent topic:**[Wireless ranging demo application setup](../topics/wireless_ranging_demo_application_setup.md)
-
