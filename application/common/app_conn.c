@@ -57,6 +57,10 @@
 #endif /* gFsciIncluded_c */
 #endif /* gAppUseNvm_d */
 
+#if defined(CONFIG_FLASH_K4_ASYNC_MODE) && (CONFIG_FLASH_K4_ASYNC_MODE == 1)
+#include "fsl_k4_flash.h"
+#endif
+
 #include "fwk_platform_ble.h"
 
 /************************************************************************************
@@ -1487,6 +1491,7 @@ static void App_IdsHandler
 void BluetoothLEHost_ProcessIdleTask(void)
 {
 #if (defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)) || (defined(gAppOtaASyncFlashTransactions_c) && (gAppOtaASyncFlashTransactions_c > 0))
+#if !(defined(CONFIG_FLASH_K4_ASYNC_MODE) && (CONFIG_FLASH_K4_ASYNC_MODE == 1))
     int RadioIdleDuration32Ktick;
 
     RadioIdleDuration32Ktick = PLATFORM_GetRadioIdleDuration32K();
@@ -1498,6 +1503,7 @@ void BluetoothLEHost_ProcessIdleTask(void)
      */
 
     if (RadioIdleDuration32Ktick > CONVERT_MS_2_32Kticks(gAppIdle_FlashWriteEraseMinimalTimeMs_c))
+#endif
     {
         do
         {
@@ -1517,6 +1523,14 @@ void BluetoothLEHost_ProcessIdleTask(void)
 #endif
         } while(false);
     }
+#endif /* gAppUseNvm_d || gAppOtaASyncFlashTransactions_c */
+
+#if defined(CONFIG_FLASH_K4_ASYNC_MODE) && (CONFIG_FLASH_K4_ASYNC_MODE == 1)
+    /* FLASH_Process() queries the radio idle duration internally via the registered
+     * callback (PLATFORM_GetRadioIdleDurationUs). The NVM/OTA timing guard above is
+     * intentionally not applied here: FLASH_Process() defers the operation when
+     * insufficient radio idle time is available. */
+    (void)FLASH_Process();
 #endif
 }
 
