@@ -127,7 +127,7 @@
 
 #define SHELL_BUFFER_SIZE               (128U)
 #define SHELL_TASK_STACK_SIZE           (1200U)
-#define gMainThreadStackSize_c          (1300U)
+#define gMainThreadStackSize_c          (1410U)
 #define TM_TASK_STACK_SIZE              (512U)
 #define BUTTON_TASK_STACK_SIZE          (512U)
 #define SERIAL_MANAGER_TASK_STACK_SIZE  (512U)

@@ -104,7 +104,7 @@
 
 #define SERIAL_MANAGER_TASK_STACK_SIZE  240
 
-#define gMainThreadStackSize_c          864
+#define gMainThreadStackSize_c          1414
 
 #define TM_TASK_STACK_SIZE              480
 
