@@ -384,63 +384,68 @@ static bleResult_t RasClient_ProcessSegments
     uint16_t valueLength
 )
 {
-    bleResult_t result = gBleSuccess_c;
+    bleResult_t result = gBleInvalidParameter_c;
     uint8_t* pRangingData = pValue;
     uint32_t rangingLength = valueLength;
     uint8_t segmentHeader;
     uint8_t receivedSegmentCounter;
 
-    /* Extract Segment Header */
-    segmentHeader = *pRangingData++;
-    rangingLength--;
-
-    receivedSegmentCounter = segmentHeader;
-    receivedSegmentCounter &= (~(uint8_t)gRasNotifFirstSegment_c);
-    receivedSegmentCounter &= (~(uint8_t)gRasNotifLastSegment_c);
-    receivedSegmentCounter = (uint8_t)(receivedSegmentCounter >> 2U);
-
-    if ((segmentHeader & ((uint8_t)gRasNotifFirstSegment_c)) != 0U)
+    if (valueLength != 0U)
     {
-        CS_LOG_RAS("StorePeerData: devId=%d, first segment", deviceId);
+        result = gBleSuccess_c;
 
-        if (mbRealTimeTransfer[deviceId] == TRUE)
+        /* Extract Segment Header */
+        segmentHeader = *pRangingData++;
+        rangingLength--;
+
+        receivedSegmentCounter = segmentHeader;
+        receivedSegmentCounter &= (~(uint8_t)gRasNotifFirstSegment_c);
+        receivedSegmentCounter &= (~(uint8_t)gRasNotifLastSegment_c);
+        receivedSegmentCounter = (uint8_t)(receivedSegmentCounter >> 2U);
+
+        if ((segmentHeader & ((uint8_t)gRasNotifFirstSegment_c)) != 0U)
         {
-            RasClient_ResetPeerInfo(deviceId);
-            /* Clear dropped procedure tracker for the new procedure */
-            mbProcedureDropped[deviceId] = FALSE;
+            CS_LOG_RAS("StorePeerData: devId=%d, first segment", deviceId);
+
+            if (mbRealTimeTransfer[deviceId] == TRUE)
+            {
+                RasClient_ResetPeerInfo(deviceId);
+                /* Clear dropped procedure tracker for the new procedure */
+                mbProcedureDropped[deviceId] = FALSE;
+            }
+
+            /* Get first header and subevent here */
+            if (rangingLength >= (sizeof(rasSubeventDataHeader_t) + sizeof(rasRangingDataHeader_t)))
+            {
+                RasClient_ParseDataHeader(&pRangingData, &rangingLength, deviceId);
+            }
+            else
+            {
+                /* TBD in case we received less than 13 bytes as the first peer packet:
+                    - enqueue this buffer
+                    - exit call
+                    - next run merge buffers then try again
+                */
+            }
         }
 
-        /* Get first header and subevent here */
-        if (rangingLength >= (sizeof(rasSubeventDataHeader_t) + sizeof(rasRangingDataHeader_t)))
+        if ((receivedSegmentCounter == segmentCounter) || (mbRealTimeTransfer[deviceId] == TRUE))
         {
-            RasClient_ParseDataHeader(&pRangingData, &rangingLength, deviceId);
+            result = RasClient_ProcessMatchingSegment(deviceId, pValue, valueLength, pRangingData,
+                                                      rangingLength, segmentHeader);
         }
         else
         {
-            /* TBD in case we received less than 13 bytes as the first peer packet:
-                - enqueue this buffer
-                - exit call
-                - next run merge buffers then try again
-            */
+            RasClient_ProcessMismatchedSegment(deviceId, pValue, valueLength, segmentHeader,
+                                              receivedSegmentCounter);
         }
-    }
 
-    if ((receivedSegmentCounter == segmentCounter) || (mbRealTimeTransfer[deviceId] == TRUE))
-    {
-        result = RasClient_ProcessMatchingSegment(deviceId, pValue, valueLength, pRangingData,
-                                                  rangingLength, segmentHeader);
-    }
-    else
-    {
-        RasClient_ProcessMismatchedSegment(deviceId, pValue, valueLength, segmentHeader,
-                                          receivedSegmentCounter);
-    }
-
-    segmentCounter++;
-    if ((segmentCounter == gRasSegmentCounterMaxValue_c) ||
-        ((segmentHeader & ((uint8_t)gRasNotifLastSegment_c)) != 0U))
-    {
-        segmentCounter = gRasSegmentCounterMinValue_c;
+        segmentCounter++;
+        if ((segmentCounter == gRasSegmentCounterMaxValue_c) ||
+            ((segmentHeader & ((uint8_t)gRasNotifLastSegment_c)) != 0U))
+        {
+            segmentCounter = gRasSegmentCounterMinValue_c;
+        }
     }
 
     return result;

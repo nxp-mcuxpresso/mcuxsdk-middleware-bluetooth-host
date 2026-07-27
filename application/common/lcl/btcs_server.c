@@ -648,19 +648,24 @@ static uint8_t* writeStepData
              * to the quality bitmask positions.
              */
             antPermIndex = *pStepDataAux++;
-            assert(antPermIndex < 25U);
-            antIndex_p = &maAntPermNAp[antPermIndex][0];
+            if (antPermIndex < (uint8_t)NumberOfElements(maAntPermNAp))
+            {
+                antIndex_p = &maAntPermNAp[antPermIndex][0];
+            }
             quality = 0U;
             qualityIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex;
             mpRangingData[deviceId].pCfg->totalSentRcvDataIndex++;
-            for (uint8_t idx = 0U; idx < numAntennaPaths; idx++)
+            for (uint8_t idx = 0U; (idx < numAntennaPaths) && (idx < gMaxNumAntennaPaths_c); idx++)
             {
                 FLib_MemCpy(mpRangingData[deviceId].pRangingData + mpRangingData[deviceId].pCfg->totalSentRcvDataIndex,
                             pStepDataAux,
                             gTone_PCTSize_c);
                 mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += gTone_PCTSize_c;
                 pStepDataAux += gTone_PCTSize_c;
-                quality |= (*pStepDataAux) << (2U * antIndex_p[idx]);
+                if (antIndex_p != NULL)
+                {
+                    quality |= (*pStepDataAux) << (2U * antIndex_p[idx]);
+                }
                 pStepDataAux++;
             }
             pStepDataAux = &pStepDataAux[gTone_PCTSize_c + 1U];
@@ -676,22 +681,28 @@ static uint8_t* writeStepData
             mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += gMode1DataSize_c;
             pStepDataAux = &pStepDataAux[gMode1DataSize_c];
             antPermIndex = *pStepDataAux++;
-            assert(antPermIndex < 25U);
-            antIndex_p = &maAntPermNAp[antPermIndex][0];
+            if (antPermIndex < (uint8_t)NumberOfElements(maAntPermNAp))
+            {
+                antIndex_p = &maAntPermNAp[antPermIndex][0];
+            }
             quality = 0U;
             qualityIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex;
             mpRangingData[deviceId].pCfg->totalSentRcvDataIndex++;
-            for (uint8_t idx = 0U; idx < numAntennaPaths; idx++)
+            for (uint8_t idx = 0U; (idx < numAntennaPaths) && (idx < gMaxNumAntennaPaths_c); idx++)
             {
                 FLib_MemCpy(mpRangingData[deviceId].pRangingData + mpRangingData[deviceId].pCfg->totalSentRcvDataIndex,
                             pStepDataAux, gTone_PCTSize_c);
                 mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += gTone_PCTSize_c;
                 pStepDataAux += gTone_PCTSize_c;
-                quality |= (*pStepDataAux) << (2U * antIndex_p[idx]);
+                if (antIndex_p != NULL)
+                {
+                    quality |= (*pStepDataAux) << (2U * antIndex_p[idx]);
+                }
                 pStepDataAux++;
             }
             pStepDataAux = &pStepDataAux[gTone_PCTSize_c + 1U];
             mpRangingData[deviceId].pRangingData[qualityIdx] = quality;
+
         }
         break;
 
@@ -767,8 +778,12 @@ static void buildProcHeader
     /* Move on to the next segment */
     if (mpRangingData[deviceId].pCfg->totalSentRcvDataIndex >= gMaxPayloadSize_c)
     {
-        mpSegmIdx[deviceId]->crtIdx++;
-        mpSegmIdx[deviceId]->aSegmIdx[mpSegmIdx[deviceId]->crtIdx] = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex;
+        /* Guard against unsigned wrap of crtIdx and out-of-bounds access of aSegmIdx */
+        if (mpSegmIdx[deviceId]->crtIdx < (gBTCSMaxNoOfSegments_c - 1U))
+        {
+            mpSegmIdx[deviceId]->crtIdx++;
+            mpSegmIdx[deviceId]->aSegmIdx[mpSegmIdx[deviceId]->crtIdx] = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex;
+        }
     }
 }
 
@@ -821,8 +836,10 @@ static void buildSubEvtCont
 
     /* Move on to the next segment if there is more data to parse */
     if ((mpRangingData[deviceId].pCfg->dataIndex != mpRangingData[deviceId].pCfg->dataParsedLen) &&
-        ((mpRangingData[deviceId].pCfg->dataParsedLen != 0U)))
+        ((mpRangingData[deviceId].pCfg->dataParsedLen != 0U)) &&
+        (mpSegmIdx[deviceId]->crtIdx < (gBTCSMaxNoOfSegments_c - 1U)))
     {
+        /* Guard against unsigned wrap of crtIdx/segmIdx and out-of-bounds access of aSegmIdx */
         mpSegmIdx[deviceId]->crtIdx++;
         segmIdx++;
 
@@ -868,9 +885,11 @@ static void buildSubEvtCont
             (mpRangingData[deviceId].pCfg->aSubEventData[subEvtIdx].subevtHeader.procedureDoneStatus & 0x0FU);
 
         /* Move on to the next segment if we have filled the payload */
-        if ((mpRangingData[deviceId].pCfg->totalSentRcvDataIndex -
-                 mpSegmIdx[deviceId]->aSegmIdx[segmIdx]) >= gMaxPayloadSize_c)
+        if (((mpRangingData[deviceId].pCfg->totalSentRcvDataIndex -
+                 mpSegmIdx[deviceId]->aSegmIdx[segmIdx]) >= gMaxPayloadSize_c) &&
+            (mpSegmIdx[deviceId]->crtIdx < (gBTCSMaxNoOfSegments_c - 1U)))
         {
+            /* Guard against unsigned wrap of crtIdx and out-of-bounds access of aSegmIdx */
             mpSegmIdx[deviceId]->crtIdx++;
             mpSegmIdx[deviceId]->aSegmIdx[mpSegmIdx[deviceId]->crtIdx] = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex;
         }
@@ -918,11 +937,15 @@ static void buildSubEvtNew
             packSubEvtHeader(deviceId, &remaininLen);
             bBuiltHeader = TRUE;
         }
-        else
+        else if (mpSegmIdx[deviceId]->crtIdx < (gBTCSMaxNoOfSegments_c - 1U))
         {
-            /* Move on to the next segment */
+            /* Move on to the next segment (guarded against wrap/out-of-bounds) */
             mpSegmIdx[deviceId]->crtIdx++;
             segmIdx++;
+        }
+        else
+        {
+            /* No more segment slots available */
         }
     }
     else
@@ -934,11 +957,15 @@ static void buildSubEvtNew
             packSubEvtHeader(deviceId, &remaininLen);
             bBuiltHeader = TRUE;
         }
-        else
+        else if (mpSegmIdx[deviceId]->crtIdx < (gBTCSMaxNoOfSegments_c - 1U))
         {
-            /* move on to the next segment */
+            /* move on to the next segment (guarded against wrap/out-of-bounds) */
             mpSegmIdx[deviceId]->crtIdx++;
             segmIdx++;
+        }
+        else
+        {
+            /* No more segment slots available */
         }
     }
 
@@ -957,18 +984,22 @@ static void buildSubEvtNew
 
         /* Move on to the next segment */
         if ((mpRangingData[deviceId].pCfg->dataParsedLen != 0U) &&
-            (mpRangingData[deviceId].pCfg->dataIndex != mpRangingData[deviceId].pCfg->dataParsedLen))
+            (mpRangingData[deviceId].pCfg->dataIndex != mpRangingData[deviceId].pCfg->dataParsedLen) &&
+            (mpSegmIdx[deviceId]->crtIdx < (gBTCSMaxNoOfSegments_c - 1U)))
         {
+            /* Guard against unsigned wrap of crtIdx/segmIdx and out-of-bounds access of aSegmIdx */
             mpSegmIdx[deviceId]->crtIdx++;
             segmIdx++;
         }
     }
-    else if ((remaininLen == 0U) && (bBuiltHeader == TRUE))
+    else if ((remaininLen == 0U) && (bBuiltHeader == TRUE) &&
+             (mpSegmIdx[deviceId]->crtIdx < (gBTCSMaxNoOfSegments_c - 1U)))
     {
         /* Subevent header consumed all remaining space in the current segment.
          * Advance to the next segment so that the "Mark the index" block below
          * writes to the correct (new) segment slot instead of overwriting the
-         * current segment's start index. */
+         * current segment's start index.
+         * Guard against unsigned wrap of crtIdx/segmIdx and out-of-bounds access of aSegmIdx. */
         mpSegmIdx[deviceId]->crtIdx++;
         segmIdx++;
     }
@@ -1026,8 +1057,10 @@ static void buildSubEvtNew
     /* Move on to the next segment */
     if (((mpRangingData[deviceId].pCfg->totalSentRcvDataIndex -
          mpSegmIdx[deviceId]->aSegmIdx[segmIdx]) >= gMaxPayloadSize_c) &&
-        (mpRangingData[deviceId].pCfg->dataParsedLen > 0U))
+        (mpRangingData[deviceId].pCfg->dataParsedLen > 0U) &&
+        (mpSegmIdx[deviceId]->crtIdx < (gBTCSMaxNoOfSegments_c - 1U)))
     {
+        /* Guard against unsigned wrap of crtIdx and out-of-bounds access of aSegmIdx */
         mpSegmIdx[deviceId]->crtIdx++;
         mpSegmIdx[deviceId]->aSegmIdx[mpSegmIdx[deviceId]->crtIdx] = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex;
     }

@@ -1510,7 +1510,7 @@ static void ParseIndicatorsAndOptionalFields(uint8_t *pData, uint8_t optionalFie
     AppPrintDec(indicators);
     AppPrintString("\r\n");
 
-    if ((indicators & BIT7) != 0U)
+    if (((indicators & BIT7) != 0U) && (optionalFieldsLen > 0U))
     {
         pDataIndex++;
         optionalFieldsLen--;
@@ -1518,7 +1518,7 @@ static void ParseIndicatorsAndOptionalFields(uint8_t *pData, uint8_t optionalFie
         AppPrintString("Indicators_EXT1: ");
         AppPrintDec(indicatorsExt1);
         AppPrintString("\r\n");
-        if ((indicatorsExt1 & BIT7) != 0U)
+        if (((indicatorsExt1 & BIT7) != 0U) && (optionalFieldsLen > 0U))
         {
             pDataIndex++;
             optionalFieldsLen--;

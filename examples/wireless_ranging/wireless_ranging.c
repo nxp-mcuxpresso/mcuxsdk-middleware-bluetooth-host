@@ -1211,10 +1211,11 @@ static void BleApp_HandleExchangeMtuState
     if (event == mAppEvt_GattProcComplete_c)
     {
         /* update stream length with minimum of maximum MTU's of connected devices */
-        (void)Gatt_GetMtu(peerDeviceId, &tempMtu);
-        tempMtu = gAttMaxWriteDataSize_d(tempMtu);
-
-        mAppMtu = mAppMtu <= tempMtu ? mAppMtu : tempMtu;
+        if (Gatt_GetMtu(peerDeviceId, &tempMtu) == gBleSuccess_c)
+        {
+            tempMtu = gAttMaxWriteDataSize_d(tempMtu);
+            mAppMtu = mAppMtu <= tempMtu ? mAppMtu : tempMtu;
+        }
 
 #if gAppUseServiceDiscovery_d
         /* Moving to Service Discovery State*/
