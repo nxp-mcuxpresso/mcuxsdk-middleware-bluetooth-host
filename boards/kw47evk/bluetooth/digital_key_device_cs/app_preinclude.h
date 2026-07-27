@@ -149,8 +149,9 @@
 #define gNvmErasePartitionWhenFlashing_c 1U
 #endif
 
-/*! The minimum heap size needed (measured with MEM_STATISTICS) */
-#define MinimalHeapSize_c               22000
+/*! The minimum heap size needed for RADE2/RADEX2
+     For RADE1/RADEX1 increase to 60000 */
+#define MinimalHeapSize_c               51200
 
 #define SHELL_BUFFER_SIZE               (128U)
 #define SHELL_TASK_STACK_SIZE           (1200U)

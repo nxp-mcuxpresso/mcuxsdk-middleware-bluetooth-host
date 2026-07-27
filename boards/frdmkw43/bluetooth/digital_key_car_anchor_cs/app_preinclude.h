@@ -170,6 +170,9 @@
 #define gNvmErasePartitionWhenFlashing_c 1U
 #endif
 
+/*! The minimum heap size needed (measured with MEM_STATISTICS) */
+#define MinimalHeapSize_c               60000
+
 #define SHELL_BUFFER_SIZE               (128U)
 #define SHELL_TASK_STACK_SIZE           (1200U)
 
