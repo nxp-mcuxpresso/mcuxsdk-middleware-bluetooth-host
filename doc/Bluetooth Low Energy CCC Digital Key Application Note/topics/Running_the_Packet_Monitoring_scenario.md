@@ -1,6 +1,6 @@
 # Running the Packet Monitoring scenario
 
-Packet Monitoring is an NXP proprietary feature that allows a second Anchor to receive the packets from the connection between the first Anchor and the Device. The prerequisites are the same hardware setup as used for the [Running the Connection Handover scenario](running_the_connection_handover_scenario.md). Note, however, that the Connection Handover scenario cannot be performed while Packet Monitoring is in progress. Packets received by the second Anchor are sent over the serial interface to the first Anchor for processing. The first Anchor determines the source of the packet based on the SN and NESN bits and displays the RSSI.
+Packet Monitoring is an NXP proprietary feature that allows a second Anchor to receive the packets from the connection between the first Anchor and the Device. The prerequisites are the same hardware setup as used for the [Running the Connection Handover scenario](running_the_connection_handover_scenario.md). Note, however, that the Connection Handover scenario cannot be performed while Packet Monitoring is in progress. Packets received by the second Anchor are sent over the serial interface to the first Anchor for processing. The first Anchor determines the source of the packet based on bit 1 of the `status` parameter, which indicates whether the packet was sent by the central (`1`) or the peripheral (`0`), and displays the RSSI.
 
 **Demo steps**:
 
@@ -22,7 +22,7 @@ Packet Monitoring is an NXP proprietary feature that allows a second Anchor to r
 
 ![Figure 3](../images/packetmonStartedAnchor1.png "The first Anchor displays the RSSI and source device of the received packets from the second Anchor")
 
-4.  The first Anchor receives the packet information from the second Anchor and determines the source of the packet based on the SN and NESN bits. The source and the RSSI are displayed in the console. See [Figure 3](../images/packetmonStartedAnchor1.png).
+4.  The first Anchor receives the packet information from the second Anchor and determines the source of the packet based on bit 1 of the `status` parameter, which indicates whether the packet was sent by the central (`1`) or the peripheral (`0`). The source and the RSSI are displayed in the console. See [Figure 3](../images/packetmonStartedAnchor1.png).
 5.  To stop monitoring, run “`packetmon 0 stop`” shell command on either Anchor \(the second one is recommended, as its console is not flooded by packet information messages\).
 
 **Parent topic:**[Running the Connection Handover scenario](../topics/running_the_connection_handover_scenario.md)

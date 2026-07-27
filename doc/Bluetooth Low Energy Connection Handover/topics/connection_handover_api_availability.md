@@ -433,6 +433,8 @@ The following events can be received through the GAP generic callback during the
 - `packetCounter`: Packet counter, incremented for each event.
 - `connectionHandle`: Connection identifier.
 - `statusPacket`: Status of the packet.
+  - `b0`: CRC status - valid (`1`) or invalid (`0`).
+  - `b1`: packet transmitter - central (`1`) or peripheral (`0`).
 - `phy`: PHY (0/1/2/3 for 1M/2M/LR S8/LR S2).
 - `chIdx`: BLE channel index.
 - `rssiPacket`: RSSI of the packet (+127 if not available).
