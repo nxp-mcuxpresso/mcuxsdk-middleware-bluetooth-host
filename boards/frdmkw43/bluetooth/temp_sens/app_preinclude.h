@@ -100,8 +100,6 @@
 /* The size used for the Idle task, in dwords. */
 #define configMINIMAL_STACK_SIZE        156
 
-/* Use Fro32k instead of Osc32k */
-#define gBoardUseFro32k_d                 1
 #endif
 
 /*! *********************************************************************************
