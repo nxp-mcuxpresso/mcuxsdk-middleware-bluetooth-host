@@ -40,23 +40,38 @@ typedef enum _rade_result_type
     kRadeModuleSuccess          = 0x05U   /*!< RADE module execution success */
 } rade_result_type_t;
 
-/*! \enum rade_mode_t 
+/*! \struct rade_mode_t 
  * \brief RADE Algorithm Operation Mode Typedef 
  */
-typedef enum _rade_mode
-{
-    kRadeNormal                 = 0x00U,  /*!< Normal ranging mode */
-    kRadeCalibration            = 0x01U   /*!< Calibration mode */
+typedef struct _rade_mode
+{ 
+    uint32_t normal                     : 1U;   /*! Regular CS processing */
+    uint32_t calibration                : 1U;   /*! Calibration */
+    uint32_t mn_ref_vm                  : 1U;   /*! Multi-node reference metric */
+    uint32_t mn_ref_regen               : 1U;   /*! Multi-node reference regeneration */
+    uint32_t mn_cs_data_broadcast       : 1U;   /*! Multi-node CS data broadcasting */
+    uint32_t reserved                   : 27U;
 } rade_mode_t;
 
-/*! \enum rade_para_t 
+/*! \enum rade_mn_role_t 
+ * \brief RADE Algorithm multi-node role Typedef 
+ */
+typedef enum _rade_mn_role
+{
+    kRadeMnActiveNode               = 0x00U,  /*!< Active node */
+    kRadeMnPassiveNode              = 0x01U,  /*!< Passive node */
+    kRadeIndepActiveNode            = 0x02U   /*!< Independent active node */
+} rade_mn_role_t;
+
+/*! \struct rade_para_t 
  * \brief RADE Algorithm Operation Parameters Typedef 
  */
 typedef struct _rade_para
 {
-    rade_mode_t radeMode;       /*!< RADE algorithm operation mode */
-    float_rade_t distBias;      /*!< Distance bias */
-    uint8_t ceHeap_id;          /*!< LCE heap ID */
+    rade_mode_t radeMode;         /*!< RADE algorithm operation mode */
+    rade_mn_role_t radeMnRole;    /*!< RADE algorithm multi-node role */
+    float_rade_t distBias;        /*!< Distance bias */
+    uint8_t ceHeap_id;            /*!< LCE heap ID */
 } rade_para_t;
 
 /*! \struct rade_cs_para_t 
@@ -102,6 +117,8 @@ typedef struct _rade_result
     float_rade_t *rng_est;     /*!< Distance estimation raw result */
     float_rade_t *rng_trk;     /*!< Distance estimation tracking result */
     float_rade_t *rng_est_qi;  /*!< Distance estimation quality indicator */
+    float_rade_t *mn_ref_vm;   /*!< Multinode reference data metric */
+    uint8_t *mn_ref_qi;        /*!< Multinode reference quality indicator */
     float_rade_t *reserved;    /*!< Reserved port */
 } rade_result_t;
 
@@ -118,6 +135,19 @@ typedef struct _cs_data_buf_free_callback {
     uint8_t deviceId;                   /*!< deviceId */
 } csDataBufFreeCallback_t;
 
+/*! \typedef pfMnDataTransferCallback_t
+ * \brief Pointer to function for MN data transfer
+ */
+typedef void (*pfMnDataTransferCallback_t)(uint8_t deviceId, uint32_t dataLengthBytes);
+
+/*! \struct mnDataTransferCallback_t
+ * \brief Callback configuration for MN data transfer
+ */
+typedef struct _mn_data_transfer_callback {
+    pfMnDataTransferCallback_t pfTransferCb;  /*!< Callback function pointer */
+    uint8_t deviceId;                   /*!< deviceId */
+} mnDataTransferCallback_t;
+
 /*! \struct rade_cs_data_t
  * \brief RADE Algorithm Input Data Typedef
  */
@@ -126,7 +156,9 @@ typedef struct _rade_cs_data
     uint8_t *iq_i;            /*!< CS mode-2 and mode-3 PCT IQ samples from initiator */
     uint8_t *iq_r;            /*!< CS mode-2 and mode-3 PCT IQ samples from reflector */
     uint8_t n_ap;             /*!< Number of antenna paths */
+    void *mn_data;            /*!< Multi-node data */
     csDataBufFreeCallback_t csDataBufFreeCb; /*!< Callback for CS data source buffer freeing */
+    mnDataTransferCallback_t mnDataTransferCb; /*!< Multi-node data transfer */
 } rade_cs_data_t;
 
 #ifndef null_RNG

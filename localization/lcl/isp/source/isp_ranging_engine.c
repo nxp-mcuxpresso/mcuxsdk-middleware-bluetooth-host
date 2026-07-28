@@ -285,13 +285,16 @@ void isp_mciq_ranging_compute(isp_meas_response_t *meas_response, mciq_result_t 
         radeResult.rng_est_qi           =  &mciq_result->rade_dqi;
         radeResult.reserved             =  &radeResReserved;
 
-        radeCsData.iq_i                     = init_data->iq;
-        radeCsData.iq_r                     = refl_data->iq;
-        radeCsData.n_ap                     = engine_config->n_ap;
-        radeCsData.csDataBufFreeCb.pfFreeCb = NULL;
-        radeCsData.csDataBufFreeCb.deviceId = 0U; 
+        radeCsData.iq_i                           = init_data->iq;
+        radeCsData.iq_r                           = refl_data->iq;
+        radeCsData.n_ap                           = engine_config->n_ap;
+        radeCsData.mn_data                        = NULL;
+        radeCsData.csDataBufFreeCb.pfFreeCb       = NULL;
+        radeCsData.csDataBufFreeCb.deviceId       = 0U;    
+        radeCsData.mnDataTransferCb.pfTransferCb  = NULL;
+        radeCsData.mnDataTransferCb.deviceId      = 0U; 
 
-        rade_para_t radePara            =  {.radeMode = kRadeNormal, .distBias = 0.0f, .ceHeap_id = g_ceHeap_id}; 
+        rade_para_t radePara            =  {.radeMode = {.normal = 1U, .calibration = 0U, .mn_ref_vm = 0U, .mn_ref_regen = 0U, .mn_cs_data_broadcast = 0U, .reserved = 0U}, .radeMnRole = kRadeIndepActiveNode, .distBias = 0.0f, .ceHeap_id = g_ceHeap_id};
 
         radeStatus = pde_rade(&radeCsData, &csAlgoBuf, &radeCsPara, &radeResult, &radePara);
         if (kRadeSuccess != radeStatus)
