@@ -1,4 +1,3 @@
-(examples__wireless_examples__bluetooth__temp_sensor_collector_docs)=
 # Low-power temperature sensor and collector
 
 This section describes the implemented profiles and services, user interactions, and testing methods for the temperature sensor application.

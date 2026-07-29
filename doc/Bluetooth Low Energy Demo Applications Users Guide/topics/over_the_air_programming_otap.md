@@ -1,4 +1,3 @@
-(examples__wireless_examples__bluetooth__ota_docs)=
 # Over the Air Programming \(OTAP\)
 
 This section describes the implemented profiles and services, user interactions, and testing methods for the Bluetooth LE OTAP application.

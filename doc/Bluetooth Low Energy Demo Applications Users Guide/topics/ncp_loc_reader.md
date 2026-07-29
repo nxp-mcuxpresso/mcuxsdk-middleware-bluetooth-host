@@ -1,4 +1,3 @@
-(examples__wireless_examples__bluetooth__ncp_loc_reader_docs)=
 # NCP Localization Reader
 
 This section describes the functionality of the NCP Localization Reader demo application.

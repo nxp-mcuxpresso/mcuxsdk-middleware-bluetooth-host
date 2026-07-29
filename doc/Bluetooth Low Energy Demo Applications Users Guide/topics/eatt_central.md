@@ -1,4 +1,3 @@
-(examples__wireless_examples__bluetooth__eatt_central_docs)=
 # EATT Central
 
 This section describes the implemented profiles and services, user interactions, and testing methods for the EATT Central application.

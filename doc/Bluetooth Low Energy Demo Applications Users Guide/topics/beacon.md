@@ -1,4 +1,3 @@
-(examples__wireless_examples__bluetooth__beacon_docs)=
 # Beacon
 
 This section presents the user interactions and testing methods for the Beacon application.

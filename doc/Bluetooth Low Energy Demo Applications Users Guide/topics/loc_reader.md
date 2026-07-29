@@ -1,4 +1,3 @@
-(examples__wireless_examples__bluetooth__loc_reader_docs)=
 # Localization Reader
 
 This section describes the functionality of the Localization Reader demo application.

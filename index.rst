@@ -1,4 +1,5 @@
 .. _examples__wireless_examples__bluetooth_docs:
+
 NXP Bluetooth LE Host and Sample Applications
 ==============================================
 

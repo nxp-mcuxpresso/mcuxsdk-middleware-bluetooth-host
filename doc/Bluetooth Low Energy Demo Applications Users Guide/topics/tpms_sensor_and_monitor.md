@@ -1,4 +1,3 @@
-(examples__wireless_examples__bluetooth__tpms_sensor_monitor_docs)=
 # Tire Pressure Monitoring System Sensor and Monitor
 
 This section describes the implemented profiles and services, user interactions, and testing methods for the TPMS Sensor and TPMS Monitor applications.

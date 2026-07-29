@@ -2,6 +2,8 @@
 
 [Table 1](#table_d7cbea50-1de2-4612-938e-219abdbba4fd) lists the acronyms used in this document.
 
+<a id="table_d7cbea50-1de2-4612-938e-219abdbba4fd"></a>
+
  **Acronym**  | **Description**                      
 --------------|--------------------------------------
  Bluetooth LE | Bluetooth Low Energy                 

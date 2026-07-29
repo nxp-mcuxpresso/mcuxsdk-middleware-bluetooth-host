@@ -1,4 +1,3 @@
-(examples__wireless_examples__bluetooth__hid_device_docs)=
 # HID Device \(Mouse\)
 
 This section describes implemented profiles and services, user interactions, and testing methods for the HID mouse application.

@@ -1,4 +1,3 @@
-(examples__wireless_examples__bluetooth__loc_user_device_docs)=
 # Localization User Device
 
 This section describes the functionality of the Localization User Device demo application.

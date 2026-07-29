@@ -1,4 +1,3 @@
-(examples__wireless_examples__bluetooth__ncp_fsci_black_box_docs)=
 # NCP FSCI Black Box
 
 This section describes the functionality of the NCP FSCI Black Box demo application.

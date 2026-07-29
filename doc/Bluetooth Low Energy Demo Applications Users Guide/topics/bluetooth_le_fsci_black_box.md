@@ -1,4 +1,3 @@
-(examples__wireless_examples__bluetooth__ble_fscibb_docs)=
 # Bluetooth LE FSCI Black Box
 
 This section describes the functionality, user interactions, and testing methods for the Bluetooth LE FSCI Black Box demo application.
