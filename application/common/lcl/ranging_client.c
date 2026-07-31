@@ -500,7 +500,10 @@ bleResult_t RasClient_StorePeerMeasurementData
         (AppLocalization_GetLocState(deviceId) < gAppLclReceivingMeasData_c))
     {
         bEarlyReturn = TRUE;
-        if (AppLocalization_GetProcedureCount(deviceId) == AppLocalization_GetNumberOfProcedures(deviceId))
+        /* A configured count of 0 means continuous ranging; the counter may wrap
+         * 65535->0 so treat 0 as never complete instead of an exact-equality match. */
+        if ((AppLocalization_GetNumberOfProcedures(deviceId) != 0U) &&
+            (AppLocalization_GetProcedureCount(deviceId) >= AppLocalization_GetNumberOfProcedures(deviceId)))
         {
             AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
             AppLocalization_ProcedureRestart(deviceId);
@@ -588,7 +591,9 @@ bleResult_t RasClient_ProcessRasDataReadyIndications
     if (pRasIndication->procedureIndex != procedureCounter)
     {
         /* Received an unexpected procedure */
-        if (procCounter == mRangeSettings[deviceId].maxNumProcedures)
+        /* A configured count of 0 means continuous ranging; the counter may wrap
+         * 65535->0 so treat 0 as never complete instead of an exact-equality match. */
+        if ((mRangeSettings[deviceId].maxNumProcedures != 0U) && (procCounter >= mRangeSettings[deviceId].maxNumProcedures))
         {
             AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
             AppLocalization_ProcedureRestart(deviceId);
@@ -1543,7 +1548,9 @@ static void RreqTimerCallback
     appLocalizationError_t error;
 
     /* Update state */
-    if (procCount == mRangeSettings[pTimeoutData->deviceId].maxNumProcedures)
+    /* A configured count of 0 means continuous ranging; the counter may wrap
+     * 65535->0 so treat 0 as never complete instead of an exact-equality match. */
+    if ((mRangeSettings[pTimeoutData->deviceId].maxNumProcedures != 0U) && (procCount >= mRangeSettings[pTimeoutData->deviceId].maxNumProcedures))
     {
         AppLocalization_SetLocState(pTimeoutData->deviceId, gAppLclIdle_c);
         AppLocalization_ProcedureRestart(pTimeoutData->deviceId);

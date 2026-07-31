@@ -839,7 +839,9 @@ static void BtcsTimerCallback
     uint16_t procCount = AppLocalization_GetProcedureCount(deviceId);
     uint16_t maxProcs = AppLocalization_GetNumberOfProcedures(deviceId);
 
-    if (procCount == maxProcs)
+    /* A configured count of 0 means continuous ranging; the counter may wrap
+     * 65535->0 so treat 0 as never complete instead of an exact-equality match. */
+    if ((maxProcs != 0U) && (procCount >= maxProcs))
     {
         AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
         AppLocalization_ProcedureRestart(deviceId);

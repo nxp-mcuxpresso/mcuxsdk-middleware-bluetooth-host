@@ -1445,7 +1445,7 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
         {
             uint16_t procCount = AppLocalization_GetProcedureCount(deviceId);
 
-            if ((mVerbosityLevel != 0U) || (procCount == (mRangeSettings[deviceId].maxNumProcedures - 1U)))
+            if ((mVerbosityLevel != 0U) || ((mRangeSettings[deviceId].maxNumProcedures != 0U) && (procCount == (mRangeSettings[deviceId].maxNumProcedures - 1U))))
             {
                 shell_write("\r\nDistance measurement complete. Local data available for procedure index ");
                 shell_writeDec(procCount);

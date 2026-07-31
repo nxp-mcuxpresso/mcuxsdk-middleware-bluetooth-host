@@ -311,6 +311,11 @@ static bool_t AppLocalization_CanStartProcedure
     void
 );
 
+static bool_t AppLocalization_IsProcedureLoopComplete
+(
+    deviceId_t deviceId
+);
+
 static deviceId_t AppLocalization_HandleReadRemoteCaps
 (
     void* pEventData
@@ -2642,7 +2647,7 @@ static deviceId_t AppLocalization_HandleSubeventResult
             {
                 /* Must still count the procedure even if we discard it */
                 maCsProcCount[deviceId]++;
-                if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
+                if (AppLocalization_IsProcedureLoopComplete(deviceId) == TRUE)
                 {
                     AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
                     AppLocalization_ProcedureRestart(deviceId);
@@ -2946,7 +2951,7 @@ static void AppLocalization_UpdateStateAfterComplete
 
 #if (defined (gRasRRSP_d) && (gRasRRSP_d == 1U)) || \
     (defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U))
-    if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
+    if (AppLocalization_IsProcedureLoopComplete(deviceId) == TRUE)
     {
         AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
     }
@@ -3004,7 +3009,7 @@ static void AppLocalization_HandleProcedureError
 #endif /* defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d==1U) */
 
     /* Procedure error */
-    if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
+    if (AppLocalization_IsProcedureLoopComplete(deviceId) == TRUE)
     {
         AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
         AppLocalization_ProcedureRestart(deviceId);
@@ -3066,7 +3071,7 @@ static deviceId_t AppLocalization_HandleSubeventResultContinue
             {
                 /* Must still count the procedure even if we discard it */
                 maCsProcCount[deviceId]++;
-                if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
+                if (AppLocalization_IsProcedureLoopComplete(deviceId) == TRUE)
                 {
                     AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
                     AppLocalization_ProcedureRestart(deviceId);
@@ -4220,6 +4225,33 @@ static bool_t AppLocalization_CanStartProcedure(void)
 }
 
 /*! *********************************************************************************
+*\fn            static bool_t AppLocalization_IsProcedureLoopComplete(deviceId_t deviceId)
+*
+*\brief         Check if the CS procedure loop has completed. A configured count of
+*               0 means continuous ranging, so the free-running procedure counter
+*               may wrap 65535->0 without ending the loop.
+*
+*\param[in]     deviceId         Peer identifier
+*
+*\retval        TRUE if the loop is complete, FALSE otherwise
+********************************************************************************** */
+static bool_t AppLocalization_IsProcedureLoopComplete
+(
+    deviceId_t deviceId
+)
+{
+    bool_t complete = FALSE;
+    uint16_t maxProc = mRangeSettings[deviceId].maxNumProcedures;
+
+    if ((maxProc != 0U) && (maCsProcCount[deviceId] >= maxProc))
+    {
+        complete = TRUE;
+    }
+
+    return complete;
+}
+
+/*! *********************************************************************************
 *\fn            void AppLocalization_RunAlgorithm(deviceId_t deviceId);
 *
 *\brief         Runs the distance measurement algorithm for a given peer.
@@ -4306,7 +4338,7 @@ void AppLocalization_RunAlgorithm
         }
 #endif /* gAppRunAlgo_d */
         /* Update state */
-        if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
+        if (AppLocalization_IsProcedureLoopComplete(deviceId) == TRUE)
         {
             AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
         }
@@ -4330,7 +4362,7 @@ void AppLocalization_RunAlgorithm
     AppLocalization_FreeLocalData(deviceId);
 
     /* Restart procedure if configured to do so */
-    if (maCsProcCount[deviceId] == mRangeSettings[deviceId].maxNumProcedures)
+    if (AppLocalization_IsProcedureLoopComplete(deviceId) == TRUE)
     {
         AppLocalization_ProcedureRestart(deviceId);
     }

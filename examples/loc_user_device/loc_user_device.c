@@ -1462,7 +1462,9 @@ static void BleApp_HandleRasCtrlPointValueWrite
         shell_writeDec((uint32_t)mProcedureCount - 1U); /* It was previously incremented at CS procedure completion */
         shell_write(".\r\n");
 
-        if (mProcedureCount == mRangeSettings[deviceId].maxNumProcedures)
+        /* A configured count of 0 means continuous ranging; the counter may wrap
+         * 65535->0 so treat 0 as never complete instead of an exact-equality match. */
+        if ((mRangeSettings[deviceId].maxNumProcedures != 0U) && (mProcedureCount >= mRangeSettings[deviceId].maxNumProcedures))
         {
             shell_cmd_finished();
         }

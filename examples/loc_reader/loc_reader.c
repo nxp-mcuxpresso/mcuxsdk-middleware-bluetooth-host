@@ -3038,7 +3038,10 @@ static void BleApp_PrintMeasurementResults
     }
 #endif /* defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U) */
 
-    if ((mVerbosityLevel != 0U) || (mProcedureCount == mRangeSettings[deviceId].maxNumProcedures))
+    /* A configured count of 0 means continuous ranging; the counter may wrap
+     * 65535->0 so treat 0 as never complete instead of an exact-equality match. */
+    if ((mVerbosityLevel != 0U) ||
+        ((mRangeSettings[deviceId].maxNumProcedures != 0U) && (mProcedureCount >= mRangeSettings[deviceId].maxNumProcedures)))
     {
 #if defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)
         bUIUpdated = BleApp_PrintRADEResults(deviceId, pResult);
@@ -3059,7 +3062,9 @@ static void BleApp_PrintMeasurementResults
 #endif /* defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1) */
     }
 
-    if (mProcedureCount == mRangeSettings[deviceId].maxNumProcedures)
+    /* A configured count of 0 means continuous ranging; the counter may wrap
+     * 65535->0 so treat 0 as never complete instead of an exact-equality match. */
+    if ((mRangeSettings[deviceId].maxNumProcedures != 0U) && (mProcedureCount >= mRangeSettings[deviceId].maxNumProcedures))
     {
         shell_cmd_finished();
     }
