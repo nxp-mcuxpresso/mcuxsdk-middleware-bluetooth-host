@@ -78,39 +78,10 @@ static shell_status_t ShellSetCsRole_Command(shell_handle_t shellHandle, int32_t
 static shell_status_t ShellSetNumProcs_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 static shell_status_t ShellSelectAlgorithm_Command(shell_handle_t shellHandle, int32_t argc, char * argv[]);
 
-static bleResult_t ShellSetCsConfig_ValidateMainModeType(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateSubModeType(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateMainModeParams(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateMode0Steps(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateRole(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateRTTType(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateChannelMap(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateChannelMapRepetition(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateChannelSelectionType(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateCsSyncPhy(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateAllParams(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsProc_ValidateMaxProcDuration(char *argv[], appCsProcedureParams_t *pParams);
-static bleResult_t ShellSetCsProc_ValidatePeriodAndSubeventParams(char *argv[], appCsProcedureParams_t *pParams);
-static bleResult_t ShellSetCsProc_ValidateAntennaAndSnrParams(char *argv[], appCsProcedureParams_t *pParams);
-static bleResult_t ShellSetCsProc_ValidateAllParams(char *argv[], appCsProcedureParams_t *pParams);
-
-static bleResult_t ShellSetCsProc_HandleSuccess(appEventData_t *pEventData);
-
-static bleResult_t ShellSetCsConfig_ValidateMainModeType(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateSubModeType(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateMainModeParams(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateMode0Steps(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateRole(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateRTTType(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateChannelMap(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateChannelMapRepetition(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateChannelSelectionType(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateCsSyncPhy(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsConfig_ValidateAllParams(char *argv[], appCsConfigParams_t *pParams);
-static bleResult_t ShellSetCsProc_ValidateMaxProcDuration(char *argv[], appCsProcedureParams_t *pParams);
-static bleResult_t ShellSetCsProc_ValidatePeriodAndSubeventParams(char *argv[], appCsProcedureParams_t *pParams);
-static bleResult_t ShellSetCsProc_ValidateAntennaAndSnrParams(char *argv[], appCsProcedureParams_t *pParams);
-static bleResult_t ShellSetCsProc_ValidateAllParams(char *argv[], appCsProcedureParams_t *pParams);
+static bleResult_t ShellSetCsConfigParams_UpdateParam(char *pName, char *pValue, appCsConfigParams_t *pParams);
+static void ShellSetCsConfig_PrefillFromCurrent(deviceId_t deviceId, appCsConfigParams_t *pParams);
+static bleResult_t ShellSetCsProcedureParams_UpdateParam(char *pName, char *pValue, appCsProcedureParams_t *pParams);
+static void ShellSetCsProc_PrefillFromCurrent(deviceId_t deviceId, appCsProcedureParams_t *pParams);
 
 static bleResult_t ShellSetCsProc_HandleSuccess(appEventData_t *pEventData);
 
@@ -610,294 +581,233 @@ static shell_status_t ShellDisconnect_Command(shell_handle_t shellHandle, int32_
 }
 
 /*! *********************************************************************************
-* \brief        Validates and sets main mode type parameter.
+* \brief        Validates and applies a single CS config parameter by name/value.
 *
-* \param[in]    argv                Pointer to arguments
+* \param[in]    pName               Parameter name
+* \param[in]    pValue              Parameter value (as string)
 * \param[out]   pParams             Pointer to CS config parameters
 *
 * \return       bleResult_t         Validation result
 ********************************************************************************** */
-static bleResult_t ShellSetCsConfig_ValidateMainModeType(char *argv[], appCsConfigParams_t *pParams)
+static bleResult_t ShellSetCsConfigParams_UpdateParamGroup1(char *pName, char *pValue, appCsConfigParams_t *pParams, bool_t *pHandled)
 {
     bleResult_t status = gBleSuccess_c;
-    
-    pParams->mainModeType = (uint8_t)BleApp_atoi(argv[2]);
+    uint8_t val = (uint8_t)BleApp_atoi(pValue);
 
-    if ((pParams->mainModeType == 0U) || (pParams->mainModeType > 3U))
+    *pHandled = TRUE;
+
+    if (0 == strcmp(pName, "mainmodetype"))
     {
-        status = gBleInvalidParameter_c;
+        if ((val == 0U) || (val > 3U))
+        {
+            status = gBleInvalidParameter_c;
+        }
+        else
+        {
+            pParams->mainModeType = val;
+        }
     }
-
-    return status;
-}
-
-/*! *********************************************************************************
-* \brief        Validates and sets sub mode type parameter.
-*
-* \param[in]    argv                Pointer to arguments
-* \param[out]   pParams             Pointer to CS config parameters
-*
-* \return       bleResult_t         Validation result
-********************************************************************************** */
-static bleResult_t ShellSetCsConfig_ValidateSubModeType(char *argv[], appCsConfigParams_t *pParams)
-{
-    bleResult_t status = gBleSuccess_c;
-    
-    pParams->subModeType = (uint8_t)BleApp_atoi(argv[3]);
-
-    if ((pParams->subModeType == 0U)||
-        ((pParams->subModeType > 3U) && (pParams->subModeType != 255U)))
+    else if (0 == strcmp(pName, "submodetype"))
     {
-        status = gBleInvalidParameter_c;
+        if ((val == 0U) || ((val > 3U) && (val != 255U)))
+        {
+            status = gBleInvalidParameter_c;
+        }
+        else
+        {
+            pParams->subModeType = val;
+        }
     }
-
-    return status;
-}
-
-/*! *********************************************************************************
-* \brief        Validates and sets main mode steps and repetition parameters.
-*
-* \param[in]    argv                Pointer to arguments
-* \param[out]   pParams             Pointer to CS config parameters
-*
-* \return       bleResult_t         Validation result
-********************************************************************************** */
-static bleResult_t ShellSetCsConfig_ValidateMainModeParams(char *argv[], appCsConfigParams_t *pParams)
-{
-    bleResult_t status = gBleSuccess_c;
-    
-    pParams->mainModeMinSteps = (uint8_t)BleApp_atoi(argv[4]);
-    pParams->mainModeMaxSteps = (uint8_t)BleApp_atoi(argv[5]);
-    pParams->mainModeRepetition = (uint8_t)BleApp_atoi(argv[6]);
-
-    if (pParams->mainModeRepetition > 3U)
+    else if (0 == strcmp(pName, "mainmodeminsteps"))
     {
-        status = gBleInvalidParameter_c;
+        pParams->mainModeMinSteps = val;
     }
-
-    return status;
-}
-
-/*! *********************************************************************************
-* \brief        Validates and sets mode 0 steps parameter.
-*
-* \param[in]    argv                Pointer to arguments
-* \param[out]   pParams             Pointer to CS config parameters
-*
-* \return       bleResult_t         Validation result
-********************************************************************************** */
-static bleResult_t ShellSetCsConfig_ValidateMode0Steps(char *argv[], appCsConfigParams_t *pParams)
-{
-    bleResult_t status = gBleSuccess_c;
-    
-    pParams->mode0Steps = (uint8_t)BleApp_atoi(argv[7]);
-
-    if ((pParams->mode0Steps == 0U) || (pParams->mode0Steps > 3U))
+    else if (0 == strcmp(pName, "mainmodemaxsteps"))
     {
-        status = gBleInvalidParameter_c;
+        pParams->mainModeMaxSteps = val;
     }
-
-    return status;
-}
-
-/*! *********************************************************************************
-* \brief        Validates and sets role parameter.
-*
-* \param[in]    argv                Pointer to arguments
-* \param[out]   pParams             Pointer to CS config parameters
-*
-* \return       bleResult_t         Validation result
-********************************************************************************** */
-static bleResult_t ShellSetCsConfig_ValidateRole(char *argv[], appCsConfigParams_t *pParams)
-{
-    bleResult_t status = gBleSuccess_c;
-    
-    pParams->role = (uint8_t)BleApp_atoi(argv[8]);
-
-    if (pParams->role > 1U)
+    else if (0 == strcmp(pName, "mainmoderepetition"))
     {
-        status = gBleInvalidParameter_c;
+        if (val > 3U)
+        {
+            status = gBleInvalidParameter_c;
+        }
+        else
+        {
+            pParams->mainModeRepetition = val;
+        }
     }
-
-    return status;
-}
-
-/*! *********************************************************************************
-* \brief        Validates and sets RTT type parameter.
-*
-* \param[in]    argv                Pointer to arguments
-* \param[out]   pParams             Pointer to CS config parameters
-*
-* \return       bleResult_t         Validation result
-********************************************************************************** */
-static bleResult_t ShellSetCsConfig_ValidateRTTType(char *argv[], appCsConfigParams_t *pParams)
-{
-    bleResult_t status = gBleSuccess_c;
-    
-    pParams->RTTType = (uint8_t)BleApp_atoi(argv[9]);
-
-    if (pParams->RTTType > 6U)
+    else if (0 == strcmp(pName, "mode0steps"))
     {
-        status = gBleInvalidParameter_c;
-    }
-
-    return status;
-}
-
-/*! *********************************************************************************
-* \brief        Validates and sets channel map parameter.
-*
-* \param[in]    argv                Pointer to arguments
-* \param[out]   pParams             Pointer to CS config parameters
-*
-* \return       bleResult_t         Validation result
-********************************************************************************** */
-static bleResult_t ShellSetCsConfig_ValidateChannelMap(char *argv[], appCsConfigParams_t *pParams)
-{
-    bleResult_t status = gBleSuccess_c;
-    
-    if (gHCICSChannelMapSize == BleApp_ParseHexValue(argv[10]))
-    {
-        FLib_MemCpy(pParams->channelMap, argv[10], gCsChannelMapLength_c);
+        if ((val == 0U) || (val > 3U))
+        {
+            status = gBleInvalidParameter_c;
+        }
+        else
+        {
+            pParams->mode0Steps = val;
+        }
     }
     else
     {
+        *pHandled = FALSE;
+    }
+
+    return status;
+}
+
+/*! *********************************************************************************
+* \brief        Update and validate a single CS config parameter (group 2).
+*
+* \param[in]    pName          Parameter name
+* \param[in]    pValue         Parameter value (as string)
+* \param[out]   pParams        Pointer to the CS config parameters to update
+* \param[out]   pHandled       Set to TRUE if the parameter name was recognized
+*
+* \return       bleResult_t    gBleSuccess_c on success, error code otherwise
+********************************************************************************** */
+static bleResult_t ShellSetCsConfigParams_UpdateParamGroup2(char *pName, char *pValue, appCsConfigParams_t *pParams, bool_t *pHandled)
+{
+    bleResult_t status = gBleSuccess_c;
+    uint8_t val = (uint8_t)BleApp_atoi(pValue);
+
+    *pHandled = TRUE;
+
+    if (0 == strcmp(pName, "role"))
+    {
+        if (val > 1U)
+        {
+            status = gBleInvalidParameter_c;
+        }
+        else
+        {
+            pParams->role = val;
+        }
+    }
+    else if (0 == strcmp(pName, "rtttype"))
+    {
+        if (val > 6U)
+        {
+            status = gBleInvalidParameter_c;
+        }
+        else
+        {
+            pParams->RTTType = val;
+        }
+    }
+    else if (0 == strcmp(pName, "channelmap"))
+    {
+        if (gHCICSChannelMapSize == BleApp_ParseHexValue(pValue))
+        {
+            FLib_MemCpy(pParams->channelMap, pValue, gCsChannelMapLength_c);
+        }
+        else
+        {
+            status = gBleInvalidParameter_c;
+        }
+    }
+    else if (0 == strcmp(pName, "channelmaprepetition"))
+    {
+        if (val == 0U)
+        {
+            status = gBleInvalidParameter_c;
+        }
+        else
+        {
+            pParams->channelMapRepetition = val;
+        }
+    }
+    else if (0 == strcmp(pName, "channelselectiontype"))
+    {
+        if (val > 1U)
+        {
+            status = gBleInvalidParameter_c;
+        }
+        else
+        {
+            pParams->channelSelectionType = val;
+        }
+    }
+    else if (0 == strcmp(pName, "cssyncphy"))
+    {
+        if ((val < 1U) || (val > 3U))
+        {
+            status = gBleInvalidParameter_c;
+        }
+        else
+        {
+            pParams->csSyncPhy = val;
+        }
+    }
+    else
+    {
+        *pHandled = FALSE;
+    }
+
+    return status;
+}
+
+/*! *********************************************************************************
+* \brief        Update and validate a single CS config parameter identified by its
+*               name. Delegates to group helpers to keep complexity low.
+*
+* \param[in]    pName          Parameter name
+* \param[in]    pValue         Parameter value (as string)
+* \param[out]   pParams        Pointer to the CS config parameters to update
+*
+* \return       bleResult_t    gBleSuccess_c on success, error code otherwise
+********************************************************************************** */
+static bleResult_t ShellSetCsConfigParams_UpdateParam(char *pName, char *pValue, appCsConfigParams_t *pParams)
+{
+    bleResult_t status;
+    bool_t handled = FALSE;
+
+    status = ShellSetCsConfigParams_UpdateParamGroup1(pName, pValue, pParams, &handled);
+
+    if (!handled)
+    {
+        status = ShellSetCsConfigParams_UpdateParamGroup2(pName, pValue, pParams, &handled);
+    }
+
+    if (!handled)
+    {
         status = gBleInvalidParameter_c;
     }
 
     return status;
 }
 
+
 /*! *********************************************************************************
-* \brief        Validates and sets channel map repetition parameter.
+* \brief        Pre-populates the CS config parameters from the current configuration
+*               so that unspecified parameters retain their current values.
 *
-* \param[in]    argv                Pointer to arguments
+* \param[in]    deviceId            Peer device identifier
 * \param[out]   pParams             Pointer to CS config parameters
-*
-* \return       bleResult_t         Validation result
 ********************************************************************************** */
-static bleResult_t ShellSetCsConfig_ValidateChannelMapRepetition(char *argv[], appCsConfigParams_t *pParams)
+static void ShellSetCsConfig_PrefillFromCurrent(deviceId_t deviceId, appCsConfigParams_t *pParams)
 {
-    bleResult_t status = gBleSuccess_c;
-    
-    pParams->channelMapRepetition = (uint8_t)BleApp_atoi(argv[11]);
+    appLocalization_rangeCfg_t currentCfg;
 
-    if (pParams->channelMapRepetition == 0U)
-    {
-        status = gBleInvalidParameter_c;
-    }
+    (void)AppLocalization_ReadConfig(deviceId, &currentCfg);
 
-    return status;
+    pParams->mainModeType = currentCfg.main_mode_type;
+    pParams->subModeType = currentCfg.sub_mode_type;
+    pParams->mainModeMinSteps = currentCfg.main_mode_min;
+    pParams->mainModeMaxSteps = currentCfg.main_mode_max;
+    pParams->mainModeRepetition = currentCfg.main_mode_repeat;
+    pParams->mode0Steps = currentCfg.mode0_nb;
+    pParams->role = mGlobalRangeSettings.role;
+    pParams->RTTType = currentCfg.rtt_type;
+    FLib_MemCpy(pParams->channelMap, currentCfg.ch_map, gCsChannelMapLength_c);
+    pParams->channelMapRepetition = currentCfg.ch_map_repeat;
+    pParams->channelSelectionType = currentCfg.channelSelectionType;
+    pParams->csSyncPhy = currentCfg.cs_sync_phy;
 }
 
 /*! *********************************************************************************
-* \brief        Validates and sets channel selection type parameter.
-*
-* \param[in]    argv                Pointer to arguments
-* \param[out]   pParams             Pointer to CS config parameters
-*
-* \return       bleResult_t         Validation result
-********************************************************************************** */
-static bleResult_t ShellSetCsConfig_ValidateChannelSelectionType(char *argv[], appCsConfigParams_t *pParams)
-{
-    bleResult_t status = gBleSuccess_c;
-    
-    pParams->channelSelectionType = (uint8_t)BleApp_atoi(argv[12]);
-
-    if (pParams->channelSelectionType > 1U)
-    {
-        status = gBleInvalidParameter_c;
-    }
-
-    return status;
-}
-
-/*! *********************************************************************************
-* \brief        Validates and sets CS sync PHY parameter.
-*
-* \param[in]    argv                Pointer to arguments
-* \param[out]   pParams             Pointer to CS config parameters
-*
-* \return       bleResult_t         Validation result
-********************************************************************************** */
-static bleResult_t ShellSetCsConfig_ValidateCsSyncPhy(char *argv[], appCsConfigParams_t *pParams)
-{
-    bleResult_t status = gBleSuccess_c;
-    
-    pParams->csSyncPhy = (uint8_t)BleApp_atoi(argv[13]);
-
-    if ((pParams->csSyncPhy < 1U) || (pParams->csSyncPhy > 3U))
-    {
-        status = gBleInvalidParameter_c;
-    }
-
-    return status;
-}
-
-/*! *********************************************************************************
-* \brief        Validates all CS config parameters.
-*
-* \param[in]    argv                Pointer to arguments
-* \param[out]   pParams             Pointer to CS config parameters
-*
-* \return       bleResult_t         Validation result
-********************************************************************************** */
-static bleResult_t ShellSetCsConfig_ValidateAllParams(char *argv[], appCsConfigParams_t *pParams)
-{
-    bleResult_t status = gBleSuccess_c;
-
-    status = ShellSetCsConfig_ValidateMainModeType(argv, pParams);
-
-    if (status == gBleSuccess_c)
-    {
-        status = ShellSetCsConfig_ValidateSubModeType(argv, pParams);
-    }
-
-    if (status == gBleSuccess_c)
-    {
-        status = ShellSetCsConfig_ValidateMainModeParams(argv, pParams);
-    }
-
-    if (status == gBleSuccess_c)
-    {
-        status = ShellSetCsConfig_ValidateMode0Steps(argv, pParams);
-    }
-
-    if (status == gBleSuccess_c)
-    {
-        status = ShellSetCsConfig_ValidateRole(argv, pParams);
-    }
-
-    if (status == gBleSuccess_c)
-    {
-        status = ShellSetCsConfig_ValidateRTTType(argv, pParams);
-    }
-
-    if (status == gBleSuccess_c)
-    {
-        status = ShellSetCsConfig_ValidateChannelMap(argv, pParams);
-    }
-
-    if (status == gBleSuccess_c)
-    {
-        status = ShellSetCsConfig_ValidateChannelMapRepetition(argv, pParams);
-    }
-
-    if (status == gBleSuccess_c)
-    {
-        status = ShellSetCsConfig_ValidateChannelSelectionType(argv, pParams);
-    }
-
-    if (status == gBleSuccess_c)
-    {
-        status = ShellSetCsConfig_ValidateCsSyncPhy(argv, pParams);
-    }
-
-    return status;
-}
-
-/*! *********************************************************************************
-* \brief        Set CS Create Config default parameters.
+* \brief        Set CS Create Config parameters. Allows per-parameter updates by
+*               name/value pairs. Unspecified parameters retain their current value.
 *
 * \param[in]    argc           Number of arguments
 * \param[in]    argv           Pointer to arguments
@@ -908,11 +818,11 @@ static shell_status_t ShellSetCsConfigParams_Command(shell_handle_t shellHandle,
 {
     bleResult_t status = gBleSuccess_c;
 
-    if (argc == 14)
+    if ((argc >= 4) && (((argc - 2) % 2) == 0))
     {
         deviceId_t deviceId = (uint8_t)BleApp_atoi(argv[1]);
 
-        if (deviceId > gAppMaxConnections_c)
+        if (deviceId >= (uint8_t)gAppMaxConnections_c)
         {
             status = gBleInvalidParameter_c;
         }
@@ -929,7 +839,19 @@ static shell_status_t ShellSetCsConfigParams_Command(shell_handle_t shellHandle,
                     pEventData->eventData.pData = pEventData + 1;
                     appCsConfigParams_t *pAppCsConfigParams = pEventData->eventData.pData;
 
-                    status = ShellSetCsConfig_ValidateAllParams(argv, pAppCsConfigParams);
+                    /* Pre-populate with the current configuration so that only the
+                       specified parameters are updated. */
+                    ShellSetCsConfig_PrefillFromCurrent(deviceId, pAppCsConfigParams);
+
+                    uint8_t argCount = (uint8_t)argc;
+                    for (uint8_t i = 2U; i < argCount; i += 2U)
+                    {
+                        status = ShellSetCsConfigParams_UpdateParam(argv[i], argv[i + 1U], pAppCsConfigParams);
+                        if (status != gBleSuccess_c)
+                        {
+                            break;
+                        }
+                    }
 
                     if (status == gBleSuccess_c)
                     {
@@ -954,9 +876,7 @@ static shell_status_t ShellSetCsConfigParams_Command(shell_handle_t shellHandle,
     }
     else
     {
-        shell_write("\r\nUsage: \
-                    \r\nsetcsconfig peer_id, main_mode_type, sub_mode_type, main_mode_min_steps, main_mode_max_steps, main_mode_repetition, mode_0_steps, role, rtt_types, chann_map, chan_map_repetition, chan_sel_type cs_sync_phy \
-                    \r\n");
+        status = gBleInvalidParameter_c;
     }
 
     if (status == gBleOutOfMemory_c)
@@ -966,109 +886,142 @@ static shell_status_t ShellSetCsConfigParams_Command(shell_handle_t shellHandle,
     if (status == gBleInvalidParameter_c)
     {
         shell_write("\r\nInvalid parameter\r\n");
+        shell_write("\r\nUsage: \
+                    \r\nsetcsconfig peer_id <paramName> <value> [<paramName> <value> ...] \
+                    \r\nparamName: mainmodetype, submodetype, mainmodeminsteps, mainmodemaxsteps, mainmoderepetition, mode0steps, role, rtttype, channelmap, channelmaprepetition, channelselectiontype, cssyncphy \
+                    \r\n");
     }
 
     return kStatus_SHELL_Success;
 }
 
 /*! *********************************************************************************
-* \brief        Validates and sets max procedure duration parameter.
+* \brief        Check whether a value is a valid SNR control setting.
 *
-* \param[in]    argv                Pointer to arguments
-* \param[out]   pParams             Pointer to CS procedure parameters
+* \param[in]    val                 SNR control value to validate
 *
-* \return       bleResult_t         Validation result
+* \return       bool_t              TRUE if the value is a valid SNR control setting
 ********************************************************************************** */
-static bleResult_t ShellSetCsProc_ValidateMaxProcDuration(char *argv[], appCsProcedureParams_t *pParams)
+static bool_t ShellIsValidSnrControl(uint8_t val)
 {
-    bleResult_t status = gBleSuccess_c;
-    
-    pParams->maxProcedureDuration = (uint16_t)BleApp_atoi(argv[2]);
-
-    if (pParams->maxProcedureDuration == 0U)
-    {
-        status = gBleInvalidParameter_c;
-    }
-
-    return status;
+    return isValidSnrControl(val);
 }
 
 /*! *********************************************************************************
-* \brief        Validates and sets period and subevent parameters.
+* \brief        Validates and applies a single CS procedure parameter by name/value.
 *
-* \param[in]    argv                Pointer to arguments
+* \param[in]    pName               Parameter name
+* \param[in]    pValue              Parameter value (as string)
 * \param[out]   pParams             Pointer to CS procedure parameters
 *
 * \return       bleResult_t         Validation result
 ********************************************************************************** */
-static bleResult_t ShellSetCsProc_ValidatePeriodAndSubeventParams(char *argv[], appCsProcedureParams_t *pParams)
-{
-    pParams->minPeriodBetweenProcedures = (uint16_t)BleApp_atoi(argv[3]);
-    pParams->maxPeriodBetweenProcedures = (uint16_t)BleApp_atoi(argv[4]);
-    pParams->maxNumProcedures = (uint16_t)BleApp_atoi(argv[5]);
-    pParams->minSubeventLen = (uint32_t)BleApp_atoi(argv[6]);
-    pParams->maxSubeventLen = (uint32_t)BleApp_atoi(argv[7]);
-
-    return gBleSuccess_c;
-}
-
-/*! *********************************************************************************
-* \brief        Validates and sets antenna config and SNR control parameters.
-*
-* \param[in]    argv                Pointer to arguments
-* \param[out]   pParams             Pointer to CS procedure parameters
-*
-* \return       bleResult_t         Validation result
-********************************************************************************** */
-static bleResult_t ShellSetCsProc_ValidateAntennaAndSnrParams(char *argv[], appCsProcedureParams_t *pParams)
+static bleResult_t ShellSetCsProcedureParams_UpdateParam(char *pName, char *pValue, appCsProcedureParams_t *pParams)
 {
     bleResult_t status = gBleSuccess_c;
-    
-    pParams->antCfgIndex = (uint8_t)BleApp_atoi(argv[8]);
-    pParams->snrControlInit = (uint8_t)BleApp_atoi(argv[9]);
-    pParams->snrControlRefl = (uint8_t)BleApp_atoi(argv[10]);
 
-    if (pParams->antCfgIndex > 7U)
+    if (0 == strcmp(pName, "maxprocedureduration"))
     {
-        status = gBleInvalidParameter_c;
+        uint16_t val = (uint16_t)BleApp_atoi(pValue);
+
+        if (val == 0U)
+        {
+            status = gBleInvalidParameter_c;
+        }
+        else
+        {
+            pParams->maxProcedureDuration = val;
+        }
     }
-    else if(!isValidSnrControl(pParams->snrControlInit) || !isValidSnrControl(pParams->snrControlRefl))
+    else if (0 == strcmp(pName, "minperiodbetweenprocedures"))
     {
-        status = gBleInvalidParameter_c;
+        pParams->minPeriodBetweenProcedures = (uint16_t)BleApp_atoi(pValue);
+    }
+    else if (0 == strcmp(pName, "maxperiodbetweenprocedures"))
+    {
+        pParams->maxPeriodBetweenProcedures = (uint16_t)BleApp_atoi(pValue);
+    }
+    else if (0 == strcmp(pName, "maxnumprocedures"))
+    {
+        pParams->maxNumProcedures = (uint16_t)BleApp_atoi(pValue);
+    }
+    else if (0 == strcmp(pName, "minsubeventlen"))
+    {
+        pParams->minSubeventLen = (uint32_t)BleApp_atoi(pValue);
+    }
+    else if (0 == strcmp(pName, "maxsubeventlen"))
+    {
+        pParams->maxSubeventLen = (uint32_t)BleApp_atoi(pValue);
+    }
+    else if (0 == strcmp(pName, "antcfgindex"))
+    {
+        uint8_t val = (uint8_t)BleApp_atoi(pValue);
+
+        if (val > 7U)
+        {
+            status = gBleInvalidParameter_c;
+        }
+        else
+        {
+            pParams->antCfgIndex = val;
+        }
+    }
+    else if (0 == strcmp(pName, "snrcontrolinit"))
+    {
+        uint8_t val = (uint8_t)BleApp_atoi(pValue);
+
+        if (!ShellIsValidSnrControl(val))
+        {
+            status = gBleInvalidParameter_c;
+        }
+        else
+        {
+            pParams->snrControlInit = val;
+        }
+    }
+    else if (0 == strcmp(pName, "snrcontrolrefl"))
+    {
+        uint8_t val = (uint8_t)BleApp_atoi(pValue);
+
+        if (!ShellIsValidSnrControl(val))
+        {
+            status = gBleInvalidParameter_c;
+        }
+        else
+        {
+            pParams->snrControlRefl = val;
+        }
     }
     else
     {
-        /* All parameters valid */
+        status = gBleInvalidParameter_c;
     }
 
     return status;
 }
 
 /*! *********************************************************************************
-* \brief        Validates all CS procedure parameters.
+* \brief        Pre-populates the CS procedure parameters from the current
+*               configuration so that unspecified parameters retain their values.
 *
-* \param[in]    argv                Pointer to arguments
+* \param[in]    deviceId            Peer device identifier
 * \param[out]   pParams             Pointer to CS procedure parameters
-*
-* \return       bleResult_t         Validation result
 ********************************************************************************** */
-static bleResult_t ShellSetCsProc_ValidateAllParams(char *argv[], appCsProcedureParams_t *pParams)
+static void ShellSetCsProc_PrefillFromCurrent(deviceId_t deviceId, appCsProcedureParams_t *pParams)
 {
-    bleResult_t status = gBleSuccess_c;
+    appLocalization_rangeCfg_t currentCfg;
 
-    status = ShellSetCsProc_ValidateMaxProcDuration(argv, pParams);
+    (void)AppLocalization_ReadConfig(deviceId, &currentCfg);
 
-    if (status == gBleSuccess_c)
-    {
-        status = ShellSetCsProc_ValidatePeriodAndSubeventParams(argv, pParams);
-    }
-
-    if (status == gBleSuccess_c)
-    {
-        status = ShellSetCsProc_ValidateAntennaAndSnrParams(argv, pParams);
-    }
-
-    return status;
+    pParams->maxProcedureDuration = currentCfg.maxProcedureDuration;
+    pParams->minPeriodBetweenProcedures = currentCfg.minPeriodBetweenProcedures;
+    pParams->maxPeriodBetweenProcedures = currentCfg.maxPeriodBetweenProcedures;
+    pParams->maxNumProcedures = currentCfg.maxNumProcedures;
+    pParams->minSubeventLen = currentCfg.minSubeventLen;
+    pParams->maxSubeventLen = currentCfg.maxSubeventLen;
+    pParams->antCfgIndex = currentCfg.ant_cfg_index;
+    pParams->snrControlInit = currentCfg.snr_control_init;
+    pParams->snrControlRefl = currentCfg.snr_control_refl;
 }
 
 /*! *********************************************************************************
@@ -1097,7 +1050,8 @@ static bleResult_t ShellSetCsProc_HandleSuccess(appEventData_t *pEventData)
 }
 
 /*! *********************************************************************************
-* \brief        Set CS Procedure default parameters.
+* \brief        Set CS Procedure parameters. Allows per-parameter updates by
+*               name/value pairs. Unspecified parameters retain their current value.
 *
 * \param[in]    argc           Number of arguments
 * \param[in]    argv           Pointer to arguments
@@ -1108,11 +1062,11 @@ static shell_status_t ShellSetCsProcedureParams_Command(shell_handle_t shellHand
 {
     bleResult_t status = gBleSuccess_c;
 
-    if (argc == 11)
+    if ((argc >= 4) && (((argc - 2) % 2) == 0))
     {
         deviceId_t deviceId = (uint8_t)BleApp_atoi(argv[1]);
 
-        if (deviceId > gAppMaxConnections_c)
+        if (deviceId >= (uint8_t)gAppMaxConnections_c)
         {
             status = gBleInvalidParameter_c;
         }
@@ -1129,7 +1083,19 @@ static shell_status_t ShellSetCsProcedureParams_Command(shell_handle_t shellHand
                     pEventData->eventData.pData = pEventData + 1;
                     appCsProcedureParams_t *pAppCsProcedureParams = pEventData->eventData.pData;
 
-                    status = ShellSetCsProc_ValidateAllParams(argv, pAppCsProcedureParams);
+                    /* Pre-populate with the current configuration so that only the
+                       specified parameters are updated. */
+                    ShellSetCsProc_PrefillFromCurrent(deviceId, pAppCsProcedureParams);
+
+                    uint8_t argCount = (uint8_t)argc;
+                    for (uint8_t i = 2U; i < argCount; i += 2U)
+                    {
+                        status = ShellSetCsProcedureParams_UpdateParam(argv[i], argv[i + 1U], pAppCsProcedureParams);
+                        if (status != gBleSuccess_c)
+                        {
+                            break;
+                        }
+                    }
 
                     if (status == gBleSuccess_c)
                     {
@@ -1149,9 +1115,7 @@ static shell_status_t ShellSetCsProcedureParams_Command(shell_handle_t shellHand
     }
     else
     {
-        shell_write("\r\nUsage: \
-                    \r\nsetcsproc peer_id, max_proc_duration, min_period_between_proc, max_period_between_proc, max_num_proc, min_subevent_len, max_subevent_len, ant_config_idx snr_control_init snr_control_refl \
-                    \r\n");
+        status = gBleInvalidParameter_c;
     }
 
     if (status == gBleOutOfMemory_c)
@@ -1161,6 +1125,10 @@ static shell_status_t ShellSetCsProcedureParams_Command(shell_handle_t shellHand
     if (status == gBleInvalidParameter_c)
     {
         shell_write("\r\nInvalid parameter\r\n");
+        shell_write("\r\nUsage: \
+                    \r\nsetcsproc peer_id <paramName> <value> [<paramName> <value> ...] \
+                    \r\nparamName: maxprocedureduration, minperiodbetweenprocedures, maxperiodbetweenprocedures, maxnumprocedures, minsubeventlen, maxsubeventlen, antcfgindex, snrcontrolinit, snrcontrolrefl \
+                    \r\n");
     }
 
     return kStatus_SHELL_Success;
