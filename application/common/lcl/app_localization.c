@@ -672,7 +672,7 @@ bleResult_t AppLocalization_HostInitHandler(void)
         ant2gpio_p = cs_ant_idx_to_GPIO[mGlobalRangeSettings.ant_type];
     }
 
-    if (ant2gpio_p[0] != LCL_HAL_LOC_UNAVAILABLE)
+    if ((ant2gpio_p != NULL) && (ant2gpio_p[0] != LCL_HAL_LOC_UNAVAILABLE))
     {
         /* Fill command data */
 
@@ -2243,7 +2243,7 @@ static bleResult_t csMetaEventCallback
     bleResult_t result = gBleSuccess_c;
     csMetaEventData_t *pCsMetaEvent = MEM_BufferAlloc(sizeof(csMetaEventData_t));
     appMsgFromHost_t *pMsgIn = NULL;
-    uint32_t msgLen = (uint32_t)&(pMsgIn->msgData) + sizeof(void*);
+    uint32_t msgLen = GetRelAddr(appMsgFromHost_t, msgData) + sizeof(void*);
 
     if (pCsMetaEvent != NULL)
     {
@@ -3409,7 +3409,7 @@ static bleResult_t csEventCmdCompleteCallback
 {
     bleResult_t result = gBleSuccess_c;
     appMsgFromHost_t *pMsgIn = NULL;
-    uint32_t msgLen = (uint32_t)&(pMsgIn->msgData) + sizeof(void*);
+    uint32_t msgLen = GetRelAddr(appMsgFromHost_t, msgData) + sizeof(void*);
 
     csCommandCompleteEvent_t *pCsCmdCompleteEvent = MEM_BufferAlloc(sizeof(csCommandCompleteEvent_t));
     if (pCsCmdCompleteEvent != NULL)
@@ -3603,7 +3603,7 @@ static bleResult_t csEventCmdStatusCallback
 {
     bleResult_t result = gBleSuccess_c;
     appMsgFromHost_t *pMsgIn = NULL;
-    uint32_t msgLen = (uint32_t)&(pMsgIn->msgData) + sizeof(void*);
+    uint32_t msgLen = GetRelAddr(appMsgFromHost_t, msgData) + sizeof(void*);
 
     csCommandStatusEvent_t *pCsCmdStatusEvent = MEM_BufferAlloc(sizeof(csCommandStatusEvent_t));
     if (pCsCmdStatusEvent != NULL)
@@ -3867,7 +3867,7 @@ static bleResult_t processCsResultsEvent
             mResultData[deviceId].totalNumSteps += pEvent->numStepsReported;
 
             /* Use free bits of packet_AA_quality of first mode0 step to store eventIdx (we do not keep track of all subevent headers) */
-            eventIdx = pEvent->startACLConnEvent - pSubevtHeader->startACLConnEvent;
+            eventIdx = (uint16_t)((uint32_t)pEvent->startACLConnEvent - (uint32_t)pSubevtHeader->startACLConnEvent);
             *(pEvent->pData + 3U * sizeof(uint8_t)) |= (uint8_t)(eventIdx << CS_EVTIDX_SHIFT);
 
             result = processEventResultData(deviceId, pEvent->numStepsReported,
@@ -3977,7 +3977,8 @@ static bleResult_t processEventResultData
         dataSize += ((uint32_t)*(stepDataLenPtr + dataSize)) + sizeof(uint8_t) * 3U; /* also account for mode, channel, data_length fields */
     }
 
-    if ((mResultData[deviceId].dataIndex + dataSize) >= gMeasurementBufferSize_c)
+    if ((dataSize >= gMeasurementBufferSize_c) ||
+        (mResultData[deviceId].dataIndex >= (gMeasurementBufferSize_c - dataSize)))
     {
         result = gBleOutOfMemory_c;
         AppLocalizationError(deviceId, gAppLclNoSubeventMemoryAvailable_c);

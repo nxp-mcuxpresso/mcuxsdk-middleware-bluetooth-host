@@ -112,7 +112,7 @@
 #endif
 
 /* Measurement data buffer size: ToF and IQ data for the max number of steps */
-#define gMeasurementDataSizeMax_c           (4U /* HCI data header */ + (6U + 1U + 4U * (1U + gMaxNumAntennaPaths_c)) /* Mode 3 HCI length */)
+#define gMeasurementDataSizeMax_c           (4UL /* HCI data header */ + (6U + 1U + 4U * (1U + gMaxNumAntennaPaths_c)) /* Mode 3 HCI length */)
 #define gMeasurementBufferSize_c            (gMeasurementDataSizeMax_c * gMaxNumCsSteps_c)
 
 /* Maximum concurrent CS procedures */
