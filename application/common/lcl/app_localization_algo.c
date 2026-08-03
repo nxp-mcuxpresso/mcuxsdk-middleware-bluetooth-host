@@ -944,7 +944,7 @@ static void isp_tof_ranging_compute
     tof_result->dm_sr = 0;
     if (nb_steps_valid != 0U) {
         /*  average distance expected in fixed-point s15.16 (meters) */
-        tof_result->dm_ad = (int32_t)(sum_rtt_ns/(int16_t)nb_steps_valid);
+        tof_result->dm_ad = (int32_t)(sum_rtt_ns/(int32_t)nb_steps_valid);
         tof_result->dm_ad = (int32_t)(tof_result->dm_ad * 9830); /* RTT/2 * 0.3m/ns * 2^16 (0.3*2^16/2 is 9830.4) */
         tof_result->dm_sr = (uint8_t)(((uint32_t)nb_steps_valid * 100U)/nb_steps);
     }
