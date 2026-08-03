@@ -295,7 +295,8 @@ class ResultParser:
             'rttstat': [ResultParser.basestr_to_numpy_array, 5, 0, 1, 0],
             'nadm': [ResultParser.hexstr2_to_numpy_array, 1, 0, 1, 0],
             'pq': [ResultParser.hexstr2_to_numpy_array, 2, 0, 1, 0],
-            'ant': [ResultParser.hexstr2_to_numpy_array, 2, 0, 1, 0]
+            'ant': [ResultParser.hexstr2_to_numpy_array, 2, 0, 1, 0],
+            'fcomp': [ResultParser.hexstr2_to_numpy_array, 2, 0, 1, 0],
         }
         
         payload = payload.replace(':', ': ')

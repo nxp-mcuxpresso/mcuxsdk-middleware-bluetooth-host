@@ -1032,6 +1032,17 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.lcl_algo)
     )
 endif()
 
+if(CONFIG_MCUX_COMPONENT_middleware.wireless.pde_rade)
+    mcux_add_source(
+        SOURCES localization/lcl/pde/algo/interface/pde_rade.h
+                application/common/lcl/app_localization_config.h
+    )
+    mcux_add_include(
+        INCLUDES localization/lcl/pde/algo/interface
+                 application/common/lcl/
+    )
+endif()
+
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_profiles_ranging)
     mcux_add_source(
         SOURCES profiles/ranging/ranging_service.c

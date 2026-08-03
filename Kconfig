@@ -129,6 +129,8 @@ menu "localization"
         bool "lcl"
     config MCUX_COMPONENT_middleware.wireless.lcl_algo
         bool "lcl_algo"
+    config MCUX_COMPONENT_middleware.wireless.pde_rade
+        bool "pde_rade"
     config MCUX_COMPONENT_middleware.wireless.lcl_pts_test
         bool "lcl_pts_test"
     config MCUX_COMPONENT_middleware.wireless.ble_profiles_ranging
