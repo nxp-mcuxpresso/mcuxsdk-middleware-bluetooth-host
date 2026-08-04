@@ -15,6 +15,7 @@
 ************************************************************************************/
 #if (defined gAppUseNvm_d) && (gAppUseNvm_d != 0)
 #include "NVM_Interface.h"
+#include <assert.h>
 #endif /* gAppUseNvm_d */
 
 #include "ble_config.h"
@@ -43,6 +44,21 @@
 #define gIdentityHeaderOverhead_c       0U
 #endif /* gAppSecureMode_d */
 
+#if gAppUseNvm_d
+/*
+ * The STATIC_ASSERT macro handles the IAR vs GCC/Clang difference.
+ * static_assert is defined for gcc C++11 and IAR versions whereas _Static_assert exists for gcc >= 4.6.
+ * Using _Static_assert remains backward compatible so keeping simple definitions
+*/
+#undef STATIC_ASSERT /* undefine in case it was already defined */
+#if defined __IAR_SYSTEMS_ICC__
+#define STATIC_ASSERT static_assert
+#else
+#define STATIC_ASSERT _Static_assert
+#endif
+
+#endif /* gAppUseNvm_d */
+
 /************************************************************************************
 *************************************************************************************
 * Private type definitions
@@ -65,6 +81,9 @@
 *************************************************************************************
 ************************************************************************************/
 #if gAppUseNvm_d
+
+STATIC_ASSERT(sizeof(bleBondIdentityHeaderBlob_t) > gIdentityHeaderOverhead_c, "sizeof(bleBondIdentityHeaderBlob_t) must be larger than gIdentityHeaderOverhead_c");
+
 #if gUnmirroredFeatureSet_d == TRUE
 static bleBondIdentityHeaderBlob_t*  aBondingHeader[gMaxBondedDevices_c];
 static bleBondDataDynamicBlob_t*     aBondingDataDynamic[gMaxBondedDevices_c];
@@ -127,32 +146,32 @@ static bleLocalKeysBlob_t           aBleLocalKeys[gcSecureModeSavedLocalKeysNo_c
 /* register datasets */
 NVM_RegisterDataSet(aBondingHeader,
                     gMaxBondedDevices_c,
-                    (gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c),
+                    ((uint16_t)sizeof(bleBondIdentityHeaderBlob_t) - gIdentityHeaderOverhead_c),
                     nvmId_BondingHeaderId_c,
                     (uint16_t)gNVM_MirroredInRam_c);
 NVM_RegisterDataSet(aBondingDataDynamic,
                     gMaxBondedDevices_c,
-                    gBleBondDataDynamicSize_c,
+                    (uint16_t)sizeof(bleBondDataDynamicBlob_t),
                     nvmId_BondingDataDynamicId_c,
                     (uint16_t)gNVM_MirroredInRam_c);
 NVM_RegisterDataSet(aBondingDataStatic,
                     gMaxBondedDevices_c,
-                    gBleBondDataStaticSize_c,
+                    (uint16_t)sizeof(bleBondDataStaticBlob_t),
                     nvmId_BondingDataStaticId_c,
                     (uint16_t)gNVM_MirroredInRam_c);
 NVM_RegisterDataSet(aBondingDataLegacy,
                     gMaxBondedDevices_c,
-                    gBleBondDataLegacySize_c,
+                    (uint16_t)sizeof(bleBondDataLegacyBlob_t),
                     nvmId_BondingDataLegacyId_c,
                     (uint16_t)gNVM_MirroredInRam_c);
 NVM_RegisterDataSet(aBondingDataDeviceInfo,
                     gMaxBondedDevices_c,
-                    gBleBondDataDeviceInfoSize_c,
+                    (uint16_t)sizeof(bleBondDataDeviceInfoBlob_t),
                     nvmId_BondingDataDeviceInfoId_c,
                     (uint16_t)gNVM_MirroredInRam_c);
 NVM_RegisterDataSet(aBondingDataDescriptor,
                     gMaxBondedDevices_c * gcGapMaximumSavedCccds_c,
-                    gBleBondDataDescriptorSize_c,
+                    (uint16_t)sizeof(bleBondDataDescriptorBlob_t),
                     nvmId_BondingDataDescriptorId_c,
                     (uint16_t)gNVM_MirroredInRam_c);
 #if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))
