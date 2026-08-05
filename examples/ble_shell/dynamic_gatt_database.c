@@ -74,7 +74,7 @@ static bleResult_t GattDbDynamic_AddCharServiceChanged(void)
     uint8_t     charProperties;
 
     uuid.uuid16 = gBleSig_GattServiceChanged_d;
-    charProperties = (uint8_t)gGattCharPropRead_c | (uint8_t)gGattCharPropNotify_c;
+    charProperties = (uint8_t)gGattCharPropIndicate_c;
 
     return GattDbDynamic_AddCharacteristicDeclarationAndValue(gBleUuidType16_c,
                                                               &uuid,
