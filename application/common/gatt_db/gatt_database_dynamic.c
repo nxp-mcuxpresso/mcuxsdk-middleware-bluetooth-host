@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2023 NXP
+* Copyright 2016-2023, 2026 NXP
 *
 *
 * \file
@@ -205,9 +205,7 @@ bleResult_t GattDbDynamic_AddGattService(gattServiceHandles_t* pOutServiceHandle
                                     sizeof(serviceInfo_t));
         pServiceInfo->pCharacteristicInfo = infoVars.characteristicInfoTemp;
         pServiceInfo->pCharacteristicInfo[0].uuid16 = gBleSig_GattServiceChanged_d;
-        pServiceInfo->pCharacteristicInfo[0].properties =
-                    (gattCharacteristicPropertiesBitFields_t)((uint8_t)gGattCharPropRead_c |
-                                                              (uint8_t)gGattCharPropNotify_c);
+        pServiceInfo->pCharacteristicInfo[0].properties = (uint8_t)gGattCharPropIndicate_c;
         pServiceInfo->pCharacteristicInfo[0].maxValueLength = 0;
         pServiceInfo->pCharacteristicInfo[0].valueLength =
                     (uint16_t)sizeof(gattServiceChangedValue);
