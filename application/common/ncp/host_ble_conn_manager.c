@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2022-2025 NXP
+* Copyright 2022-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -654,17 +654,6 @@ static void gapSmpHandler(bleEvtContainer_t* pMsg)
             {
                 req.Keys.IrkIncluded = TRUE;
                 FLib_MemCpy(req.Keys.Irk, gSmpKeys.aIrk, gcSmpIrkSize_c);
-            }
-
-            if ((pMsg->Data.GAPConnectionEventKeyExchangeRequestIndication.RequestedKeys &
-                (uint8_t)gCsrk_c) == 0U)
-            {
-                req.Keys.CsrkIncluded = FALSE;
-            }
-            else
-            {
-                req.Keys.CsrkIncluded = TRUE;
-                FLib_MemCpy(req.Keys.Csrk, gSmpKeys.aCsrk, gcSmpCsrkSize_c);
             }
 
             req.Keys.RandEdivInfo.RandSize = gSmpKeys.cRandSize;
@@ -1621,7 +1610,7 @@ static void App_DisablePrivacy(void)
 #if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
 /*! *********************************************************************************
 *\fn         void BleConnManager_MCUInfoToSmpKeys(void)
-*\brief      Generates LTK, IRK, CSRK, ediv and rand.
+*\brief      Generates LTK, IRK, ediv and rand.
 *
 *\param[in]  none.
 *
@@ -1648,11 +1637,6 @@ static void BleConnManager_MCUInfoToSmpKeys(void)
         SHA256_Hash (uid, len, sha256Output);
         FLib_MemCpy (gSmpKeys.aIrk, sha256Output, gcSmpIrkSize_c);
 #endif /* gUseCustomIRK_d */
-
-        /* generate CSRK */
-        uid[len - 1U]++;
-        SHA256_Hash (uid, len, sha256Output);
-        FLib_MemCpy (gSmpKeys.aCsrk, sha256Output, gcSmpCsrkSize_c);
 
         /* generate ediv and rand */
         uid[len - 1U]++;

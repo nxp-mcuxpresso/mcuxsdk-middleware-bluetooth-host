@@ -6,7 +6,6 @@ The following acronyms are used in this document.
 |-------|-----------|
 |Bluetooth LE|Bluetooth Low Energy|
 |CCCD|Client Characteristic Configuration Descriptor|
-|CSRK|Connection Signature Resolving Key|
 |ELKE|EdgeLock Secure Enclave|
 |FSCI|Framework Serial Connectivity Interface|
 |GAP|Generic Access Profile|

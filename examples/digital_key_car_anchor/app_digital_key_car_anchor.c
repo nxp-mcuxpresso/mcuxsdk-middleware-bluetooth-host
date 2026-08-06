@@ -99,7 +99,6 @@ static gapSmpKeys_t gAppOutKeys = {
     .cLtkSize = gAppLtkSize_c,
     .aLtk = (void *)gaAppSmpLtk,
     .aIrk = (void *)gaAppSmpIrk,
-    .aCsrk = NULL,
     .aRand = (void *)gaAppSmpRand,
     .cRandSize = gcSmpMaxRandSize_c,
     .ediv = 0,

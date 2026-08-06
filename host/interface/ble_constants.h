@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -34,11 +34,11 @@
 #define gBleBondDataStaticSize_c        (30U)
 #endif /* (gAppSecureMode_d == TRUE) || (gHostSecureMode_d == TRUE) */
 
-#define gBleBondDataLegacySize_c        (28U)
+#define gBleBondDataLegacySize_c        (12U)
 #define gBleBondDataDeviceInfoSize_c    (60U)
 #define gBleBondDataDescriptorSize_c    (4U)
 
-#define gcSecureModeSavedLocalKeysNo_c  (2U)
+#define gcSecureModeSavedLocalKeysNo_c  (1U)
 
 /*! Maximum number of CCCDs */
 #ifndef gcGapMaximumSavedCccds_c
@@ -68,7 +68,7 @@
 /*! Maximum Identity Resolving Key blob size in bytes */
 #define gcSmpMaxIrkBlobSize_c           (40U)
 
-/*! Connection Signature Resolving Key size in bytes */
+/*! Connection Signature Resolving Key size in bytes - deprecated, not used */
 #define gcSmpCsrkSize_c                 (16U)
 
 /*! Maximum Rand size in bytes */

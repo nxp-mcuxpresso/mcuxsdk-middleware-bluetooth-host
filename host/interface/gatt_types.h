@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2021-2023, 2025 NXP
+* Copyright 2016-2019, 2021-2023, 2025-2026 NXP
 *
 *
 * \file
@@ -164,7 +164,6 @@ typedef struct {
         attReadBlobRequestParams_t rbParams;                    /*!< Read Blob Request Parameters. */
         attReadMultipleRequestParams_t rmParams;                /*!< Read Multiple Request Parameters. */
         attVarWriteRequestAndCommandParams_t wParams;           /*!< Write Request and Write Command Parameters for variable value length. */
-        attSignedWriteCommandParams_t swParams;                 /*!< Signed Write Command parameters. */
         attPrepareWriteRequestResponseParams_t pwParams;        /*!< Prepare Write Request and Prepare Write Response Parameters. */
         attExecuteWriteRequestParams_t ewParams;                /*!< Execute Write Request Parameters */
     } reqParams;                                                /*!< Parameters of the GATT procedure */

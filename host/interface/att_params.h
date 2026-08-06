@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2021, 2023 NXP
+* Copyright 2016-2021, 2023, 2026 NXP
 *
 *
 * \file
@@ -180,16 +180,6 @@ typedef struct
     uint16_t  attributeLength;
     uint8_t   attributeValue[1];
 } attVarWriteRequestAndCommandParams_t;
-
-/*! Signed Write Command Parameters */
-typedef struct
-{
-    uint16_t attributeHandle;
-    uint16_t attributeLength;
-    /* Reserved space for the authorized signature generation procedure. Value starts at gAttSignedHdrSize_d */
-    uint8_t  signedValue[gAttSignedHdrSize_d + gAttMaxSignedWriteDataSize_d + gAttAuthSignatureCtrSize_d];
-    uint8_t  authenticationSignature[gAttAuthSignatureSize_d];
-} attSignedWriteCommandParams_t;
 
 /*! Prepare Write Request and Prepare Write Response Parameters */
 typedef struct

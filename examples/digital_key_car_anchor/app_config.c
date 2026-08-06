@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file app_config.c
 *
-* Copyright 2020-2025 NXP
+* Copyright 2020-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -199,16 +199,10 @@ static uint8_t smpRand[gcSmpMaxRandSize_c] =
 /* IRK */
 static uint8_t smpIrk[gcSmpIrkSize_c] = APP_SMP_IRK;
 
-/* CSRK */
-static uint8_t smpCsrk[gcSmpCsrkSize_c] =
-    {0x90, 0xD5, 0x06, 0x95, 0x92, 0xED, 0x91, 0xD7,
-     0xA8, 0x9E, 0x2C, 0xDC, 0x4A, 0x93, 0x5B, 0xF9};
-
 gapSmpKeys_t gSmpKeys = {
     .cLtkSize = mcEncryptionKeySize_c,
     .aLtk = (void *)smpLtk,
     .aIrk = (void *)smpIrk,
-    .aCsrk = (void *)smpCsrk,
     .aRand = (void *)smpRand,
     .cRandSize = gcSmpMaxRandSize_c,
     .ediv = smpEdiv,

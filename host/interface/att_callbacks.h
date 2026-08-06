@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2021, 2023, 2025 NXP
+* Copyright 2016-2021, 2023, 2025-2026 NXP
 *
 *
 * \file
@@ -41,7 +41,6 @@ typedef union
     attReadByGroupTypeRequestParams_t*            pReadByGroupTypeRequestParams;
     attReadByGroupTypeResponseParams_t*           pReadByGroupTypeResponseParams;
     attWriteRequestAndCommandParams_t*            pWriteRequestAndCommandParams;
-    attSignedWriteCommandParams_t*                pSignedWriteCommandParams;
     attPrepareWriteRequestResponseParams_t*       pPrepareWriteRequestResponseParams;
     attExecuteWriteRequestParams_t*               pExecuteWriteRequestParams;
     attHandleValueNotificationIndicationParams_t* pHandleValueNotificationIndicationParams;

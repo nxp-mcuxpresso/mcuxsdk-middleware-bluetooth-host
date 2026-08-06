@@ -4701,11 +4701,6 @@ static void ShellGap_SendSmpKeys(deviceId_t peerDeviceId, gapSmpKeyFlags_t *pReq
         /* When the IRK is NULL the Address and Address Type are not sent and will be ignored. */
     }
 
-    if (0U == ((*pRequestedKeys) & (uint8_t)gCsrk_c))
-    {
-        sentSmpKeys.aCsrk = NULL;
-    }
-
     (void)Gap_SendSmpKeys(peerDeviceId, &sentSmpKeys);
 }
 

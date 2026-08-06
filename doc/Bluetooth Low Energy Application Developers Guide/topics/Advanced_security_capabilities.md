@@ -22,8 +22,6 @@ When enabled, the main benefit of Advanced Secure Mode is the secured storage an
     -   Local and peer IRKs are no longer transmitted through HCI in plaintext but as EIRK \(Encrypted IRK\) blobs, 16 bytes in length, which can be decrypted by the Controller.
 -   LTK
     -   The LTK is no longer stored into NVM as plaintext, but as an ELKE blob. Furthermore, the plaintext of the LTK is never available to the Host/application. Generating the LTK via the ECDH process and generating the Session Key for individual connections is done by the Host via the EdgeLock Secure Enclave and custom vendor HCI messages which are transparent to the application.
--   CSRK
-    -   The local CSRK is no longer generated using the default method of hashing over the board’s UID at every startup. It is instead generated once using the EdgeLock Secure Enclave and stored into a new NVM dataset as an ELKE blob.
 
 At startup, Advanced Secure Mode for the Controller is enabled dynamically by calling:
 

@@ -5,7 +5,7 @@
 
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2021, 2023 NXP
+* Copyright 2016-2019, 2021, 2023, 2026 NXP
 *
 *
 * \file
@@ -224,20 +224,6 @@ void GattDb_AttWriteCommand
     deviceId_t                          deviceId,
     bearerId_t                          bearerId,
     attWriteRequestAndCommandParams_t*  pReqParams
-);
-
-/*!
- * \brief Signed Write Command handler
- *
- * This function handles an ATT Signed Write Command.
- *
- * \param[in] deviceId       The device ID of the requesting ATT Client.
- * \param[in] pReqParams     The command parameters.
- */
-void GattDb_AttSignedWriteCommand
-(
-    deviceId_t                      deviceId,
-    attSignedWriteCommandParams_t*  pReqParams
 );
 
 /*!

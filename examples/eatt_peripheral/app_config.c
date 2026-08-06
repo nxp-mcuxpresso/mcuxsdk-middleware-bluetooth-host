@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2023 NXP
+* Copyright 2016-2023, 2026 NXP
 *
 *
 * \file
@@ -124,16 +124,10 @@ static uint8_t smpIrk[gcSmpIrkSize_c] =
     {0x0A, 0x2D, 0xF4, 0x65, 0xE3, 0xBD, 0x7B, 0x49,
      0x1E, 0xB4, 0xC0, 0x95, 0x95, 0x13, 0x46, 0x73};
 
-/* CSRK */
-static uint8_t smpCsrk[gcSmpCsrkSize_c] =
-    {0x90, 0xD5, 0x06, 0x95, 0x92, 0xED, 0x91, 0xD7,
-     0xA8, 0x9E, 0x2C, 0xDC, 0x4A, 0x93, 0x5B, 0xF9};
-
 gapSmpKeys_t gSmpKeys = {
     .cLtkSize = mcEncryptionKeySize_c,
     .aLtk = (void *)smpLtk,
     .aIrk = (void *)smpIrk,
-    .aCsrk = (void *)smpCsrk,
     .aRand = (void *)smpRand,
     .cRandSize = gcSmpMaxRandSize_c,
     .ediv = smpEdiv,

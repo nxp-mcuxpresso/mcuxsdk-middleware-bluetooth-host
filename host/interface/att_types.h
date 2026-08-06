@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2021, 2023 NXP
+* Copyright 2016-2021, 2023, 2026 NXP
 *
 *
 * \file
@@ -40,12 +40,6 @@
 
 #define gAttOpcodeCmdFlagPos_d       (6U)
 #define gAttOpcodeCmdFlag_d          (1U << gAttOpcodeCmdFlagPos_d)
-
-#define gAttAuthSignatureCtrSize_d   (4U)
-#define gAttAuthSignatureSize_d     (12U)
-
-#define gAttSignedHdrSize_d             (gAttOpcodeSize_d + gAttHandleSize_d)
-#define gAttMaxSignedWriteDataSize_d    (gAttMaxWriteDataSize_d(gAttMaxMtu_c) - gAttAuthSignatureSize_d)
 
 #define gAttTimeoutSeconds_c        (30U)
 
@@ -85,7 +79,6 @@ typedef enum
     gAttOpcodeWriteRequest_c                 = 0x12U,
     gAttOpcodeWriteResponse_c                = 0x13U,
     gAttOpcodeWriteCommand_c                 = 0x52U,
-    gAttOpcodeSignedWriteCommand_c           = 0xD2U,
     /* Queued Writes */
     gAttOpcodePrepareWriteRequest_c          = 0x16U,
     gAttOpcodePrepareWriteResponse_c         = 0x17U,

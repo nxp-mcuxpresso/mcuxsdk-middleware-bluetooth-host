@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2018, 2020-2023, 2025 NXP
+* Copyright 2016-2018, 2020-2023, 2025-2026 NXP
 *
 *
 * \file
@@ -64,26 +64,6 @@
 #define GattClient_CharacteristicWriteWithoutResponse(deviceId, pChar, valueLength, aValue) \
     GattClient_WriteCharacteristicValue\
         (deviceId, pChar, valueLength, aValue, TRUE, FALSE, FALSE, NULL)
-
-/*! *********************************************************************************
-* \brief  Executes the Characteristic Signed Write Without Response operation.
-*
-* \param[in] deviceId       Device ID of the connected GATT Server.
-* \param[in] pChar          Pointer to the Characteristic being written.
-* \param[in] valueLength    Size in bytes of the value to be written.
-* \param[in] aValue         Array of bytes to be written.
-* \param[in] aCsrk          CSRK to be used for data signing.
-*
-* \retval       gBleSuccess_c
-* \retval       gBleInvalidParameter_c      An invalid parameter was provided.
-* \retval       gBleOverflow_c              TX queue for device is full.
-* \retval       gBleOutOfMemory_c           Could not allocate message for Host task.
-* \retval       gBleFeatureNotSupported_c   Host library was compiled without GATT client support.
-*
-********************************************************************************** */
-#define GattClient_CharacteristicSignedWrite(deviceId, pChar, valueLength, aValue, aCsrk) \
-    GattClient_WriteCharacteristicValue\
-        (deviceId, pChar, valueLength, aValue, TRUE, TRUE, FALSE, aCsrk)
 
 /************************************************************************************
 *************************************************************************************
@@ -552,9 +532,9 @@ bleResult_t GattClient_ReadMultipleCharacteristicValues
 * \param[in]  valueLength               Number of bytes to be written.
 * \param[in]  aValue                    Array of bytes to be written.
 * \param[in]  withoutResponse           Indicates if a Write Command is used.
-* \param[in]  signedWrite               Indicates if a Signed Write is performed.
+* \param[in]  signedWrite               Deprecated parameter.
 * \param[in]  doReliableLongCharWrites  Indicates Reliable Long Writes.
-* \param[in]  aCsrk                     The CSRK (gcCsrkSize_d bytes) if signedWrite is TRUE, ignored otherwise.
+* \param[in]  aCsrk                     Deprecated parameter.
 *
 * \remarks If gBleSuccess_c is returned, the completion of this procedure is signaled
 * by the Client Procedure callback.
@@ -1028,9 +1008,9 @@ bleResult_t GattClient_EnhancedReadMultipleCharacteristicValues
 * \param[in]  valueLength               Number of bytes to be written.
 * \param[in]  aValue                    Array of bytes to be written.
 * \param[in]  withoutResponse           Indicates if a Write Command is used.
-* \param[in]  signedWrite               Indicates if a Signed Write is performed.
+* \param[in]  signedWrite               Deprecated parameter.
 * \param[in]  doReliableLongCharWrites  Indicates Reliable Long Writes.
-* \param[in]  aCsrk                     The CSRK (gcCsrkSize_d bytes) if signedWrite is TRUE, ignored otherwise.
+* \param[in]  aCsrk                     Deprecated parameter.
 *
 * \remarks If gBleSuccess_c is returned, the completion of this procedure is signaled
 * by the Client Enhanced Procedure callback.

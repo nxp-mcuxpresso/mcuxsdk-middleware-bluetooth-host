@@ -40,7 +40,7 @@ The device information is divided into several components to ensure that even so
 |**pBondHeader**: points to a bleBondIdentityHeaderBlob\_t element|gBleBondIdentityHeaderSize\_c|Bonding information which is sufficient to identify a bonded device.|
 |**pBondDataDynamic:** points to a bleBondDataDynamicBlob\_t element|gBleBondDataDynamicSize\_c|Bonding information that might change frequently.|
 |**pBondDataStatic**: points to a bleBondDataStaticBlob\_t element|gBleBondDataStaticSize\_c|Bonding information that is unlikely to change frequently.|
-|**pBondDataLegacy**: points to a bleBondDataLegacyBlob\_t element|gBleBondDataLegacySize\_c|Stores legacy pairing and Connection Signature Resolving Key \(CSRK\) bond information.|
+|**pBondDataLegacy**: points to a bleBondDataLegacyBlob\_t element|gBleBondDataLegacySize\_c|Stores legacy pairing bond information.|
 |**pBondDataDeviceInfo**: points to a bleBondDataDeviceInfoBlob\_t element|gBleBondDataDeviceInfoSize\_c|Additional bonding information that can be accessed using the host stack API.|
 |**pBondDataDescriptor**: points to a bleBondDataDescriptorBlob\_t element|gBleBondDataDescriptorSize\_c|Bonding information used to store one Client Characteristic Configuration Descriptor \(CCCD\).|
 
@@ -73,7 +73,7 @@ bleResult_t App_NvmReadLocalKeys
 )
 ```
 
-The functions write/read a structure of type `bleLocalKeysBlob_t` into/from NVM using a dedicated data set. The parameter `mEntryIdx` can be `0` \(local IRK is handled\) or `1` \(local CSRK is handled\).
+The functions write/read a structure of type `bleLocalKeysBlob_t` into/from NVM using a dedicated data set. The parameter `mEntryIdx` is `0` \(local IRK is handled\).
 
 The format of the local keys blob nor about the generation and storage of the local keys is automatically handled in **BLE Connection Manager** \(*BleConnManager\_GenericEvent*\). Therefore the application developer need not manage this aspect.
 

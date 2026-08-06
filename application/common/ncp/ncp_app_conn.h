@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2020-2025 NXP
+* Copyright 2020-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -147,9 +147,7 @@ typedef void (*appBluetoothLEInitCompleteCallback_t)(void);
 
 #if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))
 #define App_NvmWriteLocalIRK(pLocalKey)   App_NvmWriteLocalKeys(0U, pLocalKey)
-#define App_NvmWriteLocalCSRK(pLocalKey)  App_NvmWriteLocalKeys(1U, pLocalKey)
 #define App_NvmReadLocalIRK(pLocalKey)    App_NvmReadLocalKeys(0U, pLocalKey)
-#define App_NvmReadLocalCSRK(pLocalKey)   App_NvmReadLocalKeys(1U, pLocalKey)
 #endif /* (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U)) */
 /*! *********************************************************************************
 *************************************************************************************
@@ -490,7 +488,7 @@ bleResult_t App_NvmRead
 *                                                 void*   pLocalKey )
 *\brief        Write local key to NVM.
 *
-*\param  [in]  mEntryIdx              NVM entry index 0/1 - local IRK/CSRK.
+*\param  [in]  mEntryIdx              NVM entry index 0 - local IRK.
 *\param  [in]  pLocalKey              Pointer to a structure of type bleLocalKeysBlob_t containing the key blob .
 * \return    bleResult_t
 *
@@ -507,7 +505,7 @@ bleResult_t App_NvmWriteLocalKeys
 *                                            void*    pLocalKey)
 *\brief      Read local key from NVM.
 *
-*\param[in]  mEntryIdx              NVM entry index 0/1 - local IRK/CSRK.
+*\param[in]  mEntryIdx              NVM entry index 0 - local IRK.
 *\param[in]  pLocalKey              Pointer to a structure of type bleLocalKeysBlob_t 
 *                                   where the key blob will be read.
 *

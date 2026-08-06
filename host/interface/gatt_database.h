@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2014 Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2021-2023, 2025 NXP
+* Copyright 2016-2019, 2021-2023, 2025-2026 NXP
 *
 *
 * \file
@@ -82,7 +82,7 @@ typedef enum {
     gGattCharPropWrite_c                  = BIT3,     /*!< Characteristic can be written with response. */
     gGattCharPropNotify_c                 = BIT4,     /*!< Characteristic can be notified. */
     gGattCharPropIndicate_c               = BIT5,     /*!< Characteristic can be indicated. */
-    gGattCharPropAuthSignedWrites_c       = BIT6,     /*!< Characteristic can be written with signed data. */
+    gGattCharPropAuthSignedWrites_c       = BIT6,     /*!< Deprecated. Not used. */
     gGattCharPropExtendedProperties_c     = BIT7      /*!< Extended Characteristic properties. */
 } gattCharacteristicPropertiesBitFields_tag;
 

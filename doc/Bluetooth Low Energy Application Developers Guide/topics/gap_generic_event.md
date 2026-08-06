@@ -16,8 +16,8 @@ void BleApp_GenericCallback ( gapGenericEvent_t * pGenericEvent)
 
 In the **BleConnManager\_GenericEvent** function, local keys are generated.
 
--   The local LTK, IRK, and CSRK as well as the EDIV and RAND are obtained hashing over the board’s UID and stored in RAM as plain-text every time the **gInitializationComplete\_c** event is received.
--   In **Advanced Secure** mode, local IRK and CSRK are generated using the EdgeLock Secure Enclave and stored into a dedicated NVM data set as ELKE blobs \(40 bytes blob encrypted using unique die key\) on the first `gInitializationComplete_c` event received.
+-   The local LTK, IRK, as well as the EDIV and RAND are obtained hashing over the board’s UID and stored in RAM as plain-text every time the **gInitializationComplete\_c** event is received.
+-   In **Advanced Secure** mode, local IRK is generated using the EdgeLock Secure Enclave and stored into a dedicated NVM data set as ELKE blobs \(40 bytes blob encrypted using unique die key\) on the first `gInitializationComplete_c` event received.
 
 The NBU Decryption key for IRK is generated and distributed to the NBU over the private key bus. The EIRK blob \(16 bytes blob which can be decrypted only by NBU hardware using NBU Decryption key for IRK\) is generated from the IRK ELKE blob and stored in the RAM to be used for controller privacy on every `gInitializationComplete_c` event received. For the host privacy, the ELKE IRK blob is used instead. For details, refer to the section "[Advanced security capabilities](Advanced_security_capabilities.md)".
 

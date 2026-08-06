@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file app_digital_key_device.c
 *
-* Copyright 2021-2025 NXP
+* Copyright 2021-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -99,7 +99,6 @@ static gapSmpKeys_t gAppOutKeys = {
     .cLtkSize = mcEncryptionKeySize_c,
     .aLtk = (void *)gaAppSmpLtk,
     .aIrk = (void *)gaAppSmpIrk,
-    .aCsrk = NULL,
     .aRand = (void *)gaAppSmpRand,
     .cRandSize = gcSmpMaxRandSize_c,
     .ediv = 0,

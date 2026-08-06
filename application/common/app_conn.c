@@ -1663,8 +1663,7 @@ void App_ConnectionCallback
         /* add room for IRK data */
         msgLen += (pKeys->aIrk != NULL) ?
                   (gcSmpIrkSize_c + gcBleDeviceAddressSize_c) : 0U;
-        /*  add room for CSRK data */
-        msgLen += (pKeys->aCsrk != NULL) ? gcSmpCsrkSize_c : 0U;
+
         /* add room for device address data */
         msgLen += (pKeys->aAddress != NULL) ? (gcBleDeviceAddressSize_c) : 0U;
     }
@@ -1736,15 +1735,6 @@ void App_ConnectionCallback
                 pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->aAddress =
                                     pCursor;
                 FLib_MemCpy(pCursor, pKeys->aAddress, gcBleDeviceAddressSize_c);
-                pCursor += gcBleDeviceAddressSize_c;
-            }
-
-            if (pKeys->aCsrk != NULL)
-            {
-                /* Copy CSRK */
-                pMsgIn->msgData.connMsg.connEvent.eventData.keysReceivedEvent.pKeys->aCsrk =
-                                    pCursor;
-                FLib_MemCpy(pCursor, pKeys->aCsrk, gcSmpCsrkSize_c);
             }
         }
         else if (pConnectionEvent->eventType == gConnEvtIqReportReceived_c)

@@ -38,7 +38,6 @@
  *************************************************************************************
  ************************************************************************************/
 #define BleConnManager_GetLocalIrk(pOut)   BleConnManager_GetLocalKey(0U, pOut);
-#define BleConnManager_GetLocalCsrk(pOut)  BleConnManager_GetLocalKey(1U, pOut);
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -675,7 +674,6 @@ STATIC void BleConnManager_GapPeripheralEventEvtKeyExchangeRequest
     gapSmpKeys_t sentSmpKeys = gSmpKeys;
 #if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))            
     uint8_t aIrk[gcSmpIrkSize_c];
-    uint8_t aCsrk[gcSmpCsrkSize_c];
 #endif
     if ((pConnectionEvent->eventData.keyExchangeRequestEvent.requestedKeys &
         (uint8_t)gLtk_c) == 0U)
@@ -701,18 +699,6 @@ STATIC void BleConnManager_GapPeripheralEventEvtKeyExchangeRequest
     {
         sentSmpKeys.aIrk = aIrk;
         BleConnManager_GetLocalIrk(sentSmpKeys.aIrk);
-    }
-#endif
-    if ((pConnectionEvent->eventData.keyExchangeRequestEvent.requestedKeys &
-        (uint8_t)gCsrk_c) == 0U)
-    {
-        sentSmpKeys.aCsrk = NULL;
-    }
-#if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))
-    else
-    {
-        sentSmpKeys.aCsrk = aCsrk;
-        BleConnManager_GetLocalCsrk(sentSmpKeys.aCsrk);
     }
 #endif
     (void)Gap_SendSmpKeys(peerDeviceId, &sentSmpKeys);
@@ -1008,7 +994,6 @@ STATIC void BleConnManager_GapCentralEventEvtKeyExchangeRequest
     gapSmpKeys_t sentSmpKeys = gSmpKeys;
 #if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))            
     uint8_t aIrk[gcSmpIrkSize_c];
-    uint8_t aCsrk[gcSmpCsrkSize_c];
 #endif
     if ((pConnectionEvent->eventData.keyExchangeRequestEvent.requestedKeys &
         (uint8_t)gLtk_c) == 0U)
@@ -1034,18 +1019,6 @@ STATIC void BleConnManager_GapCentralEventEvtKeyExchangeRequest
     {
         sentSmpKeys.aIrk = aIrk;
         BleConnManager_GetLocalIrk(sentSmpKeys.aIrk);
-    }
-#endif
-    if ((pConnectionEvent->eventData.keyExchangeRequestEvent.requestedKeys &
-        (uint8_t)gCsrk_c) == 0U)
-    {
-        sentSmpKeys.aCsrk = NULL;
-    }
-#if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))
-    else
-    {
-        sentSmpKeys.aCsrk = aCsrk;
-        BleConnManager_GetLocalCsrk(sentSmpKeys.aCsrk);
     }
 #endif
     (void)Gap_SendSmpKeys(peerDeviceId, &sentSmpKeys);
@@ -1232,7 +1205,7 @@ STATIC void BleConnManager_MCUInfoToRandomStaticAddress(void)
 /*! *********************************************************************************
 *\private
 *\fn           void BleConnManager_ManageLocalKeys(void)
-*\brief        Generates local IRK and CSRK and stores them in NVM.
+*\brief        Generates local IRK and stores it in NVM.
 *
 *\param  [in]  none.
 *
@@ -1241,10 +1214,8 @@ STATIC void BleConnManager_MCUInfoToRandomStaticAddress(void)
 STATIC void BleConnManager_ManageLocalKeys(void)
 {
     bleLocalKeysBlob_t localIrk = {0};
-    bleLocalKeysBlob_t localCSRK = {0};
     bool_t lkFailure = TRUE;
     (void)App_NvmReadLocalIRK(&localIrk);
-    (void)App_NvmReadLocalCSRK(&localCSRK);
     do
     {
         if(localIrk.keyGenerated == FALSE)
@@ -1266,18 +1237,7 @@ STATIC void BleConnManager_ManageLocalKeys(void)
                 break;
             }
         }
-        if(localCSRK.keyGenerated == FALSE)
-        {
-            if(gSecSuccess_c != SecLib_GenerateSymmetricKey(gcSmpCsrkSize_c, TRUE, localCSRK.raw ))
-            {
-                break;
-            }
-            localCSRK.keyGenerated = TRUE;
-            if(gBleSuccess_c != App_NvmWriteLocalCSRK(&localCSRK))
-            {
-                break;
-            }
-        }
+
         lkFailure = FALSE;
 #if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
         gPairingParameters.securityModeAndLevel = gSecurityMode_1_Level_4_c;
@@ -1297,7 +1257,7 @@ STATIC void BleConnManager_ManageLocalKeys(void)
 *\fn           void BleConnManager_GetLocalKey(void)
 *\brief        Reads local key blob from NVM and outputs the key in plain text.
 *
-*\param  [in]  id   - local key Entry Index 0/1 IRK/CSRK.
+*\param  [in]  id   - local key Entry Index 0 IRK.
 *
 *\param  [out] pOut - the address of the buffer where the plain text key will de written.
 *
@@ -1321,7 +1281,7 @@ STATIC void BleConnManager_GetLocalKey(uint8_t id, uint8_t* pOut)
 /*! *********************************************************************************
 *\private
 *\fn           void BleConnManager_MCUInfoToSmpKeys(void)
-*\brief        Generates LTK, IRK, CSRK, ediv and rand. Optionally: identity address
+*\brief        Generates LTK, IRK, ediv and rand. Optionally: identity address
 *              (Random Static).
 *
 *\param  [in]  none.
@@ -1349,11 +1309,6 @@ STATIC void BleConnManager_MCUInfoToSmpKeys(void)
         SHA256_Hash (uid, len, sha256Output);
         FLib_MemCpy (gSmpKeys.aIrk, sha256Output, gcSmpIrkSize_c);
 #endif /* gUseCustomIRK_d */
-
-        /* generate CSRK */
-        uid[len - 1U]++;
-        SHA256_Hash (uid, len, sha256Output);
-        FLib_MemCpy (gSmpKeys.aCsrk, sha256Output, gcSmpCsrkSize_c);
 
         /* generate ediv and rand */
         uid[len - 1U]++;

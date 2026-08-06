@@ -64,9 +64,8 @@ For the Security Mode and Level, the GAP layer defines them as follows:
 |—|No security|No MITM protection|Legacy MITM protection|LE secure connections with MITM protection|
 |--|-----------|------------------|----------------------|------------------------------------------|
 |**Mode 1 \(encryption\)** distributed LTK \(EDIV+RAND\) or generated LTK|**Level 1** no security|**Level 2** unauthenticated encryption|**Level 3** authenticated encryption|**Level 4** LE SC authenticated encryption|
-|**Mode 2 \(data signing\)** distributed CSRK|—|**Level 1** unauthenticated data signing|**Level 2** authenticated data signing|—|
 
-The *centralKeys* should have the flags set for all the keys that are available in the application. The IRK is mandatory if the Central is using a Private Resolvable Address, while the CSRK is necessary if the Central wants to use data signing. The LTK is provided by the Peripheral and should only be included if the Central intends on becoming a Peripheral in future reconnections \(GAP role change\).
+The *centralKeys* should have the flags set for all the keys that are available in the application. The IRK is mandatory if the Central is using a Private Resolvable Address. The LTK is provided by the Peripheral and should only be included if the Central intends on becoming a Peripheral in future reconnections \(GAP role change\).
 
 The *peripheralKeys* should follow the same guidelines. The LTK is mandatory if encryption is to be performed, while the peer’s IRK should be requested if the Peripheral is using Private Resolvable Addresses.
 
@@ -87,7 +86,6 @@ The negotiation of the distributed keys is as follows:
 | - | ---------------------- | ------------------------- | ------------------ | ------------------------- |
 | Long Term Key (LTK)<br>+EDIV +RAND | If it wants to be a peripheral in a future reconnection | If it wants encryption | If it wants encryption | If it wants to become a central in a future reconnection |
 | Identity Resolving Key (IRK) | If it uses or intends to use private resolvable addresses | If a peripheral is using a private resolvable address | If it uses or intends to use private resolvable addresses | If a central is using a private resolvable address |
-| Connection Signature Resolving Key (CSRK) | If it wants to sign data as GATT Client | If it wants the peripheral to sign data as GATT Client | If it wants to sign data as GATT Client | If it wants the Central to sign data as GATT Client |
 | Identity address | If it distributes the IRK | N\/A | If it distributes the IRK | N\/A |
 
 -   The Peripheral examines the two distributions and must send an SMP Pairing Response \(started by the *Gap\_AcceptPairingRequest*\) after performing any changes it deems necessary. The Peripheral is only allowed to set to 0 some flags that are set to 1 by the Central, but not the other way around. For example, it cannot request/distribute keys that were not offered/requested by the Central. If the Peripheral is adverse to the Central’s distributions, it can reject the pairing by using the *Gap\_RejectPairing* function.

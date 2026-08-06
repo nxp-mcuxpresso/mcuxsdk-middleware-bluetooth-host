@@ -147,7 +147,6 @@ static gapSmpKeys_t gAppOutKeys = {
     .cLtkSize = mcEncryptionKeySize_c,
     .aLtk = (void *)gaAppSmpLtk,
     .aIrk = (void *)gaAppSmpIrk,
-    .aCsrk = NULL,
     .aRand = (void *)gaAppSmpRand,
     .cRandSize = gcSmpMaxRandSize_c,
     .ediv = 0U,

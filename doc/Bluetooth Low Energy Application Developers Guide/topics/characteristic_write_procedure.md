@@ -20,7 +20,7 @@ It has many parameters to support different combinations of Characteristic Write
 
 The structure pointed to by the *pCharacteristic* is only used for the *value.handle*field which indicates the Characteristic Value Handle. The value to be written is contained in the *aValue* array of size *valueLength*.
 
-The *withoutResponse* parameter can be set to *TRUE* if the application wishes to perform a Write Without Response Procedure, which translates into an ATT Write Command. If this value is selected, the *signedWrite* parameter indicates whether data should be signed \(Signed Write Procedure over ATT Signed Write Command\), in which case the *aCsrk* parameters must not be NULL and contains the CSRK to sign the data with. Otherwise, both *signedWrite* and *aCsrk* are ignored.
+The *withoutResponse* parameter can be set to *TRUE* if the application wishes to perform a Write Without Response Procedure, which translates into an ATT Write Command. Both *signedWrite* and *aCsrk* are deprecated and ignored.
 
 Finally, *doReliableLongCharWrites* should be sent to *TRUE* if the application is writing a long Characteristic Value \(one that requires multiple air packets due to *ATT\_MTU* limitations\) and wants the Server to confirm each part of the attribute that is sent over the air.
 
@@ -41,14 +41,6 @@ This is the simplest usage for writing a Characteristic. It sends an ATT Write R
 ```
 
 This usage sends an ATT Write Command. Long Characteristic values are not allowed here and trigger a *gBleInvalidParameter\_c* error.
-
-```
-#define GattClient_CharacteristicSignedWrite(deviceId, pChar, valueLength, aValue, aCsrk) \
-    GattClient_WriteCharacteristicValue\
-        (deviceId, pChar, valueLength, aValue, TRUE, TRUE, FALSE, aCsrk)
-```
-
-This usage sends an ATT Signed Write Command. The CSRK used to sign data must be provided.
 
 This is a short example to write a 3-byte long Characteristic Value.
 

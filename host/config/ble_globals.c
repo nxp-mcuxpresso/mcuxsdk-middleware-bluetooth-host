@@ -312,7 +312,7 @@ const bool_t gSendEattPsmToEattLayer = gSendEattPsmToEattLayer_c;
 #endif
 
 /*! How to handle ECDH keys generation
- * TRUE - use S200 blobs for LeSC, IRK and CSRK
+ * TRUE - use S200 blobs for LeSC, IRK
  * FALSE - use default framework */
 extern const bool_t gUseS200;
 #if defined(gAppSecureMode_d) && (gAppSecureMode_d == 1U)

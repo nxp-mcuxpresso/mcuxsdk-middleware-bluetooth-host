@@ -452,7 +452,7 @@ typedef enum bleResult_tag
     
     /* SM Tool Box statuses. */
     gSmTbResolvableAddressDoesNotMatchIrk_c                     = gSmStatusBase_c | 0x60U,  /*!< The provided Resolvable Private Address and IRK do not match. */
-    gSmTbInvalidDataSignature_c                                 = gSmStatusBase_c | 0x61U,  /*!< The provided data signature does not match the computed data signature. */
+    /* 0x61 - free to use */
 
     gSmKeySessionKeyDerivationFailed_c                          = gSmStatusBase_c | 0x62U,  /*!< The session key derivation failed. */
 
@@ -954,7 +954,7 @@ typedef enum {
 typedef enum {
     gHciCommandStatus_c = 0x00U,
     gCheckPrivateResolvableAddress_c = 0x01U,
-    gVerifySignature_c = 0x02U,
+    /* 0x02 - free to use */
     gAddNewConnection_c = 0x03U,
     gResetController_c = 0x04U,
     gSetEventMask_c = 0x05U,

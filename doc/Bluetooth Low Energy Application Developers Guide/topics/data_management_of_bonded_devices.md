@@ -7,12 +7,12 @@ The bonded data structure is presented below, together with the GAP APIs that ac
 1.  Bond Header – identity address and address type that uniquely identify a device together with the IRK and privacy mode.
     -   `Gap_GetBondedDevicesIdentityInformation` – for all bonds
 2.  Bond Data Dynamic - security counters for signed operations – managed by the stack
-3.  Bond Data Static – LTK, CSRK, Rand, EDIV, security information for read and write authorizations
+3.  Bond Data Static – LTK, Rand, EDIV, security information for read and write authorizations
     -   `Gap_SaveKeys`– NVM index
     -   `Gap_LoadKeys`– NVM index
     -   `Gap_LoadEncryptionInformation` - deviceId
     -   `Gap_Authorize – deviceId` - GATT Server only
-4.  Bond Data Legacy - Legacy pair information and CSRK
+4.  Bond Data Legacy - Legacy pair information
     -   `Gap_LoadEncryptionInformation` - deviceId
 5.  Bond Data Device Info - custom peer information \(service discovery data\) and device name
     -   `Gap_SaveCustomPeerInformation` - deviceId
@@ -56,7 +56,6 @@ However, there may be some cases when an application wants to manage this data t
 | cLtkSize    | uint8_t           | Encryption Key Size filled by the stack. If aLtk is NULL, this is ignored.<br>In Advanced Secure Mode, this should be the size of the LTK encrypted blob of 40 bytes. |
 | aLtk        | uint8_t\*         | Long Term (Encryption) Key or LTK encrypted blob if Advanced Secure Mode is enabled. NULL if LTK is<br>not distributed, else size is given by cLtkSize                |
 | aIrk        | uint8_t\*         | Identity Resolving Key. NULL if aIrk is not distributed.                                                                                                              |
-| aCsrk       | uint8_t\*         | Connection Signature Resolving Key. NULL if aCsrk is not distributed.                                                                                                 |
 | cRandSize   | uint8_t           | Size of RAND filled by the stack; usually equal to gcSmpMaxRandSize_c. If<br>aLtk is NULL, this is ignored.                                                           |
 | aRand       | uint8_t\*         | RAND value used to identify the LTK. If aLtk is NULL, this is ignored.                                                                                                |
 | ediv        | uint16_t          | EDIV value used to identify the LTK. If aLtk is NULL, this is ignored.                                                                                                |
@@ -71,7 +70,6 @@ The structure for the GAP SMP Key Flags is the following:
   | gNoKeys_c | No key is available.                             |
   | gLtk_c    | Long-Term Key is available.                      |
   | gIrk_c    | Identity Resolving Key is available.             |
-  | gCsrk_c   | Connection Signature Resolving Key is available. |
 
 2.  Save the Keys to create a bond or update an existing bonded device.
 

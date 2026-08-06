@@ -350,11 +350,11 @@
 #define gNoKeys_c   0x00U     /*!< No key can be distributed. */
 #define gLtk_c      BIT0      /*!< Long Term Key. */
 #define gIrk_c      BIT1      /*!< Identity Resolving Key. */
-#define gCsrk_c     BIT2      /*!< Connection Signature Resolving Key. */
+#define gCsrk_c     BIT2      /*!< Connection Signature Resolving Key. Deprecated. Not used. */
 
 /*! LE Security Mode values for gapSecurityMode_t */
 #define gSecurityMode_1_c (0x10U)   /*!< Mode 1 - Encryption required (except for Level 1). */
-#define gSecurityMode_2_c (0x20U)   /*!< Mode 2 - Data Signing required. */
+#define gSecurityMode_2_c (0x20U)   /*!< Mode 2 - Deprecated. Not used. */
 
 /*! LE Security Level values for gapSecurityLevel_t */
 #define gSecurityLevel_NoSecurity_c             (0x00U)   /*!< No security (combined only with Mode 1). */
@@ -367,8 +367,8 @@
 #define gSecurityMode_1_Level_2_c (gSecurityMode_1_c | gSecurityLevel_NoMitmProtection_c)       /*!< Mode 1 Level 2 - Encryption without authentication. */
 #define gSecurityMode_1_Level_3_c (gSecurityMode_1_c | gSecurityLevel_WithMitmProtection_c)     /*!< Mode 1 Level 3 - Encryption with authentication. */
 #define gSecurityMode_1_Level_4_c (gSecurityMode_1_c | gSecurityLevel_LeSecureConnections_c)    /*!< Mode 1 Level 4 - Encryption with LE Secure Connections pairing. */
-#define gSecurityMode_2_Level_1_c (gSecurityMode_2_c | gSecurityLevel_NoMitmProtection_c)       /*!< Mode 2 Level 1 - Data Signing without authentication. */
-#define gSecurityMode_2_Level_2_c (gSecurityMode_2_c | gSecurityLevel_WithMitmProtection_c)     /*!< Mode 2 Level 2 - Data Signing with authentication. */
+#define gSecurityMode_2_Level_1_c (gSecurityMode_2_c | gSecurityLevel_NoMitmProtection_c)       /*!< Mode 2 Level 1 - Deprecated. Not used. */
+#define gSecurityMode_2_Level_2_c (gSecurityMode_2_c | gSecurityLevel_WithMitmProtection_c)     /*!< Mode 2 Level 2 - Deprecated. Not used. */
 
 /*! Reason for rejecting the pairing request used by gapAuthenticationRejectReason_t. These values are equal to the corresponding reasons from SMP. */
 #define gOobNotAvailable_c              (0x02U)     /*!< This device does not have the required OOB for authenticated pairing. */
@@ -426,8 +426,7 @@ typedef struct {
     uint8_t*    aLtk;       /*!< Long Term (Encryption) Key. NULL if LTK is not distributed, else size is given by cLtkSize.*/
 
     uint8_t*    aIrk;       /*!< Identity Resolving Key. NULL if aIrk is not distributed. */
-    uint8_t*    aCsrk;      /*!< Connection Signature Resolving Key. NULL if aCsrk is not distributed. */
-
+    uint8_t*    aCsrk;      /*!< Deprecated - not used. */
     uint8_t     cRandSize;  /*!< Size of RAND; usually equal to gcMaxRandSize_d. If aLtk is NULL, this is ignored. */
     uint8_t*    aRand;      /*!< RAND value used to identify the LTK. If aLtk is NULL, this is ignored. */
     uint16_t    ediv;       /*!< EDIV value used to identify the LTK. If aLtk is NULL, this is ignored. */
