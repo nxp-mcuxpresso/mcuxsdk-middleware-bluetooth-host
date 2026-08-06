@@ -1,0 +1,218 @@
+/*! *********************************************************************************
+ * \defgroup app
+ * @{
+ ********************************************************************************** */
+/*! *********************************************************************************
+* \file app_preinclude.h
+*
+* Copyright 2023-2026 NXP
+*
+* SPDX-License-Identifier: BSD-3-Clause
+********************************************************************************** */
+
+#ifndef _APP_PREINCLUDE_H_
+#define _APP_PREINCLUDE_H_
+
+/*!
+ *  Application specific configuration file only
+ *  Board Specific Configuration shall be added to board.h file directly such as :
+ *  - Number of button on the board,
+ *  - Number of LEDs,
+ *  - etc...
+ */
+/*! *********************************************************************************
+ *     Board Configuration
+ ********************************************************************************** */
+/* Number of Button required by the application */
+#define gAppButtonCnt_c                 1
+
+/* Number of LED required by the application */
+#define gAppLedCnt_c                    0
+
+/*! Enable Debug Console (PRINTF) */
+#define gDebugConsoleEnable_d           0
+
+/*! *********************************************************************************
+ *     App Configuration
+ ********************************************************************************** */
+/*! Enable/disable use of bonding capability */
+#define gAppUseBonding_d                1
+
+/*! Enable/disable use of pairing procedure */
+#define gAppUsePairing_d                1
+
+/*! Enable/disable use of privacy */
+#define gAppUsePrivacy_d                1
+
+/*! Set maximum arguments in command */
+#define SHELL_MAX_ARGS                  20U
+
+/* Use a Random Static address as identity address, instead of a Public address */
+#define gRandomStaticAddress_d          0
+
+/*! Repeated Attempts - Mitigation for pairing attacks */
+#define gRepeatedAttempts_d             0
+
+#define gPasskeyValue_c                 999999
+
+/*! Advertising interval */
+#define gcAdvertisingInterval_c         42
+
+/*! Display distance measurement related timing information */
+#define gAppCsTimeInfo_d                0
+
+/* CS data logging support
+   0 = disabled
+   1 = export CS config data + ranging results
+   2 = export CS config + PBR data + ToF data + ranging results
+  */
+#define gAppLocDataExport_d             0
+
+/* Baudrate for loc data export */
+#if gAppLocDataExport_d > 0
+#define BOARD_APP_UART_BAUDRATE         1000000
+#endif
+
+#define gAppUseShellInApplication_d           1
+
+#define gAppDisableControllerLowPower_d     1
+
+/*! Enable/Disable PowerDown functionality in Application */
+#define gAppLowpowerEnabled_d           0
+
+/* Disable LEDs when enabling low power */
+#if (defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0))
+  #undef gAppLedCnt_c
+  #define gAppLedCnt_c                  0
+#endif
+
+#define gcScanWindow_c                  18U /* 96 ms */
+#define gcScanInterval_c                36U /* 550 ms */
+#define gcConnectionInterval_c          24U /* 30 ms, interval = gcConnectionInterval_c * 1.25ms */
+
+/* Enable/Disable the use of RAS to transfer localization data */
+#define gAppRasDataTransfer_d           1
+
+/* Configure for GATT CCCD types */
+#define gRasUseNotifOrInd_c             gCccdNotification_c
+
+/* Enable/Disable running the selected localization algorithm */
+#define gAppRunAlgo_d                   1
+
+#define gRasRapPtsTest_d                0U
+
+/*! Transient application key demo */
+#define gAppUseTAK_d                    0
+#define gAppTAKAdvID_c                  "TAK_ID"
+
+#define gAppMaxConnections_c            2
+
+/* Maximum number of concurrent Channel Sounding procedures across all connections */
+#define gChannelSoundingMaxConcurrentProcedures_c  2U
+
+/* Validate Channel Sounding configuration */
+#if (gChannelSoundingMaxConcurrentProcedures_c > gAppMaxConnections_c)
+#error "gChannelSoundingMaxConcurrentProcedures_c cannot exceed gAppMaxConnections_c "
+#endif
+
+/* Enable/Disable CS Enhancement: Inline PCT Transfer
+   Only the RADE algorithm supports distance measurement with Inline PCT Transfer */
+#define gAppUseInlinePctTransfer_d            (0U)
+
+#if gAppUseInlinePctTransfer_d
+#define gHostInitEnableExpmFeatures_c         (1U)
+#endif
+/*! *********************************************************************************
+ *     Framework Configuration
+ ********************************************************************************** */
+/* enable NVM to be used as non volatile storage management by the host stack */
+#define gAppUseNvm_d                     1
+
+/* erase NVM pages at download( armgcc only) */
+#if ((defined gAppUseNvm_d) && (gAppUseNvm_d != 0)) && defined(__GNUC__)
+#define gNvmErasePartitionWhenFlashing_c 1U
+#endif
+
+/*! The minimum heap size needed (measured with MEM_STATISTICS) */
+#define MinimalHeapSize_c               60000
+
+#define SHELL_BUFFER_SIZE               (128U)
+#define SHELL_TASK_STACK_SIZE           (1400U)
+
+/*! *********************************************************************************
+ *     BLE Stack Configuration
+ ********************************************************************************** */
+#define gAdvSetHandle_c                         0x00U
+#define gNoAdvSetHandle_c                       0xFFU
+
+ /* Enable Serial Manager interface */
+#define gAppUseSerialManager_c                  1
+
+/* Enable BLE 5.0 */
+#define gBLE50_d                                1
+
+/* Enable 5.1 features */
+#define gBLE51_d                                1
+
+/* Enable 5.2 features */
+#define gBLE52_d                                1
+
+/* Disable GATT caching */
+#define gGattCaching_d                          0
+
+/* Disable GATT automatic robust caching */
+#define gGattAutomaticRobustCachingSupport_d    0
+
+/* Enable Channel Sounding */
+#define gBLE_ChannelSounding_d                  1
+
+#define gAppIsPeripheral_d                      0U
+
+#if gAppIsPeripheral_d
+#define gCentralInitiatedPairing_d
+#endif
+
+/* Channel Sounding role - default initiator */
+#define gCsDefaultRole_c                        gCsRoleInitiator_c
+
+/* Enable the RAS role of Ranging Requestor */
+#define gRasRREQ_d                              1
+
+/* Enalbe Real-Time Data Transfer */
+#define gAppRealTimeDataTransfer_d              0
+
+/* Enable/Disable the saving of RSSI information for mode 1 data.
+   Information available in algorithm result structure */
+#define gAppParseRssiInfo_d                     0
+
+/* Enable/Disable adaptive CS procedure interval based on the RSSI average.
+   EXPERIMENTAL: this feature is provided for evaluation only and is disabled
+   by default.
+   When the procedure auto-restart loop is active, the RSSI average of each
+   iteration is used to adjust the CS procedure interval for the next iteration:
+     - good RSSI -> decrease interval (faster distance report rate)
+     - bad RSSI  -> increase interval (more time for the RAS transfer to finish)
+   Requires gAppParseRssiInfo_d to be enabled. */
+#define gAppAdaptiveProcInterval_d              0
+
+/* Configure high speed CPU clock (96 MHz) */
+#define gAppHighSystemClockFrequency_d          1
+
+#define gHost_TaskStackSize_c                   2200
+
+#define gMainThreadStackSize_c                  3600
+/*! *********************************************************************************
+ *     BLE LL Configuration
+ ***********************************************************************************/
+
+/* Configure high speed NBU clock (64 MHz) */
+/* Set this define if limitations in channel sounding with multiple connections are observed */
+#define gAppHighNBUClockFrequency_d             0
+
+/* Include common configuration file and board configuration file */
+#include "app_preinclude_common.h"
+#endif /* _APP_PREINCLUDE_H_ */
+
+/*! *********************************************************************************
+ * @}
+ ********************************************************************************** */
