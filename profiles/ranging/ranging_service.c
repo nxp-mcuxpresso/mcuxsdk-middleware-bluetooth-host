@@ -813,7 +813,7 @@ bleResult_t Ras_HandleGetRangingDataSegmInd
         maLostSegmRecvIdx[deviceId*3U] = 0U;
         maLostSegmRecvIdx[deviceId*3U + 1U] = 0U;
     }
-    else if (pNotificationData != NULL)
+    else if ((pNotificationData != NULL) && (maRasDynamicCfg[deviceId].pRangingDataBody != NULL))
     {
         segmentData_t *pData = &maSegmentData[maLostSegmRecvIdx[deviceId * 3U]];
 
@@ -852,6 +852,7 @@ bleResult_t Ras_HandleGetRangingDataSegmInd
     if (pNotificationData != NULL)
     {
         (void)MEM_BufferFree(pNotificationData);
+        pNotificationData = NULL;
     }
 
     return result;
@@ -937,7 +938,7 @@ bleResult_t Ras_SendRangingDataIndication
             maRasDynamicCfg[deviceId].pRangingDataBody = NULL;
         }
     }
-    else if (pNotificationData != NULL)
+    else if ((pNotificationData != NULL) && (maRasDynamicCfg[deviceId].pRangingDataBody != NULL))
     {
         FLib_MemSet(pNotificationData, 0U, ((uint32_t)availableLen));
 
@@ -1069,7 +1070,7 @@ bleResult_t Ras_SendRangingDataNotifs
         /* Client has unsubscribed */
         result = gBleInvalidState_c;
     }
-    else if (pNotificationData != NULL)
+    else if ((pNotificationData != NULL) && (maRasDynamicCfg[deviceId].pRangingDataBody != NULL))
     {
         while ((maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex < maRasDynamicCfg[deviceId].pCfg->dataParsedLen) && !Ras_GetNotificationsPause(deviceId))
         {
@@ -1153,7 +1154,6 @@ bleResult_t Ras_SendRangingDataNotifs
                 segmentCounter++;
             }
         }
-        (void)MEM_BufferFree(pNotificationData);
 
         if ((mbServRealTimeTransfer[deviceId] == TRUE) && (Ras_GetNotificationsPause(deviceId) == FALSE))
         {
@@ -1170,6 +1170,12 @@ bleResult_t Ras_SendRangingDataNotifs
     else
     {
         result = gBleOutOfMemory_c;
+    }
+
+    if (pNotificationData != NULL)
+    {
+        (void)MEM_BufferFree(pNotificationData);
+        pNotificationData = NULL;
     }
 
     return result;
@@ -2093,7 +2099,7 @@ static bleResult_t handleGetRangingDataSegmNotif
         /* Client has unsubscribed */
         result = gBleInvalidState_c;
     }
-    else if (pNotificationData != NULL)
+    else if ((pNotificationData != NULL) && (maRasDynamicCfg[deviceId].pRangingDataBody != NULL))
     {
         while ((result == gBleSuccess_c) && (startAbsSegment <= endAbsSegment))
         {
@@ -2119,6 +2125,12 @@ static bleResult_t handleGetRangingDataSegmNotif
     else
     {
         result = gBleOutOfMemory_c;
+    }
+
+    if (pNotificationData != NULL)
+    {
+        (void)MEM_BufferFree(pNotificationData);
+        pNotificationData = NULL;
     }
 
     return result;
