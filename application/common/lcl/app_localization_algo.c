@@ -190,7 +190,7 @@ void AppLocalizationAlgo_RunMeasurement
     }
 #endif /* gAppParseRssiInfo_d */
 
-    if (pResult != NULL)
+    if ((pResult != NULL) && (pLocalData->pData != NULL) && (pPeerData->pData != NULL))
     {
         csAppData_t *pLocalCsAppData = (csAppData_t*)(void*)pLocalData->pData;
         csAppData_t *pRemoteCsAppData = (csAppData_t*)(void*)pPeerData->pData;
@@ -207,7 +207,6 @@ void AppLocalizationAlgo_RunMeasurement
         response.cs_data->main_mode_type    = mRangeSettings[deviceId].main_mode_type;
         response.cs_data->sub_mode_type     = mRangeSettings[deviceId].sub_mode_type;
         response.cs_data->main_mode_repeat  = mRangeSettings[deviceId].main_mode_repeat;
-        response.cs_data->sub_mode_type     = mRangeSettings[deviceId].sub_mode_type;
         response.cs_data->mode0_nb          = mRangeSettings[deviceId].mode0_nb;
         response.cs_data->rtt_type          = mRangeSettings[deviceId].rtt_type;
         response.cs_data->phy               = mRangeSettings[deviceId].phy;
