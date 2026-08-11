@@ -60,8 +60,14 @@
 #define gCSParamPctPhaseRotationPresent_c               BIT6
 #define gCSParamPaRampingControlPresent_c               BIT7
 
-/* The maximum number of antenna pairs used. */
+/* The maximum number of antennas used. */
 #define gCsMaxNumberOfAntennas_c             (4U)
+
+/* The maximum number of antenna paths used. */
+#define gMaxNumAntennaPaths_c                (4U)
+
+/* Absolute maximum number of CS steps in a procedure. */
+#define gCsMaxStepsPerProcedure_c            (256U)
 
 /* Accepted values for SNR control field */
 #define gSNRControlAdjustment18dB_c          (0U)

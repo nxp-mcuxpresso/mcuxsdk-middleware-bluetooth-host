@@ -475,7 +475,7 @@ static void App_RunAlgo
             /* Skip the not-available sentinel samples so they do not skew the average. */
             for (uint8_t idx = 0U; idx < mAlgoResult.rssiInfo.rssiRemoteNo; idx++)
             {
-                if ((idx < gMaxNumCsSteps_c) &&
+                if ((idx < gCsMaxStepsPerProcedure_c) &&
                     (mAlgoResult.rssiInfo.aRssiRemote[idx] != (int8_t)gRssiNotAvailable_c))
                 {
                     rssiSum += (int16_t)mAlgoResult.rssiInfo.aRssiRemote[idx];

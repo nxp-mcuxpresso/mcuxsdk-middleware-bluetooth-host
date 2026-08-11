@@ -417,15 +417,212 @@ void AppLocalizationAlgo_UncompressResponse
     CheckAllLocalDataParsed(pLocalData, pDstAppBuffer);
 }
 
-void* AppLocalizationAlgo_AllocData(void)
+/*! *********************************************************************************
+*\fn         void* AppLocalizationAlgo_AllocData(deviceId_t deviceId);
+*
+*\brief      Allocate a csAppData_t together with its ToF/IQ buffers in one block.
+*            Buffer sizes are derived from mRangeSettings[deviceId]; pTofBuffer is
+*            only allocated when the main or sub mode is 1 or 3.
+*
+*\param[in]  deviceId            Peer identifier used to size the buffers.
+*
+*\retval     void*               Pointer to the allocated csAppData_t, or NULL.
+********************************************************************************** */
+void* AppLocalizationAlgo_AllocData(deviceId_t deviceId)
 {
-    void *pResult = MEM_BufferAlloc(sizeof(csAppData_t));
-    
+    uint16_t steps;
+    uint16_t tofSteps;
+    uint16_t mciqSize;
+    uint16_t tofSize;
+    uint32_t totalSize;
+    uint8_t mainMode, subMode;
+    csAppData_t *pResult;
+
+    steps = AppLocalizationAlgo_GetStepCount(deviceId);
+    mainMode = mRangeSettings[deviceId].main_mode_type;
+    subMode = mRangeSettings[deviceId].sub_mode_type;
+    mciqSize = (uint16_t)(gCsMciqSize_c * gMaxNumAntennaPaths_c * steps);
+    tofSize = 0U;
+    /* ToF records are only produced for mode 1 or mode 3 steps */
+    if ((mainMode == 1U) || (mainMode == 3U))
+    {
+        tofSize = (uint16_t)(gCsTofTsSize_c * steps);
+    }
+    else if (((subMode == 1U) || (subMode == 3U)) && (mRangeSettings[deviceId].main_mode_min != 0U))
+    {
+        /* Sub-mode ToF: worst case one sub-mode step per main_mode_min main-mode steps */
+        tofSteps = steps / (uint16_t)mRangeSettings[deviceId].main_mode_min;
+        tofSize = (uint16_t)(gCsTofTsSize_c * tofSteps);
+    }
+    else
+    {
+        ; /* no ToF records */
+    }
+    totalSize = (uint32_t)sizeof(csAppData_t) + mciqSize + tofSize;
+    pResult = MEM_BufferAlloc(totalSize);
     if (pResult != NULL)
     {
-        FLib_MemSet(pResult, 0, sizeof(csAppData_t));
+        CS_LOG_INFO("AppLocalizationAlgo_AllocLocalData - Allocated %d bytes", totalSize);
+        FLib_MemSet(pResult, 0, totalSize);
+        pResult->allocatedDataSize = totalSize;
+        pResult->pMciqBuffer = (uint8_t *)pResult + sizeof(csAppData_t);
+        pResult->mciqBufferSize = mciqSize;
+
+        if (tofSize != 0U)
+        {
+            pResult->pTofBuffer = pResult->pMciqBuffer + mciqSize;
+            pResult->tofBufferSize = tofSize;
+        }
     }
-    return pResult;
+    return (void *)pResult;
+}
+
+/*! *********************************************************************************
+*\fn         uint16_t AppLocalizationAlgo_GetStepCount(deviceId_t deviceId);
+*
+*\brief      Compute the worst-case CS step count for a peer from mRangeSettings,
+*            capped at gCsMaxStepsPerProcedure_c.
+*
+*\param[in]  deviceId            Peer identifier used for the channel map settings.
+*
+*\retval     uint16_t            Estimated number of CS steps in one procedure.
+********************************************************************************** */
+uint16_t AppLocalizationAlgo_GetStepCount(deviceId_t deviceId)
+{
+    uint32_t stepsAcc;
+    uint8_t setChannels, chIdx, mapByte;
+    /* Steps = channels set in the map times the repeat count, capped at the max */
+    setChannels = 0U;
+    for (chIdx = 0U; chIdx < gCsChannelMapLength_c; chIdx++)
+    {
+        mapByte = mRangeSettings[deviceId].ch_map[chIdx];
+        while (mapByte != 0U)
+        {
+            setChannels += (uint8_t)(mapByte & 1U);
+            mapByte >>= 1U;
+        }
+    }
+    stepsAcc = (uint32_t)setChannels * (uint32_t)mRangeSettings[deviceId].ch_map_repeat;
+    /* Add the main-mode steps inserted after mode0 in each subevent */
+    stepsAcc += (uint32_t)mRangeSettings[deviceId].main_mode_repeat * (uint32_t)gMaxNumCsSubevents_c;
+    if (stepsAcc > (uint32_t)gCsMaxStepsPerProcedure_c)
+    {
+        stepsAcc = (uint32_t)gCsMaxStepsPerProcedure_c;
+    }
+    return (uint16_t)stepsAcc;
+}
+
+/*! *********************************************************************************
+*\fn         uint16_t AppLocalizationAlgo_GetModeStepSize(uint8_t mode);
+*
+*\brief      Return the worst-case ranging-data body size of a single CS step for
+*            the given mode. A mode of 0xFF means no sub-mode, so size 0.
+*            Other unknown modes return the mode-3 size (largest).
+*
+*\param[in]  mode                CS step mode (0-3, or 0xFF for no sub-mode).
+*
+*\retval     uint16_t            Per-step size in bytes.
+********************************************************************************** */
+static uint16_t AppLocalizationAlgo_GetModeStepSize(uint8_t mode)
+{
+    uint16_t stepSize;
+    switch (mode)
+    {
+        case 0U:
+            stepSize = gRangingStepSizeMode0_c;
+            break;
+        case 1U:
+            stepSize = gRangingStepSizeMode1_c;
+            break;
+        case 2U:
+            stepSize = gRangingStepSizeMode2_c;
+            break;
+        case 0xFFU:
+            stepSize = 0U;
+            break;
+        default:
+            stepSize = gRangingStepSizeMode3_c;
+            break;
+    }
+    return stepSize;
+}
+
+/*! *********************************************************************************
+*\fn         uint16_t AppLocalizationAlgo_GetRangingDataSize(deviceId_t deviceId);
+*
+*\brief      Compute the worst-case ranging-data body size for a peer from
+*            mRangeSettings. Every step contributes the main-mode step size; sub-mode
+*            steps (one per main_mode_min main-mode steps) add the sub-mode step size.
+*
+*\param[in]  deviceId            Peer identifier used for the range settings.
+*
+*\retval     uint16_t            Ranging-data buffer size in bytes.
+********************************************************************************** */
+uint16_t AppLocalizationAlgo_GetRangingDataSize(deviceId_t deviceId)
+{
+    uint32_t totalSize;
+    uint16_t steps;
+    uint16_t subSteps;
+    uint16_t mainStep;
+    uint16_t subStep;
+
+    steps = AppLocalizationAlgo_GetStepCount(deviceId);
+    mainStep = AppLocalizationAlgo_GetModeStepSize(mRangeSettings[deviceId].main_mode_type);
+    subStep = AppLocalizationAlgo_GetModeStepSize(mRangeSettings[deviceId].sub_mode_type);
+    /* Sub-mode steps: worst case one per main_mode_min main-mode steps */
+    subSteps = 0U;
+    if (mRangeSettings[deviceId].main_mode_min != 0U)
+    {
+        subSteps = steps / (uint16_t)mRangeSettings[deviceId].main_mode_min;
+    }
+    totalSize = (uint32_t)gRangingDataProcOverhead_c;
+    totalSize += (uint32_t)gMaxNumCsSubevents_c * (uint32_t)gRangingDataSubevtOverhead_c;
+    totalSize += (uint32_t)steps * (uint32_t)mainStep;
+    totalSize += (uint32_t)subSteps * (uint32_t)subStep;
+
+    return (uint16_t)totalSize;
+}
+
+/*! *********************************************************************************
+*\fn         void AppLocalizationAlgo_ClearData(void *pData);
+*
+*\brief      Reset a csAppData_t for a new procedure while preserving the embedded
+*            buffer pointers and their sizes, and re-zeroing the buffer contents.
+*
+*\param[in]  pData               Pointer to the csAppData_t to clear.
+*
+*\retval     none
+********************************************************************************** */
+void AppLocalizationAlgo_ClearData(void *pData)
+{
+    csAppData_t *pAppData = (csAppData_t *)pData;
+    uint8_t *pTof;
+    uint8_t *pMciq;
+    uint16_t tofSize;
+    uint16_t mciqSize;
+    uint32_t allocSize;
+    if (pAppData != NULL)
+    {
+        pTof = pAppData->pTofBuffer;
+        pMciq = pAppData->pMciqBuffer;
+        tofSize = pAppData->tofBufferSize;
+        mciqSize = pAppData->mciqBufferSize;
+        allocSize = pAppData->allocatedDataSize;
+        FLib_MemSet(pAppData, 0, sizeof(csAppData_t));
+        if (pMciq != NULL)
+        {
+            FLib_MemSet(pMciq, 0, mciqSize);
+        }
+        if (pTof != NULL)
+        {
+            FLib_MemSet(pTof, 0, tofSize);
+        }
+        pAppData->pTofBuffer = pTof;
+        pAppData->pMciqBuffer = pMciq;
+        pAppData->tofBufferSize = tofSize;
+        pAppData->mciqBufferSize = mciqSize;
+        pAppData->allocatedDataSize = allocSize;
+    }
 }
 
 #if defined (gRasRREQ_d) && (gRasRREQ_d == 1) || defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1)
@@ -1172,9 +1369,12 @@ static void hciCsStoreBytesInTofBuffer
     int nbBytes
 )
 {
-    assert((appData->tofBufferOffset + (uint16_t)nbBytes) <= sizeof(appData->tofBuffer));
-    FLib_MemCpy(appData->tofBuffer + appData->tofBufferOffset, source, (uint32_t)nbBytes);
-    appData->tofBufferOffset += (uint16_t)nbBytes;
+    if ((appData->pTofBuffer != NULL) &&
+       ((appData->tofBufferOffset + (uint16_t)nbBytes) <= appData->tofBufferSize))
+    {
+        FLib_MemCpy(appData->pTofBuffer + appData->tofBufferOffset, source, (uint32_t)nbBytes);
+        appData->tofBufferOffset += (uint16_t)nbBytes;
+    }
 }
 
 /*! *********************************************************************************
@@ -1197,9 +1397,12 @@ static void hciCsStoreBytesInIqBuffer
     int nbBytes
 )
 {
-    assert((appData->mciqBufferOffset + (uint16_t)nbBytes) <= sizeof(appData->mciqBuffer));
-    FLib_MemCpy(appData->mciqBuffer + appData->mciqBufferOffset, source, (uint32_t)nbBytes);
-    appData->mciqBufferOffset += (uint16_t)nbBytes;
+    if ((appData->pMciqBuffer != NULL) &&
+       ((appData->mciqBufferOffset + (uint16_t)nbBytes) <= appData->mciqBufferSize))
+    {
+        FLib_MemCpy(appData->pMciqBuffer + appData->mciqBufferOffset, source, (uint32_t)nbBytes);
+        appData->mciqBufferOffset += (uint16_t)nbBytes;
+    }
 }
 
 #if defined (gRasRREQ_d) && (gRasRREQ_d == 1)

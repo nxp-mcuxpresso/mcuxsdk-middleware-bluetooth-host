@@ -29,6 +29,7 @@
 #include "gap_interface.h"
 #include "app_conn.h"
 #include "app_localization_debug.h"
+#include "app_localization_utils.h"
 
 #if defined(gAppRunAlgo_d)
 #include "app_localization_algo.h"
@@ -1688,7 +1689,7 @@ void* AppLocalization_AllocLocalData
     if (mResultData[deviceId].pData == NULL)
     {
 #if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U)) || (defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1U))
-        mResultData[deviceId].pData = MEM_BufferAlloc(sizeof(csAppData_t));
+        mResultData[deviceId].pData = AppLocalizationAlgo_AllocData(deviceId);
 #endif
     }
 
@@ -1713,7 +1714,7 @@ void AppLocalization_ClearLocalData
     if (mResultData[deviceId].pData != NULL)
     {
 #if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U)) || (defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1U))
-        FLib_MemSet(mResultData[deviceId].pData, 0U, sizeof(csAppData_t));
+        AppLocalizationAlgo_ClearData(mResultData[deviceId].pData);
 #endif
     }
 }
@@ -3968,6 +3969,7 @@ static bleResult_t processEventResultData
 {
     bleResult_t result = gBleSuccess_c;
     uint32_t dataSize = 0;
+    uint32_t bufferSize = 0U;
     uint8_t *stepDataLenPtr = pEventData + 2U * sizeof(uint8_t); /* Skip mode, channel */
     uint8_t subeventIndex = mResultData[deviceId].subeventIndex;
 
@@ -3977,8 +3979,19 @@ static bleResult_t processEventResultData
         dataSize += ((uint32_t)*(stepDataLenPtr + dataSize)) + sizeof(uint8_t) * 3U; /* also account for mode, channel, data_length fields */
     }
 
-    if ((dataSize >= gMeasurementBufferSize_c) ||
-        (mResultData[deviceId].dataIndex >= (gMeasurementBufferSize_c - dataSize)))
+    /* Memorized size of the destination buffer that receives this data:
+       client stores into the pData block, servers into the ranging-data body. */
+#if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U)) || (defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1U))
+    if (mResultData[deviceId].pData != NULL)
+    {
+        bufferSize = ((csAppData_t*)(void*)mResultData[deviceId].pData)->allocatedDataSize;
+    }
+#else
+    bufferSize = (uint32_t)AppLocalizationAlgo_GetRangingDataSize(deviceId);
+#endif
+
+    if ((dataSize >= bufferSize) ||
+        (mResultData[deviceId].dataIndex >= (bufferSize - dataSize)))
     {
         result = gBleOutOfMemory_c;
         AppLocalizationError(deviceId, gAppLclNoSubeventMemoryAvailable_c);

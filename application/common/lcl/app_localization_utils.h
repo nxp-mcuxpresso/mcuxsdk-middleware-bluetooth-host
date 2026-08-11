@@ -42,6 +42,29 @@
 
 /* Size of Packet_PCT field for mode 1 and 3 data */
 #define gPacket_PCTSize_c       (4U)
+
+/* Every step in the ranging-data body carries a 1-byte step-mode prefix. */
+#define gRangingStepModeHdrSize_c (1U)
+
+/* Worst-case tone data per step: one IQ PCT plus one quality byte for every
+   antenna path, with one extra path slot in the switching sequence. */
+#define gRangingToneBlockSize_c ((gMaxNumAntennaPaths_c + 1U) * (gTone_PCTSize_c + 1U))
+
+/* Per-step ranging-data body size by CS mode (worst case, all fields kept).
+   Mode 0: quality + rssi + antenna + measured frequency offset.
+   Mode 1: quality + nadm + rssi + ToA/ToD + antenna + PCT1 + PCT2.
+   Mode 2: antenna permutation index + tone block.
+   Mode 3: mode-1 fields + antenna permutation index + tone block. */
+#define gRangingStepSizeMode0_c (gRangingStepModeHdrSize_c + 5U)
+#define gRangingStepSizeMode1_c (gRangingStepModeHdrSize_c + 12U)
+#define gRangingStepSizeMode2_c (gRangingStepModeHdrSize_c + 1U + gRangingToneBlockSize_c)
+#define gRangingStepSizeMode3_c (gRangingStepModeHdrSize_c + 13U + gRangingToneBlockSize_c)
+
+/* Fixed framing overhead: procedure and segment headers, plus per-subevent
+   header. Generous upper bound for both RAS and BTCS output framings. */
+#define gRangingDataProcOverhead_c   (32U)
+#define gRangingDataSubevtOverhead_c (16U)
+
 /************************************************************************************
 *************************************************************************************
 * Private type definitions
@@ -117,8 +140,8 @@ typedef struct cs_data_tag {
     uint16_t conn_interval;
     uint16_t subevt_interval;
     void *csAlgoBuf;
-    uint8_t channelMap[gMaxNumCsSteps_c];
-    uint8_t modeMap[gMaxNumCsSteps_c];
+    uint8_t channelMap[gCsMaxStepsPerProcedure_c];
+    uint8_t modeMap[gCsMaxStepsPerProcedure_c];
     uint8_t *modeMapRemote;
     uint8_t subevtStopIdxLocal[gMaxNumCsSubevents_c];
     uint8_t subevtStopIdxRemote[gMaxNumCsSubevents_c];
@@ -135,42 +158,6 @@ typedef struct cs_data_tag {
     uint8_t mode0_total_remote;    /* Total mode0 steps collected - remote */
 } cs_data_t;
 
-/* Buffer storing last captured IQ and corresponding params */
-typedef struct debug_data_tag {
-    uint16_t step_nb;
-    uint16_t n_pairs;
-    uint16_t samplesPerStep;
-    uint16_t samplesPerStepMode0;
-    uint16_t iqBufLength;
-    uint8_t *iq;
-    uint16_t samples_nb[gMaxNumCsSteps_c];
-} debug_data_t;
-
-typedef PACKED_STRUCT event_internal_tag {
-    uint32_t   flags;              /*!< Error flags @see CS_flags */
-    int32_t    sync_cfo;           /*!< CFO [Hz] measured during during alignment phase*/
-    uint8_t    sync_step_id;       /*!< Step number of mode 0 retained for the synch phase */
-    int8_t     sync_rssi;          /*!< RSSI [dB] obtained during alignment phase */
-    uint8_t    sync_rxgain;        /*!< RX gain (AGC index) set during alignment phase */
-    uint8_t    xtal_trim;          /*!< Xtal trim value used after alignement phase */
-    uint16_t   agc_delay;          /*!< AGC group delay corresponding to selected RX gain */
-    int8_t     temperature;        /*!< Temperature of device during measurement */
-    uint8_t    num_time_adj;       /*!< Number of time-grid adjustement in event */
-} event_internal_t;
-
-typedef PACKED_STRUCT rtt_internal_tag
-{
-    uint16_t t1;
-    uint16_t t2;
-    uint32_t hartt_stat;
-    uint32_t stat0;
-} rtt_internal_t;
-
-typedef PACKED_STRUCT mciq_internal_tag
-{
-    uint8_t ctune;
-} mciq_internal_t;
-
 typedef struct isp_meas_response_tag {
     mciq_data_t mciq_data[2]; /* 0=initiator, 1=reflector */
     tof_data_t tof_data[2];   /* 0=initiator, 1=reflector */
@@ -178,9 +165,6 @@ typedef struct isp_meas_response_tag {
 } isp_meas_response_t;
 
 typedef struct csAppData_tag {
-    bool_t locked; /* locked for read access */
-    uint32_t csStepsReceived;
-    uint16_t dbgFlags;
     tof_data_t tof_data;
     mciq_data_t mciq_data;
     cs_data_t csData;
@@ -190,14 +174,20 @@ typedef struct csAppData_tag {
     uint16_t mciqBufferOffset;
     uint16_t mode0BufferOffset;
 
-    /* Buffers */
-    uint8_t tofBuffer[gCsTofTsSize_c * gMaxNumCsSteps_c];
-    uint8_t mciqBuffer[gCsMciqSize_c * gMaxNumAntennaPaths_c * gMaxNumCsSteps_c];
+    /* Buffers. pTofBuffer and pMciqBuffer are allocated together with this struct
+       in a single block; their byte sizes depend on ch_map_repeat and the CS
+       mode. pTofBuffer is NULL when neither main nor sub mode is 1 or 3. */
+    uint8_t *pTofBuffer;
+    uint8_t *pMciqBuffer;
+    uint16_t tofBufferSize;
+    uint16_t mciqBufferSize;
+    uint32_t allocatedDataSize; /* Total size of this block plus its ToF/IQ buffers */
+
     mode0_data_t mode0Buffer[gMaxNumCsStepsMode0_c * gMaxNumCsSubevents_c];
 
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1)
     uint8_t rssiStepNo;
-    int8_t aRssiValue[gMaxNumCsSteps_c];
+    int8_t aRssiValue[gCsMaxStepsPerProcedure_c];
 #endif /* gAppParseRssiInfo_d */
 } csAppData_t;
 
@@ -217,7 +207,55 @@ extern const uint8_t gaAntPermNAp[24][4];
 extern "C" {
 #endif /* __cplusplus */
 
-void* AppLocalizationAlgo_AllocData(void);
+/*! *********************************************************************************
+*\fn         void* AppLocalizationAlgo_AllocData(deviceId_t deviceId);
+*
+*\brief      Allocate a csAppData_t together with its ToF/IQ buffers in one block.
+*            Buffer sizes are derived from mRangeSettings[deviceId]; pTofBuffer is
+*            only allocated when the main or sub mode is 1 or 3.
+*
+*\param[in]  deviceId            Peer identifier used to size the buffers.
+*
+*\retval     void*               Pointer to the allocated csAppData_t, or NULL.
+********************************************************************************** */
+void* AppLocalizationAlgo_AllocData(deviceId_t deviceId);
+
+/*! *********************************************************************************
+*\fn         uint16_t AppLocalizationAlgo_GetStepCount(deviceId_t deviceId);
+*
+*\brief      Compute the worst-case CS step count for a peer from mRangeSettings,
+*            capped at gCsMaxStepsPerProcedure_c.
+*
+*\param[in]  deviceId            Peer identifier used for the channel map settings.
+*
+*\retval     uint16_t            Estimated number of CS steps in one procedure.
+********************************************************************************** */
+uint16_t AppLocalizationAlgo_GetStepCount(deviceId_t deviceId);
+
+/*! *********************************************************************************
+*\fn         uint16_t AppLocalizationAlgo_GetRangingDataSize(deviceId_t deviceId);
+*
+*\brief      Compute the ranging-data body buffer size for a peer from
+*            mRangeSettings. Per-step size uses the larger of the configured main
+*            and sub mode; total adds fixed procedure and per-subevent framing.
+*
+*\param[in]  deviceId            Peer identifier used for the CS configuration.
+*
+*\retval     uint16_t            Ranging-data body size in bytes.
+********************************************************************************** */
+uint16_t AppLocalizationAlgo_GetRangingDataSize(deviceId_t deviceId);
+
+/*! *********************************************************************************
+*\fn         void AppLocalizationAlgo_ClearData(void *pData);
+*
+*\brief      Reset a csAppData_t for a new procedure while preserving the embedded
+*            buffer pointers and their sizes, and re-zeroing the buffer contents.
+*
+*\param[in]  pData               Pointer to the csAppData_t to clear.
+*
+*\retval     none
+********************************************************************************** */
+void AppLocalizationAlgo_ClearData(void *pData);
 
 #if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U))
 /*! *********************************************************************************

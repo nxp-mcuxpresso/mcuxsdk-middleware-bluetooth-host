@@ -23,6 +23,7 @@
 #include "channel_sounding.h"
 #include "btcs_server_interface.h"
 #include "app_localization_utils.h"
+#include "app_localization_debug.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -47,8 +48,9 @@
 ************************************************************************************/
 typedef PACKED_STRUCT btcsRangingData_tag
 {
-    rasMeasurementData_t* pCfg;         /* configuration information + raw data */
-    uint8_t*              pRangingData; /* Parsed ranging data body */
+    rasMeasurementData_t* pCfg;           /* configuration information + raw data */
+    uint8_t*              pRangingData;   /* Parsed ranging data body */
+    uint16_t              rangingDataSize; /* Allocated size of pRangingData */
 } btcsRangingData_t;
 
 /* Segment indexation information */
@@ -228,15 +230,17 @@ bleResult_t BtcsServer_BuildRangingData
     {
         if (mpRangingData[deviceId].pRangingData == NULL)
         {
-            /* Allocate ranging data */
-            mpRangingData[deviceId].pRangingData = MEM_BufferAlloc(gMaxCsSubeventDataSize_c);
+            /* Allocate ranging data, sized from the peer CS configuration */
+            mpRangingData[deviceId].rangingDataSize = AppLocalizationAlgo_GetRangingDataSize(deviceId);
+            mpRangingData[deviceId].pRangingData = MEM_BufferAlloc(mpRangingData[deviceId].rangingDataSize);
             if (mpRangingData[deviceId].pRangingData == NULL)
             {
                 result = gBleOutOfMemory_c;
             }
             else
             {
-                FLib_MemSet(mpRangingData[deviceId].pRangingData, 0U, gMaxCsSubeventDataSize_c);
+                CS_LOG_INFO("BtcsServer_BuildRangingData - Allocated %d bytes", mpRangingData[deviceId].rangingDataSize);
+                FLib_MemSet(mpRangingData[deviceId].pRangingData, 0U, mpRangingData[deviceId].rangingDataSize);
             }
         }
     }
@@ -410,7 +414,7 @@ void BtcsServer_ResetPeer
     /* Clean up ranging data */
     if (mpRangingData[deviceId].pRangingData != NULL)
     {
-        FLib_MemSet(mpRangingData[deviceId].pRangingData, 0U, gMaxCsSubeventDataSize_c);
+        FLib_MemSet(mpRangingData[deviceId].pRangingData, 0U, mpRangingData[deviceId].rangingDataSize);
     }
 
     /* Clean up segment information */
@@ -427,6 +431,7 @@ void BtcsServer_ResetPeer
         /* Free allocated buffer */
         (void)MEM_BufferFree(mpRangingData[deviceId].pRangingData);
         mpRangingData[deviceId].pRangingData = NULL;
+        mpRangingData[deviceId].rangingDataSize = 0U;
         /* Reset config pointer */
         mpRangingData[deviceId].pCfg = NULL;
     }

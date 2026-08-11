@@ -22,11 +22,6 @@
 * Public macros
 *************************************************************************************
 ************************************************************************************/
-/* Maximum data size for a CS subevent */
-#ifndef gMaxCsSubeventDataSize_c
-#define gMaxCsSubeventDataSize_c            (2300U)
-#endif
-
  /* Rough estimation of worst case CS procedure duration for WR
  (depends on subevent fragmentation, n_ap ..., assumes 4 AP, 80 channels in a single subevent) */
 #define gMaxCsProcDurationMs_c              (40U)
@@ -73,12 +68,6 @@
 #ifndef gAppDeferAlgoRun_d
 #define gAppDeferAlgoRun_d                  FALSE
 #endif
-
-/* Maximum number of CS steps in a procedure */
-#ifndef gMaxNumCsSteps_c
-#define gMaxNumCsSteps_c                    (160U)
-#endif
-
 /* Maximum number of mode-0 CS steps in a subevent */
 #ifndef gMaxNumCsStepsMode0_c
 #define gMaxNumCsStepsMode0_c               (3U)
@@ -88,9 +77,6 @@
 #ifndef gMaxNumCsSubevents_c
 #define gMaxNumCsSubevents_c                (10U)
 #endif
-
-/* The maximum number of antenna paths used. */
-#define gMaxNumAntennaPaths_c               (4U)
 
 /* Number of antennas and antenna paths used at initialization.
    On KW47 / MCXW72 with Inline PCT Transfer (IPT) enabled, only the 1x1
@@ -110,10 +96,6 @@
 #define gNumAntennas_c                      (1U)
 #endif
 #endif
-
-/* Measurement data buffer size: ToF and IQ data for the max number of steps */
-#define gMeasurementDataSizeMax_c           (4UL /* HCI data header */ + (6U + 1U + 4U * (1U + gMaxNumAntennaPaths_c)) /* Mode 3 HCI length */)
-#define gMeasurementBufferSize_c            (gMeasurementDataSizeMax_c * gMaxNumCsSteps_c)
 
 /* Maximum concurrent CS procedures */
 #ifndef gChannelSoundingMaxConcurrentProcedures_c

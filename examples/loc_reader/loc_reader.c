@@ -2924,7 +2924,7 @@ static void BleApp_PrintRssiInfo
            not-available sentinel samples so they do not skew the result. */
         for (uint8_t idx = 0U; idx < pResult->rssiInfo.rssiLocalNo; idx++)
         {
-            if ((idx < gMaxNumCsSteps_c) &&
+            if ((idx < gCsMaxStepsPerProcedure_c) &&
                 (pResult->rssiInfo.aRssiLocal[idx] != (int8_t)gRssiNotAvailable_c))
             {
                 rssiLocalSum += (int16_t)pResult->rssiInfo.aRssiLocal[idx];
@@ -2960,7 +2960,7 @@ static void BleApp_PrintRssiInfo
            not-available sentinel samples so they do not skew the result. */
         for (uint8_t idx = 0U; idx < pResult->rssiInfo.rssiRemoteNo; idx++)
         {
-            if ((idx < gMaxNumCsSteps_c) &&
+            if ((idx < gCsMaxStepsPerProcedure_c) &&
                 (pResult->rssiInfo.aRssiRemote[idx] != (int8_t)gRssiNotAvailable_c))
             {
                 rssiRemoteSum += (int16_t)pResult->rssiInfo.aRssiRemote[idx];
@@ -3020,7 +3020,7 @@ static void BleApp_PrintMeasurementResults
                not-available sentinel samples so they do not skew the average. */
             for (uint8_t idx = 0U; idx < pResult->rssiInfo.rssiRemoteNo; idx++)
             {
-                if ((idx < gMaxNumCsSteps_c) &&
+                if ((idx < gCsMaxStepsPerProcedure_c) &&
                     (pResult->rssiInfo.aRssiRemote[idx] != (int8_t)gRssiNotAvailable_c))
                 {
                     rssiSum += (int16_t)pResult->rssiInfo.aRssiRemote[idx];

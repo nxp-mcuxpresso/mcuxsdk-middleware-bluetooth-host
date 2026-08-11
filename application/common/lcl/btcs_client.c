@@ -174,7 +174,7 @@ void BtcsClient_ResetPeer
     /* Clean up ranging data */
     if (mPeerResultData[deviceId].pData != NULL)
     {
-        FLib_MemSet(mPeerResultData[deviceId].pData, 0U, gMaxCsSubeventDataSize_c);
+        AppLocalizationAlgo_ClearData(mPeerResultData[deviceId].pData);
     }
     mSubEvtInfo[deviceId].crtSubEvtIdx = 0U;
     mSubEvtInfo[deviceId].parsedStepsCrtSubEvt = 0U;
@@ -546,7 +546,7 @@ static bleResult_t handleRangingProcResStart
     /* Reset data in preparation for a new procedure */
     if ((result == gBleSuccess_c) && (pRemoteData->pData == NULL))
     {
-        pRemoteData->pData = AppLocalizationAlgo_AllocData();
+        pRemoteData->pData = AppLocalizationAlgo_AllocData(deviceId);
         if (pRemoteData->pData == NULL)
         {
             result = gBleOutOfMemory_c;
@@ -557,7 +557,7 @@ static bleResult_t handleRangingProcResStart
     {
         /* Clean up data */
         FLib_MemSet(&mPeerResultData[deviceId], 0U, sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
-        FLib_MemSet(pRemoteData->pData, 0U, gMaxCsSubeventDataSize_c);
+        AppLocalizationAlgo_ClearData(pRemoteData->pData);
         mSubEvtInfo[deviceId].crtSubEvtIdx = 0U;
         mSubEvtInfo[deviceId].parsedStepsCrtSubEvt = 0U;
 

@@ -185,8 +185,8 @@ void AppLocalizationAlgo_RunMeasurement
     {
         pResult->rssiInfo.rssiLocalNo = 0U;
         pResult->rssiInfo.rssiRemoteNo = 0U;
-        FLib_MemSet(pResult->rssiInfo.aRssiLocal, gRssiNotAvailable_c, gMaxNumCsSteps_c);
-        FLib_MemSet(pResult->rssiInfo.aRssiRemote, gRssiNotAvailable_c, gMaxNumCsSteps_c);
+        FLib_MemSet(pResult->rssiInfo.aRssiLocal, gRssiNotAvailable_c, gCsMaxStepsPerProcedure_c);
+        FLib_MemSet(pResult->rssiInfo.aRssiRemote, gRssiNotAvailable_c, gCsMaxStepsPerProcedure_c);
     }
 #endif /* gAppParseRssiInfo_d */
 
@@ -256,17 +256,17 @@ void AppLocalizationAlgo_RunMeasurement
         {
             /* MCIQ */
             response.mciq_data[0] = csDataBuffer0->mciq_data;
-            response.mciq_data[0].iq = (uint8_t *)(csDataBuffer0->mciqBuffer);
+            response.mciq_data[0].iq = (uint8_t *)(csDataBuffer0->pMciqBuffer);
             response.mciq_data[1] = csDataBuffer1->mciq_data;
-            response.mciq_data[1].iq = (uint8_t *)(csDataBuffer1->mciqBuffer);
+            response.mciq_data[1].iq = (uint8_t *)(csDataBuffer1->pMciqBuffer);
         }
         if (pLocalCsAppData->tof_data.nbSteps != 0U)
         {
             /* ToF */
             response.tof_data[0] = csDataBuffer0->tof_data;
-            response.tof_data[0].ts = csDataBuffer0->tofBuffer;
+            response.tof_data[0].ts = csDataBuffer0->pTofBuffer;
             response.tof_data[1] = csDataBuffer1->tof_data;
-            response.tof_data[1].ts = csDataBuffer1->tofBuffer;
+            response.tof_data[1].ts = csDataBuffer1->pTofBuffer;
         }
 
         /* Set mode0 data pointers and total counts */
@@ -351,10 +351,10 @@ void AppLocalizationAlgo_RunMeasurement
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1)
         /* Copy local RSSI info */
         pResult->rssiInfo.rssiLocalNo = pLocalCsAppData->rssiStepNo;
-        FLib_MemCpy(pResult->rssiInfo.aRssiLocal, pLocalCsAppData->aRssiValue, gMaxNumCsSteps_c);
+        FLib_MemCpy(pResult->rssiInfo.aRssiLocal, pLocalCsAppData->aRssiValue, gCsMaxStepsPerProcedure_c);
         /* Copy remote RSSI info */
         pResult->rssiInfo.rssiRemoteNo = pRemoteCsAppData->rssiStepNo;
-        FLib_MemCpy(pResult->rssiInfo.aRssiRemote, pRemoteCsAppData->aRssiValue, gMaxNumCsSteps_c);
+        FLib_MemCpy(pResult->rssiInfo.aRssiRemote, pRemoteCsAppData->aRssiValue, gCsMaxStepsPerProcedure_c);
 #endif /* gAppParseRssiInfo_d */
     }
     return;

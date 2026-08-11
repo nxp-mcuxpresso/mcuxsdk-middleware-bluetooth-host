@@ -324,10 +324,10 @@ static void RasClient_ProcessMismatchedSegment
 {
     uint8_t currentIdx;
 
-    /* Store new notifications in a temporary buffer */
+    /* Store new notifications in a temporary buffer, sized from the peer CS configuration */
     if (mRasTransferInfo[deviceId].pNotifTempBuffer == NULL)
     {
-        mRasTransferInfo[deviceId].pNotifTempBuffer = MEM_BufferAlloc(gMaxCsSubeventDataSize_c);
+        mRasTransferInfo[deviceId].pNotifTempBuffer = MEM_BufferAlloc(AppLocalizationAlgo_GetRangingDataSize(deviceId));
     }
 
     if (mRasTransferInfo[deviceId].pNotifTempBuffer != NULL)
@@ -514,7 +514,7 @@ bleResult_t RasClient_StorePeerMeasurementData
     {
         if (mPeerResultData[deviceId].pData == NULL)
         {
-            mPeerResultData[deviceId].pData = AppLocalizationAlgo_AllocData();
+            mPeerResultData[deviceId].pData = AppLocalizationAlgo_AllocData(deviceId);
 
             if (mPeerResultData[deviceId].pData == NULL)
             {
@@ -1169,9 +1169,9 @@ void RasClient_ResetPeerInfo
     if (mPeerResultData[deviceId].pData != NULL)
     {
 #if gRasRREQ_d || gAppBtcsClient_d
-        FLib_MemSet(mPeerResultData[deviceId].pData, 0U, sizeof(csAppData_t));
+        AppLocalizationAlgo_ClearData(mPeerResultData[deviceId].pData);
 #elif gRasRRSP_d || gAppBtcsServer_d
-        FLib_MemSet(mPeerResultData[deviceId].pData, 0U, gMaxCsSubeventDataSize_c);
+        FLib_MemSet(mPeerResultData[deviceId].pData, 0U, AppLocalizationAlgo_GetRangingDataSize(deviceId));
 #else
 #warning "Not supported"
 #endif

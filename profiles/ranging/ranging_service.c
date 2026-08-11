@@ -33,6 +33,7 @@
 #include "att_types.h"
 #include "ranging_interface.h"
 #include "app_localization_utils.h"
+#include "app_localization_debug.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -1219,6 +1220,7 @@ bleResult_t Ras_BuildRangingDataBody
     uint16_t currentDataIdx = 0U;
     bleResult_t result = gBleSuccess_c;
     uint8_t subEvtIdx = 0U;
+    uint16_t rangingDataSize = 0U;
 
     if (maRasDynamicCfg[deviceId].pCfg == NULL)
     {
@@ -1229,14 +1231,17 @@ bleResult_t Ras_BuildRangingDataBody
     {
         if (maRasDynamicCfg[deviceId].pRangingDataBody == NULL)
         {
-            maRasDynamicCfg[deviceId].pRangingDataBody = MEM_BufferAlloc(gMaxCsSubeventDataSize_c);
+            /* Size the ranging-data body from the peer CS configuration */
+            rangingDataSize = AppLocalizationAlgo_GetRangingDataSize(deviceId);
+            maRasDynamicCfg[deviceId].pRangingDataBody = MEM_BufferAlloc(rangingDataSize);
             if (maRasDynamicCfg[deviceId].pRangingDataBody == NULL)
             {
                 result = gBleOutOfMemory_c;
             }
             else
             {
-                FLib_MemSet(maRasDynamicCfg[deviceId].pRangingDataBody, 0U, gMaxCsSubeventDataSize_c);
+                CS_LOG_INFO("Ras_BuildRangingDataBody - Allocated %d bytes", rangingDataSize);
+                FLib_MemSet(maRasDynamicCfg[deviceId].pRangingDataBody, 0U, rangingDataSize);
             }
         }
     }

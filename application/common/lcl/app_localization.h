@@ -129,9 +129,9 @@ typedef struct tof_result_tag {
 #if defined(gAppParseRssiInfo_d) && (gAppParseRssiInfo_d == 1)
 typedef struct tofRssiInfo_tag {
     uint8_t rssiLocalNo;
-    int8_t aRssiLocal[gMaxNumCsSteps_c];
+    int8_t aRssiLocal[gCsMaxStepsPerProcedure_c];
     uint8_t rssiRemoteNo;
-    int8_t aRssiRemote[gMaxNumCsSteps_c];
+    int8_t aRssiRemote[gCsMaxStepsPerProcedure_c];
 } tofRssiInfo_t;
 #endif /* gAppParseRssiInfo_d */
 
