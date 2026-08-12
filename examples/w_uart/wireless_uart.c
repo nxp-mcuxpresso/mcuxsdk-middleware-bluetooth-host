@@ -1995,6 +1995,15 @@ static void BluetoothLEHost_GenericCallback(gapGenericEvent_t *pGenericEvent)
             }
         }
     }
+
+#if defined(gEnableCoredumpPackets_c) && (gEnableCoredumpPackets_c == TRUE)
+    if (pGenericEvent->eventType == gVendorDebugEvent_c)
+    {
+        /* When enabled, the BLE Host application receives and processes NBU-generated
+         * core-dump packets, allowing crash information to be captured and analyzed
+         * (see documentation). */
+    }
+#endif /* gEnableCoredumpPackets_c */
 }
 
 /*! *********************************************************************************
