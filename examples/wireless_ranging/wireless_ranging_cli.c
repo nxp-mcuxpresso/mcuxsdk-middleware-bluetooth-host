@@ -146,6 +146,7 @@ void cli_cmd_system_timing(int argc, char *argv[]);
 void cli_cmd_system_baudrate(int argc, char *argv[]);
 void cli_cmd_system_output_format(int argc, char *argv[]);
 void cli_cmd_system_calibrate(int argc, char *argv[]);
+void cli_cmd_parameter_ipt(int argc, char *argv[]);
 
 void cli_sprint_hex8b
 (
@@ -361,6 +362,11 @@ const command_t sub_parameter_tbl[] = {
         "timings | Timings commands",
         {.child = sub_timings_tbl},
         (int)eFlagCommandList
+    },
+    {
+        "ipt | Set IPT on/off (Inline PCT Transfer)",
+        {cli_cmd_parameter_ipt},
+        eFlag1Args | eFlagRead
     },
     {0, {0}, 0} /* last entry must be all zeros */
 };
@@ -1450,6 +1456,31 @@ void cli_cmd_parameter_repeat(int argc, char *argv[])
     CLI_PRINTF("repeat: %u %u\n", gRangeSettings->max_proc_count, gRangeSettings->proc_interval);
 }
 
+
+/*! *********************************************************************************
+* \brief        Set IPT on/off (Inline PCT Transfer)
+*
+* \param[in]    argc         Argument count
+* \param[in]    argv         Argument list
+********************************************************************************** */
+void cli_cmd_parameter_ipt(int argc, char *argv[])
+{
+    uint16_t inp;
+    if (argc == 1)
+    {
+        inp = (uint16_t)atoi(argv[0]);
+        if (inp >= 1U)
+        {
+            gRangeSettings->inlinePctEnabled = TRUE;
+        }
+        else
+        {
+            gRangeSettings->inlinePctEnabled = FALSE;
+        }
+    }
+    CLI_PRINTF("ipt: %u\n", gRangeSettings->inlinePctEnabled);
+}
+
 /*! *********************************************************************************
 * \brief        Set/show subevent length
 *
@@ -2052,6 +2083,7 @@ void cli_cmd_system_factory(int argc, char *argv[])
     gRangeSettings->ch_start = 0;
     gRangeSettings->ch_stop = XCVR_CHAN_MAX;
     gRangeSettings->ch_isrand = FALSE;
+    gRangeSettings->inlinePctEnabled = FALSE;
     FLib_MemCpy(gRangeSettings->initiator_AA, &default_initiator_aa, sizeof(default_initiator_aa));
     FLib_MemCpy(gRangeSettings->reflector_AA, &default_reflector_aa, sizeof(default_reflector_aa));
     FLib_MemSet(gRangeSettings->ch_map, 0xFF, CS_CH_MAP_LEN);

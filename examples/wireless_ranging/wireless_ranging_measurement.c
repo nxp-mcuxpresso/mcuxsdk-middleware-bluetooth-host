@@ -644,7 +644,7 @@ bleResult_t measurement_configure(deviceId_t deviceId)
 #if defined(gAppUseInlinePctTransfer_d) && (gAppUseInlinePctTransfer_d == 1)
     if ((config->subfeaturesSupported & gCsSubfeatureIptInReflector_c) != 0U)
     {
-        createConfigParams.csEnhancements |= gCsEnhancementsIptEnabledInReflector_c;
+      createConfigParams.csEnhancements |= (gRangeSettings->inlinePctEnabled?gCsEnhancementsIptEnabledInReflector_c:0U);
     }
 #endif
 
