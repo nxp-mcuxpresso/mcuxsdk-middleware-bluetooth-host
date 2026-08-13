@@ -505,7 +505,8 @@ static shell_status_t ShellDisconnect_Command(shell_handle_t shellHandle, int32_
 static bleResult_t ShellSetCsConfigParams_UpdateParamGroup1(char *pName, char *pValue, appLocalization_rangeCfg_t *pCfg, bool_t *pHandled)
 {
     bleResult_t status = gBleSuccess_c;
-    uint8_t val = (uint8_t)BleApp_atoi(pValue);
+    int32_t tmp = BleApp_atoi(pValue);
+    uint8_t val = (tmp >= 0) ? Uint32toUint8((uint32_t)tmp) : 0U;
 
     *pHandled = TRUE;
 
@@ -582,7 +583,8 @@ static bleResult_t ShellSetCsConfigParams_UpdateParamGroup1(char *pName, char *p
 static bleResult_t ShellSetCsConfigParams_UpdateParamGroup2(char *pName, char *pValue, appLocalization_rangeCfg_t *pCfg, bool_t *pHandled)
 {
     bleResult_t status = gBleSuccess_c;
-    uint8_t val = (uint8_t)BleApp_atoi(pValue);
+    int32_t tmp = BleApp_atoi(pValue);
+    uint8_t val = (tmp >= 0) ? Uint32toUint8((uint32_t)tmp) : 0U;
 
     *pHandled = TRUE;
 
@@ -706,7 +708,8 @@ static shell_status_t ShellSetCsConfigParams_Command(shell_handle_t shellHandle,
      * At least one name/value pair is required and the pairs must be complete. */
     if ((argc >= 4) && (((argc - 2) % 2) == 0))
     {
-        deviceId_t deviceId = (uint8_t)BleApp_atoi(argv[1]);
+        int32_t tmp = BleApp_atoi(argv[1]);
+        deviceId_t deviceId = (tmp >= 0) ? Uint32toUint8((uint32_t)tmp) : 0U;
 
         if (deviceId >= (uint8_t)gAppMaxConnections_c)
         {
@@ -882,7 +885,8 @@ static shell_status_t ShellSetCsProcedureParams_Command(shell_handle_t shellHand
      * At least one name/value pair is required and the pairs must be complete. */
     if ((argc >= 4) && (((argc - 2) % 2) == 0))
     {
-        deviceId_t deviceId = (uint8_t)BleApp_atoi(argv[1]);
+        int32_t tmp = BleApp_atoi(argv[1]);
+        deviceId_t deviceId = (tmp >= 0) ? Uint32toUint8((uint32_t)tmp) : 0U;
 
         if (deviceId >= (uint8_t)gAppMaxConnections_c)
         {
@@ -948,9 +952,9 @@ static shell_status_t ShellTriggerDistanceMeasurement_Command(shell_handle_t she
 {
     bleResult_t status = gBleSuccess_c;
 
-    if ((uint32_t)argc == 2U)
+    if (argc == 2)
     {
-        deviceId_t deviceId = (uint8_t)BleApp_AsciiToHex(argv[1], FLib_StrLen(argv[1]));
+        deviceId_t deviceId = Uint32toUint8(BleApp_AsciiToHex(argv[1], FLib_StrLen(argv[1])));
 
         if (deviceId < (uint8_t)gAppMaxConnections_c)
         {
@@ -1056,7 +1060,7 @@ static shell_status_t ShellSetCsRole_Command(shell_handle_t shellHandle, int32_t
         }
         else
         {
-            uint8_t role = (uint8_t)BleApp_AsciiToHex(argv[1], FLib_StrLen(argv[1]));
+            uint8_t role = Uint32toUint8(BleApp_AsciiToHex(argv[1], FLib_StrLen(argv[1])));
 
             if (sizeof(uint8_t) != BleApp_ParseHexValue(argv[1]))
             {
@@ -1110,7 +1114,7 @@ static shell_status_t ShellSetNumProcs_Command(shell_handle_t shellHandle, int32
 
     if (argc == 3)
     {
-        deviceId_t deviceId = (uint8_t)BleApp_AsciiToHex(argv[1], FLib_StrLen(argv[1]));
+        deviceId_t deviceId = Uint32toUint8(BleApp_AsciiToHex(argv[1], FLib_StrLen(argv[1])));
 
         if (sizeof(uint8_t) != BleApp_ParseHexValue(argv[1]) ||
             deviceId >= (uint8_t)gAppMaxConnections_c)
@@ -1121,7 +1125,7 @@ static shell_status_t ShellSetNumProcs_Command(shell_handle_t shellHandle, int32
         if (status == gBleSuccess_c)
         {
 
-            uint16_t value = (uint16_t)BleApp_AsciiToHex(argv[2], strlen(argv[2]));
+            uint16_t value = Uint32toUint16(BleApp_AsciiToHex(argv[2], strlen(argv[2])));
 
             if (sizeof(uint16_t) != BleApp_ParseHexValue(argv[2]))
             {
@@ -1165,7 +1169,7 @@ static shell_status_t ShellFilter_Command(shell_handle_t shellHandle, int32_t ar
 
     if (argc == 4)
     {
-        deviceId_t deviceId = (uint8_t)BleApp_AsciiToHex(argv[1], FLib_StrLen(argv[1]));
+        deviceId_t deviceId = Uint32toUint8(BleApp_AsciiToHex(argv[1], FLib_StrLen(argv[1])));
 
         if (sizeof(uint8_t) != BleApp_ParseHexValue(argv[1]) ||
             deviceId >= (uint8_t)gAppMaxConnections_c)
@@ -1177,7 +1181,7 @@ static shell_status_t ShellFilter_Command(shell_handle_t shellHandle, int32_t ar
         {
             if ( sizeof(uint16_t) == BleApp_ParseHexValue(argv[2]) )
             {
-                gFilterShellVal = Utils_ExtractTwoByteValue(argv[2]);
+                gFilterShellVal = Uint32toUint16(Utils_ExtractTwoByteValue(argv[2]));
                 filterTestSend = (bool)BleApp_AsciiToHex(argv[3], FLib_StrLen(argv[3]));
                 if ((uint8_t)filterTestSend > 1U)
                 {
@@ -1282,13 +1286,28 @@ static int32_t BleApp_atoi
 
     while ((*pStr != '\0') && (*pStr != ' ') && (*pStr >= '0') && (*pStr <= '9'))
     {
-        res = res * 10 + *pStr - '0';
-        pStr++;
-    }
+        int32_t digit = (int32_t)(*pStr - '0');
 
-    if (bIsNegative)
-    {
-        res = -res;
+        if (bIsNegative)
+        {
+            if (res < ((INT32_MIN + digit) / 10))
+            {
+                res = INT32_MIN;
+                break;
+            }
+            res = (res * 10) - digit;
+        }
+        else
+        {
+            if (res > ((INT32_MAX - digit) / 10))
+            {
+                res = INT32_MAX;
+                break;
+            }
+            res = (res * 10) + digit;
+        }
+
+        pStr++;
     }
 
     return res;
@@ -1304,7 +1323,7 @@ static int32_t BleApp_atoi
  ********************************************************************************** */
 static uint8_t BleApp_ParseHexValue(char* pInput)
 {
-    uint8_t i, length = (uint8_t)strlen(pInput);
+    uint8_t i, length = Uint32toUint8(strlen(pInput));
     uint32_t value;
     uint8_t result = 0U;
 
@@ -1331,14 +1350,14 @@ static uint8_t BleApp_ParseHexValue(char* pInput)
             {
                 FLib_MemCpy(octet, &pInput[i*2U], 2U);
 
-                pInput[i] = (char)BleApp_AsciiToHex(octet, 2U);
+                pInput[i] = (char)Uint32toUint8(BleApp_AsciiToHex(octet, 2U));
             }
             result = length/2U;
         }
         else
         {
             /* Convert single character from ASCII to hex */
-            pInput[0] = (char)BleApp_AsciiToHex(pInput, length);
+            pInput[0] = (char)Uint32toUint8(BleApp_AsciiToHex(pInput, length));
             result = length;
         }
     }
@@ -1368,7 +1387,8 @@ static shell_status_t ShellSetMaxConcurrentProcs_Command(shell_handle_t shellHan
 
     if (argc == 2)
     {
-        uint8_t maxProcs = (uint8_t)BleApp_atoi(argv[1]);
+        int32_t tmp = BleApp_atoi(argv[1]);
+        uint8_t maxProcs = (tmp >= 0) ? Uint32toUint8((uint32_t)tmp) : 0U;
 
         if ((maxProcs == 0U) || (maxProcs > 6U))
         {
@@ -1440,7 +1460,8 @@ static shell_status_t ShellTak_Command(shell_handle_t shellHandle, int32_t argc,
     /* Both arguments must be provided */
     if (argc == 3U)
     {
-        deviceId = (uint8_t)BleApp_atoi(argv[1]);
+        int32_t tmp = BleApp_atoi(argv[1]);
+        deviceId = (tmp >= 0) ? Uint32toUint8((uint32_t)tmp) : 0U;
         takLength = BleApp_ParseHexValue(argv[2]);
 
         /* First check if this deviceID exist in the list */
