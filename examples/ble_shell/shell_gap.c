@@ -1337,15 +1337,14 @@ static shell_status_t ShellGap_Connect(uint8_t argc, char * argv[])
             if (mScanningOn)
             {
                 (void)Gap_StopScanning();
-                result = kStatus_SHELL_Success;
             }
 
             /* Initiates connection to the scanned device */
             if (gBleSuccess_c != BluetoothLEHost_Connect(&gConnReqParams, ShellGap_ConnectionCallback))
             {
                 shell_write(mShellErrorStatus);
-                result = kStatus_SHELL_Success;
             }
+            result = kStatus_SHELL_Success;
         }
     }
     return result;
@@ -1430,8 +1429,8 @@ static shell_status_t ShellGap_ConnectFromPawr(uint8_t argc, char * argv[])
             if (gBleSuccess_c != BluetoothLEHost_ConnectFromPawr(&pawrConnReqParams, ShellGap_ConnectionCallback))
             {
                 shell_write(mShellErrorStatus);
-                result = kStatus_SHELL_Success;
             }
+            result = kStatus_SHELL_Success;
         }
         else
         {
