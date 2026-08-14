@@ -117,8 +117,7 @@ typedef struct _rade_result
     float_rade_t *rng_est;     /*!< Distance estimation raw result */
     float_rade_t *rng_trk;     /*!< Distance estimation tracking result */
     float_rade_t *rng_est_qi;  /*!< Distance estimation quality indicator */
-    float_rade_t *mn_ref_vm;   /*!< Multinode reference data metric */
-    uint8_t *mn_ref_qi;        /*!< Multinode reference quality indicator */
+    uint8_t      *mn_ref_qi;   /*!< Multinode reference quality indicator */
     float_rade_t *reserved;    /*!< Reserved port */
 } rade_result_t;
 
@@ -138,7 +137,7 @@ typedef struct _cs_data_buf_free_callback {
 /*! \typedef pfMnDataTransferCallback_t
  * \brief Pointer to function for MN data transfer
  */
-typedef void (*pfMnDataTransferCallback_t)(uint8_t deviceId, uint32_t dataLengthBytes);
+typedef void (*pfMnDataTransferCallback_t)(uint8_t deviceId, uint8_t *pData, uint32_t dataLengthBytes);
 
 /*! \struct mnDataTransferCallback_t
  * \brief Callback configuration for MN data transfer
