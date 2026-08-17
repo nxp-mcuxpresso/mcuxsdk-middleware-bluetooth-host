@@ -4065,7 +4065,7 @@ void ShellGap_AdvertisingCallback
         case gPerAdvResponse_c:
         {
             uint16_t dataLength = pAdvertisingEvent->eventData.perAdvResponse.dataLength;
-            uint8_t *pData = (uint8_t*)pAdvertisingEvent->eventData.perAdvResponse.aData;
+            uint8_t *pData = (uint8_t*)pAdvertisingEvent->eventData.perAdvResponse.pData;
             uint16_t index = 0U;
 
             shell_write("periodic advertising response received:\r\n");

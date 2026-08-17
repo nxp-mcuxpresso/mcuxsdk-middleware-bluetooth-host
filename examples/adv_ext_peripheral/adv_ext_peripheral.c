@@ -1676,7 +1676,7 @@ static void BleApp_HandlePeriodicAdvertisingResponse(gapPerAdvResponse_t *pAdvRe
     {
          uint8_t  dataLength = 0U;
          uint8_t  advStructLength = 0U;
-         uint8_t* pData = pAdvResponse->aData;
+         uint8_t* pData = pAdvResponse->pData;
          uint8_t connSubevent = gAppPAWRSubeventsData.aSubeventDataStructures[0U].subevent;
          while ( dataLength < pAdvResponse->dataLength )
          {
@@ -1738,7 +1738,7 @@ static void BleApp_HandlePeriodicAdvertisingResponse(gapPerAdvResponse_t *pAdvRe
              {
                  AppPrintString((char *)&pData[2]);
              }
-             pData =  &pAdvResponse->aData[dataLength];
+             pData =  &pAdvResponse->pData[dataLength];
          }
      }
 }

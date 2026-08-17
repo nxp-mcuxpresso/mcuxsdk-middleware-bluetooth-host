@@ -30,6 +30,7 @@
 #include "ModuleInfo.h"
 #include "gatt_types.h"
 #include "fwk_seclib.h"
+#include "fwk_timer_manager.h"
 #include "gatt_client_interface.h"
 #if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d==TRUE)
 #include "channel_sounding.h"
@@ -387,7 +388,9 @@ uint32_t gaAddrUsedForAdvStorage[(gAdvDeviceAddrInfoStorageSize_c * gMaxAdvSets_
 extern gapPerAdvResponse_t gaPerAdvResponse[gMaxAdvSets_c];
 gapPerAdvResponse_t gaPerAdvResponse[gMaxAdvSets_c];
 
-
+/* Timers used by PAwR reassembly procedure */
+extern tmrTimerID_t gaPerAdvRspTimerId[gMaxAdvSets_c];
+tmrTimerID_t gaPerAdvRspTimerId[gMaxAdvSets_c];
 
 /*! Enable the reporting of intrusion detection events from the Host stack */
 extern const bool_t gEnableIntrusionDetectionSystem;

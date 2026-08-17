@@ -1105,7 +1105,7 @@ typedef struct {
     uint8_t cteType;
     uint8_t responseSlot;
     uint8_t dataLength;
-    uint8_t aData[255];
+    uint8_t *pData;
 } gapPerAdvResponse_t;
 
 /*! Advertising event structure: type + data. */

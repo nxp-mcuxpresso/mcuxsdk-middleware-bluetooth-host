@@ -223,14 +223,34 @@ bleResult_t BluetoothLEHost_ReencryptAdvertisingData
 static void App_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent)
 {
     appMsgFromHost_t *pMsgIn = NULL;
+    uint32_t msgLen = GetRelAddr(appMsgFromHost_t,msgData) + sizeof(gapAdvertisingEvent_t);
 
-    pMsgIn = MSG_Alloc(GetRelAddr(appMsgFromHost_t,msgData) + sizeof(gapAdvertisingEvent_t));
+    /* Reserve room for the variable length response data, appended after the event */
+    if (pAdvertisingEvent->eventType == gPerAdvResponse_c)
+    {
+        if (pAdvertisingEvent->eventData.perAdvResponse.dataLength < (0xFFFFFFFFU - msgLen))
+        {
+            msgLen += pAdvertisingEvent->eventData.perAdvResponse.dataLength;
+        }
+    }
+
+    pMsgIn = MSG_Alloc(msgLen);
 
     if (pMsgIn != NULL)
     {
         pMsgIn->msgType = (uint32_t)gAppGapAdvertisementMsg_c;
         pMsgIn->msgData.advMsg.eventType = pAdvertisingEvent->eventType;
         pMsgIn->msgData.advMsg.eventData = pAdvertisingEvent->eventData;
+
+        if (pAdvertisingEvent->eventType == gPerAdvResponse_c)
+        {
+            /* Copy data after the gapAdvertisingEvent_t structure and update the data pointer */
+            pMsgIn->msgData.advMsg.eventData.perAdvResponse.pData =
+                (uint8_t*)&pMsgIn->msgData + sizeof(gapAdvertisingEvent_t);
+            FLib_MemCpy(pMsgIn->msgData.advMsg.eventData.perAdvResponse.pData,
+                        pAdvertisingEvent->eventData.perAdvResponse.pData,
+                        pAdvertisingEvent->eventData.perAdvResponse.dataLength);
+        }
 
         (void)App_PostHostCallbackMessage(pMsgIn);
     }

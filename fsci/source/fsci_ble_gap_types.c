@@ -1733,7 +1733,7 @@ uint32_t fsciBleGapGetAdvertisingEventBufferSize(gapAdvertisingEvent_t* pAdverti
                 bufferSize += sizeof(uint8_t);          /* cteType */
                 bufferSize += sizeof(uint8_t);          /* responseSlot */
                 bufferSize += sizeof(uint8_t);          /* dataLength */
-                bufferSize += pAdvertisingEvent->eventData.perAdvResponse.dataLength;   /* aData */
+                bufferSize += pAdvertisingEvent->eventData.perAdvResponse.dataLength;   /* pData */
             }
             break;
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
@@ -1785,7 +1785,7 @@ void fsciBleGapGetAdvertisingEventFromBuffer(gapAdvertisingEvent_t* pAdvertising
                 fsciBleGetUint8ValueFromBuffer(pAdvertisingEvent->eventData.perAdvResponse.cteType, *ppBuffer);
                 fsciBleGetUint8ValueFromBuffer(pAdvertisingEvent->eventData.perAdvResponse.responseSlot, *ppBuffer);
                 fsciBleGetUint8ValueFromBuffer(pAdvertisingEvent->eventData.perAdvResponse.dataLength, *ppBuffer);
-                fsciBleGetArrayFromBuffer(pAdvertisingEvent->eventData.perAdvResponse.aData, *ppBuffer, 
+                fsciBleGetArrayFromBuffer(pAdvertisingEvent->eventData.perAdvResponse.pData, *ppBuffer,
                                           pAdvertisingEvent->eventData.perAdvResponse.dataLength);
             }
             break;
@@ -1844,7 +1844,7 @@ void fsciBleGapGetBuffFromAdvEvent(gapAdvertisingEvent_t* pAdvertisingEvent, uin
                 fsciBleGetBufferFromUint8Value(pAdvertisingEvent->eventData.perAdvResponse.cteType, *ppBuffer);
                 fsciBleGetBufferFromUint8Value(pAdvertisingEvent->eventData.perAdvResponse.responseSlot, *ppBuffer);
                 fsciBleGetBufferFromUint8Value(pAdvertisingEvent->eventData.perAdvResponse.dataLength, *ppBuffer);
-                fsciBleGetBufferFromArray(pAdvertisingEvent->eventData.perAdvResponse.aData, *ppBuffer,
+                fsciBleGetBufferFromArray(pAdvertisingEvent->eventData.perAdvResponse.pData, *ppBuffer,
                                           pAdvertisingEvent->eventData.perAdvResponse.dataLength);
             }
             break;
