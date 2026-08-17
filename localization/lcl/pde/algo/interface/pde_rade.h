@@ -58,9 +58,9 @@ typedef struct _rade_mode
  */
 typedef enum _rade_mn_role
 {
-    kRadeMnActiveNode               = 0x00U,  /*!< Active node */
-    kRadeMnPassiveNode              = 0x01U,  /*!< Passive node */
-    kRadeIndepActiveNode            = 0x02U   /*!< Independent active node */
+    kRadeIndepActiveNode            = 0x00U,  /*!< Independent active node */
+    kRadeMnActiveNode               = 0x01U,  /*!< Active node */
+    kRadeMnPassiveNode              = 0x02U   /*!< Passive node */
 } rade_mn_role_t;
 
 /*! \struct rade_para_t 

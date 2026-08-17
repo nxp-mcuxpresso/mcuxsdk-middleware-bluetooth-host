@@ -861,6 +861,7 @@ static void isp_mciq_ranging_compute
         radeCsPara.pctTransMode             = (bIptEnabled == TRUE) ? 1U : 0U;
         radeResult.rng_est                  = &mciq_result->rade_dist;
         radeResult.rng_est_qi               = &mciq_result->rade_dqi;
+        radeResult.mn_ref_qi                = &mciq_result->rade_mn_ref_qi;
         radeResult.reserved                 = &radeResReserved;
         radeResult.rng_trk                  = &mciq_result->rade_dist_trk;
         radeCsData.iq_i                     = init_data->iq;

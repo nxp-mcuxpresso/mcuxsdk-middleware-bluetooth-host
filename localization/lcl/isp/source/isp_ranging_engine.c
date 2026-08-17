@@ -283,6 +283,7 @@ void isp_mciq_ranging_compute(isp_meas_response_t *meas_response, mciq_result_t 
         radeResult.rng_est              =  &mciq_result->rade_dist;
         radeResult.rng_trk              =  &mciq_result->rade_dist_trk;
         radeResult.rng_est_qi           =  &mciq_result->rade_dqi;
+        radeResult.mn_ref_qi            =  &mciq_result->rade_mn_ref_qi;
         radeResult.reserved             =  &radeResReserved;
 
         radeCsData.iq_i                           = init_data->iq;

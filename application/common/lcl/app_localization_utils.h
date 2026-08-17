@@ -89,6 +89,7 @@ typedef struct mciq_result_tag {
     float rade_dist;           /*!< RADE distance estimation */
     float rade_dist_trk;       /*!< RADE tracking distance estimation */
     float rade_dqi;            /*!< RADE distance distance quality indicator */
+    uint8_t rade_mn_ref_qi;    /*!< RADE MN reference quality indicator */
     uint8_t rade_error_flag;   /*!< RADE error flag */
 } mciq_result_t;
 
