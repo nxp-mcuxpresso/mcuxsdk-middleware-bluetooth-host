@@ -272,7 +272,10 @@ void BleConnManager_GenericEvent(gapGenericEvent_t* pGenericEvent)
              * Stack created a bond after pairing or at app
              * request, update global counter.
              */
-            gcBondedDevices++;
+            if (gcBondedDevices < (uint8_t)UINT8_MAX)
+            {
+                gcBondedDevices++;
+            }
         }
         break;
 
@@ -743,8 +746,20 @@ STATIC void BleConnManager_GapPeripheralEventEvtPairingComplete
 
     if (gPairingParameters.leSecureConnectionSupported)
     {
-        pConnectionEvent->eventData.pairingCompleteEvent.pairingSuccessful ?
-            mSuccessfulPairings++ : mFailedPairings++;
+        if (pConnectionEvent->eventData.pairingCompleteEvent.pairingSuccessful)
+        {
+            if (mSuccessfulPairings < (uint8_t)UINT8_MAX)
+            {
+                mSuccessfulPairings++;
+            }
+        }
+        else
+        {
+            if (mFailedPairings < (uint8_t)UINT8_MAX)
+            {
+                mFailedPairings++;
+            }
+        }
 
         /* Apply recommendations to change key pair after a number of attempts */
         if (((mFailedPairings * gConnPairFailToSucessCount_c) + mSuccessfulPairings) >
@@ -947,8 +962,20 @@ void BleConnManager_GapCentralEvent
 
             if (gPairingParameters.leSecureConnectionSupported)
             {
-                pConnectionEvent->eventData.pairingCompleteEvent.pairingSuccessful ?
-                    mSuccessfulPairings++ : mFailedPairings++;
+                if (pConnectionEvent->eventData.pairingCompleteEvent.pairingSuccessful)
+                {
+                    if (mSuccessfulPairings < (uint8_t)UINT8_MAX)
+                    {
+                        mSuccessfulPairings++;
+                    }
+                }
+                else
+                {
+                    if (mFailedPairings < (uint8_t)UINT8_MAX)
+                    {
+                        mFailedPairings++;
+                    }
+                }
 
                 /* Apply recommendations to change key pair after a number of attempts */
                 if ((mSuccessfulPairings + (gConnPairFailToSucessCount_c * mFailedPairings)) >
