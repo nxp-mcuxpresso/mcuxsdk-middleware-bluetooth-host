@@ -791,7 +791,8 @@ static bleResult_t ShellSetCsProcedureParams_UpdateParam(char *pName, char *pVal
 
     if (0 == strcmp(pName, "maxprocedureduration"))
     {
-        uint16_t val = (uint16_t)BleApp_atoi(pValue);
+        int32_t tmp = BleApp_atoi(pValue);
+        uint16_t val = (tmp >= 0) ? Uint32toUint16((uint32_t)tmp) : 0U;
 
         if (val == 0U)
         {
@@ -804,27 +805,33 @@ static bleResult_t ShellSetCsProcedureParams_UpdateParam(char *pName, char *pVal
     }
     else if (0 == strcmp(pName, "minperiodbetweenprocedures"))
     {
-        pCfg->minPeriodBetweenProcedures = (uint16_t)BleApp_atoi(pValue);
+        int32_t tmp = BleApp_atoi(pValue);
+        pCfg->minPeriodBetweenProcedures = (tmp >= 0) ? Uint32toUint16((uint32_t)tmp) : 0U;
     }
     else if (0 == strcmp(pName, "maxperiodbetweenprocedures"))
     {
-        pCfg->maxPeriodBetweenProcedures = (uint16_t)BleApp_atoi(pValue);
+        int32_t tmp = BleApp_atoi(pValue);
+        pCfg->maxPeriodBetweenProcedures = (tmp >= 0) ? Uint32toUint16((uint32_t)tmp) : 0U;
     }
     else if (0 == strcmp(pName, "maxnumprocedures"))
     {
-        pCfg->maxNumProcedures = (uint16_t)BleApp_atoi(pValue);
+        int32_t tmp = BleApp_atoi(pValue);
+        pCfg->maxNumProcedures = (tmp >= 0) ? Uint32toUint16((uint32_t)tmp) : 0U;
     }
     else if (0 == strcmp(pName, "minsubeventlen"))
     {
-        pCfg->minSubeventLen = (uint32_t)BleApp_atoi(pValue);
+        int32_t tmp = BleApp_atoi(pValue);
+        pCfg->minSubeventLen = (tmp >= 0) ? (uint32_t)tmp : 0U;
     }
     else if (0 == strcmp(pName, "maxsubeventlen"))
     {
-        pCfg->maxSubeventLen = (uint32_t)BleApp_atoi(pValue);
+        int32_t tmp = BleApp_atoi(pValue);
+        pCfg->maxSubeventLen = (tmp >= 0) ? (uint32_t)tmp : 0U;
     }
     else if (0 == strcmp(pName, "antcfgindex"))
     {
-        uint8_t val = (uint8_t)BleApp_atoi(pValue);
+        int32_t tmp = BleApp_atoi(pValue);
+        uint8_t val = (tmp >= 0) ? Uint32toUint8((uint32_t)tmp) : 0U;
 
         if (val > 7U)
         {
@@ -837,7 +844,8 @@ static bleResult_t ShellSetCsProcedureParams_UpdateParam(char *pName, char *pVal
     }
     else if (0 == strcmp(pName, "snrcontrolinit"))
     {
-        uint8_t val = (uint8_t)BleApp_atoi(pValue);
+        int32_t tmp = BleApp_atoi(pValue);
+        uint8_t val = (tmp >= 0) ? Uint32toUint8((uint32_t)tmp) : 0U;
 
         if (!ShellIsValidSnrControl(val))
         {
@@ -850,7 +858,8 @@ static bleResult_t ShellSetCsProcedureParams_UpdateParam(char *pName, char *pVal
     }
     else if (0 == strcmp(pName, "snrcontrolrefl"))
     {
-        uint8_t val = (uint8_t)BleApp_atoi(pValue);
+        int32_t tmp = BleApp_atoi(pValue);
+        uint8_t val = (tmp >= 0) ? Uint32toUint8((uint32_t)tmp) : 0U;
 
         if (!ShellIsValidSnrControl(val))
         {
