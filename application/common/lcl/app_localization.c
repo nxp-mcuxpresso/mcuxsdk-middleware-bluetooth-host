@@ -3867,12 +3867,15 @@ static bleResult_t processCsResultsEvent
 
             mResultData[deviceId].totalNumSteps += pEvent->numStepsReported;
 
-            /* Use free bits of packet_AA_quality of first mode0 step to store eventIdx (we do not keep track of all subevent headers) */
-            eventIdx = (uint16_t)((uint32_t)pEvent->startACLConnEvent - (uint32_t)pSubevtHeader->startACLConnEvent);
-            *(pEvent->pData + 3U * sizeof(uint8_t)) |= (uint8_t)(eventIdx << CS_EVTIDX_SHIFT);
+            if (pEvent->pData != NULL)
+            {
+                /* Use free bits of packet_AA_quality of first mode0 step to store eventIdx (we do not keep track of all subevent headers) */
+                eventIdx = (uint16_t)((uint32_t)pEvent->startACLConnEvent - (uint32_t)pSubevtHeader->startACLConnEvent);
+                *(pEvent->pData + 3U * sizeof(uint8_t)) |= (uint8_t)(eventIdx << CS_EVTIDX_SHIFT);
 
-            result = processEventResultData(deviceId, pEvent->numStepsReported,
-                                            pEvent->subeventDoneStatus, pEvent->procedureDoneStatus, pEvent->pData);
+                result = processEventResultData(deviceId, pEvent->numStepsReported,
+                                                pEvent->subeventDoneStatus, pEvent->procedureDoneStatus, pEvent->pData);
+            }
         }
     }
 
@@ -3915,8 +3918,11 @@ static bleResult_t processCsResultsContinueEvent
         pSubevtHeader->procedureDoneStatus = pEvent->procedureDoneStatus;
         pSubevtHeader->numStepsReported += pEvent->numStepsReported;
 
-        result = processEventResultData(deviceId, pEvent->numStepsReported,
-                                        pEvent->subeventDoneStatus, pEvent->procedureDoneStatus, pEvent->pData);
+        if (pEvent->pData != NULL)
+        {
+            result = processEventResultData(deviceId, pEvent->numStepsReported,
+                                            pEvent->subeventDoneStatus, pEvent->procedureDoneStatus, pEvent->pData);
+        }
     }
 
     return result;
