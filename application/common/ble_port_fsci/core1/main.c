@@ -36,6 +36,7 @@
 #include "board.h"
 #include "nxp2p4_xcvr.h"
 #include "fwk_platform_sensors.h"
+#include "fwk_platform_dbg.h"
 #include "rpmsg_config.h"
 #include "ble_hadm_hal.h"
 #include "ble_hadm_types.h"
@@ -475,7 +476,7 @@ static void idle_task(void* param)
     {
         NBU_Idle();
         NB_API_Idle();
-        LL_API_NotifyWakeUp();
+        PLATFORM_FeedHostWatchdog();
     }
 }
 
