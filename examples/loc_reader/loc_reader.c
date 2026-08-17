@@ -1143,7 +1143,7 @@ static void BleApp_StateMachineHandler
         shell_writeDec((uint32_t)maPeerInformation[peerDeviceId].disconReason);
         shell_write("\n\r");
         shell_cmd_finished();
-        gFilterShellVal = (uint16_t)gNoFilter_c;
+        gFilterShellVal = (uint16_t)(gNoFilter_c & 0xFFFFU);
         maPeerInformation[peerDeviceId].deviceId = gInvalidDeviceId_c;
         maPeerInformation[peerDeviceId].appState = mAppIdle_c;
         maPeerInformation[peerDeviceId].isSubscribed = FALSE;
@@ -1200,7 +1200,7 @@ static void BleApp_HandleRasSubscription
 
     if (lastWrittenHandle == gGattDbInvalidHandle_d)
     {
-        if (gFilterShellVal != (uint16_t)gNoFilter_c)
+        if (gFilterShellVal != (uint16_t)(gNoFilter_c & 0xFFFFU))
         {
             /* Set the filter and proceed as normal afterwards */
             result = RasClient_RasSetFilter(peerDeviceId, gFilterShellVal, TRUE, &filteringDone);
@@ -1212,7 +1212,7 @@ static void BleApp_HandleRasSubscription
 
             /* Write the RAS-CP */
             value = gCccdIndication_c;
-            lastWrittenHandle = (uint16_t)(maPeerInformation[peerDeviceId].rasConfigInfo.controlPointHandle + 1U);
+            lastWrittenHandle = (uint16_t)((maPeerInformation[peerDeviceId].rasConfigInfo.controlPointHandle + 1U) & 0xFFFFU);
             result = BleApp_ConfigureRasServer(peerDeviceId, value, lastWrittenHandle);
         }
     }
@@ -1220,7 +1220,7 @@ static void BleApp_HandleRasSubscription
     else if (lastWrittenHandle == (maPeerInformation[peerDeviceId].rasConfigInfo.controlPointHandle + 1U))
     {
         /* Enable Real-Time data transfer */
-        lastWrittenHandle = (uint16_t)(maPeerInformation[peerDeviceId].rasConfigInfo.realTimeDataHandle + 1U);
+        lastWrittenHandle = (uint16_t)((maPeerInformation[peerDeviceId].rasConfigInfo.realTimeDataHandle + 1U) & 0xFFFFU);
         RasClient_SetRealTimePreference(peerDeviceId, TRUE);
         result = BleApp_ConfigureRasServer(peerDeviceId, value, lastWrittenHandle);
     }
@@ -1228,18 +1228,18 @@ static void BleApp_HandleRasSubscription
     else if (lastWrittenHandle == (maPeerInformation[peerDeviceId].rasConfigInfo.controlPointHandle + 1U))
     {
         value = gRasUseNotifOrInd_c;
-        lastWrittenHandle = (uint16_t)(maPeerInformation[peerDeviceId].rasConfigInfo.dataReadyHandle + 1U);
+        lastWrittenHandle = (uint16_t)((maPeerInformation[peerDeviceId].rasConfigInfo.dataReadyHandle + 1U) & 0xFFFFU);
         result = BleApp_ConfigureRasServer(peerDeviceId, value, lastWrittenHandle);
     }
     else if (lastWrittenHandle == (maPeerInformation[peerDeviceId].rasConfigInfo.dataReadyHandle + 1U))
     {
         value = gRasUseNotifOrInd_c;
-        lastWrittenHandle = (uint16_t)(maPeerInformation[peerDeviceId].rasConfigInfo.dataOverwrittenHandle + 1U);
+        lastWrittenHandle = (uint16_t)((maPeerInformation[peerDeviceId].rasConfigInfo.dataOverwrittenHandle + 1U) & 0xFFFFU);
         result = BleApp_ConfigureRasServer(peerDeviceId, value, lastWrittenHandle);
     }
     else if (lastWrittenHandle == (maPeerInformation[peerDeviceId].rasConfigInfo.dataOverwrittenHandle + 1U))
     {
-        lastWrittenHandle = (uint16_t)(maPeerInformation[peerDeviceId].rasConfigInfo.onDemandDataHandle + 1U);
+        lastWrittenHandle = (uint16_t)((maPeerInformation[peerDeviceId].rasConfigInfo.onDemandDataHandle + 1U) & 0xFFFFU);
         result = BleApp_ConfigureRasServer(peerDeviceId, value, lastWrittenHandle);
     }
 #endif
@@ -1660,7 +1660,7 @@ static void BleApp_GattClientCallback
     if (procedureResult == gGattProcError_c)
     {
 #if gAppUsePairing_d
-        attErrorCode_t attError = (attErrorCode_t)(uint8_t)(error);
+        attErrorCode_t attError = (attErrorCode_t)((uint8_t)((uint16_t)(error) & 0x00FFU));
 
         if (attError == gAttErrCodeInsufficientEncryption_c     ||
             attError == gAttErrCodeInsufficientAuthorization_c  ||
@@ -2544,7 +2544,10 @@ static bool_t BleApp_CsEventHandlerPart1
 
         case gLocalMeasurementComplete_c:
         {
-            mProcedureCount++;
+            if (mProcedureCount < 0xFFFFU)
+            {
+                mProcedureCount++;
+            }
             shell_write("\r\nDistance measurement complete. Local data available.\r\n");
         }
         break;
@@ -3112,7 +3115,7 @@ static bool_t CheckScanEventLegacy(gapScannedDevice_t* pData)
         }
 #endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
         /* Move on to the next AD element type */
-        index += (uint32_t)adElement.length + sizeof(uint8_t);
+        index += (uint32_t)adElement.length + (uint32_t)sizeof(uint8_t);
     }
 
     if (foundMatch)
@@ -3174,7 +3177,7 @@ static bool_t CheckScanEventExtended(gapExtScannedDevice_t* pData)
 #endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
 
         /* Move on to the next AD element type */
-        index += (uint32_t)adElement.length + sizeof(uint8_t);
+        index += (uint32_t)adElement.length + (uint32_t)sizeof(uint8_t);
     }
 
     if (foundMatch)
