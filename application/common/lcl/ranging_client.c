@@ -1409,7 +1409,8 @@ static bool_t parseBufferedNotifs
          recvIdx++)
     {
         if ((mRasTransferInfo[deviceId].recvIntermSegm[recvIdx] != 0U) &&
-            (mRasTransferInfo[deviceId].recvIntermSegm[recvIdx] != 0xFFU))
+            (mRasTransferInfo[deviceId].recvIntermSegm[recvIdx] != 0xFFU) &&
+            (mRasTransferInfo[deviceId].pNotifTempBuffer != NULL))
         {
             rasMeasurementData_t *pLocalData = AppLocalization_GetLocalData(deviceId);
 
@@ -1977,7 +1978,8 @@ static bleResult_t RasClient_ProcessGetRecordSegmentsResponse
     }
 
     /* Check if there are received notifications in-between the missing segments */
-    if (mRasTransferInfo[deviceId].currentIdxLostSegm > 1U)
+    if ((mRasTransferInfo[deviceId].currentIdxLostSegm > 1U) &&
+        (mRasTransferInfo[deviceId].pNotifTempBuffer != NULL))
     {
         for (uint8_t recvIdx = 0; recvIdx < mRasTransferInfo[deviceId].currentIdxRecvIntermSegm; recvIdx++)
         {
@@ -1986,7 +1988,7 @@ static bleResult_t RasClient_ProcessGetRecordSegmentsResponse
                 pData = mRasTransferInfo[deviceId].pNotifTempBuffer + mRasTransferInfo[deviceId].crtTempDataIdx;
                 /* Skip segment counter */
                 pData++;
-                /* Parse buffered notification before moving on to the next mising segment */
+                /* Parse buffered notification before moving on to the next missing segment */
                 FLib_MemCpy(mPeerResultData[deviceId].pData + mPeerResultData[deviceId].totalSentRcvDataIndex,
                             pData,
                             ((uint32_t)(mRasTransferInfo[deviceId].recvIntermSegmLen[recvIdx]) - 1U));
