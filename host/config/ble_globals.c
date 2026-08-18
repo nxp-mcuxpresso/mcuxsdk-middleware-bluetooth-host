@@ -44,13 +44,13 @@
 /* WARNING: Do not change these defines */
 #define gAttConnStorageSize_c            (8U)
 #define gActiveDevicesStorageSize_c      (96U)
-#define gL2caLeCbChannelEntrySize_c      (52U)
+#define gL2caLeCbChannelEntrySize_c      (48U)
 #define gL2caLePsmEntrySize_c            (4U)
 #define gExtHostPrivacyInfoStorageSize_c (16U)
 #define gAdvDeviceAddrInfoStorageSize_c  (8U)
 
 #if defined(gBLE52_d) && (gBLE52_d == TRUE) && defined(gEATT_d) && (gEATT_d == TRUE)
-#define gEattConnStorageSize             (8U)
+#define gEattConnStorageSize             (1U)
 #define gEattBearerDataStorageSize       (24U)
 #endif
 
