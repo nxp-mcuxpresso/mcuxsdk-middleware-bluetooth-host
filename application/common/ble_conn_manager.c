@@ -122,6 +122,13 @@ STATIC void BleConnManager_GapCentralEventEvtKeyExchangeRequest
                     gapConnectionEvent_t* pConnectionEvent
                 );
 #endif
+
+#if ((defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U)) || \
+     (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U)))
+/* Increments an 8-bit counter, stopping at UINT8_MAX to avoid wraparound. */
+STATIC void BleConnManager_IncrementU8Saturating(uint8_t* pCounter);
+#endif
+
 /************************************************************************************
 *************************************************************************************
 * Private memory declarations
@@ -272,7 +279,7 @@ void BleConnManager_GenericEvent(gapGenericEvent_t* pGenericEvent)
              * Stack created a bond after pairing or at app
              * request, update global counter.
              */
-            gcBondedDevices++;
+            BleConnManager_IncrementU8Saturating(&gcBondedDevices);
         }
         break;
 
@@ -743,8 +750,14 @@ STATIC void BleConnManager_GapPeripheralEventEvtPairingComplete
 
     if (gPairingParameters.leSecureConnectionSupported)
     {
-        pConnectionEvent->eventData.pairingCompleteEvent.pairingSuccessful ?
-            mSuccessfulPairings++ : mFailedPairings++;
+        if (pConnectionEvent->eventData.pairingCompleteEvent.pairingSuccessful)
+        {
+            BleConnManager_IncrementU8Saturating(&mSuccessfulPairings);
+        }
+        else
+        {
+            BleConnManager_IncrementU8Saturating(&mFailedPairings);
+        }
 
         /* Apply recommendations to change key pair after a number of attempts */
         if (((mFailedPairings * gConnPairFailToSucessCount_c) + mSuccessfulPairings) >
@@ -947,8 +960,14 @@ void BleConnManager_GapCentralEvent
 
             if (gPairingParameters.leSecureConnectionSupported)
             {
-                pConnectionEvent->eventData.pairingCompleteEvent.pairingSuccessful ?
-                    mSuccessfulPairings++ : mFailedPairings++;
+                if (pConnectionEvent->eventData.pairingCompleteEvent.pairingSuccessful)
+                {
+                    BleConnManager_IncrementU8Saturating(&mSuccessfulPairings);
+                }
+                else
+                {
+                    BleConnManager_IncrementU8Saturating(&mFailedPairings);
+                }
 
                 /* Apply recommendations to change key pair after a number of attempts */
                 if ((mSuccessfulPairings + (gConnPairFailToSucessCount_c * mFailedPairings)) >
@@ -1169,6 +1188,27 @@ void BleConnManager_GapCommonConfig(void)
 * Private functions
 *************************************************************************************
 ************************************************************************************/
+#if ((defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U)) || \
+     (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U)))
+/*! *********************************************************************************
+*\private
+*\fn           void BleConnManager_IncrementU8Saturating(uint8_t* pCounter)
+*\brief        Increments an 8-bit counter, saturating at UINT8_MAX to avoid
+*              unsigned integer wraparound.
+*
+*\param  [in]  pCounter    Pointer to the counter to increment.
+*
+*\retval       void.
+********************************************************************************** */
+STATIC void BleConnManager_IncrementU8Saturating(uint8_t* pCounter)
+{
+    if (*pCounter < (uint8_t)UINT8_MAX)
+    {
+        (*pCounter)++;
+    }
+}
+#endif /* gAppUsePairing_d || gAppUseBonding_d */
+
 #if defined(gRandomStaticAddress_d) && (gRandomStaticAddress_d > 0)
 /*! *********************************************************************************
 *\private
