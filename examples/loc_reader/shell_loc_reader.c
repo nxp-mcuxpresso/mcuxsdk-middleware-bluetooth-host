@@ -776,6 +776,48 @@ static bool_t ShellIsValidSnrControl(uint8_t val)
 }
 
 /*! *********************************************************************************
+* \brief        Parse a decimal string and clamp negative values to zero, returning
+*               the result as a uint16_t.
+*
+* \param[in]    pValue         Parameter value (as string)
+*
+* \return       uint16_t       Parsed value, 0 if the input is negative
+********************************************************************************** */
+static uint16_t ShellParseUint16(char *pValue)
+{
+    int32_t tmp = BleApp_atoi(pValue);
+    return (tmp >= 0) ? Uint32toUint16((uint32_t)tmp) : 0U;
+}
+
+/*! *********************************************************************************
+* \brief        Parse a decimal string and clamp negative values to zero, returning
+*               the result as a uint8_t.
+*
+* \param[in]    pValue         Parameter value (as string)
+*
+* \return       uint8_t        Parsed value, 0 if the input is negative
+********************************************************************************** */
+static uint8_t ShellParseUint8(char *pValue)
+{
+    int32_t tmp = BleApp_atoi(pValue);
+    return (tmp >= 0) ? Uint32toUint8((uint32_t)tmp) : 0U;
+}
+
+/*! *********************************************************************************
+* \brief        Parse a decimal string and clamp negative values to zero, returning
+*               the result as a uint32_t.
+*
+* \param[in]    pValue         Parameter value (as string)
+*
+* \return       uint32_t       Parsed value, 0 if the input is negative
+********************************************************************************** */
+static uint32_t ShellParseUint32(char *pValue)
+{
+    int32_t tmp = BleApp_atoi(pValue);
+    return (tmp >= 0) ? (uint32_t)tmp : 0U;
+}
+
+/*! *********************************************************************************
 * \brief        Update and validate a single CS Procedure parameter identified by
 *               its name.
 *
@@ -791,7 +833,7 @@ static bleResult_t ShellSetCsProcedureParams_UpdateParam(char *pName, char *pVal
 
     if (0 == strcmp(pName, "maxprocedureduration"))
     {
-        uint16_t val = (uint16_t)BleApp_atoi(pValue);
+        uint16_t val = ShellParseUint16(pValue);
 
         if (val == 0U)
         {
@@ -804,27 +846,27 @@ static bleResult_t ShellSetCsProcedureParams_UpdateParam(char *pName, char *pVal
     }
     else if (0 == strcmp(pName, "minperiodbetweenprocedures"))
     {
-        pCfg->minPeriodBetweenProcedures = (uint16_t)BleApp_atoi(pValue);
+        pCfg->minPeriodBetweenProcedures = ShellParseUint16(pValue);
     }
     else if (0 == strcmp(pName, "maxperiodbetweenprocedures"))
     {
-        pCfg->maxPeriodBetweenProcedures = (uint16_t)BleApp_atoi(pValue);
+        pCfg->maxPeriodBetweenProcedures = ShellParseUint16(pValue);
     }
     else if (0 == strcmp(pName, "maxnumprocedures"))
     {
-        pCfg->maxNumProcedures = (uint16_t)BleApp_atoi(pValue);
+        pCfg->maxNumProcedures = ShellParseUint16(pValue);
     }
     else if (0 == strcmp(pName, "minsubeventlen"))
     {
-        pCfg->minSubeventLen = (uint32_t)BleApp_atoi(pValue);
+        pCfg->minSubeventLen = ShellParseUint32(pValue);
     }
     else if (0 == strcmp(pName, "maxsubeventlen"))
     {
-        pCfg->maxSubeventLen = (uint32_t)BleApp_atoi(pValue);
+        pCfg->maxSubeventLen = ShellParseUint32(pValue);
     }
     else if (0 == strcmp(pName, "antcfgindex"))
     {
-        uint8_t val = (uint8_t)BleApp_atoi(pValue);
+        uint8_t val = ShellParseUint8(pValue);
 
         if (val > 7U)
         {
@@ -837,7 +879,7 @@ static bleResult_t ShellSetCsProcedureParams_UpdateParam(char *pName, char *pVal
     }
     else if (0 == strcmp(pName, "snrcontrolinit"))
     {
-        uint8_t val = (uint8_t)BleApp_atoi(pValue);
+        uint8_t val = ShellParseUint8(pValue);
 
         if (!ShellIsValidSnrControl(val))
         {
@@ -850,7 +892,7 @@ static bleResult_t ShellSetCsProcedureParams_UpdateParam(char *pName, char *pVal
     }
     else if (0 == strcmp(pName, "snrcontrolrefl"))
     {
-        uint8_t val = (uint8_t)BleApp_atoi(pValue);
+        uint8_t val = ShellParseUint8(pValue);
 
         if (!ShellIsValidSnrControl(val))
         {
