@@ -155,6 +155,9 @@ const uint8_t gaAntPermNAp[24][gMaxNumAntennaPaths_c] = {
     {1,2,3,0}, /* A2,A3,A4,A1 */
 };
 
+/* Number of antenna paths for each antenna configuration index 0-7 */
+static const uint8_t gaAntCfgIdxToNAp[8] = {1U, 2U, 3U, 4U, 2U, 3U, 4U, 4U};
+
 #if defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1)
 static uint8_t aPermIndexList[ANT_PERM_INDEX_LIST_LEN] = {};
 static uint16_t mProducer = 0U;
@@ -436,12 +439,16 @@ void* AppLocalizationAlgo_AllocData(deviceId_t deviceId)
     uint16_t tofSize;
     uint32_t totalSize;
     uint8_t mainMode, subMode;
+    uint8_t antCfgIdx, numAntPaths;
     csAppData_t *pResult;
 
     steps = AppLocalizationAlgo_GetStepCount(deviceId);
     mainMode = mRangeSettings[deviceId].main_mode_type;
     subMode = mRangeSettings[deviceId].sub_mode_type;
-    mciqSize = (uint16_t)(gCsMciqSize_c * gMaxNumAntennaPaths_c * steps);
+    /* Size the IQ buffer to the configured antenna paths; fall back to max if index is out of range */
+    antCfgIdx = mRangeSettings[deviceId].ant_cfg_index;
+    numAntPaths = (antCfgIdx < (uint8_t)(sizeof(gaAntCfgIdxToNAp))) ? gaAntCfgIdxToNAp[antCfgIdx] : (uint8_t)gMaxNumAntennaPaths_c;
+    mciqSize = (uint16_t)(gCsMciqSize_c * (uint16_t)numAntPaths * steps);
     tofSize = 0U;
     /* ToF records are only produced for mode 1 or mode 3 steps */
     if ((mainMode == 1U) || (mainMode == 3U))

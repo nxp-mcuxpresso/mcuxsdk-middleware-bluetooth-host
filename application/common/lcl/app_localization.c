@@ -3257,6 +3257,8 @@ static void AppLocalization_HandleProcedureEnabled
     /* Update number of procedures, subevent interval and reset internal counters */
     mRangeSettings[deviceId].maxNumProcedures = pEvent->procedureCount;
     mRangeSettings[deviceId].subeventInterval = pEvent->subeventInterval;
+    /* Save the antenna config selected by the controller to size the IQ buffer */
+    mRangeSettings[deviceId].ant_cfg_index = pEvent->toneAntennaConfigSelection;
 
     /* Start temperature refresh timer if not started already */
     if (TM_IsTimerActive((timer_handle_t)mTemperatureTimerId) == 0U)
