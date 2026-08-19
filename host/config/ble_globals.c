@@ -403,6 +403,9 @@ const bool_t gEnableIntrusionDetectionSystem = FALSE;
 /*Enable experimental features in Controller*/
 bool_t gHostInitEnableExpmFeatures = (bool_t)gHostInitEnableExpmFeatures_c;
 
+/*Enable LE Power Control feature in Controller*/
+bool_t gHostInitEnableLePowerControl = (bool_t)gHostInitEnableLePowerControl_c;
+
 /*Enable receiving coredump packets as gHciVendorSpecificDbgEvent_c events*/
 bool_t gEnableCoredumpPackets = (bool_t)gEnableCoredumpPackets_c;
 /************************************************************************************

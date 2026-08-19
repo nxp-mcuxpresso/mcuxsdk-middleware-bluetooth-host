@@ -294,6 +294,9 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 /* Vendor specific command LE Enable Experimental Feature */
 #define gHciVendorEnableExpmFeaturesCommand_c                    0x00BCU
 
+/* Vendor specific command LE Enable Power Control experimental feature */
+#define gHciVendorEnableLePowerControlCommand_c                  0x00BDU
+
 #define gHciVendorCsConfig_c                                     0x00AFU
 
 /* Macros used to build full HCI OpCodes */

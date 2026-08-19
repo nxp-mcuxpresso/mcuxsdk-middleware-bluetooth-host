@@ -322,6 +322,14 @@
 #define gHostInitEnableExpmFeatures_c      FALSE
 #endif
 
+/*! Enables/disables the command that enables the LE Power Control feature
+ * in Controller at Host init sequence.
+ * Default value is disabled.
+ */
+#ifndef gHostInitEnableLePowerControl_c
+#define gHostInitEnableLePowerControl_c    FALSE
+#endif
+
 /*! Enables/disables the reception of the coredump packets as 
  * gHciVendorSpecificDbgEvent_c events at application level.
  * Default value is disabled.

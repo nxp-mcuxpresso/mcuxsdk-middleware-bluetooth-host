@@ -118,6 +118,7 @@
 #if defined(BLE_SHELL_PWR_CONTROL_SUPPORT) && (BLE_SHELL_PWR_CONTROL_SUPPORT)
 #define gBLE52_d                                1
 #define gBLE52_LePowerControlSupport_d          1
+#define gHostInitEnableLePowerControl_c         1
 #endif /* BLE_SHELL_PWR_CONTROL_SUPPORT */
 
 #if (((defined BLE_SHELL_PAWR_SUPPORT) && (BLE_SHELL_PAWR_SUPPORT == 1)) || \

@@ -1106,6 +1106,7 @@ typedef enum {
     gLeSetLocalPeripheralLatencyEnable_c = 0x97U,    /*!< An error occurred during the Le Set Local Peripheral Latency Enable procedure */
     gLeChasConfig_c = 0x98U,                         /*!< An error occurred during LE CHAS Config command execution */
     gLeModulationTest_c = 0x99U,                     /*!< An error occurred during LE Modulation Test command execution */
+    gVendorEnableLePowerControl_c = 0x9AU,           /*!< An error occurred during gHciVendorEnableLePowerControlCommand_c execution */
 } gapInternalErrorSource_t;
 
 /*! Internal Error Event Data */
@@ -1838,6 +1839,8 @@ extern const bool_t gUseHciCommandFlowControl;
 #endif /* gUnitTesting_d */
 
 extern bool_t gHostInitEnableExpmFeatures;
+
+extern bool_t gHostInitEnableLePowerControl;
 
 extern bool_t gEnableCoredumpPackets;
 

@@ -4169,6 +4169,20 @@ bleResult_t Hci_LeSetSchedulerPriority(const hciVendorLeSetSchedulerPriorityComm
 ********************************************************************************** */
 bleResult_t Hci_LeVendorEnableExpmFeatures(void);
 
+/*! ********************************************************************************
+* \brief        The function sends the vendor HCI LE Enable Power Control command to the Controller.
+*               This command is used to enable the LE Power Control experimental feature in the controller.
+*
+* \param[in]    None.
+* \param[out]   None
+*
+* \return       Status
+*
+* \remarks      The command must be issued before Hci_Reset command
+*
+********************************************************************************** */
+bleResult_t Hci_LeVendorEnableLePowerControl(void);
+
 /* v5.0 specific interface */
 
 /*! *********************************************************************************
