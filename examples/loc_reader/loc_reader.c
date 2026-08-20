@@ -1496,6 +1496,7 @@ static void BleApp_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent
 static void BleApp_UpdateLocalizationConfig(deviceId_t peerDeviceId, uint16_t connInterval)
 {
     appLocalization_rangeCfg_t locConfig;
+    uint64_t procIntervals;
 
     /* Read current CS config and update procedure repeat interval */
     (void)AppLocalization_ReadConfig(peerDeviceId, &locConfig);
@@ -1518,7 +1519,13 @@ static void BleApp_UpdateLocalizationConfig(deviceId_t peerDeviceId, uint16_t co
 #endif
 
     /* Convert ms to connection intervals */
-    procInterval = 1U + (procInterval * 1000U)/(((uint32_t)(connInterval)) * 1250U);
+    procIntervals = 1ULL + (((uint64_t)procInterval * 1000ULL) / (((uint64_t)(connInterval)) * 1250ULL));
+
+    if (procIntervals > (uint64_t)0xFFFFU)
+    {
+        procIntervals = (uint64_t)0xFFFFU;
+    }
+    procInterval = (uint32_t)procIntervals;
     locConfig.minPeriodBetweenProcedures = (uint16_t)procInterval;
     locConfig.maxPeriodBetweenProcedures = (uint16_t)procInterval;
 
