@@ -262,6 +262,41 @@ Include Files
 
 /* Cast uint16_t to uint8_t with explicit truncation of upper byte */
 #define Uint16toUint8(x)   ((uint8_t)((x) & 0xFFU))
+
+/*! *********************************************************************************
+*\private
+*\fn           uint16_t IncrementU16Saturating(uint16_t val, uint16_t increment)
+*\brief        Adds an increment to a 16-bit unsigned value, saturating at UINT16_MAX
+*              to avoid unsigned integer wraparound.
+*
+*\param  [in]  val          The base value to increment.
+*\param  [in]  increment    The value to add.
+*
+*\return       uint16_t     The saturated result of val + increment.
+********************************************************************************** */
+static inline uint16_t IncrementU16Saturating(uint16_t val, uint16_t increment)
+{
+    uint32_t result = (uint32_t)val + (uint32_t)increment;
+
+    return (result <= (uint32_t)UINT16_MAX) ? (uint16_t)result : (uint16_t)UINT16_MAX;
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           uint8_t IncrementU8Saturating(uint8_t val, uint8_t increment)
+*\brief        Adds an increment to an 8-bit unsigned value, saturating at UINT8_MAX
+*              to avoid unsigned integer wraparound.
+*
+*\param  [in]  val          The base value to increment.
+*\param  [in]  increment    The value to add.
+*
+*\return       uint8_t      The saturated result of val + increment.
+********************************************************************************** */
+static inline uint8_t IncrementU8Saturating(uint8_t val, uint8_t increment)
+{
+    uint16_t result = (uint16_t)val + (uint16_t)increment;
+    return (result <= (uint16_t)UINT8_MAX) ? (uint8_t)result : (uint8_t)UINT8_MAX;
+}
 #endif /* BLE_UTILS_H */
 
 /*! *********************************************************************************

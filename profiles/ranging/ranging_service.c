@@ -403,7 +403,7 @@ bleResult_t Ras_Unsubscribe
                 /* Increment the Device Id to mark it as dirty.
                  * In case peer unsubscribes via ATT first and disconnects later,
                  * maModeFilters must be cleaned */
-                mRas_ClientDeviceId[idx] = clientDeviceId + ((deviceId_t)UINT8_MAX / 2U);
+                mRas_ClientDeviceId[idx] = Uint32toUint8(clientDeviceId + ((deviceId_t)UINT8_MAX / 2U));
             }
             break;
         }
@@ -998,7 +998,7 @@ bleResult_t Ras_SendRangingDataIndication
         if (mbServRealTimeTransfer[deviceId] == FALSE)
         {
             /* Keep the store status separate so the sendGattIndication result is not lost */
-            storeResult = storeSegmentData(&segmDataIdx, segDataStart, segmentationHeader, notifDataLen - 1U);
+            storeResult = storeSegmentData(&segmDataIdx, segDataStart, segmentationHeader, Uint32toUint16(notifDataLen - 1U));
             if (result == gBleSuccess_c)
             {
                 result = storeResult;
@@ -1111,7 +1111,7 @@ bleResult_t Ras_SendRangingDataNotifs
                         (maRasDynamicCfg[deviceId].pRangingDataBody + maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex),
                         availableLen);
             maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex += availableLen;
-            notifDataLen += availableLen;
+            notifDataLen = IncrementU16Saturating(notifDataLen, availableLen);
 
             /* Check if we reached the last notification */
             if ((maRasDynamicCfg[deviceId].pCfg->aSubEventData[maRasDynamicCfg[deviceId].pCfg->subeventIndex].subevtHeader.procedureDoneStatus == 0U) &&
@@ -1295,7 +1295,15 @@ bleResult_t Ras_BuildRangingDataBody
         }
 
         /* Count the resulting data after filtering, could be less */
-        maRasDynamicCfg[deviceId].pCfg->aSubEventData[subEvtIdx].filteredDataSize += currentDataIdx;
+        if (maRasDynamicCfg[deviceId].pCfg->aSubEventData[subEvtIdx].filteredDataSize + currentDataIdx <= (uint16_t)UINT16_MAX)
+        {
+            maRasDynamicCfg[deviceId].pCfg->aSubEventData[subEvtIdx].filteredDataSize =
+              (uint16_t)(maRasDynamicCfg[deviceId].pCfg->aSubEventData[subEvtIdx].filteredDataSize + currentDataIdx);
+        }
+        else
+        {
+            maRasDynamicCfg[deviceId].pCfg->aSubEventData[subEvtIdx].filteredDataSize = (uint16_t)UINT16_MAX;
+        }
 
         if (packProcHdr == TRUE)
         {
@@ -1311,7 +1319,7 @@ bleResult_t Ras_BuildRangingDataBody
             if(subEvtIdx != 0U)
             {
                 /* Account for rasSubeventDataHeader_t reserved below, if not first subevent */
-                currentDataIdx = (uint16_t)(maRasDynamicCfg[deviceId].pCfg->dataParsedLen - sizeof(rasSubeventDataHeader_t) -
+                currentDataIdx = Uint32toUint16(maRasDynamicCfg[deviceId].pCfg->dataParsedLen - sizeof(rasSubeventDataHeader_t) -
                                             maRasDynamicCfg[deviceId].pCfg->aSubEventData[subEvtIdx].filteredDataSize);
             }
             else
@@ -1904,7 +1912,7 @@ static void antennaPathFilterStepData
 
         /* Copy step mode information to notification buffer */
         *(pNotifData + (*pOutLen)) = mode;
-        (*pOutLen)++;
+        *pOutLen = IncrementU16Saturating(*pOutLen, 1U);
 
         /* Skip step data if length is reported as 0 */
         if (stepDataLength == 0U)
@@ -1941,7 +1949,7 @@ static void antennaPathFilterStepData
             case (gMode1Idx_c | gModeAborted_c):   /* Fall-through */
             case (gMode1Idx_c):
             {
-                devIdIdx += gMode1Idx_c;
+                devIdIdx = IncrementU8Saturating(devIdIdx, (uint8_t)gMode1Idx_c);
                 pStepDataAux = processMode1Data(deviceId, devIdIdx, stepDataLength, pStepDataAux, pNotifData, pOutLen);
             }
             break;
@@ -1950,7 +1958,7 @@ static void antennaPathFilterStepData
             case (gMode2Idx_c | gModeAborted_c):   /* Fall-through */
             case (gMode2Idx_c):
             {
-                devIdIdx += gMode2Idx_c;
+                devIdIdx = IncrementU8Saturating(devIdIdx, (uint8_t)gMode2Idx_c);
                 pStepDataAux = processMode2Data(deviceId, devIdIdx, stepDataLength, pStepDataAux, pNotifData, pOutLen);
             }
             break;
@@ -1962,7 +1970,7 @@ static void antennaPathFilterStepData
             case (gMode3Idx_c | gModeAborted_c):   /* Fall-through */
             case (gMode3Idx_c):
             {
-                devIdIdx += gMode3Idx_c;
+                devIdIdx = IncrementU8Saturating(devIdIdx, (uint8_t)gMode3Idx_c);
                 pStepDataAux = processMode3Data(deviceId, devIdIdx, stepDataLength, pStepDataAux, pNotifData, pOutLen);
             }
             break;
@@ -1976,8 +1984,8 @@ static void antennaPathFilterStepData
         }
 
         /* Account for the data we parsed so far: step mode, channel, length and data */
-        maRasDynamicCfg[deviceId].pCfg->aSubEventData[gRasSubeventStepIndex].currentDataSize += (uint16_t)stepDataLength + 3U;
-        maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex += (uint16_t)stepDataLength + 3U;
+        maRasDynamicCfg[deviceId].pCfg->aSubEventData[gRasSubeventStepIndex].currentDataSize += Uint32toUint16((uint16_t)stepDataLength + 3U);
+        maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex += Uint32toUint16((uint16_t)stepDataLength + 3U);
 
 
         /* Check if we reached the end of the subevent */
