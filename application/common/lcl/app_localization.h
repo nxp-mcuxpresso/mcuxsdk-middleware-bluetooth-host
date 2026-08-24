@@ -258,11 +258,11 @@ typedef struct appLocalization_rangeCfg_tag
     /* Used by algorithm */
     uint16_t connInterval;                      /*!< Connection interval of the Bluetooth LE link (units of 1.25ms) - required by algorithm */
     uint16_t subeventInterval;                  /*!< Time between consecutive CS subevents anchored off the same ACL connection event */
-    void *csAlgoBuf;                            /*!< Buffer used by RADE */
 #if defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U)
     int16_t adaptiveRssiSum;                    /*!< Running sum of the per-procedure remote RSSI averages of the current loop iteration */
     uint8_t adaptiveRssiCount;                  /*!< Number of procedures contributing to adaptiveRssiSum */
 #endif /* gAppAdaptiveProcInterval_d */
+    void *csAlgoBuf;                            /*!< Buffer used by RADE - must be last in this structure */
 } appLocalization_rangeCfg_t;
 
 typedef enum
