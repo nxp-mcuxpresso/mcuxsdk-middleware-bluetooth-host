@@ -978,7 +978,7 @@ bleResult_t Ras_SendRangingDataIndication
                     availableLen);
 
         maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex += availableLen;
-        notifDataLen += availableLen;
+        notifDataLen = IncrementU16Saturating(notifDataLen, availableLen);
 
         if ((maRasDynamicCfg[deviceId].pCfg->aSubEventData[maRasDynamicCfg[deviceId].pCfg->subeventIndex].subevtHeader.procedureDoneStatus == 0U) &&
              (maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex == maRasDynamicCfg[deviceId].pCfg->dataParsedLen))
@@ -1286,7 +1286,7 @@ bleResult_t Ras_BuildRangingDataBody
                                   &currentDataIdx);
  
         /* Add parsed subevent data */
-        maRasDynamicCfg[deviceId].pCfg->dataParsedLen += currentDataIdx;
+        maRasDynamicCfg[deviceId].pCfg->dataParsedLen = IncrementU16Saturating(maRasDynamicCfg[deviceId].pCfg->dataParsedLen, currentDataIdx);
 
         /* Subevent index of the header to be copied */
         if (gRasSubeventStepIndex > subEvtIdx)
@@ -1925,12 +1925,12 @@ static void antennaPathFilterStepData
         /* Proprietary IPT solution: filter out mode-2 and mode-3 PCT data */
         if (mRangeSettings[deviceId].inlinePctEnabled == TRUE)
         {
-            maModeFilters[devIdIdx + gMode2Idx_c] &= ~((uint16_t)1U << 2U);
-            maModeFilters[devIdIdx + gMode2Idx_c] &= ~((uint16_t)1U << 3U);
-            maModeFilters[devIdIdx + gMode2Idx_c] &= ~((uint16_t)1U << 4U);
-            maModeFilters[devIdIdx + gMode3Idx_c] &= ~((uint16_t)1U << 9U);
-            maModeFilters[devIdIdx + gMode3Idx_c] &= ~((uint16_t)1U << 10U);
-            maModeFilters[devIdIdx + gMode3Idx_c] &= ~((uint16_t)1U << 11U);
+            maModeFilters[devIdIdx + gMode2Idx_c] &= Uint32toUint16(~((uint32_t)1U << 2U));
+            maModeFilters[devIdIdx + gMode2Idx_c] &= Uint32toUint16(~((uint32_t)1U << 3U));
+            maModeFilters[devIdIdx + gMode2Idx_c] &= Uint32toUint16(~((uint32_t)1U << 4U));
+            maModeFilters[devIdIdx + gMode3Idx_c] &= Uint32toUint16(~((uint32_t)1U << 9U));
+            maModeFilters[devIdIdx + gMode3Idx_c] &= Uint32toUint16(~((uint32_t)1U << 10U));
+            maModeFilters[devIdIdx + gMode3Idx_c] &= Uint32toUint16(~((uint32_t)1U << 11U));
         }
 
         switch (mode)
@@ -2001,7 +2001,10 @@ static void antennaPathFilterStepData
 
     if (bHasData == FALSE)
     {
-        gRasSubeventStepIndex++;
+        if (gRasSubeventStepIndex < ((uint32_t)gMaxNumCsSubevents_c - 1U))
+        {
+            gRasSubeventStepIndex++;
+        }
     }
 }
 
