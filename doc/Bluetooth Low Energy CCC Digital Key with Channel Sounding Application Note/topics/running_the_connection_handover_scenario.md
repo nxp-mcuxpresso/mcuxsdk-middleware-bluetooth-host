@@ -6,6 +6,7 @@ The CCC Digital Key demos showcase the Connection Handover feature. The handover
 
 -   KW47-EVK
 -   KW47-LOC board
+-   KW43-LOC board
 -   FRDM-KW43
 
 **Prerequisites**:
@@ -15,11 +16,12 @@ The CCC Digital Key demos showcase the Connection Handover feature. The handover
 
     | Board | UART RX → TX | UART TX → RX | GND |
     |-------|-------------|-------------|-----|
-    | KW47-EVK | J1-1 → J1-3 | J1-3 → J1-1 | J13-8 to J13-8 |
+    | KW47-EVK | J1-1 → J1-3 | J1-3 → J1-1 | J13-8 → J13-8 |
     | KW47-LOC | J2-3 → J2-4 | J2-4 → J2-3 | J2-8 → J2-8 |
-    | FRDM-KW43 | J22-1 (UART0\_RX PTA18) → JP19-1 (UART0\_TX PTA17) | JP19-1 → J22-1 | J21-8 to J21-8 |
+    | KW43-LOC | JP19-3 (UART0\_RX PTA18) → JS6-3 (UART0\_TX PTA17) | JS6-3 → JP19-3 | J9-8 → J9-8 |
+    | FRDM-KW43 | J22-1 (UART0\_RX PTA18) → JP19-1 (UART0\_TX PTA17) | JP19-1 → J22-1 | J21-8 → J21-8 |
 
-    **Note:** For FRDM-KW43, the current firmware configuration uses PTA18 for UART0\_RX instead of PTA16 as shown in the schematic.
+    **Note:** For KW43-LOC and FRDM-KW43, the current firmware configuration uses PTA18 for UART0\_RX instead of PTA16 as shown in the schematic.
 -   The *gHandoverIncluded\_d* macro must be set to `1` in *`app_preinclude.h`* for the ***digital\_key\_car\_anchor\_cs*** project.
 -   The CS configuration must exist on the initial Car Anchor before the first handover is performed, as detailed in the Demo steps below.
 

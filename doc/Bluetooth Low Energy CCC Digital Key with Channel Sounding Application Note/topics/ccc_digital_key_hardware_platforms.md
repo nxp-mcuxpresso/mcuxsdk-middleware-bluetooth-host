@@ -4,6 +4,7 @@ The CCC Digital Key R3 demo applications with localization functionality support
 
 -   KW47-EVK
 -   KW47-LOC board
+-   KW43-LOC board
 -   FRDM-KW43
 
 The below figures show these boards.
@@ -16,6 +17,10 @@ The below figures show these boards.
 **KW47-LOC board**
 
 ![](../images/KW47-LOC.png "KW47-LOC board")
+
+**KW43-LOC board**
+
+![](../images/KW43-LOC.png "KW43-LOC board")
 
 **FRDM-KW43 board**
 

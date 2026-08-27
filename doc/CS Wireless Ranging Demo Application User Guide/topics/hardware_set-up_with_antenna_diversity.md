@@ -8,7 +8,7 @@ For a detailed setup description, see *Antenna Diversity Board User's Guide* \(d
 
 From antenna diversity boards, you must choose the pair of antennas, either the two SMA connectors or the two printed antennas, to be used.
 
-Another convenient way to enable antenna diversity testing is to use KW47-LOC board which embeds two printed antennas on the same PCB. For a detailed description of this board and how to set it up, refer to *KW47-LOC Board User Manual*.
+Another convenient way to enable antenna diversity testing is to use the KW47-LOC or KW43-LOC board which embeds two printed antennas on the same PCB. For a detailed description of these boards and how to set them up, refer to the *KW47-LOC Board User Manual* or the *KW43-LOC Board User Manual*.
 
 To configure antenna diversity properly in the firmware, it is required to configure the following:
 

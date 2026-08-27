@@ -8,9 +8,7 @@ The CCC Digital Key R3 demo applications support the following platforms that ha
 
 -   KW47-EVK \(see [Figure 3](../images/KW47_EVK.png) \)
 
--   KW47-LOC \(see [Figure 4](../images/KW47-LOC.png) \)
-
--   FRDM-KW43 \(see [Figure 5](../images/FRDM-KW43.png) \)
+-   FRDM-KW43 \(see [Figure 4](../images/FRDM-KW43.png) \)
 
 **FRDM-KW38 board**
 
@@ -23,10 +21,6 @@ The CCC Digital Key R3 demo applications support the following platforms that ha
 **KW47-EVK board**
 
 ![](../images/KW47_EVK.png "KW47-EVK board")
-
-**KW47-LOC board**
-
-![](../images/KW47-LOC.png "KW47-LOC board")
 
 **FRDM-KW43 board**
 ![](../images/FRDM-KW43.png "FRDM-KW43 board")

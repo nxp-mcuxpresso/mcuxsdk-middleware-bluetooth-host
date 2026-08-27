@@ -26,13 +26,13 @@ west build -b kw47evk examples/wireless_examples/bluetooth/w_uart/freertos/ --to
 
 | Parameter | Description |
 |-----------|-------------|
-| `-b <board>` | Target board (kw47evk, kw47loc, frdmkw43, frdmmcxw72, etc.) |
+| `-b <board>` | Target board (kw47evk, kw47loc, kw43loc, frdmkw43, frdmmcxw72, etc.) |
 | `--toolchain=iar` | Use IAR toolchain |
 | `-t guiproject` | Generate IAR workspace |
 | `-Dcore_id=cm33_core0` | CPU core (for KW47, MCXW72) |
 | `--pristine` | Clean build |
 
-**Supported boards:** kw47evk, kw47loc, frdmmcxw71, frdmmcxw72, mcxw72evk, frdmkw43.
+**Supported boards:** kw47evk, kw47loc, kw43loc, frdmmcxw71, frdmmcxw72, mcxw72evk, frdmkw43.
 
 **Output:** IAR workspace at `build/iar/<project_name>.eww`
 
@@ -59,7 +59,7 @@ Go to **Project > Options (Alt+F7) > Debugger > Setup > Driver**
 
 Select debugger:
 - **CMSIS-DAP** for kw45b41zevk, mcxw71evk, frdmmcxw71
-- **J-Link** for kw47evk, kw47loc, mcxw72evk, frdmmcxw72, frdmkw43
+- **J-Link** for kw47evk, kw47loc, kw43loc, mcxw72evk, frdmmcxw72, frdmkw43
 
 ![Debugger settings](../images/MCXW72_I/Figure9.png)
 

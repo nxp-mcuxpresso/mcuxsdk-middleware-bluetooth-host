@@ -7,6 +7,7 @@ This document describes the distance measurement between 2 Bluetooth LE devices 
 -   Channel Sounding Wireless Ranging Demo Application
 -   KW47 Ranging Performance Measurement
 -   KW47-LOC Board User Manual
+-   KW43-LOC Board User Manual
 -   FRDM-KW43 Board User Manual
 
 This application note describes a method to estimate the distance partly based on Round-Trip Phase (RTP) measurements. The legacy name of the RTP is Phase-based Distance Estimation (PDE). The phase of RF signals is proportional to the frequency of the carrier and the distance traveled. The method is based on measuring the received signals’ phases relative to their local oscillators. The measurements are then performed using tone signals at different frequencies and combined for a final distance estimation.

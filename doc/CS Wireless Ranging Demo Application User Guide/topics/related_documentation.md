@@ -9,4 +9,5 @@ Table below lists the additional documents and resources that can be referred to
 |Antenna Diversity Board User's Guide \(document ADBUG\)|Contact NXP local field applications engineer \(FAE\) or sales representative|
 |KW47-EVK Updating Secure Binary NBU Image User's Guide|Contact NXP local field applications engineer \(FAE\) or sales representative|
 |KW47-LOC Board User Manual \(document KW47-LOCUM\)|Contact NXP local field applications engineer \(FAE\) or sales representative|
+|KW43-LOC Board User Manual \(document KW43-LOCUM\)|Contact NXP local field applications engineer \(FAE\) or sales representative|
 

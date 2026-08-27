@@ -8,6 +8,7 @@ The NXP Bluetooth LE demo applications run on a selection of the following platf
 -   MCX-W71-EVK
 -   KW47-EVK
 -   KW47-LOC
+-   KW43-LOC
 -   FRDM-MCXW72
 -   MCX-W72-EVK
 -   MCXW72-LOC

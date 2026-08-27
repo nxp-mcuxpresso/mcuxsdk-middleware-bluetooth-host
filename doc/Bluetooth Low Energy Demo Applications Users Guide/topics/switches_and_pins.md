@@ -210,6 +210,7 @@ Wireless UART
 | KW45B41Z-LOC | SW2    | LED2     | SW3     |
 | KW47-EVK     | SW2    | LED2     | SW3     |
 | KW47-LOC     | SW2    | LED2     | SW3     |
+| KW43-LOC     | SW1    | LED2     | SW2     |
 | MCXW23-EVK   | SW4    | Red LED  | SW2     |
 | MCX-W71-EVK  | SW2    | LED2     | SW3     |
 | MCX-W72-EVK  | SW2    | LED2     | SW3     |
@@ -224,6 +225,7 @@ Wireless UART GENFSK
 | KW45B41Z-LOC | SW2    | LED2     | SW3     |
 | KW47-EVK     | SW2    | LED2     | SW3     |
 | KW47-LOC     | SW2    | LED2     | SW3     |
+| KW43-LOC     | SW1    | LED2     | SW2     |
 
 Wireless UART Host
 ===================

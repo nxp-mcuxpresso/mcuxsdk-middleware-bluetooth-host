@@ -33,6 +33,10 @@
 :heading-offset: 1
 ```
 
+```{include} ../topics/KW43-LOC_platform.md
+:heading-offset: 1
+```
+
 ```{include} ../topics/FRDM-MCXW72_platform.md
 :heading-offset: 1
 ```
