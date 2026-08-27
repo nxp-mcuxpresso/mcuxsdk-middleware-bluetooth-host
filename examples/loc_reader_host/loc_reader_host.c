@@ -306,6 +306,8 @@ void BleApp_HandleNcpMsg
     deviceId_t deviceId = pEventData[0];
     pEventData++;
     uint16_t dataHeaderSize = (sizeof(rasMeasurementData_t) - sizeof(uint8_t*));
+    /* Extra 4 bytes present only in the Start packets */
+    uint16_t bufSizesLen = (uint16_t)(sizeof(uint16_t) + sizeof(uint16_t));
     uint32_t evenDataSize = (uint32_t)gFsciMaxPayloadLen_c - sizeof(ncpIqTransferMsgType_t) - sizeof(deviceId_t) - 1U;
     union {
       uint32_t u32;
@@ -319,20 +321,30 @@ void BleApp_HandleNcpMsg
     {
         case gIQLocalTrStart_c:
         {
-            unpackDataHeader(pLocalData, pEventData);
+            uint16_t mciqBufferSize = 0U;
+            uint16_t tofBufferSize = 0U;
+
+            /* Buffer sizes come first, at a fixed offset */
+            FLib_MemCpy(&mciqBufferSize, pEventData, sizeof(uint16_t));
+            FLib_MemCpy(&tofBufferSize, pEventData + sizeof(uint16_t), sizeof(uint16_t));
+
+            unpackDataHeader(pLocalData, pEventData + bufSizesLen);
+
             /* Save local data */
             if (pLocalData->pData == NULL)
             {
-                pLocalData->pData = MEM_BufferAlloc(sizeof(csAppData_t));
+                pLocalData->pData = MEM_BufferAlloc((uint32_t)sizeof(csAppData_t) + mciqBufferSize + tofBufferSize);
             }
 
             if (pLocalData->pData != NULL)
             {
+                uint32_t firstChunk = evenDataSize - dataHeaderSize - bufSizesLen;
+
                 pLocalData->totalSentRcvDataIndex = 0U;
                 FLib_MemCpy(pLocalData->pData,
-                            pEventData + dataHeaderSize,
-                            (evenDataSize - dataHeaderSize));
-                dataLen.u32 = evenDataSize - dataHeaderSize;
+                            pEventData + dataHeaderSize + bufSizesLen,
+                            firstChunk);
+                dataLen.u32 = firstChunk;
                 pLocalData->totalSentRcvDataIndex += dataLen.u16;
             }
         }
@@ -357,35 +369,51 @@ void BleApp_HandleNcpMsg
             /* Save local data */
             if (pLocalData->pData != NULL)
             {
-                uint32_t remainingBytes = sizeof(csAppData_t) - pLocalData->totalSentRcvDataIndex;
+                csAppData_t *pLocal = (csAppData_t *)(void*)pLocalData->pData;
+                uint32_t totalDataSize = (uint32_t)sizeof(csAppData_t) + pLocal->mciqBufferSize + pLocal->tofBufferSize;
+                uint32_t remainingBytes = totalDataSize - pLocalData->totalSentRcvDataIndex;
 
                 FLib_MemCpy(pLocalData->pData + pLocalData->totalSentRcvDataIndex,
                             pEventData,
                             remainingBytes);
+                pLocalData->totalSentRcvDataIndex = (uint16_t)totalDataSize;
                 dataLen.u32 = pLocalData->dataIndex;
-                pLocalData->totalSentRcvDataIndex = pLocalData->dataIndex;
 
+                /* Re-point the buffer pointers into core0's own allocation.
+                 * The values received from core1 are core1 addresses and are invalid here. */
+                pLocal->pMciqBuffer = (uint8_t *)pLocal + sizeof(csAppData_t);
+                pLocal->pTofBuffer  = (pLocal->tofBufferSize > 0U) ? (pLocal->pMciqBuffer + pLocal->mciqBufferSize) : NULL;
             }
         }
         break;
 
         case gIQRemoteTrStart_c:
         {
+            uint16_t mciqBufferSize = 0U;
+            uint16_t tofBufferSize  = 0U;
+
             RasClient_Init(NULL, deviceId);
-            unpackDataHeader(pPeerData, pEventData);
+
+            FLib_MemCpy(&mciqBufferSize, pEventData, sizeof(uint16_t));
+            FLib_MemCpy(&tofBufferSize, pEventData + sizeof(uint16_t), sizeof(uint16_t));
+
+            unpackDataHeader(pPeerData, pEventData + bufSizesLen);
+
             /* Save remote data */
             if (pPeerData->pData == NULL)
             {
-                pPeerData->pData = MEM_BufferAlloc(sizeof(csAppData_t));
+                pPeerData->pData = MEM_BufferAlloc((uint32_t)sizeof(csAppData_t) + mciqBufferSize + tofBufferSize);
             }
 
             if (pPeerData->pData != NULL)
             {
+                uint32_t firstChunk = evenDataSize - dataHeaderSize - bufSizesLen;
+
                 pPeerData->totalSentRcvDataIndex = 0U;
                 FLib_MemCpy(pPeerData->pData,
-                            pEventData+dataHeaderSize,
-                            (evenDataSize - dataHeaderSize));
-                dataLen.u32 = evenDataSize - dataHeaderSize;
+                            pEventData + dataHeaderSize + bufSizesLen,
+                            firstChunk);
+                dataLen.u32 = firstChunk;
                 pPeerData->totalSentRcvDataIndex += dataLen.u16;
             }
         }
@@ -410,13 +438,19 @@ void BleApp_HandleNcpMsg
             /* Save remote data */
             if (pPeerData->pData != NULL)
             {
-                uint32_t remainingBytes = sizeof(csAppData_t) - pPeerData->totalSentRcvDataIndex;
+                csAppData_t *pRemote = (csAppData_t *)(void*)pPeerData->pData;
+                uint32_t totalDataSize = (uint32_t)sizeof(csAppData_t) + pRemote->mciqBufferSize + pRemote->tofBufferSize;
+                uint32_t remainingBytes = totalDataSize - pPeerData->totalSentRcvDataIndex;
 
                 FLib_MemCpy(pPeerData->pData + pPeerData->totalSentRcvDataIndex,
                             pEventData,
                             remainingBytes);
+                pPeerData->totalSentRcvDataIndex = (uint16_t)totalDataSize;
                 dataLen.u32 = pPeerData->dataIndex;
-                pPeerData->totalSentRcvDataIndex = pPeerData->dataIndex;
+
+                /* Re-point buffers into core0's own allocation */
+                pRemote->pMciqBuffer = (uint8_t *)pRemote + sizeof(csAppData_t);
+                pRemote->pTofBuffer  = (pRemote->tofBufferSize > 0U) ? (pRemote->pMciqBuffer + pRemote->mciqBufferSize) : NULL;
 
                 /* Chck if all data was received and run algorithm if yes */
                 BleApp_CheckRunAlgo(deviceId);
