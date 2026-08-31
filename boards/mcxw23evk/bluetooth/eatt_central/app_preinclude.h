@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*
- * Copyright 2025 NXP
+ * Copyright 2025-2026 NXP
  *
  *
  *
@@ -104,7 +104,7 @@
 #define TM_TASK_STACK_SIZE              220
 
 /* The size used for the Idle task, in dwords. */
-#define configMINIMAL_STACK_SIZE        100
+#define configMINIMAL_STACK_SIZE        120
 
 #define SHELL_TASK_STACK_SIZE           500
 
