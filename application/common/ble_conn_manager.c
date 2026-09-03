@@ -604,7 +604,8 @@ void BleConnManager_GapPeripheralEvent
             }
             else
 #endif /* (defined(gAppUseTAK_d) && gAppUseTAK_d) */
-            if ((pConnectionEvent->eventData.longTermKeyRequestEvent.ediv == gSmpKeys.ediv) &&
+            if ((gSmpKeys.aRand != NULL) &&
+                (pConnectionEvent->eventData.longTermKeyRequestEvent.ediv == gSmpKeys.ediv) &&
                 (pConnectionEvent->eventData.longTermKeyRequestEvent.randSize == gSmpKeys.cRandSize) &&
                 (TRUE == FLib_MemCmp(pConnectionEvent->eventData.longTermKeyRequestEvent.aRand,
                                      gSmpKeys.aRand,
@@ -1339,15 +1340,21 @@ STATIC void BleConnManager_MCUInfoToSmpKeys(void)
     if((len > 0U) && (len <= 16U))
     {
         /* generate LTK. LTK size always smaller than SHA1 hash size */
-        uid[len - 1U]++;
-        SHA256_Hash (uid, len, sha256Output);
-        FLib_MemCpy (gSmpKeys.aLtk, sha256Output, gSmpKeys.cLtkSize);
+        if (gSmpKeys.aLtk != NULL)
+        {
+            uid[len - 1U]++;
+            SHA256_Hash (uid, len, sha256Output);
+            FLib_MemCpy (gSmpKeys.aLtk, sha256Output, gSmpKeys.cLtkSize);
+        }
 
 #if !defined(gUseCustomIRK_d)
         /* generate IRK */
-        uid[len - 1U]++;
-        SHA256_Hash (uid, len, sha256Output);
-        FLib_MemCpy (gSmpKeys.aIrk, sha256Output, gcSmpIrkSize_c);
+        if (gSmpKeys.aIrk != NULL)
+        {
+            uid[len - 1U]++;
+            SHA256_Hash (uid, len, sha256Output);
+            FLib_MemCpy (gSmpKeys.aIrk, sha256Output, gcSmpIrkSize_c);
+        }
 #endif /* gUseCustomIRK_d */
 
         /* generate ediv and rand */
@@ -1357,9 +1364,12 @@ STATIC void BleConnManager_MCUInfoToSmpKeys(void)
         FLib_MemCpy (&(gSmpKeys.ediv),
                      &(sha256Output[0]),
                      sizeof(gSmpKeys.ediv));
-        FLib_MemCpy (gSmpKeys.aRand,
-                     &(sha256Output[sizeof(gSmpKeys.ediv)]),
-                     gSmpKeys.cRandSize);
+        if (gSmpKeys.aRand != NULL)
+        {
+            FLib_MemCpy (gSmpKeys.aRand,
+                         &(sha256Output[sizeof(gSmpKeys.ediv)]),
+                         gSmpKeys.cRandSize);
+        }
     }
 }
 #endif /* (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U)) */
