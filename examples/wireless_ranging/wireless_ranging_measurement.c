@@ -181,11 +181,14 @@ static const uint8_t cs_ant_idx_to_GPIO_ANTDIV_4ANT[CS_MAX_NB_ANTENNAS] =  {LCL_
 static const uint8_t cs_ant_idx_to_GPIO_LOC[CS_MAX_NB_ANTENNAS] =  {LCL_HAL_LOC_ANT_A_ANT , LCL_HAL_LOC_ANT_B_ANT, LCL_HAL_LOC_ALL_OFF, LCL_HAL_LOC_ALL_OFF};
 
 /* PCT Rotation calibration parameters */
-/* 50cm compensation for EVK and LOC boards */
-static uint8_t maPctRotationParams[4U * CS_MAX_NB_ANTENNAS] = {57U, 1U, 0U, 0U,
-                                                               57U, 1U, 0U, 0U,
-                                                               57U, 1U, 0U, 0U,
-                                                               57U, 1U, 0U, 0U};
+/* alpha = (pi * d * 16384) / 75 , d in meter.
+   Controller has its own correction HADM_DEFAULT_PCT_ROTATION for all antenna paths.
+   23.7 cm compensation for EVK and LOC boards, alpha = 163 or 0xA3
+*/
+static uint8_t maPctRotationParams[4U * CS_MAX_NB_ANTENNAS] = {0xA3U, 0U, 0U, 0U,
+                                                               0xA3U, 0U, 0U, 0U,
+                                                               0xA3U, 0U, 0U, 0U,
+                                                               0xA3U, 0U, 0U, 0U};
 
 /* RTT fine tuning parameters */
 /*
