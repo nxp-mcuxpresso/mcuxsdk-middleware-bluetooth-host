@@ -197,12 +197,12 @@ static TIMER_MANAGER_HANDLE_DEFINE(mTemperatureTimerId);
 /* PCT Rotation calibration parameters */
 /* alpha = (pi * d * 16384) / 75 , d in meter.
    Controller has its own correction HADM_DEFAULT_PCT_ROTATION for all antenna paths.
-   23.7 cm compensation for EVK and LOC boards, alpha = 163 or 0xA3
+   27.2 cm compensation for EVK and LOC boards, alpha = 187 or 0xBB
 */
-static uint8_t maPctRotationParams[4U * gMaxNumAntennaPaths_c] = {0xA3U, 0U, 0U, 0U,
-                                                                  0xA3U, 0U, 0U, 0U,
-                                                                  0xA3U, 0U, 0U, 0U,
-                                                                  0xA3U, 0U, 0U, 0U};
+static uint8_t maPctRotationParams[4U * gMaxNumAntennaPaths_c] = {0xBBU, 0U, 0U, 0U,
+                                                                  0xBBU, 0U, 0U, 0U,
+                                                                  0xBBU, 0U, 0U, 0U,
+                                                                  0xBBU, 0U, 0U, 0U};
 
 /* RTT fine tuning parameters */
 /*
