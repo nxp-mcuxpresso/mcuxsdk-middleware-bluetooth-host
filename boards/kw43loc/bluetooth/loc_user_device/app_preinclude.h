@@ -166,7 +166,7 @@
 /* Configure high speed CPU clock (96 MHz) */
 #define gAppHighSystemClockFrequency_d          1
 
-#define gHost_TaskStackSize_c                   2200
+#define gHost_TaskStackSize_c                   3800
 
 #define gAdvSetHandle_c                         0x00U
 #define gNoAdvSetHandle_c                       0xFF

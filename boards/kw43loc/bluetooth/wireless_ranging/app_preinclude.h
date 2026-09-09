@@ -129,7 +129,7 @@
 #define gSerialManagerMaxInterfaces_c                   1
 #endif
 
-#define gHost_TaskStackSize_c                           1800
+#define gHost_TaskStackSize_c                           3800
 
 /*! *********************************************************************************
  *     BLE LL Configuration
