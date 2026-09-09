@@ -104,7 +104,7 @@
 #define TM_TASK_STACK_SIZE              (512U)
 #define BUTTON_TASK_STACK_SIZE          (512U)
 #define SERIAL_MANAGER_TASK_STACK_SIZE  (512U)
-#define gHost_TaskStackSize_c           (2200U)
+#define gHost_TaskStackSize_c           (3800U)
 /*! *********************************************************************************
  *     BLE Stack Configuration
  ********************************************************************************** */

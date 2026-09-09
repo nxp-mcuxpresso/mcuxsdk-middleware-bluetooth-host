@@ -98,7 +98,7 @@
 /* The following stack sizes have been chosen based on a worst case scenario. 
  * For different compilers and optimization levels they can be reduced. */
 
-#define gHost_TaskStackSize_c           2200
+#define gHost_TaskStackSize_c           3800
 
 #define BUTTON_TASK_STACK_SIZE          600
 
@@ -111,7 +111,7 @@
 #define gAppIdleTaskStackSize_c         600
 
 /* The size used for the Idle task, in dwords. */
-#define configMINIMAL_STACK_SIZE        150
+#define configMINIMAL_STACK_SIZE        256
 
 #endif
 
