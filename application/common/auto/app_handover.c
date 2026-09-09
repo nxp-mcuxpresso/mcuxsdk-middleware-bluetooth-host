@@ -925,8 +925,11 @@ void AppHandover_Abort(bool_t notifyPeerAnch, appHandoverError_t error)
 
         case gHandoverAnchorMonitorLocal_c:
         {
-            /* Stop anchor search */
-            (void)Gap_HandoverAnchorSearchStop(mHandoverCtx.connHandle);
+            if (error != mAppHandover_AnchorSearchStartFailed_c)
+            {
+                /* Stop anchor search */
+                (void)Gap_HandoverAnchorSearchStop(mHandoverCtx.connHandle);
+            }
             mHandoverCtx.connHandle = gInvalidConnectionHandle_c;
         }
         break;
@@ -1516,13 +1519,8 @@ static bleResult_t anchorMonitorStop(uint16_t connHandle)
     bleResult_t status = gBleSuccess_c;
 
     /* Stop anchor search */
-    uint8_t buf[gHandoverAnchMonStopCommandLen_c] = {0U};
-    Utils_PackTwoByteValue(connHandle, &buf[0]);
     status = Gap_HandoverAnchorSearchStop(connHandle);
     mHandoverCtx.connHandle = gInvalidConnectionHandle_c;
-
-    /* Notify remote anchor that anchor monitoring was stopped */
-    notifyRemoteDevice(gHandoverAnchMonStoppedCommandOpCode_c, gHandoverAnchMonStoppedCommandLen_c, buf);
 
     return status;
 }
@@ -1713,6 +1711,11 @@ static void HandleAnchorSearchStopped(gapGenericEvent_t *pGenericEvent)
 {
     if (mHandoverCtx.state == gHandoverIdle_c)
     {
+        /* Notify remote anchor that anchor monitoring was stopped */
+        uint8_t buf[gHandoverAnchMonStopCommandLen_c] = {0U};
+
+        Utils_PackTwoByteValue(pGenericEvent->eventData.handoverAnchorSearchStop.connectionHandle, &buf[0]);
+        notifyRemoteDevice(gHandoverAnchMonStoppedCommandOpCode_c, gHandoverAnchMonStoppedCommandLen_c, buf);
         removeMonitorFilter(pGenericEvent->eventData.handoverAnchorSearchStop.connectionHandle);
     }
 }
@@ -2098,11 +2101,16 @@ static bleResult_t HandleInternalError
         case gHandoverGetTimeLl_c:
         case gHandoverResumeTransmitLl_c:
         case gHandoverAnchorNotifLl_c:
-        case gHandoverAnchorSearchStartLl_c:
         case gHandoverAnchorSearchStopLl_c:
         case gHandoverTimeSyncTxLl_c:
         case gHandoverTimeSyncRxLl_c:
         {
+            result = gBleUnexpectedError_c;
+        }
+        break;
+        case gHandoverAnchorSearchStartLl_c:
+        {
+            *pError = mAppHandover_AnchorSearchStartFailed_c;
             result = gBleUnexpectedError_c;
         }
         break;
