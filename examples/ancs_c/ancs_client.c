@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2018-2025 NXP
+* Copyright 2018-2026 NXP
 *
 * \file ancs_client.c
 *
@@ -2435,7 +2435,11 @@ static void BleApp_StateMachineHandlerExchangeMtu(deviceId_t peerDeviceId, uint8
             {
                 mpDescProcBuffer = MEM_BufferAlloc(sizeof(gattAttribute_t) + gAttDefaultMtu_c);
             }
-            if (NULL != mpDescProcBuffer)
+            if (NULL == mpDescProcBuffer)
+            {
+                panic(0, 0, 0, 0);
+            }
+            else
             {
                 /* Moving to the ANCS Notification Source Descriptor Setup State */
                 mPeerInformation.appState = mAppNsDescriptorSetup_c;

@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2021-2025 NXP
+* Copyright 2021-2026 NXP
 *
 *
 * \file
@@ -63,6 +63,9 @@
 
 #define mServiceABearerIdx              (0U)        /* index of the bearerId value to be used to send Service A data - first available bearerId */
 #define mServiceBBearerIdx              (1U)        /* index of the bearerId value to be used to send Service B data - second available bearerId */
+
+/* Maximum number of bearer IDs that fit in the local storage array */
+#define mcMaxNoOfBearers_c              NumberOfElements(mABearerIds)
 
 /************************************************************************************
 *************************************************************************************
@@ -447,7 +450,8 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
         case gConnEvtEattConnectionComplete_c:
         {
             /* save the data from the peer if the EATT connection was successful */
-           if (gSuccessful_c == pConnectionEvent->eventData.eattConnectionComplete.status)
+           if ((gSuccessful_c == pConnectionEvent->eventData.eattConnectionComplete.status) &&
+               (pConnectionEvent->eventData.eattConnectionComplete.cBearers <= (uint8_t)mcMaxNoOfBearers_c))
            {
               mPeerCBearers = pConnectionEvent->eventData.eattConnectionComplete.cBearers;
               FLib_MemCpy(mABearerIds, pConnectionEvent->eventData.eattConnectionComplete.aBearerIds, mPeerCBearers);

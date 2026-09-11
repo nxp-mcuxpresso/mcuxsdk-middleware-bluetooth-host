@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2021-2025 NXP
+* Copyright 2021-2026 NXP
 *
 *
 * \file
@@ -58,6 +58,9 @@
 #define mAppEvt_DescriptorWritten_c         0x07U
 
 #define mMaxCbCredits_c                 (65535U)    /* maximum number of credits for an L2CAP channel */
+
+/* Maximum number of bearer IDs that fit in the local storage array */
+#define mcMaxNoOfBearers_c              NumberOfElements(mABearerIds)
 
 /************************************************************************************
 *************************************************************************************
@@ -559,7 +562,8 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
 
         case gConnEvtEattConnectionComplete_c:
         {
-            if (gSuccessful_c == pConnectionEvent->eventData.eattConnectionComplete.status)
+            if ((gSuccessful_c == pConnectionEvent->eventData.eattConnectionComplete.status) &&
+                (pConnectionEvent->eventData.eattConnectionComplete.cBearers <= (uint8_t)mcMaxNoOfBearers_c))
             {
                 /* save the data from the peer if the EATT connection was successful */
                 mPeerCBearers = pConnectionEvent->eventData.eattConnectionComplete.cBearers;
