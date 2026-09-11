@@ -2932,8 +2932,33 @@ static bool_t APP_UserInterfaceEventHandlerHandover(appEventData_t *pEventData)
 
         case mAppEvt_Shell_AnchorMonitorEventReceived_c:
         {
+            int8_t rssiActive = pEventData->eventData.anchorMonitorEvent.rssiActiveAverage;
+            int8_t rssiRemote = pEventData->eventData.anchorMonitorEvent.rssiRemoteAverage;
+
             shell_write("\r\nRSSI event received for device id: ");
             shell_writeDec(pEventData->eventData.anchorMonitorEvent.deviceId);
+
+            shell_write(" | Active Average RSSI: ");
+            if (rssiActive < 0)
+            {
+                shell_write("-");
+                shell_writeDec((uint32_t)(-(int16_t)rssiActive));
+            }
+            else
+            {
+                shell_writeDec((uint32_t)rssiActive);
+            }
+
+            shell_write(" | Remote Average RSSI: ");
+            if (rssiRemote < 0)
+            {
+                shell_write("-");
+                shell_writeDec((uint32_t)(-(int16_t)rssiRemote));
+            }
+            else
+            {
+                shell_writeDec((uint32_t)rssiRemote);
+            }
             shell_write("\r\n");
         }
         break;
