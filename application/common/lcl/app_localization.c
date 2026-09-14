@@ -4080,7 +4080,7 @@ static bleResult_t processEventResultData
 
         if (((subEventStatus == (uint8_t)gCsCompleteResults_c) ||
              (subEventStatus == (uint8_t)gCsNoResultsProcAborted_c)) &&
-            (mResultData[deviceId].subeventIndex < gMaxNumCsSubevents_c)
+            (mResultData[deviceId].subeventIndex < (gMaxNumCsSubevents_c - 1U))
            )
         {
             /* Subevent Done - move to next subevent */
