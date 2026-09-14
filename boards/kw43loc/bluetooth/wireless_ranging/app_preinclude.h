@@ -32,6 +32,9 @@
 #define gAppLedCnt_c                                    0
 #define gAppRequireRgbLed_c                             0
 
+/* Localization board in use */
+#define BOARD_LOCALIZATION_REVISION_SUPPORT             1
+
 #ifdef SDK_OS_FREE_RTOS
 /* No delay for serial non-blocking writes when using FreeRTOS */
 #define SERIAL_MANAGER_WRITE_TIME_DELAY_DEFAULT_VALUE   0
