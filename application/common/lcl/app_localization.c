@@ -23,6 +23,7 @@
 #include "fsl_component_mem_manager.h"
 #include "sensors.h"
 #include "fwk_platform_lcl.h"
+#include "fwk_platform_definitions.h"
 #include "app_localization.h"
 #include "channel_sounding.h"
 #include "gatt_client_interface.h"
@@ -86,19 +87,27 @@
                 
 #define CS_NO_ANT_TYPES                    7U
 
-/* Switching logic for KW47 LOC board */
+/* Switching logic for KW47-LOC and KW43-LOC boards */
 /*  +---------+-------+-------+-------+
  *  | Antenna | Mode  | VDD   | CTRL  |
  *  |   ANTA  | RF_1  |  1    |   0   |
- *  |   ANTB  | RF_3  |  1    |   1   |
+ *  |   ANTB  | RF_2  |  1    |   1   |
  *  |     -   | OFF   |  0    |   0   |
  *  +---------+-------+-------+-------+
- *
- * PTD1 (RF_GPO_4) -> RF switch VDD (power)
- * PTD2 (RF_GPO_5) -> RF switch VCTRL
+ */
+#if defined(FWK_KW43_MCXW70_FAMILIES)
+/* PTA21 (RF_GPO_3 [....1000] =8) -> RF switch VDD (power)
+ * PTA20 (RF_GPO_2 [....0100] =4) -> RF switch VCTRL
+ */
+#define LCL_HAL_LOC_ANT_A_ANT     (0x8U)
+#define LCL_HAL_LOC_ANT_B_ANT     (0xCU)
+#else
+/* PTD1 (RF_GPO_4 [0001....] =1) -> RF switch VDD (power)
+ * PTD2 (RF_GPO_5 [0010....] =2) -> RF switch VCTRL
  */
 #define LCL_HAL_LOC_ANT_A_ANT     (0x1U)
 #define LCL_HAL_LOC_ANT_B_ANT     (0x3U)
+#endif /* defined(FWK_KW43_MCXW70_FAMILIES) */
 #define LCL_HAL_LOC_ALL_OFF       (0x0U)
 #define LCL_HAL_LOC_UNAVAILABLE   (0xFFU)
 

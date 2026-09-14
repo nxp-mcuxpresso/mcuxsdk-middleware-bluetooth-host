@@ -30,6 +30,9 @@
 /*! Enable Debug Console (PRINTF) */
 #define gDebugConsoleEnable_d           0
 
+/*! Localization board in use */
+#define BOARD_LOCALIZATION_REVISION_SUPPORT             1
+
 /*! *********************************************************************************
  *     App Configuration
  ********************************************************************************** */
