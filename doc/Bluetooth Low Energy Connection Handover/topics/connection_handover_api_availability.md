@@ -132,6 +132,8 @@ bleResult_t Gap_HandoverAnchorSearchStart(gapHandoverAnchorSearchStartParams_t *
   - `timingDiffSlot`: Slot difference of the LL timing.
   - `timingDiffOffset`: Slot offset difference of the LL timing.
   - `mode`: Search mode setting.
+  - `reportLatency`: `gHandoverAnchorMonitorEvent_c` report latency. Applies only after a valid RSSI detection (0 = send all HCI events, use `gHandoverAnchorMonitorReportLatencySendAll_c`; 1-254 = skip that many events with valid RSSI; 255 = drop all HCI events with valid RSSI, use `gHandoverAnchorMonitorReportLatencyDropAll_c`).
+  - `connEvtRxLatency`: Connection events RX operation latency. Applies only after a valid RSSI detection (0 = monitor all connection events for the radio RX; 1-255 = skip that many connection events during the radio RX).
 
 **Returns**: `gBleSuccess_c` or error.
 
@@ -139,6 +141,7 @@ bleResult_t Gap_HandoverAnchorSearchStart(gapHandoverAnchorSearchStartParams_t *
 ```
 bleResult_t Gap_HandoverAnchorSearchStop(uint16_t connHandle);
 ```
+
 **Description**: Stops anchor search for the given connection handle.
 
 **Parameters**:

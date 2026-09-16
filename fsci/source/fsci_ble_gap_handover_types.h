@@ -66,7 +66,8 @@ extern "C" {
 void fsciBleGapHandoverGetAnchorSearchStartParametersFromBuffer
 (
     gapHandoverAnchorSearchStartParams_t        *pParams,
-    uint8_t                                     **ppBuffer
+    uint8_t                                     **ppBuffer,
+    bool_t                                      legacy
 );
 
 /*! *********************************************************************************

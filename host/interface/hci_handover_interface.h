@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2022-2025 NXP
+* Copyright 2022-2026 NXP
 *
 *
 * \file hci_handover_interface.h
@@ -78,6 +78,15 @@ typedef struct hciVendorHandoverAnchorSearchStartCommand_tag
                                                                 In packet mode this is the number of connection intervals to monitor and there are usually
                                                                 2 or more packet events per connection interval. */
     uint8_t     mode;                               /*!< Search mode setting */
+    uint8_t     reportLatency;                      /*!< LE_Handover_Anchor_Monitor_Event report latency
+                                                            0: send all HCI events
+                                                            1 - 254: skip 1 or more HCI events with valid RSSI
+                                                            255: drop all HCI events with valid RSSI
+                                                            This setting applies only for valid RSSI detection. */
+    uint8_t     connEvtRxLatency;                   /*!< Connection events RX operation latency
+                                                            0: monitor all the connection events for the radio RX
+                                                            1 - 255: skip 1 or more connection events during the radio RX
+                                                            This setting applies only after valid RSSI detection. */
 } hciVendorHandoverAnchorSearchStartCommand_t;
 
 typedef struct hciVendorHandoverAnchorSearchStopCommand_tag
