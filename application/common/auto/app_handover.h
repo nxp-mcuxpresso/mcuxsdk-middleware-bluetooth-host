@@ -44,6 +44,18 @@ out of gHandoverMonitorPacketNumberFilter_c events */
 #define gHandoverMonitorPacketNumberFilter_c        30U
 #endif /* gHandoverMonitorPacketNumberFilter_c */
 
+/*! Default value for the LE_Handover_Anchor_Monitor_Event report latency.
+0: send all HCI events. */
+#ifndef gHandoverAnchorMonitorReportLatency_c
+#define gHandoverAnchorMonitorReportLatency_c       gHandoverAnchorMonitorReportLatencySendAll_c
+#endif /* gHandoverAnchorMonitorReportLatency_c */
+
+/*! Default value for the connection events RX operation latency.
+0: monitor all the connection events for the radio RX. */
+#ifndef gHandoverAnchorMonitorConnEvtRxLatency_c
+#define gHandoverAnchorMonitorConnEvtRxLatency_c    0U
+#endif /* gHandoverAnchorMonitorConnEvtRxLatency_c */
+
 /*! Threshold for the invalid number of anchor monitor events before connection
 handover is aborted. Anchor search for connection handover is performed while the
 TX is suspended, because of this the threshold value should be chosen carefully

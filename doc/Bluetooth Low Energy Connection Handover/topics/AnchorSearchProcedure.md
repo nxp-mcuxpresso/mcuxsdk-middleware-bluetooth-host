@@ -9,6 +9,11 @@ The Anchor Search procedure takes the connection parameters and timing informati
    - 'gSuspendTxMode_c' for Connection Handover.
    - 'gRssiSniffingMode_c' for Anchor Monitoring.
    - 'gPacketMode_c' for Packet Monitoring.
+
+   The Anchor Search parameters also include two settings that control the rate of the reported events. Both apply only after a valid RSSI detection:
+   - 'reportLatency': controls the report rate of the `gHandoverAnchorMonitorEvent_c` events with valid RSSI. Set to 0 (`gHandoverAnchorMonitorReportLatencySendAll_c`) to send all HCI events; set to a value between 1 and 254 to skip that many events with valid RSSI; set to 255 (`gHandoverAnchorMonitorReportLatencyDropAll_c`) to drop all HCI events with valid RSSI.
+   - 'connEvtRxLatency': controls the connection events RX operation latency. Set to 0 to monitor all the connection events for the radio RX; set to a value between 1 and 255 to skip that many connection events during the radio RX.
+
 4. Wait for the `gHandoverAnchorSearchStarted_c` event to confirm the Anchor Search procedure has started.
 5. If Anchor Search is successful the requested events will be reported to the application through the `gHandoverAnchorMonitorEvent_c` or `gHandoverAnchorMonitorPacketEvent_c` event.
 

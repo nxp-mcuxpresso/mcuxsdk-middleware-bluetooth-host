@@ -38,8 +38,14 @@
 *************************************************************************************
 ************************************************************************************/
 
+/* Anchor Search Start command payload length that includes the report latency
+   and connection event RX latency fields. Shorter payloads are treated as
+   legacy commands that do not carry these fields. */
+#define gFsciBleGapHandoverAnchorSearchStartLen_c               50U
+
 #define fsciBleGapHandoverCallApiFunction(apiFunction)          bleResult_t result = (apiFunction);             \
                                                                 fsciBleGapHandoverStatusMonitor(result)
+
 
 #define fsciBleGapHandoverMonitorOutParams(functionId, ...)     if(gBleSuccess_c == result)                     \
                                                                 {                                               \
@@ -248,8 +254,11 @@ void fsciBleGapHandoverHandler(void* pData, void* param, uint32_t fsciInterfaceI
                 case gBleGapHandoverCmdAnchorSearchStartOpCode_c:
                     {
                         gapHandoverAnchorSearchStartParams_t anchorSearchStartParams;
-                        
-                        fsciBleGapHandoverGetAnchorSearchStartParametersFromBuffer(&anchorSearchStartParams, &pBuffer);
+                        /* Legacy commands do not carry the report latency and connection
+                           event RX latency fields, so their payload is shorter. */
+                        bool_t legacy = (pClientPacket->structured.header.len < gFsciBleGapHandoverAnchorSearchStartLen_c);
+
+                        fsciBleGapHandoverGetAnchorSearchStartParametersFromBuffer(&anchorSearchStartParams, &pBuffer, legacy);
 
                         fsciBleGapHandoverCallApiFunction(Gap_HandoverAnchorSearchStart(&anchorSearchStartParams));
                     }

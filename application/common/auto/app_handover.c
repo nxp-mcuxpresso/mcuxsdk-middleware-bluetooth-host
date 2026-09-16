@@ -2647,6 +2647,8 @@ static bleResult_t HandleAnchorStartSearchCommand(uint8_t *pCmdData, appHandover
     pCmdData++;
     temp.mode8 = *pCmdData;
     searchParams.mode = temp.mode;
+    searchParams.reportLatency = (uint8_t)gHandoverAnchorMonitorReportLatency_c;
+    searchParams.connEvtRxLatency = (uint8_t)gHandoverAnchorMonitorConnEvtRxLatency_c;
 
     searchParams.timingDiffSlot = mHandoverCtx.slotLocal - mHandoverCtx.slotRemote;
     searchParams.timingDiffOffset = mHandoverCtx.offsetLocal - mHandoverCtx.offsetRemote;

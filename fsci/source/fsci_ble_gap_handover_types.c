@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2022-2025 NXP
+* Copyright 2022-2026 NXP
 *
 *
 * \file
@@ -154,9 +154,11 @@ static void fsciBleGapHandoverGetBufferFromConnectionUpdateProcedureEventParams
 void fsciBleGapHandoverGetAnchorSearchStartParametersFromBuffer
 (
     gapHandoverAnchorSearchStartParams_t        *pParams,
-    uint8_t                                     **ppBuffer
+    uint8_t                                     **ppBuffer,
+    bool_t                                      legacy
 )
 {
+
     union
     {
         uint8_t uMode;
@@ -188,7 +190,22 @@ void fsciBleGapHandoverGetAnchorSearchStartParametersFromBuffer
     fsciBleGetUint16ValueFromBuffer(pParams->timingDiffOffset, *ppBuffer);
     fsciBleGetUint8ValueFromBuffer(temp.uMode, *ppBuffer);
     pParams->mode = temp.mode;
+
+    if (legacy)
+    {
+        /* Legacy command without the report latency and connection event RX
+           latency fields. Populate the new members with default values. */
+        pParams->reportLatency = 0U;
+        pParams->connEvtRxLatency = 0U;
+    }
+    else
+    {
+        fsciBleGetUint8ValueFromBuffer(pParams->reportLatency, *ppBuffer);
+        fsciBleGetUint8ValueFromBuffer(pParams->connEvtRxLatency, *ppBuffer);
+    }
 }
+
+
 
 /*! *********************************************************************************
 * \brief  Retrieves Time Sync Transmit parameters from a buffer.
