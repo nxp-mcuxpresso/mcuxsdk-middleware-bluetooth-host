@@ -705,20 +705,20 @@ void isp_cli_powerup(void)
 void cli_cmd_misc_xtal_trim(int argc, char *argv[])
 {
 #if !defined(FPGA_TARGET) || (FPGA_TARGET == 0)
-    uint8_t inp;
+    int32_t inp;
 #if defined(gPlatformUseHwParameter_d) && (gPlatformUseHwParameter_d > 0)
     hardwareParameters_t *pHWParams = NULL;
     (void)NV_ReadHWParameters(&pHWParams);
 #endif
     if(argc == 1)
     {
-        inp = (uint8_t)atoi(argv[0]);
-        if (inp <= 63U)
+        inp = (int32_t)atoi(argv[0]);
+        if ((inp >= 0) && (inp <= 63))
         {
 #if defined(gPlatformUseHwParameter_d) && (gPlatformUseHwParameter_d > 0)
-            pHWParams->xtalTrim = inp;
+            pHWParams->xtalTrim = (uint8_t)inp;
 #endif
-            PLATFORM_SetXtal32MhzTrim(inp, FALSE);
+            PLATFORM_SetXtal32MhzTrim((uint8_t)inp, FALSE);
         }
     }
 
@@ -738,11 +738,11 @@ void cli_cmd_misc_xtal_trim(int argc, char *argv[])
 void cli_cmd_misc_cw_trim(int argc, char *argv[])
 {
     static int cwRunning = 0;
-    uint8_t inp;
+    int32_t inp;
     if(argc == 1)
     {
-        inp = (uint8_t)atoi(argv[0]);
-        if (inp == 1U)
+        inp = (int32_t)atoi(argv[0]);
+        if (inp == 1)
         {
             if (gCommunicationSettings->role != (gapRole_t)0xff)
             {
@@ -782,14 +782,15 @@ void cli_cmd_misc_cw_trim(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_misc_rtp_algo(int argc, char *argv[])
 {
-    uint8_t inp;
+    int32_t inp;
     if(argc == 1)
     {
-        inp = (uint8_t)atoi(argv[0]);
+        inp = (int32_t)atoi(argv[0]);
 
-        if ((inp & ~(eMciqAlgoEmbedCDE | eMciqAlgoEmbedRADE)) == 0U)
+        if ((inp >= 0) && (inp <= (int32_t)UINT8_MAX) &&
+            (((uint8_t)inp & ~(eMciqAlgoEmbedCDE | eMciqAlgoEmbedRADE)) == 0U))
         {
-            gLocalSettings->mciq_algo_flags = inp;
+            gLocalSettings->mciq_algo_flags = (uint8_t)inp;
         }
     }
     CLI_PRINTF("rtp_algo: %u\n", gLocalSettings->mciq_algo_flags);
@@ -803,7 +804,7 @@ void cli_cmd_misc_rtp_algo(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_misc_rtp_algo_config(int argc, char *argv[])
 {
-    uint16_t inp;
+    int32_t inp;
     if(argc == 1)
     {
         gLocalSettings->cde_threshold = DM_CDE_THRESHOLD_DEFAULT;
@@ -811,13 +812,19 @@ void cli_cmd_misc_rtp_algo_config(int argc, char *argv[])
     }
     else if (argc == 3)
     {
-        inp = (uint16_t)atoi(argv[0]);
-        if (inp == 1U) /* CDE config */
+        inp = (int32_t)atoi(argv[0]);
+        if (inp == 1) /* CDE config */
         {
-            inp = (uint16_t)atoi(argv[1]);
-            gLocalSettings->cde_threshold = inp;
-            inp = (uint16_t)atoi(argv[2]);
-            gLocalSettings->cde_div_threshold = inp;
+            inp = (int32_t)atoi(argv[1]);
+            if ((inp >= 0) && (inp <= (int32_t)UINT16_MAX))
+            {
+                gLocalSettings->cde_threshold = (uint16_t)inp;
+            }
+            inp = (int32_t)atoi(argv[2]);
+            if ((inp >= 0) && (inp <= (int32_t)UINT16_MAX))
+            {
+                gLocalSettings->cde_div_threshold = (uint16_t)inp;
+            }
         }
     }
     else
@@ -1044,11 +1051,11 @@ void cli_cmd_communication_role(int argc, char *argv[])
 
 void cli_cmd_communication_interval(int argc, char *argv[])
 {
-    uint32_t inp;
+    int32_t inp;
     if(argc == 1) {
-        inp = (uint32_t)atoi(argv[0]);
-        if ((inp >= 6U) && (inp < 3200U)) {
-            gCommunicationSettings->conn_int = inp;
+        inp = (int32_t)atoi(argv[0]);
+        if ((inp >= 6) && (inp < 3200)) {
+            gCommunicationSettings->conn_int = (uint32_t)inp;
         }
     }
 
@@ -1182,7 +1189,7 @@ void cli_print_ch_list(void)
 ********************************************************************************** */
 void cli_cmd_parameter_ch_list_gen(int argc, char *argv[])
 {
-    uint8_t inp;
+    int32_t inp;
 
     if(argc < 2 || argc > 3 || ((argc == 3) && (argv[2][0] != 'r')))
     {
@@ -1194,15 +1201,15 @@ void cli_cmd_parameter_ch_list_gen(int argc, char *argv[])
         {
             gRangeSettings->ch_isrand = TRUE;
         }
-        inp = (uint8_t)atoi(argv[0]);
-        if(inp <= XCVR_CHAN_MAX)
+        inp = (int32_t)atoi(argv[0]);
+        if((inp >= 0) && (inp <= (int32_t)XCVR_CHAN_MAX))
         {
-            gRangeSettings->ch_start = inp;
+            gRangeSettings->ch_start = (uint8_t)inp;
         }
-        inp = (uint8_t)atoi(argv[1]);
-        if(inp <= XCVR_CHAN_MAX)
+        inp = (int32_t)atoi(argv[1]);
+        if((inp >= 0) && (inp <= (int32_t)XCVR_CHAN_MAX))
         {
-            gRangeSettings->ch_stop = inp;
+            gRangeSettings->ch_stop = (uint8_t)inp;
         }
 
         if ((gRangeSettings->ch_start > XCVR_CHAN_MAX) || (gRangeSettings->ch_stop > XCVR_CHAN_MAX) ||
@@ -1240,11 +1247,12 @@ void cli_cmd_parameter_ch_list_set(int argc, char *argv[])
         gRangeSettings->ch_nb = 0;
         token = strtok(str, sep);
         while( token != NULL ) {
-            gRangeSettings->ch_list[gRangeSettings->ch_nb] = (uint8_t)atoi(token);
-            if (gRangeSettings->ch_list[gRangeSettings->ch_nb] > XCVR_CHAN_MAX)
+            int32_t inp = (int32_t)atoi(token);
+            if ((inp < 0) || (inp > XCVR_CHAN_MAX))
             {
                 break;
             }
+            gRangeSettings->ch_list[gRangeSettings->ch_nb] = (uint8_t)inp;
             token = strtok(NULL, sep);
             gRangeSettings->ch_nb ++;
         }
@@ -1304,26 +1312,29 @@ void cli_cmd_parameter_ch_map(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_parameter_cs_algo(int argc, char *argv[])
 {
-    uint8_t inp;
+    int32_t inp;
     if((argc >= 1) && (argc <= 3))
     {
-        inp = (uint8_t)atoi(argv[0]);
-        gRangeSettings->ch_sel_algo = inp;
-        
+        inp = (int32_t)atoi(argv[0]);
+        if ((inp >= 0) && (inp <= (int32_t)UINT8_MAX))
+        {
+            gRangeSettings->ch_sel_algo = (uint8_t)inp;
+        }
+
         if (argc >= 2)
         {
-            inp = (uint8_t)atoi(argv[1]);
-            if (inp <= 1U)
+            inp = (int32_t)atoi(argv[1]);
+            if (inp >= 0 && inp <= 1)
             {
-                gRangeSettings->ch_sel_shape = inp;
+                gRangeSettings->ch_sel_shape = (uint8_t)inp;
             }
         }
         if (argc >= 3)
         {
-            inp = (uint8_t)atoi(argv[2]);
-            if (inp >= 2U && inp <= 8U)
+            inp = (int32_t)atoi(argv[2]);
+            if (inp >= 2 && inp <= 8)
             {
-                gRangeSettings->ch_sel_jump = inp;
+                gRangeSettings->ch_sel_jump = (uint8_t)inp;
             }
         }
     } 
@@ -1347,23 +1358,23 @@ void cli_cmd_parameter_cs_algo(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_parameter_main_mode_nb(int argc, char *argv[])
 {
-    uint8_t inp;
+    int32_t inp;
     if(argc == 3)
     {
-        inp = (uint8_t)atoi(argv[0]);
-        if (inp >= 1U && inp <= 160U && gRangeSettings->main_mode_min != inp)
+        inp = (int32_t)atoi(argv[0]);
+        if (inp >= 1 && inp <= 160 && gRangeSettings->main_mode_min != (uint8_t)inp)
         {
-            gRangeSettings->main_mode_min = inp;
+            gRangeSettings->main_mode_min = (uint8_t)inp;
         }
-        inp = (uint8_t)atoi(argv[1]);
-        if (inp >= 1U && inp <= 160U && gRangeSettings->main_mode_max != inp)
+        inp = (int32_t)atoi(argv[1]);
+        if (inp >= 1 && inp <= 160 && gRangeSettings->main_mode_max != (uint8_t)inp)
         {
-            gRangeSettings->main_mode_max = inp;
+            gRangeSettings->main_mode_max = (uint8_t)inp;
         }
-        inp = (uint8_t)atoi(argv[2]);
-        if (inp <= CS_MAIN_MODE_REPEAT_MAX && gRangeSettings->main_mode_repeat != inp)
+        inp = (int32_t)atoi(argv[2]);
+        if (inp >= 0 && inp <= (int32_t)CS_MAIN_MODE_REPEAT_MAX && gRangeSettings->main_mode_repeat != (uint8_t)inp)
         {
-            gRangeSettings->main_mode_repeat = inp;
+            gRangeSettings->main_mode_repeat = (uint8_t)inp;
         }
     } 
     else if (argc > 0) 
@@ -1388,13 +1399,13 @@ void cli_cmd_parameter_main_mode_nb(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_parameter_mode0_nb(int argc, char *argv[])
 {
-    uint8_t inp;
+    int32_t inp;
     if(argc == 1)
     {
-        inp = (uint8_t)atoi(argv[0]);
-        if(inp >= 1U && inp <= 3U && gRangeSettings->mode0_nb != inp)
+        inp = (int32_t)atoi(argv[0]);
+        if(inp >= 1 && inp <= 3 && gRangeSettings->mode0_nb != (uint8_t)inp)
         {
-            gRangeSettings->mode0_nb = inp;
+            gRangeSettings->mode0_nb = (uint8_t)inp;
         }
     }
     CLI_PRINTF("mode0_nb=%d\n", gRangeSettings->mode0_nb);
@@ -1408,20 +1419,20 @@ void cli_cmd_parameter_mode0_nb(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_parameter_mode_type(int argc, char *argv[])
 {
-    uint8_t inp;
+    int32_t inp;
     if (argc == 1 || argc == 2)
     {
-        inp = (uint8_t)atoi(argv[0]);
-        if (inp >= 1U && inp <= 3U)
+        inp = (int32_t)atoi(argv[0]);
+        if (inp >= 1 && inp <= 3)
         {
-            gRangeSettings->main_mode_type = inp;
+            gRangeSettings->main_mode_type = (uint8_t)inp;
         }
         if (argc == 2)
         {
-            inp = (uint8_t)atoi(argv[1]);
-            if (inp >= 1U && inp <= 3U)
+            inp = (int32_t)atoi(argv[1]);
+            if (inp >= 1 && inp <= 3)
             {
-                gRangeSettings->sub_mode_type = inp;
+                gRangeSettings->sub_mode_type = (uint8_t)inp;
             }
         } else {
             /* sub mode type is unused */
@@ -1440,19 +1451,21 @@ void cli_cmd_parameter_mode_type(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_parameter_repeat(int argc, char *argv[])
 {
-    uint16_t inp;
-    if (argc >= 1 && argc <=2)
-    {
-        inp = (uint16_t)atoi(argv[0]);
-        if (inp >= 1U) {
-            gRangeSettings->max_proc_count = inp;
-        }
-        if (argc == 2)
-        {
-            inp = (uint16_t)atoi(argv[1]);
-            gRangeSettings->proc_interval = inp;
-        }
-    }
+      int32_t inp;
+      if (argc >= 1 && argc <=2)
+      {
+          inp = (int32_t)atoi(argv[0]);
+          if (inp >= 1 && inp <= (int32_t)UINT16_MAX) {
+              gRangeSettings->max_proc_count = (uint16_t)inp;
+          }
+          if (argc == 2)
+          {
+              inp = (int32_t)atoi(argv[1]);
+              if (inp >= 0 && inp <= (int32_t)UINT16_MAX) {
+                  gRangeSettings->proc_interval = (uint16_t)inp;
+              }
+          }
+      }
     CLI_PRINTF("repeat: %u %u\n", gRangeSettings->max_proc_count, gRangeSettings->proc_interval);
 }
 
@@ -1465,11 +1478,11 @@ void cli_cmd_parameter_repeat(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_parameter_ipt(int argc, char *argv[])
 {
-    uint16_t inp;
+    int32_t inp;
     if (argc == 1)
     {
-        inp = (uint16_t)atoi(argv[0]);
-        if (inp >= 1U)
+        inp = (int32_t)atoi(argv[0]);
+        if (inp >= 1)
         {
             gRangeSettings->inlinePctEnabled = TRUE;
         }
@@ -1489,12 +1502,12 @@ void cli_cmd_parameter_ipt(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_parameter_subevent_len(int argc, char *argv[])
 {
-    uint32_t inp;
+    int32_t inp;
     if (argc == 1)
     {
-        inp = (uint32_t)atoi(argv[0]);
-        if (inp >= 1250U && inp <= 4000000U) {
-            gRangeSettings->subevent_len = inp;
+        inp = (int32_t)atoi(argv[0]);
+        if (inp >= 1250 && inp <= 4000000) {
+            gRangeSettings->subevent_len = (uint32_t)inp;
         }
     }
     CLI_PRINTF("subevent_len: %u\n", gRangeSettings->subevent_len);
@@ -1508,30 +1521,30 @@ void cli_cmd_parameter_subevent_len(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_parameter_ant_cfg(int argc, char *argv[])
 {
-    uint8_t inp;
+    int32_t inp;
     if (argc >= 1)
     {
-        inp = (uint8_t)atoi(argv[0]);
-        if (inp <= 7U)
+        inp = (int32_t)atoi(argv[0]);
+        if (inp >= 0 && inp <= 7)
         {
-            gRangeSettings->ant_cfg_index = inp;
+            gRangeSettings->ant_cfg_index = (uint8_t)inp;
         }
         if (gRangeSettings->ant_cfg_index != 0U)
         {
             if (argc >= 2)
             {
-                inp = (uint8_t)atoi(argv[1]);
-                if ((inp <= 23U) || (inp == 255U))
+                inp = (int32_t)atoi(argv[1]);
+                if ((inp >= 0 && inp <= 23) || (inp == 255))
                 {
-                    gRangeSettings->ant_perm_index = inp;
+                    gRangeSettings->ant_perm_index = (uint8_t)inp;
                 }
             }
             if (argc == 3)
             {
-                inp = (uint8_t)atoi(argv[2]);
-                if (((inp > 0U) && (inp <= 2U)) || (inp == 0xFEU) || (inp == 0xFFU))
+                inp = (int32_t)atoi(argv[2]);
+                if (((inp > 0) && (inp <= 2)) || (inp == 0xFE) || (inp == 0xFF))
                 {
-                    gRangeSettings->ant_CS_SYNC = inp;
+                    gRangeSettings->ant_CS_SYNC = (uint8_t)inp;
                 }
             }
         }
@@ -1548,11 +1561,11 @@ void cli_cmd_parameter_ant_cfg(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_parameter_ant_type(int argc, char *argv[])
 {
-    uint8_t inp;
+    int32_t inp;
     if (argc >= 1)
     {
-        inp = (uint8_t)atoi(argv[0]);
-        if (inp <= 6U)
+        inp = (int32_t)atoi(argv[0]);
+        if (inp >= 0 && inp <= 6)
         {
             /* update config to NBU and instal RF_GPO PIN mux */
             /* KW47 and more series */
@@ -1568,7 +1581,7 @@ void cli_cmd_parameter_ant_type(int argc, char *argv[])
             }
             if (measurement_send_vs_config(gRangeSettings))
             {
-                gRangeSettings->ant_type = inp;
+                gRangeSettings->ant_type = (uint8_t)inp;
             }
 #if  defined(gAppEnableDebugData) && (gAppEnableDebugData == 1)
             (void)measurement_send_vs_debug(gRangeSettings);
@@ -1624,13 +1637,13 @@ void cli_cmd_parameter_role(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_parameter_rtt_phy(int argc, char *argv[])
 {
-    uint8_t inp;
+    int32_t inp;
     if(argc == 1)
     {
-        inp = (uint8_t)atoi(argv[0]);
-        if(inp <= 2U)
+        inp = (int32_t)atoi(argv[0]);
+        if(inp >= 0 && inp <= 2)
         {
-            gRangeSettings->rtt_phy = inp;
+            gRangeSettings->rtt_phy = (uint8_t)inp;
         }
     }
     CLI_PRINTF("rtt_phy: %d\n", gRangeSettings->rtt_phy);
@@ -1644,13 +1657,13 @@ void cli_cmd_parameter_rtt_phy(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_parameter_rtt_type(int argc, char *argv[])
 {
-    uint8_t inp;
+    int32_t inp;
     if(argc == 1)
     {
-        inp = (uint8_t)atoi(argv[0]);
-        if (inp <= 6U)
+        inp = (int32_t)atoi(argv[0]);
+        if (inp >= 0 && inp <= 6)
         {
-            gRangeSettings->rtt_type = inp;
+            gRangeSettings->rtt_type = (uint8_t)inp;
         }
     }
     else
@@ -1668,13 +1681,13 @@ void cli_cmd_parameter_rtt_type(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_parameter_tone_ext(int argc, char *argv[])
 {
-    uint8_t inp;
+    int32_t inp;
     if(argc == 1)
     {
-        inp = (uint8_t)atoi(argv[0]);
-        if(inp <= 4U)
+        inp = (int32_t)atoi(argv[0]);
+        if(inp >= 0 && inp <= 4)
         {
-            gRangeSettings->t_pm_tone_ext = inp;
+            gRangeSettings->t_pm_tone_ext = (uint8_t)inp;
         }
     }
     CLI_PRINTF("tone_ext: %d\n", gRangeSettings->t_pm_tone_ext);
@@ -1719,25 +1732,25 @@ void cli_cmd_parameter_pn_seq(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_parameter_timings_intervals(int argc, char *argv[])
 {
-    uint8_t inp1, inp2, inp3;
+    int32_t inp1, inp2, inp3;
     if(argc == 2 || argc == 3)
     {
-        inp1 = (uint8_t)atoi(argv[0]); /* T_FCS */
-        inp2 = (uint8_t)atoi(argv[1]); /* T_IP1 */
+        inp1 = (int32_t)atoi(argv[0]); /* T_FCS */
+        inp2 = (int32_t)atoi(argv[1]); /* T_IP1 */
         if (argc == 3) {
-            inp3 = (uint8_t)atoi(argv[2]); /* T_IP2 */
+            inp3 = (int32_t)atoi(argv[2]); /* T_IP2 */
         } else {
             /* if not specified, T_IP2 equals T_IP1 */
             inp3 = inp2;
         }
         /* Check allowed values */
-        if ((inp1 == 150U || inp1 == 120U || inp1 == 100U || inp1 == 80U || inp1 == 60U || inp1 == 50U || inp1 == 40U) &&
-            (inp2 == 145U || inp2 == 80U || inp2 == 60U || inp2 == 50U || inp2 == 40U || inp2 == 30U) &&
-            (inp3 == 145U || inp3 == 80U || inp3 == 60U || inp3 == 50U || inp3 == 40U || inp3 == 30U))
+        if ((inp1 == 150 || inp1 == 120 || inp1 == 100 || inp1 == 80 || inp1 == 60 || inp1 == 50 || inp1 == 40) &&
+            (inp2 == 145 || inp2 == 80 || inp2 == 60 || inp2 == 50 || inp2 == 40 || inp2 == 30) &&
+            (inp3 == 145 || inp3 == 80 || inp3 == 60 || inp3 == 50 || inp3 == 40 || inp3 == 30))
         {
-            gRangeSettings->t_fcs = inp1;
-            gRangeSettings->t_ip1 = inp2;
-            gRangeSettings->t_ip2 = inp3;
+            gRangeSettings->t_fcs = (uint8_t)inp1;
+            gRangeSettings->t_ip1 = (uint8_t)inp2;
+            gRangeSettings->t_ip2 = (uint8_t)inp3;
         } else {
             CLI_PRINTF("Invalid input.\n");
         }
@@ -1753,13 +1766,13 @@ void cli_cmd_parameter_timings_intervals(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_parameter_timings_tpm(int argc, char *argv[])
 {
-    uint8_t inp;
+    int32_t inp;
     if(argc == 1)
     {
-        inp = (uint8_t)atoi(argv[0]);
-        if (inp == 10U || inp == 20U || inp == 40U)
+        inp = (int32_t)atoi(argv[0]);
+        if (inp == 10 || inp == 20 || inp == 40)
         {
-            gRangeSettings->t_pm = inp;
+            gRangeSettings->t_pm = (uint8_t)inp;
         }
     }
     CLI_PRINTF("t_pm: %d\n", gRangeSettings->t_pm);
@@ -1773,13 +1786,13 @@ void cli_cmd_parameter_timings_tpm(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_parameter_timings_tsw(int argc, char *argv[])
 {
-    uint8_t inp;
+    int32_t inp;
     if(argc == 1)
     {
-        inp = (uint8_t)atoi(argv[0]);
-        if (inp == 2U || inp == 4U || inp == 10U)
+        inp = (int32_t)atoi(argv[0]);
+        if (inp == 2 || inp == 4 || inp == 10)
         {
-            gRangeSettings->t_sw_local = inp;
+            gRangeSettings->t_sw_local = (uint8_t)inp;
         }
     }
     CLI_PRINTF("t_sw: %d\n", gRangeSettings->t_sw_local);
@@ -1793,13 +1806,13 @@ void cli_cmd_parameter_timings_tsw(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_parameter_tx_pwr(int argc, char *argv[])
 {
-    int8_t inp;
+    int32_t inp;
     if(argc == 1)
     {
-        inp = (int8_t)atoi(argv[0]);
-        if(inp <= XCVR_TX_PWR_MAX && inp >= XCVR_TX_PWR_MIN && gRangeSettings->tx_pwr != inp)
+        inp = (int32_t)atoi(argv[0]);
+        if(inp <= (int32_t)XCVR_TX_PWR_MAX && inp >= (int32_t)XCVR_TX_PWR_MIN && gRangeSettings->tx_pwr != (int8_t)inp)
         {
-            gRangeSettings->tx_pwr = inp;
+            gRangeSettings->tx_pwr = (int8_t)inp;
         }
     }
     CLI_PRINTF("tx_pwr: %d\n", gRangeSettings->tx_pwr);
@@ -1814,11 +1827,14 @@ void cli_cmd_parameter_tx_pwr(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_parameter_debug(int argc, char *argv[])
 {
-    uint8_t inp;
+    int32_t inp;
     if(argc == 1)
     {
-        inp = (uint8_t)atoi(argv[0]);
-        gRangeSettings->debug = inp;
+        inp = (int32_t)atoi(argv[0]);
+        if ((inp >= 0) && (inp <= (int32_t)UINT8_MAX))
+        {
+            gRangeSettings->debug = (uint8_t)inp;
+        }
     }
     CLI_PRINTF("debug: %u\n", gRangeSettings->debug);
 }
@@ -1846,18 +1862,18 @@ void cli_cmd_system_unique_id(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_system_debug(int argc, char *argv[])
 {
-    uint8_t inp;
+    int32_t inp;
     if(argc == 1)
     {
-        inp = (uint8_t)atoi(argv[0]);
-        if (inp == 0U || inp == 1U) {
-            gLocalSettings->debug = inp;
-            if (inp == 1U) {
+        inp = (int32_t)atoi(argv[0]);
+        if (inp == 0 || inp == 1) {
+            gLocalSettings->debug = (uint8_t)inp;
+            if (inp == 1) {
 #if (defined(gAppLedCnt_c) && (gAppLedCnt_c > 0))
                 BleApp_SetLED(mLedOff);
 #endif
             }
-            isp_soc_debug_set(inp);
+            isp_soc_debug_set((uint8_t)inp);
         }
     }
     CLI_PRINTF("debug: %d\n", gLocalSettings->debug);
@@ -1872,11 +1888,14 @@ void cli_cmd_system_debug(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_system_verbosity(int argc, char *argv[])
 {
-    uint8_t inp;
+    int32_t inp;
     if(argc == 1)
     {
-        inp = (uint8_t)atoi(argv[0]);
-        gLocalSettings->verbosity = inp;
+        inp = (int32_t)atoi(argv[0]);
+        if ((inp >= 0) && (inp <= (int32_t)UINT8_MAX))
+        {
+            gLocalSettings->verbosity = (uint8_t)inp;
+        }
     }
     CLI_PRINTF("verbosity: %d\n", gLocalSettings->verbosity);
 }
@@ -2123,14 +2142,20 @@ void cli_cmd_system_store(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_system_calibrate(int argc, char *argv[])
 {
-    uint16_t inp;
+    int32_t inp;
 
     if ((argc == 2) || (argc == 3))
     {
-        inp = (uint16_t)atoi(argv[0]);
-        local_bid.cal.mciq_zdc = inp;
-        inp = (uint16_t)atoi(argv[1]);
-        local_bid.cal.tof_zdc = inp;
+        inp = (int32_t)atoi(argv[0]);
+        if ((inp >= 0) && (inp <= (int32_t)UINT16_MAX))
+        {
+            local_bid.cal.mciq_zdc = (uint16_t)inp;
+        }
+        inp = (int32_t)atoi(argv[1]);
+        if ((inp >= 0) && (inp <= (int32_t)UINT16_MAX))
+        {
+            local_bid.cal.tof_zdc = (uint16_t)inp;
+        }
     }
     CLI_PRINTF("calibrate: MCIQ=%u ToF=%u \n", local_bid.cal.mciq_zdc, local_bid.cal.tof_zdc);
 

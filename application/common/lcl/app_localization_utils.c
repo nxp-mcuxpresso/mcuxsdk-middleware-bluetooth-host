@@ -458,8 +458,8 @@ void* AppLocalizationAlgo_AllocData(deviceId_t deviceId)
     else if (((subMode == 1U) || (subMode == 3U)) && (mRangeSettings[deviceId].main_mode_min != 0U))
     {
         /* Sub-mode ToF: worst case one sub-mode step per main_mode_min main-mode steps */
-        tofSteps = steps / (uint16_t)mRangeSettings[deviceId].main_mode_min;
-        tofSize = (uint16_t)(gCsTofTsSize_c * tofSteps);
+        tofSteps = Uint32toUint16((uint32_t)steps / (uint32_t)mRangeSettings[deviceId].main_mode_min);
+        tofSize = Uint32toUint16(gCsTofTsSize_c * tofSteps);
     }
     else
     {
@@ -580,14 +580,14 @@ uint16_t AppLocalizationAlgo_GetRangingDataSize(deviceId_t deviceId)
     subSteps = 0U;
     if (mRangeSettings[deviceId].main_mode_min != 0U)
     {
-        subSteps = steps / (uint16_t)mRangeSettings[deviceId].main_mode_min;
+        subSteps = Uint32toUint16((uint32_t)steps / (uint32_t)mRangeSettings[deviceId].main_mode_min);
     }
     totalSize = (uint32_t)gRangingDataProcOverhead_c;
     totalSize += (uint32_t)gMaxNumCsSubevents_c * (uint32_t)gRangingDataSubevtOverhead_c;
     totalSize += (uint32_t)steps * (uint32_t)mainStep;
     totalSize += (uint32_t)subSteps * (uint32_t)subStep;
 
-    return (uint16_t)totalSize;
+    return Uint32toUint16(totalSize);
 }
 
 /*! *********************************************************************************
