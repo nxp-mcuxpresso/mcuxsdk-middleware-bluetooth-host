@@ -1005,8 +1005,6 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
     
     uint8_t mode = 0U;
     bool_t bIncomplete = FALSE;
-    uint8_t *pLastOk = NULL;
-    uint8_t *pTemp = NULL;
     uint8_t parsedSteps = 0U;
 
     /* Make sure the number of antenna paths is set at the begining of the uncompress procedure */
@@ -1015,35 +1013,9 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
         pDstAppBuffer->mciq_data.n_ap = pRemoteData->numAntennaPaths;
     }
 
-    /* Check if we have uncompressed event data left from a previous event */
-    if (pRemoteData->pRemaining != NULL)
-    {
-        pTemp = MEM_BufferAlloc(dataLength + pRemoteData->remainingLen);
-        if (pTemp != NULL)
-        {
-            /* Merge previous event data with this new event data */
-            FLib_MemCpy(pTemp, pRemoteData->pRemaining, pRemoteData->remainingLen);
-            FLib_MemCpy(pTemp + pRemoteData->remainingLen, pEventData, dataLength);
-            pEventData = pTemp;
-            dataLength += pRemoteData->remainingLen;
-
-            /* Clear previous event data */
-            (void)MEM_BufferFree(pRemoteData->pRemaining);
-            pRemoteData->pRemaining = NULL;
-            pRemoteData->remainingLen = 0U;
-        }
-        else
-        {
-            panic(0, 0,0, 0);
-        }
-    }
-    
     /* Loop through all of the received bytes */
     while ((dataLength > 0U) && (bIncomplete == FALSE) && (parsedSteps < maxSteps))
     {
-        /* Keep a pointer to the end of the last completed parse */
-        pLastOk = pEventData;
-        pRemoteData->remainingLen = dataLength;
 
         /* Read mode from the pre-populated modeMap array (filled by parseStepModeArray) */
         mode = pDstAppBuffer->csData.modeMap[pRemoteData->step];
@@ -1092,28 +1064,14 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
             parsedSteps++;
             pRemoteData->crtNumSteps++;
         }
-        /* Incomplete data.
-           In case we stopped in the middle of parsing -> enqueue this buffer
-           and exit the procedure to wait for the next chunk and try again with
-           this buffer concatenated with the following one */
         else
         {
-            pRemoteData->pRemaining = MEM_BufferAlloc(pRemoteData->remainingLen);
-            if (pRemoteData->pRemaining != NULL)
-            {
-                FLib_MemCpy(pRemoteData->pRemaining, pLastOk, pRemoteData->remainingLen);
-            }
+            /* BTCS steps are never split between L2CAP packets. */
+            CS_LOG_ERROR("[BTCS]: Unexpected incomplete step data");
             break;
         }
     }
-    
-    /* Clear memory if we have intermediate buffer */
-    if (pTemp != NULL)
-    {
-        pEventData = NULL;
-        (void)MEM_BufferFree(pTemp);
-    }
-    
+
     return dataLength;
 }
 #endif /* defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1) */
