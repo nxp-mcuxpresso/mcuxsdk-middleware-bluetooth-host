@@ -36,6 +36,10 @@
 #define smpEdiv                 0x1F99
 #define mcEncryptionKeySize_c   16
 
+#if (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U))
+#define mDefaultTxPower         gBleAdvTxPowerNoPreference_c
+#endif /* (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U)) */
+
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -75,6 +79,66 @@ gapConnectionRequestParameters_t gConnReqParams =
     .connEventLengthMax = 0xFFFF,
     .initiatingPHYs = (uint8_t)( gLePhy1MFlag_c | gLePhyCodedFlag_c )
 };
+
+#if (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U))
+/* Advertising parameters used when the device acts as GAP Peripheral (non-CCC) */
+gapExtAdvertisingParameters_t gLegacyAdvParams =
+{
+    /* SID */                       0xB,
+    /* handle */                    gLegacyAdvSetHandle_c,
+    /* minInterval */               gcAdvertisingIntervalCCC_1M_c /* 42 ms */,
+    /* maxInterval */               gcAdvertisingIntervalCCC_1M_c /* 42 ms */,
+    /* ownAddrType */               gBleAddrTypePublic_c,
+    /* ownAddress */                {0, 0, 0, 0, 0, 0},
+    /* peerAddrType */              gBleAddrTypePublic_c,
+    /* peerAddress */               {0, 0, 0, 0, 0, 0},
+    /* channelMap */                (gapAdvertisingChannelMapFlags_t) (gAdvChanMapFlag37_c | gAdvChanMapFlag38_c | gAdvChanMapFlag39_c),
+    /* filterPolicy */              gProcessAll_c,
+    /* extAdvProperties */          (bleAdvRequestProperties_t)(gAdvReqConnectable_c | gAdvReqScannable_c | gAdvReqLegacy_c),
+    /* TxPower */                   mDefaultTxPower,
+    /* primaryPHY */                (gapLePhyMode_t)gLePhy1M_c,
+    /* secondaryPHY */              (gapLePhyMode_t)gLePhy1M_c,
+    /* secondaryAdvMaxSkip */       0,
+    /* enableScanReqNotification*/  FALSE,
+    /* primaryAdvPhyOptions */      gLeCodingNoPreference_c,
+    /* secondaryAdvPhyOptions */    gLeCodingNoPreference_c
+};
+
+/* Application Advertising Parameters */
+appExtAdvertisingParams_t gAppAdvParams =
+{
+    &gLegacyAdvParams,
+    &gAppAdvertisingData,
+    &gAppScanRspData,
+    gLegacyAdvSetHandle_c,
+    gBleExtAdvNoDuration_c,
+    gBleExtAdvNoMaxEvents_c
+};
+
+/* Scanning and Advertising Data */
+/* Non-CCC uses a private UUID so regular CCC scanners do not match this device. */
+static uint8_t adData0[2] = {UuidArray(gNonCccDkUUID_d)};
+
+static gapAdStructure_t advScanStruct[1] = {
+  {
+    .length = 3U,
+    .adType = gAdComplete16bitServiceList_c,
+    .aData = (uint8_t*)adData0
+  }
+};
+
+gapAdvertisingData_t gAppAdvertisingData =
+{
+    NumberOfElements(advScanStruct),
+    (void *)advScanStruct
+};
+
+gapScanResponseData_t gAppScanRspData =
+{
+    0,
+    NULL
+};
+#endif /* (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U)) */
 
 /* SMP Data */
 gapPairingParameters_t gPairingParameters = {

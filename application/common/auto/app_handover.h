@@ -103,6 +103,10 @@ constantly. */
 #define gHandoverAnchMonStopCommandLen_c                2U
 #define gHandoverAnchMonStoppedCommandLen_c             2U
 #define gHandoverConnectionUpdateProcedureCommandLen_c  15U
+/*! Length of the target connection handle (2) appended to the Handover Data
+   command. It is gInvalidConnectionHandle_c on the regular (non-fast) handover
+   path and the monitored connection handle on the fast handover path. */
+#define gHandoverDataCmdConnHandleLen_c                  2U
 
 #define gInvalidConnectionHandle_c (0xFFFFU)
 /***********************************************************************************************************************
@@ -134,6 +138,8 @@ typedef struct appHandoverAnchorMonitorPacketContinueEvent_tag
 typedef enum appHandoverEvent_tag {
     mAppHandover_TimeSyncStarted_c,
     mAppHandover_ConnectComplete_c,
+    /* Raised on S1 when S2 reports it is connected. S1 sends application data on this event. */
+    mAppHandover_PeerConnectComplete_c,
     mAppHandover_Disconnected_c,
     mAppHandover_Error_c,
     mAppHandoverAnchorMonitor_c,
@@ -153,6 +159,7 @@ typedef enum appHandoverError_tag {
     mAppHandover_OutOfMemory_c,
     mAppHandover_ConnParamsUpdateFail_c,
     mAppHandover_MonitorNotActive_c,
+    mAppHandover_CsContextSetFailed_c,
 } appHandoverError_t;
 
 typedef void (*appHandoverEventCb_t)(appHandoverEvent_t eventType, void *pData);

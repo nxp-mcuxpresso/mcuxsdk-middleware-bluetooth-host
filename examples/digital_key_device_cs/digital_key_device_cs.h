@@ -22,6 +22,9 @@
 
 #include "fsl_format.h"
 #include "fsl_shell.h"
+#if (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U))
+#include "app_advertiser.h"
+#endif /* (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U)) */
 
 /*************************************************************************************
 **************************************************************************************
@@ -57,6 +60,12 @@
   #define gSwitchPressThreshold_c    (2)
   #endif
 #endif
+
+#if (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U))
+/* Advertising set handle and interval used when the device acts as GAP Peripheral (non-CCC) */
+#define gLegacyAdvSetHandle_c          0x00U
+#define gcAdvertisingIntervalCCC_1M_c  (68U)   /* 42.5 ms */
+#endif /* (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U)) */
 
 /************************************************************************************
 *************************************************************************************
@@ -171,6 +180,14 @@ typedef void (*pfBleCallback_t)(void* pData);
 ********************************************************************************** */
 extern gapConnectionRequestParameters_t gConnReqParams;
 extern gapScanningParameters_t          gScanParams;
+#if (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U))
+/* Advertising parameters used when the device acts as GAP Peripheral (non-CCC) */
+extern gapExtAdvertisingParameters_t    gLegacyAdvParams;
+extern appExtAdvertisingParams_t        gAppAdvParams;
+extern gapAdvertisingData_t             gAppAdvertisingData;
+extern gapScanResponseData_t            gAppScanRspData;
+#endif /* (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U)) */
+
 /* This global will be TRUE if the user adds or removes a bond */
 extern bool_t                           gPrivacyStateChangedByUser;
 

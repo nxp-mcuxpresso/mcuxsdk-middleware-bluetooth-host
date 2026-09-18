@@ -60,6 +60,7 @@ typedef enum
     gHandoverContextRx_c         = 0x04,   /*!< Received context, waiting for search params (S2 side) */
     gHandoverAnchorSearch_c      = 0x05,   /*!< Anchor search for handover connect (S2 side) */
     gHandoverAnchorMonitorLocal_c = 0x06,  /*!< Anchor monitoring locally (S2 side, from time sync path) */
+    gHandoverWaitCsContextSet_c  = 0x07,   /*!< S2: waiting for CS LL context set before connect */
 } appHandoverState_t;
 
 /*! Time sync state */
@@ -97,6 +98,13 @@ typedef struct appHandoverCtx_tag
     uint32_t                dataSize;               /*!< Handover data size */
     uint32_t               *pData;                  /*!< Handover data pointer */
     uint16_t                sizeOfDataTxInOldestPacket; /*!< Size of data TX in oldest packet */
+#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1)
+    bool_t                  csConnectDeferred;      /*!< S2: monitor event arrived before CS context; connect pending */
+    uint16_t                csContextMask;          /*!< S2: pending CS LL context mask */
+    uint8_t                 csContextLength;        /*!< S2: pending CS LL context length */
+    uint8_t                *pCsContext;             /*!< S2: stashed CS LL context (NULL when none), freed after set */
+#endif /* defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1) */
+
 } appHandoverCtx_t;
 
 typedef struct appMonitorFilter_tag
@@ -202,7 +210,6 @@ static void HandleError(bleResult_t result, appHandoverError_t error);
 static bleResult_t HandleStopTimeSyncCommand(appHandoverError_t *pError);
 #if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1)
 static bleResult_t HandleCsLlContextCommand(uint8_t *pCmdData, appHandoverError_t *pError);
-static bleResult_t HandleCsContextCompletedCommand(appHandoverError_t *pError);
 #endif /* defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1) */
 static bleResult_t HandleLlPendingDataCommand(uint8_t *pCmdData, appHandoverError_t *pError);
 static bleResult_t HandleDataCommand(uint32_t cmdLen, uint8_t *pCmdData, appHandoverError_t *pError);
@@ -491,12 +498,6 @@ void AppHandover_ProcessA2ACommand
             result = HandleCsLlContextCommand(pCmdData, &error);
         }
         break;
-        
-        case gHandoverCsContextCompletedCommandOpCode_c:
-        {
-            result = HandleCsContextCompletedCommand(&error);
-        }
-        break;
 #endif
         case gHandoverLlPendingDataCommandOpCode_c:
         {
@@ -739,8 +740,18 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
         
         case gHandoverSetCsLlContextComplete_c:
         {
-            /* LL CS context set - inform peer to disconnect */
-            notifyRemoteDevice(gHandoverCsContextCompletedCommandOpCode_c, 0U, NULL);
+            if (mHandoverCtx.state == gHandoverWaitCsContextSet_c)
+            {
+                /* CS context set pre-connect. Return to the armed state and connect. */
+                mHandoverCtx.state = gHandoverAnchorSearch_c;
+                result = Gap_HandoverConnect(mHandoverCtx.connHandle, mpfAppConnCb, 0U);
+            }
+            else
+            {
+                /* Unexpected set-complete: fail cleanly so the post-switch
+                   HandleError aborts and notifies the peer instead of stalling. */
+                result = gBleInvalidState_c;
+            }
         }
         break;
 #endif
@@ -960,7 +971,16 @@ void AppHandover_Abort(bool_t notifyPeerAnch, appHandoverError_t error)
         uint8_t *pTxData = MSG_QueueRemoveHead(&mSrcLlPendingDataQueue);
         MSG_Free(pTxData);
     }
-    
+
+#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1)
+    /* Clear pending CS LL context state so it cannot leak into a later handover. */
+    (void)MEM_BufferFree(mHandoverCtx.pCsContext);
+    mHandoverCtx.pCsContext = NULL;
+    mHandoverCtx.csConnectDeferred = FALSE;
+    mHandoverCtx.csContextMask = 0U;
+    mHandoverCtx.csContextLength = 0U;
+#endif /* defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1) */
+
     if (notifyPeerAnch)
     {
         notifyRemoteDevice(gHandoverInformFailureCommandOpCode_c, 0U, NULL);
@@ -1779,7 +1799,14 @@ static bleResult_t HandleSuspendTransmitComplete
 
     if (result == gBleSuccess_c)
     {
-        mHandoverCtx.pData = MEM_BufferAlloc(mHandoverCtx.dataSize);
+        /* Allocate the LL handover data plus room for the 2-byte target connection
+           handle appended in HandleGetComplete. The A2A Data command payload is
+           [handover data][targetConnHandle(2)]; appending it in place avoids a
+           second full-size copy of the handover data. The connection handle is
+           always present (regular handover: gInvalidConnectionHandle_c; fast
+           handover: the monitored connection handle) and is used by both CS and
+           non-CS builds. */
+        mHandoverCtx.pData = MEM_BufferAlloc(mHandoverCtx.dataSize + gHandoverDataCmdConnHandleLen_c);
 
         if (mHandoverCtx.pData != NULL)
         {
@@ -1810,6 +1837,8 @@ static bleResult_t HandleGetCsLlContextComplete
 )
 {
     bleResult_t result = gBleSuccess_c;
+    appMonitorContext_t *pMonCtx = NULL;
+
     if(pGenericEvent->eventData.handoverGetCsLlContext.status == gBleSuccess_c)
     {
         uint8_t buf[gHandoverCsLlContextCommandLen_c] = {0U};
@@ -1818,6 +1847,15 @@ static bleResult_t HandleGetCsLlContextComplete
         buf[2] = pGenericEvent->eventData.handoverGetCsLlContext.llContextLength;
         FLib_MemCpy(&buf[3], pGenericEvent->eventData.handoverGetCsLlContext.llContext, pGenericEvent->eventData.handoverGetCsLlContext.llContextLength);
         notifyRemoteDevice(gHandoverCsLlContextCommandOpCode_c, (uint16_t)3U + pGenericEvent->eventData.handoverGetCsLlContext.llContextLength, buf);
+
+        /* Regular handover (no active monitor): fetch conn params now to send the
+           anchor search command to S2. Fast handover skips this; S2 connects on
+           its next monitor event. */
+        pMonCtx = findMonitorCtx(mHandoverCtx.centralDeviceId);
+        if ((pMonCtx == NULL) || (pMonCtx->state != gMonitorActive_c))
+        {
+            result = Gap_GetConnParamsMonitoring(mHandoverCtx.centralDeviceId, 0U);
+        }
     }
     else
     {
@@ -1847,7 +1885,10 @@ static bleResult_t HandleAnchorMonitorEvent
 
     do
     {
-    if (mHandoverCtx.state == gHandoverAnchorSearch_c)
+        /* Only act on the monitor event for the connection being handed over.
+           Multiple connections may be monitored, but one handover runs at a time. */
+        if ((mHandoverCtx.state == gHandoverAnchorSearch_c) &&
+            (pGenericEvent->eventData.handoverAnchorMonitor.connectionHandle == mHandoverCtx.connHandle))
         {
             if ((pGenericEvent->eventData.handoverAnchorMonitor.statusRemote & gHandoverAnchorMonitorStatusRssi_c) == 0U)
             {
@@ -2088,7 +2129,6 @@ static bleResult_t HandleInternalError
         case gHandoverConnect_c:
         case gHandoverDisconnect_c:
         case gHandoverSetSkd_c:
-        case gHandoverSetCsLlContext_c:
         case gHandoverSuspendTransmitLlProcInProgress_c:
         case gHandoverSuspendTransmitHciTx_c:
         case gHandoverResumeTransmitHciTx_c:
@@ -2130,6 +2170,14 @@ static bleResult_t HandleInternalError
             result = Gap_HandoverDisconnect(mHandoverCtx.centralDeviceId);
             mHandoverCtx.state = gHandoverIdle_c;
             mHandoverCtx.centralDeviceId = gInvalidDeviceId_c;
+        }
+        break;
+        case gHandoverSetCsLlContext_c:
+        {
+            /* Set CS LL context failed. For the central pre-connect path this
+               means the connect cannot proceed; abort the handover. */
+            result = gBleUnexpectedError_c;
+            *pError = mAppHandover_CsContextSetFailed_c;
         }
         break;
 #endif /* defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1) */
@@ -2192,25 +2240,48 @@ static void HandleLlPendingData(gapGenericEvent_t *pGenericEvent)
 static bleResult_t HandleGetComplete(gapGenericEvent_t* pGenericEvent)
 {
     bleResult_t result = gBleSuccess_c;
+    appMonitorContext_t *pMonCtx = NULL;
+    uint8_t *pConnHandle = NULL;
+    uint16_t targetConnHandle = gInvalidConnectionHandle_c;
+
     if(pGenericEvent->eventData.handoverGetData.status == gBleSuccess_c)
     {
-        notifyRemoteDevice(gHandoverDataCommandOpCode_c, (uint16_t)mHandoverCtx.dataSize, (uint8_t *)mHandoverCtx.pData);
+        /* Check if anchor monitoring is already active on the target anchor for this
+           connection (fast handover). If yes, S2 triggers Gap_HandoverConnect on the
+           next monitor event without a new anchor search or connection parameters. */
+        pMonCtx = findMonitorCtx(mHandoverCtx.centralDeviceId);
+
+        /* Append the target connection handle after the LL handover data. Fast
+           handover carries the monitored connection handle so S2 binds the handover
+           to the correct connection; regular handover sends gInvalidConnectionHandle_c
+           (S2 fills it after anchor search). Only bytes [0..dataSize) are LL data. */
+        if ((pMonCtx != NULL) && (pMonCtx->state == gMonitorActive_c))
+        {
+            targetConnHandle = pMonCtx->monitorConnHandle;
+        }
+
+        pConnHandle = &((uint8_t *)mHandoverCtx.pData)[mHandoverCtx.dataSize];
+        Utils_PackTwoByteValue(targetConnHandle, &pConnHandle[0]);
+
+        notifyRemoteDevice(gHandoverDataCommandOpCode_c,
+                           (uint16_t)(mHandoverCtx.dataSize + gHandoverDataCmdConnHandleLen_c),
+                           (uint8_t *)mHandoverCtx.pData);
         (void)MEM_BufferFree(mHandoverCtx.pData);
         mHandoverCtx.pData = NULL;
         mHandoverCtx.dataSize = 0;
 
-        /* Check if anchor monitoring is already active on the target anchor for this connection.
-           If yes, S2 will trigger Gap_HandoverConnect on the next monitor event
-           without needing a new anchor search or connection parameters. */
-        appMonitorContext_t *pMonCtx = findMonitorCtx(mHandoverCtx.centralDeviceId);
+#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1)
+        /* Single CS context fetch site for both fast and regular handover. TX is
+           already suspended here. HandleGetCsLlContextComplete then fetches conn
+           params for the regular path. */
+        result = Gap_HandoverGetCsLlContext(mHandoverCtx.centralDeviceId);
+#else
         if ((pMonCtx == NULL) || (pMonCtx->state != gMonitorActive_c))
         {
             /* Normal flow: get conn params and send anchor search command to target */
             result = Gap_GetConnParamsMonitoring(mHandoverCtx.centralDeviceId, 0U);
         }
-        /* else: monitoring already active on target anchor, no anchor search needed.
-           S2 will transition to gHandoverAnchorSearch_c upon receiving data
-           and will call Gap_HandoverConnect on next monitor event. */
+#endif /* defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1) */
     }
     else
     {
@@ -2230,6 +2301,14 @@ static void HandleFreeComplete(void)
     (void)MEM_BufferFree(mHandoverCtx.pData);
     mHandoverCtx.pData = NULL;
     mHandoverCtx.dataSize = 0;
+#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1)
+    /* Clear pending CS LL context state so it cannot leak into a later handover. */
+    (void)MEM_BufferFree(mHandoverCtx.pCsContext);
+    mHandoverCtx.pCsContext = NULL;
+    mHandoverCtx.csConnectDeferred = FALSE;
+    mHandoverCtx.csContextMask = 0U;
+    mHandoverCtx.csContextLength = 0U;
+#endif /* defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1) */
 }
 
 /*! ********************************************************************************************************************
@@ -2281,8 +2360,33 @@ static bleResult_t HandleHandoverConnectAttempt(uint16_t connectionHandle)
             }
             if (result == gBleSuccess_c)
             {
+#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1)
+                /* The CS LL context must be set by connection handle BEFORE connect
+                   (no deviceId exists yet). This is the single unified CS path. */
+                mHandoverCtx.connHandle = connectionHandle;
+
+                if (mHandoverCtx.pCsContext != NULL)
+                {
+                    /* Context already received: set it now and defer
+                       Gap_HandoverConnect until gHandoverSetCsLlContextComplete_c. */
+                    mHandoverCtx.state = gHandoverWaitCsContextSet_c;
+                    result = Gap_HandoverSetCsLlContextByConnHandle(connectionHandle,
+                                                                    mHandoverCtx.csContextMask,
+                                                                    mHandoverCtx.csContextLength,
+                                                                    mHandoverCtx.pCsContext);
+                    (void)MEM_BufferFree(mHandoverCtx.pCsContext);
+                    mHandoverCtx.pCsContext = NULL;
+                }
+                else
+                {
+                    /* Context not received yet (monitor event won the race).
+                       Defer the connect; HandleCsLlContextCommand resumes it. */
+                    mHandoverCtx.csConnectDeferred = TRUE;
+                }
+#else
                 /* Perform handover connect */
                 result = Gap_HandoverConnect(connectionHandle, mpfAppConnCb, 0U);
+#endif /* defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1) */
             }
 #if defined(gA2BEnabled_d) && (gA2BEnabled_d > 0U)
         }
@@ -2311,7 +2415,10 @@ static bleResult_t HandleAnchorMonitorPacketEvent(gapGenericEvent_t *pGenericEve
 
     *pError = mAppHandover_UnexpectedError_c;
 
-    if (mHandoverCtx.state == gHandoverAnchorSearch_c)
+    /* Only act on the packet event for the connection being handed over.
+       Multiple connections may be monitored, but one handover runs at a time. */
+    if ((mHandoverCtx.state == gHandoverAnchorSearch_c) &&
+        (pAnchMntPktEvt->connectionHandle == mHandoverCtx.connHandle))
     {
         /* Check bit 0 of statusPacket to determine if handover connect is possible */
         if ((pAnchMntPktEvt->statusPacket & 0x01U) != 0U)
@@ -2466,28 +2573,37 @@ static bleResult_t HandleCsLlContextCommand(uint8_t *pCmdData, appHandoverError_
     pCmdData = &pCmdData[2];
     length = *pCmdData;
     pCmdData++;
-    result = Gap_HandoverSetCsLlContext(mHandoverCtx.centralDeviceId,
-                                        mask, length, pCmdData);
-    
-    return result;
-}
 
-/*! ********************************************************************************************************************
-*\fn            static bleResult_t HandleCsContextCompletedCommand(appHandoverError_t *pError)
-*\brief         Handle CS context completed command
-*
-*\param  [out]  pError  Pointer to error status.
-*
-*\return        bleResult_t  Status of the operation.
-********************************************************************************************************************* */
-static bleResult_t HandleCsContextCompletedCommand(appHandoverError_t *pError)
-{
-    bleResult_t result = gBleSuccess_c;
-    
-    /* Connection was handed over to the other anchor */
-    result = Gap_HandoverDisconnect(mHandoverCtx.centralDeviceId);
-    mHandoverCtx.state = gHandoverIdle_c;
-    mHandoverCtx.centralDeviceId = gInvalidDeviceId_c;
+    mHandoverCtx.csContextMask = mask;
+    mHandoverCtx.csContextLength = length;
+
+    if (mHandoverCtx.csConnectDeferred == TRUE)
+    {
+        /* Monitor event already selected the anchor before the context arrived:
+           set the context directly from the command buffer and defer connect to
+           the set-complete. No stash allocation is needed. */
+        mHandoverCtx.csConnectDeferred = FALSE;
+        mHandoverCtx.state = gHandoverWaitCsContextSet_c;
+        result = Gap_HandoverSetCsLlContextByConnHandle(mHandoverCtx.connHandle,
+                                                        mask, length, pCmdData);
+    }
+    else
+    {
+        /* Connect not selected yet. Stash the context until the monitor event
+           triggers the set-by-connHandle in HandleHandoverConnectAttempt. */
+        mHandoverCtx.pCsContext = MEM_BufferAlloc(length);
+
+        if (mHandoverCtx.pCsContext != NULL)
+        {
+            FLib_MemCpy(mHandoverCtx.pCsContext, pCmdData, length);
+        }
+        else
+        {
+            /* Cannot proceed without the context; abort so the app can retry. */
+            result = gBleOutOfMemory_c;
+            *pError = mAppHandover_OutOfMemory_c;
+        }
+    }
 
     return result;
 }
@@ -2537,18 +2653,30 @@ static bleResult_t HandleLlPendingDataCommand(uint8_t *pCmdData, appHandoverErro
 static bleResult_t HandleDataCommand(uint32_t cmdLen, uint8_t *pCmdData, appHandoverError_t *pError)
 {
     bleResult_t result = gBleSuccess_c;
+    uint32_t dataSize = 0U;
+    uint16_t targetConnHandle = gInvalidConnectionHandle_c;
 
-
-    if (mHandoverCtx.pData != NULL)
+    if (cmdLen <= gHandoverDataCmdConnHandleLen_c)
+    {
+        /* Malformed command: too short to hold the mandatory connection handle
+           and at least one octet of handover data. */
+        result = gBleUnexpectedError_c;
+        *pError = mAppHandover_UnexpectedError_c;
+    }
+    else if (mHandoverCtx.pData != NULL)
     {
         result = gBleInvalidState_c;
     }
     else
     {
-        mHandoverCtx.pData = MEM_BufferAlloc(cmdLen);
+        dataSize = cmdLen - gHandoverDataCmdConnHandleLen_c;
+        /* The command carries the handover data followed by the 2-byte target
+           connection handle. Only the handover data is passed to the LL. */
+        mHandoverCtx.pData = MEM_BufferAlloc(dataSize);
+
         if (mHandoverCtx.pData != NULL)
         {
-            FLib_MemCpy(mHandoverCtx.pData, pCmdData, cmdLen);
+            FLib_MemCpy(mHandoverCtx.pData, pCmdData, dataSize);
             result = Gap_HandoverSetData(mHandoverCtx.pData);
 
             if (result == gBleSuccess_c)
@@ -2558,12 +2686,21 @@ static bleResult_t HandleDataCommand(uint32_t cmdLen, uint8_t *pCmdData, appHand
                    Gap_HandoverConnect because it thinks we already connected. */
                 mHandoverCtx.deviceFound = FALSE;
 
+                /* Read the appended target connection handle. Fast handover carries
+                   the valid handle; regular handover sends an invalid handle (S2
+                   fills it after anchor search). */
+                targetConnHandle = Utils_ExtractTwoByteValue(&pCmdData[dataSize]);
+                if (targetConnHandle != gInvalidConnectionHandle_c)
+                {
+                    mHandoverCtx.connHandle = targetConnHandle;
+                }
+
                 /* If anchor monitoring is already active locally for this connection,
                    transition to gHandoverAnchorSearch_c so the next monitor event
                    triggers Gap_HandoverConnect(). No new anchor search is needed.
                    Note: On the monitoring anchor (S2), local monitoring is tracked by
-                   mHandoverCtx.connHandle (set in HandleAnchorSearchStarted), NOT by
-                   maMonitorCtx[] which is only used on S1 for tracking remote anchors. */
+                   mHandoverCtx.connHandle (set here from the appended connection handle
+                   on fast handover, or in HandleAnchorSearchStarted otherwise). */
                 if (mHandoverCtx.connHandle != gInvalidConnectionHandle_c)
                 {
                     mHandoverCtx.state = gHandoverAnchorSearch_c;
@@ -2936,6 +3073,7 @@ static bleResult_t HandleAnchMonStoppedCommand(uint8_t *pCmdData, appHandoverErr
 static bleResult_t HandleInformConnectCommand(appHandoverError_t *pError)
 {
     bleResult_t result = gBleSuccess_c;
+    deviceId_t peerDeviceId = mHandoverCtx.centralDeviceId;
 
     /* Free all monitor contexts for the device being handed over.
        If not cleared, stale entries will cause future handovers to
@@ -2948,13 +3086,18 @@ static bleResult_t HandleInformConnectCommand(appHandoverError_t *pError)
         }
     }
 
-#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1)
-    result = Gap_HandoverGetCsLlContext(mHandoverCtx.centralDeviceId);
-#else
+    /* The peer (S2) is connected. Notify the application so it can send
+       application data now that a valid device id exists on the peer. */
+    if (mpfAppEventCb != NULL)
+    {
+        mpfAppEventCb(mAppHandover_PeerConnectComplete_c, &peerDeviceId);
+    }
+
+    /* CS context (if any) was already fetched and set pre-connect on the target.
+       Handover is complete; just disconnect the local link. */
     result = Gap_HandoverDisconnect(mHandoverCtx.centralDeviceId);
     mHandoverCtx.state = gHandoverIdle_c;
     mHandoverCtx.centralDeviceId = gInvalidDeviceId_c;
-#endif
 
     return result;
 }

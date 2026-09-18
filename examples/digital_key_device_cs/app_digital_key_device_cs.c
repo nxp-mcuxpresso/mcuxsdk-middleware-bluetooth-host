@@ -922,8 +922,11 @@ static void BleApp_HandlePairState(deviceId_t peerDeviceId, appEvent_t event)
     else if ( event == mAppEvt_PairingPeerOobDataRcv_c )
     {
         shell_write("\r\nReceived First_Approach_RS.\r\n");
+#if (!defined(gAppAdvNonCCC_d) || (gAppAdvNonCCC_d == 0U))
+        /* As GAP Peripheral (gAppAdvNonCCC_d), the peer Central initiates SMP. */
         shell_write("\r\nPairing...\r\n");
         (void)Gap_Pair(peerDeviceId, &gPairingParameters);
+#endif
     }
     else if ( event == mAppEvt_PairingPeerOobDataReq_c )
     {
@@ -1499,8 +1502,11 @@ static void App_HandleConnectionCallback(appEventData_t *pEventData)
                     (void*)&maPeerInformation[pConnectedEventData->peerDeviceId].customInfo, 0, (uint16_t)sizeof (appCustomInfo_t))))
             {
                 mRestoringBondedLink = TRUE;
-                /* Restored custom connection information. Encrypt link */
+#if (!defined(gAppAdvNonCCC_d) || (gAppAdvNonCCC_d == 0U))
+                /* Restored custom connection information. Encrypt link.
+                   As GAP Peripheral (gAppAdvNonCCC_d), the peer Central drives encryption. */
                 (void)Gap_EncryptLink(pConnectedEventData->peerDeviceId);
+#endif /* (!defined(gAppAdvNonCCC_d) || (gAppAdvNonCCC_d == 0U)) */
             }
 #endif
             BleApp_StateMachineHandler(pConnectedEventData->peerDeviceId, mAppEvt_PeerConnected_c);

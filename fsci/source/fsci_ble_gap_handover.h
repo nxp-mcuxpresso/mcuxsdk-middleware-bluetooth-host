@@ -126,6 +126,7 @@ typedef enum
     gBleGapHandoverUpdateConnParamsOpCode_c                     = 0x11,                               /*! Gap_HandoverUpdateConnParams command operation code */
     gBleGapHandoverSetLlPendingDataOpCode_c                     = 0x12,                               /*! Gap_HandoverSetLlPendingData command operation code */
     gBleGapHandoverApplyConnectionUpdateProcedureOpCode_c       = 0x13,                               /*! Gap_HandoverApplyConnectionUpdateProcedure command operation code */
+    gBleGapHandoverCmdSetCsLlContextByConnHandleOpCode_c        = 0x14,                               /*! Gap_HandoverSetCsLlContextByConnHandle command operation code */
     
     gBleGapHandoverStatusOpCode_c                               = 0x80,                               /*! GAP status operation code */
 

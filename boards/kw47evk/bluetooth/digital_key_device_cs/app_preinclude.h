@@ -77,6 +77,20 @@
 
 #define gBleLeScOobHasMitmProtection_c    1
 
+/* Enable/Disable GAP Peripheral role (advertise) instead of GAP Central (scan).
+   Non-CCC repro of the customer role topology. Manually set to 1 to enable. */
+#define gAppAdvNonCCC_d                 0
+
+#if (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U))
+/* As GAP Peripheral the peer Central drives SMP. Do not send a Peripheral
+   Security Request at connect; SMP must wait for the First_Approach OOB exchange. */
+#define gCentralInitiatedPairing_d
+#endif
+
+/* Private 16-bit service UUID for the non-CCC repro. Keeps non-CCC traffic
+   separate from regular CCC apps that advertise gBleSig_CCC_DK_UUID_d. */
+#define gNonCccDkUUID_d                 0xFCF5U
+
 /* Enable/Disable the BTCS Server for L2CAP transfer functionality */
 #define gAppBtcsServer_d                1
 

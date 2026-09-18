@@ -42,6 +42,35 @@
 * Public memory declarations
 *************************************************************************************
 ************************************************************************************/
+#if (defined(gAppScanNonCCC_d) && (gAppScanNonCCC_d == 1U))
+/* Scanning parameters used when the anchor acts as GAP Central (non-CCC) */
+gapScanningParameters_t gScanParams =
+{
+    /* type */              gScanTypePassive_c,
+    /* interval */          gGapScanIntervalDefault_d,
+    /* window */            gGapScanWindowDefault_d,
+    /* ownAddressType */    gBleAddrTypePublic_c,
+    /* filterPolicy */      (uint8_t)gScanAll_c,
+    /* scanning PHY */      (uint8_t)gLePhy1MFlag_c
+};
+
+/* Default Connection Request Parameters */
+gapConnectionRequestParameters_t gConnReqParams =
+{
+    .scanInterval = 36,
+    .scanWindow = 36,
+    .filterPolicy = (uint8_t)gUseDeviceAddress_c,
+    .ownAddressType = gBleAddrTypePublic_c,
+    .connIntervalMin = gcConnectionIntervalMinDefault_c,
+    .connIntervalMax = gcConnectionIntervalMinDefault_c,
+    .connLatency = 0,
+    .supervisionTimeout = 0x03E8,
+    .connEventLengthMin = 0,
+    .connEventLengthMax = 0xFFFF,
+    .initiatingPHYs = (uint8_t)gLePhy1MFlag_c,
+};
+#endif /* (defined(gAppScanNonCCC_d) && (gAppScanNonCCC_d == 1U)) */
+
 /* Default Legacy Advertising Parameters */
 gapExtAdvertisingParameters_t gLegacyAdvParams =
 {

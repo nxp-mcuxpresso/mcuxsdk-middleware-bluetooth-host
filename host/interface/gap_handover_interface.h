@@ -333,6 +333,28 @@ bleResult_t Gap_HandoverSetCsLlContext
 );
 
 /*!*************************************************************************************************
+* \fn           bleResult_t Gap_HandoverSetCsLlContextByConnHandle(uint16_t connHandle, uint16_t mask,
+*                                                      uint8_t contextLength, uint8_t *pContextData)
+*
+* \brief        Sets the CS-related context data into the LL, for the given connection handle.
+*               Used for sniffed/monitored connections that have no GAP peer device id.
+*
+* \param [in]   connHandle      Connection handle
+* \param [in]   mask            Context data bitmask (used by the LL).
+* \param [in]   contextLength   Length of the context data
+* \param [in]   pContextData    Pointer to context data
+*
+* \return       gBleSuccess_c or error
+***************************************************************************************************/
+bleResult_t Gap_HandoverSetCsLlContextByConnHandle
+(
+    uint16_t    connHandle,
+    uint16_t    mask,
+    uint8_t     contextLength,
+    uint8_t     *pContextData
+);
+
+/*!*************************************************************************************************
 * \fn           bleResult_t Gap_HandoverUpdateConnParams(gapHandoverUpdateConnParams_t *pConnParams)
 *
 * \brief        Update the channel map and/or phy used in the current anchor monitoring process.

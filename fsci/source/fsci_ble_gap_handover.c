@@ -198,6 +198,22 @@ void fsciBleGapHandoverHandler(void* pData, void* param, uint32_t fsciInterfaceI
                         fsciBleGapHandoverCallApiFunction(Gap_HandoverSetCsLlContext(deviceId, mask, contextLength, maHandoverCsLlContext));
                     }
                     break;
+
+                case gBleGapHandoverCmdSetCsLlContextByConnHandleOpCode_c:
+                    {
+                        uint16_t        connHandle;
+                        uint16_t        mask;
+                        uint8_t         contextLength;
+
+                        /* Get connHandle from buffer */
+                        fsciBleGetUint16ValueFromBuffer(connHandle, pBuffer);
+                        fsciBleGetUint16ValueFromBuffer(mask, pBuffer);
+                        fsciBleGetUint8ValueFromBuffer(contextLength, pBuffer);
+                        fsciBleGetArrayFromBuffer(maHandoverCsLlContext, pBuffer, contextLength);
+
+                        fsciBleGapHandoverCallApiFunction(Gap_HandoverSetCsLlContextByConnHandle(connHandle, mask, contextLength, maHandoverCsLlContext));
+                    }
+                    break;
                     
                 case gBleGapHandoverCmdGetTimeOpCode_c:
                     {

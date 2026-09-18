@@ -1766,6 +1766,8 @@ static void A2A_ProcessCommand(void *pMsg)
                             {
                                 maPeerInformation[gLastHandedOverPeerId].nvmIndex = nvmIndex;
                                 AppLocalization_SetRemoteCachedSupportedCapabilities(nvmIndex, remoteCapabilities);
+                                /* Peer is connected and CS context is set. Push cached caps to controller. */
+                                (void)AppLocalization_WriteCachedRemoteCapabilities(gLastHandedOverPeerId, nvmIndex);
                             }
                             (void)MEM_BufferFree(remoteCapabilities);
                         }
@@ -2036,6 +2038,18 @@ static void BleApp_HandoverEventHandler(appHandoverEvent_t eventType, void *pDat
         {
             deviceId_t peerDeviceId = *(deviceId_t *)pData;
             BleApp_HandleHandoverConnectComplete(peerDeviceId);
+        }
+        break;
+
+        case mAppHandover_PeerConnectComplete_c:
+        {
+            /* Raised on S1 when S2 reports connected. Send application data post-connect. */
+            deviceId_t peerDeviceId = *(deviceId_t *)pData;
+#if defined(gA2ASerialInterface_d) && (gA2ASerialInterface_d == 1)
+            A2A_SendApplicationData(peerDeviceId);
+#else
+            (void)peerDeviceId;
+#endif /* defined(gA2ASerialInterface_d) && (gA2ASerialInterface_d == 1) */
         }
         break;
 
@@ -2821,6 +2835,12 @@ static void HandleShellHandoverError(appEventData_t *pEventData)
         case mAppHandover_ConnParamsUpdateFail_c:
         {
             shell_write("\r\nConnection parameters update failed.\r\n");
+        }
+        break;
+
+        case mAppHandover_CsContextSetFailed_c:
+        {
+            shell_write("\r\nCS LL context set before connect failed.\r\n");
         }
         break;
 

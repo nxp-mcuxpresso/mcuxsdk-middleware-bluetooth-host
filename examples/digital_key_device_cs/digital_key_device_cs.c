@@ -85,6 +85,8 @@
 * Private memory declarations
 *************************************************************************************
 ************************************************************************************/
+#if (!defined(gAppAdvNonCCC_d) || (gAppAdvNonCCC_d == 0U))
+/* Scanning symbols used when the device acts as GAP Central (default topology) */
 static appScanningParams_t appScanParams = {
     &gScanParams,
     gGapDuplicateFilteringEnable_c,
@@ -94,6 +96,12 @@ static appScanningParams_t appScanParams = {
 
 static bool_t   mScanningOn = FALSE;
 static bool_t   mFoundDeviceToConnect = FALSE;
+#endif /* (!defined(gAppAdvNonCCC_d) || (gAppAdvNonCCC_d == 0U)) */
+
+#if (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U))
+/* Advertising state used when the device acts as GAP Peripheral (non-CCC) */
+static bool_t   mAdvOn = FALSE;
+#endif /* (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U)) */
 
 /* Application callback */
 pfBleCallback_t mpfBleEventHandler = NULL;
@@ -110,10 +118,17 @@ static uint16_t mPeerMtu[gAppMaxConnections_c] = {0U};
 *************************************************************************************
 ************************************************************************************/
 /* Host Stack callbacks */
+#if (!defined(gAppAdvNonCCC_d) || (gAppAdvNonCCC_d == 0U))
 static void BleApp_ScanningCallback
 (
     gapScanningEvent_t* pScanningEvent
 );
+#endif /* (!defined(gAppAdvNonCCC_d) || (gAppAdvNonCCC_d == 0U)) */
+
+#if (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U))
+static void BleApp_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent);
+static void BleApp_Advertise(void);
+#endif /* (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U)) */
 
 static void BleApp_ConnectionCallback
 (
@@ -143,8 +158,10 @@ static void BleApp_CsEventHandler(deviceId_t deviceId, void *pData, appCsEventTy
 static void BleApp_L2capPsmDataCallback (deviceId_t deviceId, uint16_t lePsm, uint8_t* pPacket, uint16_t packetLength);
 static void BleApp_L2capPsmControlCallback (l2capControlMessage_t* pMessage);
 
+#if (!defined(gAppAdvNonCCC_d) || (gAppAdvNonCCC_d == 0U))
 static bool_t CheckScanEventLegacy(gapScannedDevice_t* pData);
 static bool_t CheckScanEventExtended(gapExtScannedDevice_t* pData);
+#endif /* (!defined(gAppAdvNonCCC_d) || (gAppAdvNonCCC_d == 0U)) */
 
 static void BleApp_StoreServiceHandles
 (
@@ -244,11 +261,16 @@ void BleApp_RegisterEventHandler(pfBleCallback_t pfBleEventHandler)
 ********************************************************************************** */
 void BleApp_Start(void)
 {
+#if (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U))
+    /* Device acts as GAP Peripheral: advertise instead of scanning */
+    BleApp_Advertise();
+#else
     if (!mScanningOn)
     {
         /* Start scanning */
         (void)BluetoothLEHost_StartScanning(&appScanParams, BleApp_ScanningCallback);
     }
+#endif /* (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U)) */
 }
 
 /*! *********************************************************************************
@@ -475,6 +497,59 @@ static void BleApp_GenericCallback_HandlePrivacyEvents(gapGenericEvent_t* pGener
     }
 }
 
+#if (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U))
+/*! *********************************************************************************
+* \brief        Configures GAP Advertise parameters. Advertise starts after
+*               the parameters are set.
+********************************************************************************** */
+static void BleApp_Advertise(void)
+{
+    /* Set advertising parameters */
+    gAppAdvParams.pGapExtAdvParams = &gLegacyAdvParams;
+    gAppAdvParams.handle = gLegacyAdvSetHandle_c;
+
+    (void)BluetoothLEHost_StartExtAdvertising(&gAppAdvParams, BleApp_AdvertisingCallback, BleApp_ConnectionCallback);
+}
+
+/*! *********************************************************************************
+* \brief        Handles BLE Advertising callback from host stack.
+*
+* \param[in]    pAdvertisingEvent    Pointer to gapAdvertisingEvent_t.
+********************************************************************************** */
+static void BleApp_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent)
+{
+    switch (pAdvertisingEvent->eventType)
+    {
+        case gExtAdvertisingStateChanged_c:
+        {
+            /* State toggles on each start/stop. Print only on the start transition. */
+            mAdvOn = !mAdvOn;
+            if (mAdvOn)
+            {
+                shell_write("Advertising started\r\n");
+            }
+            LedStopFlashingAllLeds();
+            Led1Flashing();
+        }
+        break;
+
+        case gAdvertisingCommandFailed_c:
+        {
+            panic(0,0,0,0);
+        }
+        break;
+
+        default:
+        {
+            ; /* No action required */
+        }
+        break;
+    }
+}
+
+#endif /* (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U)) */
+
+#if (!defined(gAppAdvNonCCC_d) || (gAppAdvNonCCC_d == 0U))
 /*! *********************************************************************************
 * \brief        Handles BLE Scanning callback from host stack.
 *
@@ -595,6 +670,7 @@ static void BleApp_ScanningCallback (gapScanningEvent_t* pScanningEvent)
         break;
     }
 }
+#endif /* (!defined(gAppAdvNonCCC_d) || (gAppAdvNonCCC_d == 0U)) */
 
 /*! *********************************************************************************
 * \brief        Handles BLE Connection callback from host stack.
@@ -605,7 +681,12 @@ static void BleApp_ScanningCallback (gapScanningEvent_t* pScanningEvent)
 static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* pConnectionEvent)
 {
     /* Connection Manager to handle Host Stack interactions */
+#if (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U))
+    /* Device acts as GAP Peripheral: the peer Central drives encryption */
+    BleConnManager_GapPeripheralEvent(peerDeviceId, pConnectionEvent);
+#else
     BleConnManager_GapCentralEvent(peerDeviceId, pConnectionEvent);
+#endif /* (defined(gAppAdvNonCCC_d) && (gAppAdvNonCCC_d == 1U)) */
 
     switch (pConnectionEvent->eventType)
     {
@@ -1060,6 +1141,7 @@ static void BleApp_GattClientCallback(
     BleServDisc_SignalGattClientEvent(serverDeviceId, procedureType, procedureResult, error);
 }
 
+#if (!defined(gAppAdvNonCCC_d) || (gAppAdvNonCCC_d == 0U))
 /*! *********************************************************************************
 * \brief        Process scanning events to search for the DK Ranging Service.
 *               This function is called from the scanning callback.
@@ -1147,6 +1229,7 @@ static bool_t CheckScanEventExtended(gapExtScannedDevice_t* pData)
 
     return foundMatch;
 }
+#endif /* (!defined(gAppAdvNonCCC_d) || (gAppAdvNonCCC_d == 0U)) */
 
 /*! *********************************************************************************
 * \brief        Callback for incoming PSM data.
@@ -1310,8 +1393,10 @@ static void BluetoothLEHost_Initialized(void)
         maPeerInformation[mPeerId].deviceId = gInvalidDeviceId_c;
         maPeerInformation[mPeerId].btcsSupported = FALSE;
     }
+#if (!defined(gAppAdvNonCCC_d) || (gAppAdvNonCCC_d == 0U))
     mScanningOn = FALSE;
     mFoundDeviceToConnect = FALSE;
+#endif /* (!defined(gAppAdvNonCCC_d) || (gAppAdvNonCCC_d == 0U)) */
 
     /* Register stack callbacks */
     (void)App_RegisterLeCbCallbacks(BleApp_L2capPsmDataCallback, BleApp_L2capPsmControlCallback);

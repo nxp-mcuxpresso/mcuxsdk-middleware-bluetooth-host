@@ -133,6 +133,10 @@
 /* Scan for non-CCC key fobs */
 #define gAppScanNonCCC_d                        0
 
+/* Private 16-bit service UUID for the non-CCC repro. Must match the device
+   advertised UUID. Keeps non-CCC traffic separate from regular CCC apps. */
+#define gNonCccDkUUID_d                         0xFCF5U
+
 /* Enable the optional LE Coded PHY advertising */
 #define gAppLeCodedAdvEnable_d                  1
 

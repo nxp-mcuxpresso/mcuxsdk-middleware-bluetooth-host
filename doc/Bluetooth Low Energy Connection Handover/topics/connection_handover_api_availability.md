@@ -251,6 +251,20 @@ bleResult_t Gap_HandoverSetCsLlContext(deviceId_t deviceId, uint16_t mask, uint8
 
 **Returns**: `gBleSuccess_c` or error.
 
+### Gap_HandoverSetCsLlContextByConnHandle
+```
+bleResult_t Gap_HandoverSetCsLlContextByConnHandle(uint16_t connHandle, uint16_t mask, uint8_t contextLength, uint8_t *pContextData);
+```
+**Description**: Sets the CS-related context data into the LL for the given connection handle. Used when the Target device has no GAP peer device id yet, for example a GAP central that must set the context before `Gap_HandoverConnect()`.
+
+**Parameters**:
+- `connHandle`: Connection handle.
+- `mask`: Context data bitmask (used by the LL).
+- `contextLength`: Length of the context data.
+- `pContextData`: Pointer to context data.
+
+**Returns**: `gBleSuccess_c` or error.
+
 ### Gap_HandoverUpdateConnParams
 ```
 bleResult_t Gap_HandoverUpdateConnParams(gapHandoverUpdateConnParams_t *pConnParams);

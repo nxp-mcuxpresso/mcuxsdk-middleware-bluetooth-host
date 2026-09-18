@@ -229,6 +229,12 @@ extern gapScanResponseData_t            gAppScanRspData;
 extern gapExtAdvertisingParameters_t  gExtAdvParams;
 extern gapExtAdvertisingParameters_t  gLegacyAdvParams;
 extern appExtAdvertisingParams_t        gAppAdvParams;
+#if (defined(gAppScanNonCCC_d) && (gAppScanNonCCC_d == 1U))
+/* Scan/connect parameters used when the anchor acts as GAP Central (non-CCC) */
+extern gapScanningParameters_t          gScanParams;
+extern gapConnectionRequestParameters_t gConnReqParams;
+#endif /* (defined(gAppScanNonCCC_d) && (gAppScanNonCCC_d == 1U)) */
+
 /* This global will be TRUE if the user adds or removes a bond */
 extern bool_t                           gPrivacyStateChangedByUser;
 
@@ -242,6 +248,10 @@ extern appPeerInfo_t maPeerInformation[gAppMaxConnections_c];
 extern bool_t mLastConnectFromHandover;
 /* Last deviceId connected to via handover */
 extern deviceId_t gLastHandedOverPeerId;
+#if defined(gA2ASerialInterface_d) && (gA2ASerialInterface_d == 1)
+/* Send application data to the handed-over peer. Called post-connect. */
+void A2A_SendApplicationData(deviceId_t deviceId);
+#endif /* defined(gA2ASerialInterface_d) && (gA2ASerialInterface_d == 1) */
 #endif
 /************************************************************************************
 *************************************************************************************

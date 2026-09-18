@@ -132,6 +132,17 @@ static gattAttribute_t      *mpCharProcBuffer = NULL;
 static bool_t gStopExtAdvSetAfterConnect = FALSE;
 #endif /* defined(gAppLeCodedAdvEnable_d) && (gAppLeCodedAdvEnable_d == 1) */
 static bleDeviceAddress_t mRandomStaticAddr = APP_BD_ADDR;
+#if (defined(gAppScanNonCCC_d) && (gAppScanNonCCC_d == 1U))
+/* Scanning parameters used when the anchor acts as GAP Central (non-CCC) */
+static appScanningParams_t appScanParams = {
+    &gScanParams,
+    gGapDuplicateFilteringEnable_c,
+    gGapScanContinuously_d,
+    gGapScanPeriodicDisabled_d
+};
+static bool_t mScanningOn = FALSE;
+static bool_t mFoundPeripheralToConnect = FALSE;
+#endif /* (defined(gAppScanNonCCC_d) && (gAppScanNonCCC_d == 1U)) */
 /************************************************************************************
 *************************************************************************************
 * Private functions prototypes
@@ -154,6 +165,11 @@ static void BleApp_L2capPsmControlCallback (l2capControlMessage_t* pMessage);
 
 static void BleApp_AdvertisingCallback (gapAdvertisingEvent_t* pAdvertisingEvent);
 static void BleApp_Advertise(void);
+#if (defined(gAppScanNonCCC_d) && (gAppScanNonCCC_d == 1U))
+static void BleApp_ScanningCallback (gapScanningEvent_t* pScanningEvent);
+static bool_t CheckScanEventLegacy(gapScannedDevice_t* pData);
+static bool_t CheckScanEventExtended(gapExtScannedDevice_t* pData);
+#endif /* (defined(gAppScanNonCCC_d) && (gAppScanNonCCC_d == 1U)) */
 
 static uint8_t BleApp_GetNoOfActiveConnections(void);
 
@@ -169,10 +185,6 @@ static void BleApp_UpdateLocalizationConfig(deviceId_t peerDeviceId, uint16_t co
 /* Get a simulated UWB clock. */
 static uint64_t GetUwbClock(void);
 
-#if defined(gA2ASerialInterface_d) && (gA2ASerialInterface_d == 1) && \
-    defined(gHandoverIncluded_d) && (gHandoverIncluded_d == 1)
-static void A2A_SendApplicationData(deviceId_t deviceId);
-#endif /* defined(gA2ASerialInterface_d) && (gA2ASerialInterface_d == 1) */
 #if (defined(gA2BEnabled_d) && (gA2BEnabled_d > 0U))
 static void BleApp_A2BCommHandler(uint8_t opGroup, uint8_t cmdId, uint16_t len, uint8_t *pData);
 #endif /* (defined(gA2BEnabled_d) && (gA2BEnabled_d > 0U)) */
@@ -211,9 +223,17 @@ void BleApp_Start(void)
 {
     Led1On();
 
+#if (defined(gAppScanNonCCC_d) && (gAppScanNonCCC_d == 1U))
+    /* Anchor acts as GAP Central: scan and connect instead of advertising */
+    if (!mScanningOn)
+    {
+        (void)BluetoothLEHost_StartScanning(&appScanParams, BleApp_ScanningCallback);
+    }
+#else
     /* Set advertising parameters, advertising to start on gAdvertisingParametersSetupComplete_c */
     gCurrentAdvHandle = gLegacyAdvSetHandle_c;
     BleApp_Advertise();
+#endif
 }
 
 /*! *********************************************************************************
@@ -264,52 +284,6 @@ bool_t BleApp_CheckActiveConnections(void)
 
     return bActiveConn;
 }
-
-#if defined(gHandoverIncluded_d) && (gHandoverIncluded_d == 1)
-#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1)
-/*! *********************************************************************************
-* \brief        Handler of gHandoverGetCsLlContextComplete_c from BleApp_GenericCallback.
-*
-* \param[in]    pGenericEvent    Pointer to gapGenericEvent_t.
-********************************************************************************** */
-static void BleApp_GenericCallback_HandoverGetCsLlContextComplete(gapGenericEvent_t* pGenericEvent)
-{
-    for (uint8_t idx = 0U; idx < ((uint8_t)gAppMaxConnections_c); idx++)
-    {
-        if (maPeerInformation[idx].deviceId == gHandoverDeviceId)
-        {
-            A2A_SendApplicationData(maPeerInformation[idx].deviceId);
-            break;
-        }
-    }
-
-    AppHandover_GenericCallback(pGenericEvent);
-}
-
-/*! *********************************************************************************
-* \brief        Handler of gHandoverSetCsLlContextComplete_c from BleApp_GenericCallback.
-*
-* \param[in]    pGenericEvent    Pointer to gapGenericEvent_t.
-********************************************************************************** */
-static void BleApp_GenericCallback_HandoverSetCsLlContextComplete(gapGenericEvent_t* pGenericEvent)
-{
-    AppHandover_GenericCallback(pGenericEvent);
-    /* Set CS configuration locally and start procedure if initiator */
-    if (gLastHandedOverPeerId != gInvalidDeviceId_c)
-    {
-        uint8_t nvmIndex = gInvalidNvmIndex_c;
-        bool_t isBonded = FALSE;
-
-        (void)Gap_CheckIfBonded(gLastHandedOverPeerId, &isBonded, &nvmIndex);
-
-        if (nvmIndex != gInvalidNvmIndex_c)
-        {
-            (void)AppLocalization_WriteCachedRemoteCapabilities(gLastHandedOverPeerId, nvmIndex);
-        }
-    }
-}
-#endif /* gBLE_ChannelSounding_d */
-#endif /* defined(gHandoverIncluded_d) && (gHandoverIncluded_d == 1) */
 
 /*! *********************************************************************************
 * \brief        Handler of gLePhyEvent_c from BleApp_GenericCallback.
@@ -447,14 +421,11 @@ void BleApp_GenericCallback (gapGenericEvent_t* pGenericEvent)
         break;
 #if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1)
         case gHandoverGetCsLlContextComplete_c:
-        {
-            BleApp_GenericCallback_HandoverGetCsLlContextComplete(pGenericEvent);
-        }
-        break;
-
         case gHandoverSetCsLlContextComplete_c:
         {
-            BleApp_GenericCallback_HandoverSetCsLlContextComplete(pGenericEvent);
+            /* CS LL context is exchanged pre-connect. Application data (incl.
+               cached caps) is exchanged post-connect via the handover events. */
+            AppHandover_GenericCallback(pGenericEvent);
         }
         break;
 #endif /* gBLE_ChannelSounding_d */
@@ -1279,6 +1250,13 @@ static void BleApp_StateMachineHandler_AppPair(deviceId_t peerDeviceId, appEvent
     if ( event == mAppEvt_PairingLocalOobData_c )
     {
         (void)CCC_FirstApproachRsp(peerDeviceId, gaAppOwnDiscAddress, &maPeerInformation[peerDeviceId].oobData);
+#if (defined(gAppScanNonCCC_d) && (gAppScanNonCCC_d == 1U))
+        /* Anchor is GAP Central: both OOBs are ready now, start SMP. */
+        if (maPeerInformation[peerDeviceId].gapRole == gGapCentral_c)
+        {
+            (void)Gap_Pair(peerDeviceId, &gPairingParameters);
+        }
+#endif
     }
     else if ( event == mAppEvt_PairingPeerOobDataRcv_c )
     {
@@ -1315,7 +1293,24 @@ static void BleApp_StateMachineHandler_AppIdle(deviceId_t peerDeviceId, appEvent
 {
     if (event == mAppEvt_PeerConnected_c)
     {
-        maPeerInformation[peerDeviceId].appState = mAppCCCWaitingForOwnerPairingRequest_c;
+#if (defined(gAppScanNonCCC_d) && (gAppScanNonCCC_d == 1U))
+        if (maPeerInformation[peerDeviceId].gapRole == gGapCentral_c)
+        {
+            /* Anchor is GAP Central: reach CS localization. Bonded peers encrypt
+               now; unbonded peers pair after the First_Approach OOB exchange. */
+            maPeerInformation[peerDeviceId].appState = mAppCCCWaitingForOwnerPairingRequest_c;
+#if defined(gAppUseBonding_d) && (gAppUseBonding_d)
+            if (maPeerInformation[peerDeviceId].isBonded == TRUE)
+            {
+                (void)Gap_EncryptLink(peerDeviceId);
+            }
+#endif
+        }
+        else
+#endif /* (defined(gAppScanNonCCC_d) && (gAppScanNonCCC_d == 1U)) */
+        {
+            maPeerInformation[peerDeviceId].appState = mAppCCCWaitingForOwnerPairingRequest_c;
+        }
     }
 }
 
@@ -1570,6 +1565,200 @@ static void BleApp_Advertise(void)
 
     (void)BluetoothLEHost_StartExtAdvertising(&gAppAdvParams, BleApp_AdvertisingCallback, BleApp_ConnectionCallback);
 }
+
+#if (defined(gAppScanNonCCC_d) && (gAppScanNonCCC_d == 1U))
+/*! *********************************************************************************
+* \brief        Search a legacy advert for the non-CCC private service UUID.
+*
+* \param[in]    pData    Pointer to gapScannedDevice_t.
+*
+* \return       TRUE if the advert carries gNonCccDkUUID_d, FALSE otherwise.
+********************************************************************************** */
+static bool_t CheckScanEventLegacy(gapScannedDevice_t* pData)
+{
+    uint32_t index = 0;
+    bool_t foundMatch = FALSE;
+    uint8_t uuid_service[2] = {UuidArray(gNonCccDkUUID_d)};
+
+    while (index < pData->dataLength)
+    {
+        gapAdStructure_t adElement;
+
+        adElement.length = pData->data[index];
+        adElement.adType = (gapAdType_t)pData->data[index + 1U];
+        adElement.aData = &pData->data[index + 2U];
+
+        if ((adElement.adType == gAdIncomplete16bitServiceList_c) ||
+            (adElement.adType == gAdComplete16bitServiceList_c))
+        {
+            foundMatch = BluetoothLEHost_MatchDataInAdvElementList(&adElement, &uuid_service, 2);
+        }
+
+        /* Move on to the next AD element type */
+        index += (uint32_t)adElement.length + sizeof(uint8_t);
+    }
+
+    return foundMatch;
+}
+
+/*! *********************************************************************************
+* \brief        Search an extended advert for the non-CCC private service UUID.
+*
+* \param[in]    pData    Pointer to gapExtScannedDevice_t.
+*
+* \return       TRUE if the advert carries gNonCccDkUUID_d, FALSE otherwise.
+********************************************************************************** */
+static bool_t CheckScanEventExtended(gapExtScannedDevice_t* pData)
+{
+    uint32_t index = 0;
+    bool_t foundMatch = FALSE;
+    uint8_t uuid_service[2] = {UuidArray(gNonCccDkUUID_d)};
+
+    while (index < pData->dataLength)
+    {
+        gapAdStructure_t adElement;
+
+        adElement.length = pData->pData[index];
+        adElement.adType = (gapAdType_t)pData->pData[index + 1U];
+        adElement.aData = &pData->pData[index + 2U];
+
+        if ((adElement.adType == gAdIncomplete16bitServiceList_c) ||
+            (adElement.adType == gAdComplete16bitServiceList_c))
+        {
+            foundMatch = BluetoothLEHost_MatchDataInAdvElementList(&adElement, &uuid_service, 2);
+        }
+
+        /* Move on to the next AD element type */
+        index += (uint32_t)adElement.length + sizeof(uint8_t);
+    }
+
+    return foundMatch;
+}
+
+/*! *********************************************************************************
+* \brief        Handles BLE Scanning callback from host stack.
+*
+* \param[in]    pScanningEvent    Pointer to gapScanningEvent_t.
+********************************************************************************** */
+static void BleApp_ScanningCallback (gapScanningEvent_t* pScanningEvent)
+{
+    switch (pScanningEvent->eventType)
+    {
+        case gExtDeviceScanned_c:
+        {
+            /* Only connect to the non-CCC device (private UUID). Ignore other advertisers. */
+            if (CheckScanEventExtended(&pScanningEvent->eventData.extScannedDevice))
+            {
+                gConnReqParams.peerAddressType = pScanningEvent->eventData.extScannedDevice.addressType;
+                FLib_MemCpy(gConnReqParams.peerAddress,
+                            pScanningEvent->eventData.extScannedDevice.aAddress,
+                            sizeof(bleDeviceAddress_t));
+
+                mFoundPeripheralToConnect = TRUE;
+                (void)Gap_StopScanning();
+#if defined(gAppUsePrivacy_d) && (gAppUsePrivacy_d)
+                gConnReqParams.usePeerIdentityAddress = pScanningEvent->eventData.extScannedDevice.advertisingAddressResolved;
+#endif
+            }
+        }
+        break;
+
+        case gDeviceScanned_c:
+        {
+            /* Legacy advertising report path. Mirror the extended handler. */
+            /* Only connect to the non-CCC device (private UUID). Ignore other advertisers. */
+            if (CheckScanEventLegacy(&pScanningEvent->eventData.scannedDevice))
+            {
+                gConnReqParams.peerAddressType = pScanningEvent->eventData.scannedDevice.addressType;
+                FLib_MemCpy(gConnReqParams.peerAddress,
+                            pScanningEvent->eventData.scannedDevice.aAddress,
+                            sizeof(bleDeviceAddress_t));
+
+                mFoundPeripheralToConnect = TRUE;
+                (void)Gap_StopScanning();
+#if defined(gAppUsePrivacy_d) && (gAppUsePrivacy_d)
+                gConnReqParams.usePeerIdentityAddress = pScanningEvent->eventData.scannedDevice.advertisingAddressResolved;
+#endif
+            }
+        }
+        break;
+
+        case gScanStateChanged_c:
+        {
+            mScanningOn = !mScanningOn;
+
+            /* Node starts scanning */
+            if (mScanningOn)
+            {
+                /* Inform the user interface handler that the Bluetooth scan has started */
+                if(mpfBleUserInterfaceEventHandler != NULL)
+                {
+                     appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
+                     if(pEventData != NULL)
+                     {
+                         pEventData->appEvent = mAppEvt_BleScanning_c;
+                         if (gBleSuccess_c != App_PostCallbackMessage(mpfBleUserInterfaceEventHandler, pEventData))
+                         {
+                            (void)MEM_BufferFree(pEventData);
+                         }
+                     }
+                }
+
+                LedStopFlashingAllLeds();
+                Led1Flashing();
+            }
+            /* Node is not scanning */
+            else
+            {
+                /* Inform the user interface handler that the Bluetooth scan has stopped */
+                if(mpfBleUserInterfaceEventHandler != NULL)
+                {
+                     appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
+                     if(pEventData != NULL)
+                     {
+                         pEventData->appEvent = mAppEvt_BleScanStopped_c;
+                         if (gBleSuccess_c != App_PostCallbackMessage(mpfBleUserInterfaceEventHandler, pEventData))
+                         {
+                            (void)MEM_BufferFree(pEventData);
+                         }
+                     }
+                }
+
+                if (TRUE == mFoundPeripheralToConnect)
+                {
+                    /* Inform the user interface handler that a device to connect to has been found */
+                    if(mpfBleUserInterfaceEventHandler != NULL)
+                    {
+                         appEventData_t *pEventData = MEM_BufferAlloc(sizeof(appEventData_t));
+                         if(pEventData != NULL)
+                         {
+                             pEventData->appEvent = mAppEvt_BleConnectingToDevice_c;
+                             if (gBleSuccess_c != App_PostCallbackMessage(mpfBleUserInterfaceEventHandler, pEventData))
+                             {
+                                (void)MEM_BufferFree(pEventData);
+                             }
+                         }
+                    }
+                    (void)BluetoothLEHost_Connect(&gConnReqParams, BleApp_ConnectionCallback);
+                }
+            }
+        }
+        break;
+
+        case gScanCommandFailed_c:
+        {
+            ; /* No action required */
+        }
+        break;
+
+        default:
+        {
+            ; /* No action required */
+        }
+        break;
+    }
+}
+#endif /* (defined(gAppScanNonCCC_d) && (gAppScanNonCCC_d == 1U)) */
 /*! *********************************************************************************
 * \brief        Handles GATT server callback from host stack.
 *
@@ -1922,7 +2111,7 @@ static uint64_t GetUwbClock(void)
 * \brief        Send application specific data to the peer.
 *
 ********************************************************************************** */
-static void A2A_SendApplicationData(deviceId_t deviceId)
+void A2A_SendApplicationData(deviceId_t deviceId)
 {
     /* Data to transfer: mRangeSettings, maAppLclState, mpCachedRemoteCaps,
        role, csSecurityEnabled */

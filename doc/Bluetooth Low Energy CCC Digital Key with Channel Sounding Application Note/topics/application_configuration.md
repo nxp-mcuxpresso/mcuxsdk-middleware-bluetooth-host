@@ -13,5 +13,7 @@ For better performance and user experience, the optional LE Coded PHY advertisin
 
 -   Maximum concurrent Channel Sounding procedures**: Configure the maximum number of Channel Sounding procedures that can run simultaneously across all connections using the `gChannelSoundingMaxConcurrentProcedures_c` define in `app_preinclude.h`.
 
+The sample applications also include an optional non-CCC configuration used to exercise connection handover with a Channel Sounding GAP central. In this configuration the GAP roles are reversed: the Car Anchor acts as a GAP central (`gAppScanNonCCC_d`) and the Device acts as a GAP peripheral (`gAppAdvNonCCC_d`). A separate private service UUID (`gNonCccDkUUID_d`) is used so that non-CCC advertisements stay distinct from the regular CCC applications.
+
 **Parent topic:**[Localization scenarios](../topics/localization_scenarios.md)
 
