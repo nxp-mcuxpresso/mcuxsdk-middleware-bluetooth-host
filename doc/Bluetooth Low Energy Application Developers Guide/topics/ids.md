@@ -45,6 +45,16 @@ The `idsEventType_t` enumeration defines various security events that can be det
 - **Description**: A bonded peer rejects link encryption and, if it is a GAP central, attempts to pair again. This could indicate an attempt to downgrade the security of an existing connection or to force a new pairing process that may be vulnerable to attacks.
 - **Preventive action**: Signal the application and allow it to decide whether to accept the new pairing request or terminate the connection.
 
+An application level mitigation is available in `ble_conn_manager.c`. Set the `gForcedRepairingMitigation_d` define to 1 in the application's `app_preinclude.h` header. The mitigation also requires `gAppUsePairing_d` and `gAppUseBonding_d`, because it compares the request against an existing bond.
+
+The connection manager applies the check when it receives a Pairing Request as a GAP peripheral, and when it receives a Peripheral Security Request as a GAP central. The check rejects the request only when all of the following are true:
+
+- The remote device is already bonded. `Gap_CheckIfBonded()` reports the bond and the NVM index.
+- The link is not encrypted. A genuine bonded peer encrypts with the stored LTK instead of pairing again.
+- The request lowers the security recorded in the bond. `Gap_LoadKeys()` reads the bond, and the request is a downgrade when it asks for a lower security mode and level, drops MITM protection, or asks for a shorter encryption key.
+
+The connection manager calls `Gap_RejectPairing()` with the Unspecified Reason code and reports the `gSecEvt_ForcedRepairing_c` event. The Unspecified Reason code avoids telling the attacker which parameter caused the rejection. The application receives the event through its registered IDS callback and can take further action, for example disconnect or block the device.
+
  `gSecEvt_KNOB_c` (BIT16)
 - **Attack**: Key Negotiation over Bluetooth
 - **Target**: Pairing process

@@ -31,6 +31,9 @@
 #include "ble_config.h"
 #include "fsl_component_mem_manager.h"
 #include "fsl_component_panic.h"
+#if (defined(gForcedRepairingMitigation_d) && (gForcedRepairingMitigation_d == 1U))
+#include "gap_ids_interface.h"
+#endif /* gForcedRepairingMitigation_d */
 
 /************************************************************************************
  *************************************************************************************
@@ -38,6 +41,16 @@
  *************************************************************************************
  ************************************************************************************/
 #define BleConnManager_GetLocalIrk(pOut)   BleConnManager_GetLocalKey(0U, pOut);
+
+/* The forced re-pairing mitigation needs an existing bond to compare against. */
+#if (defined(gForcedRepairingMitigation_d) && (gForcedRepairingMitigation_d == 1U)) && \
+    (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U)) && \
+    (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
+#define gConnForcedRepairingCheck_d   1U
+#else
+#define gConnForcedRepairingCheck_d   0U
+#endif
+
 /************************************************************************************
 *************************************************************************************
 * Public memory declarations
@@ -88,6 +101,20 @@ STATIC void BleConnManager_GetLocalKey(uint8_t id, uint8_t* pOut);
 STATIC void BleConnManager_MCUInfoToSmpKeys(void);
 #endif
 STATIC void BleConnManager_DataLengthUpdateProcedure(deviceId_t peerDeviceId);
+#if (gConnForcedRepairingCheck_d == 1U)
+STATIC bool_t BleConnManager_IsSecurityDowngrade
+                (
+                    uint8_t                   nvmIndex,
+                    gapSecurityModeAndLevel_t requestedModeLevel,
+                    uint8_t                   requestedEncKeySize
+                );
+STATIC bool_t BleConnManager_CheckForcedRepairing
+                (
+                    deviceId_t                peerDeviceId,
+                    gapSecurityModeAndLevel_t requestedModeLevel,
+                    uint8_t                   requestedEncKeySize
+                );
+#endif /* gConnForcedRepairingCheck_d */
 #if (defined(gAppUsePrivacy_d) && (gAppUsePrivacy_d == 1U)) && \
     (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
 STATIC bleResult_t BleConnManager_ManagePrivacyInternal(bool_t bCheckNewBond);
@@ -161,6 +188,12 @@ static bleAddressType_t     mPeerDeviceAddressType;
 STATIC uint8_t              mSuccessfulPairings;
 STATIC uint8_t              mFailedPairings;
 #endif /* gAppUsePairing_d */
+
+#if (gConnForcedRepairingCheck_d == 1U)
+/* Encryption state per device id. A forced re-pairing attempt arrives on an
+ * unencrypted link, so the attack is only plausible while the entry is FALSE. */
+STATIC bool_t mabLinkEncrypted[gAppMaxConnections_c] = {FALSE};
+#endif /* gConnForcedRepairingCheck_d */
 
 #if (defined(gRepeatedAttempts_d) && (gRepeatedAttempts_d == 1U))
 repeatedAttemptsDevice_t    maPairingPeers[gRepeatedAttemptsNoOfDevices_c] = {0};
@@ -529,6 +562,16 @@ void BleConnManager_GapPeripheralEvent
 #if (defined(gAppUsePairing_d) && (gAppUsePairing_d == 1U))
             gPairingParameters.centralKeys =
                   pConnectionEvent->eventData.pairingEvent.centralKeys;
+#if (gConnForcedRepairingCheck_d == 1U)
+            if (TRUE == BleConnManager_CheckForcedRepairing(
+                            peerDeviceId,
+                            pConnectionEvent->eventData.pairingEvent.securityModeAndLevel,
+                            pConnectionEvent->eventData.pairingEvent.maxEncryptionKeySize))
+            {
+                ; /* Rejected as a forced re-pairing attempt */
+            }
+            else
+#endif /* gConnForcedRepairingCheck_d */
 #if (defined(gRepeatedAttempts_d) && (gRepeatedAttempts_d == 1U))
             if (RepeatedAttempts_CheckRequest(maPeerDeviceOriginalAddress) == TRUE)
             {
@@ -589,6 +632,27 @@ void BleConnManager_GapPeripheralEvent
             BleConnManager_GapPeripheralEventEvtPairingComplete(peerDeviceId, pConnectionEvent);
         }
         break;
+
+#if (gConnForcedRepairingCheck_d == 1U)
+        case gConnEvtEncryptionChanged_c:
+        {
+            if (peerDeviceId < (deviceId_t)gAppMaxConnections_c)
+            {
+                mabLinkEncrypted[peerDeviceId] =
+                        pConnectionEvent->eventData.encryptionChangedEvent.newEncryptionState;
+            }
+        }
+        break;
+
+        case gConnEvtDisconnected_c:
+        {
+            if (peerDeviceId < (deviceId_t)gAppMaxConnections_c)
+            {
+                mabLinkEncrypted[peerDeviceId] = FALSE;
+            }
+        }
+        break;
+#endif /* gConnForcedRepairingCheck_d */
 
         case    gConnEvtLongTermKeyRequest_c:
         {
@@ -859,7 +923,25 @@ void BleConnManager_GapCentralEvent
             if ((gBleSuccess_c == Gap_CheckIfBonded(peerDeviceId, &isBonded, &nvmIndex)) &&
                 (isBonded))
             {
-                (void)Gap_EncryptLink(peerDeviceId);
+#if (gConnForcedRepairingCheck_d == 1U)
+                /* The Peripheral Security Request carries no key size, so only the
+                 * requested mode-level is available for the downgrade comparison. */
+                gapSecurityModeAndLevel_t requestedModeLevel =
+                    (pConnectionEvent->eventData.peripheralSecurityRequestEvent.authenticationRequired == TRUE) ?
+                        (gapSecurityModeAndLevel_t)gSecurityMode_1_Level_3_c :
+                        (gapSecurityModeAndLevel_t)gSecurityMode_1_Level_2_c;
+
+                if (TRUE == BleConnManager_CheckForcedRepairing(peerDeviceId,
+                                                               requestedModeLevel,
+                                                               gPairingParameters.maxEncryptionKeySize))
+                {
+                    ; /* Rejected as a forced re-pairing attempt */
+                }
+                else
+#endif /* gConnForcedRepairingCheck_d */
+                {
+                    (void)Gap_EncryptLink(peerDeviceId);
+                }
             }
             else
             {
@@ -932,9 +1014,26 @@ void BleConnManager_GapCentralEvent
 
         case gConnEvtEncryptionChanged_c:
         {
-            ; /* Display on a screen or simply ignore */
+#if (gConnForcedRepairingCheck_d == 1U)
+            if (peerDeviceId < (deviceId_t)gAppMaxConnections_c)
+            {
+                mabLinkEncrypted[peerDeviceId] =
+                        pConnectionEvent->eventData.encryptionChangedEvent.newEncryptionState;
+            }
+#endif /* gConnForcedRepairingCheck_d */
         }
         break;
+
+#if (gConnForcedRepairingCheck_d == 1U)
+        case gConnEvtDisconnected_c:
+        {
+            if (peerDeviceId < (deviceId_t)gAppMaxConnections_c)
+            {
+                mabLinkEncrypted[peerDeviceId] = FALSE;
+            }
+        }
+        break;
+#endif /* gConnForcedRepairingCheck_d */
 
         case gConnEvtPairingComplete_c:
         {
@@ -1395,6 +1494,137 @@ STATIC void BleConnManager_DataLengthUpdateProcedure(deviceId_t peerDeviceId)
                                      gBleMaxTxTimeCodedPhy_c : gBleMaxTxTime_c);
     }
 }
+
+#if (gConnForcedRepairingCheck_d == 1U)
+/*! *********************************************************************************
+*\private
+*\fn           bool_t BleConnManager_IsSecurityDowngrade(
+*                  uint8_t                   nvmIndex,
+*                  gapSecurityModeAndLevel_t requestedModeLevel,
+*                  uint8_t                   requestedEncKeySize)
+*\brief        Compares the requested security against the security recorded in the
+*              existing bond and reports whether the request is weaker.
+*
+*\param  [in]  nvmIndex               Index of the peer in the NVM bonding area.
+*\param  [in]  requestedModeLevel     Security mode and level asked by the peer.
+*\param  [in]  requestedEncKeySize    Maximum encryption key size asked by the peer.
+*
+*\retval       TRUE     The request lowers mode-level, authentication or key size.
+*\retval       FALSE    The request keeps or raises the bonded security.
+********************************************************************************** */
+STATIC bool_t BleConnManager_IsSecurityDowngrade
+(
+    uint8_t                   nvmIndex,
+    gapSecurityModeAndLevel_t requestedModeLevel,
+    uint8_t                   requestedEncKeySize
+)
+{
+    bool_t                    bDowngrade = FALSE;
+    bool_t                    bBondLeSc = FALSE;
+    bool_t                    bBondAuth = FALSE;
+    gapSmpKeyFlags_t          bondKeyFlags = (gapSmpKeyFlags_t)gNoKeys_c;
+    gapSmpKeys_t              bondKeys = {0};
+    bleDeviceAddress_t        aBondAddress = {0};
+    uint8_t                   aBondLtk[gcSmpMaxLtkSize_c] = {0};
+    uint8_t                   aBondRand[gcSmpMaxRandSize_c] = {0};
+    gapSecurityModeAndLevel_t bondModeLevel;
+
+    /* Gap_LoadKeys requires a non-NULL address buffer. */
+    bondKeys.aAddress = aBondAddress;
+    bondKeys.aLtk     = aBondLtk;
+    bondKeys.aRand    = aBondRand;
+
+    if (gBleSuccess_c == Gap_LoadKeys(nvmIndex,
+                                      &bondKeys,
+                                      &bondKeyFlags,
+                                      &bBondLeSc,
+                                      &bBondAuth))
+    {
+        if (bBondLeSc == TRUE)
+        {
+            bondModeLevel = (gapSecurityModeAndLevel_t)gSecurityMode_1_Level_4_c;
+        }
+        else if (bBondAuth == TRUE)
+        {
+            bondModeLevel = (gapSecurityModeAndLevel_t)gSecurityMode_1_Level_3_c;
+        }
+        else
+        {
+            bondModeLevel = (gapSecurityModeAndLevel_t)gSecurityMode_1_Level_2_c;
+        }
+
+        /* Mode 1 levels are ordered, so a lower level means weaker security. */
+        if (getSecurityLevel(requestedModeLevel) < getSecurityLevel(bondModeLevel))
+        {
+            bDowngrade = TRUE;
+        }
+
+        /* Losing MITM protection is a downgrade even at the same numeric level. */
+        if ((bBondAuth == TRUE) &&
+            (getSecurityLevel(requestedModeLevel) <=
+             (uint8_t)gSecurityLevel_NoMitmProtection_c))
+        {
+            bDowngrade = TRUE;
+        }
+
+        /* A shorter LTK weakens the link even when the level is unchanged. */
+        if (((bondKeyFlags & (gapSmpKeyFlags_t)gLtk_c) != 0U) &&
+            (requestedEncKeySize < bondKeys.cLtkSize))
+        {
+            bDowngrade = TRUE;
+        }
+    }
+
+    return bDowngrade;
+}
+
+/*! *********************************************************************************
+*\private
+*\fn           bool_t BleConnManager_CheckForcedRepairing(
+*                  deviceId_t                peerDeviceId,
+*                  gapSecurityModeAndLevel_t requestedModeLevel,
+*                  uint8_t                   requestedEncKeySize)
+*\brief        Application level mitigation for the forced re-pairing attack. An
+*              attacker impersonates a bonded peer and asks to pair again with
+*              weaker parameters. A genuine bonded peer encrypts with the stored
+*              LTK instead, so a downgrade request on a plaintext link is rejected
+*              and reported to the IDS.
+*
+*\param  [in]  peerDeviceId           The GAP peer Id.
+*\param  [in]  requestedModeLevel     Security mode and level asked by the peer.
+*\param  [in]  requestedEncKeySize    Maximum encryption key size asked by the peer.
+*
+*\retval       TRUE     Request rejected as a forced re-pairing attempt.
+*\retval       FALSE    Request is allowed to continue.
+********************************************************************************** */
+STATIC bool_t BleConnManager_CheckForcedRepairing
+(
+    deviceId_t                peerDeviceId,
+    gapSecurityModeAndLevel_t requestedModeLevel,
+    uint8_t                   requestedEncKeySize
+)
+{
+    bool_t  bRejected = FALSE;
+    bool_t  isBonded  = FALSE;
+    uint8_t nvmIndex  = gInvalidNvmIndex_c;
+
+    if ((peerDeviceId < (deviceId_t)gAppMaxConnections_c) &&
+        (mabLinkEncrypted[peerDeviceId] == FALSE) &&
+        (gBleSuccess_c == Gap_CheckIfBonded(peerDeviceId, &isBonded, &nvmIndex)) &&
+        (isBonded == TRUE) &&
+        (nvmIndex != gInvalidNvmIndex_c) &&
+        (TRUE == BleConnManager_IsSecurityDowngrade(nvmIndex,
+                                                   requestedModeLevel,
+                                                   requestedEncKeySize)))
+    {
+        (void)Gap_RejectPairing(peerDeviceId, (gapAuthenticationRejectReason_t)gUnspecifiedReason_c);
+        IDS_TriggerCallback(peerDeviceId, gSecEvt_ForcedRepairing_c);
+        bRejected = TRUE;
+    }
+
+    return bRejected;
+}
+#endif /* gConnForcedRepairingCheck_d */
 
 #if (defined(gAppUsePrivacy_d) && (gAppUsePrivacy_d == 1U)) && \
     (defined(gAppUseBonding_d) && (gAppUseBonding_d == 1U))
