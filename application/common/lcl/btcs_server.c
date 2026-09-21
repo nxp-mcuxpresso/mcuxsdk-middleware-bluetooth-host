@@ -820,8 +820,27 @@ static void buildSubEvtCont
     gCsProcContHeaderData_t   procContHeader;
     gCsSubEvtContHeaderData_t subEvtContHeader;
 
-    /* Check if there is room left to add at least the smallest complete step in the current payload size */
+    /* If the new segment has no continue header yet, write one before packing steps */
     uint16_t currentLen = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex - mpSegmIdx[deviceId]->aSegmIdx[segmIdx];
+    if (currentLen == 0U)
+    {
+        gCsProcContHeaderData_t newProcContHdr;
+        gCsSubEvtContHeaderData_t newSubEvtContHdr;
+        newProcContHdr.seqNo = (uint8_t)(mpRangingData[deviceId].pCfg->procedureCounter & 0xFFU);
+        FLib_MemCpy(mpRangingData[deviceId].pRangingData + mpRangingData[deviceId].pCfg->totalSentRcvDataIndex,
+                    &newProcContHdr, sizeof(gCsProcContHeaderData_t));
+        dataLen.u32 = sizeof(gCsProcContHeaderData_t);
+        mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen.u16;
+        newSubEvtContHdr.startACLConnEvt = mpRangingData[deviceId].pCfg->aSubEventData[subEvtIdx].subevtHeader.startACLConnEvent;
+        newSubEvtContHdr.numStepsReported = 0U;
+        FLib_MemCpy(mpRangingData[deviceId].pRangingData + mpRangingData[deviceId].pCfg->totalSentRcvDataIndex,
+                    &newSubEvtContHdr, sizeof(gCsSubEvtContHeaderData_t));
+        dataLen.u32 = sizeof(gCsSubEvtContHeaderData_t);
+        mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen.u16;
+        mpSegmIdx[deviceId]->numStepsIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex - 1U;
+        mpSegmIdx[deviceId]->modeArraySteps = 0U;
+        currentLen = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex - mpSegmIdx[deviceId]->aSegmIdx[segmIdx];
+    }
     if ((currentLen + gMode0DataSize_c) < gMaxPayloadSize_c)
     {
         numStepsParsed = 0U;
@@ -995,6 +1014,7 @@ static void buildSubEvtNew
             /* Guard against unsigned wrap of crtIdx/segmIdx and out-of-bounds access of aSegmIdx */
             mpSegmIdx[deviceId]->crtIdx++;
             segmIdx++;
+            mpSegmIdx[deviceId]->modeArraySteps = 0U;
         }
     }
     else if ((remaininLen == 0U) && (bBuiltHeader == TRUE) &&
@@ -1059,16 +1079,6 @@ static void buildSubEvtNew
         mpRangingData[deviceId].pRangingData[mpSegmIdx[deviceId]->numStepsHdrIdx] += numStepsParsed;
     }
 
-    /* Move on to the next segment */
-    if (((mpRangingData[deviceId].pCfg->totalSentRcvDataIndex -
-         mpSegmIdx[deviceId]->aSegmIdx[segmIdx]) >= gMaxPayloadSize_c) &&
-        (mpRangingData[deviceId].pCfg->dataParsedLen > 0U) &&
-        (mpSegmIdx[deviceId]->crtIdx < (gBTCSMaxNoOfSegments_c - 1U)))
-    {
-        /* Guard against unsigned wrap of crtIdx and out-of-bounds access of aSegmIdx */
-        mpSegmIdx[deviceId]->crtIdx++;
-        mpSegmIdx[deviceId]->aSegmIdx[mpSegmIdx[deviceId]->crtIdx] = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex;
-    }
 }
 
 /*! *********************************************************************************
@@ -1349,6 +1359,9 @@ static uint16_t parseSubeventData
         /* Persist the updated mode array step count for potential future extension calls */
         mpSegmIdx[deviceId]->modeArraySteps = totalSteps;
 
+        /* Capture consumed bytes before finalization may reset dataParsedLen */
+        retBytes = mpRangingData[deviceId].pCfg->dataParsedLen - parsedLen;
+
         /*
          * When the procedure is complete (all source data consumed and procedure done),
          * finalize the segment table and reset dataParsedLen for the L2CAP send phase.
@@ -1361,7 +1374,6 @@ static uint16_t parseSubeventData
             mpSegmIdx[deviceId]->aSegmIdx[mpSegmIdx[deviceId]->crtIdx] = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex;
             mpSegmIdx[deviceId]->crtIdx = 0U;
         }
-        retBytes = mpRangingData[deviceId].pCfg->dataParsedLen - parsedLen;
     }
 
     /* Return the number of source bytes consumed in this call */
