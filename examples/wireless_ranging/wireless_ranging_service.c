@@ -1471,7 +1471,7 @@ static wrs_ReturnCode_t wrs_FrameSend
     wrs_FrameType_t frameType
 )
 {
-    uint32_t bufferSize = gWrsConn[deviceId].bufferSize;
+    uint16_t bufferSize = gWrsConn[deviceId].bufferSize;
     void (* getData)(deviceId_t deviceId, uint8_t *buffer, uint32_t offset, uint32_t frame_length) = NULL;
     wrs_ReturnCode_t ret = eReturnSuccess;
     union {
@@ -1503,7 +1503,8 @@ static wrs_ReturnCode_t wrs_FrameSend
 
     tmp.frame->frameType = (uint8_t)frameType;
     assert(bufferSize > gWrsConn[deviceId].bufferOffset);
-    tmp.frame->remain = (uint16_t)bufferSize - gWrsConn[deviceId].bufferOffset;
+    int32_t remaining = (int32_t)bufferSize - (int32_t)gWrsConn[deviceId].bufferOffset;
+    tmp.frame->remain = (uint16_t)remaining;
     tmp.frame->size = gAttMaxWriteDataSize_d(mAppMtu) - (uint16_t)sizeof(wrs_FrameResult_t);
     tmp.frame->fragmentId = gWrsConn[deviceId].nxtFragmentId;
 

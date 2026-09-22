@@ -392,7 +392,7 @@ bleResult_t GattDb_ComputeDatabaseHash(void)
                                 databaseLength += sizeof(uint16_t);
 
                                 /* attribute uuid */
-                                Utils_PackTwoByteValue(gattDatabase[index].uuid, &pDatabaseContent[databaseLength]);
+                                Utils_PackTwoByteValue(Uint32toUint16(gattDatabase[index].uuid), &pDatabaseContent[databaseLength]);
                                 databaseLength += sizeof(uint16_t);
 
                                 /* attribute value */
@@ -412,7 +412,7 @@ bleResult_t GattDb_ComputeDatabaseHash(void)
                                 databaseLength += sizeof(uint16_t);
 
                                 /* attribute uuid */
-                                Utils_PackTwoByteValue(gattDatabase[index].uuid, &pDatabaseContent[databaseLength]);
+                                Utils_PackTwoByteValue(Uint32toUint16(gattDatabase[index].uuid), &pDatabaseContent[databaseLength]);
                                 databaseLength += sizeof(uint16_t);
                             }
                             break;

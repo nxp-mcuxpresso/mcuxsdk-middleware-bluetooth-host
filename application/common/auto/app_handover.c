@@ -1483,7 +1483,7 @@ static int8_t getMonitorFilterAverageActiveRssi(uint16_t connHandle)
         if (maMonitorFilter[i].connHandle == connHandle)
         {
             /* Divide by the number of valid samples accumulated */
-            if (maMonitorFilter[i].rssiActiveCount != 0U)
+            if (maMonitorFilter[i].rssiActiveCount != 0U && maMonitorFilter[i].rssiActiveCount <= (uint32_t)INT32_MAX)
             {
                 averageRssi = (int)(maMonitorFilter[i].rssiActiveSum / (int32_t)maMonitorFilter[i].rssiActiveCount);
             }
@@ -1513,7 +1513,7 @@ static int8_t getMonitorFilterAverageRemoteRssi(uint16_t connHandle)
         if (maMonitorFilter[i].connHandle == connHandle)
         {
             /* Divide by the number of valid samples accumulated */
-            if (maMonitorFilter[i].rssiRemoteCount != 0U)
+            if (maMonitorFilter[i].rssiRemoteCount != 0U && maMonitorFilter[i].rssiRemoteCount <= (uint32_t)INT32_MAX)
             {
                 averageRssi = (int)(maMonitorFilter[i].rssiRemoteSum / (int32_t)maMonitorFilter[i].rssiRemoteCount);
             }

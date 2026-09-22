@@ -376,7 +376,7 @@ void BleApp_HandleNcpMsg
                 FLib_MemCpy(pLocalData->pData + pLocalData->totalSentRcvDataIndex,
                             pEventData,
                             remainingBytes);
-                pLocalData->totalSentRcvDataIndex = (uint16_t)totalDataSize;
+                pLocalData->totalSentRcvDataIndex = Uint32toUint16(totalDataSize);
                 dataLen.u32 = pLocalData->dataIndex;
 
                 /* Re-point the buffer pointers into core0's own allocation.
@@ -445,7 +445,7 @@ void BleApp_HandleNcpMsg
                 FLib_MemCpy(pPeerData->pData + pPeerData->totalSentRcvDataIndex,
                             pEventData,
                             remainingBytes);
-                pPeerData->totalSentRcvDataIndex = (uint16_t)totalDataSize;
+                pPeerData->totalSentRcvDataIndex = Uint32toUint16(totalDataSize);
                 dataLen.u32 = pPeerData->dataIndex;
 
                 /* Re-point buffers into core0's own allocation */

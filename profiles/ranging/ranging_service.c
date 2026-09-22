@@ -965,7 +965,7 @@ bleResult_t Ras_SendRangingDataIndication
         *pNotificationData = segmentationHeader;
 
         /* Compute how much data there is left in this subevent */
-        uint16_t dataLeft = maRasDynamicCfg[deviceId].pCfg->dataParsedLen - maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex;
+        uint16_t dataLeft = Uint32toUint16((uint32_t)maRasDynamicCfg[deviceId].pCfg->dataParsedLen - (uint32_t)maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex);
 
         if (dataLeft < availableLen)
         {
@@ -1099,7 +1099,7 @@ bleResult_t Ras_SendRangingDataNotifs
             }
 
             /* Compute how much data there is left in this subevent */
-            uint16_t dataLeft = maRasDynamicCfg[deviceId].pCfg->dataParsedLen - maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex;
+            uint16_t dataLeft = Uint32toUint16((uint32_t)maRasDynamicCfg[deviceId].pCfg->dataParsedLen - (uint32_t)maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex);
 
             if (dataLeft < availableLen)
             {
