@@ -156,7 +156,6 @@ typedef struct _rade_cs_data
     uint8_t *iq_r;            /*!< CS mode-2 and mode-3 PCT IQ samples from reflector */
     uint8_t n_ap;             /*!< Number of antenna paths */
     void *mn_data;            /*!< Multi-node data */
-    uint32_t mn_data_len;     /*!< Length in bytes of the mn_data buffer */
     csDataBufFreeCallback_t csDataBufFreeCb; /*!< Callback for CS data source buffer freeing */
     mnDataTransferCallback_t mnDataTransferCb; /*!< Multi-node data transfer */
 } rade_cs_data_t;
