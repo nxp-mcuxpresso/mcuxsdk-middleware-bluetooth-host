@@ -42,6 +42,8 @@ This is the simplest usage for writing a Characteristic. It sends an ATT Write R
 
 This usage sends an ATT Write Command. Long Characteristic values are not allowed here and trigger a *gBleInvalidParameter\_c* error.
 
+For a Write Without Response, the TX queue holds only one outstanding entry: if a previous Write Command is still pending, a new call returns *gBleOverflow\_c* immediately. When this happens, the application must wait for the *gTxEntryAvailable\_c* generic event \(raised once the entry has been sent and the queue is empty again\) before issuing the next Write Command.
+
 This is a short example to write a 3-byte long Characteristic Value.
 
 ```
@@ -62,7 +64,7 @@ if (gBleSuccess_c != result)
 }
 ```
 
-The Client Procedure Callback is triggered when writing is complete.
+The Client Procedure Callback is triggered when the write completes. Note that for a Write Without Response the callback signals that the ATT Write Command was queued for transmission, not that it was sent over the air, so it must not be used for flow control \(use *gTxEntryAvailable\_c* as described above\).
 
 ```
 void gattClientProcedureCallback
