@@ -4,7 +4,7 @@ The FSCI Bridge demo application is a demonstration of the Extended NBU architec
 
 The FSCI Bridge runs on the Application core and it is a simple application whose purpose is to pass FSCI commands received over the serial interface to the NCP FSCI Black Box running on the NBU core. Effectively, the functionality is identical to the regular Bluetooth FSCI Black Box application.
 
-The demo can be used with the Test Tool for Connectivity Products - Command Console application which can be downloaded from the NXP website or using a custom application that supports the FSCI protocol and commands.
+For FSCI protocol details, command/event definitions, and Python scripting examples, see the [Bluetooth Low Energy Host Stack FSCI Application Programming](../../Bluetooth%20Low%20Energy%20Host%20Stack%20FSCI%20Application%20Programming/Bluetooth%20Low%20Energy%20Host%20Stack%20FSCI%20Application%20Programming.md) guide.
 
 **Parent topic:**[FSCI Bridge](../topics/fsci_bridge.md)
 

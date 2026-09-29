@@ -3,7 +3,7 @@
 
 The FSCI (Framework Serial Communication Interface) module allows interfacing the protocol stack with a host system or PC tool using a serial communication interface. 
 
-FSCI can be demonstrated using various host software, one being the set of Linux OS libraries exposing the Host API described in this document. The NXP Test Tool for Connectivity Products PC application is another interfacing tool, running on the Windows OS. Bluetooth LE stack makes use of XML files which contain detailed meta-descriptors for commands and events transported over the FSCI.
+FSCI can be demonstrated using various host software, including the Linux OS libraries exposing the Host API described in this document and the Python bindings provided in the Host SDK. The Bluetooth LE stack includes XML files that contain detailed meta-descriptors for commands and events transported over the FSCI.
 
 The FSCI module is explained in the [_Wireless Framework - Services - FSCI_](../../../../framework/services/FSCI/README.md) documentation.
 

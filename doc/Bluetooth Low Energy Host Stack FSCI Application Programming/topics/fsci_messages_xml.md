@@ -3,7 +3,7 @@
 
 ## Overview
 
-The Framework Serial Communication Interface (FSCI) module supports interfacing the BLE Host Stack with a host or a PC tool (Test Tool for Connectivity Products) using a serial communication line. If the FSCI is used with the NXP Test Tool for Connectivity products, the tool can use an XML file containing a detailed meta-description for serial commands and events. This XML file is provided in the software packages that include this document.
+The Framework Serial Communication Interface (FSCI) module supports interfacing the BLE Host Stack with a host processor or a PC application using a serial communication line. The BLE stack includes XML files that contain detailed meta-descriptions for serial commands and events. These XML files are provided in `fsci/xml/package/` and can be used by any FSCI-capable host to build and parse commands and events programmatically.
 
 **Bluetooth LE Host Stack interface set**
 
@@ -15,7 +15,7 @@ Following are the hardware requirements for using FSCI API RM:
 - IAR Embedded Workbench for Arm architecture
 - NXP development boards (to be loaded with the **ble_fscibb** application)
 - Optional Bluetooth LE sniffer for testing
-- PC tool (Test Tool for Connectivity Products) or another host processor capable of communicating through UART, USB, SPI, or I<sup>2</sup>C
+- A host processor or PC application capable of communicating through UART, USB, SPI, or I<sup>2</sup>C
 
 
 ## FSCI message description
