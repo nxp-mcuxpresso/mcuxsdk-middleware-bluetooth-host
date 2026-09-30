@@ -1,6 +1,6 @@
 /* Source file generated from BLE.xml */
 /*
- * Copyright 2024-2025 NXP
+ * Copyright 2024-2026 NXP
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -2451,7 +2451,7 @@ static mem_status_t Load_ATTClientIncomingServerFindInformationResponseIndicatio
 
 				if (!evt->Params.InformationData.Uuid128BitFormat.HandleUuid128)
 				{
-					MEM_BufferFree(evt->Params.InformationData.Uuid16BitFormat.HandleUuid16);
+					MEM_BufferFree(evt->Params.InformationData.Uuid128BitFormat.HandleUuid128);
 					return kStatus_MemAllocError;
 				}
 
@@ -3435,7 +3435,7 @@ static mem_status_t Load_EATTClientIncomingServerFindInformationResponseIndicati
 
 				if (!evt->Params.InformationData.Uuid128BitFormat.HandleUuid128)
 				{
-					MEM_BufferFree(evt->Params.InformationData.Uuid16BitFormat.HandleUuid16);
+					MEM_BufferFree(evt->Params.InformationData.Uuid128BitFormat.HandleUuid128);
 					return kStatus_MemAllocError;
 				}
 
@@ -8991,7 +8991,7 @@ static mem_status_t Load_GATTDBAttFindInformationIndication(bleEvtContainer_t *c
 
 				if (!evt->Params.InformationData.Uuid128BitFormat.HandleUuid128)
 				{
-					MEM_BufferFree(evt->Params.InformationData.Uuid16BitFormat.HandleUuid16);
+					MEM_BufferFree(evt->Params.InformationData.Uuid128BitFormat.HandleUuid128);
 					return kStatus_MemAllocError;
 				}
 

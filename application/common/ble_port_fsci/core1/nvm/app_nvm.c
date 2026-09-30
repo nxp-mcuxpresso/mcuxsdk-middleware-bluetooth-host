@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2024-2025 NXP
+* Copyright 2024-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -239,10 +239,7 @@ bleResult_t App_NvmWrite
 )
 {
     bleResult_t status = gBleSuccess_c;
-    union {
-      uint8_t u8;
-      uint32_t u32;
-    } descrIdx = {};
+    uint32_t descrIdx = 0U;
 
     if (mEntryIdx >= (uint8_t)gMaxBondedDevices_c)
     {
@@ -301,10 +298,10 @@ bleResult_t App_NvmWrite
                         gBleBondDataDescriptorSize_c);
             maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask |= nvmId_BondingDataDescriptorBit_c;
             maBondDataBlobs[mEntryIdx].bondDataSetValidHostBitmask &= (uint8_t)(~nvmId_BondingDataDescriptorBit_c);
-            descrIdx.u8 = 1U << mDescriptorIndex;
-            maBondDataBlobs[mEntryIdx].bondDescriptorSetValidBitmask |= descrIdx.u32;
-            descrIdx.u8 = 1U << mDescriptorIndex;
-            maBondDataBlobs[mEntryIdx].bondDescriptorSetValidHostBitmask &= ~descrIdx.u32;
+            descrIdx = (uint32_t)1U << mDescriptorIndex;
+            maBondDataBlobs[mEntryIdx].bondDescriptorSetValidBitmask |= descrIdx;
+            descrIdx = (uint32_t)1U << mDescriptorIndex;
+            maBondDataBlobs[mEntryIdx].bondDescriptorSetValidHostBitmask &= ~descrIdx;
         }
 
         gAppNvmOperationPending = TRUE;
@@ -402,10 +399,7 @@ bleResult_t App_NvmRead
 )
 {
     bleResult_t status = gBleSuccess_c;
-    union {
-      uint8_t u8;
-      uint32_t u32;
-    } descrIdx = {};
+    uint32_t descrIdx = 0U;
 
     if (mEntryIdx >= (uint8_t)gMaxBondedDevices_c)
     {
@@ -484,9 +478,9 @@ bleResult_t App_NvmRead
 
         if (pBondDataDescriptor != NULL && mDescriptorIndex < gcGapMaximumSavedCccds_c)
         {
-            descrIdx.u8 = 1U << mDescriptorIndex;
+            descrIdx = (uint32_t)1U << mDescriptorIndex;
             if (((maBondDataBlobs[mEntryIdx].bondDataSetValidBitmask & nvmId_BondingDataDescriptorBit_c) != 0U) &&
-                ((maBondDataBlobs[mEntryIdx].bondDescriptorSetValidBitmask & descrIdx.u32) != 0U))
+                ((maBondDataBlobs[mEntryIdx].bondDescriptorSetValidBitmask & descrIdx) != 0U))
             {
                 FLib_MemCpy(pBondDataDescriptor,
                             (uint8_t*)&(maBondDataBlobs[mEntryIdx].bondDataDescriptors[mDescriptorIndex]),
@@ -1022,10 +1016,6 @@ static bleResult_t App_HostNvmWrite
     uint16_t nvmDataSize = 0U;
     void *pNvmData = NULL;
     uint8_t noOfWriteDescriptors = 0U;
-    union {
-        uint8_t u8;
-        uint16_t u16;
-    } nvmData = {};
 
     if (mEntryIdx >= (uint8_t)gMaxBondedDevices_c)
     {
@@ -1075,8 +1065,7 @@ static bleResult_t App_HostNvmWrite
             }
 
             /* Compute required size for the number of CCCDs read */
-            nvmData.u8 = noOfWriteDescriptors * gBleBondDataDescriptorSize_c;
-            nvmDataSize += nvmData.u16;
+            nvmDataSize += (uint16_t)(((uint32_t)noOfWriteDescriptors * (uint32_t)gBleBondDataDescriptorSize_c) & 0xFFU);
             datasetBitmask |= nvmId_BondingDataDescriptorBit_c;
         }
 

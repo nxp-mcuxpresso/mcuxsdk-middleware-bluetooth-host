@@ -976,17 +976,12 @@ void fsciBleL2capCbLeCbDataEvtMonitor(deviceId_t deviceId, uint16_t srcCid, uint
     if (bContinueExecution)
 #endif /* gFsciBleTest_d */
     {
-        union
-        {
-            uint32_t dataLenTemp;
-            uint16_t dataLen;
-        }dataLength = {0};
+        uint32_t dataLenTemp = (uint32_t)packetLength;
 
-        dataLength.dataLen = packetLength;
         /* Allocate the packet to be sent over UART */
         pClientPacket = fsciBleL2capCbAllocFsciPacket((uint8_t)gBleL2capCbEvtLeCbDataOpCode_c,
                                                       fsciBleGetDeviceIdBufferSize(&deviceId) +
-                                                      sizeof(uint16_t) + sizeof(uint16_t) + dataLength.dataLenTemp);
+                                                      sizeof(uint16_t) + sizeof(uint16_t) + dataLenTemp);
 
         if(NULL != pClientPacket)
         {

@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 * \file
 *
@@ -412,28 +412,31 @@ static bleResult_t App_NvmWrite
                         {
                             descIdx = HAL_CTZ(tempDescBitmask);
 
-                            ppNvmData = (void**)&aBondingDataDescriptor[mEntryIdx *
-                                    gcGapMaximumSavedCccds_c + descIdx];
-
-                            if(ppNvmData != NULL)
+                            if(descIdx < (uint8_t)gcGapMaximumSavedCccds_c)
                             {
-                                if(gNVM_OK_c == NvMoveToRam(ppNvmData))
-                                {
-                                    FLib_MemCpy(*ppNvmData, pRamData, mSize);
-                                    nvmStatus = NvSaveOnIdle(ppNvmData, FALSE);
-                                }
-                                else
-                                {
-                                    *ppNvmData = pRamData;
-                                    nvmStatus = NvSyncSave(ppNvmData, FALSE);
-                                }
-                            }
+                                ppNvmData = (void**)&aBondingDataDescriptor[mEntryIdx *
+                                        gcGapMaximumSavedCccds_c + descIdx];
 
-                            pRamData = (void *)((uint8_t *)pRamData + mSize);
+                                if(ppNvmData != NULL)
+                                {
+                                    if(gNVM_OK_c == NvMoveToRam(ppNvmData))
+                                    {
+                                        FLib_MemCpy(*ppNvmData, pRamData, mSize);
+                                        nvmStatus = NvSaveOnIdle(ppNvmData, FALSE);
+                                    }
+                                    else
+                                    {
+                                        *ppNvmData = pRamData;
+                                        nvmStatus = NvSyncSave(ppNvmData, FALSE);
+                                    }
+                                }
 
-                            if (nvmStatus != gNVM_OK_c)
-                            {
-                                break;
+                                pRamData = (void *)((uint8_t *)pRamData + mSize);
+
+                                if (nvmStatus != gNVM_OK_c)
+                                {
+                                    break;
+                                }
                             }
 
                             tempDescBitmask &= tempDescBitmask - 1U;
@@ -634,15 +637,18 @@ static bleResult_t App_NvmRead
                         {
                             descIdx = HAL_CTZ(tempDescBitmask);
 
-                            ppNvmData = (void**)&aBondingDataDescriptor[mEntryIdx *
-                                gcGapMaximumSavedCccds_c + descIdx];
-
-                            if((NULL != ppNvmData) && (NULL != *ppNvmData))
+                            if(descIdx < (uint8_t)gcGapMaximumSavedCccds_c)
                             {
-                                FLib_MemCpy(pRamData, *ppNvmData, mSize);
-                                pRamData = (void *)((uint8_t *)pRamData + mSize);
-                                *pDataSetBitmask |= nvmId_BondingDataDescriptorBit_c;
-                                *pDescriptorBitmask |= (1UL << descIdx);
+                                ppNvmData = (void**)&aBondingDataDescriptor[mEntryIdx *
+                                    gcGapMaximumSavedCccds_c + descIdx];
+
+                                if((NULL != ppNvmData) && (NULL != *ppNvmData))
+                                {
+                                    FLib_MemCpy(pRamData, *ppNvmData, mSize);
+                                    pRamData = (void *)((uint8_t *)pRamData + mSize);
+                                    *pDataSetBitmask |= nvmId_BondingDataDescriptorBit_c;
+                                    *pDescriptorBitmask |= (1UL << descIdx);
+                                }
                             }
 
                             tempDescBitmask &= tempDescBitmask - 1U;
@@ -681,22 +687,19 @@ static bleResult_t App_NvmRead
 static void App_NvmHostErase(void *pData)
 {
     bleResult_t result = gBleSuccess_c;
-    union {
-        uint8_t u8;
-        void* ptr;
-    } entryIdx = {};
+    uint8_t entryIdx = 0U;
 
-    entryIdx.ptr = pData;
+    FLib_MemCpy(&entryIdx, &pData, sizeof(entryIdx));
     uint32_t fsciDataSize = sizeof(bleResult_t) + sizeof(uint8_t);
     uint8_t* pBuffer = MEM_BufferAlloc(fsciDataSize);
 
     if (pBuffer != NULL)
     {
         uint8_t* pBufAux = pBuffer;
-        result = App_NvmErase(entryIdx.u8);
+        result = App_NvmErase(entryIdx);
 
         fsciBleGetBufferFromEnumValue(result, pBufAux, bleResult_t);
-        fsciBleGetBufferFromUint8Value(entryIdx.u8, pBufAux);
+        fsciBleGetBufferFromUint8Value(entryIdx, pBufAux);
 
         FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_AppBleNvmCbCmdEraseInd_c,
                              pBuffer, (uint16_t)fsciDataSize, gFsciInterface_c);
@@ -1022,15 +1025,14 @@ static void nvmCmdReadHandler(uint8_t opc, uint8_t len, void *pData)
 ********************************************************************************** */
 static void nvmCmdEraseHandler(uint8_t opc, uint8_t len, void *pData)
 {
-    union {
-        uint8_t u8;
-        void* ptr;
-   } entryIdx = {};
+    uint8_t entryIdx = 0U;
+    void*   pToken   = NULL;
 
     uint8_t* pBuffer = (uint8_t*)pData;
-    fsciBleGetUint8ValueFromBuffer(entryIdx.u8, pBuffer);
+    fsciBleGetUint8ValueFromBuffer(entryIdx, pBuffer);
+    FLib_MemCpy(&pToken, &entryIdx, sizeof(entryIdx));
     /* Avoid buffer allocation by sending the NVM entry index as parameter */
-    (void)App_PostCallbackMessage(App_NvmHostErase, entryIdx.ptr);
+    (void)App_PostCallbackMessage(App_NvmHostErase, pToken);
 }
 
 /*! *********************************************************************************

@@ -446,13 +446,7 @@ void fsciBleGapGetBufferFromServiceSecurityRequirements(gapServiceSecurityRequir
 
 gapDeviceSecurityRequirements_t* fsciBleGapAllocDeviceSecurityRequirementsForBuffer(uint8_t* pBuffer)
 {
-    union
-    {
-        uint8_t*                             pSecurityRequirementsTemp;
-        gapServiceSecurityRequirements_t*    aServiceSecurityRequirementsTemp;
-        gapSecurityRequirements_t*           pDeviceSecurityRequirementsTemp;
-    }securityRequirementsVars = {0};
-
+    uint8_t*                            pSecurityRequirementsTemp = NULL;
     uint8_t                             nbOfServices = 0U;
     gapDeviceSecurityRequirements_t*    pDeviceSecurityRequirements = NULL;
 
@@ -471,10 +465,10 @@ gapDeviceSecurityRequirements_t* fsciBleGapAllocDeviceSecurityRequirementsForBuf
     if(NULL != pDeviceSecurityRequirements)
     {
         /* Set pointers in gapDeviceSecurityRequirements_t structure */
-        securityRequirementsVars.pSecurityRequirementsTemp = (uint8_t*)pDeviceSecurityRequirements + sizeof(gapDeviceSecurityRequirements_t);
-        pDeviceSecurityRequirements->pSecurityRequirements    = securityRequirementsVars.pDeviceSecurityRequirementsTemp;
-        securityRequirementsVars.pSecurityRequirementsTemp = (uint8_t*)pDeviceSecurityRequirements->pSecurityRequirements + sizeof(gapSecurityRequirements_t);
-        pDeviceSecurityRequirements->aServiceSecurityRequirements   = securityRequirementsVars.aServiceSecurityRequirementsTemp;
+        pSecurityRequirementsTemp = (uint8_t*)pDeviceSecurityRequirements + sizeof(gapDeviceSecurityRequirements_t);
+        pDeviceSecurityRequirements->pSecurityRequirements    = (gapSecurityRequirements_t*)(void*)pSecurityRequirementsTemp;
+        pSecurityRequirementsTemp = (uint8_t*)pDeviceSecurityRequirements->pSecurityRequirements + sizeof(gapSecurityRequirements_t);
+        pDeviceSecurityRequirements->aServiceSecurityRequirements   = (gapServiceSecurityRequirements_t*)(void*)pSecurityRequirementsTemp;
     }
 
     /* Return the allocated buffer for the device security requirements */
@@ -897,31 +891,18 @@ void fsciBleGapGetAdStructureFromBuffer(gapAdStructure_t* pAdStructure, uint8_t*
     fsciBleGetEnumValueFromBuffer(pAdStructure->adType, *ppBuffer, gapAdType_t);
     fsciBleGetArrayFromBuffer(pAdStructure->aData, *ppBuffer, pAdStructure->length);
 
-    union
-    {
-        uint32_t lenTemp;
-        uint8_t advLen;
-    }advLength = {0};
-
     /* The length value must contain also the type (uint8_t) */
-    advLength.lenTemp = sizeof(uint8_t);
-    pAdStructure->length += advLength.advLen;
+    pAdStructure->length += (uint8_t)sizeof(uint8_t);
 }
 
 
 void fsciBleGapGetBufferFromAdStructure(gapAdStructure_t* pAdStructure, uint8_t** ppBuffer)
 {
     /* Write gapAdStructure_t fields in buffer */
-    union
-    {
-        uint32_t lenTemp;
-        uint8_t advLen;
-    }advLength = {0};
-
-    advLength.advLen = pAdStructure->length;
+    uint32_t lenTemp = (uint32_t)pAdStructure->length;
 
     /* In TestTool, the length is only the data length */
-    fsciBleGetBufferFromUint8Value((uint8_t)(advLength.lenTemp - sizeof(uint8_t)), *ppBuffer);
+    fsciBleGetBufferFromUint8Value((uint8_t)(lenTemp - sizeof(uint8_t)), *ppBuffer);
     fsciBleGetBufferFromEnumValue(pAdStructure->adType, *ppBuffer, gapAdType_t);
     fsciBleGetBufferFromArray(pAdStructure->aData, *ppBuffer, ((uint32_t)pAdStructure->length - sizeof(uint8_t)));
 }
@@ -929,12 +910,7 @@ void fsciBleGapGetBufferFromAdStructure(gapAdStructure_t* pAdStructure, uint8_t*
 
 gapAdvertisingData_t* fsciBleGapAllocAdvertisingDataForBuffer(uint8_t* pBuffer)
 {
-    union
-    {
-        uint8_t*                    pAdvertisingDataTemp;
-        gapAdStructure_t*           aAdStructuresTemp;
-    }advertisingVars = {0};
-
+    uint8_t*                pAdvertisingDataTemp = NULL;
     uint32_t                advertisingDataSize = sizeof(gapAdvertisingData_t);
     uint8_t                 nbOfAdStructures = 0U;
     uint8_t*                aDataSizeArray = NULL;
@@ -973,8 +949,8 @@ gapAdvertisingData_t* fsciBleGapAllocAdvertisingDataForBuffer(uint8_t* pBuffer)
     if((NULL != pAdvertisingData) && (NULL != aDataSizeArray))
     {
          /* Set pointers in gapAdvertisingData_t structure */
-        advertisingVars.pAdvertisingDataTemp = (uint8_t*)pAdvertisingData + sizeof(gapAdvertisingData_t);
-        pAdvertisingData->aAdStructures = advertisingVars.aAdStructuresTemp;
+        pAdvertisingDataTemp = (uint8_t*)pAdvertisingData + sizeof(gapAdvertisingData_t);
+        pAdvertisingData->aAdStructures = (gapAdStructure_t*)(void*)pAdvertisingDataTemp;
         pData                           = (uint8_t*)pAdvertisingData->aAdStructures + nbOfAdStructures * sizeof(gapAdStructure_t);
 
         /* Set data pointer in each AdStructure */
@@ -2279,12 +2255,7 @@ void fsciBleGapFreeConnectionEvent(gapConnectionEvent_t* pConnectionEvent)
 
 gapAutoConnectParams_t* fsciBleGapAllocAutoConnectParamsForBuffer(uint8_t* pBuffer)
 {
-    union
-    {
-        uint8_t*                                pConnectionRequestParamsTemp;
-        gapConnectionRequestParameters_t*       aAutoConnectDataTemp;
-    }connectionVars = {0};
-
+    uint8_t*                pConnectionRequestParamsTemp;
     uint8_t                 cNumAddresses;
     gapAutoConnectParams_t*	pAutoConnectParams;
 
@@ -2297,8 +2268,8 @@ gapAutoConnectParams_t* fsciBleGapAllocAutoConnectParamsForBuffer(uint8_t* pBuff
     if(NULL != pAutoConnectParams)
     {
         /* Set aAutoConnectData pointer in gapAutoConnectParams_t structure */
-        connectionVars.pConnectionRequestParamsTemp = (uint8_t*)pAutoConnectParams + sizeof(gapAutoConnectParams_t);
-        pAutoConnectParams->aAutoConnectData = connectionVars.aAutoConnectDataTemp;
+        pConnectionRequestParamsTemp = (uint8_t*)pAutoConnectParams + sizeof(gapAutoConnectParams_t);
+        pAutoConnectParams->aAutoConnectData = (gapConnectionRequestParameters_t*)(void*)pConnectionRequestParamsTemp;
     }
 
     /* Return the buffer allocated for gapAutoConnectParams_t structure, or NULL */

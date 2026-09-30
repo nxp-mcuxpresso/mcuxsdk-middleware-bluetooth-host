@@ -851,15 +851,9 @@ static void HandleCtrlCmdGenericHciCmd
         {
             fsciBleGetArrayFromBuffer(payload, pBuffer, ((uint32_t)payloadLength));
         }
-        union
-        {
-          uint8_t u8;
-          uint32_t u32;
-        } packetSize = {0U};
-
         /* Build HCI packet */
-        packetSize.u8 = payloadLength + gHciCommandPacketHeaderLength_c;
-        uint8_t* pHciPacket = MEM_BufferAlloc(packetSize.u32);
+        uint32_t packetSize = (uint32_t)(uint8_t)(payloadLength + gHciCommandPacketHeaderLength_c);
+        uint8_t* pHciPacket = MEM_BufferAlloc(packetSize);
         if (pHciPacket != NULL)
         {
             FLib_MemCpy((void*)pHciPacket, (const void*)&opcode, 2U);
@@ -904,11 +898,7 @@ static void HandleCtrlCmdGetDebugInfoCmd
 )
 {
     bleResult_t status = gBleSuccess_c;
-    union
-    {
-      uint32_t u32;
-      void* p;
-    } debugInfoAddress = {0U};
+    uint32_t debugInfoAddress = 0U;
 
     uint32_t debugInfoSize = 0U;
     uint8_t *pDebugInfo = NULL;
@@ -916,7 +906,7 @@ static void HandleCtrlCmdGetDebugInfoCmd
     /* Get SMU debug information size */
     fsciBleGetUint32ValueFromBuffer(debugInfoSize, pBuffer);
     /* Get SMU debug information address */
-    fsciBleGetUint32ValueFromBuffer(debugInfoAddress.u32, pBuffer);
+    fsciBleGetUint32ValueFromBuffer(debugInfoAddress, pBuffer);
 
     pDebugInfo = MEM_BufferAlloc(debugInfoSize);
 
@@ -926,7 +916,7 @@ static void HandleCtrlCmdGetDebugInfoCmd
         PLATFORM_RemoteActiveReq();
 
         /* Copy NBU debug data */
-        FLib_MemCpy((void*)pDebugInfo, debugInfoAddress.p, debugInfoSize);
+        FLib_MemCpy((void*)pDebugInfo, (uint8_t*)(uintptr_t)debugInfoAddress, debugInfoSize);
         /* Release Radio Domain */
         PLATFORM_RemoteActiveRel();
 

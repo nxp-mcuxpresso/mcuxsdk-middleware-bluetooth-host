@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 * \file
 *
@@ -308,14 +308,16 @@ void App_FsciBleNvmCbHandler
     {
         case gAppBleNvmCbCmdEraseOpCode_c:
         {
-            union
-            {
-                 uint8_t u8;
-                 void *ptr;
-            } entryIdx = {};
-            fsciBleGetUint8ValueFromBuffer(entryIdx.u8, pBuffer);
-            /* Avoid buffer allocation for one octet by sending the NVM entry index as parameter */
-            App_PostCallbackMessage(App_NvmHostErase, entryIdx.ptr);
+            /* Carry the one-octet NVM entry index inside the pointer-sized
+               callback argument. The value is laundered through the pointer's
+               bytes with a raw copy (no cast between a pointer and an arithmetic
+               type, no narrowing conversion), decoded the same way in
+               App_NvmHostErase. */
+            void   *pToken   = NULL;
+            uint8_t entryIdx = 0U;
+            fsciBleGetUint8ValueFromBuffer(entryIdx, pBuffer);
+            FLib_MemCpy(&pToken, &entryIdx, sizeof(entryIdx));
+            (void)App_PostCallbackMessage(App_NvmHostErase, pToken);
         }
         break;
         case gAppBleNvmCbCmdWriteOpCode_c:
@@ -839,19 +841,18 @@ static bleResult_t App_NvmRead
 *
 *\retval        void.
 ********************************************************************************** */
-static void App_NvmHostErase(void *data)
+static void App_NvmHostErase(void *pData)
 {
     bleResult_t result = gBleSuccess_c;
-    union
-    {
-        uint8_t u8;
-        void *ptr;
-    } entryIdx = {};
-    entryIdx.ptr = data;
+    /* The NVM entry index was laundered into the pointer-sized callback
+       argument by App_FsciBleNvmCbHandler; read the octet back with a raw
+       copy (no cast between a pointer and an arithmetic type). */
+    uint8_t entryIdx = 0U;
+    FLib_MemCpy(&entryIdx, &pData, sizeof(entryIdx));
 
-    result = App_NvmErase(entryIdx.u8);
+    result = App_NvmErase(entryIdx);
 
-    (void)App_FsciBleNvmDataReq(gAppBleNvmCbCmdEraseIndOpCode_c, result, entryIdx.u8, 0U, 0U, 0U, NULL);
+    (void)App_FsciBleNvmDataReq(gAppBleNvmCbCmdEraseIndOpCode_c, result, entryIdx, 0U, 0U, 0U, NULL);
 }
 
 /*! *********************************************************************************

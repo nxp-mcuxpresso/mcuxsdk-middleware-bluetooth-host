@@ -67,6 +67,9 @@
 /* NVM dataset identifier for the application-owned TPMS advertising sequence number */
 #define nvmId_TpmsSeqNumId_c            0x4102
 
+/* Prints a string over the serial write handle.*/
+#define AppPrintString(pBuff) (void)SerialManager_WriteBlocking((serial_write_handle_t)s_writeHandle, (uint8_t *)&(pBuff)[0], strlen(pBuff))
+
 /************************************************************************************
 *************************************************************************************
 * Private type definitions
@@ -105,7 +108,6 @@ static void BleApp_GattServerCallback (deviceId_t deviceId, gattServerEvent_t* p
 static void AdvertisingTimerCallback(void *pParam);
 
 static void BleApp_Advertise(void);
-static void AppPrintString( const char* pBuff);
 static void AppPrintDec(uint32_t dec);
 
 static void BluetoothLEHost_Initialized(void);
@@ -629,21 +631,6 @@ static void AdvertisingTimerCallback(void* pParam)
     {
         (void)App_PostCallbackMessage(APP_AdvertiseCommandHandler, NULL);
     }
-}
-
-/*! *********************************************************************************
-* \brief        Prints a string.
-*
-********************************************************************************** */
-static void AppPrintString( const char* pBuff)
-{
-    uint32_t buffLength = strlen(pBuff);
-    union{
-        const char* pcBuff;
-        uint8_t* pBuff;
-    }buff;
-    buff.pcBuff = pBuff;
-    (void)SerialManager_WriteBlocking((serial_write_handle_t)s_writeHandle, buff.pBuff, buffLength );
 }
 
 /*! *********************************************************************************

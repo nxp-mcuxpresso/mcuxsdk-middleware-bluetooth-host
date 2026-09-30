@@ -455,12 +455,8 @@ uint8_t BleInfo_GetConnections(bool_t andActive)
 bool_t BleInfo_IsConnected(void)
 {
     /* Forced update of state */
-    union
-    {
-        void* pV;
-        uint32_t number;
-    }param = {.number = 1U};
-    BleInfo_TimerCallback(param.pV);
+    uint32_t forcedParam = 1U;
+    BleInfo_TimerCallback(&forcedParam);
     return (bleInfo.state == mConnConnected)? TRUE:FALSE;
 }
 

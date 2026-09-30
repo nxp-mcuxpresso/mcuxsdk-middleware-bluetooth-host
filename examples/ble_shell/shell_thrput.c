@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2025 NXP
+* Copyright 2016-2026 NXP
 *
 *
 * \file
@@ -707,21 +707,15 @@ static void ShellThr_TxTimerCallback(void *p)
 static void ShellThr_SendData(void *p)
 {
     bleResult_t result;
-    union
-    {
-        deviceId_t     peerId;
-        void*          p;
-    } inParam;
+    deviceId_t peerId = (deviceId_t)(uint32_t)(uint8_t*)p;
 
-    inParam.p = p;
-
-    if((pDummyTestData != NULL) && (gThroughputConfig[inParam.peerId].bTestInProgress))
+    if((pDummyTestData != NULL) && (gThroughputConfig[peerId].bTestInProgress))
     {
         /* If all the packets were sent, stop timer and free buffer */
-        if(mTxPktCnt[inParam.peerId] >= gThroughputConfig[inParam.peerId].buffCnt)
+        if(mTxPktCnt[peerId] >= gThroughputConfig[peerId].buffCnt)
         {
-            gThroughputConfig[inParam.peerId].bTestInProgress = FALSE;
-            mTxPktCnt[inParam.peerId] = 0U;
+            gThroughputConfig[peerId].bTestInProgress = FALSE;
+            mTxPktCnt[peerId] = 0U;
 
             if (ShellThr_IsTestInProgress() == FALSE)
             {
@@ -735,22 +729,22 @@ static void ShellThr_SendData(void *p)
 
             /* Inform user that test is finished */
             shell_write("\r\nThroughput test with peer ");
-            shell_writeDec(inParam.peerId);
+            shell_writeDec(peerId);
             shell_write(" has finished.\r\n");
         }
         else
         {
-            uint32_t temp = mTxPktCnt[inParam.peerId];
+            uint32_t temp = mTxPktCnt[peerId];
             /* There are still packets to send */
             FLib_MemCpy(pDummyTestData, &temp, sizeof(temp));
 
             /* Send data in a GATT notification message */
-            result = GattServer_SendInstantValueNotification(inParam.peerId, value_throughput_stream, gThroughputConfig[inParam.peerId].buffSz, pDummyTestData);
+            result = GattServer_SendInstantValueNotification(peerId, value_throughput_stream, gThroughputConfig[peerId].buffSz, pDummyTestData);
 
             if(gBleSuccess_c == result)
             {
                 /* If the message was sent with success, increment packet counter */
-                mTxPktCnt[inParam.peerId]++;
+                mTxPktCnt[peerId]++;
             }
 #if (mShellThrTxInterval_c == 0)
             else if (result == gBleOverflow_c)
@@ -762,7 +756,7 @@ static void ShellThr_SendData(void *p)
             else
             {
                 /* Otherwise, increment dropped packets */
-                gThrStatistics[inParam.peerId].droppedPackets++;
+                gThrStatistics[peerId].droppedPackets++;
             }
 
 #if (mShellThrTxInterval_c == 0)
@@ -1081,23 +1075,9 @@ static void ShellThr_StartThroughputTest(thrGapRoles_t role, deviceId_t peerId)
 {
     timer_status_t timerStatus = kStatus_TimerError;
     
-    /* MISRA Rule 10.8 - The value of a composite expression shall not be cast to a different essential type category or a wider essential type */
-    union
-    {
-        uint8_t u8;
-        uint32_t u32;
-    } txInterval = {0};
-    
-    /* MISRA Rule 11.6 - A cast shall not be performed between pointer to void and an arithmetic type */
-    union
-    {
-        uint32_t u32;
-        void *ptr;
-    } peerDeviceId = {.ptr = NULL};
-    
-    peerDeviceId.u32 = (uint32_t)peerId;
-    
-    txInterval.u8 = mShellThrTxInterval_c;
+    uint32_t txInterval = (uint32_t)(uint8_t)mShellThrTxInterval_c;
+
+    void *pPeerDeviceId = (uint8_t*)((uint32_t)peerId);
 
     if (role == thrCentral) /* GAP Central */
     {
@@ -1154,8 +1134,8 @@ static void ShellThr_StartThroughputTest(thrGapRoles_t role, deviceId_t peerId)
             
             if (timerStatus == kStatus_TimerSuccess)
             {
-                (void)TM_InstallCallback((timer_handle_t)gThroughputTestTimerId, ShellThr_TxTimerCallback, peerDeviceId.ptr);
-                (void)TM_Start((timer_handle_t)gThroughputTestTimerId, (uint8_t)kTimerModeIntervalTimer, txInterval.u32);
+                (void)TM_InstallCallback((timer_handle_t)gThroughputTestTimerId, ShellThr_TxTimerCallback, pPeerDeviceId);
+                (void)TM_Start((timer_handle_t)gThroughputTestTimerId, (uint8_t)kTimerModeIntervalTimer, txInterval);
                 shell_write("Throughput test started.\r\nSending packets...\r\n");
             }
             else
@@ -1226,33 +1206,27 @@ static void ShellThr_CheckResults(void* p)
 ********************************************************************************** */
 static void ShellThr_PrintReport(appCallbackParam_t pParam)
 {
-    union
-    {
-        deviceId_t     peerId;
-        void*          p;
-    } inParam;
+    deviceId_t peerId = (deviceId_t)(uint32_t)(uint8_t*)pParam;
 
-    inParam.p = pParam;
-
-    if (gThrStatistics[inParam.peerId].notifRcv != 0U)
+    if (gThrStatistics[peerId].notifRcv != 0U)
     {
         shell_write("\r\n************************************\r\n"
                         "***** TEST REPORT FOR PEER ID ");
-        shell_writeDec(inParam.peerId);
+        shell_writeDec(peerId);
         shell_write(" ****\r\n"
                         "************************************\r\n"
                     "\r\nPackets received: ");
-        shell_writeDec(gThrStatistics[inParam.peerId].notifRcv);
+        shell_writeDec(gThrStatistics[peerId].notifRcv);
         shell_write("\r\nTotal bytes: ");
-        shell_writeDec(gThrStatistics[inParam.peerId].bytesRcv);
+        shell_writeDec(gThrStatistics[peerId].bytesRcv);
         shell_write("\r\nReceive duration: ");
         /* Convert to milliseconds */
-        uint64_t rxDuration = (gThrStatistics[inParam.peerId].lastPacketTs - gThrStatistics[inParam.peerId].firstPacketTs)/1000U;
+        uint64_t rxDuration = (gThrStatistics[peerId].lastPacketTs - gThrStatistics[peerId].firstPacketTs)/1000U;
         shell_writeDec((uint32_t)rxDuration);
         shell_write(" ms\r\n"
                     "Average bitrate: ");
         /* Convert to bits */
-        uint32_t average = gThrStatistics[inParam.peerId].bytesRcv*8U/((uint32_t)rxDuration);
+        uint32_t average = gThrStatistics[peerId].bytesRcv*8U/((uint32_t)rxDuration);
         shell_writeDec((uint32_t)average);
         shell_write(" kbps \r\n"
                     "\r\n************************************\r\n"
@@ -1260,10 +1234,10 @@ static void ShellThr_PrintReport(appCallbackParam_t pParam)
                         "************************************\r\n");
 
         /* Reset counter */
-        gThrStatistics[inParam.peerId].notifRcv = 0U;
-        mLastNotifRecv[inParam.peerId] = gThrStatistics[inParam.peerId].notifRcv;
+        gThrStatistics[peerId].notifRcv = 0U;
+        mLastNotifRecv[peerId] = gThrStatistics[peerId].notifRcv;
 
-        gThroughputConfig[inParam.peerId].bTestInProgress = FALSE;
+        gThroughputConfig[peerId].bTestInProgress = FALSE;
         shell_cmd_finished();
     }
 

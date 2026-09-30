@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2016-2020, 2022-2023 NXP
+* Copyright 2016-2020, 2022-2023, 2026 NXP
 *
 *
 * \file
@@ -30,11 +30,6 @@
 /*! Current Time Service - Subscribed Client*/
 static deviceId_t mCts_SubscribedClientId;
 
-typedef union
-{
-    uint8_t* aValueTemp;
-    ctsExactTime256_t* exactTimeTemp;
-}exactTimeInfo_t;
 /***********************************************************************************
 *************************************************************************************
 * Private functions prototypes
@@ -187,9 +182,7 @@ void Cts_CurrentTimeWrittenHandler (ctsConfig_t *pServiceConfig, gattServerAttri
     uint8_t reason;
     ctsExactTime256_t exactTime;
 
-    exactTimeInfo_t exactTimeInfo;
-    exactTimeInfo.aValueTemp = pEvent->aValue;
-    exactTime = *(exactTimeInfo.exactTimeTemp);
+    exactTime = *((ctsExactTime256_t*)(void*)pEvent->aValue);
 
     reason = pEvent->aValue[sizeof(ctsExactTime256_t)];
 

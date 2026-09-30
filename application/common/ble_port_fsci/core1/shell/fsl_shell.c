@@ -255,22 +255,18 @@ static void RegisterCmdCnf
 ********************************************************************************** */
 static void CmdHandler(uint8_t opc, uint8_t len, void *pData)
 {
-    union {
-        fsciPortRegisterCmdData_t *pData;
-        void *pRawData;
-    } temp = {0};
+    fsciPortRegisterCmdData_t *pCmd = (fsciPortRegisterCmdData_t *)pData;
     char *argv[10] = {0};
     uint32_t i = 0;
     char *pPos = NULL;
 
-    temp.pRawData = pData;
-    pPos = (char*)temp.pData->aArgs;
-    while(i <  temp.pData->argc)
+    pPos = (char*)pCmd->aArgs;
+    while(i <  pCmd->argc)
     {
         argv[i] = pPos;
         pPos += FLib_StrLen(pPos) + 1U;
         i++;
     }
 
-    (void)maCommands[temp.pData->id](NULL, temp.pData->argc, argv);
+    (void)maCommands[pCmd->id](NULL, pCmd->argc, argv);
 }

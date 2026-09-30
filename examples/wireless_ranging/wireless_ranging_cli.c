@@ -2470,13 +2470,8 @@ void cli_sprint_hex16b(uint8_t *dataOut, uint8_t *dataIn, uint32_t units, uint16
 {
     uint32_t u;
     uint16_t val;
-    union {
-        uint16_t *v16;
-        uint8_t *v8;
-    } tmp = {0U};
-    
-    tmp.v8 = dataIn;
-    
+    uint8_t *pV8 = dataIn;
+
     if(dataOut == NULL)
     {
         return;
@@ -2485,12 +2480,12 @@ void cli_sprint_hex16b(uint8_t *dataOut, uint8_t *dataIn, uint32_t units, uint16
     {
         if (convert != NULL) 
         {
-            val = convert(&tmp.v8);
+            val = convert(&pV8);
         } 
         else 
         {
-            val = *(tmp.v16);
-            tmp.v8 += 2;
+            val = *(uint16_t *)(void *)pV8;
+            pV8 += 2;
         }
         *dataOut++ = (uint8_t)hexchar[(val>>12)&0xFU];
         *dataOut++ = (uint8_t)hexchar[(val>>8)&0xFU];
@@ -2517,13 +2512,8 @@ void cli_sprint_base64_12b
 )
 {
     uint32_t u;
-    union {
-        uint32_t *v32;
-        uint8_t *v8;
-    } tmp = {0U};
-    
-    tmp.v8 = dataIn;
-    
+    uint8_t *pV8 = dataIn;
+
     if(dataOut == NULL)
     {
         return;
@@ -2534,10 +2524,10 @@ void cli_sprint_base64_12b
 
         if (to_12bits == NULL) {
             /* Default implementation assumes dataIn as uint32_t array */
-            val = (*(tmp.v32)) & 0xFFFFU;
-            tmp.v8 += sizeof(uint32_t);
+            val = (*(uint32_t *)(void *)pV8) & 0xFFFFU;
+            pV8 += sizeof(uint32_t);
         } else{
-            val = to_12bits(&tmp.v8);
+            val = to_12bits(&pV8);
         }
         *dataOut++ = (uint8_t)basechar[(val>>6)&0x3FU];
         *dataOut++ = (uint8_t)basechar[(val)&0x3FU];
@@ -2562,13 +2552,8 @@ void cli_sprint_base64_24b
 )
 {
     uint32_t u;
-    union {
-        uint32_t *v32;
-        uint8_t *v8;
-    } tmp = {0U};
-    
-    tmp.v8 = dataIn;
-    
+    uint8_t *pV8 = dataIn;
+
     if(dataOut == NULL)
     {
         return;
@@ -2579,10 +2564,10 @@ void cli_sprint_base64_24b
 
         if (to_24bits == NULL) {
             /* Default implementation assumes dataIn as uint32_t array */
-            val = (*(tmp.v32)) & 0xFFFFFFU;
-            tmp.v8 += sizeof(uint32_t);
+            val = (*(uint32_t *)(void *)pV8) & 0xFFFFFFU;
+            pV8 += sizeof(uint32_t);
         } else{
-            val = to_24bits(&tmp.v8);
+            val = to_24bits(&pV8);
         }
         *dataOut++ = (uint8_t)basechar[(val>>18)&0x3FU];
         *dataOut++ = (uint8_t)basechar[(val>>12)&0x3FU];
@@ -2638,14 +2623,9 @@ void cli_sprint_base64_30b
 ********************************************************************************** */
 uint32_t convert_rttstat_to_30bits(uint8_t **dataIn) {
     uint32_t val;
-    union {
-        uint32_t *v32;
-        uint8_t *v8;
-    } tmp = {0U};
-    
-    tmp.v8 = *dataIn;
+    uint8_t *pV8 = *dataIn;
 
-    val = *(tmp.v32);
+    val = *(uint32_t *)(void *)pV8;
     val &= 0x3FFFFFFFU;
     /* To next record */
     *dataIn += sizeof(rtt_internal_t);
@@ -2662,14 +2642,9 @@ uint32_t convert_rttstat_to_30bits(uint8_t **dataIn) {
 uint32_t convert_iq_to_24bits(uint8_t **dataIn) {
     uint32_t iq;
     uint32_t val;
-    union {
-        uint32_t *v32;
-        uint8_t *v8;
-    } tmp = {0U};
-    
-    tmp.v8 = *dataIn;
+    uint8_t *pV8 = *dataIn;
 
-    val = *(tmp.v32);
+    val = *(uint32_t *)(void *)pV8;
 
     /* HW output is :{rx_dft_iq_out_q[10:0], rx_if_mixer_idx[9:5], rx_dft_iq_out_i[10:0], rx_if_mixer_idx[4:0]} */
     iq = ((val & 0xffe0U) << 8) | ((val & 0xffe00000U) >> 20); /* align to 2x12bit, I: MSB and Q LSB*/
@@ -2688,14 +2663,9 @@ uint32_t convert_iq_to_24bits(uint8_t **dataIn) {
 uint32_t convert_iq_to_rx_if_mixer_idx_12bits(uint8_t **dataIn) {
     uint32_t idx;
     uint32_t val;
-    union {
-        uint32_t *v32;
-        uint8_t *v8;
-    } tmp = {0U};
-    
-    tmp.v8 = *dataIn;
+    uint8_t *pV8 = *dataIn;
 
-    val = *(tmp.v32);
+    val = *(uint32_t *)(void *)pV8;
     /* HW output is :{rx_dft_iq_out_q[10:0], rx_if_mixer_idx[9:5], rx_dft_iq_out_i[10:0], rx_if_mixer_idx[4:0]} */
     idx = ((val & 0x001f0000U) >> 9) | ((val & 0x0000001fU) << 2);
     idx ^= 0x800U; /* invert sign bit (offset) for easier encoding decoding */
@@ -2747,19 +2717,14 @@ uint32_t convert_nadm_to_4bits(uint8_t **dataIn) {
 ********************************************************************************** */
 uint32_t convert_cfo_to_24bits(uint8_t **dataIn) {
     uint32_t val;
-    union {
-        uint32_t *v32;
-        uint8_t *v8;
-    } tmp = {0U};
-    
-    tmp.v8 = *dataIn;
+    uint8_t *pV8 = *dataIn;
     /* Skip RSSI */
-    (*tmp.v8)++;
+    (*pV8)++;
     /* Encode 3 bytes for CFO */
-    val = *(tmp.v32);
+    val = *(uint32_t *)(void *)pV8;
     val <<= 4;
     val ^= 0x800000U; /* invert sign bit (offset) for easier encoding/decoding */
-    *tmp.v8 += 3U;
+    *pV8 += 3U;
     return val;
 }
 
@@ -2771,16 +2736,11 @@ uint32_t convert_cfo_to_24bits(uint8_t **dataIn) {
 ********************************************************************************** */
 uint16_t convert_cfo(uint8_t **dataIn) {
     int16_t val;
-    union {
-        uint16_t *v16;
-        uint8_t *v8;
-    } tmp = {0U};
-    
-    tmp.v8 = *dataIn;
+    uint8_t *pV8 = *dataIn;
     /* Skip RSSI */
-    tmp.v8++;
+    pV8++;
     /* Encode 2 bytes for CFO (15bits) */
-    val = *(tmp.v16);
+    val = *(uint16_t *)(void *)pV8;
     /* from SigSpec:
        Frequency compensation value in units of 0.01 ppm (15-bit signed integer)
        Range: -100 ppm (-0xD8F0) to +100 ppm (+0x2710)

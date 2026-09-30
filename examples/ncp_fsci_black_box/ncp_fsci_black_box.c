@@ -175,13 +175,10 @@ uint32_t *      tx_application_define_ptr;
 ********************************************************************************** */
 void BluetoothLEHost_AppInit(void)
 {
-    union
-    {
-        void *pVoid;
-        pfFSCI_Send_t pfFSCI_Send;
-    } fsciHandle;
-    fsciHandle.pfFSCI_Send = &AppFSCI_Send;
-    g_fsciHandleList[0] = fsciHandle.pVoid;
+    pfFSCI_Send_t pfFsciSend = &AppFSCI_Send;
+    void         *pFsciHandle = NULL;
+    FLib_MemCpy(&pFsciHandle, &pfFsciSend, sizeof(pFsciHandle));
+    g_fsciHandleList[0] = pFsciHandle;
 
     /* Init FSCI */
     FSCI_commInit(g_fsciHandleList);
@@ -474,14 +471,9 @@ void SystemInitHook (void)
 ********************************************************************************** */
 static void NbuHci_SendPktToHost(unsigned long packetType, void *pPacket, unsigned short packetSize)
 {
-    union {
-        hciPacketType_t         packetTypeEnum;
-        unsigned long           packetTypeULong;
-    } hciPacketType = {};
-    
-    hciPacketType.packetTypeULong = packetType;
-    
-    (void)Ble_HciRecvFromIsr(hciPacketType.packetTypeEnum, pPacket, (uint16_t)packetSize);
+    hciPacketType_t packetTypeEnum = (hciPacketType_t)packetType;
+
+    (void)Ble_HciRecvFromIsr(packetTypeEnum, pPacket, (uint16_t)packetSize);
 }
 
 

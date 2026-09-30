@@ -88,11 +88,7 @@
 ********************************************************************************** */
 bleResult_t GattDbDynamic_AddServiceInDatabase(serviceInfo_t* pServiceInfo)
 {
-    union
-    {
-        uint16_t*    uuidTemp;
-        bleUuid_t*   bleUuidTemp;
-    }uuidVars = {0};
+    bleUuid_t*            pBleUuid = NULL;
 
     characteristicInfo_t* pCharacteristicInfo = NULL;
     descriptorInfo_t*     pDescriptorInfo = NULL;
@@ -101,9 +97,9 @@ bleResult_t GattDbDynamic_AddServiceInDatabase(serviceInfo_t* pServiceInfo)
     bleResult_t           result = gBleSuccess_c;
 
     /* Add service */
-    uuidVars.uuidTemp = &pServiceInfo->uuid16;
+    pBleUuid = (bleUuid_t*)(void*)&pServiceInfo->uuid16;
     result = GattDbDynamic_AddPrimaryServiceDeclaration(0, gBleUuidType16_c,
-                                                        uuidVars.bleUuidTemp,
+                                                        pBleUuid,
                                                         &pServiceInfo->handle);
 
     if( gBleSuccess_c == result )
@@ -112,10 +108,10 @@ bleResult_t GattDbDynamic_AddServiceInDatabase(serviceInfo_t* pServiceInfo)
         {
             /* Add characteristic */
             pCharacteristicInfo = &pServiceInfo->pCharacteristicInfo[i];
-            uuidVars.uuidTemp = &pCharacteristicInfo->uuid16;
+            pBleUuid = (bleUuid_t*)(void*)&pCharacteristicInfo->uuid16;
             result = GattDbDynamic_AddCharacteristicDeclarationAndValue(
                         gBleUuidType16_c,
-                        uuidVars.bleUuidTemp,
+                        pBleUuid,
                         pCharacteristicInfo->properties,
                         pCharacteristicInfo->maxValueLength,
                         pCharacteristicInfo->valueLength,
@@ -133,10 +129,10 @@ bleResult_t GattDbDynamic_AddServiceInDatabase(serviceInfo_t* pServiceInfo)
                 {
                     /* Add descriptor */
                     pDescriptorInfo = &pCharacteristicInfo->pDescriptorInfo[j];
-                    uuidVars.uuidTemp = &pDescriptorInfo->uuid16;
+                    pBleUuid = (bleUuid_t*)(void*)&pDescriptorInfo->uuid16;
                     result = GattDbDynamic_AddCharDescriptor(
                         gBleUuidType16_c,
-                        uuidVars.bleUuidTemp,
+                        pBleUuid,
                         pDescriptorInfo->valueLength,
                         pDescriptorInfo->pValue,
                         pDescriptorInfo->accessPermissions,
@@ -179,11 +175,7 @@ bleResult_t GattDbDynamic_AddServiceInDatabase(serviceInfo_t* pServiceInfo)
 ********************************************************************************** */
 bleResult_t GattDbDynamic_AddGattService(gattServiceHandles_t* pOutServiceHandles)
 {
-    union
-    {
-        uint8_t*                serviceInfoTemp;
-        characteristicInfo_t*   characteristicInfoTemp;
-    }infoVars = {0};
+    uint8_t*       pInfoTemp = NULL;
 
     uint8_t        gattServiceChangedValue[] =
                         mGattDbDynamic_GattServiceChangedInitValue;
@@ -201,9 +193,9 @@ bleResult_t GattDbDynamic_AddGattService(gattServiceHandles_t* pOutServiceHandle
     {
         pServiceInfo->uuid16 = gBleSig_GenericAttributeProfile_d;
         pServiceInfo->nbOfCharacteristics = 1;
-        infoVars.serviceInfoTemp = ((uint8_t*)pServiceInfo +
-                                    sizeof(serviceInfo_t));
-        pServiceInfo->pCharacteristicInfo = infoVars.characteristicInfoTemp;
+        pInfoTemp = ((uint8_t*)pServiceInfo +
+                     sizeof(serviceInfo_t));
+        pServiceInfo->pCharacteristicInfo = (characteristicInfo_t*)(void*)pInfoTemp;
         pServiceInfo->pCharacteristicInfo[0].uuid16 = gBleSig_GattServiceChanged_d;
         pServiceInfo->pCharacteristicInfo[0].properties = (uint8_t)gGattCharPropIndicate_c;
         pServiceInfo->pCharacteristicInfo[0].maxValueLength = 0;
@@ -258,11 +250,7 @@ bleResult_t GattDbDynamic_AddGattService(gattServiceHandles_t* pOutServiceHandle
 ********************************************************************************** */
 bleResult_t GattDbDynamic_AddGapService(gapServiceHandles_t* pOutServiceHandles)
 {
-    union
-    {
-        uint8_t*                serviceInfoTemp;
-        characteristicInfo_t*   characteristicInfoTemp;
-    }infoVars = {0};
+    uint8_t*       pInfoTemp = NULL;
 
     uint8_t        gapDeviceNameValue[] =
                         mGattDbDynamic_GapServiceDeviceNameInitValue;
@@ -288,10 +276,10 @@ bleResult_t GattDbDynamic_AddGapService(gapServiceHandles_t* pOutServiceHandles)
     {
         pServiceInfo->uuid16 = gBleSig_GenericAccessProfile_d;
         pServiceInfo->nbOfCharacteristics = 3;
-        infoVars.serviceInfoTemp = ((uint8_t*)pServiceInfo +
-                                    sizeof(serviceInfo_t));
+        pInfoTemp = ((uint8_t*)pServiceInfo +
+                     sizeof(serviceInfo_t));
         pServiceInfo->pCharacteristicInfo =
-                    infoVars.characteristicInfoTemp;
+                    (characteristicInfo_t*)(void*)pInfoTemp;
         pServiceInfo->pCharacteristicInfo[0].uuid16 =
                     gBleSig_GapDeviceName_d;
         pServiceInfo->pCharacteristicInfo[0].properties =
@@ -597,11 +585,7 @@ serviceInfo_t* GattDbDynamic_GetIpssService(void)
 ********************************************************************************** */
 serviceInfo_t* GattDbDynamic_GetHeartRateService(void)
 {
-    union
-    {
-        uint8_t*                serviceInfoTemp;
-        characteristicInfo_t*   characteristicInfoTemp;
-    }infoVars = {0};
+    uint8_t*       pInfoTemp = NULL;
 
     uint8_t        hrHrMeasurementValue[] =
                       mGattDbDynamic_HRServiceHrMeasurementInitValue;
@@ -622,9 +606,9 @@ serviceInfo_t* GattDbDynamic_GetHeartRateService(void)
     {
         pServiceInfo->uuid16 = gBleSig_HeartRateService_d;
         pServiceInfo->nbOfCharacteristics = 3;
-        infoVars.serviceInfoTemp = (uint8_t*)pServiceInfo +
-                                   sizeof(serviceInfo_t);
-        pServiceInfo->pCharacteristicInfo = infoVars.characteristicInfoTemp;
+        pInfoTemp = (uint8_t*)pServiceInfo +
+                    sizeof(serviceInfo_t);
+        pServiceInfo->pCharacteristicInfo = (characteristicInfo_t*)(void*)pInfoTemp;
 
         pServiceInfo->pCharacteristicInfo[0].uuid16 =
                         gBleSig_HrMeasurement_d;
@@ -697,12 +681,7 @@ serviceInfo_t* GattDbDynamic_GetHeartRateService(void)
 ********************************************************************************** */
 serviceInfo_t* GattDbDynamic_GetBatteryService(void)
 {
-    union
-    {
-        uint8_t*                serviceInfoTemp;
-        descriptorInfo_t*       descriptorInfoTemp;
-        characteristicInfo_t*   characteristicInfoTemp;
-    }infoVars = {0};
+    uint8_t*       pInfoTemp = NULL;
 
     uint8_t bBatteryLevelValue[] =
                 mGattDbDynamic_BServiceLevelInitValue;
@@ -722,9 +701,9 @@ serviceInfo_t* GattDbDynamic_GetBatteryService(void)
     {
         pServiceInfo->uuid16 = gBleSig_BatteryService_d;
         pServiceInfo->nbOfCharacteristics = 1;
-        infoVars.serviceInfoTemp = ((uint8_t*)pServiceInfo +
-                                    sizeof(serviceInfo_t));
-        pServiceInfo->pCharacteristicInfo = infoVars.characteristicInfoTemp;
+        pInfoTemp = ((uint8_t*)pServiceInfo +
+                     sizeof(serviceInfo_t));
+        pServiceInfo->pCharacteristicInfo = (characteristicInfo_t*)(void*)pInfoTemp;
 
         pServiceInfo->pCharacteristicInfo[0].uuid16 = gBleSig_BatteryLevel_d;
         pServiceInfo->pCharacteristicInfo[0].properties =
@@ -744,11 +723,11 @@ serviceInfo_t* GattDbDynamic_GetBatteryService(void)
                 gPermissionFlagReadable_c;
         pServiceInfo->pCharacteristicInfo[0].bAddCccd = TRUE;
         pServiceInfo->pCharacteristicInfo[0].nbOfDescriptors = 1;
-        infoVars.serviceInfoTemp =
+        pInfoTemp =
                     ((uint8_t*)pServiceInfo->pCharacteristicInfo +
                     1U * sizeof(characteristicInfo_t));
         pServiceInfo->pCharacteristicInfo[0].pDescriptorInfo =
-                    infoVars.descriptorInfoTemp;
+                    (descriptorInfo_t*)(void*)pInfoTemp;
 
         pServiceInfo->pCharacteristicInfo[0].pDescriptorInfo[0].uuid16 =
                     gBleSig_CharPresFormatDescriptor_d;
@@ -779,11 +758,7 @@ serviceInfo_t* GattDbDynamic_GetBatteryService(void)
 ********************************************************************************** */
 serviceInfo_t* GattDbDynamic_GetDeviceInformationService(void)
 {
-    union
-    {
-        uint8_t*                serviceInfoTemp;
-        characteristicInfo_t*   characteristicInfoTemp;
-    }infoVars = {0};
+    uint8_t*       pInfoTemp = NULL;
 
     uint8_t        diManufacturerNameValue[]  =
                         mGattDbDynamic_DIServiceManufNameInitValue;
@@ -819,9 +794,9 @@ serviceInfo_t* GattDbDynamic_GetDeviceInformationService(void)
     {
         pServiceInfo->uuid16 = gBleSig_DeviceInformationService_d;
         pServiceInfo->nbOfCharacteristics = 8;
-        infoVars.serviceInfoTemp = ((uint8_t*)pServiceInfo +
-                                    sizeof(serviceInfo_t));
-        pServiceInfo->pCharacteristicInfo = infoVars.characteristicInfoTemp;
+        pInfoTemp = ((uint8_t*)pServiceInfo +
+                     sizeof(serviceInfo_t));
+        pServiceInfo->pCharacteristicInfo = (characteristicInfo_t*)(void*)pInfoTemp;
         pServiceInfo->pCharacteristicInfo[0].uuid16 =
                 gBleSig_ManufacturerNameString_d;
         pServiceInfo->pCharacteristicInfo[0].properties =

@@ -438,19 +438,12 @@ void BleApp_GenericCallback (gapGenericEvent_t* pGenericEvent)
 void BleApp_HandleFsciBleOtapCommand (clientPacket_t*   pData,
                                       uint32_t          fsciInterface)
 {
-    union
-    {
-        uint8_t*                commandTemp;
-        otapCommand_t*          otapCommandTemp;
-    }otapCommandVars;
-
     /*! Initialize the OTAP Cmd pointer to the location of the payload minus the
      *  Command ID field size because the FSCI command payload only contains the
      *  OTAP command payload and not the OTAP Command opcode which is stored
      *  in the FSCI BLE OTAP packet header.
      *  The OTAP CmdId accessed through this pointer is not valid!!! */
-    otapCommandVars.commandTemp = (uint8_t*)(pData->structured.payload) - gOtap_CmdIdFieldSize_c;
-    otapCommand_t*  pOtapCmd = otapCommandVars.otapCommandTemp;
+    otapCommand_t*  pOtapCmd = (otapCommand_t*)(void*)((uint8_t*)(pData->structured.payload) - gOtap_CmdIdFieldSize_c);
     bool_t          sendCmdToStateMachine = TRUE;
 
     switch (pData->structured.header.opCode)
@@ -946,19 +939,12 @@ static void BleApp_GattClientCallback(
     bleResult_t             error
 )
 {
-    union
-    {
-        uint8_t                     errorTemp;
-        attErrorCode_t              attErrorCodeTemp;
-    }attErrorCodeVars;
-
     if (procedureResult == gGattProcError_c)
     {
-        attErrorCodeVars.errorTemp = (uint8_t)error & 0xFFU;
-        attErrorCode_t attError = attErrorCodeVars.attErrorCodeTemp;
-        if (attError == gAttErrCodeInsufficientEncryption_c     ||
-            attError == gAttErrCodeInsufficientAuthorization_c  ||
-            attError == gAttErrCodeInsufficientAuthentication_c)
+        uint8_t attError = (uint8_t)((uint32_t)error & 0xFFU);
+        if (attError == (uint8_t)gAttErrCodeInsufficientEncryption_c     ||
+            attError == (uint8_t)gAttErrCodeInsufficientAuthorization_c  ||
+            attError == (uint8_t)gAttErrCodeInsufficientAuthentication_c)
         {
 #if gAppUsePairing_d
             /* Start Pairing Procedure */
@@ -1090,18 +1076,11 @@ static void BleApp_AttributeIndicated
     uint16_t    length
 )
 {
-    union
-    {
-        uint8_t*                pValueTemp;
-        otapCommand_t*          otapCommandTemp;
-    }otapCommandVars;
-
     if (handle == mPeerInformation.customInfo.otapServerConfig.hControlPoint)
     {
         if (otapServerData.storageMode == gOtapServerStoargeNone_c)
         {
-            otapCommandVars.pValueTemp = pValue;
-            otapCommand_t*  pOtaCmd = otapCommandVars.otapCommandTemp;
+            otapCommand_t*  pOtaCmd = (otapCommand_t*)(void*)pValue;
             /* If this a is an OTAP Block Request then save the transfer method and channel in the
              * application data structure. This information is needed when forwarding data chunks
              * to the device which requested them. */
@@ -1382,12 +1361,6 @@ static void BleApp_ServiceDiscoveryCompleted(void)
 ********************************************************************************** */
 void BleApp_StateMachineHandler_AppRunning(deviceId_t peerDeviceId, uint8_t event)
 {
-    union
-    {
-        uint8_t*                    cmdBufferTemp;
-        otapCommand_t*              otapCommandTemp;
-    }otapCommandVars;
-
     if(mPeerInformation.appState == mAppRunning_c)
     {
         {
@@ -1437,8 +1410,7 @@ void BleApp_StateMachineHandler_AppRunning(deviceId_t peerDeviceId, uint8_t even
                     if (otapServerData.transferMethod == gOtapTransferMethodAtt_c)
                     {
                         uint8_t         cmdBuffer[sizeof(otapCommand_t)];
-                        otapCommandVars.cmdBufferTemp = cmdBuffer;
-                        otapCommand_t*  pOtapCommand = otapCommandVars.otapCommandTemp;
+                        otapCommand_t*  pOtapCommand = (otapCommand_t*)(void*)cmdBuffer;
 
                         pOtapCommand->cmdId = gOtapCmdIdImageChunk_c;
                         FLib_MemCpy ((uint8_t*)(&pOtapCommand->cmd),
@@ -1452,8 +1424,7 @@ void BleApp_StateMachineHandler_AppRunning(deviceId_t peerDeviceId, uint8_t even
                     else if (otapServerData.transferMethod == gOtapTransferMethodL2capCoC_c)
                     {
                         uint8_t         cmdBuffer[sizeof(otapCommand_t)];
-                        otapCommandVars.cmdBufferTemp = cmdBuffer;
-                        otapCommand_t*  pOtapCommand = otapCommandVars.otapCommandTemp;
+                        otapCommand_t*  pOtapCommand = (otapCommand_t*)(void*)cmdBuffer;
 
                         if (otapServerData.l2capPsmConnected == TRUE)
                         {

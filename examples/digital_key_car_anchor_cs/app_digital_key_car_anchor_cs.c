@@ -1727,10 +1727,6 @@ static void A2A_ProcessCommand(void *pMsg)
                 {
                     if (gLastHandedOverPeerId != gInvalidDeviceId_c)
                     {
-                        union {
-                            uint8_t                 u8LocState;
-                            appLocalization_State_t locState;
-                        } temp = {0U}; /* MISRA rule 11.3 */
                         void *pAux;
 
                         uint8_t *pData = pPacket->payload;
@@ -1743,8 +1739,7 @@ static void A2A_ProcessCommand(void *pMsg)
                         pData = &pData[sizeof(appLocalization_rangeCfg_t)];
 
                         /* Extract application state information */
-                        temp.u8LocState = *pData;
-                        AppLocalization_SetLocState(gLastHandedOverPeerId, temp.locState);
+                        AppLocalization_SetLocState(gLastHandedOverPeerId, (appLocalization_State_t)*pData);
                         pData = &pData[sizeof(uint8_t)];
 
                         /* Extract cached remote peer capabilities */
@@ -2343,16 +2338,9 @@ static void BleApp_CsEventHandlerSubeventAborted(deviceId_t deviceId, void *pDat
 static void BleApp_CsEventHandlerProcedureAborted(deviceId_t deviceId, void *pData)
 {
     uint8_t abortReason = *((uint8_t*)pData);
+    volatile uint8_t abortMask = 0xF0U;
 
-    /* MISRA Rule 10.3 - The value of an expression shall not be assigned to an object with a narrower essential type or of a different essential type category */
-    union
-    {
-        uint8_t u8;
-        uint32_t u32;
-    }temp = {0};
-
-    temp.u32 = ~0x0FU;
-    abortReason &= temp.u8;
+    abortReason &= abortMask;
 
     shell_write("All subsequent CS procedures aborted for deviceId ");
     shell_writeDec((uint8_t)deviceId);

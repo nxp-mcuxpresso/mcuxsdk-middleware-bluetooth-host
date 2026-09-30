@@ -4,7 +4,7 @@
 ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2023 NXP
+* Copyright 2016-2023, 2026 NXP
 *
 *
 * \file
@@ -162,12 +162,6 @@ void FsciBleOtap_SendPkt (opCode_t* pOpCode,
                           uint8_t*  pPayload,
                           uint16_t  payloadLen)
 {
-    union
-    {
-        clientPacketStructured_t*   pFsciOtapPktTemp;
-        clientPacket_t*             clientPacketTemp;
-    }clientPacketVars;
-
     clientPacketStructured_t*   pFsciOtapPkt;
 
     pFsciOtapPkt = FsciBleOtap_AllocatePacket (*pOpCode,
@@ -183,8 +177,7 @@ void FsciBleOtap_SendPkt (opCode_t* pOpCode,
 
         if (TRUE == FsciBleOtap_IsInterfaceValid (mFsciBleOtapInterfaceId))
         {
-            clientPacketVars.pFsciOtapPktTemp = pFsciOtapPkt;
-            FSCI_transmitFormatedPacket (clientPacketVars.clientPacketTemp, mFsciBleOtapInterfaceId);
+            FSCI_transmitFormatedPacket ((clientPacket_t*)(void*)pFsciOtapPkt, mFsciBleOtapInterfaceId);
         }
     }
     else

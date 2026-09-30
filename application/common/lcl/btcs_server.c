@@ -458,11 +458,7 @@ static void packSubEvtHeader
 {
     uint8_t subEvtIdx = mpRangingData[deviceId].pCfg->subeventIndex;
 
-    union
-    {
-        uint16_t u16;
-        uint32_t u32;
-    }dataLen = {0U};
+    volatile uint16_t dataLen = 0U;
 
     if (mGlobalRangeSettings.role == gCsRoleInitiator_c)
     {
@@ -485,17 +481,17 @@ static void packSubEvtHeader
                     sizeof(gCsSubEvtHeaderInitData_t));
 
         /* Save the position of the totalSubEvtSteps field for later updates */
-        dataLen.u32 = (2U*sizeof(uint16_t)) + (4U*sizeof(uint8_t));
-        mpSegmIdx[deviceId]->numStepsHdrIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex + dataLen.u16;
+        dataLen = (uint16_t)((2U*sizeof(uint16_t)) + (4U*sizeof(uint8_t)));
+        mpSegmIdx[deviceId]->numStepsHdrIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex + dataLen;
         mpSegmIdx[deviceId]->numStepsIdx = mpSegmIdx[deviceId]->numStepsHdrIdx + 1U;
         /* Save index for the procedure done status field for late updates */
-        dataLen.u32 = sizeof(uint16_t);
-        mpSegmIdx[deviceId]->procDoneStatusIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex + dataLen.u16;
+        dataLen = (uint16_t)sizeof(uint16_t);
+        mpSegmIdx[deviceId]->procDoneStatusIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex + dataLen;
 
         /* Update counters */
-        dataLen.u32 = sizeof(gCsSubEvtHeaderInitData_t);
-        mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen.u16;
-        *pOutMaxDataSize -= dataLen.u16;
+        dataLen = (uint16_t)sizeof(gCsSubEvtHeaderInitData_t);
+        mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen;
+        *pOutMaxDataSize -= dataLen;
     }
     else
     {
@@ -517,19 +513,19 @@ static void packSubEvtHeader
                     sizeof(gCsSubEvtHeaderReflData_t));
 
         /* Save the position of the totalSubEvtSteps field for later updates */
-        dataLen.u32 = sizeof(uint16_t) + (4U*sizeof(uint8_t));
-        mpSegmIdx[deviceId]->numStepsHdrIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex + dataLen.u16;
+        dataLen = (uint16_t)(sizeof(uint16_t) + (4U*sizeof(uint8_t)));
+        mpSegmIdx[deviceId]->numStepsHdrIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex + dataLen;
 
         /* Save index for the procedure done status field for late updates */
         mpSegmIdx[deviceId]->numStepsIdx = mpSegmIdx[deviceId]->numStepsHdrIdx + 1U;
         /* Update procedure and subevent status */
-        dataLen.u32 = sizeof(uint16_t);
-        mpSegmIdx[deviceId]->procDoneStatusIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex + dataLen.u16;
+        dataLen = (uint16_t)sizeof(uint16_t);
+        mpSegmIdx[deviceId]->procDoneStatusIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex + dataLen;
 
         /* Update counters */
-        dataLen.u32 = sizeof(gCsSubEvtHeaderReflData_t);
-        mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen.u16;
-        *pOutMaxDataSize -= dataLen.u16;
+        dataLen = (uint16_t)sizeof(gCsSubEvtHeaderReflData_t);
+        mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen;
+        *pOutMaxDataSize -= dataLen;
     }
 }
 
@@ -739,11 +735,7 @@ static void buildProcHeader
     uint16_t maxDataSize = gMaxPayloadSize_c;
     uint8_t segmIdx = mpSegmIdx[deviceId]->crtIdx;
     uint8_t subEvtIdx = 0U;
-    union
-    {
-        uint16_t u16;
-        uint32_t u32;
-    }dataLen = {0U};
+    volatile uint16_t dataLen = 0U;
 
     gCsProcHeaderData_t procHeader;
 
@@ -762,9 +754,9 @@ static void buildProcHeader
 
     /* Copy procedure header information and update parsed length */
     FLib_MemCpy(mpRangingData[deviceId].pRangingData, &procHeader, sizeof(gCsProcHeaderData_t));
-    dataLen.u32 = sizeof(gCsProcHeaderData_t);
-    mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen.u16;
-    maxDataSize -= dataLen.u16;
+    dataLen = (uint16_t)sizeof(gCsProcHeaderData_t);
+    mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen;
+    maxDataSize -= dataLen;
 
     /* Pack subevent header information */
     packSubEvtHeader(deviceId, &maxDataSize);
@@ -811,11 +803,7 @@ static void buildSubEvtCont
     uint16_t parsedLen = 0U;
     uint8_t segmIdx = mpSegmIdx[deviceId]->crtIdx;
     uint8_t subEvtIdx = mpRangingData[deviceId].pCfg->subeventIndex;
-    union
-    {
-        uint16_t u16;
-        uint32_t u32;
-    }dataLen = {0U};
+    volatile uint16_t dataLen = 0U;
 
     gCsProcContHeaderData_t   procContHeader;
     gCsSubEvtContHeaderData_t subEvtContHeader;
@@ -829,14 +817,14 @@ static void buildSubEvtCont
         newProcContHdr.seqNo = (uint8_t)(mpRangingData[deviceId].pCfg->procedureCounter & 0xFFU);
         FLib_MemCpy(mpRangingData[deviceId].pRangingData + mpRangingData[deviceId].pCfg->totalSentRcvDataIndex,
                     &newProcContHdr, sizeof(gCsProcContHeaderData_t));
-        dataLen.u32 = sizeof(gCsProcContHeaderData_t);
-        mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen.u16;
+        dataLen = (uint16_t)sizeof(gCsProcContHeaderData_t);
+        mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen;
         newSubEvtContHdr.startACLConnEvt = mpRangingData[deviceId].pCfg->aSubEventData[subEvtIdx].subevtHeader.startACLConnEvent;
         newSubEvtContHdr.numStepsReported = 0U;
         FLib_MemCpy(mpRangingData[deviceId].pRangingData + mpRangingData[deviceId].pCfg->totalSentRcvDataIndex,
                     &newSubEvtContHdr, sizeof(gCsSubEvtContHeaderData_t));
-        dataLen.u32 = sizeof(gCsSubEvtContHeaderData_t);
-        mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen.u16;
+        dataLen = (uint16_t)sizeof(gCsSubEvtContHeaderData_t);
+        mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen;
         mpSegmIdx[deviceId]->numStepsIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex - 1U;
         mpSegmIdx[deviceId]->modeArraySteps = 0U;
         currentLen = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex - mpSegmIdx[deviceId]->aSegmIdx[segmIdx];
@@ -876,9 +864,9 @@ static void buildSubEvtCont
         FLib_MemCpy(mpRangingData[deviceId].pRangingData + mpRangingData[deviceId].pCfg->totalSentRcvDataIndex,
                                 &procContHeader,
                                 sizeof(gCsProcContHeaderData_t));
-        dataLen.u32 = sizeof(gCsProcContHeaderData_t);
-        mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen.u16;
-        maxDataSize -= dataLen.u16;
+        dataLen = (uint16_t)sizeof(gCsProcContHeaderData_t);
+        mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen;
+        maxDataSize -= dataLen;
 
         /* Copy subevent header information */
         subEvtContHeader.startACLConnEvt = mpRangingData[deviceId].pCfg->aSubEventData[subEvtIdx].subevtHeader.startACLConnEvent;
@@ -886,9 +874,9 @@ static void buildSubEvtCont
         FLib_MemCpy(mpRangingData[deviceId].pRangingData + mpRangingData[deviceId].pCfg->totalSentRcvDataIndex,
                                 &subEvtContHeader,
                                 sizeof(gCsSubEvtContHeaderData_t));
-        dataLen.u32 = sizeof(gCsSubEvtContHeaderData_t);
-        mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen.u16;
-        maxDataSize -= dataLen.u16;
+        dataLen = (uint16_t)sizeof(gCsSubEvtContHeaderData_t);
+        mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen;
+        maxDataSize -= dataLen;
         /* Save index for the num steps reported to be updated later */
         mpSegmIdx[deviceId]->numStepsIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex - 1U;
 
@@ -940,11 +928,7 @@ static void buildSubEvtNew
     uint8_t subEvtIdx = mpRangingData[deviceId].pCfg->subeventIndex;
     bool_t bBuiltHeader = FALSE;
     uint16_t parsedLen = 0U;
-    union
-    {
-        uint16_t u16;
-        uint32_t u32;
-    }dataLen = {0U};
+    volatile uint16_t dataLen = 0U;
 
     gCsProcContHeaderData_t procContHeader;
     gCsSubEvtContHeaderData_t subEvtContHeader;
@@ -1044,9 +1028,9 @@ static void buildSubEvtNew
         FLib_MemCpy(mpRangingData[deviceId].pRangingData + mpRangingData[deviceId].pCfg->totalSentRcvDataIndex,
                     &procContHeader,
                     sizeof(gCsProcContHeaderData_t));
-        dataLen.u32 = sizeof(gCsProcContHeaderData_t);
-        mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen.u16;
-        maxDataSize -= dataLen.u16;
+        dataLen = (uint16_t)sizeof(gCsProcContHeaderData_t);
+        mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen;
+        maxDataSize -= dataLen;
 
         if (bBuiltHeader == FALSE)
         {
@@ -1061,9 +1045,9 @@ static void buildSubEvtNew
             FLib_MemCpy(mpRangingData[deviceId].pRangingData + mpRangingData[deviceId].pCfg->totalSentRcvDataIndex,
                         &subEvtContHeader,
                         sizeof(gCsSubEvtContHeaderData_t));
-            dataLen.u32 = sizeof(gCsSubEvtContHeaderData_t);
-            mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen.u16;
-            maxDataSize -= dataLen.u16;
+            dataLen = (uint16_t)sizeof(gCsSubEvtContHeaderData_t);
+            mpRangingData[deviceId].pCfg->totalSentRcvDataIndex += dataLen;
+            maxDataSize -= dataLen;
             /* Save index for the num steps reported to be updated later */
             mpSegmIdx[deviceId]->numStepsIdx = mpRangingData[deviceId].pCfg->totalSentRcvDataIndex - 1U;
         }
@@ -1113,11 +1097,7 @@ static uint16_t parseSubeventData
     uint16_t retBytes = 0U;
     uint8_t* pStepDataAux = pSrcBuff;
     uint8_t numAntennaPaths = mpRangingData[deviceId].pCfg->numAntennaPaths;
-    union {
-        uint8_t stepLen8;
-        uint16_t stepLen16;
-        uint32_t stepLen32;
-    } stepLen = {0U};
+    uint16_t stepLen16 = 0U;
     /* Save current dataParsedLen to compute how many source bytes were consumed */
     uint16_t parsedLen = mpRangingData[deviceId].pCfg->dataParsedLen;
 
@@ -1341,9 +1321,9 @@ static uint16_t parseSubeventData
 
             /* Update step counters and track how much source data has been consumed */
             (*pOutNumSteps)++;
-            stepLen.stepLen8 = stepDataLength;
-            mpRangingData[deviceId].pCfg->aSubEventData[subEvtIdx].currentDataSize += stepLen.stepLen16 + 3U;
-            mpRangingData[deviceId].pCfg->dataParsedLen += stepLen.stepLen16 + 3U;
+            stepLen16 = (uint16_t)stepDataLength;
+            mpRangingData[deviceId].pCfg->aSubEventData[subEvtIdx].currentDataSize += stepLen16 + 3U;
+            mpRangingData[deviceId].pCfg->dataParsedLen += stepLen16 + 3U;
         }
 
         /*

@@ -1141,11 +1141,6 @@ bool_t measurement_send_vs_config
 
     if (ant2gpio_p != NULL)
     {
-        union
-        {
-            int16_t i16;
-            uint16_t u16;
-        } temp = {0};
         /* Fill message data */
         aAppData[0U] = 2U; /* Default antenna switch time */
         aAppData[1U] = 4U; /* Number of antenna paths */
@@ -1154,8 +1149,9 @@ bool_t measurement_send_vs_config
         /* RTT fine tuning */
         for (uint8_t index = 0U; index < 3U; index++)
         {
-            temp.i16 = maRttFineTuningParams[index];
-            Utils_PackTwoByteValue(temp.u16, &aAppData[3U + CS_MAX_NB_ANTENNAS + index * sizeof(uint16_t)]);
+            uint16_t rttFineTuningValue;
+            FLib_MemCpy(&rttFineTuningValue, &maRttFineTuningParams[index], sizeof(rttFineTuningValue));
+            Utils_PackTwoByteValue(rttFineTuningValue, &aAppData[3U + CS_MAX_NB_ANTENNAS + index * sizeof(uint16_t)]);
         }
         /* PCT rotation calibration */
         FLib_MemCpy((void *)(&aAppData[9U + CS_MAX_NB_ANTENNAS]), maPctRotationParams, (4U * CS_MAX_NB_ANTENNAS));

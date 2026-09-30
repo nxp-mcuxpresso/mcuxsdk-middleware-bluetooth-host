@@ -2731,10 +2731,6 @@ static bleResult_t HandleAnchorStartSearchCommand(uint8_t *pCmdData, appHandover
 {
     bleResult_t result = gBleSuccess_c;
     gapHandoverAnchorSearchStartParams_t searchParams;
-    union {
-        uint8_t                       mode8;
-        bleHandoverAnchorSearchMode_t mode;
-    } temp = {0U};
         
 #if defined(gA2BEnabled_d) && (gA2BEnabled_d > 0U)
     uint8_t peerNvmIndex = gInvalidNvmIndex_c;
@@ -2782,8 +2778,7 @@ static bleResult_t HandleAnchorStartSearchCommand(uint8_t *pCmdData, appHandover
     pCmdData++;
     searchParams.ucNbReports = *pCmdData;
     pCmdData++;
-    temp.mode8 = *pCmdData;
-    searchParams.mode = temp.mode;
+    searchParams.mode = (bleHandoverAnchorSearchMode_t)*pCmdData;
     searchParams.reportLatency = (uint8_t)gHandoverAnchorMonitorReportLatency_c;
     searchParams.connEvtRxLatency = (uint8_t)gHandoverAnchorMonitorConnEvtRxLatency_c;
 

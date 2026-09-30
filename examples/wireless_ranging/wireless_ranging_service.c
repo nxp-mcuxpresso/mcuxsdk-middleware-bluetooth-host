@@ -122,6 +122,7 @@ typedef struct wrs_RangingConnection_tag {
     uint16_t bufferSize;
     uint8_t nxtFragmentId;
     uint8_t expectedFrameType;
+    wrs_EventType_t timerEvent;
 } wrs_RangingConnection_t;
 
 /*! For internal use */
@@ -292,14 +293,12 @@ void wrs_ConnDataInit(const deviceId_t deviceId, const uint16_t connInterval)
     assert(deviceId < ((uint8_t)gAppMaxConnections_c + 1U));
     gWrsConn[deviceId].wrsRole = eRoleNone;
     gWrsConn[deviceId].state = eStateIdle;
-    union {
-        uint32_t v32;
-        uint16_t v16;
-        float vf;
-    } tmp = {0U};
-    tmp.v16 = connInterval;
-    tmp.vf = 1.25f * tmp.vf;
-    gWrsConn[deviceId].connIntervalMs = tmp.v32;
+    uint32_t connBits = (uint32_t)connInterval;
+    float connFloat;
+    FLib_MemCpy(&connFloat, &connBits, sizeof(connFloat));
+    connFloat = 1.25f * connFloat;
+    FLib_MemCpy(&connBits, &connFloat, sizeof(connBits));
+    gWrsConn[deviceId].connIntervalMs = connBits;
     (void)TM_Open((timer_handle_t)gWrsConn[deviceId].timerHandle);
 }
 
@@ -350,24 +349,21 @@ void wrs_msg_received
 {
     wrs_ReturnCode_t rc;
     wrs_FrameResult_t frame;
-    union {
-        uintptr_t vptr;
-        void *vp;
-    } arg = {0U};
+    uint32_t argValue;
 
     FLib_MemCpy(&frame, pStream, sizeof(frame));
 
     DPRINTF_DBG("Rx OTA Msg type=%d streamSz=%d\n", frame.frameType, streamSize);
     if (gWrsConn[deviceId].expectedFrameType == (uint8_t)eFrameTypeNone) {
-        arg.vptr = (uintptr_t)frame.frameType;
-        wrs_EventHandler(deviceId, eEvtOTAUnexpectedFrameReceived, arg.vp);
+        argValue = (uint32_t)frame.frameType;
+        wrs_EventHandler(deviceId, eEvtOTAUnexpectedFrameReceived, &argValue);
     } else {
         rc = wrs_FrameHandle(deviceId, pStream, streamSize);
         if (rc != eReturnSuccess)
         {
             DPRINTF_DBG("Rx frame error %d\n", rc);
-            arg.vptr = (uintptr_t)rc;
-            wrs_EventHandler(deviceId, eEvtOTARxError, arg.vp);
+            argValue = (uint32_t)rc;
+            wrs_EventHandler(deviceId, eEvtOTARxError, &argValue);
         }
     }
 }
@@ -640,14 +636,9 @@ static wrs_ReturnCode_t wrs_FrameHandle
     wrs_EventType_t fsmEvent = eEvtOTARxError;
     void (* setData) (deviceId_t deviceId, uint8_t *buffer, uint16_t offset, uint16_t frame_length) = NULL;
     wrs_ReturnCode_t ret = eReturnSuccess;
-    union {
-        uint8_t *pStream;
-        wrs_FrameResult_t *frame;
-    } tmp = {0U};
+    wrs_FrameResult_t *frame = (wrs_FrameResult_t *)(void *)pStream;
 
-    tmp.pStream = pStream;
-
-    switch (tmp.frame->frameType)
+    switch (frame->frameType)
     {
     case (uint8_t)eFrameTypeResultData:
         fsmEvent = eEvtOTAResultFrameReceived;
@@ -669,33 +660,33 @@ static wrs_ReturnCode_t wrs_FrameHandle
         return ret;
     }
 
-    DPRINTF_DBG("  fragId=%d sz=%d remain=%d\n", tmp.frame->fragmentId, tmp.frame->size, tmp.frame->remain);
-    if (streamSize != (sizeof(wrs_FrameResult_t) + tmp.frame->size))
+    DPRINTF_DBG("  fragId=%d sz=%d remain=%d\n", frame->fragmentId, frame->size, frame->remain);
+    if (streamSize != (sizeof(wrs_FrameResult_t) + frame->size))
     {
         return eReturnInvalidFrameLength;
     }
     if (gWrsConn[deviceId].nxtFragmentId == 0U) {
         /* First frame received */
-        gWrsConn[deviceId].bufferSize = tmp.frame->remain;
+        gWrsConn[deviceId].bufferSize = frame->remain;
         if (gWrsConn[deviceId].bufferSize >= (uint16_t)gCsRawBufferSz_c) {
             return eReturnFrameTooBig;
         }
     }
     /* Check if frame arrived 'in order' */
-    if (tmp.frame->fragmentId != gWrsConn[deviceId].nxtFragmentId) {
+    if (frame->fragmentId != gWrsConn[deviceId].nxtFragmentId) {
         return eReturnUnorderedFragment;
     }
     gWrsConn[deviceId].nxtFragmentId++;
     /* Check length consistency */
-    if ((gWrsConn[deviceId].bufferOffset + tmp.frame->remain) > gWrsConn[deviceId].bufferSize) {
+    if ((gWrsConn[deviceId].bufferOffset + frame->remain) > gWrsConn[deviceId].bufferSize) {
         return eReturnWrongFrameRemain;
     }
 
     (*setData)(deviceId,
                 &pStream[sizeof(wrs_FrameResult_t)],
                 gWrsConn[deviceId].bufferOffset,
-                tmp.frame->size);
-    gWrsConn[deviceId].bufferOffset += tmp.frame->size; /* move to next fragment */
+                frame->size);
+    gWrsConn[deviceId].bufferOffset += frame->size; /* move to next fragment */
     wrs_EventHandler(deviceId, fsmEvent, NULL);
 
     return eReturnSuccess;
@@ -1160,11 +1151,11 @@ static void wrs_EventHandler
                 break;
 
             case eEvtOTARxError:
-                DPRINTF("eEvtOTARxError 0x%0X", (uint32_t)arg);
+                DPRINTF("eEvtOTARxError 0x%0X", *(const uint32_t *)arg);
                 break;
 
             case eEvtOTAUnexpectedFrameReceived:
-                DPRINTF("eEvtOTAUnexpectedFrameReceived st=%d 0x%0X", currentState, (uint32_t)arg);
+                DPRINTF("eEvtOTAUnexpectedFrameReceived st=%d 0x%0X", currentState, *(const uint32_t *)arg);
                 break;
 
             default:
@@ -1229,18 +1220,14 @@ static void wrs_EventSend
 ********************************************************************************** */
 static void wrs_TimerHandler(void *param)
 {
-    uint32_t eventType;
-    union {
-        uint32_t v32;
-        void *vp;
-    } arg = {0U};
+    const wrs_RangingConnection_t *pConn = param;
+    ptrdiff_t idx = pConn - gWrsConn;
 
-    arg.vp = param;
-    eventType = arg.v32 & 0xFFU;
-
-    wrs_EventSend((deviceId_t)(arg.v32 >> 8U),
-                  (wrs_EventType_t)eventType,
-                  NULL);
+    if ((idx >= 0) && (idx <= (ptrdiff_t)gAppMaxConnections_c))
+    {
+        deviceId_t deviceId = (deviceId_t)idx;
+        wrs_EventSend(deviceId, gWrsConn[deviceId].timerEvent, NULL);
+    }
 }
 
 /*! *********************************************************************************
@@ -1257,15 +1244,10 @@ static void wrs_StartEventTimer
     uint32_t timeoutMs
 )
 {
-    union {
-        uint32_t v32;
-        void *vp;
-    } arg = {0U};
-
-    arg.v32 = ((uint32_t)deviceId << 8U) | (uint8_t)event;
+    gWrsConn[deviceId].timerEvent = event;
 
     DPRINTF_DBG("start tmr dev=%d %dms\n", deviceId, timeoutMs);
-    (void)TM_InstallCallback(gWrsConn[deviceId].timerHandle, wrs_TimerHandler, arg.vp);
+    (void)TM_InstallCallback(gWrsConn[deviceId].timerHandle, wrs_TimerHandler, &gWrsConn[deviceId]);
     (void)TM_Start(gWrsConn[deviceId].timerHandle, kTimerModeSingleShot | kTimerModeLowPowerTimer, timeoutMs);
 }
 
@@ -1474,12 +1456,7 @@ static wrs_ReturnCode_t wrs_FrameSend
     uint16_t bufferSize = gWrsConn[deviceId].bufferSize;
     void (* getData)(deviceId_t deviceId, uint8_t *buffer, uint32_t offset, uint32_t frame_length) = NULL;
     wrs_ReturnCode_t ret = eReturnSuccess;
-    union {
-        uint8_t *frameBuffer;
-        wrs_FrameResult_t *frame;
-    } tmp = {0U};
-
-    tmp.frameBuffer = gFrameBuffer;
+    wrs_FrameResult_t *frame = (wrs_FrameResult_t *)(void *)gFrameBuffer;
 
     switch (frameType)
     {
@@ -1501,34 +1478,34 @@ static wrs_ReturnCode_t wrs_FrameSend
         return ret;
     }
 
-    tmp.frame->frameType = (uint8_t)frameType;
+    frame->frameType = (uint8_t)frameType;
     assert(bufferSize > gWrsConn[deviceId].bufferOffset);
     int32_t remaining = (int32_t)bufferSize - (int32_t)gWrsConn[deviceId].bufferOffset;
-    tmp.frame->remain = (uint16_t)remaining;
-    tmp.frame->size = gAttMaxWriteDataSize_d(mAppMtu) - (uint16_t)sizeof(wrs_FrameResult_t);
-    tmp.frame->fragmentId = gWrsConn[deviceId].nxtFragmentId;
+    frame->remain = (uint16_t)remaining;
+    frame->size = gAttMaxWriteDataSize_d(mAppMtu) - (uint16_t)sizeof(wrs_FrameResult_t);
+    frame->fragmentId = gWrsConn[deviceId].nxtFragmentId;
 
-    if (tmp.frame->remain < tmp.frame->size)
+    if (frame->remain < frame->size)
     {
-        tmp.frame->size = tmp.frame->remain;
+        frame->size = frame->remain;
     }
 
-    if (tmp.frame->size == 0U)
+    if (frame->size == 0U)
     {
         return eReturnEmptyFrame;
     }
     (*getData)(deviceId,
-                &tmp.frameBuffer[sizeof(wrs_FrameResult_t)],
+                &gFrameBuffer[sizeof(wrs_FrameResult_t)],
                 gWrsConn[deviceId].bufferOffset,
-                tmp.frame->size);
+                frame->size);
 
-    DPRINTF_DBG("Tx OTA Msg type=%d sz=%d remain=%d\n", tmp.frame->frameType, tmp.frame->size, tmp.frame->remain);
+    DPRINTF_DBG("Tx OTA Msg type=%d sz=%d remain=%d\n", frame->frameType, frame->size, frame->remain);
     /* Advance offset only if the stack was able to send the packet, will be retried on next iteration */
 
-    if (BleApp_SendMessage(deviceId, tmp.frameBuffer, tmp.frame->size + (uint16_t)sizeof(wrs_FrameResult_t)) == gBleSuccess_c)
+    if (BleApp_SendMessage(deviceId, gFrameBuffer, frame->size + (uint16_t)sizeof(wrs_FrameResult_t)) == gBleSuccess_c)
     {
         DPRINTF_DBG("Msg sent \n");
-        gWrsConn[deviceId].bufferOffset += tmp.frame->size; /* move to next fragment */
+        gWrsConn[deviceId].bufferOffset += frame->size; /* move to next fragment */
         gWrsConn[deviceId].nxtFragmentId++;
         return eReturnSuccess;
     }

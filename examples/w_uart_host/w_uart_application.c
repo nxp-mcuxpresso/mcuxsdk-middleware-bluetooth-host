@@ -62,19 +62,15 @@
 #define gAllowToBlock_d                 (TRUE)
 #define gNoBlock_d                      (FALSE)
 #define Serial_Print(a,b)               do{ \
-                                            union \
-                                            { \
-                                                const char *pStr; \
-                                                uint8_t *pUint8; \
-                                            } temp; \
-                                            temp.pStr = (a); \
+                                            const char *pStr = (a); \
+                                            uint8_t *pBuf = Serial_LaunderConstStr(pStr); \
                                             if ((b) == gAllowToBlock_d) \
                                             { \
-                                                (void)SerialManager_WriteBlocking((serial_write_handle_t)s_writeHandle, (uint8_t *)temp.pUint8, strlen(temp.pStr)); \
+                                                (void)SerialManager_WriteBlocking((serial_write_handle_t)s_writeHandle, pBuf, strlen(pStr)); \
                                             } \
                                             else \
                                             { \
-                                                (void)SerialManager_WriteNonBlocking((serial_write_handle_t)s_writeHandle, (uint8_t *)temp.pUint8, strlen(temp.pStr)); \
+                                                (void)SerialManager_WriteNonBlocking((serial_write_handle_t)s_writeHandle, pBuf, strlen(pStr)); \
                                             } \
                                         } while(0);
 #define Serial_PrintDec(a)              (void)SerialManager_WriteBlocking((serial_write_handle_t)s_writeHandle, FORMAT_Dec2Str(a), strlen((char const *)FORMAT_Dec2Str(a)))
@@ -95,6 +91,8 @@ typedef struct advState_tag
  * Private functions prototypes
  *************************************************************************************
  ************************************************************************************/
+static uint8_t *Serial_LaunderConstStr(const char *pStr);
+
 static void BleApp_StateMachineHandleIdle
 (
     deviceId_t peerDeviceId,
@@ -418,6 +416,31 @@ static void BleApp_HandleControllerNotification
 ************************************************************************************/
 
 /*! *********************************************************************************
+ * \brief        Launder a read-only string pointer into the non-const uint8_t*
+ *               pointer type expected by the SerialManager write API.
+ *
+ * The SerialManager_WriteBlocking / SerialManager_WriteNonBlocking buffer
+ * parameter is a non-const uint8_t*, but the application only ever passes
+ * read-only string literals. Copying the pointer value (not the pointed-to
+ * bytes) through void* avoids a const-removing cast and keeps the pointed-to
+ * data untouched. Performing the copy inside a real (non-inlined at source
+ * level) function keeps the size argument tied to the pointer object size
+ * (sizeof(uint8_t*)) rather than the size of any string literal folded in at
+ * the call site.
+ *
+ * \param[in]    pStr    Pointer to the read-only string to transmit.
+ * \return       The same address, typed as uint8_t*.
+ ********************************************************************************** */
+static uint8_t *Serial_LaunderConstStr(const char *pStr)
+{
+    uint8_t *pBuf = NULL;
+
+    (void)memcpy((void *)&pBuf, (const void *)&pStr, sizeof(pBuf));
+
+    return pBuf;
+}
+
+/*! *********************************************************************************
  * \brief        Function used to setup the serial interface.
  *
  ********************************************************************************** */
@@ -671,13 +694,8 @@ static void BleApp_EventCallback2
 
         case (uint16_t)GATTGetMtuIndication_FSCI_ID:
         {
-            union
-            {
-                uint8_t     *pUuidArray;
-                bleUuid_t   *pUuidObj;
-            } temp; /* MISRA rule 11.3 */
+            bleUuid_t *pUuidObj = (bleUuid_t *)(void *)uuid_service_wireless_uart;
 
-            temp.pUuidArray = uuid_service_wireless_uart;
             tempMtu = pMsg->Data.GATTGetMtuIndication.Mtu;
 
             if (tempMtu >= gAttDefaultMtu_c)
@@ -700,7 +718,7 @@ static void BleApp_EventCallback2
                     /* Start Service Discovery */
                     (void)BleServDisc_FindService(mLastGetMtuDeviceId,
                                                 gBleUuidType128_c,
-                                                temp.pUuidObj);
+                                pUuidObj);
                 }
             }
         }
@@ -1126,13 +1144,7 @@ void BleApp_StateMachineHandler
     appEvent_t event
 )
 {
-    union
-    {
-        uint8_t     *pUuidArray;
-        bleUuid_t   *pUuidObj;
-    } temp; /* MISRA rule 11.3 */
-
-    temp.pUuidArray = uuid_service_wireless_uart;
+    bleUuid_t *pUuidObj = (bleUuid_t *)(void *)uuid_service_wireless_uart;
 
     /* invalid client information */
     if (maPeerInformation[peerDeviceId].deviceId != gInvalidDeviceId_c)
@@ -1141,7 +1153,7 @@ void BleApp_StateMachineHandler
         {
         case mAppIdle_c:
         {
-            BleApp_StateMachineHandleIdle(peerDeviceId, event, temp.pUuidObj);
+            BleApp_StateMachineHandleIdle(peerDeviceId, event, pUuidObj);
         }
         break;
 

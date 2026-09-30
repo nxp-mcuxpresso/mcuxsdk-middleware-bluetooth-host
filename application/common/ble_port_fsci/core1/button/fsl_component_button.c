@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -76,21 +76,22 @@ button_status_t BUTTON_InstallCallback
 {
     button_state_t *buttonState;
     uint8_t buttonId;
-    union {
-      button_handle_t bh;
-      uint32_t bhu32;
-    } btHandle = {};
 
     assert(buttonHandle);
-
-    btHandle.bh = buttonHandle;
 
     buttonState = (button_state_t *)buttonHandle;
     buttonState->callback      = callback;
     buttonState->callbackParam = callbackParam;
 
-    buttonId = (uint8_t)((btHandle.bhu32 - (uint32_t)g_buttonHandle) /
-                         BUTTON_HANDLE_SIZE);
+    const uint8_t *pHandleBytes = (const uint8_t *)buttonHandle;
+    const uint8_t *pBaseBytes   = (const uint8_t *)(const void *)g_buttonHandle;
+    ptrdiff_t      handleOffset = pHandleBytes - pBaseBytes;
+
+    buttonId = 0U;
+    if (handleOffset > 0)
+    {
+        buttonId = (uint8_t)(((size_t)handleOffset / BUTTON_HANDLE_SIZE) & 0xFFU);
+    }
 
     FSCI_transmitPayload(BLE_PORT_FSCI_OG, (uint8_t)g_BUTTON_InstallCallback_c,
                          (void*)&buttonId, (uint16_t)sizeof(buttonId), gFsciInterface_c);
@@ -125,19 +126,15 @@ static void ButtonsHandler
    (void)len;
    (void)opc;
 
-    union {
-        fsciPortButtonData_t *pData;
-        void *pRawData;
-    } temp = {0};
+    fsciPortButtonData_t *pButtonData = (fsciPortButtonData_t *)(void *)pData;
 
     button_handle_t buttonHandle;
     button_state_t *buttonState;
     button_callback_message_t msg;
 
-    temp.pRawData = pData;
-    buttonHandle = &g_buttonHandle[temp.pData->id];
+    buttonHandle = &g_buttonHandle[pButtonData->id];
     buttonState = (button_state_t *)buttonHandle;
-    msg.event = temp.pData->event;
+    msg.event = pButtonData->event;
 
     (void)buttonState->callback(buttonHandle, &msg, buttonState->callbackParam);
 }

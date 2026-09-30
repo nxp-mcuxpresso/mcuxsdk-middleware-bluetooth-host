@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2019-2023, 2025 NXP
+* Copyright 2019-2023, 2025-2026 NXP
 *
 *
 * \file
@@ -528,12 +528,6 @@ void OtapClient_AttributeWritten(deviceId_t  deviceId,
                                     uint16_t    length,
                                     uint8_t*    pValue)
 {
-    union
-    {
-        uint8_t*                    pValue;
-        otapCommand_t*              otapCommandTemp;
-    }otapCommandVars;
-
     bleResult_t bleResult;
     otapCommand_t otapCommand;
 
@@ -541,9 +535,9 @@ void OtapClient_AttributeWritten(deviceId_t  deviceId,
      * ATT Write Command. */
     if (handle == (uint16_t)value_otap_control_point)
     {
-        otapCommandVars.pValue = pValue;
+        otapCommand_t* pOtapCommand = (otapCommand_t*)(void*)pValue;
         /*! Handle all OTAP Server to Client Commands Here. */
-        switch((otapCommandVars.otapCommandTemp)->cmdId)
+        switch(pOtapCommand->cmdId)
         {
         case gOtapCmdIdNewImageNotification_c:
             bleResult = GattServer_SendAttributeWrittenStatus (deviceId,
@@ -645,12 +639,6 @@ void OtapClient_AttributeWrittenWithoutResponse (deviceId_t deviceId,
                                                     uint16_t length,
                                                     uint8_t* pValue)
 {
-    union
-    {
-        uint8_t*                    pValueTemp;
-        otapCommand_t*              otapCommandTemp;
-    }otapCommandVars;
-
     otapCommand_t otapCommand;
     otapStatus_t otapStatus = gOtapStatusSuccess_c;
     bleResult_t bleResult;
@@ -663,8 +651,8 @@ void OtapClient_AttributeWrittenWithoutResponse (deviceId_t deviceId,
         {
             if (otapClientData.transferMethod == gOtapTransferMethodAtt_c)
             {
-                otapCommandVars.pValueTemp = pValue;
-                if ((otapCommandVars.otapCommandTemp)->cmdId == gOtapCmdIdImageChunk_c)
+                otapCommand_t* pOtapCommand = (otapCommand_t*)(void*)pValue;
+                if (pOtapCommand->cmdId == gOtapCmdIdImageChunk_c)
                 {
                     OtapClient_HandleDataChunk (deviceId,
                                                 length,
@@ -951,18 +939,11 @@ void OtapClient_HandleEncryptionChangedEvent (deviceId_t deviceId)
 ************************************************************************************/
 static void OtapClient_HandleDataChunk (deviceId_t deviceId, uint16_t length, uint8_t* pData)
 {
-    union
-    {
-        uint8_t*                    pDataTemp;
-        otapCommand_t*              otapCommandTemp;
-    }otapCommandVars;
-
     otapCommand_t   otapCommand;
     bleResult_t     bleResult;
     otapStatus_t    otapStatus = gOtapStatusSuccess_c;
 
-    otapCommandVars.pDataTemp = pData;
-    otapCmdImgChunkCoc_t* pDataChunk = &(otapCommandVars.otapCommandTemp->cmd.imgChunkCoc); //use the CoC Data Chunk type but observe the length
+    otapCmdImgChunkCoc_t* pDataChunk = &(((otapCommand_t*)(void*)pData)->cmd.imgChunkCoc); //use the CoC Data Chunk type but observe the length
     uint16_t dataLen = (length >= (gOtap_CmdIdFieldSize_c + gOtap_ChunkSeqNumberSize_c)) ? (length - gOtap_CmdIdFieldSize_c - gOtap_ChunkSeqNumberSize_c) : 0U;
 
     /* Variables for the local image file parsing state machine. */
@@ -1142,17 +1123,10 @@ static void OtapClient_HandleDataChunk (deviceId_t deviceId, uint16_t length, ui
 
 static void OtapClient_HandleNewImageNotification (deviceId_t deviceId, uint16_t length, uint8_t* pValue)
 {
-    union
-    {
-        uint8_t*                            pValueTemp;
-        otapCommand_t*                      otapCommandTemp;
-    }otapCommandVars;
-
     otapCommand_t otapCommand;
     bleResult_t   bleResult;
     otapStatus_t otapStatus = gOtapStatusSuccess_c;
-    otapCommandVars.pValueTemp = pValue;
-    otapCommand_t*  pRemoteCmd = otapCommandVars.otapCommandTemp;
+    otapCommand_t*  pRemoteCmd = (otapCommand_t*)(void*)pValue;
 
     /* Check the command length and parameters. */
     if (length != cmdIdToCmdLengthTable[gOtapCmdIdNewImageNotification_c])
@@ -1281,17 +1255,10 @@ static void OtapClient_HandleNewImageNotification (deviceId_t deviceId, uint16_t
 
 static void OtapClient_HandleNewImageInfoResponse (deviceId_t deviceId, uint16_t length, uint8_t* pValue)
 {
-    union
-    {
-        uint8_t*                        pValueTemp;
-        otapCommand_t*                  otapCommandTemp;
-    }otapCommandVars;
-
     otapCommand_t otapCommand;
     bleResult_t   bleResult;
     otapStatus_t otapStatus = gOtapStatusSuccess_c;
-    otapCommandVars.pValueTemp = pValue;
-    otapCommand_t*  pRemoteCmd = otapCommandVars.otapCommandTemp;
+    otapCommand_t*  pRemoteCmd = (otapCommand_t*)(void*)pValue;
 
     /* Check the command length and parameters. */
     if (length != cmdIdToCmdLengthTable[gOtapCmdIdNewImageInfoResponse_c])
@@ -1335,20 +1302,20 @@ static void OtapClient_HandleNewImageInfoResponse (deviceId_t deviceId, uint16_t
                otapClientData.peerOtapServer = deviceId;
             }
 
-            if ((FLib_MemCmp(otapClientData.imgId, pRemoteCmd->cmd.newImgNotif.imageId, gOtap_ImageIdFieldSize_c)) &&
-                (FLib_MemCmp(otapClientData.imgVer, pRemoteCmd->cmd.newImgNotif.imageVersion, gOtap_ImageVersionFieldSize_c))
+            if ((FLib_MemCmp(otapClientData.imgId, pRemoteCmd->cmd.newImgInfoRes.imageId, gOtap_ImageIdFieldSize_c)) &&
+                (FLib_MemCmp(otapClientData.imgVer, pRemoteCmd->cmd.newImgInfoRes.imageVersion, gOtap_ImageVersionFieldSize_c))
                )
             {
                 OtapClient_ResetBlockTransferParameters (deviceId);
                 OtapClient_ContinueImageDownload (deviceId);
             }
-            else if (OtapClient_IsRemoteImageNewer(pRemoteCmd->cmd.newImgNotif.imageId, pRemoteCmd->cmd.newImgNotif.imageVersion))
+            else if (OtapClient_IsRemoteImageNewer(pRemoteCmd->cmd.newImgInfoRes.imageId, pRemoteCmd->cmd.newImgInfoRes.imageVersion))
             {
                 /*! A newer image than the one being downloaded is available, restart the download with the new image. */
 
-                FLib_MemCpy(otapClientData.imgId, pRemoteCmd->cmd.newImgNotif.imageId, gOtap_ImageIdFieldSize_c);
-                FLib_MemCpy(otapClientData.imgVer, pRemoteCmd->cmd.newImgNotif.imageVersion, gOtap_ImageVersionFieldSize_c);
-                otapClientData.imgSize = pRemoteCmd->cmd.newImgNotif.imageFileSize;
+                FLib_MemCpy(otapClientData.imgId, pRemoteCmd->cmd.newImgInfoRes.imageId, gOtap_ImageIdFieldSize_c);
+                FLib_MemCpy(otapClientData.imgVer, pRemoteCmd->cmd.newImgInfoRes.imageVersion, gOtap_ImageVersionFieldSize_c);
+                otapClientData.imgSize = pRemoteCmd->cmd.newImgInfoRes.imageFileSize;
                 otapClientData.currentPos = 0;
                 OtapClient_ResetBlockTransferParameters (deviceId);
 
@@ -1413,17 +1380,10 @@ static void OtapClient_HandleNewImageInfoResponse (deviceId_t deviceId, uint16_t
 
 static void OtapClient_HandleErrorNotification (deviceId_t deviceId, uint16_t length, uint8_t* pValue)
 {
-    union
-    {
-        uint8_t*                    pValueTemp;
-        otapCommand_t*              otapCommandTemp;
-    }otapCommandVars;
-
     otapCommand_t otapCommand;
     bleResult_t   bleResult;
     otapStatus_t otapStatus = gOtapStatusSuccess_c;
-    otapCommandVars.pValueTemp = pValue;
-    otapCommand_t*  pRemoteCmd = otapCommandVars.otapCommandTemp;
+    otapCommand_t*  pRemoteCmd = (otapCommand_t*)(void*)pValue;
 
     /* Check the command length and parameters. */
     if (length == cmdIdToCmdLengthTable[gOtapCmdIdErrorNotification_c])

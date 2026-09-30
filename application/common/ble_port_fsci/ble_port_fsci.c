@@ -91,13 +91,10 @@ static void BLE_PortFsciRxHandler(void* pData, void* param, uint32_t fsciInterfa
 ********************************************************************************** */
 void BLE_PortFsciInit(void)
 {
-    union
-    {
-        void *pVoid;
-        pfFSCI_Send_t pfFSCI_Send;
-    } fsciHandle;
-    fsciHandle.pfFSCI_Send = &BLE_PortFsciSend;
-    g_fsciHandleList[0] = fsciHandle.pVoid;
+    pfFSCI_Send_t pfFsciSend = &BLE_PortFsciSend;
+    void         *pFsciHandle = NULL;
+    FLib_MemCpy(&pFsciHandle, &pfFsciSend, sizeof(pFsciHandle));
+    g_fsciHandleList[0] = pFsciHandle;
 
     /* Init FSCI */
     FSCI_commInit(g_fsciHandleList);

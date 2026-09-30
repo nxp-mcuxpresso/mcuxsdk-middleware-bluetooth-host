@@ -2124,10 +2124,6 @@ void A2A_SendApplicationData(deviceId_t deviceId)
 
     if (pAppData != NULL)
     {
-        union {
-            uint8_t                 u8LocState;
-            appLocalization_State_t locState;
-        } temp = {0U}; /* MISRA rule 11.3 */
         uint8_t* pAuxPtr = pAppData;
         uint8_t nvmIndex = gInvalidNvmIndex_c;
         bool_t isBonded = FALSE;
@@ -2140,8 +2136,7 @@ void A2A_SendApplicationData(deviceId_t deviceId)
         pAuxPtr += sizeof(appLocalization_rangeCfg_t);
 
         /* Application state */
-        temp.locState = AppLocalization_GetLocState(deviceId);
-        *pAuxPtr = temp.u8LocState;
+        *pAuxPtr = (uint8_t)AppLocalization_GetLocState(deviceId);
         pAuxPtr = &pAuxPtr[1];
 
         (void)Gap_CheckIfBonded(deviceId, &isBonded, &nvmIndex);

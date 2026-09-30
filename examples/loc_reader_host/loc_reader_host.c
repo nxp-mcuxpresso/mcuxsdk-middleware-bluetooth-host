@@ -309,10 +309,6 @@ void BleApp_HandleNcpMsg
     /* Extra 4 bytes present only in the Start packets */
     uint16_t bufSizesLen = (uint16_t)(sizeof(uint16_t) + sizeof(uint16_t));
     uint32_t evenDataSize = (uint32_t)gFsciMaxPayloadLen_c - sizeof(ncpIqTransferMsgType_t) - sizeof(deviceId_t) - 1U;
-    union {
-      uint32_t u32;
-      uint16_t u16;
-    } dataLen = {};
 
     rasMeasurementData_t* pLocalData = AppLocalization_GetLocalData(deviceId);
     rasMeasurementData_t* pPeerData = RasClient_GetPeerRangingData(deviceId);
@@ -344,8 +340,7 @@ void BleApp_HandleNcpMsg
                 FLib_MemCpy(pLocalData->pData,
                             pEventData + dataHeaderSize + bufSizesLen,
                             firstChunk);
-                dataLen.u32 = firstChunk;
-                pLocalData->totalSentRcvDataIndex += dataLen.u16;
+                pLocalData->totalSentRcvDataIndex += (uint16_t)(firstChunk & 0xFFFFU);
             }
         }
         break;
@@ -358,8 +353,7 @@ void BleApp_HandleNcpMsg
                 FLib_MemCpy(pLocalData->pData + pLocalData->totalSentRcvDataIndex,
                             pEventData,
                             evenDataSize);
-                dataLen.u32 = evenDataSize;
-                pLocalData->totalSentRcvDataIndex += dataLen.u16;
+                pLocalData->totalSentRcvDataIndex += (uint16_t)(evenDataSize & 0xFFFFU);
             }
         }
         break;
@@ -377,7 +371,6 @@ void BleApp_HandleNcpMsg
                             pEventData,
                             remainingBytes);
                 pLocalData->totalSentRcvDataIndex = Uint32toUint16(totalDataSize);
-                dataLen.u32 = pLocalData->dataIndex;
 
                 /* Re-point the buffer pointers into core0's own allocation.
                  * The values received from core1 are core1 addresses and are invalid here. */
@@ -413,8 +406,7 @@ void BleApp_HandleNcpMsg
                 FLib_MemCpy(pPeerData->pData,
                             pEventData + dataHeaderSize + bufSizesLen,
                             firstChunk);
-                dataLen.u32 = firstChunk;
-                pPeerData->totalSentRcvDataIndex += dataLen.u16;
+                pPeerData->totalSentRcvDataIndex += (uint16_t)(firstChunk & 0xFFFFU);
             }
         }
         break;
@@ -427,8 +419,7 @@ void BleApp_HandleNcpMsg
                 FLib_MemCpy(pPeerData->pData + pPeerData->totalSentRcvDataIndex,
                             pEventData,
                             evenDataSize);
-                dataLen.u32 = evenDataSize;
-                pPeerData->totalSentRcvDataIndex += dataLen.u16;
+                pPeerData->totalSentRcvDataIndex += (uint16_t)(evenDataSize & 0xFFFFU);
             }
         }
         break;
@@ -446,7 +437,6 @@ void BleApp_HandleNcpMsg
                             pEventData,
                             remainingBytes);
                 pPeerData->totalSentRcvDataIndex = Uint32toUint16(totalDataSize);
-                dataLen.u32 = pPeerData->dataIndex;
 
                 /* Re-point buffers into core0's own allocation */
                 pRemote->pMciqBuffer = (uint8_t *)pRemote + sizeof(csAppData_t);

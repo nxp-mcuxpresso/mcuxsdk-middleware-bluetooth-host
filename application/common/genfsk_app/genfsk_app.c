@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2024 NXP
+* Copyright 2024, 2026 NXP
 *
 *
 * \file
@@ -246,16 +246,10 @@ void GfskApp_Tx(void *pPacket)
 {
     if((mbAppGenfskTxPending == FALSE) && (pPacket != NULL))
     {
-        union
-        {
-            appGfskTransmitPacket_t *pGfskTransmitPacket;
-            void                    *pPkt;
-        } genfskPacket;
+        appGfskTransmitPacket_t *pGfskTransmitPacket = (appGfskTransmitPacket_t *)pPacket;
 
-        genfskPacket.pPkt = pPacket;
-
-        uint8_t *aMessage = genfskPacket.pGfskTransmitPacket->payload;
-        uint8_t msgSize = genfskPacket.pGfskTransmitPacket->payloadLength;
+        uint8_t *aMessage = pGfskTransmitPacket->payload;
+        uint8_t msgSize = pGfskTransmitPacket->payloadLength;
 
         /* Send packet via HCI */
         uint8_t pHciPacket[mHciVendorLeGenfskTransmitCommandLength_c + gGenFSK_MaxPayloadSize_c + gHciCommandPacketHeaderLength_c];
@@ -405,12 +399,6 @@ static bool_t hciGenfskEventHook
         {
             case (uint8_t)gHciCommandCompleteEvent_c:
             {
-                union
-                {
-                    bleResult_t result;
-                    uint8_t     hciStatus;
-                } temp = {gBleStatusBase_c};
-
                 hciErrorCode_t hciStatus;
                 uint8_t numHciCommandPackets;
                 hciCommandOpCode_t commandOpCode;
@@ -425,9 +413,8 @@ static bool_t hciGenfskEventHook
                 if (*pPacket != 0U)
                 {
                     /* Valid ONLY for Command Complete Events */
-                    temp.result = gHciStatusBase_c;
-                    temp.hciStatus = (uint8_t)*pPacket;
-                    hciStatus = temp.result;
+                    uint16_t statusValue = ((uint16_t)gHciStatusBase_c & 0xFF00U) | (uint16_t)*pPacket;
+                    hciStatus = (hciErrorCode_t)statusValue;
                 }
                 else
                 {

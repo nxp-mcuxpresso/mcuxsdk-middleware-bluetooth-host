@@ -3,7 +3,7 @@
 * @{
 ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2024-2025 NXP
+* Copyright 2024-2026 NXP
 *
 *
 * \file
@@ -239,16 +239,19 @@ static void ReceiveFromNBUCallback(uint8_t packetType, uint8_t *data, uint16_t l
     pSerialPacket = MEM_BufferAlloc((uint32_t)len + 1U);
     if (pSerialPacket != NULL)
     {
-        pSerialPacket->raw[0] = packetType;
-        FLib_MemCpy(&pSerialPacket->raw[1], (uint8_t*)data, len);
-        if ((pSerialPacket->headerAndStatus.header.opGroup == gFsciBleGapOpcodeGroup_c) &&
-            (pSerialPacket->headerAndStatus.header.opCode == gBleGapCmdReadPublicDeviceAddressOpCode_c))
+        uint8_t        *pRawBuffer = (uint8_t *)(void *)pSerialPacket;
+        clientPacket_t *pParsed    = (clientPacket_t *)(void *)pSerialPacket;
+
+        pRawBuffer[0] = packetType;
+        FLib_MemCpy(&pRawBuffer[1], (uint8_t*)data, len);
+        if ((pParsed->headerAndStatus.header.opGroup == gFsciBleGapOpcodeGroup_c) &&
+            (pParsed->headerAndStatus.header.opCode == gBleGapCmdReadPublicDeviceAddressOpCode_c))
         {
             (void)MEM_BufferFree(pSerialPacket);
             (void)App_PostCallbackMessage(BleApp_HandleReadPublicAddress, NULL);
         }
 #if defined(gAppUseNvmOnFsciBridge_d) && (gAppUseNvmOnFsciBridge_d == 1)
-        else if (pSerialPacket->headerAndStatus.header.opGroup == gFsciAppBleNvmCbOpcodeGroup_c)
+        else if (pParsed->headerAndStatus.header.opGroup == gFsciAppBleNvmCbOpcodeGroup_c)
         {
             App_FsciBleNvmCbHandler(pSerialPacket, NULL, 0U);
         }
@@ -289,7 +292,9 @@ gFsciStatus_t FSCI_ProcessRxPkt(clientPacket_t *pPacket, uint32_t fsciInterface)
 #endif
     else
     {
-        if (PLATFORM_SendHciMessage(pPacket->raw,
+        uint8_t *pRawBuffer = (uint8_t *)(void *)pPacket;
+
+        if (PLATFORM_SendHciMessage(pRawBuffer,
             pPacket->structured.header.len + sizeof(clientPacketHdr_t) + 1U) != 0)
         {
             status = gFsciError_c;

@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016-2019, 2021, 2023 NXP
+* Copyright 2016-2019, 2021, 2023, 2026 NXP
 *
 *
 * \file
@@ -90,16 +90,9 @@ bleResult_t OtapCS_SendCommandToOtapServer (uint16_t serviceHandle,
                                             void* pCommand,
                                             uint16_t cmdLength)
 {
-    union
-    {
-        uint8_t*                uuid_char_otap_control_pointTemp;
-        bleUuid_t*              bleUuidTemp;
-    }bleUuidVars;
-
     uint16_t  handle = 0U;
     bleResult_t result;
-    bleUuidVars.uuid_char_otap_control_pointTemp = uuid_char_otap_control_point;
-    bleUuid_t* pUuid = bleUuidVars.bleUuidTemp;
+    bleUuid_t* pUuid = (bleUuid_t*)(void*)uuid_char_otap_control_point;
 
     /* Get handle of OTAP Control Point characteristic */
     result = GattDb_FindCharValueHandleInService(serviceHandle,

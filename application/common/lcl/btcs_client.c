@@ -299,12 +299,6 @@ static void parseSubEvtHeader
     uint8_t *pData = pMsgData;
     uint8_t subEvtIdx = mPeerResultData[deviceId].subeventIndex;
 
-    union
-    {
-        uint8_t u8;
-        uint32_t u32;
-    }dataLen = {0U};
-
     /* Extract subevent header information */
     if (mGlobalRangeSettings.role == gCsRoleInitiator_c)
     {
@@ -312,8 +306,8 @@ static void parseSubEvtHeader
         gCsSubEvtHeaderReflData_t subEvtHeader;
         FLib_MemCpy(&subEvtHeader, pData, sizeof(gCsSubEvtHeaderReflData_t));
         pData = &pData[sizeof(gCsSubEvtHeaderReflData_t)];
-        dataLen.u32 = sizeof(gCsSubEvtHeaderReflData_t);
-        *pOutParsedLen = dataLen.u8;
+        volatile uint8_t subEvtReflHdrLen = (uint8_t)sizeof(gCsSubEvtHeaderReflData_t);
+        *pOutParsedLen = subEvtReflHdrLen;
         *pOutNumStepsInFragment = subEvtHeader.numStepsReported;
 
         mPeerResultData[deviceId].aSubEventData[subEvtIdx].subevtHeader.numStepsReported = subEvtHeader.totalSubEvtSteps;
@@ -329,8 +323,8 @@ static void parseSubEvtHeader
         gCsSubEvtHeaderInitData_t subEvtHeader;
         FLib_MemCpy(&subEvtHeader, pData, sizeof(gCsSubEvtHeaderInitData_t));
         pData = &pData[sizeof(gCsSubEvtHeaderInitData_t)];
-        dataLen.u32 = sizeof(gCsSubEvtHeaderInitData_t);
-        *pOutParsedLen = dataLen.u8;
+        volatile uint8_t subEvtInitHdrLen = (uint8_t)sizeof(gCsSubEvtHeaderInitData_t);
+        *pOutParsedLen = subEvtInitHdrLen;
         *pOutNumStepsInFragment = subEvtHeader.numStepsReported;
 
         mPeerResultData[deviceId].aSubEventData[subEvtIdx].subevtHeader.numStepsReported = subEvtHeader.totalSubEvtSteps;
@@ -523,12 +517,6 @@ static bleResult_t handleRangingProcResStart
     bool_t bInvalidMode = FALSE;
     rasMeasurementData_t *pRemoteData = &mPeerResultData[deviceId];
 
-    union
-    {
-        uint16_t u16;
-        uint32_t u32;
-    }dataLen = {0U};
-
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1U)
     /* Set transferStart when first L2CAP paket is received */
     if (gCsTimeInfo.transferStart == 0U)
@@ -567,8 +555,8 @@ static bleResult_t handleRangingProcResStart
         pRemoteData->procedureCounter = procHeader.seqNo;
         pRemoteData->numAntennaPaths = AppLocalization_GetNumAntennaPaths(deviceId);
         pData = &pData[sizeof(gCsProcHeaderData_t)];
-        dataLen.u32 = sizeof(gCsProcHeaderData_t);
-        parsedDataLen = dataLen.u16;
+        volatile uint16_t procHdrLen = (uint16_t)sizeof(gCsProcHeaderData_t);
+        parsedDataLen = procHdrLen;
 
         do
         {
@@ -662,12 +650,6 @@ static bleResult_t handleRangingProcResCont
     rasMeasurementData_t *pRemoteData = &mPeerResultData[deviceId];
     csAppData_t *pDstAppBuffer = (csAppData_t*)(void*)pRemoteData->pData;
 
-    union
-    {
-        uint16_t u16;
-        uint32_t u32;
-    }dataLen = {0U};
-
     /* If the number of antenna paths is 0 no local data is available. */
     if ((pDstAppBuffer == NULL) || (AppLocalization_GetNumAntennaPaths(deviceId) == 0U))
     {
@@ -680,8 +662,8 @@ static bleResult_t handleRangingProcResCont
         gCsProcContHeaderData_t procHeader;
         FLib_MemCpy(&procHeader, pData, sizeof(gCsProcContHeaderData_t));
         pData = &pData[sizeof(gCsProcContHeaderData_t)];
-        dataLen.u32 = sizeof(gCsProcContHeaderData_t);
-        parsedDataLen += dataLen.u16;
+        volatile uint16_t procContHdrLen = (uint16_t)sizeof(gCsProcContHeaderData_t);
+        parsedDataLen += procContHdrLen;
 
         /* Check that we received data for the current procedure */
         if (pRemoteData->procedureCounter != procHeader.seqNo)
@@ -717,8 +699,8 @@ static bleResult_t handleRangingProcResCont
                     gCsSubEvtContHeaderData_t subEvtContHeader;
                     FLib_MemCpy(&subEvtContHeader, pData, sizeof(gCsSubEvtContHeaderData_t));
                     pData = &pData[sizeof(gCsSubEvtContHeaderData_t)];
-                    dataLen.u32 = sizeof(gCsSubEvtContHeaderData_t);
-                    parsedDataLen += dataLen.u16;
+                    volatile uint16_t subEvtContHdrLen = (uint16_t)sizeof(gCsSubEvtContHeaderData_t);
+                    parsedDataLen += subEvtContHdrLen;
                     numStepsInFragment = subEvtContHeader.numStepsReported;
                 }
 
