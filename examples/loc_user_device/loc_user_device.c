@@ -222,11 +222,7 @@ static void BleApp_ResumeSendNotifis(void *param);
 ********************************************************************************** */
 void BluetoothLEHost_AppInit(void)
 {
-    union Prompt_tag
-    {
-        const char * constPrompt;
-        char * prompt;
-    } shellPrompt;
+    static char shellPromptDevice[] = "Device>";
 
     uint8_t mPeerId = 0;
 
@@ -249,8 +245,7 @@ void BluetoothLEHost_AppInit(void)
     BluetoothLEHost_Init(BluetoothLEHost_Initialized);
 
     /* UI */
-    shellPrompt.constPrompt = "Device>";
-    AppShellInit(shellPrompt.prompt);
+    AppShellInit(shellPromptDevice);
 
     /* Temporarily use minimum interval to speed up connection */
     gConnReqParams.connIntervalMin = gGapConnIntervalMin_d;

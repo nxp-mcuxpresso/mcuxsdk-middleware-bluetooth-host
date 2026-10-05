@@ -284,11 +284,7 @@ static bool_t APP_UserInterfaceEventHandlerA2B(appEventData_t *pEventData);
 ********************************************************************************** */
 void BluetoothLEHost_AppInit(void)
 {
-    union Prompt_tag
-    {
-        const char * constPrompt;
-        char * prompt;
-    } shellPrompt;
+    static char shellPromptAnchor[] = "Anchor>";
 
     uint8_t mPeerId = 0;
 
@@ -342,8 +338,7 @@ void BluetoothLEHost_AppInit(void)
 #endif /* defined(gA2BEnabled_d) && (gA2BEnabled_d > 0U) */
 
     /* UI */
-    shellPrompt.constPrompt = "Anchor>";
-    AppShellInit(shellPrompt.prompt);
+    AppShellInit(shellPromptAnchor);
 #if defined(gA2ASerialInterface_d) && (gA2ASerialInterface_d == 1)
     (void)A2A_Init(gSerMgrIf2, A2A_ProcessCommand);
 #endif /* defined(gA2ASerialInterface_d) && (gA2ASerialInterface_d == 1) */

@@ -207,11 +207,7 @@ static void BleApp_GattClientCallback_HandleProcSuccess(deviceId_t serverDeviceI
 ********************************************************************************** */
 void BluetoothLEHost_AppInit(void)
 {
-    union Prompt_tag
-    {
-        const char * constPrompt;
-        char * prompt;
-    } shellPrompt;
+    static char shellPromptDevice[] = "Device>";
 
     uint8_t mPeerId = 0;
 
@@ -238,8 +234,7 @@ void BluetoothLEHost_AppInit(void)
     BluetoothLEHost_Init(BluetoothLEHost_Initialized);
 
     /* UI */
-    shellPrompt.constPrompt = "Device>";
-    AppShellInit(shellPrompt.prompt);
+    AppShellInit(shellPromptDevice);
 
     /* Register CS callback and initialize localization */
     (void)AppLocalization_Init(gCsDefaultRole_c, BleApp_CsEventHandler, BleApp_PrintMeasurementResults);
