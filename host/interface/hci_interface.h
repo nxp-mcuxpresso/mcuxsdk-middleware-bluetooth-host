@@ -608,12 +608,9 @@ typedef struct
 /*! HCI_LE_Subrate_Request */
 typedef struct
 {
-    uint16_t            connectionHandle;
-    uint16_t            subrateMin;
-    uint16_t            subrateMax;
-    uint16_t            latencyMax;
-    uint16_t            continuationNumber;
-    uint16_t            supervisionTimeout;
+    uint16_t                        connectionHandle;
+    /* The subrate parameters share the same layout as the LE Set Default Subrate command */
+    hciLeSetDefaultSubrateCommand_t subrateParams;
 } hciLeSubrateRequestCommand_t;
 
 /*! LE Connection Update Complete Event : LE Meta Event : 0x3E : Sub-event Code : 0x03 */
