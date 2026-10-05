@@ -1885,11 +1885,11 @@ static void antennaPathFilterStepData
     uint8_t mode = 0U;
     uint8_t stepDataLength = 0U;
     uint8_t devIdIdx = deviceId * 4U;
-    uint32_t dataIndex = maRasDynamicCfg[deviceId].pCfg->dataIndex;
+    uint16_t dataIndex = Uint32toUint16(maRasDynamicCfg[deviceId].pCfg->dataIndex);
 
     bool_t bHasData = FALSE;
 
-    while ((uint32_t)maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex < dataIndex)
+    while (maRasDynamicCfg[deviceId].pCfg->totalSentRcvDataIndex < dataIndex)
     {
         bHasData = TRUE;
 
