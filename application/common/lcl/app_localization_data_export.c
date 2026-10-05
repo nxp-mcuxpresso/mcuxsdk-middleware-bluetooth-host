@@ -63,6 +63,52 @@ static uint32_t CRC32(uint32_t WrsDataCRC32, const unsigned char *buf, size_t  s
     return WrsDataCRC32;
 }
 
+#if (defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1))
+/*! *********************************************************************************
+* \brief        Print a fixedpoint uint32_t
+*
+* \param[in]    label           Label
+* \param[in]    qNum            Number to print
+* \param[in]    fpPrecision     Number of fractionary bits
+* \param[in]    printPrecision  Number of fractional digit expected in the output string
+********************************************************************************** */
+static void mciq_print_fp_labelled
+(
+    char *label,
+    int32_t qNum,
+    uint32_t fpPrecision,
+    uint32_t printPrecision
+)
+{
+    uint32_t qInt;
+    uint32_t printPrecisionMultiplier = 1U;
+    uint32_t qNumUn;
+    uint64_t qFrac;
+    int qSign;
+    uint32_t fracMask = 0xFFFFFFFFU >> ((sizeof(uint32_t)*8U) - fpPrecision);
+
+    for (uint32_t i=0; i<printPrecision; i++) {
+        printPrecisionMultiplier *= 10U;
+    }
+
+    if (qNum >= 0)
+    {
+        qSign = 1;
+    }
+    else
+    {
+        qSign = -1;
+        /* Get 2's complement (absolute value of number) */
+        qNumUn = (0xFFFFFFFFUL ^ (uint32_t)qNum) + 1U;
+        qNum = (int32_t)qNumUn;
+    }
+    qInt = (uint32_t)qNum >> fpPrecision;
+    qFrac = ((uint64_t)printPrecisionMultiplier *((uint64_t)qNum & (uint64_t)fracMask)) >> (uint64_t)fpPrecision;
+
+    (void)printf("%s%s%d.%0*u", (label != NULL)?label:"", (qSign > 0)?"":"-", qInt, (int)printPrecision, (uint32_t)qFrac);
+}
+#endif /* gAppUseCDEAlgorithm_d */
+
 /*! *********************************************************************************
 * \brief        Translate given data to hex or apply given translation function.
 *
@@ -579,6 +625,10 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
         }
         (void)printf(",rade_dqi:%d.%02d", integ, decimal);
         (void)printf(",raderr:%d", engine_response->mciq_result.rade_error_flag);
+#endif
+#if (defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1))
+        mciq_print_fp_labelled(",cde:", engine_response->mciq_result.cde_fp, 10, 2);
+        mciq_print_fp_labelled(",cqi:", engine_response->mciq_result.cde_dqi, 14, 3);
 #endif
         (void)printf("},");
     }
