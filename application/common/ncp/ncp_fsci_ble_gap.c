@@ -29,6 +29,11 @@
 #if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))
 #include "SecLib.h"
 #endif
+/* NBU/cm33_core1 apps have no access to HWParameter or DevMgr; only pull in
+ * the DevMgr API when it is actually built (host core). */
+#if  !(defined(gNcpCore1Execution_d) && (gNcpCore1Execution_d > 0))
+#include "fwk_devmgr.h"
+#endif /* gNcpCore1Execution_d */
 #if defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA))
 #include "fwk_platform.h"
 #endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) && (defined(CPU_KW45B41Z83AFTA) || defined(CPU_K32W1480VFTA)) */
@@ -187,7 +192,7 @@ static const int16_t maConnectionEventToOpcode[]=
     (int16_t)gBleGapEvtConnectionEventPasskeyRequestOpCode_c,                    /* = 0x05U, gConnEvtPasskeyRequest_c */
     (int16_t)gBleGapEvtConnectionEventOobRequestOpCode_c,                        /* = 0x06U, gConnEvtOobRequest_c */
     (int16_t)gBleGapEvtConnectionEventPasskeyDisplayOpCode_c,                    /* = 0x07U, gConnEvtPasskeyDisplay_c */
-    (int16_t)gBleGapEvtConnectionEventKeyExchangeRequestOpCode_c,                /* = 0x08U, gConnEvtKeyExchangeRequest_c */  
+    (int16_t)gBleGapEvtConnectionEventKeyExchangeRequestOpCode_c,                /* = 0x08U, gConnEvtKeyExchangeRequest_c */
     (int16_t)gBleGapEvtConnectionEventKeysReceivedOpCode_c,                      /* = 0x09U, gConnEvtKeysReceived_c */
     (int16_t)gBleGapEvtConnectionEventLongTermKeyRequestOpCode_c,                /* = 0x0AU, gConnEvtLongTermKeyRequest_c */
     (int16_t)gBleGapEvtConnectionEventEncryptionChangedOpCode_c,                 /* = 0x0BU, gConnEvtEncryptionChanged_c */
@@ -295,7 +300,7 @@ static const int16_t maGenericEventToOpcode[]=
   (int16_t)gBleGapEvtGenericEventGetConnParamsComplete_c,                                  /* = 0x17U, gGetConnParamsComplete_c */
   (int16_t)gBleGapEvtGenericEventBondCreatedOpCode_c,                                      /* = 0x18U, gBondCreatedEvent_c */
   (int16_t)gBleGapEvtGenericEventChannelMapSetOpCode_c,                                    /* = 0x19U, gChannelMapSet_c */
-  #if defined(gBLE50_d) && (gBLE50_d == 1U)    
+  #if defined(gBLE50_d) && (gBLE50_d == 1U)
   (int16_t)gBleGapEvtGenericEventExtAdvertisingParametersSetupCompleteOpCode_c,            /* = 0x1AU, gExtAdvertisingParametersSetupComplete_c */
   (int16_t)gBleGapEvtGenericEventExtAdvertisingDataSetupCompleteOpCode_c,                  /* = 0x1BU, gExtAdvertisingDataSetupComplete_c */
   (int16_t)gBleGapEvtAdvertisingEventExtAdvertisingSetRemovedOpCode_c,                     /* = 0x1CU, gExtAdvertisingSetRemoveComplete_c */
@@ -304,7 +309,7 @@ static const int16_t maGenericEventToOpcode[]=
   (int16_t)gBleGapEvtGenericEventPeriodicAdvertisingStateChangedOpCode_c,                  /* = 0x1FU, gPeriodicAdvertisingStateChanged_c */
   (int16_t)gBleGapEvtGenericEventPeriodicAdvListUpdateCompleteOpCode_c,                    /* = 0x20U, gPeriodicAdvListUpdateComplete_c */
   (int16_t)gBleGapEvtGenericEventPeriodicAdvCreateSyncCancelledOpCode_c,                   /* = 0x21U, gPeriodicAdvCreateSyncCancelled_c */
-  #else        
+  #else
   -1,                                                                                      /* reserved: 0x1AU */
   -1,                                                                                      /* reserved: 0x1BU */
   -1,                                                                                      /* reserved: 0x1CU */
@@ -313,7 +318,7 @@ static const int16_t maGenericEventToOpcode[]=
   -1,                                                                                      /* reserved: 0x1FU */
   -1,                                                                                      /* reserved: 0x20U */
   -1,                                                                                      /* reserved: 0x21U */
-  #endif        
+  #endif
   (int16_t)gBleGapEvtGenericEventTxEntryAvailableOpCode_c,                                 /* = 0x22U, gTxEntryAvailable_c */
   (int16_t)gBleGapEvtGenericEventControllerLocalRPAReadOpCode_c,                           /* = 0x23U, gControllerLocalRPARead_c */
 
@@ -505,7 +510,7 @@ void HandleGapCmdBleHostInitializeOpCode(uint8_t *pBuffer, uint32_t fsciInterfac
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
-********************************************************************************** */   
+********************************************************************************** */
 void HandleGapCmdStartAdvertisingOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
     fsciBleGapCallApiFunction(Gap_StartAdvertising(fsciBleGapCallbacks.advertisingCallback, fsciBleGapCallbacks.connectionCallback));
@@ -521,7 +526,7 @@ void HandleGapCmdStartAdvertisingOpCode(uint8_t *pBuffer, uint32_t fsciInterface
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
-********************************************************************************** */   
+********************************************************************************** */
 void HandleGapCmdSendPeripheralSecurityRequestOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
     deviceId_t              deviceId = gInvalidDeviceId_c;
@@ -556,7 +561,7 @@ void HandleGapCmdSendPeripheralSecurityRequestOpCode(uint8_t *pBuffer, uint32_t 
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
-********************************************************************************** */   
+********************************************************************************** */
 void HandleGapCmdStartScanningOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
     bool_t                      bScanningParametersIncluded = FALSE;
@@ -601,7 +606,7 @@ void HandleGapCmdStartScanningOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
-********************************************************************************** */   
+********************************************************************************** */
 void HandleGapCmdConnectOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
     gapConnectionRequestParameters_t connectionRequestParameters = {0};
@@ -623,7 +628,7 @@ void HandleGapCmdConnectOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
-********************************************************************************** */   
+********************************************************************************** */
 void HandleGapCmdSetScanModeOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
     gapScanMode_t scanMode = gDefaultScan_c;
@@ -669,7 +674,7 @@ void HandleGapCmdSetScanModeOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
-********************************************************************************** */   
+********************************************************************************** */
 void HandleGapCmdSetDefaultPairingParameters(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
     bool_t                  bPairingParametersIncluded = FALSE;
@@ -710,7 +715,7 @@ void HandleGapCmdSetDefaultPairingParameters(uint8_t *pBuffer, uint32_t fsciInte
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
-********************************************************************************** */   
+********************************************************************************** */
 void HandleGapCmdSetRandomAddressOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
     bleDeviceAddress_t address = {0};
@@ -731,7 +736,7 @@ void HandleGapCmdSetRandomAddressOpCode(uint8_t *pBuffer, uint32_t fsciInterface
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
-********************************************************************************** */   
+********************************************************************************** */
 void HandleCtrlWritePublicDeviceAddressOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
     bleDeviceAddress_t deviceAddress = {0};
@@ -761,7 +766,7 @@ void HandleCtrlWritePublicDeviceAddressOpCode(uint8_t *pBuffer, uint32_t fsciInt
 *\param  [in]  fsciInterfaceId      FSCI interface identifier.
 *
 *\retval       void.
-********************************************************************************** */   
+********************************************************************************** */
 void HandleGapCmdStartExtAdvertisingOpCode(uint8_t *pBuffer, uint32_t fsciInterfaceId)
 {
     uint8_t  handle = 0U;
@@ -802,14 +807,14 @@ void HandleGapCmdPlatformRegisterErrorCallback
 {
     bool_t enable = FALSE;
     PLATFORM_ErrorCallback_t pfPlatformErrorCallback = NULL;
-    
+
     fsciBleGetBoolValueFromBuffer(enable, pBuffer);
-    
+
     if (enable == TRUE)
     {
         pfPlatformErrorCallback = fsciPlatformErrorCallback;
     }
-    
+
     PLATFORM_RegisterErrorCallback(pfPlatformErrorCallback);
     fsciBleGapStatusMonitor(gBleSuccess_c);
 }
@@ -920,8 +925,8 @@ void fsciBleGapHandler(void* pData, void* param, uint32_t fsciInterfaceId)
             {
                 /* Unknown FSCI opcode */
                 fsciBleError(gFsciUnknownOpcode_c, fsciInterfaceId);
-            }                
-            
+            }
+
 #if gFsciBleTest_d
         }
         else
@@ -3286,7 +3291,7 @@ void fsciBleGapGetHostVersionEvtMonitor
 #endif /* gFsciBleTest_d */
 
     /* Allocate the packet to be sent over UART */
-    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtGetHostVersionOpCode_c, 
+    pClientPacket = fsciBleGapAllocFsciPacket((uint8_t)gBleGapEvtGetHostVersionOpCode_c,
                                               sizeof(gapHostVersion_t));
 
     if(NULL == pClientPacket)
@@ -3429,17 +3434,17 @@ void fsciBleGapGenericEvtMonitor(gapGenericEvent_t* pGenericEvent)
         return;
     }
 #endif /* gFsciBleTest_d */
-    
+
     /* Get FSCI opCode */
     tempOpCode = maGenericEventToOpcode[pGenericEvent->eventType];
-    
+
     if ((tempOpCode == -1) && ((uint16_t)pGenericEvent->eventType > gLastGapGenericEventOpCode_c))
     {
         /* Use GAP2 opgroup */
         opGroup = gFsciBleGap2OpcodeGroup_c;
         tempOpCode = maGenericEvent2ToOpcode[(uint16_t)pGenericEvent->eventType - ((uint16_t)gLastGapGenericEventOpCode_c + 1U)];
     }
-    
+
     if(tempOpCode == -1)
     {
 #if gFsciBleGapHandoverLayerEnabled_d
@@ -3596,7 +3601,7 @@ void fsciBleGapScanningEvtMonitor(gapScanningEvent_t* pScanningEvent)
         fsciBleGapOpCode_t      gap1Code;
         fsciBleGap2OpCode_t     gap2Code;
     } opCode;
-    
+
     opCode.gap1Code = gBleGapModeSelectOpCode_c;
 
 #if gFsciBleTest_d
@@ -3737,7 +3742,7 @@ void fsciBleGapConnectionEvtMonitor(deviceId_t deviceId, gapConnectionEvent_t* p
         earlyReturn= TRUE;
     }
     else
-    {  
+    {
         opCode = (fsciBleGapOpCode_t)tempOpCode;
     }
 
@@ -3899,24 +3904,37 @@ static bleResult_t fsciWritePublicDeviceAddress(bleDeviceAddress_t bdAddress)
     bleResult_t retStatus = gBleSuccess_c;
 #if (defined(SDK_COMPONENT_INTEGRATION) && (SDK_COMPONENT_INTEGRATION > 0))
 #else
-    hardwareParameters_t *pHWParams==NULL;
-    uint8_t HWParam_status = 0U;
-    HWParam_status = NV_ReadHWParameters(&pHWParams);
-    if(HWParam_status != 0U)
-    {
-        retStatus = gBleOsError_c;
-    }
-    else
-    {
-        if (!FLib_MemCmp(bdAddress, pHWParams->bluetooth_address, gcBleDeviceAddressSize_c))
+#if !(defined(gNcpCore1Execution_d) && (gNcpCore1Execution_d > 0))
+    do {
+        uint8_t bd_addr[gcBleDeviceAddressSize_c] = { 0U };
+        int     status;
+
+        status = DEVMGR_GetBdAddress(bd_addr, NULL);
+        if (status != DEVMGR_Success_c)
         {
-            FLib_MemCpy(pHWParams->bluetooth_address, bdAddress, gcBleDeviceAddressSize_c);
-            if(NV_WriteHWParameters() != 0U)
-            {
-                retStatus = gBleOsError_c;
-            }
+            retStatus = gBleOsError_c;
+            break;
         }
-    }
+
+        if (FLib_MemCmp(bdAddress, bd_addr, gcBleDeviceAddressSize_c) != FALSE)
+        {
+            /* Pretend it is a success if the BD address to write matches the present one,
+             * without trying to modify anyway  */
+            break;
+        }
+        /* BD address may not be modifiable depending on the DEVMGR backend */
+        status = DEVMGR_SetBdAddress((uint8_t*)bdAddress);
+        if (status != DEVMGR_Success_c)
+        {
+            retStatus = gBleOsError_c;
+        }
+        /* retStatus returns gBleSuccess_c */
+    } while (false);
+#else
+    /* NBU/cm33_core1 has no DevMgr backend: writing the public BD address is
+     * not supported from this core. */
+    retStatus = gBleFeatureNotSupported_c;
+#endif /* gUseDevMgrParameter_d */
 #endif /* defined(SDK_COMPONENT_INTEGRATION) && (SDK_COMPONENT_INTEGRATION > 0) */
     return retStatus;
 }
@@ -3934,7 +3952,7 @@ static void fsciPlatformErrorCallback(uint32_t id, int32_t error_status)
 {
     clientPacketStructured_t*   pClientPacket;
     uint8_t*                    pBuffer;
-    
+
     /* If GAP is disabled or if the command was initiated by FSCI it must be not monitored */
     if ((FALSE == bFsciBleGapEnabled) ||
         (TRUE == bFsciBleGapCmdInitiatedByFsci))

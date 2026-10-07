@@ -49,6 +49,7 @@
 
 #if (defined gFsciOverRpmsgBridge_c) && (gFsciOverRpmsgBridge_c > 0U)
 #include "fwk_platform_ble.h"
+#include "fwk_devmgr.h"
 #endif
 #if defined(SDK_OS_FREE_RTOS) && (defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0))
 #include "PWR_Interface.h"
@@ -131,10 +132,6 @@ void BluetoothLEHost_AppInit(void)
     (void)MEM_Init();
 
     /* Framework init */
-#if defined(gRngSeedStorageAddr_d) || defined(gXcvrDacTrimValueSorageAddr_d)
-    NV_Init();
-#endif /* gRngSeedStorageAddr_d || gXcvrDacTrimValueSorageAddr_d */
-
     /* Cryptographic hardware initialization */
     SecLib_Init();
 
@@ -473,10 +470,10 @@ void APP_FscitransmitPayload(uint8_t OG, uint8_t OC, const uint8_t *pMsg, uint16
     uint16_t          buffer_size, index;
     uint8_t           checksum;
     clientPacketHdr_t header;
-    
+
     /* Compute size */
     buffer_size = sizeof(clientPacketHdr_t) + msgLen + gFsci_TailBytes_c;
-    
+
     /* Allocate buffer */
     buffer_ptr = MEM_BufferAlloc(buffer_size);
     if (NULL != buffer_ptr)
@@ -486,11 +483,11 @@ void APP_FscitransmitPayload(uint8_t OG, uint8_t OC, const uint8_t *pMsg, uint16
         header.opGroup     = OG;
         header.opCode      = OC;
         header.len         = msgLen;
-        
+
         /* Compute CRC for TX packet, on opcode group, opcode, payload length, and payload fields */
         checksum = FSCI_computeChecksum((uint8_t *)&header + 1, sizeof(header) - 1u);
         checksum ^= FSCI_computeChecksum(pMsg, msgLen);
-        
+
         index = 0;
         FLib_MemCpy(&buffer_ptr[index], &header, sizeof(header));
         index += sizeof(header);
@@ -563,12 +560,12 @@ static void App_SetBDAddr(void)
 
     /* Get the public address from Framework. If the address is not available one
     will be generated */
-    PLATFORM_GetBDAddr(aBdAddr);
+    (void)DEVMGR_GetBdAddress(aBdAddr, NULL);
 
     /* Send the address to Core 1 */
     /* Build FSCI Request */
     pClientPacket = MEM_BufferAlloc(fsciDataSize);
-    
+
     if (pClientPacket != NULL)
     {
         pBuffer = pClientPacket;
@@ -592,7 +589,7 @@ static void App_SetBDAddr(void)
 static void App_BleEventHandler(void *pData)
 {
     clientPacket_t *pSerialPacket = (clientPacket_t*)pData;
-    
+
     if ((pSerialPacket->headerAndStatus.header.opGroup == gFsciBleGapOpcodeGroup_c) &&
         (pSerialPacket->headerAndStatus.header.opCode == gBleGapCmdReadPublicDeviceAddressOpCode_c))
     {

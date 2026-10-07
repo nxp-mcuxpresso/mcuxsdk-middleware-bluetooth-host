@@ -247,12 +247,8 @@ void BluetoothLEHost_Init
 #if !defined(gNcpApplication_d) || (gNcpApplication_d == 0)
         (void)MEM_Init();
 #endif /* !defined(gNcpApplication_d) || (gNcpApplication_d == 0) */
-        
-        /* Framework init */
-#if defined(gRngSeedStorageAddr_d) || defined(gXcvrDacTrimValueSorageAddr_d)
-        NV_Init();
-#endif /* gRngSeedStorageAddr_d || gXcvrDacTrimValueSorageAddr_d */
 
+        /* Framework init */
         /* Cryptographic hardware initialization */
         SecLib_Init();
 
@@ -264,12 +260,12 @@ void BluetoothLEHost_Init
         (void)Controller_SetRandomSeed();
 
 #if defined(BOARD_32KHZ_SRC_CLK_ACCURACY)
-        /* Set sleep clock accuracy value in the controller, 
+        /* Set sleep clock accuracy value in the controller,
          * set to 0 by LL if Controller_SetSleepClockAccuracy() not called */
         (void)Controller_SetSleepClockAccuracy(BOARD_32KHZ_SRC_CLK_ACCURACY);
 #endif
 
-#if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))        
+#if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))
         (void)PLATFORM_EnableBleSecureKeyManagement();
 #endif
 #if defined(gAppUseNvm_d) && (gAppUseNvm_d>0)

@@ -46,6 +46,8 @@
 
 #define gFSCI_ResetCpu_c -              0
 
+/*! Prevent NCP Core1 from using HwParameter/DevMgr APIs. */
+#define gNcpCore1Execution_d 1
 /*! *********************************************************************************
  *     App Configuration
  ********************************************************************************** */

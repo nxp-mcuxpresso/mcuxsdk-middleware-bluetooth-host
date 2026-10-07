@@ -74,10 +74,7 @@
 /* erase NVM pages at download( armgcc only) */
 #if ((defined gAppUseNvm_d) && (gAppUseNvm_d != 0)) && defined(__GNUC__)
 #define gNvmErasePartitionWhenFlashing_c 1U
-#endif   
-
-/*! Enable XCVR calibration storage in Flash */
-#define gControllerPreserveXcvrDacTrimValue_d     1
+#endif
 
 /*! Enable the SWD pins to be managed into low-power */
 #define gBoard_ManageSwdPinsInLowPower_d    0
@@ -86,7 +83,7 @@
  *     RTOS Configuration
  ********************************************************************************** */
 #if defined(SDK_OS_FREE_RTOS)
-/* The following stack sizes have been chosen based on a worst case scenario. 
+/* The following stack sizes have been chosen based on a worst case scenario.
  * For different compilers and optimization levels they can be reduced. */
 
 #define gHost_TaskStackSize_c           3800

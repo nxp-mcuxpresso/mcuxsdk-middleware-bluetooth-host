@@ -131,6 +131,10 @@
 /* Enable/Disable CS Enhancement: Inline PCT Transfer
    Only the RADE algorithm supports distance measurement with Inline PCT Transfer */
 #define gAppUseInlinePctTransfer_d            (0U)
+
+/*! Prevent NCP Core1 from using HwParameter/DevMgr APIs. */
+#define gNcpCore1Execution_d 1
+
 /*! *********************************************************************************
  *     Framework Configuration
  ********************************************************************************** */

@@ -190,11 +190,7 @@ void BluetoothLEHost_Init
     appBluetoothLEInitCompleteCallback_t pCallback
 )
 {
-    /* Framework init */
-#if defined(gRngSeedStorageAddr_d) || defined(gXcvrDacTrimValueSorageAddr_d)
-    NV_Init();
-#endif /* gRngSeedStorageAddr_d || gXcvrDacTrimValueSorageAddr_d */
-    
+    /* Framework init */    
     /* Cryptographic hardware initialization */
     SecLib_Init();
     

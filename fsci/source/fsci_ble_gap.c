@@ -46,7 +46,7 @@
 #endif /* defined(gFsciBleTest_d) && (gFsciBleTest_d == 1U) */
 
 #if (defined(gFsciBleUseHwParameter_c) && (gFsciBleUseHwParameter_c > 0U))
-#include "HWParameter.h"
+#include "fwk_devmgr.h"
 #endif
 
 #if gFsciIncluded_c && gFsciBleGapLayerEnabled_d
@@ -4083,24 +4083,30 @@ static bleResult_t fsciWritePublicDeviceAddress(bleDeviceAddress_t bdAddress)
 {
     bleResult_t retStatus = gBleSuccess_c;
 #if (defined(gFsciBleUseHwParameter_c) && (gFsciBleUseHwParameter_c > 0))
-    hardwareParameters_t *pHWParams = NULL;
-    uint8_t HWParam_status = 0U;
-    HWParam_status = NV_ReadHWParameters(&pHWParams);
-    if(HWParam_status != 0U)
-    {
-        retStatus = gBleOsError_c;
-    }
-    else
-    {
-        if (!FLib_MemCmp(bdAddress, pHWParams->bluetooth_address, gcBleDeviceAddressSize_c))
+    do {
+        uint8_t bd_addr[gcBleDeviceAddressSize_c] = { 0U };
+        int     status;
+
+        status = DEVMGR_GetBdAddress(bd_addr, NULL);
+        if (status != DEVMGR_Success_c)
         {
-            FLib_MemCpy(pHWParams->bluetooth_address, bdAddress, gcBleDeviceAddressSize_c);
-            if(NV_WriteHWParameters() != 0U)
-            {
-                retStatus = gBleOsError_c;
-            }
+            retStatus = gBleOsError_c;
+            break;
         }
-    }
+
+        if (FLib_MemCmp(bdAddress, bd_addr, gcBleDeviceAddressSize_c) != FALSE)
+        {
+            /* Pretend it is a success if the BD address to write matches the present one */
+            break;
+        }
+        /* BD address may not be modifiable depending on the DEVMGR backend */
+        status = DEVMGR_SetBdAddress((uint8_t*)bdAddress);
+        if (status != DEVMGR_Success_c)
+        {
+            retStatus = gBleOsError_c;
+        }
+        /* retStatus returns gBleSuccess_c */
+    } while (false);
 #endif /* defined(gFsciBleUseHwParameter_c) && (gFsciBleUseHwParameter_c > 0) */
     return retStatus;
 }

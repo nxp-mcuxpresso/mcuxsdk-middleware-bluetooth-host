@@ -167,10 +167,6 @@ static void App_RunAlgo
 void BluetoothLEHost_AppInit(void)
 {
     /* Framework init */
-#if defined(gRngSeedStorageAddr_d) || defined(gXcvrDacTrimValueSorageAddr_d)
-    NV_Init();
-#endif /* gRngSeedStorageAddr_d || gXcvrDacTrimValueSorageAddr_d */
-
 #if defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)
     /* Initialize NV module */
     (void)NvModuleInit();

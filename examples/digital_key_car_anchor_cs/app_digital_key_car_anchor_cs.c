@@ -34,9 +34,6 @@
 #if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
 #include "fsl_shell.h"
 #endif
-#if defined(gPlatformUseHwParameter_d) && (gPlatformUseHwParameter_d > 0)
-#include "HWParameter.h"
-#endif /* defined(gPlatformUseHwParameter_d) && (gPlatformUseHwParameter_d > 0) */
 #include "app.h"
 #include "fwk_seclib.h"
 /* BLE Host Stack */

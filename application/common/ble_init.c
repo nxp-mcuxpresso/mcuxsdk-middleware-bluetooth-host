@@ -4,7 +4,7 @@
  ********************************************************************************** */
 /*! *********************************************************************************
 * Copyright 2015 Freescale Semiconductor, Inc.
-* Copyright 2016 - 2023, 2025 NXP
+* Copyright 2016 - 2023, 2025-2026 NXP
 *
 *
 * \file
@@ -24,6 +24,10 @@
 #include "board_extPA.h"
 #endif
 
+/*! Prevent NCP Core1 from using HwParameter/DevMgr APIs. */
+#if !(defined gNcpCore1Execution_d  && (gNcpCore1Execution_d != 0))
+#include "fwk_devmgr.h"
+#endif
 #include "fwk_platform_ble.h"
 
 #if (!defined(gBleSetMacAddrFromVendorCommand_d)) || (defined(gBleSetMacAddrFromVendorCommand_d) && (gBleSetMacAddrFromVendorCommand_d == 0))
@@ -69,16 +73,8 @@ bool_t gHostInitResetController = gHostInitResetController_c;
 * Private prototypes
 *************************************************************************************
 ************************************************************************************/
-#if !defined(gUseHciTransportDownward_d) || (!gUseHciTransportDownward_d)
-
-#if defined(gXcvrDacTrimValueSorageAddr_d)
-static uint32_t SaveXcvrDcocDacTrimToFlash(xcvr_DcocDacTrim_t *xcvrDacTrim);
-static uint32_t RestoreXcvrDcocDacTrimFromFlash(xcvr_DcocDacTrim_t *xcvrDacTrim);
-#endif /* gXcvrDacTrimValueSorageAddr_d */
-
-#endif /* gUseHciTransportDownward_d */
-
-#if defined(gUseHciTransportDownward_d) && gUseHciTransportDownward_d
+#if (defined(gUseHciTransportDownward_d) && gUseHciTransportDownward_d) &&  \
+    !(defined gNcpCore1Execution_d  && (gNcpCore1Execution_d != 0))
 /*! *********************************************************************************
 *\fn           void Ble_SetBDAddr(void)
 *\brief        Set Bluetooth Device Address in Controller. .
@@ -131,13 +127,14 @@ bleResult_t Ble_Initialize
     {
         return gHciTransportError_c;
     }
+#if (defined(gUseHciTransportDownward_d) && gUseHciTransportDownward_d) &&  !(defined gNcpCore1Execution_d  && (gNcpCore1Execution_d != 0))
 
     /*
      * Set BD Address in Controller. Must be done after HCI init
      * and before Host init.
      */
     Ble_SetBDAddr();
-
+#endif
     /* Check for available memory storage */
     if (!Ble_CheckMemoryStorage())
     {
@@ -220,7 +217,7 @@ bleResult_t Ble_DeInitialize(void)
         if (KOSA_StatusSuccess != Ble_HostTaskDeInit())
         {
             result = gBleOsError_c;
-        }        
+        }
     }
     return result;
 #elif defined(gUseHciTransportUpward_d) && gUseHciTransportUpward_d
@@ -234,76 +231,12 @@ return gBleSuccess_c;
 * Private functions
 *************************************************************************************
 ************************************************************************************/
-
-#if defined(gXcvrDacTrimValueSorageAddr_d)
-/*! *********************************************************************************
-*\private
-*\fn           uint32_t  SaveXcvrDcocDacTrimToFlash(xcvr_DcocDacTrim_t *xcvrDacTrim)
-*\brief        Saves  XCVR DCOC DAC trim value to Flash.
-*
-*\param  [in]  xcvrDacTrim    XCVR DCOC DAC trim register value storage.
-*
-*\return       uint32_t       A flash status code.
-********************************************************************************** */
-static uint32_t  SaveXcvrDcocDacTrimToFlash(xcvr_DcocDacTrim_t *xcvrDacTrim)
-{
-    uint32_t status;
-
-    if (FLib_MemCmpToVal((void const *)gXcvrDacTrimValueSorageAddr_d,
-                         0xFF,
-                         sizeof(xcvr_DcocDacTrim_t)))
-    {
-        status = NV_FlashProgramUnaligned(gXcvrDacTrimValueSorageAddr_d,
-                                          sizeof(xcvr_DcocDacTrim_t),
-                                          (uint8_t*)xcvrDacTrim);
-    }
-    else
-    {
-        status = 1;
-    }
-
-    return status;
-}
-
-/*! *********************************************************************************
-*\private
-*\fn           uint32_t RestoreXcvrDcocDacTrimFromFlash(
-*                  xcvr_DcocDacTrim_t *xcvrDacTrim)
-*\brief        Restores XCVR DCOC DAC trim value from Flash.
-*
-*\param  [in]  xcvrDacTrim    XCVR DCOC DAC trim register value storage.
-*
-*\retval       1              Invalid trim value stored in Flash.
-*\retval       0              Valid trim value stored in Flash.
-********************************************************************************** */
-static uint32_t RestoreXcvrDcocDacTrimFromFlash(xcvr_DcocDacTrim_t *xcvrDacTrim)
-{
-    uint32_t status;
-
-    if (FLib_MemCmpToVal((void const *)gXcvrDacTrimValueSorageAddr_d,
-                         0xFF,
-                         sizeof(xcvr_DcocDacTrim_t)))
-    {
-        status = 1;
-    }
-    else
-    {
-        status = 0;
-        FLib_MemCpy(xcvrDacTrim,
-                    (void const *)gXcvrDacTrimValueSorageAddr_d,
-                    sizeof(xcvr_DcocDacTrim_t));
-    }
-
-    return status;
-}
-#endif /* gXcvrDacTrimValueSorageAddr_d */
-
-#if defined(gUseHciTransportDownward_d) && gUseHciTransportDownward_d
+#if (defined(gUseHciTransportDownward_d) && gUseHciTransportDownward_d) &&  !(defined gNcpCore1Execution_d  && (gNcpCore1Execution_d != 0))
 static void Ble_SetBDAddr(void)
 {
     uint8_t bleDeviceAddress[gcBleDeviceAddressSize_c] = {0};
 
-    PLATFORM_GetBDAddr(bleDeviceAddress);
+    (void)DEVMGR_GetBdAddress(bleDeviceAddress, NULL);
 
 #if !defined(gBleSetMacAddrFromVendorCommand_d) || (defined(gBleSetMacAddrFromVendorCommand_d) && (gBleSetMacAddrFromVendorCommand_d == 0))
     /* Set BD address by API call */
@@ -329,6 +262,7 @@ static void Ble_SetBDAddr(void)
 #endif /* gBleSetMacAddrFromVendorCommand_d */
 }
 #endif
+
 
 /*! *********************************************************************************
 * @}

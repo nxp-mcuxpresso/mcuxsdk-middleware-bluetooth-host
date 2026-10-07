@@ -29,6 +29,7 @@
 #endif /* gUseHciTransportDownward_d */
 
 #include "fwk_platform_ble.h"
+#include "fwk_devmgr.h"
 
 #if (!defined(gBleSetMacAddrFromVendorCommand_d)) || (defined(gBleSetMacAddrFromVendorCommand_d) && (gBleSetMacAddrFromVendorCommand_d == 0))
 #include "controller_api.h"
@@ -67,14 +68,6 @@ bool_t gHostInitResetController = gHostInitResetController_c;
 * Private prototypes
 *************************************************************************************
 ************************************************************************************/
-#if !defined(gUseHciTransportDownward_d) || (!gUseHciTransportDownward_d)
-
-#if defined(gXcvrDacTrimValueSorageAddr_d)
-static uint32_t SaveXcvrDcocDacTrimToFlash(xcvr_DcocDacTrim_t *xcvrDacTrim);
-static uint32_t RestoreXcvrDcocDacTrimFromFlash(xcvr_DcocDacTrim_t *xcvrDacTrim);
-#endif /* gXcvrDacTrimValueSorageAddr_d */
-
-#endif /* gUseHciTransportDownward_d */
 
 /************************************************************************************
 *************************************************************************************
@@ -212,76 +205,12 @@ return gBleSuccess_c;
 * Private functions
 *************************************************************************************
 ************************************************************************************/
-
-#if defined(gXcvrDacTrimValueSorageAddr_d)
-/*! *********************************************************************************
-*\private
-*\fn           uint32_t  SaveXcvrDcocDacTrimToFlash(xcvr_DcocDacTrim_t *xcvrDacTrim)
-*\brief        Saves  XCVR DCOC DAC trim value to Flash.
-*
-*\param  [in]  xcvrDacTrim    XCVR DCOC DAC trim register value storage.
-*
-*\return       uint32_t       A flash status code.
-********************************************************************************** */
-static uint32_t  SaveXcvrDcocDacTrimToFlash(xcvr_DcocDacTrim_t *xcvrDacTrim)
-{
-    uint32_t status;
-
-    if (FLib_MemCmpToVal((void const *)gXcvrDacTrimValueSorageAddr_d,
-                         0xFF,
-                         sizeof(xcvr_DcocDacTrim_t)))
-    {
-        status = NV_FlashProgramUnaligned(gXcvrDacTrimValueSorageAddr_d,
-                                          sizeof(xcvr_DcocDacTrim_t),
-                                          (uint8_t*)xcvrDacTrim);
-    }
-    else
-    {
-        status = 1;
-    }
-
-    return status;
-}
-
-/*! *********************************************************************************
-*\private
-*\fn           uint32_t RestoreXcvrDcocDacTrimFromFlash(
-*                  xcvr_DcocDacTrim_t *xcvrDacTrim)
-*\brief        Restores XCVR DCOC DAC trim value from Flash.
-*
-*\param  [in]  xcvrDacTrim    XCVR DCOC DAC trim register value storage.
-*
-*\retval       1              Invalid trim value stored in Flash.
-*\retval       0              Valid trim value stored in Flash.
-********************************************************************************** */
-static uint32_t RestoreXcvrDcocDacTrimFromFlash(xcvr_DcocDacTrim_t *xcvrDacTrim)
-{
-    uint32_t status;
-
-    if (FLib_MemCmpToVal((void const *)gXcvrDacTrimValueSorageAddr_d,
-                         0xFF,
-                         sizeof(xcvr_DcocDacTrim_t)))
-    {
-        status = 1;
-    }
-    else
-    {
-        status = 0;
-        FLib_MemCpy(xcvrDacTrim,
-                    (void const *)gXcvrDacTrimValueSorageAddr_d,
-                    sizeof(xcvr_DcocDacTrim_t));
-    }
-
-    return status;
-}
-#endif /* gXcvrDacTrimValueSorageAddr_d */
-
 #if defined(gUseHciTransportDownward_d) && gUseHciTransportDownward_d
 void Ble_SetBDAddr(void)
 {
     uint8_t bleDeviceAddress[gcBleDeviceAddressSize_c] = {0};
 
-    PLATFORM_GetBDAddr(bleDeviceAddress);
+    (void)DEVMGR_GetBdAddress(bleDeviceAddress, NULL);
 
 #if !defined(gBleSetMacAddrFromVendorCommand_d) || (defined(gBleSetMacAddrFromVendorCommand_d) && (gBleSetMacAddrFromVendorCommand_d == 0))
     /* Set BD address by API call */

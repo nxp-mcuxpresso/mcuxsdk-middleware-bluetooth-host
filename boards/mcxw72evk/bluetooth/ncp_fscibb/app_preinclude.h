@@ -130,9 +130,9 @@
  *  This assumes LPUART0 is used with Serial Manager (applicative serial interface).
  *  No effect if low power is disabled. */
 #define gAppLpuart0WakeUpSourceEnable_d 0
-          
+
 /*! Lowpower Constraint setting for various BLE states (Advertising, Scanning, connected mode)
-    The value shall map with the type defintion PWR_LowpowerMode_t in PWR_Interface.h
+    The value shall map with the type definition PWR_LowpowerMode_t in PWR_Interface.h
       0 : no LowPower, WFI only
       1 : Reserved
       2 : Deep Sleep
@@ -141,9 +141,9 @@
        gLowpowerPowerDownEnable_d variable is set to 1 in Linker Script
     The PowerDown mode will allow lowest power consumption but the wakeup time is longer
        and the first 16K in SRAM is reserved to ROM code (this section will be corrupted on
-       each power down wakeup so only temporary data could be stored there.)     */          
+       each power down wakeup so only temporary data could be stored there.)     */
 #define gAppLowPowerModeConstraints_c   2
-          
+
 /* Disable LEDs when enabling low power */
 #if (defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0))
   #undef gAppLedCnt_c
@@ -152,6 +152,9 @@
 
 /*! Enable the SWD pins to be managed into low-power */
 #define gBoard_ManageSwdPinsInLowPower_d    0
+
+/*! Prevent NCP Core1 from using HwParameter/DevMgr APIs. */
+#define gNcpCore1Execution_d 1
 
 /*! *********************************************************************************
  *     BLE Stack Configuration

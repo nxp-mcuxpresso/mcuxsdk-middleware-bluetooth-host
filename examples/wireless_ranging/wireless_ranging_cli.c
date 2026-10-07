@@ -37,7 +37,10 @@
 #include "fsl_component_serial_manager.h"
 #include "fsl_component_mem_manager.h"
 #include "fsl_adapter_reset.h"
-#if defined(gPlatformUseHwParameter_d) && (gPlatformUseHwParameter_d > 0)
+#if !(defined (gAppNoUseDevMgr_d) && (gAppNoUseDevMgr_d != 0))
+#include "fwk_devmgr.h"
+#include "board_platform.h"
+#else
 #include "HWParameter.h"
 #endif
 #include "app.h"
@@ -706,23 +709,19 @@ void cli_cmd_misc_xtal_trim(int argc, char *argv[])
 {
 #if !defined(FPGA_TARGET) || (FPGA_TARGET == 0)
     int32_t inp;
-#if defined(gPlatformUseHwParameter_d) && (gPlatformUseHwParameter_d > 0)
-    hardwareParameters_t *pHWParams = NULL;
-    (void)NV_ReadHWParameters(&pHWParams);
-#endif
+    uint8_t applied_trim_val;
     if(argc == 1)
     {
         inp = (int32_t)atoi(argv[0]);
         if ((inp >= 0) && (inp <= 63))
         {
-#if defined(gPlatformUseHwParameter_d) && (gPlatformUseHwParameter_d > 0)
-            pHWParams->xtalTrim = (uint8_t)inp;
-#endif
-            PLATFORM_SetXtal32MhzTrim((uint8_t)inp, FALSE);
+            /* Set XCVR XO trim value
+             * in case it has to be set permanently the value will be read back from the register */
+            (void)XCVR_SetXtalTrim((uint8_t)inp);
         }
     }
-
-    CLI_PRINTF("xtal_trim: %u\n", (unsigned int)PLATFORM_GetXtal32MhzTrim(FALSE));
+    applied_trim_val = XCVR_GetXtalTrim();
+    CLI_PRINTF("xtal_trim: %u\n", (unsigned int)applied_trim_val);
 #else
     argc = argc; /* MISRA rule 2.7 */
     argv = argv; /* MISRA rule 2.7 */
@@ -859,7 +858,7 @@ void cli_cmd_test(int argc, char *argv[])
             /* No action required */
             break;
     }
-    
+
     if (didRun == 0)
     {
         return;
@@ -898,7 +897,7 @@ void cli_cmd_range(int argc, char *argv[])
 {
     deviceId_t peerId = 0; /* TODO: make the addr mandatory ? for now assume first connected device */
     int didRun = 1;
-    
+
     switch(gCommunicationSettings->role) {
         case gGapCentral_c:
             break;
@@ -909,7 +908,7 @@ void cli_cmd_range(int argc, char *argv[])
             didRun = 0;
             break;
     }
-    
+
     if (didRun == 0)
     {
         return;
@@ -918,7 +917,7 @@ void cli_cmd_range(int argc, char *argv[])
     {
         /* No action needed */
     }
-    
+
     if (argc < 2) {
         if (argc == 2) {
             uint64_t address = 0;
@@ -960,7 +959,7 @@ void cli_cmd_setup(int argc, char *argv[])
 {
     uint8_t peerId = 0; /* TODO: make the addr mandatory ? for now assume first connected device */
     int didRun = 1;
-    
+
     switch(gCommunicationSettings->role) {
         case gGapCentral_c:
             break;
@@ -973,7 +972,7 @@ void cli_cmd_setup(int argc, char *argv[])
             didRun = 0;
             break;
     }
-    
+
     if (didRun == 0)
     {
         return;
@@ -982,7 +981,7 @@ void cli_cmd_setup(int argc, char *argv[])
     {
         /* No action needed */
     }
-    
+
     if (argc < 2) {
         if (argc == 2) {
             uint64_t address = 0;
@@ -1070,11 +1069,16 @@ void cli_cmd_communication_interval(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_communication_local(int argc, char *argv[])
 {
-#if defined(gPlatformUseHwParameter_d) && (gPlatformUseHwParameter_d > 0)
-    hardwareParameters_t *pHWParams = NULL;
-    (void) NV_ReadHWParameters(&pHWParams);
-    uint8_t *ptr = pHWParams->bluetooth_address;
-    CLI_PRINTF("local: 0x%02X%02X%02X%02X%02X%02X\n", ptr[5], ptr[4], ptr[3], ptr[2], ptr[1], ptr[0]);
+#if !(defined (gAppNoUseDevMgr_d) && (gAppNoUseDevMgr_d != 0))
+    int     status;
+    uint32_t bd_addr_src = DEVMGR_MAC_SRC_CUST;
+    uint8_t bd_addr[gcBleDeviceAddressSize_c] = {0U};
+    status = DEVMGR_GetBdAddress(bd_addr, &bd_addr_src);
+    if (status != DEVMGR_Success_c || bd_addr_src != DEVMGR_MAC_SRC_CUST)
+    {
+        FLib_MemSet(bd_addr, 0U, gcBleDeviceAddressSize_c);
+    }
+    CLI_PRINTF("local: 0x%02X%02X%02X%02X%02X%02X\n", bd_addr[5], bd_addr[4], bd_addr[3], bd_addr[2], bd_addr[1], bd_addr[0]);
 #endif
     argc = argc; /* MISRA rule 2.7 */
     argv = argv; /* MISRA rule 2.7 */
@@ -1141,7 +1145,7 @@ bool_t cli_generate_ch_list(void)
     if ((ch_stop - ch_start + 1) >= CS_STEP_NB_MAX_PER_SE) {
         return FALSE;
     }
-    
+
     /* Do not re-generate channel list if in manual mode */
     if (!gRangeSettings->ch_list_auto) {
         return FALSE;
@@ -1337,8 +1341,8 @@ void cli_cmd_parameter_cs_algo(int argc, char *argv[])
                 gRangeSettings->ch_sel_jump = (uint8_t)inp;
             }
         }
-    } 
-    else if (argc > 0) 
+    }
+    else if (argc > 0)
     {
         CLI_PRINTF("Invalid number of arguments.\n");
     }
@@ -1376,11 +1380,11 @@ void cli_cmd_parameter_main_mode_nb(int argc, char *argv[])
         {
             gRangeSettings->main_mode_repeat = (uint8_t)inp;
         }
-    } 
-    else if (argc > 0) 
+    }
+    else if (argc > 0)
     {
         CLI_PRINTF("Invalid number of arguments.\n");
-    } 
+    }
     else
     {
         /* No action needed */
@@ -2039,20 +2043,23 @@ void cli_cmd_system_factory(int argc, char *argv[])
 {
     uint32_t default_initiator_aa = 0x215EE636;
     uint32_t default_reflector_aa = 0x41118D59;
-    
-#if defined(gPlatformUseHwParameter_d) && (gPlatformUseHwParameter_d > 0)
-    hardwareParameters_t *pHWParams = NULL;
-    
-    (void) NV_ReadHWParameters(&pHWParams);
- 
-#if (defined(KW37A4_SERIES) || defined(KW37Z4_SERIES) || defined(KW38A4_SERIES) || defined(KW38Z4_SERIES) || defined(KW39A4_SERIES))
-    pHWParams->xtalTrim = BOARD_GetXtal32MhzTrim(FALSE);
-#else
-    pHWParams->xtalTrim = PLATFORM_GetXtal32MhzTrim(FALSE);
-#endif
-    (void)XCVR_SetXtalTrim(pHWParams->xtalTrim);
-#endif /* gPlatformUseHwParameter_d */
-    
+    uint8_t trim_32MHzXtal = BOARD_32MHZ_XTAL_CDAC_VALUE; /* pre-load with default value */
+
+#if !(defined (gAppNoUseDevMgr_d) && (gAppNoUseDevMgr_d != 0))
+    /* Read value from DEVMGR */
+    int status;
+    status = DEVMGR_Get32MHzTrim(&trim_32MHzXtal);
+    if (status != DEVMGR_Success_c)
+    {
+        /* If could not read 32MHz trim value from DEVMGR fallback to board default */
+        trim_32MHzXtal = BOARD_32MHZ_XTAL_CDAC_VALUE;
+    }
+#else /* gAppNoUseDevMgr_d*/
+    trim_32MHzXtal = BOARD_32MHZ_XTAL_CDAC_VALUE;
+#endif /* gAppNoUseDevMgr_d*/
+
+    (void)XCVR_SetXtalTrim(trim_32MHzXtal); /* Apply value to come back to original setting */
+
     argc = argc; /* MISRA rule 2.7 */
     argv = argv; /* MISRA rule 2.7 */
 
@@ -2125,13 +2132,20 @@ void cli_cmd_system_factory(int argc, char *argv[])
 ********************************************************************************** */
 void cli_cmd_system_store(int argc, char *argv[])
 {
-#if defined(gPlatformUseHwParameter_d) && (gPlatformUseHwParameter_d > 0)
-    hardwareParameters_t *pHWParams = NULL;
-    (void) NV_ReadHWParameters(&pHWParams);
-    (void)NV_WriteHWParameters();
+    int ret = 1;
+#if !(defined (gAppNoUseDevMgr_d) && (gAppNoUseDevMgr_d != 0))
+    uint8_t xtalTrim;
+    int     status;
+    xtalTrim = XCVR_GetXtalTrim(); /* Read XCVR XO register */
+
+    status = DEVMGR_Set32MHzTrim(xtalTrim);
+    if (status != DEVMGR_Success_c)
+    {
+        ret = 0;
+    }
 #endif
     isp_globals_save();
-    CLI_PRINTF("store: 1\n");
+    CLI_PRINTF("store: %d\n", ret);
 }
 
 /*! *********************************************************************************
@@ -2748,7 +2762,7 @@ uint16_t convert_cfo(uint8_t **dataIn) {
     /* Propagate sign bit from 15 bits to 16 bits */
     val <<= 1; val /= 2;
     val ^= 0x8000U; /* invert sign bit (offset) for easier encoding/decoding */
-    
+
     (*dataIn) += 3;
     return val;
 }
@@ -2956,7 +2970,7 @@ static void mciq_print_node_postprocessing
           decimal *= (-1);
         }
         (void)printf(",rade:%d.%02d", integ, decimal);
-        
+
         integ = (int)result->rade_dist_trk;
         integFl = (result->rade_dist_trk - (float)integ) * 100.0f;
         decimal = (int)integFl;
@@ -2965,7 +2979,7 @@ static void mciq_print_node_postprocessing
           decimal *= (-1);
         }
         (void)printf(",rade_trk:%d.%02d", integ, decimal);
-        
+
         integ = (int)result->rade_dqi;
         integFl = (result->rade_dqi - (float)integ) * 1000.0f;
         decimal = (int)integFl;

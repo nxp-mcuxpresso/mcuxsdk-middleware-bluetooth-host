@@ -4,6 +4,12 @@ menu "bluetooth"
         bool "host"
     config MCUX_COMPONENT_middleware.wireless.ble_host_common
         bool "host_common"
+        # NBU/cm33_core1 apps have no access to HWParameter or DevMgr; only
+        # select DevMgr when building for a host core.
+        select MCUX_COMPONENT_middleware.wireless.framework.devmgr if \
+            !MCUX_COMPONENT_middleware.wireless.framework.platform.kw47_mcxw72_nbu && \
+            !MCUX_COMPONENT_middleware.wireless.framework.platform.kw45_mcxw71_nbu && \
+            !MCUX_COMPONENT_middleware.wireless.framework.platform.kw43_mcxw70_nbu
     config MCUX_COMPONENT_middleware.wireless.ble_host_OPT_component_lib
         bool "host_opt_lib"
     config MCUX_COMPONENT_middleware.wireless.ble_host_OPT_central_component_lib
@@ -38,6 +44,12 @@ menu "bluetooth"
         bool "fsci_generic"
     config MCUX_COMPONENT_middleware.wireless.ble_fsci_source
         bool "fsci_source"
+        # NBU/cm33_core1 apps have no access to HWParameter or DevMgr; only
+        # select DevMgr when building for a host core.
+        select MCUX_COMPONENT_middleware.wireless.framework.devmgr if \
+            !MCUX_COMPONENT_middleware.wireless.framework.platform.kw47_mcxw72_nbu && \
+            !MCUX_COMPONENT_middleware.wireless.framework.platform.kw45_mcxw71_nbu && \
+            !MCUX_COMPONENT_middleware.wireless.framework.platform.kw43_mcxw70_nbu
     config MCUX_COMPONENT_middleware.wireless.ble_fsci_source_handover
         bool "fsci_source_handover"
     config MCUX_COMPONENT_middleware.wireless.ble_fsci_host
@@ -92,6 +104,12 @@ menu "bluetooth"
         bool "ble_ncp_common"
     config MCUX_COMPONENT_middleware.wireless.ble_ncp_fsci_source
         bool "ble_ncp_fsci_source"
+        # NBU/cm33_core1 apps have no access to HWParameter or DevMgr; only
+        # select DevMgr when building for a host core.
+        select MCUX_COMPONENT_middleware.wireless.framework.devmgr if \
+            !MCUX_COMPONENT_middleware.wireless.framework.platform.kw47_mcxw72_nbu && \
+            !MCUX_COMPONENT_middleware.wireless.framework.platform.kw45_mcxw71_nbu && \
+            !MCUX_COMPONENT_middleware.wireless.framework.platform.kw43_mcxw70_nbu
     config MCUX_COMPONENT_middleware.wireless.ncp
         bool "ncp"
     config MCUX_COMPONENT_middleware.wireless.bridge_nvm
@@ -123,6 +141,12 @@ menu "localization"
         bool "genfsk_lcl_isp_controller_wr"
     config MCUX_COMPONENT_middleware.wireless.wr_wireless_ranging_host
         bool "wr_wireless_ranging_host"
+        # NBU/cm33_core1 apps have no access to HWParameter or DevMgr; only
+        # select DevMgr when building for a host core.
+        select MCUX_COMPONENT_middleware.wireless.framework.devmgr if \
+            !MCUX_COMPONENT_middleware.wireless.framework.platform.kw47_mcxw72_nbu && \
+            !MCUX_COMPONENT_middleware.wireless.framework.platform.kw45_mcxw71_nbu && \
+            !MCUX_COMPONENT_middleware.wireless.framework.platform.kw43_mcxw70_nbu
     config MCUX_COMPONENT_middleware.wireless.wr_wireless_ranging_tools
         bool "wr_wireless_ranging_tools"
     config MCUX_COMPONENT_middleware.wireless.lcl

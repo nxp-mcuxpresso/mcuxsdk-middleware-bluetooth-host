@@ -74,10 +74,7 @@
 /* erase NVM pages at download( armgcc only) */
 #if ((defined gAppUseNvm_d) && (gAppUseNvm_d != 0)) && defined(__GNUC__)
 #define gNvmErasePartitionWhenFlashing_c 1U
-#endif   
-
-/*! Enable XCVR calibration storage in Flash */
-#define gControllerPreserveXcvrDacTrimValue_d     1
+#endif
 
 /*! Enable the SWD pins to be managed into low-power */
 #define gBoard_ManageSwdPinsInLowPower_d    0

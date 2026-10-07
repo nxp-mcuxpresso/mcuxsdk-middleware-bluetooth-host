@@ -64,6 +64,9 @@
 
 #define gAppTaskWaitTimeout_ms_c       osaWaitForever_c
 
+/*! Prevent NCP Core1 from using HwParameter/DevMgr APIs. */
+#define gNcpCore1Execution_d 1
+
 /*! *********************************************************************************
  *     Framework Configuration
  ********************************************************************************** */
