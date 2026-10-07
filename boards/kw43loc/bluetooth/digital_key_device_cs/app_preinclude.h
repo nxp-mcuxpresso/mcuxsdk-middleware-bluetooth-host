@@ -104,10 +104,6 @@
 /* Enable/Disable CS Enhancement: Inline PCT Transfer
    Only the RADE algorithm supports distance measurement with Inline PCT Transfer */
 #define gAppUseInlinePctTransfer_d            (0U)
-
-#if gAppUseInlinePctTransfer_d
-#define gHostInitEnableExpmFeatures_c         (1U)
-#endif
 /*! *********************************************************************************
  *     CCC Configuration
  ********************************************************************************** */
