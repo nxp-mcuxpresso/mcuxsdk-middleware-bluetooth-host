@@ -325,7 +325,8 @@
     /* connLatency */           gGapDefaultConnectionLatency_d, \
     /* supervisionTimeout */    gGapDefaultSupervisionTimeout_d, \
     /* connEventLengthMin */    gGapConnEventLengthMin_d, \
-    /* connEventLengthMax */    gGapConnEventLengthMax_d \
+    /* connEventLengthMax */    gGapConnEventLengthMax_d, \
+    /* usePeerIdentityAddress */ FALSE, \
     /* initiatingPHYs */        gLePhy1MFlag_c \
 }
 
