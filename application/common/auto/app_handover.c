@@ -921,6 +921,22 @@ void AppHandover_Abort(bool_t notifyPeerAnch, appHandoverError_t error)
 
     switch (mHandoverCtx.state)
     {
+        case gHandoverIdle_c:
+        {
+            /* Anchor monitoring is tracked in maMonitorCtx[] while mHandoverCtx
+               remains idle. If a monitor start request fails (e.g. the remote
+               anchor reports a failure before confirming the search started),
+               clear the monitor context. */
+            for (uint32_t i = 0U; i < ((uint32_t)gAppMaxConnections_c); i++)
+            {
+                if (maMonitorCtx[i].state == gMonitorStarting_c)
+                {
+                    freeMonitorCtx(&maMonitorCtx[i]);
+                }
+            }
+        }
+        break;
+
         case gHandoverContextTx_c:
         {
             (void)Gap_HandoverResumeTransmit(mHandoverCtx.centralDeviceId);
