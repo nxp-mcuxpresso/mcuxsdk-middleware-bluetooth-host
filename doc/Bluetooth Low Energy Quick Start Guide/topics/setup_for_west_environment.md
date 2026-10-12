@@ -4,7 +4,7 @@ These steps are intended for **GitHub users** working with Bluetooth Low Energy 
 
 ## Option 1: Using west
 
-Follow the steps in the order presented in [Getting Started with MCUXpresso SDK Repository](https://mcuxpresso.nxp.com/mcuxsdk/latest/html/gsd/installation.html) to install the west environment.
+Follow the steps in the order presented in [Getting Started with MCUXpresso SDK Repository](https://docs.mcuxpresso.nxp.com/mcuxsdk/latest/gsd/installation.html) to install the west environment.
 
 ## Option 2: Using Repository ZIP Download
 
@@ -22,7 +22,7 @@ Follow the steps in the order presented in [Getting Started with MCUXpresso SDK 
 
 3. **Install west (Required for Building)**
    
-   Follow [Getting Started with MCUXpresso SDK Repository](https://mcuxpresso.nxp.com/mcuxsdk/latest/html/gsd/installation.html) to install west.
+   Follow [Getting Started with MCUXpresso SDK Repository](https://docs.mcuxpresso.nxp.com/mcuxsdk/latest/gsd/installation.html) to install west.
 
 4. **Build from Repository ZIP**
    
@@ -52,6 +52,6 @@ west build -b kw47evk boards/kw47evk/wireless_examples/bluetooth/w_uart/freertos
 
 Use the following steps in order to build and flash the BLE software demo applications on all toolchains presented in:
 
-- [Building and flashing the BLE software demo applications using IAR Embedded Workbench](https://mcuxpresso.nxp.com/mcuxsdk/latest/html/middleware/wireless/bluetooth/doc/Bluetooth%20Low%20Energy%20Quick%20Start%20Guide/topics/building_the_binaries.html#building-and-flashing-the-ble-software-demo-applications-using-iar-embedded-workbench)
-- [Building and flashing the BLE Software Demo applications using MCUXpresso IDE](https://mcuxpresso.nxp.com/mcuxsdk/latest/html/middleware/wireless/bluetooth/doc/Bluetooth%20Low%20Energy%20Quick%20Start%20Guide/topics/building_the_binaries.html#building-and-flashing-the-ble-software-demo-applications-using-mcuxpresso-ide)
-- [Building and flashing the BLE software demo applications using Visual Studio Code](https://mcuxpresso.nxp.com/mcuxsdk/latest/html/middleware/wireless/bluetooth/doc/Bluetooth%20Low%20Energy%20Quick%20Start%20Guide/topics/building_the_binaries.html#building-and-flashing-the-ble-software-demo-applications-using-visual-studio-code)
+- [Building and flashing the BLE software demo applications using IAR Embedded Workbench](https://docs.mcuxpresso.nxp.com/mcuxsdk/latest/middleware/wireless/bluetooth/doc/Bluetooth%20Low%20Energy%20Quick%20Start%20Guide/topics/building_the_binaries.html#building-and-flashing-the-ble-software-demo-applications-using-iar-embedded-workbench)
+- [Building and flashing the BLE Software Demo applications using MCUXpresso IDE](https://docs.mcuxpresso.nxp.com/mcuxsdk/latest/middleware/wireless/bluetooth/doc/Bluetooth%20Low%20Energy%20Quick%20Start%20Guide/topics/building_the_binaries.html#building-and-flashing-the-ble-software-demo-applications-using-mcuxpresso-ide)
+- [Building and flashing the BLE software demo applications using Visual Studio Code](https://docs.mcuxpresso.nxp.com/mcuxsdk/latest/middleware/wireless/bluetooth/doc/Bluetooth%20Low%20Energy%20Quick%20Start%20Guide/topics/building_the_binaries.html#building-and-flashing-the-ble-software-demo-applications-using-visual-studio-code)

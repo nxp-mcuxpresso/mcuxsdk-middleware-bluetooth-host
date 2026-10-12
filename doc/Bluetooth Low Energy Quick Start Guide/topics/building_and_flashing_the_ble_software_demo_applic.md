@@ -4,7 +4,7 @@ This guide shows how to build and flash Bluetooth Low Energy demo applications u
 
 ## Prerequisites
 
-- **west build environment** - Follow [Getting Started with MCUXpresso SDK Repository](https://mcuxpresso.nxp.com/mcuxsdk/latest/html/gsd/installation.html)
+- **west build environment** - Follow [Getting Started with MCUXpresso SDK Repository](https://docs.mcuxpresso.nxp.com/mcuxsdk/latest/gsd/installation.html)
 - **IAR Embedded Workbench for Arm** (see release notes for version)
 - **GitHub MCUXpresso SDK repository** cloned locally (west init -m https://github.com/nxp-mcuxpresso/mcuxsdk-manifests.git)
 
