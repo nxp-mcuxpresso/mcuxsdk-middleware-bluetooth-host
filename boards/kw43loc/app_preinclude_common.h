@@ -120,6 +120,9 @@
 /*! Size of bond data structures for a bonded device  */
 #define gBleBondIdentityHeaderSize_c     (56U)
 
+/*! Enable MAC address generation in case IFR is not written */
+#define DEVMGR_MAC_GEN_ENABLED 1
+
 /*! *********************************************************************************
  *   Auto Configuration
  ********************************************************************************** */
