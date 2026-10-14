@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file digital_key_car_anchor.h
 *
-* Copyright 2020-2025 NXP
+* Copyright 2020-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -233,7 +233,6 @@ void BleApp_GenericCallback (gapGenericEvent_t* pGenericEvent);
 void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEvent_t* pConnectionEvent);
 void App_HandleLeScLocalOobDataCallback(appEventData_t *pEventData);
 void BluetoothLEHost_Initialized(void);
-void BleApp_FactoryReset(void);
 void BleApp_OP_Start(void);
 void BleApp_PE_Start(void);
 void BleApp_StopDiscovery(void);

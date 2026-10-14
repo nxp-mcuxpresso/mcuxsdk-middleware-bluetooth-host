@@ -35,6 +35,7 @@
 #include "fsl_shell.h"
 #endif
 #include "app.h"
+#include "app_conn.h"
 
 /* BLE Host Stack */
 #include "gatt_server_interface.h"
@@ -399,7 +400,7 @@ void APP_BleEventHandler(void *pData)
 
         case mAppEvt_Shell_FactoryReset_Command_c:
         {
-            (void)BleApp_FactoryReset();
+            App_FactoryReset();
         }
         break;
 
@@ -1089,7 +1090,7 @@ static void App_HandleKeys(appEventData_t *pEventData)
 
         case mAppEvt_KBD_EventVeryLongPB1_c:
         {
-            (void)BleApp_FactoryReset();
+            App_FactoryReset();
             break;
         }
 

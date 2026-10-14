@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 * \file
 *
@@ -19,6 +19,7 @@
 #include "fsci_ble_types.h"
 #include "fwk_platform_ble.h"
 #include "fwk_platform_lcl.h"
+#include "fwk_platform_reset.h"
 #include "app.h"
 #include "ble_general.h"
 
@@ -30,6 +31,7 @@
 static void BleApp_HandleReadPublicAddress(uint8_t opc, uint8_t len, void *pData);
 static void BleApp_HandlePlatformInitLcl(uint8_t opc, uint8_t len, void *pData);
 static void BleApp_HandlePlatformInitLclGpioDebug(uint8_t opc, uint8_t len, void *pData);
+static void BleApp_HandleResetCpu(uint8_t opc, uint8_t len, void *pData);
 
 /************************************************************************************
 *************************************************************************************
@@ -48,6 +50,7 @@ void Platform_InitCore0Handlers(void)
     BLE_PortFsciRegisterOpHandler((uint8_t)g_AppReadPublicDeviceAddress_c, BleApp_HandleReadPublicAddress);
     BLE_PortFsciRegisterOpHandler((uint8_t)g_PlatformInitLclOpCode_c, BleApp_HandlePlatformInitLcl);
     BLE_PortFsciRegisterOpHandler((uint8_t)g_PlatformInitLclGpioDebugOpCode_c, BleApp_HandlePlatformInitLclGpioDebug);
+    BLE_PortFsciRegisterOpHandler((uint8_t)g_Platform_NvicSystemReset_c, BleApp_HandleResetCpu);
 }
 
 /************************************************************************************
@@ -136,5 +139,28 @@ static void BleApp_HandlePlatformInitLclGpioDebug
 {
     /* Antenna switching enabled also in Debug mode */
     PLATFORM_InitLclGpioDebug(false);
+}
+
+/*! *********************************************************************************
+*\brief        Handles the reset command forwarded from the radio core over FSCI.
+*
+*\param  [in]  opc      FSCI packet opcode.
+*\param  [in]  len      FSCI packet len.
+*\param  [in]  pData    FSCI packet payload.
+*
+*\retval       void.
+********************************************************************************** */
+static void BleApp_HandleResetCpu
+(
+    uint8_t opc,
+    uint8_t len,
+    void *pData
+)
+{
+    (void)opc;
+    (void)len;
+    (void)pData;
+
+    PLATFORM_NvicSystemReset();
 }
 #endif /* gFsciComponentPlatformCore0_d */

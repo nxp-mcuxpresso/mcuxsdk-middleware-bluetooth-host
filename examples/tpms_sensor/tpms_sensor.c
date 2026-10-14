@@ -849,17 +849,9 @@ static void BleApp_SaveSeqNum(uint32_t seqNum)
 static void BleApp_HandleFactoryReset(void *pData)
 {
     (void)pData;
-    
-    /* Erase NVM Datasets */
-    NVM_Status_t status = NvFormat();
-    if (status != gNVM_OK_c)
-    {
-        /* NvFormat exited with an error status */ 
-        panic(0, (uint32_t)BleApp_HandleFactoryReset, 0, 0);
-    }
 
-    /* Reset MCU */
-    HAL_ResetMCU();
+    /* Factory reset: erase NVM datasets and reset the MCU (common handler) */
+    App_FactoryReset();
 }
 /*! *********************************************************************************
 * @}

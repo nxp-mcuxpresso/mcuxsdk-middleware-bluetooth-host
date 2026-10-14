@@ -458,7 +458,7 @@ static void ShellResetTimeoutTimerCallback(void* pParam)
 ********************************************************************************** */
 static shell_status_t ShellFactoryReset_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
 {
-    BleApp_FactoryReset();
+    App_FactoryReset();
     return kStatus_SHELL_Success;
 }
 

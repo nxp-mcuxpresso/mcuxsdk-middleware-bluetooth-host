@@ -24,7 +24,7 @@
 ************************************************************************************/
 /* Framework / Drivers */
 #include "EmbeddedTypes.h"
-#include "fsl_adapter_reset.h"
+#include "platform.h"
 #include "fsl_component_mem_manager.h"
 #include "fsl_component_timer_manager.h"
 #include "fsl_component_serial_manager.h"
@@ -446,7 +446,7 @@ static shell_status_t ShellReset_Command(shell_handle_t shellHandle, int32_t arg
 static void ShellResetTimeoutTimerCallback(void* pParam)
 {
     (void)pParam;
-    HAL_ResetMCU();
+    PLATFORM_NvicSystemReset();
 }
 
 /*! *********************************************************************************
@@ -460,7 +460,7 @@ static void ShellResetTimeoutTimerCallback(void* pParam)
 ********************************************************************************** */
 static shell_status_t ShellFactoryReset_Command(shell_handle_t shellHandle, int32_t argc, char * argv[])
 {
-    BleApp_FactoryReset();
+    App_FactoryReset();
     return kStatus_SHELL_Success;
 }
 

@@ -385,7 +385,7 @@ button_status_t BleApp_HandleKeys0(void *buttonHandle, button_callback_message_t
         case kBUTTON_EventDoubleClick:
         {
             /* Factory reset*/
-            BleApp_FactoryReset();
+            App_FactoryReset();
         }
         break;
 
@@ -539,7 +539,7 @@ void APP_BleEventHandler(void *pData)
 
         case mAppEvt_FactoryReset_c:
         {
-            BleApp_FactoryReset();
+            App_FactoryReset();
         }
         break;
 
@@ -765,7 +765,7 @@ void App_HandleShellCmds(void *pData)
         case mAppEvt_Shell_FactoryReset_Command_c:
         {
             /* Factory Reset for the CCC demo application*/
-            BleApp_FactoryReset();
+            App_FactoryReset();
         }
         break;
 

@@ -27,7 +27,6 @@
 #include "fsl_component_led_core0.h"
 #include "fsl_component_button_core0.h"
 #include "fsl_shell_core0.h"
-#include "fsl_adapter_reset_core0.h"
 #include "sensors_core0.h"
 #endif /* NBU_PROJECT_ENABLE */
 
@@ -146,9 +145,6 @@ void BLE_PortFsciInit(void)
 #endif
 #if defined (gFsciComponentShellCore0_d) && (gFsciComponentShellCore0_d > 0)
     Shell_InitCore0Handlers();
-#endif
-#if defined (gFsciComponentResetCore0_d) && (gFsciComponentResetCore0_d > 0)
-    Reset_InitCore0Handlers();
 #endif
 #if defined (gFsciComponentPlatformCore0_d) && (gFsciComponentPlatformCore0_d > 0)
     Platform_InitCore0Handlers();

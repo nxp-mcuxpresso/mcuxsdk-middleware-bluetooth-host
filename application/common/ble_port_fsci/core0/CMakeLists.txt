@@ -20,17 +20,6 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_port_fsci_component_led_core0)
     )
 endif()
 
-if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_port_fsci_component_reset_core0)
-    mcux_add_source(
-        SOURCES reset/fsl_adapter_reset_core0.c
-            reset/fsl_adapter_reset_core0.h
-    )
-    mcux_add_macro(gFsciComponentResetCore0_d=1)
-    mcux_add_include(
-        INCLUDES reset
-    )
-endif()
-
 if(CONFIG_MCUX_COMPONENT_middleware.wireless.ble_port_fsci_shell_core0)
     mcux_add_source(
         SOURCES shell/fsl_shell_core0.c

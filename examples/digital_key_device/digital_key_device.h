@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file digital_key_device.h
 *
-* Copyright 2020-2022, 2024 NXP
+* Copyright 2020-2022, 2024, 2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -161,7 +161,6 @@ extern "C" {
 void BleApp_Start(void);
 void BleApp_GenericCallback (gapGenericEvent_t* pGenericEvent);
 void BleApp_RegisterEventHandler(pfBleCallback_t pfBleEventHandler);
-void BleApp_FactoryReset(void);
 #if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
 void BleApp_PrintHex(uint8_t *pHex, uint8_t len);
 void BleApp_PrintHexLe(uint8_t *pHex, uint8_t len);

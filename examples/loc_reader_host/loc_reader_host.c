@@ -29,7 +29,6 @@
 #include "fsl_component_panic.h"
 #include "FunctionLib.h"
 #include "fsl_component_mem_manager.h"
-#include "fsl_adapter_reset.h"
 #include "fsl_debug_console.h"
 #include "fsl_format.h"
 #include "fsl_shell.h"
@@ -210,24 +209,6 @@ void BluetoothLEHost_ProcessIdleTask(void)
 #endif /* gAppUseNvm_d */
     {
     }
-}
-
-/*! *********************************************************************************
-* \brief        Handles Shell_Factory Reset Command event.
-********************************************************************************** */
-void BleApp_FactoryReset(void)
-{
-    /* Erase NVM Datasets */
-#if defined(gAppUseNvm_d) && (gAppUseNvm_d  == 1)
-    NVM_Status_t status = NvFormat();
-    if (status != gNVM_OK_c)
-    {
-         /* NvFormat exited with an error status */
-         panic(0, (uint32_t)BleApp_FactoryReset, 0, 0);
-    }
-#endif
-    /* Reset MCU */
-    HAL_ResetMCU();
 }
 
 /************************************************************************************

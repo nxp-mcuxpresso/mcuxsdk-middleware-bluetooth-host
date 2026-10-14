@@ -5,7 +5,7 @@
 /*! *********************************************************************************
 * \file digital_key_car_anchor.c
 *
-* Copyright 2020-2025 NXP
+* Copyright 2020-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -585,23 +585,6 @@ void App_HandleLeScLocalOobDataCallback(appEventData_t *pEventData)
         FLib_MemCpy(&maPeerInformation[mCurrentPeerId].oobData, pEventData->eventData.pData, sizeof(gapLeScOobData_t));
         BleApp_StateMachineHandler(mCurrentPeerId, mAppEvt_PairingLocalOobData_c);
     }
-}
-
-/*! *********************************************************************************
-* \brief        Handles Shell_Factory Reset Command event.
-********************************************************************************** */
-void BleApp_FactoryReset(void)
-{
-    /* Erase NVM Datasets */
-    NVM_Status_t status = NvFormat();
-    if (status != gNVM_OK_c)
-    {
-         /* NvFormat exited with an error status */ 
-         panic(0, (uint32_t)BleApp_FactoryReset, 0, 0);
-    }
-    
-    /* Reset MCU */
-    HAL_ResetMCU();
 }
 
 /*! *********************************************************************************

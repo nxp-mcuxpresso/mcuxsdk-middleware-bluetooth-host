@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 * \file btcs_server_interface.h
 *
@@ -17,6 +17,8 @@
 ************************************************************************************/
 #include "fsl_common.h"
 #include "ble_general.h"
+#include "ble_port_fsci_op.h"
+#include "FsciInterface.h"
 
 /************************************************************************************
 *************************************************************************************
@@ -27,6 +29,16 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif /* __cplusplus */
+
+/*! *********************************************************************************
+*\brief        Send reset command to host processor (forwarded over FSCI)
+*
+*\param  [in]  none
+*
+*\retval       void.
+********************************************************************************** */
+#define PLATFORM_NvicSystemReset()    FSCI_transmitPayload(BLE_PORT_FSCI_OG, \
+                                      (uint8_t)g_Platform_NvicSystemReset_c, NULL, 0U, gFsciInterface_c)
 
 /*! *********************************************************************************
 *\brief        Request Core 0 application to send the Public Device Address.

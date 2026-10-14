@@ -291,7 +291,7 @@ button_status_t BleApp_HandleKeys0(void *buttonHandle, button_callback_message_t
         case kBUTTON_EventDoubleClick:
         {
             /* Factory reset*/
-            BleApp_FactoryReset();
+            App_FactoryReset();
         }
         break;
         
@@ -771,7 +771,7 @@ void APP_BleEventHandler(void *pData)
         case mAppEvt_FactoryReset_c:
         {
 #if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
-            BleApp_FactoryReset();
+            App_FactoryReset();
 #else
             /* 
              * To custom handle factory reset data packet, add your code here and set gAppUseShellInApplication_d to 0 in app_preinclude.h
@@ -813,7 +813,7 @@ void App_HandleShellCmds(void *pData)
         case mAppEvt_Shell_FactoryReset_Command_c:
         {
             /* Factory Reset for the CCC demo application*/
-            BleApp_FactoryReset();
+            App_FactoryReset();
         }
         break;
 

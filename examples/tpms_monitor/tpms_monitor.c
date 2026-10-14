@@ -377,16 +377,8 @@ button_status_t BleApp_HandleKeys1(void *pButtonHandle, button_callback_message_
         /* Factory reset on long button press */
         case kBUTTON_EventLongPress:
         {
-            /* Erase NVM Datasets */
-            NVM_Status_t status = NvFormat();
-            if (status != gNVM_OK_c)
-            {
-                /* NvFormat exited with an error status */ 
-                panic(0, (uint32_t)BleApp_HandleKeys1, 0, 0);
-            }
-
-            /* Reset MCU */
-            HAL_ResetMCU();
+            /* Factory reset: erase NVM datasets and reset the MCU (common handler) */
+            App_FactoryReset();
         }
         break;
 

@@ -68,16 +68,6 @@ extern "C" {
 #endif
 
 /*!*************************************************************************************************
-*\fn    void BleApp_FactoryReset(void)
-*\brief Handles Shell_Factory Reset Command.
-*
-*\param[in]   none
-*
-*\return      none
-***************************************************************************************************/
-void BleApp_FactoryReset(void);
-
-/*!*************************************************************************************************
 *\fn    void App_SetCsParams(deviceId_t deviceId, appLocalization_rangeCfg_t csConfigParams)
 *\brief Send command to Core 1 to set given CS parameters.
 *

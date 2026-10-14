@@ -19,6 +19,9 @@
 #include "ble_config.h"
 #include "ble_general.h"
 #include "ble_port_fsci_op.h"
+#include "NVM_Interface.h"
+#include "fsl_component_panic.h"
+#include "platform.h"
 #include "app_nvm.h"
 #include "ble_port_fsci.h"
 #include "app_conn.h"
@@ -1147,3 +1150,30 @@ static bleResult_t App_HostNvmWrite
     return status;
 }
 #endif /* (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U)) */
+
+/*! *********************************************************************************
+*\fn           void App_FactoryReset(void)
+*\brief        Erases all NVM datasets and resets the MCU. Common factory-reset
+*              handler shared by the FSCI-split (NCP / hosted) example applications.
+*
+*\return       void
+*
+*\remarks      On this FSCI-split core, NvFormat() and PLATFORM_NvicSystemReset() are
+*              forwarded to the host processor over FSCI (they are not local
+*              operations).
+********************************************************************************** */
+void App_FactoryReset(void)
+{
+#if defined(gAppUseNvm_d) && (gAppUseNvm_d == 1)
+    /* Erase NVM Datasets */
+    NVM_Status_t status = NvFormat();
+    if (status != gNVM_OK_c)
+    {
+        /* NvFormat exited with an error status */
+        panic(0, (uint32_t)App_FactoryReset, 0, 0);
+    }
+#endif /* gAppUseNvm_d */
+
+    /* Reset MCU (forwarded to the host over FSCI) */
+    PLATFORM_NvicSystemReset();
+}

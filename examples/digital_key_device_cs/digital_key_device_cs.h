@@ -209,7 +209,6 @@ extern "C" {
 void BleApp_Start(void);
 void BleApp_GenericCallback (gapGenericEvent_t* pGenericEvent);
 void BleApp_RegisterEventHandler(pfBleCallback_t pfBleEventHandler);
-void BleApp_FactoryReset(void);
 bool_t BleApp_CheckActiveConnections(void);
 #if defined(gAppUseShellInApplication_d) && (gAppUseShellInApplication_d == 1)
 void BleApp_PrintHex(uint8_t *pHex, uint8_t len);

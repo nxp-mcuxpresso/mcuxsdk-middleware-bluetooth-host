@@ -29,9 +29,8 @@
 #include "fsl_component_panic.h"
 #include "FunctionLib.h"
 #include "fsl_component_mem_manager.h"
-#include "fsl_adapter_reset.h"
+#include "platform.h"
 #include "fsl_component_led.h"
-#include "fsl_adapter_reset.h"
 
 #include "app.h"
 #include "board.h"
@@ -326,23 +325,6 @@ void BleApp_Disconnect(void)
             (void)Gap_Disconnect(maPeerInformation[peerId].deviceId);
         }
     }
-}
-
-/*! *********************************************************************************
-* \brief        Handles Shell_Factory Reset Command event.
-********************************************************************************** */
-void BleApp_FactoryReset(void)
-{
-    /* Erase NVM Datasets */
-    NVM_Status_t status = NvFormat();
-    if (status != gNVM_OK_c)
-    {
-         /* NvFormat exited with an error status */
-         panic(0, (uint32_t)BleApp_FactoryReset, 0, 0);
-    }
-
-    /* Reset MCU */
-    HAL_ResetMCU();
 }
 
 /*! *********************************************************************************

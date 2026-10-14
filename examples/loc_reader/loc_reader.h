@@ -78,7 +78,6 @@ extern "C" {
 #endif
 void BleApp_Start(void);
 void BleApp_Disconnect(void);
-void BleApp_FactoryReset(void);
 bleResult_t BleApp_TriggerCsDistanceMeasurement(deviceId_t deviceId);
 bool_t BleApp_CheckActiveConnections(void);
 void BleApp_ListBondingData(void);

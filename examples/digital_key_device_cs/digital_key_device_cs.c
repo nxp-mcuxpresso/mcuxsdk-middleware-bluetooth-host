@@ -346,23 +346,6 @@ void BleApp_GenericCallback (gapGenericEvent_t* pGenericEvent)
     }
 }
 
-/*! *********************************************************************************
-* \brief        Handles Shell_Factory Reset Command event.
-********************************************************************************** */
-void BleApp_FactoryReset(void)
-{
-    /* Erase NVM Datasets */
-    NVM_Status_t status = NvFormat();
-    if (status != gNVM_OK_c)
-    {
-         /* NvFormat exited with an error status */
-         panic(0, (uint32_t)BleApp_FactoryReset, 0, 0);
-    }
-
-    /* Reset MCU */
-    HAL_ResetMCU();
-}
-
 /************************************************************************************
 *************************************************************************************
 * Private functions

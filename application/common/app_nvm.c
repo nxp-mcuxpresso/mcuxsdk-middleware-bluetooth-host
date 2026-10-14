@@ -15,11 +15,13 @@
 ************************************************************************************/
 #if (defined gAppUseNvm_d) && (gAppUseNvm_d != 0)
 #include "NVM_Interface.h"
+#include "fsl_component_panic.h"
 #include <assert.h>
 #endif /* gAppUseNvm_d */
 
 #include "ble_config.h"
 #include "ble_general.h"
+#include "fwk_platform_reset.h"
 
 /*! *********************************************************************************
 *************************************************************************************
@@ -1008,3 +1010,35 @@ void*    pLocalKey
     return status;
 }
 #endif /* (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U)) */
+
+/*! *********************************************************************************
+*\fn           void App_FactoryReset(void)
+*\brief        Erases all NVM datasets and resets the MCU. Common factory-reset
+*              handler shared by the BLE example applications.
+*
+*\return       void
+*
+*\remarks      On an NvFormat() error the function does not return: it calls
+*              panic() to flag the failure. Otherwise it resets the MCU and the
+*              call never returns either.
+********************************************************************************** */
+void App_FactoryReset(void)
+{
+#if gAppUseNvm_d
+    /* Erase NVM Datasets */
+    NVM_Status_t status = NvFormat();
+    if (status != gNVM_OK_c)
+    {
+        /* NvFormat exited with an error status */
+        panic(0, (uint32_t)App_FactoryReset, 0, 0);
+    }
+#endif /* gAppUseNvm_d */
+
+    /* Reset MCU */
+#if (defined(CPU_MCXW236BIHNAR) || defined(CPU_MCXW235BIHNAR))
+    /* MCXW23 has no PLATFORM_NvicSystemReset(); PLATFORM_ResetCpu() maps to POWER_Reset() */
+    PLATFORM_ResetCpu();
+#else
+    PLATFORM_NvicSystemReset();
+#endif
+}

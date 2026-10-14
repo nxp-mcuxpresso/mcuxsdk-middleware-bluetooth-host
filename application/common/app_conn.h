@@ -702,6 +702,16 @@ bleResult_t App_NvmReadLocalKeys
 );
 
 #endif /* (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U)) */
+
+/*! *********************************************************************************
+*\fn           void App_FactoryReset(void)
+*\brief        Erases all NVM datasets and resets the MCU. Common factory-reset
+*              handler shared by the BLE example applications.
+*
+*\return       void
+********************************************************************************** */
+void App_FactoryReset(void);
+
 /*! *********************************************************************************
 *\private
 *\fn           void BluetoothLEHost_ProcessIdleTask(void)

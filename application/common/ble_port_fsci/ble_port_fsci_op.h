@@ -1,5 +1,5 @@
 /*! *********************************************************************************
-* Copyright 2025 NXP
+* Copyright 2025-2026 NXP
 *
 * SPDX-License-Identifier: BSD-3-Clause
 ********************************************************************************** */
@@ -42,6 +42,7 @@ typedef enum
     /* Platform */
     g_PlatformInitLclOpCode_c,                  /* PLATFORM_InitLcl() command */
     g_PlatformInitLclGpioDebugOpCode_c,         /* PLATFORM_InitLclGpioDebug() command */
+    g_Platform_NvicSystemReset_c,               /* PLATFORM_NvicSystemReset() command */
     g_AppReadPublicDeviceAddress_c,             /* Read public device address command */
     g_AppWritePublicDeviceAddress_c,            /* Write public device address command */
     /* Shell */
@@ -50,8 +51,6 @@ typedef enum
     g_SHELL_PrintPrompt_c,                      /* SHELL_PrintPrompt() command */
     g_SHELL_RegisterCommand_c,                  /* SHELL_RegisterCommand() register new command */
     g_SHELL_Command_c,                          /* Register callback for the new shell command  */
-    /* Adapter Reset */
-    g_HAL_ResetMCU_c,                           /* HAL_ResetMCU() command */
     /* NVM */
     g_AppBleNvmCbCmdErase_c,                    /* Erase data on the host processor command */
     g_AppBleNvmCbCmdWrite_c,                    /* Write data to NVM on the host processor command */
