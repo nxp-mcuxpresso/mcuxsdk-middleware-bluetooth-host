@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2023-2025 NXP
+* Copyright 2023-2026 NXP
 *
 *
 * \file app_a2a_interface.c
@@ -44,6 +44,9 @@ static SERIAL_MANAGER_READ_HANDLE_DEFINE(gA2ASerialReadHandle);
 /* Anchor2Anchor serial manager write handle buffer */
 static SERIAL_MANAGER_WRITE_HANDLE_DEFINE(gA2ASerialWriteHandle);
 static appA2ADataIndicationCb_t mfpAppDataIndCb = NULL;
+/* This node's address on the shared multi-drop bus. Main keeps gA2ANodeIdMain_c; */
+/* Other anchors assign a unique ID at runtime via the setid shell command (RAM only). */
+static uint8_t mLocalNodeId = gA2ANodeIdMain_c;
 
 /************************************************************************************
 *************************************************************************************
@@ -177,6 +180,32 @@ void A2A_SendCommand
     uint16_t len
 )
 {
+    /* Legacy point-to-point senders broadcast so every listener still receives. */
+    A2A_SendCommandTo(gA2ANodeIdBroadcast_c, opGroup, opCode, pPayload, len);
+}
+
+/*! *********************************************************************************
+*\fn           void A2A_SendCommandTo(uint8_t dstId, uint8_t opGroup, uint8_t opCode,
+*                                      uint8_t *pPayload, uint16_t len)
+*\brief        Send an addressed packet over the Anchor to Anchor interface.
+*
+*\param  [in]  dstId        Destination node ID (or gA2ANodeIdBroadcast_c).
+*\param  [in]  opGroup      Group identifier.
+*\param  [in]  opCode       Command identifier.
+*\param  [in]  pPayload     Pointer to command data.
+*\param  [in]  len          Command length.
+*
+*\retval       void.
+********************************************************************************** */
+void A2A_SendCommandTo
+(
+    uint8_t dstId,
+    uint8_t opGroup,
+    uint8_t opCode,
+    uint8_t *pPayload,
+    uint16_t len
+)
+{
     clientPacket_t *pPacket = NULL;
     
     pPacket = MEM_BufferAlloc(sizeof(clientPacketStructured_t) + len);
@@ -185,9 +214,11 @@ void A2A_SendCommand
     {
         uint32_t  size;
         uint8_t   checksum;
-        pPacket->structured.header.opCode = opCode;
-        pPacket->structured.header.opGroup = opGroup;
         pPacket->structured.header.startMarker = gA2ACommandStartMarker_c;
+        pPacket->structured.header.dstId = dstId;
+        pPacket->structured.header.srcId = mLocalNodeId;
+        pPacket->structured.header.opGroup = opGroup;
+        pPacket->structured.header.opCode = opCode;
         pPacket->structured.header.len = len;
         FLib_MemCpy(pPacket->structured.payload, pPayload, len);
 
@@ -198,6 +229,30 @@ void A2A_SendCommand
         (void)SerialManager_WriteBlocking(gA2ASerialWriteHandle, pPacket->raw, size);
         (void)MEM_BufferFree(pPacket);
     }
+}
+
+/*! *********************************************************************************
+*\fn           void A2A_SetLocalId(uint8_t id)
+*\brief        Set this node's A2A address (RAM only).
+*
+*\param  [in]  id           Local node ID.
+*
+*\retval       void.
+********************************************************************************** */
+void A2A_SetLocalId(uint8_t id)
+{
+    mLocalNodeId = id;
+}
+
+/*! *********************************************************************************
+*\fn           uint8_t A2A_GetLocalId(void)
+*\brief        Get this node's A2A address.
+*
+*\retval       uint8_t      Local node ID.
+********************************************************************************** */
+uint8_t A2A_GetLocalId(void)
+{
+    return mLocalNodeId;
 }
 
 /************************************************************************************
@@ -267,7 +322,7 @@ static packetStatus_t A2A_CheckPacket
         /* If the length looks right, make sure that the checksum is correct. */
         else if( (uint32_t)bytes == (uint32_t)len + sizeof(clientPacketHdr_t) + sizeof(checksum) )
         {
-            checksum = A2A_ComputeChecksum(&pData->header.opGroup, len + (uint16_t)sizeof(clientPacketHdr_t) - 1U);
+            checksum = A2A_ComputeChecksum(&pData->header.dstId, Uint32toUint16(len + (uint16_t)sizeof(clientPacketHdr_t) - 1U));
             if( checksum == pData->payload[len] )
             {
                 status = PACKET_IS_VALID;
@@ -324,26 +379,40 @@ static void A2A_RxCallback
                 
                 case 1U:
                 {
-                    gPacketHeader.opGroup = c;
+                    gPacketHeader.dstId = c;
                     mReceivedBytes++;
                 }
                 break;
                 
                 case 2U:
                 {
-                    gPacketHeader.opCode = c;
+                    gPacketHeader.srcId = c;
                     mReceivedBytes++;
                 }
                 break;
                 
                 case 3U:
                 {
-                    gPacketHeader.len = (uint16_t)c;
+                    gPacketHeader.opGroup = c;
                     mReceivedBytes++;
                 }
                 break;
                 
                 case 4U:
+                {
+                    gPacketHeader.opCode = c;
+                    mReceivedBytes++;
+                }
+                break;
+                
+                case 5U:
+                {
+                    gPacketHeader.len = (uint16_t)c;
+                    mReceivedBytes++;
+                }
+                break;
+                
+                case 6U:
                 {
                     gPacketHeader.len = gPacketHeader.len | (uint16_t)c << 8;
                     mReceivedBytes++;
@@ -371,7 +440,16 @@ static void A2A_RxCallback
                     
                     if(pktStatus == PACKET_IS_VALID)
                     {
-                        if (gBleSuccess_c != App_PostCallbackMessage(mfpAppDataIndCb, gpRxPacket))
+                        /* Multi-drop filter: accept only frames for this node or broadcast. */
+                        if ((gpRxPacket->header.dstId == mLocalNodeId) ||
+                            (gpRxPacket->header.dstId == (uint8_t)gA2ANodeIdBroadcast_c))
+                        {
+                            if (gBleSuccess_c != App_PostCallbackMessage(mfpAppDataIndCb, gpRxPacket))
+                            {
+                                (void)MEM_BufferFree(gpRxPacket);
+                            }
+                        }
+                        else
                         {
                             (void)MEM_BufferFree(gpRxPacket);
                         }

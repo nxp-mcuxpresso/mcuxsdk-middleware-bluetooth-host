@@ -229,6 +229,14 @@ typedef struct
     uint16_t        currentEventCounter;
 } hciVendorHandoverConnectionUpdateProcedureEvent_t;
 
+/*! Vendor CS Monitor Channel Map Update Meta Event : 0xAB */
+typedef struct
+{
+    uint16_t        connectionHandle;
+    uint8_t         aChannelMap[gCsChannelMapSize_c];
+    uint16_t        instant;
+} hciVendorCsMonitorChannelMapUpdateEvent_t;
+
 /*! Vendor Handover Meta Event : 0xFF */
 typedef struct
 {
@@ -241,6 +249,7 @@ typedef struct
         hciVendorHandoverAnchorMonitorPacketEvent_t             anchorMonitorPacketEvent;
         hciVendorHandoverAnchorMonitorPacketContinueEvent_t     anchorMonitorPacketContinueEvent;
         hciVendorHandoverConnectionUpdateProcedureEvent_t       connectionUpdateProcedureEvent;
+        hciVendorCsMonitorChannelMapUpdateEvent_t               csMonitorChannelMapUpdateEvent;
     } handoverEventData;
 } hciVendorHandoverMetaEvent_t;
 
@@ -2560,6 +2569,27 @@ typedef struct hciVendorHandoverApplyConnectionUpdateProcedureCommandComplete_ta
     uint16_t        connectionHandle;
 } hciVendorHandoverApplyConnectionUpdateProcedureCommandComplete_t;
 
+/*! HCI_Vendor_CS_Monitor_Start - Return Parameters */
+typedef struct hciVendorCsMonitorStartCommandComplete_tag
+{
+    hciErrorCode_t  status;
+    uint16_t        connectionHandle;
+} hciVendorCsMonitorStartCommandComplete_t;
+
+/*! HCI_Vendor_CS_Monitor_Stop - Return Parameters */
+typedef struct hciVendorCsMonitorStopCommandComplete_tag
+{
+    hciErrorCode_t  status;
+    uint16_t        connectionHandle;
+} hciVendorCsMonitorStopCommandComplete_t;
+
+/*! HCI_Vendor_CS_Monitor_Channel_Map_Update - Return Parameters */
+typedef struct hciVendorCsMonitorChannelMapUpdateCommandComplete_tag
+{
+    hciErrorCode_t  status;
+    uint16_t        connectionHandle;
+} hciVendorCsMonitorChannelMapUpdateCommandComplete_t;
+
 /*! HCI_VENDOR_UNITARY_TEST */
 typedef struct hciVendorUnitaryTestCommandComplete_tag
 {
@@ -2754,6 +2784,11 @@ typedef struct
         hciVendorHandoverGetCsLlContextCommandComplete_t         hciVendorHandoverGetCsLlContextComplete;
         hciVendorHandoverUpdateConnParamsCommandComplete_t       hciVendorUpdateConnParamsCommComplete;
         hciVendorHandoverApplyConnectionUpdateProcedureCommandComplete_t    hciVendorHandoverApplyConnectionUpdateProcedureCommComplete;
+#if defined(gCsMonitorSupport_d) && (gCsMonitorSupport_d == TRUE)
+        hciVendorCsMonitorStartCommandComplete_t                 hciVendorCsMonitorStartCommComplete;
+        hciVendorCsMonitorStopCommandComplete_t                  hciVendorCsMonitorStopCommComplete;
+        hciVendorCsMonitorChannelMapUpdateCommandComplete_t      hciVendorCsMonitorChannelMapUpdateCommComplete;
+#endif /* (gCsMonitorSupport_d == TRUE) */
 #endif /* (gHandoverSupport_d == TRUE) */
 #if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d==TRUE)
         hciLeCsReadLocalSupportedCapabilities_t                   hciLeCsReadLocalSupportedCapabilities;

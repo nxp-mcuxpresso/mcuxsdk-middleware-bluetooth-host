@@ -1495,6 +1495,9 @@ static void App_HandleConnectionCallback(appEventData_t *pEventData)
             /* Read the PHY on which the connection was establihed */
             (void)Gap_LeReadPhy(pConnectedEventData->peerDeviceId);
 
+            /* Request an update to the 2M PHY on both Tx and Rx for this connection */
+            (void)Gap_LeSetPhy(FALSE, pConnectedEventData->peerDeviceId, 0U, (uint8_t)gLePhy2MFlag_c, (uint8_t)gLePhy2MFlag_c, 0U);
+
 #if defined(gAppUseBonding_d) && (gAppUseBonding_d)
             (void)Gap_CheckIfBonded(pConnectedEventData->peerDeviceId, &maPeerInformation[pConnectedEventData->peerDeviceId].isBonded, &maPeerInformation[pConnectedEventData->peerDeviceId].nvmIndex);
 

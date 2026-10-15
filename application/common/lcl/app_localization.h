@@ -50,11 +50,19 @@
 /* 0x7F - RSSI is not available */
 #define gRssiNotAvailable_c                    (0x7F)
 
+/*! Total number of per-connection localization slots: real connections plus sniffed
+    connections. When CS sniffing v2 is disabled this collapses to gAppMaxConnections_c.
+    Otherwise the sniffed slots occupy the index range
+    [gAppMaxConnections_c .. gAppMaxLocalizationSlots_c - 1]. */
+#define gAppMaxLocalizationSlots_c             (((uint8_t)(gAppMaxConnections_c)) + ((uint8_t)(gAppMaxSniffedConnections_c)))
+
+
 /* Macro to validate an SNR_Control value (CS Procedure Parameter) */
 #define isValidSnrControl(x) \
     ((x) == gSNRControlAdjustment18dB_c || (x) == gSNRControlAdjustment21dB_c || \
      (x) == gSNRControlAdjustment24dB_c || (x) == gSNRControlAdjustment27dB_c || \
      (x) == gSNRControlAdjustment30dB_c || (x) == gSNRControlNotApplied_c)
+
 
 /************************************************************************************
 *************************************************************************************
@@ -139,6 +147,8 @@ typedef struct localizationAlgoResult_tag
 {
     uint8_t algorithm;
     uint8_t radeError;
+    /* Set on the 0->1 edge of RADE mn_ref_vm: reference cal data went invalid. */
+    bool_t  calibrationRequired;
     localizationAlgoRun_t resultCDE;
     localizationAlgoRun_t aResultSlope[gMaxNumAntennaPaths_c];
     localizationAlgoRun_t resultRADE;
@@ -265,6 +275,7 @@ typedef struct appLocalization_rangeCfg_tag
     void *csAlgoBuf;                            /*!< Buffer used by RADE - must be last in this structure */
 } appLocalization_rangeCfg_t;
 
+
 typedef enum
 {
     gCsMetaEvent_c,                             /* CS Meta event */
@@ -287,6 +298,17 @@ typedef enum
     gErrRasProcedureNotCompleted_c,             /* Server needed to interrupt its data transfer  */
     gErrRasServerBusy_c,                        /* Server busy - cannot process request */
     gErrRasNoRecordsFound_c,                    /* Requested ranging counter was not found*/
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+    gCsSniffConfigComplete_c,                   /* CS sniffer configuration chain complete (Set Default Settings, Write
+                                                   Cached Remote Capabilities, Create Config) */
+    gCsSniffConfigFailed_c,                     /* CS sniffer configuration chain failed */
+    gCsSniffResultEvent_c,                      /* CS sniffed Subevent Result meta event to be forwarded from the
+                                                   sniffer (anch2) to the connected anchor (anch1) */
+    gCsSniffResultContinueEvent_c,              /* CS sniffed Subevent Result Continue meta event to be forwarded from
+                                                   the sniffer (anch2) to the connected anchor (anch1) */
+    gCsCalibrationRequired_c,                   /* RADE reference calibration request on the sniffer;
+                                                   notify the connected anchor that CS calibration is needed */
+#endif /* defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1) */
 } appCsEventType_t;
 
 typedef enum
@@ -340,6 +362,15 @@ typedef enum
     gAppLclWaitingForWCCC_c,                    /* Wait for Write Cached Remote Capabilities command complete */
     gAppLclWaitingForLocCfg_c,                  /* Wait for Create Config Complete Meta Event after writing the local config */
     gAppRasTransfInProgress_c,                  /* Wait for RAS transfer to be over */
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+    gAppLclSniffWaitingForSDS_c,                /* Sniffer: wait for Set Default Settings command complete */
+    gAppLclSniffWaitingForWCCC_c,               /* Sniffer: wait for Write Cached Remote Capabilities command complete */
+    gAppLclSniffWaitingForCCCS_c,               /* Sniffer: wait for Create Config command status */
+    gAppLclSniffWaitingForMonitorStart_c,       /* Sniffer: CS LL context set, waiting to start CS monitoring for the
+                                                   sniffed connection (bridges gHandoverSetCsLlContextComplete_c) */
+    gAppLclSniffReceivingMeasData_c,            /* Sniffer: receiving CS Subevent Result / Result Continue meta events
+                                                   to be forwarded to the connected anchor (anch1) */
+#endif /* defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1) */
 } appLocalization_State_t;
 
 typedef enum csAppMetaEventType_tag {
@@ -372,7 +403,7 @@ typedef enum
 *************************************************************************************
 ************************************************************************************/
 extern appLocalization_rangeCfgGlobal_t mGlobalRangeSettings;
-extern appLocalization_rangeCfg_t mRangeSettings[gAppMaxConnections_c];
+extern appLocalization_rangeCfg_t mRangeSettings[gAppMaxLocalizationSlots_c];
 extern appLocalization_rangeCfg_t mDefaultRangeSettings;
 
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
@@ -641,6 +672,18 @@ void AppLocalization_SetAlgorithm
 ********************************************************************************** */
 uint8_t AppLocalization_GetAlgorithm(void);
 #endif /* gAppRunAlgo_d */
+
+/*! *********************************************************************************
+*\brief         Return the registered CS event callback.
+*\retval        pfAppCsCallback_t   Current callback, or NULL.
+********************************************************************************** */
+pfAppCsCallback_t AppLocalization_GetCsCallback(void);
+
+/*! *********************************************************************************
+*\brief         Return the registered display-result callback.
+*\retval        pfAppDisplayResult_t   Current callback, or NULL.
+********************************************************************************** */
+pfAppDisplayResult_t AppLocalization_GetDisplayResultCallback(void);
 
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
 /*! *********************************************************************************

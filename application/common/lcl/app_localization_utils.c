@@ -253,7 +253,8 @@ static bool_t HandleLocalMciqPresent
 (
     uint8_t **ppEventData,
     uint32_t *pDataSize,
-    csAppData_t *pDstAppBuffer
+    csAppData_t *pDstAppBuffer,
+    bool_t bSniffing
 );
 
 /************************************************************************************
@@ -277,6 +278,10 @@ static bool_t HandleLocalMciqPresent
 *\param[in]  pEventData         Pointer to the received data.
 *\param[in]  dataSize           Size of the received data.
 *\param[out] pLocalData         Pointer to the output rasMeasurementData_t structure
+*\param[in]  bSniffing          TRUE if the data set is sniffed CS data, FALSE for
+*                               regular local CS data. Sniffed data must not feed the
+*                               antenna permutation index FIFO (it is never re-parsed
+*                               as remote data).
 *
 *\retval     none
 ********************************************************************************** */
@@ -284,7 +289,8 @@ void AppLocalizationAlgo_UncompressResponse
 (
     uint8_t *pEventData,
     uint32_t dataSize,
-    rasMeasurementData_t *pLocalData
+    rasMeasurementData_t *pLocalData,
+    bool_t bSniffing
 )
 {
 #ifdef SKIP_MAIN_MODES_REPET
@@ -339,7 +345,7 @@ void AppLocalizationAlgo_UncompressResponse
             CheckSkipBytes(pEventData, dataSize, sizeof(uint8_t), bIncomplete,
                 pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].antenna = *pEventData;
             );
-            if (mGlobalRangeSettings.role == gCsRoleInitiator_c)
+            if ((bSniffing == TRUE) || (mGlobalRangeSettings.role == gCsRoleInitiator_c))
             {
                 CheckSkipBytes(pEventData, dataSize, sizeof(uint16_t), bIncomplete,
                     pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].measuredFreqOffset = Utils_ExtractTwoByteValue(pEventData);
@@ -407,7 +413,7 @@ void AppLocalizationAlgo_UncompressResponse
 
         if (mciqPresent)
         {
-            bIncomplete = HandleLocalMciqPresent(&pEventData, &dataSize, pDstAppBuffer);
+            bIncomplete = HandleLocalMciqPresent(&pEventData, &dataSize, pDstAppBuffer, bSniffing);
             if (bIncomplete == TRUE)
             {
                 break;
@@ -1187,7 +1193,8 @@ static bool_t HandleLocalMciqPresent
 (
     uint8_t **ppEventData,
     uint32_t *pDataSize,
-    csAppData_t *pDstAppBuffer
+    csAppData_t *pDstAppBuffer,
+    bool_t bSniffing
 )
 {
     /* Tone record */
@@ -1204,7 +1211,13 @@ static bool_t HandleLocalMciqPresent
         );
 
 #if defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1)
-        AddItem(antPermIndex);
+        /* Sniffed CS data is parsed locally for both roles and never re-parsed as
+           remote data, so it must not feed the antenna permutation index FIFO
+           (which is only drained during remote/BTCS parsing). */
+        if (bSniffing == FALSE)
+        {
+            AddItem(antPermIndex);
+        }
 #endif
 
         antIndex_p = &gaAntPermNAp[antPermIndex][0];
@@ -2882,5 +2895,23 @@ static bool_t GetItem(uint8_t *pItem)
     }
 
     return result;
+}
+
+/*! *********************************************************************************
+*\fn           void AppLocalizationAlgo_ResetPermIndexList(void)
+*
+* \brief        Reset the antenna permutation index FIFO (producer, consumer, count).
+*               Must be called at the end of each CS calibration measurement. Both
+*               anchors run the producer (AddItem) while parsing their own local
+*               measurement, but in CS calibration the peer data is carried over
+*               the A2A serial interface and never drives the consumer (GetItem).
+*               Without this reset the FIFO count keeps growing across runs until
+*               AddItem overflows and calls panic().
+********************************************************************************** */
+void AppLocalizationAlgo_ResetPermIndexList(void)
+{
+    mProducer = 0U;
+    mConsumer = 0U;
+    mCount    = 0U;
 }
 #endif /* defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1) */

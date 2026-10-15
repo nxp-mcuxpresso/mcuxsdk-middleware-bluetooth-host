@@ -113,6 +113,9 @@
 /*! Size of a channel map in a connection */
 #define gcBleChannelMapSize_c           (5U)
 
+/*! Size of a Channel Sounding channel map (10 octets, one bit per channel) */
+#define gCsChannelMapSize_c             (10U)
+
 #define gBleMinTxOctets_c       (27U)
 #define gBleMinTxTime_c         (328U)
 #define gBleMaxTxOctets_c       (251U)      /*! Data Packet Length Extension, regardless of PHY */

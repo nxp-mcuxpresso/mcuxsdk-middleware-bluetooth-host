@@ -22,6 +22,7 @@
 #include "ranging_interface.h"
 #endif /* defined(gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1U) */
 #include "app_localization_utils.h"
+#include "pde_rade.h"
 /************************************************************************************
 *************************************************************************************
 * Public macros
@@ -45,6 +46,12 @@
 * Private type definitions
 *************************************************************************************
 ************************************************************************************/
+/* Options bitmask controlling algorithm behavior for a measurement run. */
+typedef uint8_t locAlgoOptions_t;
+#define gLocAlgoOptionNone_c            (0x00U) /* No special options */
+#define gLocAlgoOptionCsCalibration_c   (0x01U) /* CS calibration run: algo sets mn_ref_regen */
+#define gLocAlgoOptionCsDataBroadcast_c (0x02U) /* CS Sniffing: broadcast IQ to sniffing anchors */
+#define gLocAlgoOptionCsDataReceive_c   (0x04U) /* CS Sniffing: passive run with received MN data */
 
 /************************************************************************************
 *************************************************************************************
@@ -67,6 +74,7 @@ extern "C" {
 *                                    rasMeasurementData_t *pLocalData,
 *                                    rasMeasurementData_t *pPeerData,
 *                                    uint8_t role,
+*                                    locAlgoOptions_t options,
 *                                    localizationAlgoResult_t *pResult);
 *
 *\brief      Run given algorithm for given data.
@@ -75,6 +83,7 @@ extern "C" {
 *\param[in]  pLocalData       Pointer to local data.
 *\param[in]  pPeerData        Pointer to peer data.
 *\param[in]  role             CS role of the local device (initiator or reflector).
+*\param[in]  options          Options bitmask controlling algorithm behavior.
 *\param[out] pResult          Pointer to location for result information.
 *
 *\retval     none
@@ -83,6 +92,7 @@ void AppLocalizationAlgo_RunMeasurement(deviceId_t deviceId,
                                         rasMeasurementData_t *pLocalData,
                                         rasMeasurementData_t *pPeerData,
                                         uint8_t role,
+                                        locAlgoOptions_t options,
                                         localizationAlgoResult_t *pResult);
 
 /*! *********************************************************************************
@@ -95,6 +105,31 @@ void AppLocalizationAlgo_RunMeasurement(deviceId_t deviceId,
 *\retval     none
 ********************************************************************************** */
 void AppLocalizationAlgo_ResetPeer(deviceId_t deviceId);
+
+/*! *********************************************************************************
+*\fn         void AppLocalizationAlgo_RegisterMnDataTransferCallback(
+*                                    pfMnDataTransferCallback_t pfCallback);
+*
+*\brief      Register the callback used to transfer multi-node CS data produced by
+*            the RADE algorithm (CS Sniffing broadcast) to the sniffing anchor.
+*
+*\param[in]  pfCallback       Transfer callback, or NULL to disable.
+*
+*\retval     none
+********************************************************************************** */
+void AppLocalizationAlgo_RegisterMnDataTransferCallback(pfMnDataTransferCallback_t pfCallback);
+
+/*! *********************************************************************************
+*\fn         void AppLocalizationAlgo_SetMnData(uint8_t *pData);
+*
+*\brief      Set the multi-node CS data blob used by the next passive receive run
+*            (CS Sniffing). The buffer must stay valid until the run completes.
+*
+*\param[in]  pData            Pointer to the received MN data blob, or NULL.
+*
+*\retval     none
+********************************************************************************** */
+void AppLocalizationAlgo_SetMnData(uint8_t *pData);
 
 #if defined(__cplusplus)
 }

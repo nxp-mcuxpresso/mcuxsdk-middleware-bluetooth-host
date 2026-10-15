@@ -1017,6 +1017,7 @@ if(CONFIG_MCUX_COMPONENT_middleware.wireless.lcl)
     )
     mcux_add_include(
         INCLUDES application/common/lcl
+                 localization/lcl/pde/algo/interface
     )
 endif()
 

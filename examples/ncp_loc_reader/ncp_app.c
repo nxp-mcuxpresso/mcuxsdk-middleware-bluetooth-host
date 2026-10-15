@@ -151,10 +151,12 @@ void AppLocalizationAlgo_RunMeasurement
     rasMeasurementData_t *pLocalData,
     rasMeasurementData_t *pPeerData,
     uint8_t role,
+    locAlgoOptions_t options,
     localizationAlgoResult_t *pResult
 )
 {
     (void)pResult;
+    (void)options;
     (void)role;
 
     appCsRes_t res;

@@ -931,7 +931,7 @@ void App_HandleShellCmds(void *pData)
             if (pEventData->eventData.monitorStart.deviceId != gInvalidDeviceId_c)
             {
                 bleResult_t result = gBleSuccess_c;
-                result = AppHandover_SetMonitorMode(pEventData->eventData.monitorStart.deviceId, pEventData->eventData.monitorStart.monitorMode);
+                result = AppHandover_SetMonitorMode(pEventData->eventData.monitorStart.deviceId, pEventData->eventData.monitorStart.monitorMode, FALSE);
                 
                 if (result == gBleSuccess_c)
                 {

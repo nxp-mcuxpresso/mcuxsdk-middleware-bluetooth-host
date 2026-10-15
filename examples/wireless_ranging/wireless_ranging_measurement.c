@@ -320,7 +320,6 @@ void processCsEventResultData
     {
         /* Sanity check for start of a new buffer */
         assert(localAppDataBuffer->csStepsReceived == 0);
-        assert(offsetof(hciLeCsEventResultEvent_t, numStepsReported) == offsetof(csSubeventResultEvent_t, numStepsReported));
     }
 #ifdef ENABLE_SANITY_SUBEVT_SEPARATOR
     else
@@ -333,8 +332,19 @@ void processCsEventResultData
 
     /* Store pointer to current event */
     eventResultBuffer->currentResult = (hciLeCsEventResultEvent_t *)(void *)(eventResultBuffer->buffer.raw + eventResultBuffer->rawBufferLen);
-    /* Copy message Header */
-    FLib_MemCpy(eventResultBuffer->currentResult, pEvent, sizeof(hciLeCsEventResultEvent_t));
+    /* Copy the fixed message header field by field. The destination is the packed
+       raw-buffer wire record; the source is the middleware csSubeventResultEvent_t. */
+    eventResultBuffer->currentResult->deviceId              = pEvent->deviceId;
+    eventResultBuffer->currentResult->configId              = pEvent->configId;
+    eventResultBuffer->currentResult->startACLConnEvent     = pEvent->startACLConnEvent;
+    eventResultBuffer->currentResult->procedureCounter      = pEvent->procedureCounter;
+    eventResultBuffer->currentResult->frequencyCompensation = pEvent->frequencyCompensation;
+    eventResultBuffer->currentResult->referencePowerLevel   = pEvent->referencePowerLevel;
+    eventResultBuffer->currentResult->procedureDoneStatus   = pEvent->procedureDoneStatus;
+    eventResultBuffer->currentResult->subeventDoneStatus    = pEvent->subeventDoneStatus;
+    eventResultBuffer->currentResult->abortReason           = pEvent->abortReason;
+    eventResultBuffer->currentResult->numAntennaPaths       = pEvent->numAntennaPaths;
+    eventResultBuffer->currentResult->numStepsReported      = pEvent->numStepsReported;
     eventResultBuffer->rawBufferLen += sizeof(hciLeCsEventResultEvent_t);
 
     hciLeProcessEventResultData(pEventData, nbSteps, eventResultBuffer);
@@ -660,7 +670,9 @@ bleResult_t measurement_configure(deviceId_t deviceId)
     }
 #endif
 
-    return CS_CreateConfig(deviceId, &createConfigParams);
+    /* A valid deviceId is available, so the host resolves the connection handle from it
+       and the connHandle argument (only used for the CS sniffer path) is ignored. */
+    return CS_CreateConfig(deviceId, gInvalidConnectionHandle_c, &createConfigParams);
 }
 
 /*! *********************************************************************************
@@ -720,6 +732,7 @@ bleResult_t measurement_set_default_settings(deviceId_t peerDeviceId, isp_config
     gCurrentDeviceId = peerDeviceId;
 
     result = CS_SetDefaultSettings(peerDeviceId,
+                                   gInvalidConnectionHandle_c, /* unused, deviceId valid */
                                    (csRoleType)((uint8_t)gEnableCsInitiator_c | (uint8_t)gEnableCsReflector_c),
                                    syncAntennaSelection,
                                    maxTxPowerLevel);

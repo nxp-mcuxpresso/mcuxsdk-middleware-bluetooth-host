@@ -248,7 +248,9 @@ void fsciCSHandler(void* pData, void* param, uint32_t fsciBleInterfaceId)
                         /* Get maxTxPowerLevel parameter from the received packet */
                         fsciBleGetUint8ValueFromBuffer(maxTxPowerLevel, pBuffer);
 
-                        fsciCSCallApiFunction(CS_SetDefaultSettings(deviceId, (csRoleType)role, syncAntennaSelection, maxTxPowerLevel));
+                        /* FSCI always provides a valid deviceId, so the connection handle
+                           is resolved from it and the connHandle argument is ignored. */
+                        fsciCSCallApiFunction(CS_SetDefaultSettings(deviceId, gInvalidConnectionHandle_c, (csRoleType)role, syncAntennaSelection, maxTxPowerLevel));
                     }
                     break;
 
@@ -286,7 +288,9 @@ void fsciCSHandler(void* pData, void* param, uint32_t fsciBleInterfaceId)
                         /* Get create config command parameters from the received packet */
                         fsciCSCreateConfigFromBuffer(&createConfigParams, &pBuffer);
 
-                        fsciCSCallApiFunction(CS_CreateConfig(deviceId, &createConfigParams));
+                        /* FSCI always provides a valid deviceId, so the connection handle
+                           is resolved from it and the connHandle argument is ignored. */
+                        fsciCSCallApiFunction(CS_CreateConfig(deviceId, gInvalidConnectionHandle_c, &createConfigParams));
                     }
                     break;
 
@@ -349,6 +353,8 @@ void fsciCSHandler(void* pData, void* param, uint32_t fsciBleInterfaceId)
                       /* Get command parameters from buffer */
                       fsciCSWriteCachedRemoteSupportedCapabilitiesFromBuffer(&params, &pBuffer);
 
+                      /* FSCI always provides a valid params.deviceId, so the connection
+                         handle is resolved from it. */
                       fsciCSCallApiFunction(CS_WriteCachedRemoteSupportedCapabilities(&params));
 
                   }

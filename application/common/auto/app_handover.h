@@ -85,17 +85,25 @@ constantly. */
 #define gHandoverPacketContinueMonitorCommandOpCode_c   0x09    /* Report anchor monitor information to remote anchor */
 #define gHandoverSetSkdCommandOpCode_c                  0x0A    /* S1 -> S2 - Transfer SKD */
 #define gHandoverCsLlContextCommandOpCode_c             0x0B    /* S1 -> S2 - Send CS LL context data */
-#define gHandoverCsContextCompletedCommandOpCode_c      0x0C    /* S2 -> S1 - Inform S1 that the CS LL context is set and it should disconnect */
 #define gHandoverAnchMonStartedCommandOpCode_c          0x0D    /* S2 -> S1 - Inform S1 that Anchor/Packet monitoring has started for the included connection handle */
 #define gHandoverAnchMonStoppedCommandOpCode_c          0x0E    /* S2 -> S1 - Inform S1 that Anchor/Packet monitoring has been stopped for the included connection handle */
 #define gHandoverLlPendingDataCommandOpCode_c           0x0F    /* S1 -> S2 - Inform S2 of the pending LL data */
 #define gHandoverLConnectionUpdateParamsCommandOpCode_c 0x10    /* S1 -> S2 - Inform S2 of new connection parameters */
 #define gHandoverTimeSyncStartedCommandOpCode_c         0x11    /* S2 -> S1 - Tell S1 to start advertising for time sync procedure */
+#define gHandoverCsMonitorChannelMapUpdateCommandOpCode_c 0x12  /* S1 -> S2 - Forward CS monitor channel map update to the other anchor */
 
 /* Handover commands length */
-#define gHandoverAnchorStartSearchCommandLen_c          43U
+/* Anchor start search command payload. Last byte carries the silent monitoring flag. */
+#define gHandoverAnchorStartSearchCommandLen_c          44U
 #define gHandoverSetSkdCommandLen_c                     17U
-#define gHandoverCsLlContextCommandLen_c                260U /* temporary value */
+/* CS LL context command payload layout (CS sniffing enabled):
+     [0..1] monitorConnHandle | [2..3] responseMask | [4] contextLength | [5..] llContext
+   The 2-byte monitored connection handle identifies the sniffed connection the
+   context applies to (gInvalidConnectionHandle_c means connection handover, not
+   CS sniffing). When CS sniffing is disabled the handle prefix is omitted and the
+   payload is: [0..1] responseMask | [2] contextLength | [3..] llContext. */
+#define gHandoverCsLlContextCommandLen_c                261U /* temporary value */
+
 #define gHandoverAnchorMonitorLen_c                     20U
 #define gHandoverPacketMonitorMaxLen_c                  274U
 #define gHandoverPacketContinueMonitorMaxLen_c          259U
@@ -107,8 +115,10 @@ constantly. */
    command. It is gInvalidConnectionHandle_c on the regular (non-fast) handover
    path and the monitored connection handle on the fast handover path. */
 #define gHandoverDataCmdConnHandleLen_c                  2U
+/* CS monitor channel map update command payload layout:
+     [0..1] monitorConnHandle | [2..11] channelMap (10 octets) | [12..13] instant */
+#define gHandoverCsMonitorChannelMapUpdateCommandLen_c  (2U + gCsChannelMapSize_c + 2U)
 
-#define gInvalidConnectionHandle_c (0xFFFFU)
 /***********************************************************************************************************************
 ************************************************************************************************************************
 * Public type definitions
@@ -146,6 +156,8 @@ typedef enum appHandoverEvent_tag {
     mAppHandoverConnParamUpdate_c,
     mAppHandoverPacketMonitor_c,
     mAppHandoverPacketContinueMonitor_c,
+    mAppHandoverAnchorMonitorStarted_c,
+    mAppHandoverAnchorMonitorStopped_c,
 } appHandoverEvent_t;
 
 typedef enum appHandoverError_tag {
@@ -410,19 +422,181 @@ bleResult_t AppHandover_AnchorMonitorStop
 );
 
 /*! ********************************************************************************************************************
-*\fn            bleResult_t AppHandover_SetMonitorMode(deviceId_t deviceId, bleHandoverAnchorSearchMode_t mode)
+*\fn            void AppHandover_AnchorMonitorReset(deviceId_t deviceId)
+*\brief         Stop remote anchor monitoring and free the local monitor slot at once.
+*               Use on a live-connection disconnect so a later SetMonitorMode for the
+*               same device cannot fail with gBleInvalidState_c.
+*
+*\param  [in]   deviceId    Peer device identifier.
+*
+*\return        None
+********************************************************************************************************************* */
+void AppHandover_AnchorMonitorReset
+(
+    deviceId_t deviceId
+);
+
+/*! ********************************************************************************************************************
+*\fn            bleResult_t AppHandover_SetMonitorMode(deviceId_t deviceId, bleHandoverAnchorSearchMode_t mode, bool_t silent)
 *\brief         Set Anchor Monitor mode
 *
 *\param  [in]   deviceId    Connection to be monitored.
 *\param  [in]   mode        Anchor monitor mode
+*\param  [in]   silent      TRUE to keep monitoring active at LL level but suppress
+*                           application monitoring reports over A2A, FALSE otherwise.
 *
 *\return        bleResult_t Status of the operation
 ********************************************************************************************************************* */
 bleResult_t AppHandover_SetMonitorMode
 (
     deviceId_t deviceId,
-    bleHandoverAnchorSearchMode_t mode
+    bleHandoverAnchorSearchMode_t mode,
+    bool_t silent
 );
+
+/*! ********************************************************************************************************************
+*\fn            uint16_t AppHandover_GetMonitoredConnHandle(deviceId_t deviceId)
+*\brief         Get the monitored connection handle for a device.
+*
+*\param  [in]   deviceId    Connection identifier.
+*
+*\return        uint16_t    Monitored connection handle, or gInvalidConnectionHandle_c if not monitored.
+********************************************************************************************************************* */
+uint16_t AppHandover_GetMonitoredConnHandle
+(
+    deviceId_t deviceId
+);
+
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+/*! ********************************************************************************************************************
+*\fn            deviceId_t AppHandover_GetDeviceIdFromMonitoredConnHandle(uint16_t monitorConnHandle)
+*\brief         Get the deviceId associated with a monitored connection handle.
+*
+*\param  [in]   monitorConnHandle   Monitored connection handle on the remote anchor.
+*
+*\return        deviceId_t          Associated deviceId, or gInvalidDeviceId_c if not found.
+********************************************************************************************************************* */
+deviceId_t AppHandover_GetDeviceIdFromMonitoredConnHandle
+(
+    uint16_t monitorConnHandle
+);
+
+/*! ********************************************************************************************************************
+*\fn            bleResult_t AppHandover_GetAndSetCsLlContext(deviceId_t deviceId, bool_t pending)
+*\brief         Mark the pending CS LL context request as being for CS sniffing (TRUE) or
+*               connection handover (FALSE), then request the LL CS context from the stack.
+*               When set for sniffing, the CS LL context command sent to the peer anchor
+*               carries the sniffing flag, so the peer starts CS monitoring once the
+*               context is applied.
+*
+*\param  [in]   deviceId    Peer device identifier to fetch the CS LL context for.
+*\param  [in]   pending     TRUE if the pending CS LL context get is for CS sniffing.
+*
+*\return        bleResult_t Result of the Gap_HandoverGetCsLlContext operation.
+********************************************************************************************************************* */
+bleResult_t AppHandover_GetAndSetCsLlContext
+(
+    deviceId_t deviceId,
+    bool_t pending
+);
+
+/*! ********************************************************************************************************************
+*\fn            void AppHandover_NotifyRemoteDevice(uint8_t cmdId, uint16_t len, uint8_t *pData)
+*\brief         Send a handover A2A command to the peer anchor through the registered A2A
+*               interface callback.
+*
+*\param  [in]   cmdId   Handover A2A command opcode.
+*\param  [in]   len     Command payload length.
+*\param  [in]   pData   Pointer to the command payload.
+*
+*\return        None
+********************************************************************************************************************* */
+void AppHandover_NotifyRemoteDevice
+(
+    uint8_t cmdId,
+    uint16_t len,
+    uint8_t *pData
+);
+
+/*! ********************************************************************************************************************
+*\fn            void AppHandover_FreeMonitorSlotsForDevice(deviceId_t deviceId)
+*\brief         Release every anchor monitor slot held for a device.
+*
+*\param  [in]   deviceId   Peer device identifier.
+*
+*\return        None
+********************************************************************************************************************* */
+void AppHandover_FreeMonitorSlotsForDevice
+(
+    deviceId_t deviceId
+);
+
+/*! ********************************************************************************************************************
+*\fn            void AppHandover_FreeInactiveMonitorSlots(void)
+*\brief         Release every anchor monitor slot that never reached the active state (starting or
+*               stale).
+*
+*\return        None
+********************************************************************************************************************* */
+void AppHandover_FreeInactiveMonitorSlots(void);
+
+/*! ********************************************************************************************************************
+*\fn            deviceId_t AppHandover_ActivateMonitorSlot(uint16_t connHandle)
+*\brief         Bind the pending monitor slot to the supplied remote connection handle and mark it
+*               active.
+*
+*\param  [in]   connHandle   Monitored connection handle on the remote (sniffer) anchor.
+*
+*\return        deviceId_t   Local device id of the activated slot, or gInvalidDeviceId_c if none pending.
+********************************************************************************************************************* */
+deviceId_t AppHandover_ActivateMonitorSlot
+(
+    uint16_t connHandle
+);
+
+/*! ********************************************************************************************************************
+*\fn            void AppHandover_NotifyAppEvent(appHandoverEvent_t event, void *pParam)
+*\brief         Invoke the registered application event callback. Exposed so the CS sniffing add-on
+*               can raise application handover events without duplicating the private callback pointer.
+*
+*\param  [in]   event    Application handover event.
+*\param  [in]   pParam   Opaque event parameter forwarded to the callback.
+*
+*\return        None
+********************************************************************************************************************* */
+void AppHandover_NotifyAppEvent
+(
+    appHandoverEvent_t event,
+    void *pParam
+);
+
+/*! ********************************************************************************************************************
+*\fn            bool_t AppHandover_IsConnHandoverInProgress(void)
+*\brief         Report whether a real connection handover is in progress on this anchor
+*               (mHandoverCtx.centralDeviceId is valid).
+*
+*\return        bool_t    TRUE if a connection handover is in progress, FALSE otherwise.
+********************************************************************************************************************* */
+bool_t AppHandover_IsConnHandoverInProgress(void);
+
+#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1)
+/*! ********************************************************************************************************************
+*\fn            bleResult_t AppHandover_HandleCsLlContextCommand(uint8_t *pCmdData, appHandoverError_t *pError)
+*\brief         Run the connection-handover CS LL context command handling.
+*
+*\param  [in]   pCmdData  Pointer to the command payload at the develop/main layout start (responseMask).
+*\param  [out]  pError    Pointer to error status.
+*
+*\return        bleResult_t  Status of the operation.
+********************************************************************************************************************* */
+bleResult_t AppHandover_HandleCsLlContextCommand
+(
+    uint8_t *pCmdData,
+    appHandoverError_t *pError
+);
+#endif /* defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1) */
+
+#endif /* defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1) */
 
 #if defined(__cplusplus)
 }

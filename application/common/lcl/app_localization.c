@@ -62,6 +62,16 @@
 #include "pts_test.h"
 #endif /* defined(gRasRapPtsTest_d) && (gRasRapPtsTest_d == 1) */
 
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+#include "gap_handover_interface.h"
+#include "app_localization_cs_sniffing.h"
+#include "app_handover.h"
+#endif /* defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1) */
+
+#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 0)
+#include "app_localization_data_export.h"
+#endif /* defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 0) */
+
 /************************************************************************************
 *************************************************************************************
 * Private macros
@@ -138,6 +148,7 @@
         PCT rotation: 4U * gMaxNumAntennaPaths_c
 */
 #define CS_CONFIG_VENDOR_PARAM_LENGTH   (9U + 5U * gMaxNumAntennaPaths_c)
+
 /************************************************************************************
 *************************************************************************************
 * Private type definitions
@@ -181,8 +192,10 @@ static const uint8_t cs_ant_idx_to_GPIO[CS_NO_ANT_TYPES][gMaxNumAntennaPaths_c] 
     {LCL_HAL_ANTDIV_EXT_1_ANT , LCL_HAL_ANTDIV_EXT_2_ANT, LCL_HAL_ANTDIV_ANT_20_ANT , LCL_HAL_ANTDIV_ANT_30_ANT}, /* 6 = ANTDIV_4_ANT */
 };
 
-/* Current state for a specific peer */
-static appLocalization_State_t maAppLclState[gAppMaxConnections_c];
+/* Current state for a specific peer.
+   Sized to gAppMaxLocalizationSlots_c so the top gAppMaxSniffedConnections_c entries
+   provide independent localization state for sniffed (anchor-monitored) connections. */
+static appLocalization_State_t maAppLclState[gAppMaxLocalizationSlots_c];
 
 /* Number of CS procedures executed */
 static uint16_t maCsProcCount[gAppMaxConnections_c];
@@ -229,11 +242,7 @@ static bool_t maTakSupport[gAppMaxConnections_c];
 
 /* Automatically restart the CS procedure when it ends, aborts or times out */
 static bool_t mAutoRestart = FALSE;
-/************************************************************************************
-*************************************************************************************
-* Private prototypes
-*************************************************************************************
-************************************************************************************/
+
 static bleResult_t csMetaEventCallback
 (
     csMetaEvent_t* pPacket
@@ -478,7 +487,9 @@ appLocalization_rangeCfg_t mDefaultRangeSettings =
     .csAlgoBuf = NULL  /* Used by algorithm */
 };
 
-appLocalization_rangeCfg_t mRangeSettings[gAppMaxConnections_c];
+/* Sized to gAppMaxLocalizationSlots_c: the top gAppMaxSniffedConnections_c entries
+   hold the CS configuration for sniffed (anchor-monitored) connections. */
+appLocalization_rangeCfg_t mRangeSettings[gAppMaxLocalizationSlots_c];
 
 #if defined (gAppRunAlgo_d) && (gAppRunAlgo_d == 1)
 #if defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)
@@ -490,9 +501,28 @@ static uint8_t gLocalizationAlgorithm = 0U;
 #endif /* gAppUseRADEAlgorithm_d || gAppUseCDEAlgorithm_d */
 #endif /* gAppRunAlgo_d */
 
+pfAppCsCallback_t AppLocalization_GetCsCallback(void)
+{
+    return mpfAppCsCallback;
+}
+#if defined (gAppRunAlgo_d) && (gAppRunAlgo_d == 1)
+pfAppDisplayResult_t AppLocalization_GetDisplayResultCallback(void)
+{
+    return mpfDisplayResultCallback;
+}
+#endif /* gAppRunAlgo_d */
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
 appLocalization_TimeInfo_t gCsTimeInfo = {0};
 #endif
+
+/* CS sniffing timing debug: shared start timestamp (microseconds, from TM_GetTimestamp()).
+   Defined in the private CS sniffing add-on (app_handover_sniffing.c). The segment A start is
+   captured here at csProcedureEnableCompleteEvent_c; the segment B start and both segment reports
+   are in the add-on. Referenced here via extern. */
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1) && \
+    defined(gAppCsSniffDebugTiming_d) && (gAppCsSniffDebugTiming_d == 1)
+extern uint64_t gCsSniffTimingStart;
+#endif /* gAppCsSniffing_d && gAppCsSniffDebugTiming_d */
 
 /************************************************************************************
  *************************************************************************************
@@ -781,6 +811,8 @@ bleResult_t AppLocalization_Config
         {
             if (isBonded == TRUE)
             {
+                /* Normal (connected) path: mpCachedRemoteCaps already holds a valid
+                   deviceId, so the host resolves the connection handle from it. */
                 result = CS_WriteCachedRemoteSupportedCapabilities(mpCachedRemoteCaps[nvmIndex]);
             }
         }
@@ -823,6 +855,11 @@ bleResult_t AppLocalization_StartMeasurement
 )
 {
     bleResult_t result = gBleSuccess_c;
+
+    /* Owned-device state entering StartMeasurement (locState must be idle,
+       configId must match the config already present on the controller). */
+    CS_LOG_INFO("StartMeasurement: devId=%d locState=%d configId=%d",
+                deviceId, maAppLclState[deviceId], mRangeSettings[deviceId].configId);
 
     if (maAppLclState[deviceId] != gAppLclIdle_c)
     {
@@ -1283,6 +1320,8 @@ bleResult_t AppLocalization_WriteCachedRemoteCapabilities
 {
     bleResult_t result = gBleSuccess_c;
 
+    /* Normal (connected) path: mpCachedRemoteCaps already holds a valid deviceId, so the
+       host resolves the connection handle from it. */
     if ((mpCachedRemoteCaps[nvmIdx] == NULL) || (maAppLclState[deviceId] != gAppLclIdle_c))
     {
         result = gBleInvalidState_c;
@@ -1847,7 +1886,7 @@ bleResult_t AppLocalization_CreateConfig
         /* If TRUE, create CS configuration in both local and remote Controller */
         createConfigParams.createContext = (uint8_t)createContextRemote;
 
-        result = CS_CreateConfig(deviceId, &createConfigParams);
+        result = CS_CreateConfig(deviceId, gInvalidConnectionHandle_c, &createConfigParams);
         if (result != gBleSuccess_c)
         {
             AppLocalization_SetLocState(deviceId, gAppLclIdle_c);
@@ -2283,6 +2322,16 @@ static bleResult_t csMetaEventCallback
 
             case csProcedureEnableCompleteEvent_c:
             {
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+                /* S1 segment A start: CS procedure enable is complete on this
+                   (ranging) anchor. This runs on the host task, which is the
+                   earliest point the enable completion is observed. The elapsed
+                   time is reported in app_handover once the CS LL context has
+                   been transmitted to the monitoring anchor. */
+#if defined(gAppCsSniffDebugTiming_d) && (gAppCsSniffDebugTiming_d == 1)
+                gCsSniffTimingStart = TM_GetTimestamp();
+#endif /* defined(gAppCsSniffDebugTiming_d) && (gAppCsSniffDebugTiming_d == 1) */
+#endif /* defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1) */
                 result = handleProcedureEnableComplete(pPacket, pCsMetaEvent);
             }
             break;
@@ -2364,19 +2413,61 @@ static void AppLocalization_CSMetaEventCallback
 
         case gCsMetaEvtConfigComplete_c:
         {
-            deviceId = AppLocalization_HandleConfigComplete(pPacket->pEventData);
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+            csConfigCompleteEvent_t* pConfigComplete =
+                (csConfigCompleteEvent_t*)pPacket->pEventData;
+
+            if (pConfigComplete->deviceId == gInvalidDeviceId_c)
+            {
+                /* CS sniffer path: no host connection to the peer, the config
+                   complete is keyed by connection handle. */
+                deviceId = AppCsSniffing_DispatchMetaEvent(pPacket->eventType, pPacket->pEventData);
+            }
+            else
+#endif /* defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1) */
+            {
+                deviceId = AppLocalization_HandleConfigComplete(pPacket->pEventData);
+            }
         }
         break;
 
         case gCsMetaEvtSubeventResult_c:
         {
-            deviceId = AppLocalization_HandleSubeventResult(pPacket->pEventData);
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+            csSubeventResultEvent_t* pResultEvent =
+                (csSubeventResultEvent_t*)pPacket->pEventData;
+
+            if (pResultEvent->deviceId == gInvalidDeviceId_c)
+            {
+                /* CS sniffer path: no host connection to the peer, the subevent
+                   result is keyed by connection handle. */
+                deviceId = AppCsSniffing_DispatchMetaEvent(pPacket->eventType, pPacket->pEventData);
+            }
+            else
+#endif /* defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1) */
+            {
+                deviceId = AppLocalization_HandleSubeventResult(pPacket->pEventData);
+            }
         }
         break;
 
         case gCsMetaEvtSubeventResultContinue_c:
         {
-            deviceId = AppLocalization_HandleSubeventResultContinue(pPacket->pEventData);
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+            csSubeventResultContinueEvent_t* pResultContinueEvent =
+                (csSubeventResultContinueEvent_t*)pPacket->pEventData;
+
+            if (pResultContinueEvent->deviceId == gInvalidDeviceId_c)
+            {
+                /* CS sniffer path: no host connection to the peer, the subevent
+                   result continue is keyed by connection handle. */
+                deviceId = AppCsSniffing_DispatchMetaEvent(pPacket->eventType, pPacket->pEventData);
+            }
+            else
+#endif /* defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1) */
+            {
+                deviceId = AppLocalization_HandleSubeventResultContinue(pPacket->pEventData);
+            }
         }
         break;
 
@@ -2497,6 +2588,7 @@ static bleResult_t AppLocalization_ConfigureRemoteCaps
     }
 
     result = CS_SetDefaultSettings(deviceId,
+                                   gInvalidConnectionHandle_c,
                                    (csRoleType)(((uint8_t)gEnableCsInitiator_c) | ((uint8_t)gEnableCsReflector_c)),
                                    syncAntennaSelection,
                                    maxTxPowerLevel);
@@ -3214,6 +3306,10 @@ static deviceId_t AppLocalization_HandleProcedureEnableComplete
     if (pProcEnableComplete->state == 1U)
     {
         AppLocalization_HandleProcedureEnabled(deviceId, pProcEnableComplete);
+
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+        AppCsSniffing_HandleProcedureEnabled(deviceId);
+#endif /* gAppCsSniffing_d */
     }
     /* Procedure was disabled either by the local or remote device */
     else
@@ -3266,7 +3362,7 @@ static void AppLocalization_HandleProcedureEnabled
         return;
     }
 
-    /* Update number of procedures, subevent interval and reset internal counters */
+    /* Update number of procedures, subevent interval and antenna config index */
     mRangeSettings[deviceId].maxNumProcedures = pEvent->procedureCount;
     mRangeSettings[deviceId].subeventInterval = pEvent->subeventInterval;
     /* Save the antenna config selected by the controller to size the IQ buffer */
@@ -3508,6 +3604,13 @@ static void AppLocalization_CSCmdCompleteCallback
         {
             deviceId_t deviceId = pPacket->deviceId;
 
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+            if (AppCsSniffing_HandleSdsComplete() == TRUE)
+            {
+                break;
+            }
+#endif /* gAppCsSniffing_d */
+
             if (mGlobalRangeSettings.role == gCsRoleInitiator_c)
             {
                 appLocalization_State_t prevState = maAppLclState[deviceId];
@@ -3534,12 +3637,20 @@ static void AppLocalization_CSCmdCompleteCallback
         {
             deviceId_t deviceId = pPacket->deviceId;
 
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+            if (AppCsSniffing_HandleWcccComplete() == TRUE)
+            {
+                break;
+            }
+#endif /* gAppCsSniffing_d */
+
             if (maAppLclState[deviceId] == gAppLclWaitingForWCCC_c)
             {
                uint8_t syncAntennaSelection = 0xFF; /* proprietary antenna shuffling */
                int8_t  maxTxPowerLevel = 10; /* 10 dBm */
 
                result = CS_SetDefaultSettings(deviceId,
+                                              gInvalidConnectionHandle_c,
                                               (csRoleType)(((uint8_t)gEnableCsInitiator_c) | ((uint8_t)gEnableCsReflector_c)),
                                               syncAntennaSelection,
                                               maxTxPowerLevel);
@@ -3659,6 +3770,12 @@ static void AppLocalization_CSCmdStatusCallback
 )
 {
     deviceId_t deviceId = gInvalidDeviceId_c;
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+    /* Event type reported to the application. The sniffer configuration chain
+       reports a dedicated event so the application can trigger a sniff
+       measurement. All other paths report the regular CS status event. */
+    appCsEventType_t appEventType = gCsStatusEvent_c;
+#endif /* gAppCsSniffing_d */
 
     csCommandStatusEvent_t *pPacket = (csCommandStatusEvent_t*)pCsCmdStatusEvent;
     switch (pPacket->eventType)
@@ -3715,6 +3832,19 @@ static void AppLocalization_CSCmdStatusCallback
 
         case csCreateConfig:
         {
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+            /* Sniffer setup chain: the event carries the connection handle and an invalid
+               device id (no host connection exists for a sniffed link). Resolve the sniff
+               slot directly from the reported connection handle. */
+            if (pPacket->deviceId == gInvalidDeviceId_c)
+            {
+                deviceId = AppCsSniffing_HandleCreateConfigStatus(pPacket->status);
+
+                /* Sniff path handled, skip the normal handling. */
+                break;
+            }
+#endif /* gAppCsSniffing_d */
+
             /* Find the peer device for which this event is expected. The command
             status doesn't contain a connection identifier. */
             deviceId = GetDeviceIdInState(gAppLclWaitingForCCCS_c);
@@ -3789,7 +3919,11 @@ static void AppLocalization_CSCmdStatusCallback
 
     if (mpfAppCsCallback != NULL)
     {
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+        mpfAppCsCallback(deviceId, (void*)pPacket, appEventType);
+#else
         mpfAppCsCallback(deviceId, (void*)pPacket, gCsStatusEvent_c);
+#endif /* gAppCsSniffing_d */
     }
 
     (void)MEM_BufferFree(pPacket);
@@ -4023,7 +4157,7 @@ static bleResult_t processEventResultData
 
 #if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U)) || (defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1U))
         /* Uncompress local data on-the-fly */
-        AppLocalizationAlgo_UncompressResponse(pEventData, dataSize, &mResultData[deviceId]);
+        AppLocalizationAlgo_UncompressResponse(pEventData, dataSize, &mResultData[deviceId], FALSE);
 #endif
         mResultData[deviceId].dataIndex += dataSize;
 
@@ -4326,6 +4460,7 @@ void AppLocalization_RunAlgorithm
 
         /* Prepare algo result */
         localizationAlgoResult_t algoResult;
+        locAlgoOptions_t algoOptions = gLocAlgoOptionNone_c;
         FLib_MemSet(&algoResult, 0U, sizeof(localizationAlgoResult_t));
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
         gCsTimeInfo.transferEnd = TM_GetTimestamp();
@@ -4340,10 +4475,18 @@ void AppLocalization_RunAlgorithm
 
         if ((gLocalizationAlgorithm > 0U) && (mResultData[deviceId].dataIndex > 0U))
         {
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+            /* Broadcast CS data to the passive anchor when this connection is monitored. */
+            if (AppHandover_GetMonitoredConnHandle(deviceId) != gInvalidConnectionHandle_c)
+            {
+                algoOptions = gLocAlgoOptionCsDataBroadcast_c;
+            }
+#endif
             AppLocalizationAlgo_RunMeasurement(deviceId,
                                                &mResultData[deviceId],
                                                pPeerResultData,
                                                mGlobalRangeSettings.role,
+                                               algoOptions,
                                                &algoResult);
         }
 

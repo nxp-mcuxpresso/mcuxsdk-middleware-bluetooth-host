@@ -161,6 +161,27 @@ typedef struct hciVendorHandoverApplyConnectionUpdateProcedure_tag
     uint16_t        instant;                /*!< Connection event counter value indicating when the new connection parameters are applied */
     uint16_t        currentEventCounter;    /*!< Current connection event counter */
 } hciVendorHandoverApplyConnectionUpdateProcedure_t;
+
+/*! OCF 0x00C0 */
+typedef struct hciVendorCsMonitorStartCommand_tag
+{
+    uint16_t        connectionHandle;   /*!< Connection handle of the monitored Channel Sounding procedure */
+} hciVendorCsMonitorStartCommand_t;
+
+/*! OCF 0x00C1 */
+typedef struct hciVendorCsMonitorStopCommand_tag
+{
+    uint16_t        connectionHandle;   /*!< Connection handle of the monitored Channel Sounding procedure */
+} hciVendorCsMonitorStopCommand_t;
+
+/*! OCF 0x00C2 */
+typedef struct hciVendorCsMonitorChannelMapUpdateCommand_tag
+{
+    uint16_t        connectionHandle;                   /*!< Connection handle of the monitored Channel Sounding procedure */
+    uint8_t         aChannelMap[gCsChannelMapSize_c];   /*!< Channel Sounding channel map */
+    uint16_t        instant;                            /*!< Connection event counter indicating when the new channel map is applied */
+} hciVendorCsMonitorChannelMapUpdateCommand_t;
+
 /************************************************************************************
 *************************************************************************************
 * Public prototypes
@@ -400,6 +421,54 @@ bleResult_t Hci_VendorHandoverUpdateConnParams(hciVendorHandoverUpdateConnParams
 *
 ********************************************************************************** */
 bleResult_t Hci_VendorHandoverApplyConnectionUpdateProcedure(hciVendorHandoverApplyConnectionUpdateProcedure_t *pParam);
+
+/*! *********************************************************************************
+* \fn           bleResult_t Hci_VendorCsMonitorStart(hciVendorCsMonitorStartCommand_t *pParam)
+*
+* \brief        The function sends the HCI Vendor CS Monitor Start
+*               (OGF : 0x3f; OCF : 0x00C0) command to the Controller.
+*
+* \param[in]    pParam  Pointer to structure containing the connection handle.
+* \param[out]   None
+*
+* \return       Status
+*
+* \remarks      HCI Vendor Specific Command
+*
+********************************************************************************** */
+bleResult_t Hci_VendorCsMonitorStart(hciVendorCsMonitorStartCommand_t *pParam);
+
+/*! *********************************************************************************
+* \fn           bleResult_t Hci_VendorCsMonitorStop(hciVendorCsMonitorStopCommand_t *pParam)
+*
+* \brief        The function sends the HCI Vendor CS Monitor Stop
+*               (OGF : 0x3f; OCF : 0x00C1) command to the Controller.
+*
+* \param[in]    pParam  Pointer to structure containing the connection handle.
+* \param[out]   None
+*
+* \return       Status
+*
+* \remarks      HCI Vendor Specific Command
+*
+********************************************************************************** */
+bleResult_t Hci_VendorCsMonitorStop(hciVendorCsMonitorStopCommand_t *pParam);
+
+/*! *********************************************************************************
+* \fn           bleResult_t Hci_VendorCsMonitorChannelMapUpdate(hciVendorCsMonitorChannelMapUpdateCommand_t *pParam)
+*
+* \brief        The function sends the HCI Vendor CS Monitor Channel Map Update
+*               (OGF : 0x3f; OCF : 0x00C2) command to the Controller.
+*
+* \param[in]    pParam  Pointer to structure containing the channel map update parameters.
+* \param[out]   None
+*
+* \return       Status
+*
+* \remarks      HCI Vendor Specific Command
+*
+********************************************************************************** */
+bleResult_t Hci_VendorCsMonitorChannelMapUpdate(hciVendorCsMonitorChannelMapUpdateCommand_t *pParam);
 
 #ifdef __cplusplus
 }

@@ -3,7 +3,7 @@
  * @{
  ********************************************************************************** */
 /*! *********************************************************************************
-* Copyright 2022-2025 NXP
+* Copyright 2022-2026 NXP
 *
 *
 * \file app_serial_interface.h
@@ -33,9 +33,17 @@
 #define gA2ACommandStartMarker_c                    0x02
 #define gA2ACommandsOpGroup_c                       0xCC
 
+/* A2A node addressing for the shared multi-drop bus. Main is the bus master. */
+/* Anchor IDs are assigned at runtime via the "setid" shell command (RAM only). */
+#define gA2ANodeIdMain_c                            0x00U   /* Bus master / main anchor */
+#define gA2ANodeIdBroadcast_c                       0xFFU   /* Addresses every anchor at once */
+#define gA2ANodeIdUnassigned_c                      0xFEU   /* Default before setid */
+
 /* A2A commands identifier */
 #define gSetBdCommandOpCode_c                           0x00    /* S1 -> S2 - transfer bonding data automatically at owner pairing (substitute for setbd shell command) */
 #define gHandoverApplicationDataCommandOpCode_c         0x01    /* S1 -> S2 - Send Application Level Data (peer handle values, modified attribute values) */
+/* CS sniffing / CS calibration A2A command opcodes (0x02..0x0B) are defined in the
+   private add-on header app_a2a_sniffing_interface.h (bluetooth_private). */
 
 /* A2A commands length */
 #if (defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U))
@@ -49,8 +57,13 @@
 #endif /* ((defined(gAppSecureMode_d) && (gAppSecureMode_d > 0U)) */
 
 /* A2A commands */
-#define A2A_SendSetBondingDataCommand(buf, len)                 A2A_SendCommand(gA2ACommandsOpGroup_c, gSetBdCommandOpCode_c, buf, len)
+/* Bonding data is provisioned to every anchor on the bus. */
+#define A2A_SendSetBondingDataCommand(buf, len)                 A2A_SendCommandTo(gA2ANodeIdBroadcast_c, gA2ACommandsOpGroup_c, gSetBdCommandOpCode_c, buf, len)
+
 #define A2A_SendApplicationDataCommand(buf, len)                A2A_SendCommand(gA2ACommandsOpGroup_c, gHandoverApplicationDataCommandOpCode_c, buf, len)
+/* CS sniffing / CS calibration A2A send helpers (A2A_SendCsConfigDataCommand,
+   A2A_SendCsCalStartCommand, ...) are defined in the private add-on header
+   app_a2a_sniffing_interface.h (bluetooth_private), on top of A2A_SendCommandTo. */
 
 /************************************************************************************
 *************************************************************************************
@@ -65,6 +78,8 @@ typedef uint8_t opGroup_t;
 typedef PACKED_STRUCT clientPacketHdr_tag
 {
     uint8_t    startMarker;
+    uint8_t    dstId;    /* Destination node ID (or broadcast) */
+    uint8_t    srcId;    /* Sender node ID */
     opGroup_t  opGroup;
     opCode_t   opCode;
     uint16_t   len;      /* Actual length of payload[] */
@@ -147,6 +162,47 @@ void A2A_SendCommand
     uint8_t *pPayload,
     uint16_t len
 );
+
+/*! *********************************************************************************
+*\fn           void A2A_SendCommandTo(uint8_t dstId, uint8_t opGroup, uint8_t opCode,
+*                                      uint8_t *pPayload, uint16_t len)
+*\brief        Send an addressed packet over the Anchor to Anchor interface.
+*
+*\param  [in]  dstId        Destination node ID (or gA2ANodeIdBroadcast_c).
+*\param  [in]  opGroup      Group identifier.
+*\param  [in]  opCode       Command identifier.
+*\param  [in]  pPayload     Pointer to command data.
+*\param  [in]  len          Command length.
+*
+*\retval       void.
+********************************************************************************** */
+void A2A_SendCommandTo
+(
+    uint8_t dstId,
+    uint8_t opGroup,
+    uint8_t opCode,
+    uint8_t *pPayload,
+    uint16_t len
+);
+
+/*! *********************************************************************************
+*\fn           void A2A_SetLocalId(uint8_t id)
+*\brief        Set this node's A2A address (RAM only). Main keeps gA2ANodeIdMain_c;
+*              Other anchors assign a unique ID via the setid shell command.
+*
+*\param  [in]  id           Local node ID.
+*
+*\retval       void.
+********************************************************************************** */
+void A2A_SetLocalId(uint8_t id);
+
+/*! *********************************************************************************
+*\fn           uint8_t A2A_GetLocalId(void)
+*\brief        Get this node's A2A address.
+*
+*\retval       uint8_t      Local node ID.
+********************************************************************************** */
+uint8_t A2A_GetLocalId(void);
 
 #if defined(__cplusplus)
 }

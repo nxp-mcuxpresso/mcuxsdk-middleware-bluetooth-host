@@ -35,6 +35,7 @@
 
 #define gInvalidDeviceId_c                          (0xFFU)
 #define gInvalidNvmIndex_c                          (0xFFU)
+#define gInvalidConnectionHandle_c                  (0xFFFFU)
 
 /*! Boundary values for the Connection Parameters (Standard GAP). */
 #define gcConnectionIntervalMin_c                   (0x0006U)
@@ -948,6 +949,10 @@ typedef enum {
     gLeSetDefaultConnectionSubrateParametersSetupComplete_c = 0x5AU, /*!< Default Connection Subrate Parameters.have been successfully set */
     gLeChasConfigComplete_c                                 = 0x5BU, /*!< LE CHAS Config command completed successfully */
     gLeModulationTestComplete_c                             = 0x5CU, /*!< LE Modulation Test command completed successfully */
+    gCsMonitorStartComplete_c                               = 0x5DU, /*!< CS Monitor Start command complete */
+    gCsMonitorStopComplete_c                                = 0x5EU, /*!< CS Monitor Stop command complete */
+    gCsMonitorChannelMapUpdateComplete_c                    = 0x5FU, /*!< CS Monitor Channel Map Update command complete */
+    gCsMonitorChannelMapUpdateEvent_c                       = 0x60U, /*!< Event received from Controller - CS Monitor Channel Map Update */
 } gapGenericEventType_t;
 
 /*! Internal Error Source - the command that triggered the error */
@@ -1107,6 +1112,9 @@ typedef enum {
     gLeChasConfig_c = 0x98U,                         /*!< An error occurred during LE CHAS Config command execution */
     gLeModulationTest_c = 0x99U,                     /*!< An error occurred during LE Modulation Test command execution */
     gVendorEnableLePowerControl_c = 0x9AU,           /*!< An error occurred during gHciVendorEnableLePowerControlCommand_c execution */
+    gCsMonitorStart_c = 0x9BU,                       /*!< An error occurred during CS Monitor Start command execution */
+    gCsMonitorStop_c = 0x9CU,                        /*!< An error occurred during CS Monitor Stop command execution */
+    gCsMonitorChannelMapUpdate_c = 0x9DU,            /*!< An error occurred during CS Monitor Channel Map Update command execution */
 } gapInternalErrorSource_t;
 
 /*! Internal Error Event Data */
@@ -1498,6 +1506,27 @@ typedef struct vendorUnitaryTestEvent_tag
     uint8_t     aParam[gVendorUnitaryTestSize_c];
 } vendorUnitaryTestEvent_t;
 
+typedef struct csMonitorStartStopComplete_tag
+{
+    bleResult_t status;             /*!< Command status */
+    uint16_t    connectionHandle;   /*!< Connection identifier */
+} csMonitorStartStopComplete_t;
+
+typedef struct csMonitorChannelMapUpdateComplete_tag
+{
+    bleResult_t status;             /*!< Command status */
+    uint16_t    connectionHandle;   /*!< Connection identifier */
+} csMonitorChannelMapUpdateComplete_t;
+
+typedef struct csMonitorChannelMapUpdateEvent_tag
+{
+    deviceId_t  deviceId;                       /*!< Device identifier of the monitored (active) connection.
+                                                     Resolved by the host from the HCI connection handle so the
+                                                     application can key off a device rather than a local handle. */
+    uint8_t     aChannelMap[gCsChannelMapSize_c];/*!< Channel Sounding channel map (10 octets) */
+    uint16_t    instant;                        /*!< Connection event counter value indicating when the new channel map is applied */
+} csMonitorChannelMapUpdateEvent_t;
+
 typedef struct vendorSpecificDbgEvent_tag
 {
     uint8_t     dataSize;
@@ -1567,6 +1596,10 @@ typedef struct {
         handoverConnectionUpdateProcedureEvent_t    handoverConnectionUpdateProcedure;      /*!< Data for the gHandoverConnectionUpdateProcedureEvent_c event */
         handoverApplyConnectionUpdateProcedure_t    handoverApplyConnectionUpdateProcedure; /*!< Data for the gHandoverApplyConnectionUpdateProcedureComplete_c event */
         vendorUnitaryTestEvent_t                  unitaryTestData;                          /*!< Data for the gVendorUnitaryTestComplete_c event */
+        csMonitorStartStopComplete_t              csMonitorStartComplete;                   /*!< Data for the gCsMonitorStartComplete_c event */
+        csMonitorStartStopComplete_t              csMonitorStopComplete;                    /*!< Data for the gCsMonitorStopComplete_c event */
+        csMonitorChannelMapUpdateComplete_t       csMonitorChannelMapUpdateComplete;        /*!< Data for the gCsMonitorChannelMapUpdateComplete_c event */
+        csMonitorChannelMapUpdateEvent_t          csMonitorChannelMapUpdate;                /*!< Data for the gCsMonitorChannelMapUpdateEvent_c event */
         uint8_t                                   monAdvListSize;                           /*!< Data for the gMonAdvListSizeRead_c event. The size of the Monitored Advertisers List. */
         vendorSpecificDbgEvent_t                  vendorDebug;                              /*!< Data for the gVendorDebugEvent_c event. */
     } eventData;                            /*!< Event data, selected according to event type. */

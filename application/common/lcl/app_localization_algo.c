@@ -39,6 +39,8 @@
 #include "PWR_Interface.h"
 #endif /* gAppLowpowerEnabled_d */
 #endif /* LCE_ENABLED */
+
+#define RADE_MN_REF_VM_DEBUG_PRINT(bit) ((void)0)
 /************************************************************************************
 *************************************************************************************
 * Private macros
@@ -74,6 +76,15 @@ extern uint8_t g_ceHeap_id;
 static uint8_t g_ceHeap_id = 0U;
 #endif
 
+/* Callback used to transfer RADE multi-node CS data blob to the passive anchors. */
+static pfMnDataTransferCallback_t mpfMnDataTransferCallback = NULL;
+/* Received MN data blob used by the next passive receive run. */
+static uint8_t *mpMnData = NULL;
+#if defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)
+/* Previous RADE mn_ref_vm bit per slot, used to detect the 0->1 calibration edge. */
+static uint8_t maRadeMnRefVmPrev[gAppMaxLocalizationSlots_c] = {0U};
+#endif /* gAppUseRADEAlgorithm_d */
+
 /************************************************************************************
 *************************************************************************************
 * Private prototypes
@@ -104,7 +115,10 @@ static void isp_mciq_ranging_compute
     isp_meas_response_t *meas_response,
     mciq_result_t *mciq_result,
     engine_config_t *engine_config,
-    bool_t bIptEnabled
+    bool_t bIptEnabled,
+    locAlgoOptions_t options,
+    deviceId_t deviceId,
+    uint8_t role
 );
 static void isp_tof_ranging_compute
 (
@@ -112,7 +126,7 @@ static void isp_tof_ranging_compute
     tof_result_t *tof_result
 );
 
-static uint8_t AppLocalizationAlgo_ComputeTsw(deviceId_t deviceId);
+static uint8_t AppLocalizationAlgo_ComputeTsw(deviceId_t deviceId, uint8_t role);
 static uint8_t AppLocalizationAlgo_CountLeadingZeroes(uint16_t decimalPart);
 static void AppLocalizationAlgo_ConvertFloatToIntDec(float value, uint8_t *pIntPart, uint16_t *pDecPart, uint8_t *pLeadingZeroes);
 static void AppLocalizationAlgo_ConvertDqiToIntDec(float dqiPercentage, uint16_t *pIntPart, uint16_t *pDecPart);
@@ -144,10 +158,60 @@ static const uint32_t mPrecisionScaler = 100U; /* Scaler used for setting the di
 ********************************************************************************** */
 void AppLocalizationAlgo_ResetPeer(deviceId_t deviceId)
 {
-    if (mRangeSettings[deviceId].csAlgoBuf != NULL)
+    void *pFreedBuf = mRangeSettings[deviceId].csAlgoBuf;
+
+    if (pFreedBuf != NULL)
     {
         rade_deinit(&mRangeSettings[deviceId].csAlgoBuf);
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+        /* csAlgoBuf is shared between the sniffed device slot and the calibration
+           slot; rade_deinit freed and NULLed only this slot, so NULL every other
+           slot that still holds the now-dangling pointer. */
+        for (uint8_t i = 0U; i < (uint8_t)gAppMaxLocalizationSlots_c; i++)
+        {
+            if (mRangeSettings[i].csAlgoBuf == pFreedBuf)
+            {
+                mRangeSettings[i].csAlgoBuf = NULL;
+            }
+        }
+#endif /* defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1) */
     }
+#if defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1)
+    if (deviceId < (uint8_t)gAppMaxLocalizationSlots_c)
+    {
+        maRadeMnRefVmPrev[deviceId] = 0U;
+    }
+#endif /* gAppUseRADEAlgorithm_d */
+}
+
+/*! *********************************************************************************
+*\fn         void AppLocalizationAlgo_RegisterMnDataTransferCallback(
+*                                    pfMnDataTransferCallback_t pfCallback);
+*
+*\brief      Register the callback used to transfer multi-node CS data produced by
+*            the RADE algorithm (CS Sniffing broadcast) to the passive anchor.
+*
+*\param[in]  pfCallback       Transfer callback, or NULL to disable.
+*
+*\retval     none
+********************************************************************************** */
+void AppLocalizationAlgo_RegisterMnDataTransferCallback(pfMnDataTransferCallback_t pfCallback)
+{
+    mpfMnDataTransferCallback = pfCallback;
+}
+
+/*! *********************************************************************************
+*\fn         void AppLocalizationAlgo_SetMnData(uint8_t *pData);
+*
+*\brief      Set the multi-node CS data blob used by the next passive receive run.
+*
+*\param[in]  pData            Pointer to the received MN data blob, or NULL.
+*
+*\retval     none
+********************************************************************************** */
+void AppLocalizationAlgo_SetMnData(uint8_t *pData)
+{
+    mpMnData = pData;
 }
 
 /*! *********************************************************************************
@@ -155,6 +219,7 @@ void AppLocalizationAlgo_ResetPeer(deviceId_t deviceId)
  *                                  rasMeasurementData_t *pLocalData,
  *                                  rasMeasurementData_t *pPeerData,
  *                                  uint8_t role,
+ *                                  locAlgoOptions_t options,
  *                                  localizationAlgoResult_t *pResult);
  *
  *\brief        Run given algorithm for given data.
@@ -163,6 +228,7 @@ void AppLocalizationAlgo_ResetPeer(deviceId_t deviceId)
  *\param[in]    pLocalData          Pointer to local data.
  *\param[in]    pPeerData           Pointer to peer data.
  *\param[in]    role                CS role of the local device (initiator or reflector).
+ *\param[in]    options             Options bitmask controlling algorithm behavior.
  *\param[out]   pResult             Pointer to location for result information.
  *
  *\retval       none
@@ -173,6 +239,7 @@ void AppLocalizationAlgo_RunMeasurement
     rasMeasurementData_t *pLocalData,
     rasMeasurementData_t *pPeerData,
     uint8_t role,
+    locAlgoOptions_t options,
     localizationAlgoResult_t *pResult
 )
 {
@@ -210,7 +277,7 @@ void AppLocalizationAlgo_RunMeasurement
         response.cs_data->mode0_nb          = mRangeSettings[deviceId].mode0_nb;
         response.cs_data->rtt_type          = mRangeSettings[deviceId].rtt_type;
         response.cs_data->phy               = mRangeSettings[deviceId].phy;
-        response.cs_data->t_sw              = AppLocalizationAlgo_ComputeTsw(deviceId);
+        response.cs_data->t_sw              = AppLocalizationAlgo_ComputeTsw(deviceId, role);
         response.cs_data->conn_interval     = mRangeSettings[deviceId].connInterval;
         response.cs_data->subevt_interval   = mRangeSettings[deviceId].subeventInterval;
         response.cs_data->csAlgoBuf         = &mRangeSettings[deviceId].csAlgoBuf;
@@ -230,8 +297,13 @@ void AppLocalizationAlgo_RunMeasurement
         {
             if (idx < gMaxNumCsSubevents_c)
             {
+                /* Sniffed peer data is parsed via the local path, so its stop index lives in
+                   subevtStopIdxLocal; the normal peer path fills subevtStopIdxRemote. Done status
+                   always comes from the subevent header, which is valid for both paths. */
                 response.cs_data->subevtDoneStatusRemote[idx] = pPeerData->aSubEventData[idx].subevtHeader.subeventDoneStatus;
-                response.cs_data->subevtStopIdxRemote[idx] = pRemoteCsAppData->csData.subevtStopIdxRemote[idx];
+                response.cs_data->subevtStopIdxRemote[idx] = ((options & gLocAlgoOptionCsDataReceive_c) != 0U) ?
+                    pRemoteCsAppData->csData.subevtStopIdxLocal[idx] :
+                    pRemoteCsAppData->csData.subevtStopIdxRemote[idx];
                 response.cs_data->subevtAbortReasonRemote[idx] = pPeerData->aSubEventData[idx].subevtHeader.abortReason;
             }
         }
@@ -285,7 +357,7 @@ void AppLocalizationAlgo_RunMeasurement
         engine_config.cde_div_threshold = DM_CDE_THRESHOLD_DIVERSITY_DEFAULT;
 
         /* Compute PBR distance */
-        isp_mciq_ranging_compute(&response, &engine_response.mciq_result, &engine_config, mRangeSettings[deviceId].inlinePctEnabled);
+        isp_mciq_ranging_compute(&response, &engine_response.mciq_result, &engine_config, mRangeSettings[deviceId].inlinePctEnabled, options, deviceId, role);
 
         /* Compute RTT distance */
         isp_tof_ranging_compute(&response, &engine_response.tof_result);
@@ -329,6 +401,13 @@ void AppLocalizationAlgo_RunMeasurement
         if ((pResult->algorithm & eMciqAlgoEmbedRADE) != 0U)
         {
             mciq_result_t* result = &engine_response.mciq_result;
+            uint8_t mnRefVmPrev = Uint32toUint8((deviceId < (uint8_t)gAppMaxLocalizationSlots_c) ? maRadeMnRefVmPrev[deviceId] : 0U);
+            /* Edge 0->1: calibration data unsatisfactory, request calibration once. */
+            pResult->calibrationRequired = ((result->rade_mn_ref_vm == 1U) && (mnRefVmPrev == 0U)) ? TRUE : FALSE;
+            if (deviceId < (uint8_t)gAppMaxLocalizationSlots_c)
+            {
+                maRadeMnRefVmPrev[deviceId] = result->rade_mn_ref_vm;
+            }
             pResult->radeError = result->rade_error_flag;
             pResult->resultRADE.distanceInMeters = result->rade_dist;
             pResult->resultRADE.dqiPercentage = result->rade_dqi * 100.f; /* Convert decimal number to percentage. */
@@ -790,6 +869,9 @@ static int32_t AppLocalizationAlgo_GetAbsoluteValue(int32_t value)
  * \param[in]   mciq_result         Pointer to mciq result data
  * \param[in]   engine_config       Pointer to ranging engine configuration
  * \param[in]   bIptEnabled         TRUE if Inline PCT Transfer is enabled for this measurement
+ * \param[in]   options             Options bitmask controlling algorithm behavior
+ * \param[in]   deviceId            DeviceId of the peer (used for the transfer callback)
+ * \param[in]   role                CS role of the local device (initiator or reflector)
  *
  *\retval       none
  ********************************************************************************** */
@@ -798,7 +880,10 @@ static void isp_mciq_ranging_compute
     isp_meas_response_t *meas_response,
     mciq_result_t *mciq_result,
     engine_config_t *engine_config,
-    bool_t bIptEnabled
+    bool_t bIptEnabled,
+    locAlgoOptions_t options,
+    deviceId_t deviceId,
+    uint8_t role
 )
 {
     mciq_data_t *init_data = &meas_response->mciq_data[0];
@@ -831,7 +916,7 @@ static void isp_mciq_ranging_compute
         rade_cs_para_t radeCsPara;
         rade_result_t radeResult;
         rade_cs_data_t radeCsData;
-        radeCsPara.csRole                   = mGlobalRangeSettings.role == gCsRoleInitiator_c ? 0U : 1U;
+        radeCsPara.csRole                   = role == gCsRoleInitiator_c ? 0U : 1U;
         radeCsPara.step_nb                  = meas_response->cs_data->step_nb;
         radeCsPara.startAclCnt              = meas_response->cs_data->startAclCnt;
         radeCsPara.mode0_nb                 = meas_response->cs_data->mode0_nb;
@@ -873,6 +958,26 @@ static void isp_mciq_ranging_compute
         radeCsData.mnDataTransferCb.pfTransferCb  = NULL;
         radeCsData.mnDataTransferCb.deviceId      = 0U;
         rade_para_t radePara                = {.radeMode = {.normal = 1U, .calibration = 0U, .mn_ref_vm = 0U, .mn_ref_regen = 0U, .mn_cs_data_broadcast = 0U, .reserved = 0U}, .radeMnRole = kRadeIndepActiveNode, .distBias = 0.0f, .ceHeap_id = g_ceHeap_id};
+        /* Calibration run on the passive node with reference regeneration, no MN blob. */
+        if ((options & gLocAlgoOptionCsCalibration_c) != 0U)
+        {
+            radePara.radeMode.mn_ref_regen = 1U;
+            radePara.radeMnRole            = kRadeMnPassiveNode;
+        }
+        /* CS Sniffing: algo outputs IQ samples for passive anchors via transfer callback */
+        if ((options & gLocAlgoOptionCsDataBroadcast_c) != 0U)
+        {
+            radePara.radeMode.mn_cs_data_broadcast = 1U;
+            radePara.radeMnRole = kRadeMnActiveNode;
+            radeCsData.mnDataTransferCb.pfTransferCb = mpfMnDataTransferCallback;
+            radeCsData.mnDataTransferCb.deviceId     = deviceId;
+        }
+        /* CS Sniffing passive run: consume MN data blob from the active anchor */
+        if ((options & gLocAlgoOptionCsDataReceive_c) != 0U)
+        {
+            radePara.radeMnRole      = kRadeMnPassiveNode;
+            radeCsData.mn_data       = mpMnData;
+        }
 #ifdef LCE_ENABLED
 #if defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0)
         /* LCE is not able to compute while CORE0 is in deep sleep */
@@ -880,11 +985,24 @@ static void isp_mciq_ranging_compute
 #endif /* defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0) */
 #endif /* LCE_ENABLED */
         radeStatus = pde_rade(&radeCsData, meas_response->cs_data->csAlgoBuf, &radeCsPara, &radeResult, &radePara);
+        /* Export the mn_ref_vm bit so the caller can edge-detect a calibration request. */
+        mciq_result->rade_mn_ref_vm = (uint8_t)radePara.radeMode.mn_ref_vm;
+        RADE_MN_REF_VM_DEBUG_PRINT(radePara.radeMode.mn_ref_vm);
 #ifdef LCE_ENABLED
 #if defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0)
         (void)PWR_ReleaseLowPowerModeConstraint(PWR_WFI);
 #endif /* defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0) */
 #endif /* LCE_ENABLED */
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+#if defined(gAppMaxSniffedConnections_c) && (gAppMaxSniffedConnections_c > 0U)
+        /* csAlgoBuf must be the same for all calls of pde_rade */
+        if ((options & gLocAlgoOptionCsCalibration_c) != 0U)
+        {
+            /* To be updated for gAppMaxSniffedConnections_c != 1 */
+            mRangeSettings[gAppMaxConnections_c].csAlgoBuf = *(void**)(meas_response->cs_data->csAlgoBuf);
+        }
+#endif /* defined(gAppMaxSniffedConnections_c) && (gAppMaxSniffedConnections_c > 0U) */
+#endif /* defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1) */
         if (kRadeSuccess != radeStatus)
         {
             mciq_result->rade_error_flag = (uint8_t)radeStatus;
@@ -951,17 +1069,19 @@ static void isp_tof_ranging_compute
 }
 
 /*! *********************************************************************************
- *\fn           uint8_t AppLocalizationAlgo_ComputeTsw(deviceId_t deviceId);
+ *\fn           uint8_t AppLocalizationAlgo_ComputeTsw(deviceId_t deviceId, uint8_t role);
  *
  * \brief       Function which computes the T_SW used by a CS procedure.
  *
  * \param[in]   deviceId            Peer identifier
+ * \param[in]   role                CS role of the local device (initiator or reflector)
  *
  *\retval       t_sw                Value of T_SW
  ********************************************************************************** */
 static uint8_t AppLocalizationAlgo_ComputeTsw
 (
-    deviceId_t deviceId
+    deviceId_t deviceId,
+    uint8_t role
 )
 {
     uint8_t t_sw = 0U;
@@ -973,7 +1093,7 @@ static uint8_t AppLocalizationAlgo_ComputeTsw
         case 2U:
         case 3U:
         {
-            t_sw = (mGlobalRangeSettings.role == gCsRoleInitiator_c) ? mGlobalRangeSettings.t_sw_local : mRangeSettings[deviceId].t_sw_remote;
+            t_sw = (role == gCsRoleInitiator_c) ? mGlobalRangeSettings.t_sw_local : mRangeSettings[deviceId].t_sw_remote;
         }
         break;
 
@@ -982,7 +1102,7 @@ static uint8_t AppLocalizationAlgo_ComputeTsw
         case 5U:
         case 6U:
         {
-            t_sw = (mGlobalRangeSettings.role == gCsRoleReflector_c) ? mGlobalRangeSettings.t_sw_local : mRangeSettings[deviceId].t_sw_remote;
+            t_sw = (role == gCsRoleReflector_c) ? mGlobalRangeSettings.t_sw_local : mRangeSettings[deviceId].t_sw_remote;
         }
         break;
 

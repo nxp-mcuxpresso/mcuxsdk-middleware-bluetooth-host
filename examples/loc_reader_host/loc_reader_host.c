@@ -456,7 +456,7 @@ static void App_RunAlgo
 
     /* We have both remote and local data - run algo */
     RasClient_SetPeerRangingData(deviceId, pPeerData);
-    AppLocalizationAlgo_RunMeasurement(deviceId, pLocalData, pPeerData, mGlobalRangeSettings.role,  &mAlgoResult);
+    AppLocalizationAlgo_RunMeasurement(deviceId, pLocalData, pPeerData, mGlobalRangeSettings.role, gLocAlgoOptionNone_c, &mAlgoResult);
     BleApp_PrintMeasurementResults(deviceId, &mAlgoResult);
 
 #if defined(gAppAdaptiveProcInterval_d) && (gAppAdaptiveProcInterval_d == 1U)

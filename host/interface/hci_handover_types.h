@@ -34,6 +34,10 @@
 #define gHciVendorHandoverGetCsLlContext_c                       0x00ACU
 #define gHciVendorHandoverUpdateConnParams_c                     0x00ADU
 #define gHciVendorHandoverApplyConnectionUpdateProcedure_c       0x00B8U
+#define gHciVendorCsMonitorStartCommand_c                        0x00C0U
+#define gHciVendorCsMonitorStopCommand_c                         0x00C1U
+#define gHciVendorCsMonitorChannelMapUpdateCommand_c             0x00C2U
+
 /************************************************************************************
 *************************************************************************************
 * Public type definitions
@@ -47,6 +51,7 @@ typedef enum
     gHciVendorHandoverAnchorMonitorPacketEvent_c            = 0xA4,
     gHciVendorHandoverAnchorMonitorPacketContinueEvent_c    = 0xA5,
     gHciVendorHandoverConnectionUpdateProcedureEvent_c      = 0xA7,
+    gHciVendorCsMonitorChannelMapUpdateEvent_c              = 0xAB,
 } hciVendorHandoverEventCode_tag;
 
 #endif /* HCI_HANDOVER_TYPES_H */

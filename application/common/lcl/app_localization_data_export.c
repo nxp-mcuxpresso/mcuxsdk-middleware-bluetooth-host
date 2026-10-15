@@ -20,6 +20,19 @@
 #include "fwk_platform_ble.h"
 
 #if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 0)
+#include <stdarg.h>
+#include <string.h>
+/************************************************************************************
+*************************************************************************************
+* Private macros
+*************************************************************************************
+************************************************************************************/
+/* Size of the staging buffer used to assemble a full CS data record before it is
+ * written to the serial link in a single transfer. */
+#ifndef gAppLocDataExportBufSize_c
+#define gAppLocDataExportBufSize_c      (8192U)
+#endif
+
 /************************************************************************************
 *************************************************************************************
 * Private memory declarations
@@ -31,8 +44,10 @@ const static char hexchar[] = "0123456789ABCDEF";
 const static char basechar[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 #endif
 
-static uint32_t WrsCRC32 = 0xFFFFFFFFU;
-static bool FlagCRCData = FALSE;
+/* Staging buffer used to assemble the whole record before a single serial write. */
+static char     sExportBuf[gAppLocDataExportBufSize_c];
+static uint32_t sExportLen = 0U;
+static bool     sExportOverflow = FALSE;
 
 const static uint32_t crc32_table[128] =
    {0x7F1C607BU, 0x77073096U, 0xEE0E612CU, 0x990951BAU, 0x076DC419U, 0x706AF48FU, 0xc4f4e977U, 0x556755d2U,
@@ -52,6 +67,18 @@ const static uint32_t crc32_table[128] =
     0xa4c52f20U, 0x8fe19d75U, 0x6b19278dU, 0x14d77aa7U, 0xf0e83a51U, 0x24f965efU, 0x1c610e61U, 0x17a495ccU,
     0x62f20859U, 0x0b4789dbU, 0x3d3ebd17U, 0x080db3a8U, 0x90b294c7U, 0xb136eae1U, 0xc77ef2c2U, 0x8bc2dc2dU};
 
+/************************************************************************************
+*************************************************************************************
+* Private functions prototypes
+*************************************************************************************
+************************************************************************************/
+static void export_appendf(const char *fmt, ...);
+
+/************************************************************************************
+*************************************************************************************
+* Private functions
+*************************************************************************************
+************************************************************************************/
 /* calculates the CRC-8 checksum of print buffer data */
 static uint32_t CRC32(uint32_t WrsDataCRC32, const unsigned char *buf, size_t  size)
 {
@@ -105,9 +132,69 @@ static void mciq_print_fp_labelled
     qInt = (uint32_t)qNum >> fpPrecision;
     qFrac = ((uint64_t)printPrecisionMultiplier *((uint64_t)qNum & (uint64_t)fracMask)) >> (uint64_t)fpPrecision;
 
-    (void)printf("%s%s%d.%0*u", (label != NULL)?label:"", (qSign > 0)?"":"-", qInt, (int)printPrecision, (uint32_t)qFrac);
+    export_appendf("%s%s%d.%0*u", (label != NULL)?label:"", (qSign > 0)?"":"-", qInt, (int)printPrecision, (uint32_t)qFrac);
 }
 #endif /* gAppUseCDEAlgorithm_d */
+
+/*! *********************************************************************************
+* \brief        Reset the staging buffer state before assembling a new record.
+********************************************************************************** */
+static void export_reset(void)
+{
+    sExportLen = 0U;
+    sExportOverflow = FALSE;
+}
+
+/*! *********************************************************************************
+* \brief        Append a raw byte range to the staging buffer.
+*
+* \param[in]    data    Pointer to the source bytes
+* \param[in]    len     Number of bytes to append
+********************************************************************************** */
+static void export_append(const char *data, uint32_t len)
+{
+    if (sExportOverflow)
+    {
+        return;
+    }
+    if ((sExportLen + len) > (uint32_t)sizeof(sExportBuf))
+    {
+        sExportOverflow = TRUE;
+        return;
+    }
+    (void)memcpy(&sExportBuf[sExportLen], data, len);
+    sExportLen += len;
+}
+
+/*! *********************************************************************************
+* \brief        Append a printf-formatted string to the staging buffer.
+*
+* \param[in]    fmt     printf-style format string
+********************************************************************************** */
+static void export_appendf(const char *fmt, ...)
+{
+    uint32_t avail;
+    int written;
+    va_list ap;
+
+    if (sExportOverflow)
+    {
+        return;
+    }
+
+    avail = (uint32_t)sizeof(sExportBuf) - sExportLen;
+    va_start(ap, fmt);
+    written = vsnprintf(&sExportBuf[sExportLen], (size_t)avail, fmt, ap);
+    va_end(ap);
+
+    if ((written < 0) || ((uint32_t)written >= avail))
+    {
+        /* Output was truncated (or error): mark overflow and do not advance. */
+        sExportOverflow = TRUE;
+        return;
+    }
+    sExportLen += (uint32_t)written;
+}
 
 /*! *********************************************************************************
 * \brief        Translate given data to hex or apply given translation function.
@@ -276,7 +363,7 @@ static void tof_print_node_decision(int32_t fp, uint8_t sr)
 
     qFrac = (uint16_t)((((uint32_t)fp & 0x0000FFFFU)*10U) >> 16U);
 
-    (void)printf("result:{ad:%s%d.%u,sr:%u},", (sign > 0U)?"":"-", qInt, qFrac, sr);
+    export_appendf("result:{ad:%s%d.%u,sr:%u},", (sign > 0U)?"":"-", qInt, qFrac, sr);
 }
 
 /*! *********************************************************************************
@@ -427,12 +514,12 @@ static void app_print_cs_measurement(isp_meas_response_t *meas_response, appLoca
 {
     uint8_t *pBuffer;
 
-    (void)printf("cs:{");
+    export_appendf("cs:{");
 
-    (void)printf("cfg:{");
-    uint8_t csRole = mGlobalRangeSettings.role == gCsRoleInitiator_c ? 0U : 1U;
-    (void)printf("role:%u,rtyp:%u,rphy:%u, txpwr_delta:%d,", csRole, meas_response->cs_data->rtt_type, meas_response->cs_data->phy, ranging_cfg->txPwrDelta);
-    (void)printf(  "fcs:%u,"
+    export_appendf("cfg:{");
+
+    export_appendf("role:%u,rtyp:%u,rphy:%u, txpwr_delta:%d,", mGlobalRangeSettings.role, meas_response->cs_data->rtt_type, meas_response->cs_data->phy, ranging_cfg->txPwrDelta);
+    export_appendf(  "fcs:%u,"
                 "ip1:%u,"
                 "ip2:%u,"
                 "tpm:%u,"
@@ -444,96 +531,96 @@ static void app_print_cs_measurement(isp_meas_response_t *meas_response, appLoca
                 meas_response->cs_data->t_pm,\
                 meas_response->cs_data->t_sw,\
                 ranging_cfg->ant_cfg_index);
-    (void)printf("},");
+    export_appendf("},");
 
     /* CS Steps */
-    (void)printf("stp:{nb:%u,", meas_response->cs_data->step_nb);
+    export_appendf("stp:{nb:%u,", meas_response->cs_data->step_nb);
 
 #if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1)
     /* Modes */
-    (void)printf("md:");
+    export_appendf("md:");
     pBuffer = MEM_BufferAlloc((uint32_t)meas_response->cs_data->step_nb + 4U);
     if (pBuffer == NULL)
     {
-        (void)printf("'NA:oom'");
+        export_appendf("'NA:oom'");
     }
     else
     {
         cli_sprint_hex4b(pBuffer, meas_response->cs_data->modeMap, (uint8_t)meas_response->cs_data->step_nb, NULL);
-        (void)printf("'%s'", (char *)pBuffer);
+        export_appendf("'%s'", (char *)pBuffer);
         (void)MEM_BufferFree(pBuffer);
     }
 
-    (void)printf(",");
+    export_appendf(",");
     /* Remote Modes */
-    (void)printf("mdr:");
+    export_appendf("mdr:");
     pBuffer = MEM_BufferAlloc((uint32_t)meas_response->cs_data->subevtStopIdxRemote[meas_response->cs_data->subevt_nb - 1U] + 4U);
     if (pBuffer == NULL)
     {
-        (void)printf("'NA:oom'");
+        export_appendf("'NA:oom'");
     }
     else
     {
         cli_sprint_hex4b(pBuffer, meas_response->cs_data->modeMapRemote, (uint8_t)meas_response->cs_data->subevtStopIdxRemote[meas_response->cs_data->subevt_nb - 1U], NULL);
-        (void)printf("'%s'", (char *)pBuffer);
+        export_appendf("'%s'", (char *)pBuffer);
         (void)MEM_BufferFree(pBuffer);
     }
 
-    (void)printf(",");
+    export_appendf(",");
     /* Channels */
-    (void)printf("ch:");
+    export_appendf("ch:");
     pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->step_nb + 4U);
     if (pBuffer == NULL)
     {
-        (void)printf("'NA:oom'");
+        export_appendf("'NA:oom'");
     } 
     else
     {
         cli_sprint_hex8b(pBuffer, meas_response->cs_data->channelMap, (uint8_t)meas_response->cs_data->step_nb, NULL);
-        (void)printf("'%s'", (char*)pBuffer);
+        export_appendf("'%s'", (char*)pBuffer);
         (void)MEM_BufferFree(pBuffer);
     }
 
-    (void)printf(",");
+    export_appendf(",");
 #endif
     
     /* CS proc startAclCnt */
-    (void)printf("acl:%u,", meas_response->cs_data->startAclCnt);
+    export_appendf("acl:%u,", meas_response->cs_data->startAclCnt);
     
     /* Connection interval */
-    (void)printf("ci:%u,", meas_response->cs_data->conn_interval);
+    export_appendf("ci:%u,", meas_response->cs_data->conn_interval);
     
     /* Subevent interval */
-    (void)printf("si:%u,", meas_response->cs_data->subevt_interval);
+    export_appendf("si:%u,", meas_response->cs_data->subevt_interval);
     
     /* Subevt number */
-    (void)printf("senb:%u,", meas_response->cs_data->subevt_nb);
+    export_appendf("senb:%u,", meas_response->cs_data->subevt_nb);
     
     /* Main mode repeat */
-    (void)printf("mmdrp:%u,", meas_response->cs_data->main_mode_repeat);
+    export_appendf("mmdrp:%u,", meas_response->cs_data->main_mode_repeat);
     
     /* Main mode type */
-    (void)printf("mmdt:%u,", meas_response->cs_data->main_mode_type);
+    export_appendf("mmdt:%u,", meas_response->cs_data->main_mode_type);
     
     /* Sub-mode type */
-    (void)printf("smdt:%u,", meas_response->cs_data->sub_mode_type);
+    export_appendf("smdt:%u,", meas_response->cs_data->sub_mode_type);
     
     /* Event counter for each subevent */
-    (void)printf("evt:");
+    export_appendf("evt:");
     pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
     if (pBuffer == NULL)
     {
-        (void)printf("'NA:oom'");
+        export_appendf("'NA:oom'");
     } 
     else
     {
         cli_sprint_hex8b(pBuffer, meas_response->cs_data->subevtConnEvent, meas_response->cs_data->subevt_nb, NULL);
-        (void)printf("'%s'", (char*)pBuffer);
+        export_appendf("'%s'", (char*)pBuffer);
         (void)MEM_BufferFree(pBuffer);
     }
 
-    (void)printf("}");
-    (void)printf("},");
+    export_appendf("}");
+    export_appendf("},");
 }
 #if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1) 
 static void app_mciq_print_node_data(mciq_data_t *mciq_data)
@@ -548,28 +635,28 @@ static void app_mciq_print_node_data(mciq_data_t *mciq_data)
     }
 
     n_ap = data->n_ap;
-    (void)printf("i:[");
+    export_appendf("i:[");
     for (m = 0; m < n_ap; m++)
     {
         /* CS IQs are 2 * 12 bits compressed, I is located in 12bits MSB, all antenna paths packed by step */
         cli_sprint_base64_12b_c(pBuffer, &data->iq[(gCsIqSize_c+gCsTqiSize_c)*m], (uint8_t)data->nbSteps, (gCsIqSize_c+gCsTqiSize_c)*n_ap, 12);
-        (void)printf("'%s',", (char*)pBuffer);
+        export_appendf("'%s',", (char*)pBuffer);
     }
-    (void)printf("],q:[");
+    export_appendf("],q:[");
     for (m = 0; m < n_ap; m++)
     {
         /* CS IQs are 2 * 12 bits, Q is located in 12bits LSB, all antenna paths packed by step */
         cli_sprint_base64_12b_c(pBuffer, &data->iq[(gCsIqSize_c+gCsTqiSize_c)*m], (uint8_t)data->nbSteps, (gCsIqSize_c+gCsTqiSize_c)*n_ap, 0);
-        (void)printf("'%s',", (char*)pBuffer);
+        export_appendf("'%s',", (char*)pBuffer);
     }
-    (void)printf("],tqi:["); /* Tone quality indicator, byte */
+    export_appendf("],tqi:["); /* Tone quality indicator, byte */
     for (m = 0; m < n_ap; m++)
     {
         cli_sprint_hex8b_c(pBuffer, &data->iq[(gCsIqSize_c+gCsTqiSize_c)*m+gCsIqSize_c], (uint8_t)data->nbSteps, (gCsIqSize_c+gCsTqiSize_c) * (uint32_t)n_ap);
-        (void)printf("'%s',", (char*)pBuffer);
+        export_appendf("'%s',", (char*)pBuffer);
     }
     (void)MEM_BufferFree(pBuffer);
-    (void)printf("],");
+    export_appendf("],");
 }
 #endif
 
@@ -589,11 +676,11 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
 #if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1) 
     mdata = mciq_data_init;
 #endif
-    (void)printf("mciq:{cfg:{n_ap:%lu,n_stp:%lu},", n_ap, nb_steps);
+    export_appendf("mciq:{cfg:{n_ap:%lu,n_stp:%lu},", n_ap, nb_steps);
 
     if (engine_response->is_valid)
     {
-        (void)printf("result:{vf:%u", engine_response->mciq_result.nb_valid_freq);
+        export_appendf("result:{vf:%u", engine_response->mciq_result.nb_valid_freq);
 #if (defined(gAppUseRADEAlgorithm_d) && (gAppUseRADEAlgorithm_d == 1))
         int integ, decimal; /* compute printf float manually to avoid linking "large" printf lib */
         float integFl;
@@ -605,7 +692,7 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
         {
           decimal *= (-1);
         }
-        (void)printf(",rade:%d.%02d", integ, decimal);
+        export_appendf(",rade:%d.%02d", integ, decimal);
 
         integ = (int)engine_response->mciq_result.rade_dist_trk;
         integFl = (engine_response->mciq_result.rade_dist_trk - (float)integ) * 100.0f;
@@ -614,7 +701,7 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
         {
           decimal *= (-1);
         }
-        (void)printf(",rade_trk:%d.%02d", integ, decimal);
+        export_appendf(",rade_trk:%d.%02d", integ, decimal);
 
         integ = (int)engine_response->mciq_result.rade_dqi;
         integFl = (engine_response->mciq_result.rade_dqi - (float)integ) * 100.0f;
@@ -623,152 +710,152 @@ static void app_mciq_measurement_print(isp_meas_response_t *meas_response, engin
         {
           decimal *= (-1);
         }
-        (void)printf(",rade_dqi:%d.%02d", integ, decimal);
-        (void)printf(",raderr:%d", engine_response->mciq_result.rade_error_flag);
+        export_appendf(",rade_dqi:%d.%02d", integ, decimal);
+        export_appendf(",raderr:%d", engine_response->mciq_result.rade_error_flag);
 #endif
 #if (defined(gAppUseCDEAlgorithm_d) && (gAppUseCDEAlgorithm_d == 1))
         mciq_print_fp_labelled(",cde:", engine_response->mciq_result.cde_fp, 10, 2);
         mciq_print_fp_labelled(",cqi:", engine_response->mciq_result.cde_dqi, 14, 3);
 #endif
-        (void)printf("},");
+        export_appendf("},");
     }
 
 #if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1) 
     if (mdata->nbSteps != 0U)
     {
-        (void)printf("init:{"); 
+        export_appendf("init:{"); 
         app_mciq_print_node_data(mdata);
         
         /* Reference power level */
-        (void)printf("rpl:");
+        export_appendf("rpl:");
         uint8_t *pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
         if (pBuffer == NULL)
         {
-            (void)printf("'NA:oom'");
+            export_appendf("'NA:oom'");
         }
         else
         {
             cli_sprint_hex8b(pBuffer, (uint8_t *)meas_response->cs_data->subevtRefPowerLevelInit, meas_response->cs_data->subevt_nb, convert_refPow);
-            (void)printf("'%s',", (char*)pBuffer);
+            export_appendf("'%s',", (char*)pBuffer);
             (void)MEM_BufferFree(pBuffer);
         }
         
         /* Subevent done status */
-        (void)printf("sts:");
+        export_appendf("sts:");
         uint8_t *subevtDoneStatus_init = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtDoneStatusLocal : meas_response->cs_data->subevtDoneStatusRemote;
         pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
         if (pBuffer == NULL)
         {
-            (void)printf("'NA:oom'");
+            export_appendf("'NA:oom'");
         }
         else
         {
             cli_sprint_hex8b_c(pBuffer, (uint8_t *)subevtDoneStatus_init, (uint8_t)meas_response->cs_data->subevt_nb, 1U);
-            (void)printf("'%s',", (char*)pBuffer);
+            export_appendf("'%s',", (char*)pBuffer);
             (void)MEM_BufferFree(pBuffer);
         }
         
         /* Subevent abort reason */
-        (void)printf("abt:");
+        export_appendf("abt:");
         uint8_t *subevtAbortReason_init = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtAbortReasonLocal : meas_response->cs_data->subevtAbortReasonRemote;
         pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
         if (pBuffer == NULL)
         {
-            (void)printf("'NA:oom'");
+            export_appendf("'NA:oom'");
         }
         else
         {
             cli_sprint_hex8b_c(pBuffer, (uint8_t *)subevtAbortReason_init, (uint8_t)meas_response->cs_data->subevt_nb, 1U);
-            (void)printf("'%s',", (char*)pBuffer);
+            export_appendf("'%s',", (char*)pBuffer);
             (void)MEM_BufferFree(pBuffer);
         }
 
         /* subevt */
-        (void)printf("se:");
+        export_appendf("se:");
         uint8_t *subevtStopIdx_init = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtStopIdxLocal : meas_response->cs_data->subevtStopIdxRemote;
         pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
         if (pBuffer == NULL)
         {
-            (void)printf("'NA:oom'");
+            export_appendf("'NA:oom'");
         }
         else
         {
             cli_sprint_hex8b_c(pBuffer, (uint8_t *)subevtStopIdx_init, (uint8_t)meas_response->cs_data->subevt_nb, 1U);
-            (void)printf("'%s',", (char*)pBuffer);
+            export_appendf("'%s',", (char*)pBuffer);
             (void)MEM_BufferFree(pBuffer);
         }
         
-        (void)printf("},");
+        export_appendf("},");
     }
 
     mdata = mciq_data_refl;
     if (mdata->nbSteps != 0U)
     {
-        (void)printf("refl:{");
+        export_appendf("refl:{");
         app_mciq_print_node_data(mdata);
         
-        (void)printf("rpl:");
+        export_appendf("rpl:");
         uint8_t *pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
         if (pBuffer == NULL)
         {
-            (void)printf("'NA:oom'");
+            export_appendf("'NA:oom'");
         }
         else
         {
             cli_sprint_hex8b(pBuffer, (uint8_t *)meas_response->cs_data->subevtRefPowerLevelRefl, meas_response->cs_data->subevt_nb, convert_refPow);
-            (void)printf("'%s',", (char*)pBuffer);
+            export_appendf("'%s',", (char*)pBuffer);
             (void)MEM_BufferFree(pBuffer);
         }
         
-        (void)printf("sts:");
+        export_appendf("sts:");
         uint8_t *subevtDoneStatus_refl = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtDoneStatusRemote : meas_response->cs_data->subevtDoneStatusLocal;
         pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
         if (pBuffer == NULL)
         {
-            (void)printf("'NA:oom'");
+            export_appendf("'NA:oom'");
         }
         else
         {
             cli_sprint_hex8b_c(pBuffer, (uint8_t *)subevtDoneStatus_refl, (uint8_t)meas_response->cs_data->subevt_nb, 1U);
-            (void)printf("'%s',", (char*)pBuffer);
+            export_appendf("'%s',", (char*)pBuffer);
             (void)MEM_BufferFree(pBuffer);
         }
 
-        (void)printf("abt:");
+        export_appendf("abt:");
         uint8_t *subevtAbortReason_refl = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtAbortReasonRemote : meas_response->cs_data->subevtAbortReasonLocal;
         pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
         if (pBuffer == NULL)
         {
-            (void)printf("'NA:oom'");
+            export_appendf("'NA:oom'");
         }
         else
         {
             cli_sprint_hex8b_c(pBuffer, (uint8_t *)subevtAbortReason_refl, (uint8_t)meas_response->cs_data->subevt_nb, 1U);
-            (void)printf("'%s',", (char*)pBuffer);
+            export_appendf("'%s',", (char*)pBuffer);
             (void)MEM_BufferFree(pBuffer);
         }
 
         /* subevt */
-        (void)printf("se:");
+        export_appendf("se:");
         uint8_t *subevtStopIdx_refl = mGlobalRangeSettings.role == gCsRoleInitiator_c ? meas_response->cs_data->subevtStopIdxRemote : meas_response->cs_data->subevtStopIdxLocal;
         pBuffer = MEM_BufferAlloc(2U * (uint32_t)meas_response->cs_data->subevt_nb + 4U);
         if (pBuffer == NULL)
         {
-            (void)printf("'NA:oom'");
+            export_appendf("'NA:oom'");
         }
         else
         {
             cli_sprint_hex8b_c(pBuffer, (uint8_t *)subevtStopIdx_refl, (uint8_t)meas_response->cs_data->subevt_nb, 1U);
-            (void)printf("'%s',", (char*)pBuffer);
+            export_appendf("'%s',", (char*)pBuffer);
             (void)MEM_BufferFree(pBuffer);
         }
         
-        (void)printf("},");
+        export_appendf("},");
     }
     
 #endif
 
-    (void)printf("},");
+    export_appendf("},");
 }
 
 #if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1)
@@ -781,48 +868,48 @@ static void app_tof_print_node_data(tof_data_t *data)
     }
     /* RTT are 18 bits + 4 error bits (3 bytes), resulting in 4 base64-encoded-bytes */
     cli_sprint_base64_24b(pBuffer, (uint8_t *)data->ts, data->nbSteps, convert_rtt_to_24bits);
-    (void)printf("d:'%s',", pBuffer);
+    export_appendf("d:'%s',", pBuffer);
     (void)MEM_BufferFree(pBuffer);
 
     /* RTT RSSI */
-    (void)printf("r:");
+    export_appendf("r:");
     pBuffer = MEM_BufferAlloc(2U * (uint32_t)data->nbSteps + 4U);
     if (pBuffer == NULL)
     {
-        (void)printf("'NA:oom'");
+        export_appendf("'NA:oom'");
     }
     else
     {
         cli_sprint_hex8b(pBuffer, (uint8_t *)data->ts, (uint8_t)data->nbSteps, convert_rssi);
-        (void)printf("'%s',", (char*)pBuffer);
+        export_appendf("'%s',", (char*)pBuffer);
         (void)MEM_BufferFree(pBuffer);
     }
 
     /* Packet NADM */
-    (void)printf("nadm:");
+    export_appendf("nadm:");
     pBuffer = MEM_BufferAlloc((uint32_t)data->nbSteps + 4U); /* One byte (4bits) per NADM info */
     if (pBuffer == NULL)
     {
-        (void)printf("'NA:oom'"); /* report out of memory */
+        export_appendf("'NA:oom'"); /* report out of memory */
     }
     else
     {
         cli_sprint_hex4b(pBuffer, (uint8_t *)data->ts, (uint8_t)data->nbSteps, convert_nadm_to_4bits);
-        (void)printf("'%s',", (char*)pBuffer);
+        export_appendf("'%s',", (char*)pBuffer);
         (void)MEM_BufferFree(pBuffer);
     }
 
     /* Packet Antenna */
-    (void)printf("ant:");
+    export_appendf("ant:");
     pBuffer = MEM_BufferAlloc(2U * (uint32_t)data->nbSteps + 4U);
     if (pBuffer == NULL)
     {
-        (void)printf("'NA:oom'");
+        export_appendf("'NA:oom'");
     }
     else
     {
         cli_sprint_hex8b(pBuffer, (uint8_t *)data->ts, (uint8_t)data->nbSteps, convert_antenna);
-        (void)printf("'%s'", (char*)pBuffer);
+        export_appendf("'%s'", (char*)pBuffer);
         (void)MEM_BufferFree(pBuffer);
     }
 }
@@ -839,7 +926,7 @@ static void app_tof_measurement_print(isp_meas_response_t *meas_response, engine
     nb_steps = (tof_data_init->nbSteps != 0U) ? tof_data_init->nbSteps:tof_data_refl->nbSteps;
 
     tdata = tof_data_init;
-    (void)printf("tof:{cfg:{n_stp:%lu},", nb_steps);
+    export_appendf("tof:{cfg:{n_stp:%lu},", nb_steps);
 
     if (engine_response->is_valid)
     {
@@ -848,19 +935,19 @@ static void app_tof_measurement_print(isp_meas_response_t *meas_response, engine
 
     if (tdata->nbSteps != 0U)
     {
-        (void)printf("init:{");
+        export_appendf("init:{");
         app_tof_print_node_data(tdata);
-        (void)printf("},");
+        export_appendf("},");
     }
 
     tdata = tof_data_refl;
     if (tdata->nbSteps != 0U)
     {
-        (void)printf("refl:{");
+        export_appendf("refl:{");
         app_tof_print_node_data(tdata);
-        (void)printf("},");
+        export_appendf("},");
     }
-    (void)printf("},");
+    export_appendf("},");
 }
 
 static void mode0_print_node_data(cs_data_t *cs_data, mode0_data_t *mode0Data, bool_t isInitiator, uint8_t nb_steps)
@@ -881,61 +968,60 @@ static void mode0_print_node_data(cs_data_t *cs_data, mode0_data_t *mode0Data, b
     }
 
     /* Mode0 RSSI */
-    (void)printf("r:");
+    export_appendf("r:");
     pBuffer = MEM_BufferAlloc(2U * (uint32_t)nb_steps + 4U);
     if (pBuffer == NULL)
     {
-        (void)printf("'NA:oom'");
+        export_appendf("'NA:oom'");
     }
     else
     {
         cli_sprint_hex8b(pBuffer, (uint8_t *)mode0Rssi, nb_steps, convert_mode0rssi);
-        (void)printf("'%s',", (char*)pBuffer);
+        export_appendf("'%s',", (char*)pBuffer);
         (void)MEM_BufferFree(pBuffer);
     }
 
     /* Mode0 Packet Quality */
-    (void)printf("pq:");
+    export_appendf("pq:");
     pBuffer = MEM_BufferAlloc(2U * (uint32_t)nb_steps + 4U);
     if (pBuffer == NULL)
     {
-        (void)printf("'NA:oom'");
+        export_appendf("'NA:oom'");
     }
     else
     {
         cli_sprint_hex8b(pBuffer, mode0Quality, nb_steps, NULL);
-        (void)printf("'%s',", (char*)pBuffer);
+        export_appendf("'%s',", (char*)pBuffer);
         (void)MEM_BufferFree(pBuffer);
     }
 
     /* Mode0 Packet Antenna */
-    (void)printf("ant:");
+    export_appendf("ant:");
     pBuffer = MEM_BufferAlloc(2U * (uint32_t)nb_steps + 4U);
     if (pBuffer == NULL)
     {
-        (void)printf("'NA:oom'");
+        export_appendf("'NA:oom'");
     }
     else
     {
         cli_sprint_hex8b(pBuffer, mode0Antenna, nb_steps, NULL);
-        (void)printf("'%s'", (char*)pBuffer);
+        export_appendf("'%s'", (char*)pBuffer);
         (void)MEM_BufferFree(pBuffer);
     }
 
-    /* Measured_Freq_Offset: initiator side only (BT Core Spec v6.3 Vol 4 Part E §7.7.65.44) */
+    /* CFO is only reported for the initiator's mode0 steps */
     if (isInitiator == TRUE)
     {
-        (void)printf(",c:");
+        export_appendf(",c:");
         pBuffer = MEM_BufferAlloc(4U * (uint32_t)nb_steps + 4U);
         if (pBuffer == NULL)
         {
-            (void)printf("'NA:oom'");
+            export_appendf("'NA:oom'");
         }
         else
         {
-            /* 2 bytes per step (little-endian uint16_t) encoded as 4 hex chars */
             cli_sprint_hex8b(pBuffer, (uint8_t *)mode0Cfo, (uint8_t)(nb_steps * 2U), NULL);
-            (void)printf("'%s'", (char*)pBuffer);
+            export_appendf("'%s'", (char*)pBuffer);
             (void)MEM_BufferFree(pBuffer);
         }
     }
@@ -952,22 +1038,22 @@ static void app_mode0_measurement_print(cs_data_t *cs_data)
     nb_steps_init = isInitiator ? cs_data->mode0_total_local : cs_data->mode0_total_remote;
     nb_steps_refl = isInitiator ? cs_data->mode0_total_remote : cs_data->mode0_total_local;
 
-    (void)printf("md0:{cfg:{n_stp:%u,n_stp_i:%u,n_stp_r:%u},", cs_data->mode0_nb, nb_steps_init, nb_steps_refl);
+    export_appendf("md0:{cfg:{n_stp:%u,n_stp_i:%u,n_stp_r:%u},", cs_data->mode0_nb, nb_steps_init, nb_steps_refl);
 
-    (void)printf("init:{");
+    export_appendf("init:{");
     data = isInitiator ? cs_data->mode0DataLocal : cs_data->mode0DataRemote;
     if (data != NULL)
     {
-        mode0_print_node_data(cs_data, data, isInitiator, nb_steps_init);
+        mode0_print_node_data(cs_data, data, TRUE, nb_steps_init);
     }
 
-    (void)printf("},refl:{");
+    export_appendf("},refl:{");
     data = isInitiator ? cs_data->mode0DataRemote : cs_data->mode0DataLocal;
     if (data != NULL)
     {
         mode0_print_node_data(cs_data, data, FALSE, nb_steps_refl);
     }
-    (void)printf("}},");
+    export_appendf("}},");
 }
 
 #endif
@@ -1010,12 +1096,6 @@ size_t __write(int handle, const unsigned char *buffer, size_t size)
 #endif
     }
 
-    if (FlagCRCData == TRUE)
-    {
-      /* calculates the CRC-8 checksum of print buffer data */
-      WrsCRC32 = CRC32(WrsCRC32, buffer, size);
-    }
-
     /* Send data. */
     shell_data_export_writeN((const char *)buffer, (uint32_t)size);
 
@@ -1029,44 +1109,58 @@ size_t __write(int handle, const unsigned char *buffer, size_t size)
 
 void app_print_cs_data(isp_meas_response_t *meas_response, engine_response_t *engine_response, appLocalization_rangeCfg_t *ranging_cfg)
 {
-    uint64_t now_time = PLATFORM_GetTimeStamp();
-    FlagCRCData = TRUE;
-    WrsCRC32 = 0xFFFFFFFFU;
-    /* Flush the output buffer to avoid the CRC is calculated on the previous output */
-#if (defined(__GNUC__))
-    fflush(stdout);
-#endif
-    (void)printf("items:[");
+    uint64_t tx_start;
+    uint32_t txTimeUs;
+    uint32_t recordCRC32;
 
+    /* Assemble the bulk of the record (segment 1) into the staging buffer.
+     * A leading "\r\n" frames the record on the serial link. The host parser
+     * strips this framing before computing its own CRC, so the leading two
+     * bytes are excluded from the CRC below. */
+    export_reset();
+    export_append("\r\n", 2U);
+    export_append("items:[", 7U);
+    export_append("{", 1U);
+
+    app_print_cs_measurement(meas_response, ranging_cfg);
+    app_mode0_measurement_print(meas_response->cs_data);
+    if (meas_response->mciq_data[0].iq != NULL)
     {
-        (void)printf("{");
-        
-        app_print_cs_measurement(meas_response, ranging_cfg);
-#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1)
-        app_mode0_measurement_print(meas_response->cs_data);
-#endif
-        if (meas_response->mciq_data[0].iq != NULL)
-        {
-            app_mciq_measurement_print(meas_response, engine_response, ranging_cfg);
-        }
-#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1)
-        if (meas_response->tof_data[0].ts != NULL)
-        {
-            app_tof_measurement_print(meas_response, engine_response, ranging_cfg);
-        }
-#endif
-        (void)printf("PrintTimeUs:%lu", (uint32_t)(PLATFORM_GetTimeStamp() - now_time));
-
-        (void)printf("},");
+        app_mciq_measurement_print(meas_response, engine_response, ranging_cfg);
     }
-    (void)printf("]");
-
-    /* Flush the output buffer to ensure all data is involved in the CRC calculation */
-#if (defined(__GNUC__))
-    fflush(stdout);
+#if defined(gAppLocDataExport_d) && (gAppLocDataExport_d > 1)
+    if (meas_response->tof_data[0].ts != NULL)
+    {
+        app_tof_measurement_print(meas_response, engine_response, ranging_cfg);
+    }
 #endif
-    FlagCRCData = FALSE;
-    (void)printf("\nCRC32:%08lx", WrsCRC32);
-    (void)printf("\nmarker:[DONE]\n");
+
+    /* CRC over the staged buffer, skipping the leading "\r\n" framing. */
+    if (sExportLen >= 2U)
+    {
+        recordCRC32 = CRC32(0xFFFFFFFFU, (const unsigned char *)&sExportBuf[2], (size_t)(sExportLen - 2U));
+    }
+    else
+    {
+        recordCRC32 = CRC32(0xFFFFFFFFU, (const unsigned char *)sExportBuf, (size_t)sExportLen);
+    }
+
+    /* Transmit segment 1 and measure how long the blocking write takes. This
+     * duration is the PrintTimeUs value, which can only be known after the bulk
+     * has been sent - hence the separate trailer segment below. */
+    tx_start = PLATFORM_GetTimeStamp();
+    shell_data_export_writeN((const char *)sExportBuf, sExportLen);
+    txTimeUs = (uint32_t)(PLATFORM_GetTimeStamp() - tx_start);
+
+    /* Assemble the trailer (segment 2): PrintTimeUs, record terminators, CRC
+     * and the DONE marker. The PrintTimeUs...},] part is included in the CRC;
+     * the CRC and marker lines themselves are excluded. */
+    export_reset();
+    export_appendf("PrintTimeUs:%lu},]", txTimeUs);
+    recordCRC32 = CRC32(recordCRC32, (const unsigned char *)sExportBuf, (size_t)sExportLen);
+
+    export_appendf("\nCRC32:%08lx", recordCRC32);
+    export_append("\nmarker:[DONE]\n", 15U);
+    shell_data_export_writeN((const char *)sExportBuf, sExportLen);
 }
 #endif

@@ -30,7 +30,9 @@
 #define gPostProcVerbDurationMs_c           (20U)
 
 /* Application duration offset (varies by scenario) */
+#ifndef gAppOffsetDurationMs_c
 #define gAppOffsetDurationMs_c              (500U)
+#endif
 
 #if defined (BOARD_LOCALIZATION_REVISION_SUPPORT) && (BOARD_LOCALIZATION_REVISION_SUPPORT == 1U)
 #define gLocBoardDelayMs_c                  (40U)
@@ -57,6 +59,11 @@
 #define gAppSlopeBasedCalibrationSupport_d  (0U)
 #endif
 
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+#define gAppMaxSniffedConnections_c            (1U)
+#else
+#define gAppMaxSniffedConnections_c            (0U)
+#endif /* gAppCsSniffingV2_d */
 /*
    Defer algorithm run
    If set to TRUE, the algorithm will not run automatically.

@@ -53,6 +53,7 @@ typedef PACKED_STRUCT hciLeCsEventResultEvent_tag
 {
     deviceId_t  deviceId;
     uint8_t     configId;                /*!< CS configuration id */
+    uint16_t    connHandle;
     uint16_t    startACLConnEvent;       /*!< Starting ACL con event count for this result */
     uint16_t    procedureCounter;        /*!< Procedure count since completion of the Security Start procedure */
     int16_t     frequencyCompensation;   /*!< Frequency compensation value in units of 0.01 ppm (15-bit signed integer) */    

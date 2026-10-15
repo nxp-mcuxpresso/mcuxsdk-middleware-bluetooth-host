@@ -382,6 +382,50 @@ bleResult_t Gap_HandoverApplyConnectionUpdateProcedure
 (
     gapHandoverApplyConnectionUpdateProcedure_t *pConnParams
 );
+
+/*!*************************************************************************************************
+* \fn           bleResult_t Gap_CsMonitorStart(uint16_t connHandle)
+*
+* \brief        Starts monitoring the Channel Sounding procedure of another pair of connected
+*               devices, identified by the given connection handle.
+*
+* \param [in]   connHandle  Connection handle of the monitored Channel Sounding procedure.
+*
+* \return       gBleSuccess_c or error
+***************************************************************************************************/
+bleResult_t Gap_CsMonitorStart
+(
+    uint16_t connHandle
+);
+
+/*!*************************************************************************************************
+* \fn           bleResult_t Gap_CsMonitorStop(uint16_t connHandle)
+*
+* \brief        Stops monitoring the Channel Sounding procedure identified by the given
+*               connection handle.
+*
+* \param [in]   connHandle  Connection handle of the monitored Channel Sounding procedure.
+*
+* \return       gBleSuccess_c or error
+***************************************************************************************************/
+bleResult_t Gap_CsMonitorStop
+(
+    uint16_t connHandle
+);
+
+/*!*************************************************************************************************
+* \fn           bleResult_t Gap_CsMonitorChannelMapUpdate(gapCsMonitorChannelMapUpdateParams_t *pParams)
+*
+* \brief        Updates the channel map used to monitor a Channel Sounding procedure.
+*
+* \param [in]   pParams     Pointer to structure containing the channel map update parameters.
+*
+* \return       gBleSuccess_c or error
+***************************************************************************************************/
+bleResult_t Gap_CsMonitorChannelMapUpdate
+(
+    gapCsMonitorChannelMapUpdateParams_t *pParams
+);
 #ifdef __cplusplus
 }
 #endif

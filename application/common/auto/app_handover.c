@@ -30,6 +30,10 @@
 #define gWaitingForConnectionHandle_c (0xFFFEU)
 #define gMonitorConnectionHandlePending (0xFFFEU)
 
+/* Sentinel eventCount value that marks a monitor filter as silent. When set, all
+   monitor reports for that connection are filtered (never forwarded over A2A). */
+#define gMonitorFilterSilent_c (0xFFFFFFFFUL)
+
 /***********************************************************************************************************************
 ************************************************************************************************************************
 * Private type definitions
@@ -79,6 +83,7 @@ typedef struct appMonitorContext_tag
     uint16_t                        monitorConnHandle;  /*!< Connection handle on remote anchor */
     bleHandoverAnchorSearchMode_t   mode;               /*!< Monitor mode */
     bool_t                          continuous;         /*!< Continuous monitoring flag */
+    bool_t                          silent;             /*!< Silent monitoring flag - suppress reports over A2A */
 } appMonitorContext_t;
 
 /*! Global handover context */
@@ -153,6 +158,16 @@ static appMonitorContext_t maMonitorCtx[gAppMaxConnections_c];
 static appMonitorFilter_t maMonitorFilter[gAppMaxConnections_c];
 static messaging_t mSrcLlPendingDataQueue;
 
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+/* On connected anchor (S1), the monitored connection handle associated with the
+   pending Gap_HandoverGetCsLlContext request. When valid, the pending get is
+   for CS sniffing and this handle is packed into the CS LL context command sent
+   to the peer anchor (S2) so it can resolve the monitored connection. When
+   gInvalidConnectionHandle_c, the pending get is for connection handover.
+   S1 issues a single CS LL context get at a time, so a scalar is sufficient. */
+static uint16_t mCsSniffPendingConnHandle = gInvalidConnectionHandle_c;
+#endif /* defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1) */
+
 /***********************************************************************************************************************
 ************************************************************************************************************************
 * Public memory declarations
@@ -175,9 +190,8 @@ static appMonitorContext_t* findMonitorCtxByConnHandle(uint16_t monitorConnectio
 static appMonitorContext_t* allocMonitorCtx(deviceId_t deviceId);
 static void freeMonitorCtx(appMonitorContext_t *pCtx);
 static deviceId_t getMonitoredDeviceId(uint16_t monitorConnectionHandle);
-static uint16_t getMonitoredConnHandle(deviceId_t deviceId);
 static bool_t checkMonitorFilterCounter(uint16_t connHandle, int8_t rssiRemote, int8_t rssiActive, bool_t rssiRemoteValid, bool_t rssiActiveValid);
-static void addMonitorFilter(uint16_t connHandle);
+static void addMonitorFilter(uint16_t connHandle, bool_t silent);
 static void removeMonitorFilter(uint16_t connHandle);
 static int8_t getMonitorFilterAverageActiveRssi(uint16_t connHandle);
 static int8_t getMonitorFilterAverageRemoteRssi(uint16_t connHandle);
@@ -293,6 +307,7 @@ bleResult_t AppHandover_Init
         maMonitorCtx[i].monitorConnHandle = gInvalidConnectionHandle_c;
         maMonitorCtx[i].mode = gSuspendTxMode_c;
         maMonitorCtx[i].continuous = FALSE;
+        maMonitorCtx[i].silent = FALSE;
     }
 
     for (uint32_t i = 0U; i < (uint32_t)gAppMaxConnections_c; i++)
@@ -483,7 +498,7 @@ void AppHandover_ProcessA2ACommand
 {
     bleResult_t result = gBleSuccess_c;
     appHandoverError_t error = mAppHandover_UnexpectedError_c;
-    
+
     switch (cmdId)
     {
         case gHandoverStopTimeSyncCommandOpCode_c:
@@ -498,6 +513,7 @@ void AppHandover_ProcessA2ACommand
             result = HandleCsLlContextCommand(pCmdData, &error);
         }
         break;
+
 #endif
         case gHandoverLlPendingDataCommandOpCode_c:
         {
@@ -754,6 +770,7 @@ void AppHandover_GenericCallback(gapGenericEvent_t* pGenericEvent)
             }
         }
         break;
+
 #endif
         case gHandoverLlPendingData_c:
         {
@@ -895,6 +912,7 @@ void AppHandover_ConnectionCallback
 void AppHandover_Abort(bool_t notifyPeerAnch, appHandoverError_t error)
 {
     bleResult_t result = gBleSuccess_c;
+
 
     switch (mHandoverCtx.timeSyncState)
     {
@@ -1084,15 +1102,43 @@ bleResult_t AppHandover_AnchorMonitorStop(deviceId_t deviceId)
 }
 
 /*! ********************************************************************************************************************
-*\fn            bleResult_t AppHandover_SetMonitorMode(deviceId_t deviceId, bleHandoverAnchorSearchMode_t mode)
+*\fn            void AppHandover_AnchorMonitorReset(deviceId_t deviceId)
+*\brief         Stop remote anchor monitoring and free the local monitor slot at once.
+*               Used when the monitored live connection disconnects locally, so the
+*               slot returns to idle and a later SetMonitorMode cannot fail with
+*               gBleInvalidState_c while waiting for the remote stop confirmation.
+*
+*\param  [in]   deviceId    Local device identifier of the monitored connection.
+*
+*\return        None
+********************************************************************************************************************* */
+void AppHandover_AnchorMonitorReset(deviceId_t deviceId)
+{
+    appMonitorContext_t *pMonCtx = findMonitorCtx(deviceId);
+
+    if (pMonCtx != NULL)
+    {
+        if (pMonCtx->monitorConnHandle != gInvalidConnectionHandle_c)
+        {
+            anchorMonitorRemoteStop(pMonCtx->monitorConnHandle);
+        }
+        freeMonitorCtx(pMonCtx);
+    }
+}
+
+
+/*! ********************************************************************************************************************
+*\fn            bleResult_t AppHandover_SetMonitorMode(deviceId_t deviceId, bleHandoverAnchorSearchMode_t mode, bool_t silent)
 *\brief         Set Anchor Monitor mode
 *
 *\param  [in]   deviceId    Connection to be monitored.
 *\param  [in]   mode        Anchor monitor mode
+*\param  [in]   silent      TRUE to keep monitoring active at LL level but suppress
+*                           application monitoring reports over A2A, FALSE otherwise.
 *
 *\return        bleResult_t Status of the operation
 ********************************************************************************************************************* */
-bleResult_t AppHandover_SetMonitorMode(deviceId_t deviceId, bleHandoverAnchorSearchMode_t mode)
+bleResult_t AppHandover_SetMonitorMode(deviceId_t deviceId, bleHandoverAnchorSearchMode_t mode, bool_t silent)
 {
     bleResult_t result = gBleSuccess_c;
 
@@ -1121,11 +1167,215 @@ bleResult_t AppHandover_SetMonitorMode(deviceId_t deviceId, bleHandoverAnchorSea
         else
         {
             pMonCtx->mode = mode;
+            pMonCtx->silent = silent;
         }
     }
     
     return result;
 }
+
+/*! ********************************************************************************************************************
+*\fn            uint16_t AppHandover_GetMonitoredConnHandle(deviceId_t deviceId)
+*\brief         Get monitored connection handle for a device.
+*
+*\param  [in]   deviceId    Connection identifier.
+*
+*\return        uint16_t    Monitored connection handle
+********************************************************************************************************************* */
+uint16_t AppHandover_GetMonitoredConnHandle(deviceId_t deviceId)
+{
+    uint16_t connectionHandle = gInvalidConnectionHandle_c;
+
+    for (uint32_t i = 0U; i < (uint32_t)gAppMaxConnections_c; i++)
+    {
+        if ((maMonitorCtx[i].deviceId == deviceId) &&
+            (maMonitorCtx[i].state == gMonitorActive_c))
+        {
+            connectionHandle = maMonitorCtx[i].monitorConnHandle;
+            break;
+        }
+    }
+
+    return connectionHandle;
+}
+
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+/*! ********************************************************************************************************************
+*\fn            deviceId_t AppHandover_GetDeviceIdFromMonitoredConnHandle(uint16_t monitorConnHandle)
+*\brief         Get the deviceId associated with a monitored connection handle.
+*
+*\param  [in]   monitorConnHandle   Monitored connection handle on the remote anchor.
+*
+*\return        deviceId_t          Associated deviceId, or gInvalidDeviceId_c if not found.
+********************************************************************************************************************* */
+deviceId_t AppHandover_GetDeviceIdFromMonitoredConnHandle(uint16_t monitorConnHandle)
+{
+    deviceId_t deviceId = gInvalidDeviceId_c;
+
+    for (uint32_t i = 0U; i < (uint32_t)gAppMaxConnections_c; i++)
+    {
+        if ((maMonitorCtx[i].monitorConnHandle == monitorConnHandle) &&
+            (maMonitorCtx[i].state == gMonitorActive_c))
+        {
+            deviceId = maMonitorCtx[i].deviceId;
+            break;
+        }
+    }
+
+    return deviceId;
+}
+
+/*! ********************************************************************************************************************
+*\fn            bleResult_t AppHandover_GetAndSetCsLlContext(deviceId_t deviceId, bool_t pending)
+*\brief         Mark the pending CS LL context request as being for CS sniffing (TRUE) or
+*               connection handover (FALSE), then request the LL CS context from the stack.
+*               For CS sniffing, the monitored connection handle associated with the
+*               device is remembered and packed into the CS LL context command sent to
+*               the peer anchor (S2) so it can resolve which monitored connection the
+*               context applies to.
+*
+*\param  [in]   deviceId     Peer device identifier to fetch the CS LL context for.
+*\param  [in]   pending      TRUE if the pending CS LL context get is for CS sniffing.
+*
+*\return        bleResult_t  Result of the Gap_HandoverGetCsLlContext operation.
+********************************************************************************************************************* */
+bleResult_t AppHandover_GetAndSetCsLlContext(deviceId_t deviceId, bool_t pending)
+{
+    mCsSniffPendingConnHandle = (pending != FALSE) ?
+                                    AppHandover_GetMonitoredConnHandle(deviceId) :
+                                    gInvalidConnectionHandle_c;
+    return Gap_HandoverGetCsLlContext(deviceId);
+}
+
+/*! ********************************************************************************************************************
+*\fn            void AppHandover_NotifyRemoteDevice(uint8_t cmdId, uint16_t len, uint8_t *pData)
+*\brief         Public wrapper over the private notifyRemoteDevice helper.
+********************************************************************************************************************* */
+void AppHandover_NotifyRemoteDevice(uint8_t cmdId, uint16_t len, uint8_t *pData)
+{
+    notifyRemoteDevice(cmdId, len, pData);
+}
+
+/*! ********************************************************************************************************************
+*\fn            void AppHandover_FreeMonitorSlotsForDevice(deviceId_t deviceId)
+*\brief         Release every anchor monitor slot held for a device.
+*
+*\param  [in]   deviceId   Peer device identifier.
+*
+*\return        None
+********************************************************************************************************************* */
+void AppHandover_FreeMonitorSlotsForDevice(deviceId_t deviceId)
+{
+    for (uint32_t i = 0U; i < (uint32_t)gAppMaxConnections_c; i++)
+    {
+        if (maMonitorCtx[i].deviceId == deviceId)
+        {
+            freeMonitorCtx(&maMonitorCtx[i]);
+        }
+    }
+}
+
+/*! ********************************************************************************************************************
+*\fn            void AppHandover_FreeInactiveMonitorSlots(void)
+*\brief         Release every anchor monitor slot that never reached the active state (starting or
+*               stale). A stale slot keeps state != gMonitorIdle_c, so a retry SetMonitorMode would return
+*               gBleInvalidState_c and permanently block monitoring.
+*
+*\return        None
+********************************************************************************************************************* */
+void AppHandover_FreeInactiveMonitorSlots(void)
+{
+    for (uint32_t i = 0U; i < (uint32_t)gAppMaxConnections_c; i++)
+    {
+        if ((maMonitorCtx[i].deviceId != gInvalidDeviceId_c) &&
+            (maMonitorCtx[i].state != gMonitorActive_c))
+        {
+            freeMonitorCtx(&maMonitorCtx[i]);
+        }
+    }
+}
+
+/*! ********************************************************************************************************************
+*\fn            deviceId_t AppHandover_ActivateMonitorSlot(uint16_t connHandle)
+*\brief         Resolve the pending monitor slot (keyed by gMonitorConnectionHandlePending), bind it to
+*               the supplied remote connection handle and mark it active. Exposed so the CS sniffing
+*               add-on, which owns the anchor-monitor-started A2A command, can perform the develop/main
+*               slot activation and obtain the monitored device id to report to the application.
+*
+*\param  [in]   connHandle   Monitored connection handle on the remote anchor.
+*
+*\return        deviceId_t   Local device id of the activated monitor slot, or gInvalidDeviceId_c if
+*                            no pending slot was found.
+********************************************************************************************************************* */
+deviceId_t AppHandover_ActivateMonitorSlot(uint16_t connHandle)
+{
+    deviceId_t monitoredDeviceId = gInvalidDeviceId_c;
+
+    for (uint32_t i = 0U; i < ((uint32_t)gAppMaxConnections_c); i++)
+    {
+        if (maMonitorCtx[i].monitorConnHandle == gMonitorConnectionHandlePending)
+        {
+            maMonitorCtx[i].monitorConnHandle = connHandle;
+            maMonitorCtx[i].state = gMonitorActive_c;
+            monitoredDeviceId = maMonitorCtx[i].deviceId;
+            break;
+        }
+    }
+
+    return monitoredDeviceId;
+}
+
+/*! ********************************************************************************************************************
+*\fn            void AppHandover_NotifyAppEvent(appHandoverEvent_t event, void *pParam)
+*\brief         Invoke the registered application event callback.
+*
+*\param  [in]   event    Application handover event.
+*\param  [in]   pParam    Opaque event parameter forwarded to the callback.
+*
+*\return        None
+********************************************************************************************************************* */
+void AppHandover_NotifyAppEvent(appHandoverEvent_t event, void *pParam)
+{
+    if (mpfAppEventCb != NULL)
+    {
+        mpfAppEventCb(event, pParam);
+    }
+}
+
+/*! ********************************************************************************************************************
+*\fn            bool_t AppHandover_IsConnHandoverInProgress(void)
+*\brief         Report whether a real connection handover is in progress on this anchor
+*               (mHandoverCtx.centralDeviceId is valid). Exposed so the CS sniffing add-on can
+*               distinguish a connection-handover CS LL context set failure (fatal, public aborts)
+*               from a CS-sniffing one (best-effort, add-on consumes it).
+*
+*\return        bool_t    TRUE if a connection handover is in progress, FALSE otherwise.
+********************************************************************************************************************* */
+bool_t AppHandover_IsConnHandoverInProgress(void)
+{
+    return (mHandoverCtx.centralDeviceId != gInvalidDeviceId_c) ? TRUE : FALSE;
+}
+
+#if defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1)
+/*! ********************************************************************************************************************
+*\fn            bleResult_t AppHandover_HandleCsLlContextCommand(uint8_t *pCmdData, appHandoverError_t *pError)
+*\brief         Run the connection-handover CS LL context command handling (develop/main layout:
+*               [0..1] responseMask | [2] contextLength | [3..] llContext). Exposed so the CS sniffing
+*               add-on, which owns the CS LL context command when sniffing is enabled, can forward the
+*               connection-handover case (its monitorConnHandle prefix is gInvalidConnectionHandle_c)
+*               to the public module after stripping the 2-byte sniffing prefix.
+*
+*\param  [in]   pCmdData  Pointer to the command payload at the develop/main layout start (responseMask).
+*\param  [out]  pError    Pointer to error status.
+*
+*\return        bleResult_t  Status of the operation.
+********************************************************************************************************************* */
+bleResult_t AppHandover_HandleCsLlContextCommand(uint8_t *pCmdData, appHandoverError_t *pError)
+{
+    return HandleCsLlContextCommand(pCmdData, pError);
+}
+#endif /* defined(gBLE_ChannelSounding_d) && (gBLE_ChannelSounding_d == 1) */
+#endif /* defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1) */
 
 /***********************************************************************************************************************
 ************************************************************************************************************************
@@ -1291,6 +1541,7 @@ static appMonitorContext_t* allocMonitorCtx(deviceId_t deviceId)
             maMonitorCtx[i].monitorConnHandle = gInvalidConnectionHandle_c;
             maMonitorCtx[i].mode = gSuspendTxMode_c;
             maMonitorCtx[i].continuous = FALSE;
+            maMonitorCtx[i].silent = FALSE;
             pResult = &maMonitorCtx[i];
             break;
         }
@@ -1316,6 +1567,7 @@ static void freeMonitorCtx(appMonitorContext_t *pCtx)
         pCtx->monitorConnHandle = gInvalidConnectionHandle_c;
         pCtx->mode = gSuspendTxMode_c;
         pCtx->continuous = FALSE;
+        pCtx->silent = FALSE;
     }
 }
 
@@ -1341,39 +1593,14 @@ static deviceId_t getMonitoredDeviceId(uint16_t monitorConnectionHandle)
 }
 
 /*! ********************************************************************************************************************
-*\fn            static uint16_t getMonitoredConnHandle(deviceId_t deviceId)
-*\brief         Get monitored connection handle for a device.
-*
-*\param  [in]   deviceId    Connection identifier.
-*
-*\return        uint16_t    Monitored connection handle
-********************************************************************************************************************* */
-static uint16_t getMonitoredConnHandle(deviceId_t deviceId)
-{
-    uint16_t connectionHandle = gInvalidConnectionHandle_c;
-
-    for (uint32_t i = 0U; i < (uint32_t)gAppMaxConnections_c; i++)
-    {
-        if ((maMonitorCtx[i].deviceId == deviceId) &&
-            (maMonitorCtx[i].state == gMonitorActive_c))
-        {
-            connectionHandle = maMonitorCtx[i].monitorConnHandle;
-            break;
-        }
-    }
-
-    return connectionHandle;
-}
-
-/*! ********************************************************************************************************************
 *\fn            static bool_t checkMonitorFilterCounter(uint16_t connHandle, int8_t rssiRemote, int8_t rssiActive, bool_t rssiRemoteValid, bool_t rssiActiveValid)
 *\brief         Check monitor filter counter and accumulate valid RSSI values.
-*\param[in]     rssiRemoteValid  TRUE if rssiRemote should be accumulated.
-*\param[in]     rssiActiveValid  TRUE if rssiActive should be accumulated.
 *
-*\param  [in]   connHandle  Connection identifier.
-*\param  [in]   rssiRemote  RSSI of the packet from the remote device.
-*\param  [in]   rssiActive  RSSI of the packet from the active device.
+*\param  [in]   connHandle       Connection identifier.
+*\param  [in]   rssiRemote       RSSI of the packet from the remote device.
+*\param  [in]   rssiActive       RSSI of the packet from the active device.
+*\param  [in]   rssiRemoteValid  TRUE if rssiRemote should be accumulated.
+*\param  [in]   rssiActiveValid  TRUE if rssiActive should be accumulated.
 *
 *\return        bool_t      TRUE if event should be forwarded, FALSE otherwise.
 ********************************************************************************************************************* */
@@ -1385,6 +1612,13 @@ static bool_t checkMonitorFilterCounter(uint16_t connHandle, int8_t rssiRemote, 
     {
         if (maMonitorFilter[i].connHandle == connHandle)
         {
+            /* Silent filter - suppress all reports, do not accumulate or count */
+            if (maMonitorFilter[i].eventCount == gMonitorFilterSilent_c)
+            {
+                result = FALSE;
+                break;
+            }
+
             /* Only accumulate valid RSSI samples */
             if (rssiActiveValid != FALSE)
             {
@@ -1414,14 +1648,15 @@ static bool_t checkMonitorFilterCounter(uint16_t connHandle, int8_t rssiRemote, 
 }
 
 /*! ********************************************************************************************************************
-*\fn            static void addMonitorFilter(uint16_t connHandle)
+*\fn            static void addMonitorFilter(uint16_t connHandle, bool_t silent)
 *\brief         Add anchor/packet monitoring filter
 *
 *\param  [in]   connHandle  Connection identifier.
+*\param  [in]   silent      TRUE to suppress all monitor reports over A2A, FALSE otherwise.
 *
 *\return        none
 ********************************************************************************************************************* */
-static void addMonitorFilter(uint16_t connHandle)
+static void addMonitorFilter(uint16_t connHandle, bool_t silent)
 {
     uint32_t firstFreeIdx = gAppMaxConnections_c;
 
@@ -1450,7 +1685,7 @@ static void addMonitorFilter(uint16_t connHandle)
     if (firstFreeIdx < (uint32_t)gAppMaxConnections_c)
     {
         maMonitorFilter[firstFreeIdx].connHandle = connHandle;
-        maMonitorFilter[firstFreeIdx].eventCount = 0U;
+        maMonitorFilter[firstFreeIdx].eventCount = (silent != FALSE) ? gMonitorFilterSilent_c : 0U;
         maMonitorFilter[firstFreeIdx].rssiActiveSum = 0;
         maMonitorFilter[firstFreeIdx].rssiRemoteSum = 0;
         maMonitorFilter[firstFreeIdx].rssiActiveCount = 0U;
@@ -1695,6 +1930,7 @@ static bleResult_t HandleAnchorSearchStarted
 {
     bleResult_t result = gBleSuccess_c;
 
+
     if (mHandoverCtx.state == gHandoverContextRx_c)
     {
         mHandoverCtx.state = gHandoverAnchorSearch_c;
@@ -1717,7 +1953,16 @@ static bleResult_t HandleAnchorSearchStarted
             /* Send data to remote anchor */
             notifyRemoteDevice(gHandoverAnchMonStartedCommandOpCode_c, gHandoverAnchMonStartedCommandLen_c, buf);
             mHandoverCtx.state = gHandoverIdle_c;
-            addMonitorFilter(pGenericEvent->eventData.handoverAnchorSearchStart.connectionHandle);
+            /* Resolve the pending monitor filter (created in HandleAnchorStartSearchCommand,
+               including its silent flag) to the real connection handle. */
+            for (uint8_t i = 0U; i < (uint8_t)gAppMaxConnections_c; i++)
+            {
+                if (maMonitorFilter[i].connHandle == gMonitorConnectionHandlePending)
+                {
+                    maMonitorFilter[i].connHandle = pGenericEvent->eventData.handoverAnchorSearchStart.connectionHandle;
+                    break;
+                }
+            }
         }
 
 #if defined(gA2BEnabled_d) && (gA2BEnabled_d > 0U)
@@ -1745,14 +1990,26 @@ static bleResult_t HandleAnchorSearchStarted
 ********************************************************************************************************************* */
 static void HandleAnchorSearchStopped(gapGenericEvent_t *pGenericEvent)
 {
+    uint16_t connHandle = pGenericEvent->eventData.handoverAnchorSearchStop.connectionHandle;
+
+
     if (mHandoverCtx.state == gHandoverIdle_c)
     {
-        /* Notify remote anchor that anchor monitoring was stopped */
-        uint8_t buf[gHandoverAnchMonStopCommandLen_c] = {0U};
+        removeMonitorFilter(connHandle);
+    }
 
-        Utils_PackTwoByteValue(pGenericEvent->eventData.handoverAnchorSearchStop.connectionHandle, &buf[0]);
+
+    /* This anchor (S2) is the one monitoring the connection. Anchor search has
+       stopped unexpectedly at the LL (for example the monitored connection was
+       lost). Report the stop back to the connected anchor (S1) by reusing the
+       anchor monitoring stopped command, so S1 can react (restart monitoring or
+       stop CS sniffing). The 2-byte connection handle identifies the monitored
+       connection on this anchor. */
+    {
+        uint8_t buf[gHandoverAnchMonStoppedCommandLen_c] = {0U};
+
+        Utils_PackTwoByteValue(connHandle, &buf[0]);
         notifyRemoteDevice(gHandoverAnchMonStoppedCommandOpCode_c, gHandoverAnchMonStoppedCommandLen_c, buf);
-        removeMonitorFilter(pGenericEvent->eventData.handoverAnchorSearchStop.connectionHandle);
     }
 }
 
@@ -1858,11 +2115,30 @@ static bleResult_t HandleGetCsLlContextComplete
     if(pGenericEvent->eventData.handoverGetCsLlContext.status == gBleSuccess_c)
     {
         uint8_t buf[gHandoverCsLlContextCommandLen_c] = {0U};
+        uint8_t contextLength = pGenericEvent->eventData.handoverGetCsLlContext.llContextLength;
+        uint16_t cmdLen;
 
+#if defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1)
+        /* CS LL context command layout when CS sniffing is enabled:
+             [0..1] monitorConnHandle | [2..3] responseMask | [4] contextLength | [5..] llContext
+           The 2-byte monitored connection handle is prepended so the peer anchor
+           (S2) can resolve which monitored connection the context applies to. A
+           value of gInvalidConnectionHandle_c means this is a connection handover
+           transfer (not CS sniffing). Reset the pending handle afterwards. */
+        Utils_PackTwoByteValue(mCsSniffPendingConnHandle, &buf[0]);
+        FLib_MemCpy(&buf[2], &pGenericEvent->eventData.handoverGetCsLlContext.responseMask, 2U);
+        buf[4] = contextLength;
+        FLib_MemCpy(&buf[5], pGenericEvent->eventData.handoverGetCsLlContext.llContext, contextLength);
+        cmdLen = (uint16_t)5U + (uint16_t)contextLength;
+        mCsSniffPendingConnHandle = gInvalidConnectionHandle_c;
+#else
         FLib_MemCpy(&buf[0], &pGenericEvent->eventData.handoverGetCsLlContext.responseMask, 2U);
-        buf[2] = pGenericEvent->eventData.handoverGetCsLlContext.llContextLength;
-        FLib_MemCpy(&buf[3], pGenericEvent->eventData.handoverGetCsLlContext.llContext, pGenericEvent->eventData.handoverGetCsLlContext.llContextLength);
-        notifyRemoteDevice(gHandoverCsLlContextCommandOpCode_c, (uint16_t)3U + pGenericEvent->eventData.handoverGetCsLlContext.llContextLength, buf);
+        buf[2] = contextLength;
+        FLib_MemCpy(&buf[3], pGenericEvent->eventData.handoverGetCsLlContext.llContext, contextLength);
+        cmdLen = (uint16_t)3U + (uint16_t)contextLength;
+#endif /* defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1) */
+
+        notifyRemoteDevice(gHandoverCsLlContextCommandOpCode_c, cmdLen, buf);
 
         /* Regular handover (no active monitor): fetch conn params now to send the
            anchor search command to S2. Fast handover skips this; S2 connects on
@@ -2041,6 +2317,7 @@ static bleResult_t HandleGetConnParamsComplete
         buf[40] = 0U;
         buf[41] = 0U;
         buf[42] = (uint8_t)gSuspendTxMode_c;
+        buf[43] = 0U;
 
         if (pMonCtx != NULL)
         {
@@ -2050,6 +2327,8 @@ static bleResult_t HandleGetConnParamsComplete
             {
                 /* Overwrite search mode */
                 buf[42] = (uint8_t)(pMonCtx->mode);
+                /* Silent monitoring flag - suppress monitor reports over A2A */
+                buf[43] = (uint8_t)(pMonCtx->silent);
             }
         }
         else
@@ -2099,7 +2378,7 @@ static bleResult_t HandleConnectionUpdateProcedureEvent(gapGenericEvent_t *pGene
     
     if ((status == gBleSuccess_c) && (deviceId != gInvalidDeviceId_c))
     {
-        monitoredConnHandle = getMonitoredConnHandle(deviceId);
+        monitoredConnHandle = AppHandover_GetMonitoredConnHandle(deviceId);
         
         if (monitoredConnHandle != gInvalidConnectionHandle_c)
         {
@@ -2623,6 +2902,7 @@ static bleResult_t HandleCsLlContextCommand(uint8_t *pCmdData, appHandoverError_
 
     return result;
 }
+
 #endif
 
 /*! ********************************************************************************************************************
@@ -2795,11 +3075,16 @@ static bleResult_t HandleAnchorStartSearchCommand(uint8_t *pCmdData, appHandover
     searchParams.ucNbReports = *pCmdData;
     pCmdData++;
     searchParams.mode = (bleHandoverAnchorSearchMode_t)*pCmdData;
+    pCmdData++;
     searchParams.reportLatency = (uint8_t)gHandoverAnchorMonitorReportLatency_c;
     searchParams.connEvtRxLatency = (uint8_t)gHandoverAnchorMonitorConnEvtRxLatency_c;
+    /* Silent monitoring flag - when set the monitor filter is created in silent
+       mode so that no monitor reports are forwarded over the A2A interface. */
+    bool_t silent = (*pCmdData != 0U) ? TRUE : FALSE;
 
     searchParams.timingDiffSlot = mHandoverCtx.slotLocal - mHandoverCtx.slotRemote;
     searchParams.timingDiffOffset = mHandoverCtx.offsetLocal - mHandoverCtx.offsetRemote;
+
 
     /* Do not start anchor monitoring if connection handover is in progress. */
     if ((searchParams.mode == gRssiSniffingMode_c) || (searchParams.mode == gPacketMode_c))
@@ -2820,7 +3105,18 @@ static bleResult_t HandleAnchorStartSearchCommand(uint8_t *pCmdData, appHandover
                 }
             }
 
+            /* Add the monitor filter now, keyed by the pending handle. It is resolved
+               to the real connection handle in HandleAnchorSearchStarted on success,
+               or removed there if the anchor search fails to start. The silent flag
+               is decided by the initiating anchor. */
+            addMonitorFilter(gMonitorConnectionHandlePending, silent);
+
             result = Gap_HandoverAnchorSearchStart(&searchParams);
+
+            if (result != gBleSuccess_c)
+            {
+                removeMonitorFilter(gMonitorConnectionHandlePending);
+            }
         }
         else
         {
@@ -2868,6 +3164,7 @@ static bleResult_t HandleAnchMonStartedCommand(uint8_t *pCmdData, appHandoverErr
 {
     bleResult_t result = gBleSuccess_c;
     uint16_t connHandle = Utils_ExtractTwoByteValue(pCmdData);
+    deviceId_t monitoredDeviceId = gInvalidDeviceId_c;
 
     for (uint32_t i = 0U; i < ((uint32_t)gAppMaxConnections_c); i++)
     {
@@ -2875,8 +3172,17 @@ static bleResult_t HandleAnchMonStartedCommand(uint8_t *pCmdData, appHandoverErr
         {
             maMonitorCtx[i].monitorConnHandle = connHandle;
             maMonitorCtx[i].state = gMonitorActive_c;
+            monitoredDeviceId = maMonitorCtx[i].deviceId;
             break;
         }
+    }
+
+    /* Notify the application that anchor monitoring is active for this local device.
+       The remote connHandle is not valid on this anchor, so the local deviceId
+       associated with the monitor context slot is reported instead. */
+    if ((monitoredDeviceId != gInvalidDeviceId_c) && (mpfAppEventCb != NULL))
+    {
+        mpfAppEventCb(mAppHandoverAnchorMonitorStarted_c, &monitoredDeviceId);
     }
 
     return result;
@@ -3067,7 +3373,23 @@ static bleResult_t HandleAnchMonStoppedCommand(uint8_t *pCmdData, appHandoverErr
 
     if (pMonCtx != NULL)
     {
+        /* Capture the local device id before freeing the monitor context so the
+           application can be told which connection is no longer monitored. */
+        deviceId_t monitoredDeviceId = pMonCtx->deviceId;
+
+        /* Clear the stale monitor state. This allows the application to restart
+           anchor monitoring for the device (via AppHandover_AnchorMonitorStart)
+           if the peer is still connected. */
         freeMonitorCtx(pMonCtx);
+
+
+        /* Notify the application that anchor monitoring has stopped for this local
+           device. The common module does not decide whether to restart monitoring
+           or stop CS sniffing; that policy is left to the application. */
+        if ((mpfAppEventCb != NULL) && (monitoredDeviceId != gInvalidDeviceId_c))
+        {
+            mpfAppEventCb(mAppHandoverAnchorMonitorStopped_c, &monitoredDeviceId);
+        }
     }
 
     return result;
@@ -3144,6 +3466,7 @@ static bleResult_t HandleStartTimeSyncCommand(uint8_t *pCmdData, appHandoverErro
 {
     bleResult_t result = gBleSuccess_c;
     bool_t bTimeSyncForHandover = (bool_t)*pCmdData;
+
 
     /* Start scanning for handover time sync */
     result = AppHandover_TimeSyncReceive(gTimeSyncEnable_c);

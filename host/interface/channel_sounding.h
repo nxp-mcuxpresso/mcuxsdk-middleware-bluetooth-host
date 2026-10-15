@@ -50,6 +50,14 @@
 #define gCSTmOvrdConfigRandPayloadMask       BIT8
 #define gCSTmOvrdConfigPhaseTestMask         BIT10
 
+/* CS Sniffing Antenna Switch Mode */
+/* Force single antenna */
+#define gCSSniffAntSwitchModeSingleAntenna_c            0U
+/* Use Initiator antenna switching pattern for both step periods (before and after T_IP) */
+#define gCSSniffAntSwitchModeInitiatorPattern_c         1U
+/* Use Reflector antenna switching pattern for both step periods (before and after T_IP) */
+#define gCSSniffAntSwitchModeReflectorPattern_c         2U
+
 /* LE CS NXP Config vendor command parameters presence bitmask */
 #define gCSParamReserved_c                              BIT0
 #define gCSParamAntennaConfigPresent_c                  BIT1
@@ -59,6 +67,7 @@
 #define gCSParamRttBiasPresent_c                        BIT5
 #define gCSParamPctPhaseRotationPresent_c               BIT6
 #define gCSParamPaRampingControlPresent_c               BIT7
+#define gCSParamSnifferConfigurationPresent_c           BIT8
 
 /* The maximum number of antennas used. */
 #define gCsMaxNumberOfAntennas_c             (4U)
@@ -80,6 +89,13 @@
 /* Role values for the Create Config and Test commands */
 #define gCsRoleInitiator_c                   0U
 #define gCsRoleReflector_c                   1U
+#define gCsRoleSniffer_c                     2U
+
+/* Role bit set in the sniffed connection handle to mark the reflector side.
+   The initiator side uses the plain monitor connection handle; the reflector
+   side uses the same handle with this bit set. Regular connection handles
+   never have this bit set. */
+#define gCsSniffReflectorHandleBit_c         (0x1000U)
 
 /* CS Enhancements */
 #define gCsEnhancementsIptEnabledInReflector_c (BIT0)
@@ -116,6 +132,7 @@ typedef enum {
 typedef struct csReadRemoteSupportedCapabilitiesCompleteEvent_tag
 {
     deviceId_t      deviceId;
+    uint16_t        connHandle;
     uint8_t         numConfigSupported;
     uint16_t        maxConsecutiveProceduresSupported;
     uint8_t         numAntennasSupported;
@@ -158,6 +175,7 @@ typedef struct csConfigCompleteEvent_tag
 {
     uint8_t         status;
     deviceId_t      deviceId;
+    uint16_t        connectionHandle;
     uint8_t         configId;
     uint8_t         action;
     uint8_t         mainModeType;
@@ -200,6 +218,7 @@ typedef struct csProcedureEnableCompleteEvent_tag
 typedef struct csSubeventResultEvent_tag
 {
     deviceId_t      deviceId;
+    uint16_t        connHandle;
     uint8_t         configId;
     uint16_t        startACLConnEvent;
     uint16_t        procedureCounter;
@@ -216,6 +235,7 @@ typedef struct csSubeventResultEvent_tag
 typedef struct csSubeventResultContinueEvent_tag
 {
     deviceId_t      deviceId;
+    uint16_t        connHandle;
     uint8_t         configId;
     uint8_t         procedureDoneStatus;
     uint8_t         subeventDoneStatus;
@@ -339,7 +359,9 @@ typedef struct csReadLocalSupportedCapabilities_tag
 typedef struct csCommandCompleteEvent_tag
 {
     csCommandCompleteEventType_t eventType;
-    deviceId_t                   deviceId;
+    deviceId_t                   deviceId;    /*!< Peer identifier. Set to gInvalidDeviceId_c when no host
+                                                   connection exists for connHandle (e.g. CS sniffer). */
+    uint16_t                     connHandle;  /*!< Connection handle reported by the Controller. Always set. */
     union {
         csReadLocalSupportedCapabilities_t  csReadLocalSupportedCapabilities;
         csCommandError_t                    csCommandError;
@@ -361,6 +383,9 @@ typedef struct csCommandStatusEvent_tag
 {
     csCommandStatusType     eventType;
     hciErrorCode_t          status;
+    deviceId_t              deviceId;    /*!< Peer identifier. Set to gInvalidDeviceId_c when no host
+                                              connection exists for connHandle (e.g. CS sniffer). */
+    uint16_t                connHandle;  /*!< Connection handle the command was issued for. Always set. */
 } csCommandStatusEvent_t;
 
 /*
@@ -580,9 +605,13 @@ bleResult_t CS_ReadRemoteSupportedCapabilities
 * \brief  LE CS Write Cached Remote Supported Capabilities command
 *
 * \param[in]    pParam               Cached copy of the supported capabilities of a
-*                                    peer device.
+*                                    peer device. The connection is identified by
+*                                    pParam->deviceId when it is valid; otherwise
+*                                    pParam->connHandle is used directly (e.g. CS
+*                                    sniffer, no host connection).
 *
 *\retval        gBleSuccess_c
+*\retval        gBleInvalidParameter_c  Pointer to cached capabilities is invalid
 *\retval        gBleOutOfMemory_c    Could not allocate message for Host task.
 *
 ********************************************************************************** */
@@ -608,7 +637,10 @@ bleResult_t CS_SecurityEnable
 /*! *********************************************************************************
 * \brief  LE CS Set Default Settings command
 *
-* \param[in]    deviceId               Peer identifier
+* \param[in]    deviceId               Peer identifier. When gInvalidDeviceId_c, connHandle is
+*                                      used directly (e.g. CS sniffer, no host connection).
+* \param[in]    connHandle             Connection handle. Used only when deviceId is
+*                                      gInvalidDeviceId_c; otherwise resolved from deviceId.
 * \param[in]    role                   Role of the local device
 * \param[in]    syncAntennaSelection   Antenna identifier to be used for CS SYNC packets
 * \param[in]    maxTxPowerLevel        Maximum Tx power level to be used for all CS transmissions
@@ -620,6 +652,7 @@ bleResult_t CS_SecurityEnable
 bleResult_t CS_SetDefaultSettings
 (
     deviceId_t     deviceId,
+    uint16_t       connHandle,
     csRoleType     role,
     uint8_t        syncAntennaSelection,
     int8_t         maxTxPowerLevel
@@ -660,7 +693,10 @@ bleResult_t CS_WriteRemoteFAETable
 /*! *********************************************************************************
 * \brief  LE CS Create Config command
 *
-* \param[in]    deviceId               Peer identifier
+* \param[in]    deviceId               Peer identifier. When gInvalidDeviceId_c, connHandle is
+*                                      used directly (e.g. CS sniffer, no host connection).
+* \param[in]    connHandle             Connection handle. Used only when deviceId is
+*                                      gInvalidDeviceId_c; otherwise resolved from deviceId.
 * \param[in]    pCreateConfigParams    Pointer to the LE CS Create Config parameters
 *
 *\retval        gBleSuccess_c
@@ -671,6 +707,7 @@ bleResult_t CS_WriteRemoteFAETable
 bleResult_t CS_CreateConfig
 (
     deviceId_t                         deviceId,
+    uint16_t                           connHandle,
     gCsCreateConfigCommandParams_t*    pCreateConfigParams
 );
 

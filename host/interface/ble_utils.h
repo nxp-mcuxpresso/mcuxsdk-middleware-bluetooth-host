@@ -86,7 +86,7 @@ Include Files
 
 /*! Returns a uint16_t from a buffer, little-endian */
 #define Utils_ExtractTwoByteValue(buf) \
-    (((uint16_t)(*(buf))) | ( ((uint16_t)(buf)[1]) << 8U) )
+    ((uint16_t)(((uint16_t)(*(buf))) | ((uint16_t)((uint16_t)(buf)[1] << 8U))))
 
 /*! Returns a 3-byte value from a buffer, little-endian */
 #define Utils_ExtractThreeByteValue(buf) \

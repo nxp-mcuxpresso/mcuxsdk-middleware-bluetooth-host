@@ -27,6 +27,13 @@
 #define gHandoverUpdateConnParamsStatusPhy_c    BIT3    /* Phy update procedure */
 #define gHandoverUpdateConnParamsStatusChMap_c  BIT4    /* Channel map update procedure */
 
+/* Channel Sounding channel map size in octets (10 octets, one bit per channel).
+   Primary definition lives in ble_constants.h; guarded here in case this header
+   is included without ble_constants.h. */
+#ifndef gCsChannelMapSize_c
+#define gCsChannelMapSize_c                     (10U)
+#endif
+
 /* LE_Handover_Anchor_Monitor_Event report latency boundary values */
 #define gHandoverAnchorMonitorReportLatencySendAll_c    0U      /* Send all HCI events */
 #define gHandoverAnchorMonitorReportLatencyDropAll_c    255U    /* Drop all HCI events with valid RSSI */
@@ -115,6 +122,20 @@ typedef struct {
     uint16_t        instant;                /*!< Connection event counter value indicating when the new connection parameters are applied */
     uint16_t        currentEventCounter;    /*!< Current connection event counter */
 } gapHandoverApplyConnectionUpdateProcedure_t;
+
+/*! Parameter structure to be used in the Gap_CsMonitorChannelMapUpdate function. */
+typedef struct {
+    uint16_t        connHandle;                         /*!< Connection handle of the monitored Channel Sounding procedure */
+    uint8_t         aChannelMap[gCsChannelMapSize_c];   /*!< Channel Sounding channel map */
+    uint16_t        instant;                            /*!< Connection event counter indicating when the new channel map is applied */
+} gapCsMonitorChannelMapUpdateParams_t;
+
+/*! Event structure reported for the LE CS Monitor Channel Map Update Event. */
+typedef struct {
+    uint16_t        connectionHandle;                   /*!< Connection handle of the monitored Channel Sounding procedure */
+    uint8_t         aChannelMap[gCsChannelMapSize_c];   /*!< Channel Sounding channel map */
+    uint16_t        instant;                            /*!< Connection event counter indicating when the new channel map is applied */
+} gapCsMonitorChannelMapUpdateEvent_t;
 #endif /* GAP_HANDOVER_TYPES_H */
 
 /*!*************************************************************************************************

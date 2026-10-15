@@ -90,6 +90,7 @@ typedef struct mciq_result_tag {
     float rade_dist_trk;       /*!< RADE tracking distance estimation */
     float rade_dqi;            /*!< RADE distance distance quality indicator */
     uint8_t rade_mn_ref_qi;    /*!< RADE MN reference quality indicator */
+    uint8_t rade_mn_ref_vm;    /*!< RADE mn_ref_vm bit: reference cal data must be regenerated */
     uint8_t rade_error_flag;   /*!< RADE error flag */
 } mciq_result_t;
 
@@ -308,6 +309,20 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
 );
 #endif
 
+#if defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
+/*! *********************************************************************************
+*\fn         void AppLocalizationAlgo_ResetPermIndexList(void)
+*
+*\brief      Reset the antenna permutation index FIFO (producer, consumer, count).
+*            Must be called at the end of each CS calibration measurement, since
+*            calibration peer data arrives over the A2A serial interface and never
+*            drains the FIFO via GetItem; otherwise AddItem overflows and panics.
+*
+*\retval     none
+********************************************************************************** */
+void AppLocalizationAlgo_ResetPermIndexList(void);
+#endif /* defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U) */
+
 /*! *********************************************************************************
 *\fn         void AppLocalizationAlgo_UncompressResponse(uint8_t *pEventData,
 *            uint32_t dataSize, rasMeasurementData_t *pLocalData);
@@ -317,6 +332,10 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
 *\param[in]  pEventData         Pointer to the received data.
 *\param[in]  dataSize           Size of the received data.
 *\param[out] pLocalData         Pointer to the output rasMeasurementData_t structure
+*\param[in]  bSniffing          TRUE if the data set is sniffed CS data, FALSE for
+*                               regular local CS data. Sniffed data must not feed the
+*                               antenna permutation index FIFO (it is never re-parsed
+*                               as remote data).
 *
 *\retval     none
 ********************************************************************************** */
@@ -324,7 +343,8 @@ void AppLocalizationAlgo_UncompressResponse
 (
     uint8_t *pEventData,
     uint32_t dataSize,
-    rasMeasurementData_t *pLocalData
+    rasMeasurementData_t *pLocalData,
+    bool_t bSniffing
 );
 
 #if defined(__cplusplus)
