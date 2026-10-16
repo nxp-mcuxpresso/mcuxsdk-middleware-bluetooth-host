@@ -22,6 +22,9 @@
 #include "ble_config.h"
 #include "ble_general.h"
 #include "fwk_platform_reset.h"
+#if defined(CONFIG_FLASH_K4_ASYNC_MODE) && (CONFIG_FLASH_K4_ASYNC_MODE == 1)
+#include "fsl_k4_flash.h"
+#endif
 
 /*! *********************************************************************************
 *************************************************************************************
@@ -1033,6 +1036,16 @@ void App_FactoryReset(void)
         panic(0, (uint32_t)App_FactoryReset, 0, 0);
     }
 #endif /* gAppUseNvm_d */
+
+#if defined(CONFIG_FLASH_K4_ASYNC_MODE) && (CONFIG_FLASH_K4_ASYNC_MODE == 1)
+    /* Drain all pending async flash operations before reset */
+    status_t flashStatus = FLASH_FlushPendingOperations(0U);
+    if (flashStatus != kStatus_Success)
+    {
+        /* FLASH_FlushPendingOperations exited with an error status */
+        panic(0, (uint32_t)App_FactoryReset, 0, 0);
+    }
+#endif /* CONFIG_FLASH_K4_ASYNC_MODE */
 
     /* Reset MCU */
 #if (defined(CPU_MCXW236BIHNAR) || defined(CPU_MCXW235BIHNAR))
