@@ -65,7 +65,8 @@
     Disable when running SRDE with antenna diversity to ensure enough heap size*/
 #define gAppEnableDebugData                             1
 
-#define gAppDisableControllerLowPower_d                 1
+/*! Enable/disable low power feature in Controller */
+#define gAppDisableControllerLowPower_d                 0
 
 /* Enable/Disable CS Enhancement: Inline PCT Transfer
    Only the RADE algorithm supports distance measurement with Inline PCT Transfer */
