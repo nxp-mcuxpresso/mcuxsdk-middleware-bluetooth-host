@@ -671,6 +671,12 @@ void AppLocalization_SetAlgorithm
 *\return     algorithm      Bitmask (CDE, RADE).
 ********************************************************************************** */
 uint8_t AppLocalization_GetAlgorithm(void);
+
+/*! *********************************************************************************
+*\brief         Return the registered display-result callback.
+*\retval        pfAppDisplayResult_t   Current callback, or NULL.
+********************************************************************************** */
+pfAppDisplayResult_t AppLocalization_GetDisplayResultCallback(void);
 #endif /* gAppRunAlgo_d */
 
 /*! *********************************************************************************
@@ -678,12 +684,6 @@ uint8_t AppLocalization_GetAlgorithm(void);
 *\retval        pfAppCsCallback_t   Current callback, or NULL.
 ********************************************************************************** */
 pfAppCsCallback_t AppLocalization_GetCsCallback(void);
-
-/*! *********************************************************************************
-*\brief         Return the registered display-result callback.
-*\retval        pfAppDisplayResult_t   Current callback, or NULL.
-********************************************************************************** */
-pfAppDisplayResult_t AppLocalization_GetDisplayResultCallback(void);
 
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1)
 /*! *********************************************************************************
