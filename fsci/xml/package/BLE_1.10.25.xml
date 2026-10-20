@@ -1795,14 +1795,6 @@
                     <ParmDefaultValue>00000000000000000000000000000000</ParmDefaultValue>
                   </Parm>
                   <Parm>
-                    <ParmName>Csrk</ParmName>
-                    <ParmDesc>Connection Signature Resolving Key</ParmDesc>
-                    <ParmSize>16</ParmSize>
-                    <ParmType>tArray</ParmType>
-                    <ParmLastValue>00000000000000000000000000000000</ParmLastValue>
-                    <ParmDefaultValue>00000000000000000000000000000000</ParmDefaultValue>
-                  </Parm>
-                  <Parm>
                     <ParmName>Ediv</ParmName>
                     <ParmDesc>Encrypted Diversifier</ParmDesc>
                     <ParmSize>2</ParmSize>
@@ -2257,65 +2249,6 @@
                     <DependShift>0x0000</DependShift>
                   </Depend>
                 </ParmTypeSpecifics>
-              </Parm>
-            </ParmTypeSpecifics>
-          </Parm>
-        </CmdParms>
-      </Cmd>
-      <Cmd>
-        <CmdName>SM-TbVerifyDataSignatureRequest.Request</CmdName>
-        <CmdDesc>Request to verify an Authentication Signature for a block of data using a provided CSRK</CmdDesc>
-        <CmdHeader>43 11</CmdHeader>
-        <CmdParms>
-          <Parm>
-            <ParmName>TbVerifyDataSignatureReqParams</ParmName>
-            <ParmDesc>Parameters of the SM Tool Box Verify Data Signature Request command</ParmDesc>
-            <ParmSize>0</ParmSize>
-            <ParmType>tStruct</ParmType>
-            <ParmLastValue>00</ParmLastValue>
-            <ParmDefaultValue>00</ParmDefaultValue>
-            <ParmTypeSpecifics>
-              <Parm>
-                <ParmName>CSRK</ParmName>
-                <ParmDesc>CSRK used to verify the signature of the data block</ParmDesc>
-                <ParmSize>16</ParmSize>
-                <ParmType>tArray</ParmType>
-                <ParmLastValue>00000000000000000000000000000000</ParmLastValue>
-                <ParmDefaultValue>00000000000000000000000000000000</ParmDefaultValue>
-              </Parm>
-              <Parm>
-                <ParmName>DataLength</ParmName>
-                <ParmDesc>Length of the data to be verified. Actual data + 4 byte sign counter</ParmDesc>
-                <ParmSize>2</ParmSize>
-                <ParmType>tInt</ParmType>
-                <ParmLastValue>0004</ParmLastValue>
-                <ParmDefaultValue>0004</ParmDefaultValue>
-                <ParmTypeSpecifics>
-                  <ParmRange>0x0004-0x000F</ParmRange>
-                </ParmTypeSpecifics>
-              </Parm>
-              <Parm>
-                <ParmName>Data</ParmName>
-                <ParmDesc>Data to be verified</ParmDesc>
-                <ParmSize>1</ParmSize>
-                <ParmType>tArray</ParmType>
-                <ParmLastValue>00</ParmLastValue>
-                <ParmDefaultValue>00</ParmDefaultValue>
-                <ParmTypeSpecifics>
-                  <Depend>
-                    <DependName>DataLength</DependName>
-                    <DependMask>0xFFFF</DependMask>
-                    <DependShift>0x0000</DependShift>
-                  </Depend>
-                </ParmTypeSpecifics>
-              </Parm>
-              <Parm>
-                <ParmName>Signature</ParmName>
-                <ParmDesc>Signature to be verified</ParmDesc>
-                <ParmSize>8</ParmSize>
-                <ParmType>tArray</ParmType>
-                <ParmLastValue>0000000000000000</ParmLastValue>
-                <ParmDefaultValue>0000000000000000</ParmDefaultValue>
               </Parm>
             </ParmTypeSpecifics>
           </Parm>
@@ -2813,11 +2746,6 @@
                 <ParmHint>gWriteCommand_c</ParmHint>
               </ParmItem>
               <ParmItem>
-                <ParmValue>0xD2</ParmValue>
-                <ParmText>gSignedWriteCommand_c</ParmText>
-                <ParmHint>gSignedWriteCommand_c</ParmHint>
-              </ParmItem>
-              <ParmItem>
                 <ParmValue>0x16</ParmValue>
                 <ParmText>gPrepareWriteRequest_c</ParmText>
                 <ParmHint>gPrepareWriteRequest_c</ParmHint>
@@ -3011,11 +2939,6 @@
                     <ParmValue>0x52</ParmValue>
                     <ParmText>gWriteCommand_c</ParmText>
                     <ParmHint>gWriteCommand_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0xD2</ParmValue>
-                    <ParmText>gSignedWriteCommand_c</ParmText>
-                    <ParmHint>gSignedWriteCommand_c</ParmHint>
                   </ParmItem>
                   <ParmItem>
                     <ParmValue>0x16</ParmValue>
@@ -4334,73 +4257,6 @@
         </CmdParms>
       </Cmd>
       <Cmd>
-        <CmdName>ATTClient-SendSignedWriteCommand.Request</CmdName>
-        <CmdDesc>ATT send signed write command (on client)</CmdDesc>
-        <CmdHeader>44 1D</CmdHeader>
-        <CmdParms>
-          <Parm>
-            <ParmName>DeviceId</ParmName>
-            <ParmDesc>The DeviceId for which the command is intended</ParmDesc>
-            <ParmSize>1</ParmSize>
-            <ParmType>tInt</ParmType>
-            <ParmLastValue>00</ParmLastValue>
-            <ParmDefaultValue>00</ParmDefaultValue>
-          </Parm>
-          <Parm>
-            <ParmName>Params</ParmName>
-            <ParmDesc>ATT signed write command parameters</ParmDesc>
-            <ParmSize>0</ParmSize>
-            <ParmType>tStruct</ParmType>
-            <ParmLastValue>00</ParmLastValue>
-            <ParmDefaultValue>00</ParmDefaultValue>
-            <ParmTypeSpecifics>
-              <Parm>
-                <ParmName>AttributeHandle</ParmName>
-                <ParmDesc>Attribute handle</ParmDesc>
-                <ParmSize>2</ParmSize>
-                <ParmType>tInt</ParmType>
-                <ParmLastValue>0000</ParmLastValue>
-                <ParmDefaultValue>0000</ParmDefaultValue>
-              </Parm>
-              <Parm>
-                <ParmName>AttributeLength</ParmName>
-                <ParmDesc>Attribute length</ParmDesc>
-                <ParmSize>2</ParmSize>
-                <ParmType>tInt</ParmType>
-                <ParmLastValue>0000</ParmLastValue>
-                <ParmDefaultValue>0000</ParmDefaultValue>
-                <ParmTypeSpecifics>
-                  <ParmRange>0x0000-0x000A</ParmRange>
-                </ParmTypeSpecifics>
-              </Parm>
-              <Parm>
-                <ParmName>AttributeValue</ParmName>
-                <ParmDesc>Attribute value</ParmDesc>
-                <ParmSize>1</ParmSize>
-                <ParmType>tArray</ParmType>
-                <ParmLastValue>00</ParmLastValue>
-                <ParmDefaultValue>00</ParmDefaultValue>
-                <ParmTypeSpecifics>
-                  <Depend>
-                    <DependName>AttributeLength</DependName>
-                    <DependMask>0xFFFF</DependMask>
-                    <DependShift>0x0000</DependShift>
-                  </Depend>
-                </ParmTypeSpecifics>
-              </Parm>
-              <Parm>
-                <ParmName>AuthenticationSignature</ParmName>
-                <ParmDesc>Authentication signature</ParmDesc>
-                <ParmSize>12</ParmSize>
-                <ParmType>tArray</ParmType>
-                <ParmLastValue>000000000000000000000000</ParmLastValue>
-                <ParmDefaultValue>000000000000000000000000</ParmDefaultValue>
-              </Parm>
-            </ParmTypeSpecifics>
-          </Parm>
-        </CmdParms>
-      </Cmd>
-      <Cmd>
         <CmdName>ATTClient-SendPrepareWriteRequest.Request</CmdName>
         <CmdDesc>ATT send prepare write request (on client)</CmdDesc>
         <CmdHeader>44 1E</CmdHeader>
@@ -5010,11 +4866,6 @@
                     <ParmValue>0x52</ParmValue>
                     <ParmText>gWriteCommand_c</ParmText>
                     <ParmHint>gWriteCommand_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0xD2</ParmValue>
-                    <ParmText>gSignedWriteCommand_c</ParmText>
-                    <ParmHint>gSignedWriteCommand_c</ParmHint>
                   </ParmItem>
                   <ParmItem>
                     <ParmValue>0x16</ParmValue>
@@ -7340,11 +7191,6 @@
                         <ParmHint>Characteristic can be indicated</ParmHint>
                       </ParmItem>
                       <ParmItem>
-                        <ParmValue>0x40</ParmValue>
-                        <ParmText>gAuthSignedWrites_c</ParmText>
-                        <ParmHint>Characteristic can be written with signed data</ParmHint>
-                      </ParmItem>
-                      <ParmItem>
                         <ParmValue>0x80</ParmValue>
                         <ParmText>gExtendedProperties_c</ParmText>
                         <ParmHint>Extended Characteristic properties</ParmHint>
@@ -7902,11 +7748,6 @@
                         <ParmValue>0x20</ParmValue>
                         <ParmText>gIndicate_c</ParmText>
                         <ParmHint>Characteristic can be indicated</ParmHint>
-                      </ParmItem>
-                      <ParmItem>
-                        <ParmValue>0x40</ParmValue>
-                        <ParmText>gAuthSignedWrites_c</ParmText>
-                        <ParmHint>Characteristic can be written with signed data</ParmHint>
                       </ParmItem>
                       <ParmItem>
                         <ParmValue>0x80</ParmValue>
@@ -8530,11 +8371,6 @@
                         <ParmHint>Characteristic can be indicated</ParmHint>
                       </ParmItem>
                       <ParmItem>
-                        <ParmValue>0x40</ParmValue>
-                        <ParmText>gAuthSignedWrites_c</ParmText>
-                        <ParmHint>Characteristic can be written with signed data</ParmHint>
-                      </ParmItem>
-                      <ParmItem>
                         <ParmValue>0x80</ParmValue>
                         <ParmText>gExtendedProperties_c</ParmText>
                         <ParmHint>Extended Characteristic properties</ParmHint>
@@ -8996,11 +8832,6 @@
                     <ParmHint>Characteristic can be indicated</ParmHint>
                   </ParmItem>
                   <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
                     <ParmValue>0x80</ParmValue>
                     <ParmText>gExtendedProperties_c</ParmText>
                     <ParmHint>Extended Characteristic properties</ParmHint>
@@ -9340,11 +9171,6 @@
                     <ParmValue>0x20</ParmValue>
                     <ParmText>gIndicate_c</ParmText>
                     <ParmHint>Characteristic can be indicated</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
                   </ParmItem>
                   <ParmItem>
                     <ParmValue>0x80</ParmValue>
@@ -9818,11 +9644,6 @@
                     <ParmHint>Characteristic can be indicated</ParmHint>
                   </ParmItem>
                   <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
                     <ParmValue>0x80</ParmValue>
                     <ParmText>gExtendedProperties_c</ParmText>
                     <ParmHint>Extended Characteristic properties</ParmHint>
@@ -10150,11 +9971,6 @@
                     <ParmHint>Characteristic can be indicated</ParmHint>
                   </ParmItem>
                   <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
                     <ParmValue>0x80</ParmValue>
                     <ParmText>gExtendedProperties_c</ParmText>
                     <ParmHint>Extended Characteristic properties</ParmHint>
@@ -10446,7 +10262,7 @@
           </Parm>
           <Parm>
             <ParmName>SignedWrite</ParmName>
-            <ParmDesc>Indicates if a Signed Write will be performed</ParmDesc>
+            <ParmDesc>Deprecated</ParmDesc>
             <ParmSize>1</ParmSize>
             <ParmType>tBool</ParmType>
             <ParmLastValue>00</ParmLastValue>
@@ -10462,7 +10278,7 @@
           </Parm>
           <Parm>
             <ParmName>Csrk</ParmName>
-            <ParmDesc>The CSRK if signedWrite is TRUE, ignored otherwise</ParmDesc>
+            <ParmDesc>Deprecated</ParmDesc>
             <ParmSize>16</ParmSize>
             <ParmType>tArray</ParmType>
             <ParmLastValue>00000000000000000000000000000000</ParmLastValue>
@@ -11313,11 +11129,6 @@
                     <ParmHint>Characteristic can be indicated</ParmHint>
                   </ParmItem>
                   <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
                     <ParmValue>0x80</ParmValue>
                     <ParmText>gExtendedProperties_c</ParmText>
                     <ParmHint>Extended Characteristic properties</ParmHint>
@@ -11909,11 +11720,6 @@
                         <ParmHint>Characteristic can be indicated</ParmHint>
                       </ParmItem>
                       <ParmItem>
-                        <ParmValue>0x40</ParmValue>
-                        <ParmText>gAuthSignedWrites_c</ParmText>
-                        <ParmHint>Characteristic can be written with signed data</ParmHint>
-                      </ParmItem>
-                      <ParmItem>
                         <ParmValue>0x80</ParmValue>
                         <ParmText>gExtendedProperties_c</ParmText>
                         <ParmHint>Extended Characteristic properties</ParmHint>
@@ -12479,11 +12285,6 @@
                         <ParmValue>0x20</ParmValue>
                         <ParmText>gIndicate_c</ParmText>
                         <ParmHint>Characteristic can be indicated</ParmHint>
-                      </ParmItem>
-                      <ParmItem>
-                        <ParmValue>0x40</ParmValue>
-                        <ParmText>gAuthSignedWrites_c</ParmText>
-                        <ParmHint>Characteristic can be written with signed data</ParmHint>
                       </ParmItem>
                       <ParmItem>
                         <ParmValue>0x80</ParmValue>
@@ -13115,11 +12916,6 @@
                         <ParmHint>Characteristic can be indicated</ParmHint>
                       </ParmItem>
                       <ParmItem>
-                        <ParmValue>0x40</ParmValue>
-                        <ParmText>gAuthSignedWrites_c</ParmText>
-                        <ParmHint>Characteristic can be written with signed data</ParmHint>
-                      </ParmItem>
-                      <ParmItem>
                         <ParmValue>0x80</ParmValue>
                         <ParmText>gExtendedProperties_c</ParmText>
                         <ParmHint>Extended Characteristic properties</ParmHint>
@@ -13589,11 +13385,6 @@
                     <ParmHint>Characteristic can be indicated</ParmHint>
                   </ParmItem>
                   <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
                     <ParmValue>0x80</ParmValue>
                     <ParmText>gExtendedProperties_c</ParmText>
                     <ParmHint>Extended Characteristic properties</ParmHint>
@@ -13941,11 +13732,6 @@
                     <ParmValue>0x20</ParmValue>
                     <ParmText>gIndicate_c</ParmText>
                     <ParmHint>Characteristic can be indicated</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
                   </ParmItem>
                   <ParmItem>
                     <ParmValue>0x80</ParmValue>
@@ -14435,11 +14221,6 @@
                     <ParmHint>Characteristic can be indicated</ParmHint>
                   </ParmItem>
                   <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
                     <ParmValue>0x80</ParmValue>
                     <ParmText>gExtendedProperties_c</ParmText>
                     <ParmHint>Extended Characteristic properties</ParmHint>
@@ -14775,11 +14556,6 @@
                     <ParmHint>Characteristic can be indicated</ParmHint>
                   </ParmItem>
                   <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
                     <ParmValue>0x80</ParmValue>
                     <ParmText>gExtendedProperties_c</ParmText>
                     <ParmHint>Extended Characteristic properties</ParmHint>
@@ -15071,7 +14847,7 @@
           </Parm>
           <Parm>
             <ParmName>SignedWrite</ParmName>
-            <ParmDesc>Indicates if a Signed Write will be performed</ParmDesc>
+            <ParmDesc>Deprecated</ParmDesc>
             <ParmSize>1</ParmSize>
             <ParmType>tBool</ParmType>
             <ParmLastValue>00</ParmLastValue>
@@ -15087,7 +14863,7 @@
           </Parm>
           <Parm>
             <ParmName>Csrk</ParmName>
-            <ParmDesc>The CSRK if signedWrite is TRUE, ignored otherwise</ParmDesc>
+            <ParmDesc>Deprecated</ParmDesc>
             <ParmSize>16</ParmSize>
             <ParmType>tArray</ParmType>
             <ParmLastValue>00000000000000000000000000000000</ParmLastValue>
@@ -15490,11 +15266,6 @@
                     <ParmValue>0x20</ParmValue>
                     <ParmText>gIndicate_c</ParmText>
                     <ParmHint>Characteristic can be indicated</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
                   </ParmItem>
                   <ParmItem>
                     <ParmValue>0x80</ParmValue>
@@ -16769,11 +16540,6 @@
                 <ParmHint>Characteristic can be indicated</ParmHint>
               </ParmItem>
               <ParmItem>
-                <ParmValue>0x40</ParmValue>
-                <ParmText>gAuthSignedWrites_c</ParmText>
-                <ParmHint>Characteristic can be written with signed data</ParmHint>
-              </ParmItem>
-              <ParmItem>
                 <ParmValue>0x80</ParmValue>
                 <ParmText>gExtendedProperties_c</ParmText>
                 <ParmHint>Extended Characteristic properties</ParmHint>
@@ -17137,11 +16903,6 @@
                 <ParmValue>0x20</ParmValue>
                 <ParmText>gIndicate_c</ParmText>
                 <ParmHint>Characteristic can be indicated</ParmHint>
-              </ParmItem>
-              <ParmItem>
-                <ParmValue>0x40</ParmValue>
-                <ParmText>gAuthSignedWrites_c</ParmText>
-                <ParmHint>Characteristic can be written with signed data</ParmHint>
               </ParmItem>
               <ParmItem>
                 <ParmValue>0x80</ParmValue>
@@ -17961,73 +17722,6 @@
                     <DependShift>0x0000</DependShift>
                   </Depend>
                 </ParmTypeSpecifics>
-              </Parm>
-            </ParmTypeSpecifics>
-          </Parm>
-        </CmdParms>
-      </Cmd>
-      <Cmd>
-        <CmdName>GATTDB-AttSignedWriteCommand.Request</CmdName>
-        <CmdDesc>Signed write command</CmdDesc>
-        <CmdHeader>47 0A</CmdHeader>
-        <CmdParms>
-          <Parm>
-            <ParmName>DeviceId</ParmName>
-            <ParmDesc>The DeviceId for which the command is intended</ParmDesc>
-            <ParmSize>1</ParmSize>
-            <ParmType>tInt</ParmType>
-            <ParmLastValue>00</ParmLastValue>
-            <ParmDefaultValue>00</ParmDefaultValue>
-          </Parm>
-          <Parm>
-            <ParmName>Params</ParmName>
-            <ParmDesc>ATT signed write command parameters</ParmDesc>
-            <ParmSize>0</ParmSize>
-            <ParmType>tStruct</ParmType>
-            <ParmLastValue>00</ParmLastValue>
-            <ParmDefaultValue>00</ParmDefaultValue>
-            <ParmTypeSpecifics>
-              <Parm>
-                <ParmName>AttributeHandle</ParmName>
-                <ParmDesc>Attribute handle</ParmDesc>
-                <ParmSize>2</ParmSize>
-                <ParmType>tInt</ParmType>
-                <ParmLastValue>0000</ParmLastValue>
-                <ParmDefaultValue>0000</ParmDefaultValue>
-              </Parm>
-              <Parm>
-                <ParmName>AttributeLength</ParmName>
-                <ParmDesc>Attribute length</ParmDesc>
-                <ParmSize>2</ParmSize>
-                <ParmType>tInt</ParmType>
-                <ParmLastValue>0000</ParmLastValue>
-                <ParmDefaultValue>0000</ParmDefaultValue>
-                <ParmTypeSpecifics>
-                  <ParmRange>0x0000-0x000A</ParmRange>
-                </ParmTypeSpecifics>
-              </Parm>
-              <Parm>
-                <ParmName>AttributeValue</ParmName>
-                <ParmDesc>Attribute value</ParmDesc>
-                <ParmSize>1</ParmSize>
-                <ParmType>tArray</ParmType>
-                <ParmLastValue>00</ParmLastValue>
-                <ParmDefaultValue>00</ParmDefaultValue>
-                <ParmTypeSpecifics>
-                  <Depend>
-                    <DependName>AttributeLength</DependName>
-                    <DependMask>0xFFFF</DependMask>
-                    <DependShift>0x0000</DependShift>
-                  </Depend>
-                </ParmTypeSpecifics>
-              </Parm>
-              <Parm>
-                <ParmName>AuthenticationSignature</ParmName>
-                <ParmDesc>Authentication signature</ParmDesc>
-                <ParmSize>12</ParmSize>
-                <ParmType>tArray</ParmType>
-                <ParmLastValue>000000000000000000000000</ParmLastValue>
-                <ParmDefaultValue>000000000000000000000000</ParmDefaultValue>
               </Parm>
             </ParmTypeSpecifics>
           </Parm>
@@ -27920,6 +27614,18 @@
                 <ParmSize>1</ParmSize>
                 <ParmType>tInt</ParmType>
               </Parm>
+              <Parm>
+                <ParmName>ReportLatency</ParmName>
+                <ParmDesc>LE_Handover_Anchor_Monitor_Event report latency: 0x00: send all HCI events; 0x01-0xFE: skip 1 or more HCI events with valid RSSI; 0xFF: drop all HCI events with valid RSSI. Applies only for valid RSSI detection.</ParmDesc>
+                <ParmSize>1</ParmSize>
+                <ParmType>tInt</ParmType>
+              </Parm>
+              <Parm>
+                <ParmName>ConnEvtRxLatency</ParmName>
+                <ParmDesc>Connection events RX operation latency: 0x00: monitor all the connection events for the radio RX; 0x01-0xFF: skip 1 or more connection events during the radio RX. Applies only after valid RSSI detection.</ParmDesc>
+                <ParmSize>1</ParmSize>
+                <ParmType>tInt</ParmType>
+              </Parm>
             </ParmTypeSpecifics>
           </Parm>
         </CmdParms>
@@ -28115,6 +27821,63 @@
         </CmdParms>
       </Cmd>
       <Cmd>
+        <CmdName>GapHandover-GetCsLlContext.Request</CmdName>
+        <CmdDesc>Retrieves the CS LL context for the given peer device ID</CmdDesc>
+        <CmdHeader>4B 0F</CmdHeader>
+        <CmdParms>
+          <Parm>
+            <ParmName>DeviceId</ParmName>
+            <ParmDesc>Device ID identifying the connection</ParmDesc>
+            <ParmSize>1</ParmSize>
+            <ParmType>tInt</ParmType>
+            <ParmLastValue>00</ParmLastValue>
+            <ParmDefaultValue>00</ParmDefaultValue>
+          </Parm>
+        </CmdParms>
+      </Cmd>
+      <Cmd>
+        <CmdName>GapHandover-SetCsLlContext.Request</CmdName>
+        <CmdDesc>Sets the CS LL context for the given peer device ID</CmdDesc>
+        <CmdHeader>4B 10</CmdHeader>
+        <CmdParms>
+          <Parm>
+            <ParmName>DeviceId</ParmName>
+            <ParmDesc>Device ID identifying the connection</ParmDesc>
+            <ParmSize>1</ParmSize>
+            <ParmType>tInt</ParmType>
+            <ParmLastValue>00</ParmLastValue>
+            <ParmDefaultValue>00</ParmDefaultValue>
+          </Parm>
+          <Parm>
+            <ParmName>Mask</ParmName>
+            <ParmDesc>Context mask</ParmDesc>
+            <ParmSize>2</ParmSize>
+            <ParmType>tInt</ParmType>
+          </Parm>
+          <Parm>
+            <ParmName>ContextLength</ParmName>
+            <ParmDesc>Length of the CS LL context</ParmDesc>
+            <ParmSize>1</ParmSize>
+            <ParmType>tInt</ParmType>
+          </Parm>
+          <Parm>
+            <ParmName>CsLlContext</ParmName>
+            <ParmDesc>CS LL context</ParmDesc>
+            <ParmSize>1</ParmSize>
+            <ParmType>tArray</ParmType>
+            <ParmLastValue>0</ParmLastValue>
+            <ParmDefaultValue>0</ParmDefaultValue>
+            <ParmTypeSpecifics>
+              <Depend>
+                <DependName>ContextLength</DependName>
+                <DependMask>0xFF</DependMask>
+                <DependShift>0x00</DependShift>
+              </Depend>
+            </ParmTypeSpecifics>
+          </Parm>
+        </CmdParms>
+      </Cmd>
+      <Cmd>
         <CmdName>GapHandover-UpdateConnParams.Request</CmdName>
         <CmdDesc>Update the channel map and/or phy used in the current anchor monitoring process</CmdDesc>
         <CmdHeader>4B 11</CmdHeader>
@@ -28243,6 +28006,46 @@
             <ParmDesc>Current connection event counter</ParmDesc>
             <ParmSize>2</ParmSize>
             <ParmType>tInt</ParmType>
+          </Parm>
+        </CmdParms>
+      </Cmd>
+      <Cmd>
+        <CmdName>GapHandover-SetCsLlContextByConnHandle.Request</CmdName>
+        <CmdDesc>Sets the CS LL context for the given connection handle</CmdDesc>
+        <CmdHeader>4B 14</CmdHeader>
+        <CmdParms>
+          <Parm>
+            <ParmName>ConnHandle</ParmName>
+            <ParmDesc>Connection Handle</ParmDesc>
+            <ParmSize>2</ParmSize>
+            <ParmType>tInt</ParmType>
+          </Parm>
+          <Parm>
+            <ParmName>Mask</ParmName>
+            <ParmDesc>Context mask</ParmDesc>
+            <ParmSize>2</ParmSize>
+            <ParmType>tInt</ParmType>
+          </Parm>
+          <Parm>
+            <ParmName>ContextLength</ParmName>
+            <ParmDesc>Length of the CS LL context</ParmDesc>
+            <ParmSize>1</ParmSize>
+            <ParmType>tInt</ParmType>
+          </Parm>
+          <Parm>
+            <ParmName>CsLlContext</ParmName>
+            <ParmDesc>CS LL context</ParmDesc>
+            <ParmSize>1</ParmSize>
+            <ParmType>tArray</ParmType>
+            <ParmLastValue>0</ParmLastValue>
+            <ParmDefaultValue>0</ParmDefaultValue>
+            <ParmTypeSpecifics>
+              <Depend>
+                <DependName>ContextLength</DependName>
+                <DependMask>0xFF</DependMask>
+                <DependShift>0x00</DependShift>
+              </Depend>
+            </ParmTypeSpecifics>
           </Parm>
         </CmdParms>
       </Cmd>
@@ -33119,6 +32922,11 @@
                 <ParmValue>0x100000</ParmValue>
                 <ParmText>gSecEvt_DHKeyCheckFailed_c</ParmText>
                 <ParmHint>gSecEvt_DHKeyCheckFailed_c</ParmHint>
+              </ParmItem>
+              <ParmItem>
+                <ParmValue>0x200000</ParmValue>
+                <ParmText>gSecEvt_SameConfirmValue_c</ParmText>
+                <ParmHint>gSecEvt_SameConfirmValue_c</ParmHint>
               </ParmItem>
             </ParmTypeSpecifics>
           </Parm>
@@ -40443,14 +40251,6 @@
                     <ParmDefaultValue>00000000000000000000000000000000</ParmDefaultValue>
                   </Parm>
                   <Parm>
-                    <ParmName>Csrk</ParmName>
-                    <ParmDesc>Connection Signature Resolving Key</ParmDesc>
-                    <ParmSize>16</ParmSize>
-                    <ParmType>tArray</ParmType>
-                    <ParmLastValue>00000000000000000000000000000000</ParmLastValue>
-                    <ParmDefaultValue>00000000000000000000000000000000</ParmDefaultValue>
-                  </Parm>
-                  <Parm>
                     <ParmName>Ediv</ParmName>
                     <ParmDesc>Encrypted Diversifier</ParmDesc>
                     <ParmSize>2</ParmSize>
@@ -47334,1058 +47134,6 @@
         </CmdParms>
       </Cmd>
       <Cmd>
-        <CmdName>SM-TbVerifyDataSignatureRes.Indication</CmdName>
-        <CmdDesc>SM Tool Box: Result of the verification of the signature of a data block</CmdDesc>
-        <CmdHeader>43 93</CmdHeader>
-        <CmdParms>
-          <Parm>
-            <ParmName>PayloadLength</ParmName>
-            <ParmDesc>Length of the payload</ParmDesc>
-            <ParmSize>2</ParmSize>
-            <ParmType>tInt</ParmType>
-          </Parm>
-          <Parm>
-            <ParmName>SourceDeviceId</ParmName>
-            <ParmDesc>Device Id corresponding to the event</ParmDesc>
-            <ParmSize>1</ParmSize>
-            <ParmType>tInt</ParmType>
-            <ParmLastValue>00</ParmLastValue>
-            <ParmDefaultValue>00</ParmDefaultValue>
-          </Parm>
-          <Parm>
-            <ParmName>TbVerifyDataSignatureResParams</ParmName>
-            <ParmDesc>Parameters of the SM Tool Box Verify Data Signature Response event</ParmDesc>
-            <ParmSize>0</ParmSize>
-            <ParmType>tStruct</ParmType>
-            <ParmTypeSpecifics>
-              <Parm>
-                <ParmName>Status</ParmName>
-                <ParmDesc>Status of the signature verification operation</ParmDesc>
-                <ParmSize>2</ParmSize>
-                <ParmType>tEnum</ParmType>
-                <ParmTypeSpecifics>
-                  <ParmItem>
-                    <ParmValue>0x0000</ParmValue>
-                    <ParmText>gBleSuccess_c</ParmText>
-                    <ParmHint>gBleSuccess_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0001</ParmValue>
-                    <ParmText>gBleInvalidParameter_c</ParmText>
-                    <ParmHint>gBleInvalidParameter_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0002</ParmValue>
-                    <ParmText>gBleOverflow_c</ParmText>
-                    <ParmHint>gBleOverflow_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0003</ParmValue>
-                    <ParmText>gBleUnavailable_c</ParmText>
-                    <ParmHint>gBleUnavailable_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0004</ParmValue>
-                    <ParmText>gBleFeatureNotSupported_c</ParmText>
-                    <ParmHint>gBleFeatureNotSupported_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0005</ParmValue>
-                    <ParmText>gBleOutOfMemory_c</ParmText>
-                    <ParmHint>gBleOutOfMemory_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0006</ParmValue>
-                    <ParmText>gBleAlreadyInitialized_c</ParmText>
-                    <ParmHint>gBleAlreadyInitialized_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0007</ParmValue>
-                    <ParmText>gBleOsError_c</ParmText>
-                    <ParmHint>gBleOsError_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0008</ParmValue>
-                    <ParmText>gBleUnexpectedError_c</ParmText>
-                    <ParmHint>gBleUnexpectedError_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0009</ParmValue>
-                    <ParmText>gBleInvalidState_c</ParmText>
-                    <ParmHint>gBleInvalidState_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x000A</ParmValue>
-                    <ParmText>gBleTimerError_c</ParmText>
-                    <ParmHint>gBleTimerError_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x000B</ParmValue>
-                    <ParmText>gBleReassemblyInProgress_c</ParmText>
-                    <ParmHint>gBleReassemblyInProgress_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x000C</ParmValue>
-                    <ParmText>gBleNVMError_c</ParmText>
-                    <ParmHint>gBleNVMError_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x000D</ParmValue>
-                    <ParmText>gBleRngError_c</ParmText>
-                    <ParmHint>gBleRngError_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x000E</ParmValue>
-                    <ParmText>gBleSecLibError_c</ParmText>
-                    <ParmHint>gBleSecLibError_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0101</ParmValue>
-                    <ParmText>gHciUnknownHciCommand_c</ParmText>
-                    <ParmHint>gHciUnknownHciCommand_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0102</ParmValue>
-                    <ParmText>gHciUnknownConnectionIdentifier_c</ParmText>
-                    <ParmHint>gHciUnknownConnectionIdentifier_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0103</ParmValue>
-                    <ParmText>gHciHardwareFailure_c</ParmText>
-                    <ParmHint>gHciHardwareFailure_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0104</ParmValue>
-                    <ParmText>gHciPageTimeout_c</ParmText>
-                    <ParmHint>gHciPageTimeout_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0105</ParmValue>
-                    <ParmText>gHciAuthenticationFailure_c</ParmText>
-                    <ParmHint>gHciAuthenticationFailure_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0106</ParmValue>
-                    <ParmText>gHciPinOrKeyMissing_c</ParmText>
-                    <ParmHint>gHciPinOrKeyMissing_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0107</ParmValue>
-                    <ParmText>gHciMemoryCapacityExceeded_c</ParmText>
-                    <ParmHint>gHciMemoryCapacityExceeded_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0108</ParmValue>
-                    <ParmText>gHciConnectionTimeout_c</ParmText>
-                    <ParmHint>gHciConnectionTimeout_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0109</ParmValue>
-                    <ParmText>gHciConnectionLimitExceeded_c</ParmText>
-                    <ParmHint>gHciConnectionLimitExceeded_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x010A</ParmValue>
-                    <ParmText>gHciSynchronousConnectionLimitToADeviceExceeded_c</ParmText>
-                    <ParmHint>gHciSynchronousConnectionLimitToADeviceExceeded_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x010B</ParmValue>
-                    <ParmText>gHciAclConnectionAlreadyExists_c</ParmText>
-                    <ParmHint>gHciAclConnectionAlreadyExists_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x010C</ParmValue>
-                    <ParmText>gHciCommandDisallowed_c</ParmText>
-                    <ParmHint>gHciCommandDisallowed_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x010D</ParmValue>
-                    <ParmText>gHciConnectionRejectedDueToLimitedResources_c</ParmText>
-                    <ParmHint>gHciConnectionRejectedDueToLimitedResources_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x010E</ParmValue>
-                    <ParmText>gHciConnectionRejectedDueToSecurityReasons_c</ParmText>
-                    <ParmHint>gHciConnectionRejectedDueToSecurityReasons_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x010F</ParmValue>
-                    <ParmText>gHciConnectionRejectedDueToUnacceptableBdAddr_c</ParmText>
-                    <ParmHint>gHciConnectionRejectedDueToUnacceptableBdAddr_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0110</ParmValue>
-                    <ParmText>gHciConnectionAcceptTimeoutExceeded_c</ParmText>
-                    <ParmHint>gHciConnectionAcceptTimeoutExceeded_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0111</ParmValue>
-                    <ParmText>gHciUnsupportedFeatureOrParameterValue_c</ParmText>
-                    <ParmHint>gHciUnsupportedFeatureOrParameterValue_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0112</ParmValue>
-                    <ParmText>gHciInvalidHciCommandParameters_c</ParmText>
-                    <ParmHint>gHciInvalidHciCommandParameters_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0113</ParmValue>
-                    <ParmText>gHciRemoteUserTerminatedConnection_c</ParmText>
-                    <ParmHint>gHciRemoteUserTerminatedConnection_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0114</ParmValue>
-                    <ParmText>gHciRemoteDeviceTerminatedConnectionLowResources_c</ParmText>
-                    <ParmHint>gHciRemoteDeviceTerminatedConnectionLowResources_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0115</ParmValue>
-                    <ParmText>gHciRemoteDeviceTerminatedConnectionPowerOff_c</ParmText>
-                    <ParmHint>gHciRemoteDeviceTerminatedConnectionPowerOff_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0116</ParmValue>
-                    <ParmText>gHciConnectionTerminatedByLocalHost_c</ParmText>
-                    <ParmHint>gHciConnectionTerminatedByLocalHost_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0117</ParmValue>
-                    <ParmText>gHciRepeatedAttempts_c</ParmText>
-                    <ParmHint>gHciRepeatedAttempts_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0118</ParmValue>
-                    <ParmText>gHciPairingNotAllowed_c</ParmText>
-                    <ParmHint>gHciPairingNotAllowed_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0119</ParmValue>
-                    <ParmText>gHciUnknownLpmPdu_c</ParmText>
-                    <ParmHint>gHciUnknownLpmPdu_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x011A</ParmValue>
-                    <ParmText>gHciUnsupportedRemoteFeature_c</ParmText>
-                    <ParmHint>gHciUnsupportedRemoteFeature_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x011B</ParmValue>
-                    <ParmText>gHciScoOffsetRejected_c</ParmText>
-                    <ParmHint>gHciScoOffsetRejected_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x011C</ParmValue>
-                    <ParmText>gHciScoIntervalRejected_c</ParmText>
-                    <ParmHint>gHciScoIntervalRejected_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x011D</ParmValue>
-                    <ParmText>gHciScoAirModeRejected_c</ParmText>
-                    <ParmHint>gHciScoAirModeRejected_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x011E</ParmValue>
-                    <ParmText>gHciInvalidLpmParameters_c</ParmText>
-                    <ParmHint>gHciInvalidLpmParameters_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x011F</ParmValue>
-                    <ParmText>gHciUnspecifiedError_c</ParmText>
-                    <ParmHint>gHciUnspecifiedError_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0120</ParmValue>
-                    <ParmText>gHciUnsupportedLpmParameterValue_c</ParmText>
-                    <ParmHint>gHciUnsupportedLpmParameterValue_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0121</ParmValue>
-                    <ParmText>gHciRoleChangeNotAllowed_c</ParmText>
-                    <ParmHint>gHciRoleChangeNotAllowed_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0122</ParmValue>
-                    <ParmText>gHciLLResponseTimeout_c</ParmText>
-                    <ParmHint>gHciLLResponseTimeout_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0123</ParmValue>
-                    <ParmText>gHciLmpErrorTransactionCollision_c</ParmText>
-                    <ParmHint>gHciLmpErrorTransactionCollision_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0124</ParmValue>
-                    <ParmText>gHciLmpPduNotAllowed_c</ParmText>
-                    <ParmHint>gHciLmpPduNotAllowed_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0125</ParmValue>
-                    <ParmText>gHciEncryptionModeNotAcceptable_c</ParmText>
-                    <ParmHint>gHciEncryptionModeNotAcceptable_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0126</ParmValue>
-                    <ParmText>gHciLinkKeyCannotBeChanged_c</ParmText>
-                    <ParmHint>gHciLinkKeyCannotBeChanged_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0127</ParmValue>
-                    <ParmText>gHciRequestedQosNotSupported_c</ParmText>
-                    <ParmHint>gHciRequestedQosNotSupported_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0128</ParmValue>
-                    <ParmText>gHciInstantPassed_c</ParmText>
-                    <ParmHint>gHciInstantPassed_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0129</ParmValue>
-                    <ParmText>gHciPairingWithUnitKeyNotSupported_c</ParmText>
-                    <ParmHint>gHciPairingWithUnitKeyNotSupported_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x012A</ParmValue>
-                    <ParmText>gHciDifferentTransactionCollision_c</ParmText>
-                    <ParmHint>gHciDifferentTransactionCollision_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x012B</ParmValue>
-                    <ParmText>gHciReserved_0x2B_c</ParmText>
-                    <ParmHint>gHciReserved_0x2B_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x012C</ParmValue>
-                    <ParmText>gHciQosNotAcceptableParameter_c</ParmText>
-                    <ParmHint>gHciQosNotAcceptableParameter_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x012D</ParmValue>
-                    <ParmText>gHciQosRejected_c</ParmText>
-                    <ParmHint>gHciQosRejected_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x012E</ParmValue>
-                    <ParmText>gHciChannelClassificationNotSupported_c</ParmText>
-                    <ParmHint>gHciChannelClassificationNotSupported_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x012F</ParmValue>
-                    <ParmText>gHciInsufficientSecurity_c</ParmText>
-                    <ParmHint>gHciInsufficientSecurity_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0130</ParmValue>
-                    <ParmText>gHciParameterOutOfMandatoryRange_c</ParmText>
-                    <ParmHint>gHciParameterOutOfMandatoryRange_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0131</ParmValue>
-                    <ParmText>gHciReserved_0x31_c</ParmText>
-                    <ParmHint>gHciReserved_0x31_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0132</ParmValue>
-                    <ParmText>gHciRoleSwitchPending_c</ParmText>
-                    <ParmHint>gHciRoleSwitchPending_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0133</ParmValue>
-                    <ParmText>gHciReserved_0x33_c</ParmText>
-                    <ParmHint>gHciReserved_0x33_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0134</ParmValue>
-                    <ParmText>gHciReservedSlotViolation_c</ParmText>
-                    <ParmHint>gHciReservedSlotViolation_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0135</ParmValue>
-                    <ParmText>gHciRoleSwitchFailed_c</ParmText>
-                    <ParmHint>gHciRoleSwitchFailed_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0136</ParmValue>
-                    <ParmText>gHciExtendedInquiryResponseTooLarge_c</ParmText>
-                    <ParmHint>gHciExtendedInquiryResponseTooLarge_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0137</ParmValue>
-                    <ParmText>gHciSecureSimplePairingNotSupportedByHost_c</ParmText>
-                    <ParmHint>gHciSecureSimplePairingNotSupportedByHost_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0138</ParmValue>
-                    <ParmText>gHciHostBusyPairing_c</ParmText>
-                    <ParmHint>gHciHostBusyPairing_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0139</ParmValue>
-                    <ParmText>gHciConnectionRejectedDueToNoSuitableChannelFound_c</ParmText>
-                    <ParmHint>gHciConnectionRejectedDueToNoSuitableChannelFound_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x013A</ParmValue>
-                    <ParmText>gHciControllerBusy_c</ParmText>
-                    <ParmHint>gHciControllerBusy_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x013B</ParmValue>
-                    <ParmText>gHciUnacceptableConnectionParameters_c</ParmText>
-                    <ParmHint>gHciUnacceptableConnectionParameters_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x013C</ParmValue>
-                    <ParmText>gHciDirectedAdvertisingTimeout_c</ParmText>
-                    <ParmHint>gHciDirectedAdvertisingTimeout_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x013D</ParmValue>
-                    <ParmText>gHciConnectionTerminatedDueToMicFailure_c</ParmText>
-                    <ParmHint>gHciConnectionTerminatedDueToMicFailure_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x013E</ParmValue>
-                    <ParmText>gHciConnectionFailedToBeEstablishedOrSyncTimeout_c</ParmText>
-                    <ParmHint>gHciConnectionFailedToBeEstablishedOrSyncTimeout_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x013F</ParmValue>
-                    <ParmText>gHciMacConnectionFailed_c</ParmText>
-                    <ParmHint>gHciMacConnectionFailed_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0140</ParmValue>
-                    <ParmText>gHciCoarseClockAdjustmentRejected_c</ParmText>
-                    <ParmHint>gHciCoarseClockAdjustmentRejected_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0141</ParmValue>
-                    <ParmText>gHciType0SubmapNotDefined_c</ParmText>
-                    <ParmHint>gHciType0SubmapNotDefined_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0142</ParmValue>
-                    <ParmText>gHciUnknownAdvertisingIdentifier_c</ParmText>
-                    <ParmHint>gHciUnknownAdvertisingIdentifier_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0143</ParmValue>
-                    <ParmText>gHciLimitReached_c</ParmText>
-                    <ParmHint>gHciLimitReached_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0144</ParmValue>
-                    <ParmText>gHciOperationCancelledByHost_c</ParmText>
-                    <ParmHint>gHciOperationCancelledByHost_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0145</ParmValue>
-                    <ParmText>gHciPacketTooLong_c</ParmText>
-                    <ParmHint>gHciPacketTooLong_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0146</ParmValue>
-                    <ParmText>gHciPacketTooLate_c</ParmText>
-                    <ParmHint>gHciPacketTooLate_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0147</ParmValue>
-                    <ParmText>gHciPacketTooEarly_c</ParmText>
-                    <ParmHint>gHciPacketTooEarly_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x01A0</ParmValue>
-                    <ParmText>gHciAlreadyInit_c</ParmText>
-                    <ParmHint>gHciAlreadyInit_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x01A1</ParmValue>
-                    <ParmText>gHciInvalidParameter_c</ParmText>
-                    <ParmHint>gHciInvalidParameter_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x01A2</ParmValue>
-                    <ParmText>gHciCallbackNotInstalled_c</ParmText>
-                    <ParmHint>gHciCallbackNotInstalled_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x01A3</ParmValue>
-                    <ParmText>gHciCallbackAlreadyInstalled_c</ParmText>
-                    <ParmHint>gHciCallbackAlreadyInstalled_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x01A4</ParmValue>
-                    <ParmText>gHciCommandNotSupported_c</ParmText>
-                    <ParmHint>gHciCommandNotSupported_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x01A5</ParmValue>
-                    <ParmText>gHciEventNotSupported_c</ParmText>
-                    <ParmHint>gHciEventNotSupported_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x01A6</ParmValue>
-                    <ParmText>gHciTransportError_c</ParmText>
-                    <ParmHint>gHciTransportError_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x03F0</ParmValue>
-                    <ParmText>gL2caAlreadyInit_c</ParmText>
-                    <ParmHint>gL2caAlreadyInit_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x03F1</ParmValue>
-                    <ParmText>gL2caInsufficientResources_c</ParmText>
-                    <ParmHint>gL2caInsufficientResources_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x03F2</ParmValue>
-                    <ParmText>gL2caCallbackNotInstalled_c</ParmText>
-                    <ParmHint>gL2caCallbackNotInstalled_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x03F3</ParmValue>
-                    <ParmText>gL2caCallbackAlreadyInstalled_c</ParmText>
-                    <ParmHint>gL2caCallbackAlreadyInstalled_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x03F4</ParmValue>
-                    <ParmText>gL2caLePsmInvalid_c</ParmText>
-                    <ParmHint>gL2caLePsmInvalid_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x03F5</ParmValue>
-                    <ParmText>gL2caLePsmAlreadyRegistered_c</ParmText>
-                    <ParmHint>gL2caLePsmAlreadyRegistered_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x03F6</ParmValue>
-                    <ParmText>gL2caLePsmNotRegistered_c</ParmText>
-                    <ParmHint>gL2caLePsmNotRegistered_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x03F7</ParmValue>
-                    <ParmText>gL2caLePsmInsufficientResources_c</ParmText>
-                    <ParmHint>gL2caLePsmInsufficientResources_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x03F8</ParmValue>
-                    <ParmText>gL2caChannelInvalid_c</ParmText>
-                    <ParmHint>gL2caChannelInvalid_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x03F9</ParmValue>
-                    <ParmText>gL2caChannelClosed_c</ParmText>
-                    <ParmHint>gL2caChannelClosed_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x03FA</ParmValue>
-                    <ParmText>gL2caChannelAlreadyConnected_c</ParmText>
-                    <ParmHint>gL2caChannelAlreadyConnected_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x03FB</ParmValue>
-                    <ParmText>gL2caConnectionParametersRejected_c</ParmText>
-                    <ParmHint>gL2caConnectionParametersRejected_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x03FC</ParmValue>
-                    <ParmText>gL2caChannelBusy_c</ParmText>
-                    <ParmHint>gL2caChannelBusy_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x03FE</ParmValue>
-                    <ParmText>gL2caInvalidParameter_c</ParmText>
-                    <ParmHint>gL2caInvalidParameter_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x03FF</ParmValue>
-                    <ParmText>gL2caInternalError_c</ParmText>
-                    <ParmHint>gL2caInternalError_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0401</ParmValue>
-                    <ParmText>gSmNullCBFunction_c</ParmText>
-                    <ParmHint>gSmNullCBFunction_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0402</ParmValue>
-                    <ParmText>gSmCommandNotSupported_c</ParmText>
-                    <ParmHint>gSmCommandNotSupported_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0403</ParmValue>
-                    <ParmText>gSmUnexpectedCommand_c</ParmText>
-                    <ParmHint>gSmUnexpectedCommand_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0404</ParmValue>
-                    <ParmText>gSmInvalidCommandCode_c</ParmText>
-                    <ParmHint>gSmInvalidCommandCode_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0405</ParmValue>
-                    <ParmText>gSmInvalidCommandLength_c</ParmText>
-                    <ParmHint>gSmInvalidCommandLength_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0406</ParmValue>
-                    <ParmText>gSmInvalidCommandParameter_c</ParmText>
-                    <ParmHint>gSmInvalidCommandParameter_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0407</ParmValue>
-                    <ParmText>gSmInvalidDeviceId_c</ParmText>
-                    <ParmHint>gSmInvalidDeviceId_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0408</ParmValue>
-                    <ParmText>gSmInvalidInternalOperation_c</ParmText>
-                    <ParmHint>gSmInvalidInternalOperation_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0409</ParmValue>
-                    <ParmText>gSmInvalidConnectionHandle_c</ParmText>
-                    <ParmHint>gSmInvalidConnectionHandle_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x040A</ParmValue>
-                    <ParmText>gSmInproperKeyDistributionField_c</ParmText>
-                    <ParmHint>gSmInproperKeyDistributionField_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x040B</ParmValue>
-                    <ParmText>gSmUnexpectedKeyType_c</ParmText>
-                    <ParmHint>gSmUnexpectedKeyType_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x040C</ParmValue>
-                    <ParmText>gSmUnexpectedPairingTerminationReason_c</ParmText>
-                    <ParmHint>gSmUnexpectedPairingTerminationReason_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x040D</ParmValue>
-                    <ParmText>gSmUnexpectedKeyset_c</ParmText>
-                    <ParmHint>gSmUnexpectedKeyset_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x040E</ParmValue>
-                    <ParmText>gSmSmpTimeoutOccurred_c</ParmText>
-                    <ParmHint>gSmSmpTimeoutOccurred_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x040F</ParmValue>
-                    <ParmText>gSmUnknownSmpPacketType_c</ParmText>
-                    <ParmHint>gSmUnknownSmpPacketType_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0410</ParmValue>
-                    <ParmText>gSmInvalidSmpPacketLength_c</ParmText>
-                    <ParmHint>gSmInvalidSmpPacketLength_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0411</ParmValue>
-                    <ParmText>gSmInvalidSmpPacketParameter_c</ParmText>
-                    <ParmHint>gSmInvalidSmpPacketParameter_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0412</ParmValue>
-                    <ParmText>gSmReceivedUnexpectedSmpPacket_c</ParmText>
-                    <ParmHint>gSmReceivedUnexpectedSmpPacket_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0413</ParmValue>
-                    <ParmText>gSmReceivedSmpPacketFromUnknownDevice_c</ParmText>
-                    <ParmHint>gSmReceivedSmpPacketFromUnknownDevice_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0414</ParmValue>
-                    <ParmText>gSmReceivedUnexpectedHciEvent_c</ParmText>
-                    <ParmHint>gSmReceivedUnexpectedHciEvent_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0415</ParmValue>
-                    <ParmText>gSmReceivedHciEventFromUnknownDevice_c</ParmText>
-                    <ParmHint>gSmReceivedHciEventFromUnknownDevice_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0416</ParmValue>
-                    <ParmText>gSmInvalidHciEventParameter_c</ParmText>
-                    <ParmHint>gSmInvalidHciEventParameter_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0417</ParmValue>
-                    <ParmText>gSmLlConnectionEncryptionInProgress_c</ParmText>
-                    <ParmHint>gSmLlConnectionEncryptionInProgress_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0418</ParmValue>
-                    <ParmText>gSmLlConnectionEncryptionFailure_c</ParmText>
-                    <ParmHint>gSmLlConnectionEncryptionFailure_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0419</ParmValue>
-                    <ParmText>gSmInsufficientResources_c</ParmText>
-                    <ParmHint>gSmInsufficientResources_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x041A</ParmValue>
-                    <ParmText>gSmOobDataAddressMismatch_c</ParmText>
-                    <ParmHint>gSmOobDataAddressMismatch_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x041B</ParmValue>
-                    <ParmText>gSmSmpPacketReceivedAfterTimeoutOccurred_c</ParmText>
-                    <ParmHint>gSmSmpPacketReceivedAfterTimeoutOccurred_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x041C</ParmValue>
-                    <ParmText>gSmReceivedTimerEventForUnknownDevice_c</ParmText>
-                    <ParmHint>gSmReceivedTimerEventForUnknownDevice_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x041D</ParmValue>
-                    <ParmText>gSmUnattainableLocalDeviceSecRequirements_c</ParmText>
-                    <ParmHint>gSmUnattainableLocalDeviceSecRequirements_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x041E</ParmValue>
-                    <ParmText>gSmUnattainableLocalDeviceMinKeySize_c</ParmText>
-                    <ParmHint>gSmUnattainableLocalDeviceMinKeySize_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x041F</ParmValue>
-                    <ParmText>gSmUnattainablePeripheralSecReqRequirements_c</ParmText>
-                    <ParmHint>gSmUnattainablePeripheralSecReqRequirements_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0420</ParmValue>
-                    <ParmText>gSmInvalidPeerPublicKey_c</ParmText>
-                    <ParmHint>gSmInvalidPeerPublicKey_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0431</ParmValue>
-                    <ParmText>gSmPairingErrorPasskeyEntryFailed_c</ParmText>
-                    <ParmHint>gSmPairingErrorPasskeyEntryFailed_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0432</ParmValue>
-                    <ParmText>gSmPairingErrorConfirmValueFailed_c</ParmText>
-                    <ParmHint>gSmPairingErrorConfirmValueFailed_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0433</ParmValue>
-                    <ParmText>gSmPairingErrorCommandNotSupported_c</ParmText>
-                    <ParmHint>gSmPairingErrorCommandNotSupported_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0434</ParmValue>
-                    <ParmText>gSmPairingErrorInvalidParameters_c</ParmText>
-                    <ParmHint>gSmPairingErrorInvalidParameters_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0435</ParmValue>
-                    <ParmText>gSmPairingErrorUnknownReason_c</ParmText>
-                    <ParmHint>gSmPairingErrorUnknownReason_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0436</ParmValue>
-                    <ParmText>gSmPairingErrorTimeout_c</ParmText>
-                    <ParmHint>gSmPairingErrorTimeout_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0437</ParmValue>
-                    <ParmText>gSmPairingErrorAuthenticationRequirements_c</ParmText>
-                    <ParmHint>gSmPairingErrorAuthenticationRequirements_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0438</ParmValue>
-                    <ParmText>gSmPairingAlreadyStarted_c</ParmText>
-                    <ParmHint>gSmPairingAlreadyStarted_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0439</ParmValue>
-                    <ParmText>gSmPairingErrorKeyRejected_c</ParmText>
-                    <ParmHint>gSmPairingErrorKeyRejected_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x043A</ParmValue>
-                    <ParmText>gSmPairingErrorPairingNotSupported_c</ParmText>
-                    <ParmHint>gSmPairingErrorPairingNotSupported_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x043B</ParmValue>
-                    <ParmText>gSmPairingErrorEncryptionKeySize_c</ParmText>
-                    <ParmHint>gSmPairingErrorEncryptionKeySize_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x043C</ParmValue>
-                    <ParmText>gSmPairingErrorDhKeyCheckFailed_c</ParmText>
-                    <ParmHint>gSmPairingErrorDhKeyCheckFailed_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x043D</ParmValue>
-                    <ParmText>gSmPairingErrorNumericComparisonFailed_c</ParmText>
-                    <ParmHint>gSmPairingErrorNumericComparisonFailed_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x043E</ParmValue>
-                    <ParmText>gSmPairingErrorOobNotAvailable_c</ParmText>
-                    <ParmHint>gSmPairingErrorOobNotAvailable_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x043F</ParmValue>
-                    <ParmText>gSmPairingErrorRepeatedAttempts_c</ParmText>
-                    <ParmHint>gSmPairingErrorRepeatedAttempts_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0440</ParmValue>
-                    <ParmText>gSmPairingErrorBusy_c</ParmText>
-                    <ParmHint>gSmPairingErrorBusy_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0460</ParmValue>
-                    <ParmText>gSmTbResolvableAddressDoesNotMatchIrk_c</ParmText>
-                    <ParmHint>gSmTbResolvableAddressDoesNotMatchIrk_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0461</ParmValue>
-                    <ParmText>gSmTbInvalidDataSignature_c</ParmText>
-                    <ParmHint>gSmTbInvalidDataSignature_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0462</ParmValue>
-                    <ParmText>gSmKeySessionKeyDerivationFailed_c</ParmText>
-                    <ParmHint>gSmKeySessionKeyDerivationFailed_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0501</ParmValue>
-                    <ParmText>gAttInvalidHandle_c</ParmText>
-                    <ParmHint>gAttInvalidHandle_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0502</ParmValue>
-                    <ParmText>gAttReadNotPermitted_c</ParmText>
-                    <ParmHint>gAttReadNotPermitted_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0503</ParmValue>
-                    <ParmText>gAttWriteNotPermitted_c</ParmText>
-                    <ParmHint>gAttWriteNotPermitted_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0504</ParmValue>
-                    <ParmText>gAttInvalidPdu_c</ParmText>
-                    <ParmHint>gAttInvalidPdu_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0505</ParmValue>
-                    <ParmText>gAttInsufficientAuthentication_c</ParmText>
-                    <ParmHint>gAttInsufficientAuthentication_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0506</ParmValue>
-                    <ParmText>gAttRequestNotSupported_c</ParmText>
-                    <ParmHint>gAttRequestNotSupported_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0507</ParmValue>
-                    <ParmText>gAttInvalidOffset_c</ParmText>
-                    <ParmHint>gAttInvalidOffset_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0508</ParmValue>
-                    <ParmText>gAttInsufficientAuthorization_c</ParmText>
-                    <ParmHint>gAttInsufficientAuthorization_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0509</ParmValue>
-                    <ParmText>gAttPrepareQueueFull_c</ParmText>
-                    <ParmHint>gAttPrepareQueueFull_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x050A</ParmValue>
-                    <ParmText>gAttAttributeNotFound_c</ParmText>
-                    <ParmHint>gAttAttributeNotFound_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x050B</ParmValue>
-                    <ParmText>gAttAttributeNotLong_c</ParmText>
-                    <ParmHint>gAttAttributeNotLong_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x050C</ParmValue>
-                    <ParmText>gAttInsufficientEncryptionKeySize_c</ParmText>
-                    <ParmHint>gAttInsufficientEncryptionKeySize_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x050D</ParmValue>
-                    <ParmText>gAttInvalidAttributeValueLength_c</ParmText>
-                    <ParmHint>gAttInvalidAttributeValueLength_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x050E</ParmValue>
-                    <ParmText>gAttUnlikelyor_c</ParmText>
-                    <ParmHint>gAttUnlikelyor_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x050F</ParmValue>
-                    <ParmText>gAttInsufficientEncryption_c</ParmText>
-                    <ParmHint>gAttInsufficientEncryption_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0510</ParmValue>
-                    <ParmText>gAttUnsupportedGroupType_c</ParmText>
-                    <ParmHint>gAttUnsupportedGroupType_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0511</ParmValue>
-                    <ParmText>gAttInsufficientResources_c</ParmText>
-                    <ParmHint>gAttInsufficientResources_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0512</ParmValue>
-                    <ParmText>gAttDatabaseOutOfSync_c</ParmText>
-                    <ParmHint>gAttDatabaseOutOfSync_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0513</ParmValue>
-                    <ParmText>gAttValueNotAllowed_c</ParmText>
-                    <ParmHint>gAttValueNotAllowed_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0601</ParmValue>
-                    <ParmText>gGattAnotherProcedureInProgress_c</ParmText>
-                    <ParmHint>gGattAnotherProcedureInProgress_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0602</ParmValue>
-                    <ParmText>gGattLongAttributePacketsCorrupted_c</ParmText>
-                    <ParmHint>gGattLongAttributePacketsCorrupted_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0603</ParmValue>
-                    <ParmText>gGattMultipleAttributesOverflow_c</ParmText>
-                    <ParmHint>gGattMultipleAttributesOverflow_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0604</ParmValue>
-                    <ParmText>gGattUnexpectedReadMultipleResponseLength_c</ParmText>
-                    <ParmHint>gGattUnexpectedReadMultipleResponseLength_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0605</ParmValue>
-                    <ParmText>gGattInvalidValueLength_c</ParmText>
-                    <ParmHint>gGattInvalidValueLength_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0606</ParmValue>
-                    <ParmText>gGattServerTimeout_c</ParmText>
-                    <ParmHint>gGattServerTimeout_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0607</ParmValue>
-                    <ParmText>gGattIndicationAlreadyInProgress_c</ParmText>
-                    <ParmHint>gGattIndicationAlreadyInProgress_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0608</ParmValue>
-                    <ParmText>gGattClientConfirmationTimeout_c</ParmText>
-                    <ParmHint>gGattClientConfirmationTimeout_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0609</ParmValue>
-                    <ParmText>gGattInvalidPduReceived_c</ParmText>
-                    <ParmHint>gGattInvalidPduReceived_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x060A</ParmValue>
-                    <ParmText>gGattPeerDisconnected_c</ParmText>
-                    <ParmHint>gGattPeerDisconnected_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x060B</ParmValue>
-                    <ParmText>gGattMtuExchangeInProgress_c</ParmText>
-                    <ParmHint>gGattMtuExchangeInProgress_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x060C</ParmValue>
-                    <ParmText>gGattOutOfSyncProceduresOngoing_c</ParmText>
-                    <ParmHint>gGattOutOfSyncProceduresOngoing_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x060D</ParmValue>
-                    <ParmText>gGattConnectionSecurityRequirementsNotMet_c</ParmText>
-                    <ParmHint>gGattConnectionSecurityRequirementsNotMet_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0701</ParmValue>
-                    <ParmText>gGapAdvDataTooLong_c</ParmText>
-                    <ParmHint>gGapAdvDataTooLong_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0702</ParmValue>
-                    <ParmText>gGapScanRspDataTooLong_c</ParmText>
-                    <ParmHint>gGapScanRspDataTooLong_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0703</ParmValue>
-                    <ParmText>gGapDeviceNotBonded_c</ParmText>
-                    <ParmHint>gGapDeviceNotBonded_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0704</ParmValue>
-                    <ParmText>gGapAnotherProcedureInProgress_c</ParmText>
-                    <ParmHint>gGapAnotherProcedureInProgress_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0801</ParmValue>
-                    <ParmText>gDevDbCccdLimitReached_c</ParmText>
-                    <ParmHint>gDevDbCccdLimitReached_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0802</ParmValue>
-                    <ParmText>gDevDbCccdNotFound_c</ParmText>
-                    <ParmHint>gDevDbCccdNotFound_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0901</ParmValue>
-                    <ParmText>gGattDbInvalidHandle_c</ParmText>
-                    <ParmHint>gGattDbInvalidHandle_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0902</ParmValue>
-                    <ParmText>gGattDbCharacteristicNotFound_c</ParmText>
-                    <ParmHint>gGattDbCharacteristicNotFound_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0903</ParmValue>
-                    <ParmText>gGattDbCccdNotFound_c</ParmText>
-                    <ParmHint>gGattDbCccdNotFound_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0904</ParmValue>
-                    <ParmText>gGattDbServiceNotFound_c</ParmText>
-                    <ParmHint>gGattDbServiceNotFound_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0905</ParmValue>
-                    <ParmText>gGattDbDescriptorNotFound_c</ParmText>
-                    <ParmHint>gGattDbDescriptorNotFound_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x0906</ParmValue>
-                    <ParmText>gGattDbServiceOrCharAlreadyDeclared_c</ParmText>
-                    <ParmHint>gGattDbServiceOrCharAlreadyDeclared_c</ParmHint>
-                  </ParmItem>
-                </ParmTypeSpecifics>
-              </Parm>
-            </ParmTypeSpecifics>
-          </Parm>
-        </CmdParms>
-      </Cmd>
-      <Cmd>
         <CmdName>SM-RemoteKeypressNotification.Indication</CmdName>
         <CmdDesc>Remote SMP Keypress Notification recieved during Passkey Entry Pairing Method</CmdDesc>
         <CmdHeader>43 94</CmdHeader>
@@ -50792,11 +49540,6 @@
                     <ParmHint>gWriteCommand_c</ParmHint>
                   </ParmItem>
                   <ParmItem>
-                    <ParmValue>0xD2</ParmValue>
-                    <ParmText>gSignedWriteCommand_c</ParmText>
-                    <ParmHint>gSignedWriteCommand_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
                     <ParmValue>0x16</ParmValue>
                     <ParmText>gPrepareWriteRequest_c</ParmText>
                     <ParmHint>gPrepareWriteRequest_c</ParmHint>
@@ -52227,79 +50970,6 @@
         </CmdParms>
       </Cmd>
       <Cmd>
-        <CmdName>ATTServer-IncomingClientSignedWriteCommand.Indication</CmdName>
-        <CmdDesc>ATT received signed write command (on server)</CmdDesc>
-        <CmdHeader>44 96</CmdHeader>
-        <CmdParms>
-          <Parm>
-            <ParmName>PayloadLength</ParmName>
-            <ParmDesc>Length of the payload</ParmDesc>
-            <ParmSize>2</ParmSize>
-            <ParmType>tInt</ParmType>
-          </Parm>
-          <Parm>
-            <ParmName>DeviceId</ParmName>
-            <ParmDesc>The DeviceId for which the command is intended</ParmDesc>
-            <ParmSize>1</ParmSize>
-            <ParmType>tInt</ParmType>
-            <ParmLastValue>00</ParmLastValue>
-            <ParmDefaultValue>00</ParmDefaultValue>
-          </Parm>
-          <Parm>
-            <ParmName>Params</ParmName>
-            <ParmDesc>ATT signed write command parameters</ParmDesc>
-            <ParmSize>0</ParmSize>
-            <ParmType>tStruct</ParmType>
-            <ParmLastValue>00</ParmLastValue>
-            <ParmDefaultValue>00</ParmDefaultValue>
-            <ParmTypeSpecifics>
-              <Parm>
-                <ParmName>AttributeHandle</ParmName>
-                <ParmDesc>Attribute handle</ParmDesc>
-                <ParmSize>2</ParmSize>
-                <ParmType>tInt</ParmType>
-                <ParmLastValue>0000</ParmLastValue>
-                <ParmDefaultValue>0000</ParmDefaultValue>
-              </Parm>
-              <Parm>
-                <ParmName>AttributeLength</ParmName>
-                <ParmDesc>Attribute length</ParmDesc>
-                <ParmSize>2</ParmSize>
-                <ParmType>tInt</ParmType>
-                <ParmLastValue>0000</ParmLastValue>
-                <ParmDefaultValue>0000</ParmDefaultValue>
-                <ParmTypeSpecifics>
-                  <ParmRange>0x0000-0x000A</ParmRange>
-                </ParmTypeSpecifics>
-              </Parm>
-              <Parm>
-                <ParmName>AttributeValue</ParmName>
-                <ParmDesc>Attribute value</ParmDesc>
-                <ParmSize>1</ParmSize>
-                <ParmType>tArray</ParmType>
-                <ParmLastValue>00</ParmLastValue>
-                <ParmDefaultValue>00</ParmDefaultValue>
-                <ParmTypeSpecifics>
-                  <Depend>
-                    <DependName>AttributeLength</DependName>
-                    <DependMask>0xFFFF</DependMask>
-                    <DependShift>0x0000</DependShift>
-                  </Depend>
-                </ParmTypeSpecifics>
-              </Parm>
-              <Parm>
-                <ParmName>AuthenticationSignature</ParmName>
-                <ParmDesc>Authentication signature</ParmDesc>
-                <ParmSize>12</ParmSize>
-                <ParmType>tArray</ParmType>
-                <ParmLastValue>000000000000000000000000</ParmLastValue>
-                <ParmDefaultValue>000000000000000000000000</ParmDefaultValue>
-              </Parm>
-            </ParmTypeSpecifics>
-          </Parm>
-        </CmdParms>
-      </Cmd>
-      <Cmd>
         <CmdName>ATTServer-IncomingClientPrepareWriteRequest.Indication</CmdName>
         <CmdDesc>ATT received prepare write request (on server)</CmdDesc>
         <CmdHeader>44 97</CmdHeader>
@@ -53040,11 +51710,6 @@
                     <ParmValue>0x52</ParmValue>
                     <ParmText>gWriteCommand_c</ParmText>
                     <ParmHint>gWriteCommand_c</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0xD2</ParmValue>
-                    <ParmText>gSignedWriteCommand_c</ParmText>
-                    <ParmHint>gSignedWriteCommand_c</ParmHint>
                   </ParmItem>
                   <ParmItem>
                     <ParmValue>0x16</ParmValue>
@@ -58575,11 +57240,6 @@
                         <ParmHint>Characteristic can be indicated</ParmHint>
                       </ParmItem>
                       <ParmItem>
-                        <ParmValue>0x40</ParmValue>
-                        <ParmText>gAuthSignedWrites_c</ParmText>
-                        <ParmHint>Characteristic can be written with signed data</ParmHint>
-                      </ParmItem>
-                      <ParmItem>
                         <ParmValue>0x80</ParmValue>
                         <ParmText>gExtendedProperties_c</ParmText>
                         <ParmHint>Extended Characteristic properties</ParmHint>
@@ -60168,11 +58828,6 @@
                         <ParmHint>Characteristic can be indicated</ParmHint>
                       </ParmItem>
                       <ParmItem>
-                        <ParmValue>0x40</ParmValue>
-                        <ParmText>gAuthSignedWrites_c</ParmText>
-                        <ParmHint>Characteristic can be written with signed data</ParmHint>
-                      </ParmItem>
-                      <ParmItem>
                         <ParmValue>0x80</ParmValue>
                         <ParmText>gExtendedProperties_c</ParmText>
                         <ParmHint>Extended Characteristic properties</ParmHint>
@@ -61755,11 +60410,6 @@
                         <ParmHint>Characteristic can be indicated</ParmHint>
                       </ParmItem>
                       <ParmItem>
-                        <ParmValue>0x40</ParmValue>
-                        <ParmText>gAuthSignedWrites_c</ParmText>
-                        <ParmHint>Characteristic can be written with signed data</ParmHint>
-                      </ParmItem>
-                      <ParmItem>
                         <ParmValue>0x80</ParmValue>
                         <ParmText>gExtendedProperties_c</ParmText>
                         <ParmHint>Extended Characteristic properties</ParmHint>
@@ -63337,11 +61987,6 @@
                         <ParmHint>Characteristic can be indicated</ParmHint>
                       </ParmItem>
                       <ParmItem>
-                        <ParmValue>0x40</ParmValue>
-                        <ParmText>gAuthSignedWrites_c</ParmText>
-                        <ParmHint>Characteristic can be written with signed data</ParmHint>
-                      </ParmItem>
-                      <ParmItem>
                         <ParmValue>0x80</ParmValue>
                         <ParmText>gExtendedProperties_c</ParmText>
                         <ParmHint>Extended Characteristic properties</ParmHint>
@@ -64831,11 +63476,6 @@
                     <ParmHint>Characteristic can be indicated</ParmHint>
                   </ParmItem>
                   <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
                     <ParmValue>0x80</ParmValue>
                     <ParmText>gExtendedProperties_c</ParmText>
                     <ParmHint>Extended Characteristic properties</ParmHint>
@@ -66200,11 +64840,6 @@
                     <ParmHint>Characteristic can be indicated</ParmHint>
                   </ParmItem>
                   <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
                     <ParmValue>0x80</ParmValue>
                     <ParmText>gExtendedProperties_c</ParmText>
                     <ParmHint>Extended Characteristic properties</ParmHint>
@@ -67562,11 +66197,6 @@
                     <ParmValue>0x20</ParmValue>
                     <ParmText>gIndicate_c</ParmText>
                     <ParmHint>Characteristic can be indicated</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
                   </ParmItem>
                   <ParmItem>
                     <ParmValue>0x80</ParmValue>
@@ -70015,11 +68645,6 @@
                     <ParmValue>0x20</ParmValue>
                     <ParmText>gIndicate_c</ParmText>
                     <ParmHint>Characteristic can be indicated</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
                   </ParmItem>
                   <ParmItem>
                     <ParmValue>0x80</ParmValue>
@@ -74818,11 +73443,6 @@
                     <ParmHint>Characteristic can be indicated</ParmHint>
                   </ParmItem>
                   <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
                     <ParmValue>0x80</ParmValue>
                     <ParmText>gExtendedProperties_c</ParmText>
                     <ParmHint>Extended Characteristic properties</ParmHint>
@@ -77732,11 +76352,6 @@
                         <ParmHint>Characteristic can be indicated</ParmHint>
                       </ParmItem>
                       <ParmItem>
-                        <ParmValue>0x40</ParmValue>
-                        <ParmText>gAuthSignedWrites_c</ParmText>
-                        <ParmHint>Characteristic can be written with signed data</ParmHint>
-                      </ParmItem>
-                      <ParmItem>
                         <ParmValue>0x80</ParmValue>
                         <ParmText>gExtendedProperties_c</ParmText>
                         <ParmHint>Extended Characteristic properties</ParmHint>
@@ -79333,11 +77948,6 @@
                         <ParmHint>Characteristic can be indicated</ParmHint>
                       </ParmItem>
                       <ParmItem>
-                        <ParmValue>0x40</ParmValue>
-                        <ParmText>gAuthSignedWrites_c</ParmText>
-                        <ParmHint>Characteristic can be written with signed data</ParmHint>
-                      </ParmItem>
-                      <ParmItem>
                         <ParmValue>0x80</ParmValue>
                         <ParmText>gExtendedProperties_c</ParmText>
                         <ParmHint>Extended Characteristic properties</ParmHint>
@@ -80928,11 +79538,6 @@
                         <ParmHint>Characteristic can be indicated</ParmHint>
                       </ParmItem>
                       <ParmItem>
-                        <ParmValue>0x40</ParmValue>
-                        <ParmText>gAuthSignedWrites_c</ParmText>
-                        <ParmHint>Characteristic can be written with signed data</ParmHint>
-                      </ParmItem>
-                      <ParmItem>
                         <ParmValue>0x80</ParmValue>
                         <ParmText>gExtendedProperties_c</ParmText>
                         <ParmHint>Extended Characteristic properties</ParmHint>
@@ -82518,11 +81123,6 @@
                         <ParmHint>Characteristic can be indicated</ParmHint>
                       </ParmItem>
                       <ParmItem>
-                        <ParmValue>0x40</ParmValue>
-                        <ParmText>gAuthSignedWrites_c</ParmText>
-                        <ParmHint>Characteristic can be written with signed data</ParmHint>
-                      </ParmItem>
-                      <ParmItem>
                         <ParmValue>0x80</ParmValue>
                         <ParmText>gExtendedProperties_c</ParmText>
                         <ParmHint>Extended Characteristic properties</ParmHint>
@@ -84020,11 +82620,6 @@
                     <ParmHint>Characteristic can be indicated</ParmHint>
                   </ParmItem>
                   <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
                     <ParmValue>0x80</ParmValue>
                     <ParmText>gExtendedProperties_c</ParmText>
                     <ParmHint>Extended Characteristic properties</ParmHint>
@@ -85397,11 +83992,6 @@
                     <ParmHint>Characteristic can be indicated</ParmHint>
                   </ParmItem>
                   <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
                     <ParmValue>0x80</ParmValue>
                     <ParmText>gExtendedProperties_c</ParmText>
                     <ParmHint>Extended Characteristic properties</ParmHint>
@@ -86767,11 +85357,6 @@
                     <ParmValue>0x20</ParmValue>
                     <ParmText>gIndicate_c</ParmText>
                     <ParmHint>Characteristic can be indicated</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
                   </ParmItem>
                   <ParmItem>
                     <ParmValue>0x80</ParmValue>
@@ -89236,11 +87821,6 @@
                     <ParmValue>0x20</ParmValue>
                     <ParmText>gIndicate_c</ParmText>
                     <ParmHint>Characteristic can be indicated</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
                   </ParmItem>
                   <ParmItem>
                     <ParmValue>0x80</ParmValue>
@@ -93946,11 +92526,6 @@
                     <ParmValue>0x20</ParmValue>
                     <ParmText>gIndicate_c</ParmText>
                     <ParmHint>Characteristic can be indicated</ParmHint>
-                  </ParmItem>
-                  <ParmItem>
-                    <ParmValue>0x40</ParmValue>
-                    <ParmText>gAuthSignedWrites_c</ParmText>
-                    <ParmHint>Characteristic can be written with signed data</ParmHint>
                   </ParmItem>
                   <ParmItem>
                     <ParmValue>0x80</ParmValue>
