@@ -302,10 +302,6 @@ typedef enum
     gCsSniffConfigComplete_c,                   /* CS sniffer configuration chain complete (Set Default Settings, Write
                                                    Cached Remote Capabilities, Create Config) */
     gCsSniffConfigFailed_c,                     /* CS sniffer configuration chain failed */
-    gCsSniffResultEvent_c,                      /* CS sniffed Subevent Result meta event to be forwarded from the
-                                                   sniffer (anch2) to the connected anchor (anch1) */
-    gCsSniffResultContinueEvent_c,              /* CS sniffed Subevent Result Continue meta event to be forwarded from
-                                                   the sniffer (anch2) to the connected anchor (anch1) */
     gCsCalibrationRequired_c,                   /* RADE reference calibration request on the sniffer;
                                                    notify the connected anchor that CS calibration is needed */
 #endif /* defined(gAppCsSniffing_d) && (gAppCsSniffing_d == 1) */
@@ -441,6 +437,58 @@ extern "C" {
 rasMeasurementData_t* AppLocalization_GetLocalData
 (
     deviceId_t deviceId
+);
+
+/*! *********************************************************************************
+*\fn           bleResult_t AppLocalization_StoreCsResultData(csSubeventResultEvent_t* pEvent,
+*                                                            rasMeasurementData_t* pResultData,
+*                                                            deviceId_t deviceId, bool_t isSniffing)
+*
+*\brief        Generic Channel Sounding Results handler. Stores a CS subevent result
+*              into the caller-provided result buffer. Shared by the regular CS path
+*              (local data) and the CS sniffing path (sniffed data). RAS/BTCS transfer
+*              handling and application error reporting are performed only for regular
+*              CS data (isSniffing == FALSE).
+*
+*\param  [in]  pEvent       Pointer to Channel Sounding Results event.
+*\param  [in]  pResultData  Destination measurement data buffer.
+*\param  [in]  deviceId     Device identifier used for timers/callbacks.
+*\param  [in]  isSniffing   TRUE for sniffed CS data, FALSE for regular local CS data.
+*
+*\retval       bleResult_t      Result of the operation.
+********************************************************************************** */
+bleResult_t AppLocalization_StoreCsResultData
+(
+    csSubeventResultEvent_t* pEvent,
+    rasMeasurementData_t* pResultData,
+    deviceId_t deviceId,
+    bool_t isSniffing
+);
+
+/*! *********************************************************************************
+*\fn           bleResult_t AppLocalization_StoreCsResultContinueData(csSubeventResultContinueEvent_t* pEvent,
+*                                                                    rasMeasurementData_t* pResultData,
+*                                                                    deviceId_t deviceId, bool_t isSniffing)
+*
+*\brief        Generic Channel Sounding Results Continue handler. Stores a CS subevent
+*              result continuation into the caller-provided result buffer. Shared by
+*              the regular CS path (local data) and the CS sniffing path (sniffed data).
+*              Application error reporting is performed only for regular CS data
+*              (isSniffing == FALSE).
+*
+*\param  [in]  pEvent       Pointer to Channel Sounding Results Continue event.
+*\param  [in]  pResultData  Destination measurement data buffer.
+*\param  [in]  deviceId     Device identifier used for callbacks.
+*\param  [in]  isSniffing   TRUE for sniffed CS data, FALSE for regular local CS data.
+*
+*\retval       bleResult_t      Result of the operation.
+********************************************************************************** */
+bleResult_t AppLocalization_StoreCsResultContinueData
+(
+    csSubeventResultContinueEvent_t* pEvent,
+    rasMeasurementData_t* pResultData,
+    deviceId_t deviceId,
+    bool_t isSniffing
 );
 
 /*! *********************************************************************************

@@ -306,11 +306,13 @@ static void AppLocalization_CSCmdStatusCallback
 
 static bleResult_t processEventResultData
 (
+    rasMeasurementData_t *pResultData,
     deviceId_t deviceId,
     uint8_t nbSteps,
     uint8_t subEventStatus,
     uint8_t procDoneStatus,
-    uint8_t *pEventData
+    uint8_t *pEventData,
+    bool_t isSniffing
 );
 
 static void TemperatureTimerCallback
@@ -3930,27 +3932,38 @@ static void AppLocalization_CSCmdStatusCallback
 }
 
 /*! *********************************************************************************
-*\fn           static bleResult_t processCsResultsEvent(csSubeventResultEvent_t* pEvent)
+*\fn           bleResult_t AppLocalization_StoreCsResultData(csSubeventResultEvent_t* pEvent,
+*                                                            rasMeasurementData_t* pResultData,
+*                                                            deviceId_t deviceId, bool_t isSniffing)
 *
-*\brief        Handles Channel Sounding Results Meta event.
+*\brief        Generic Channel Sounding Results handler. Stores a CS subevent result
+*              into the caller-provided result buffer. Shared by the regular CS path
+*              (local data) and the CS sniffing path (sniffed data). RAS/BTCS transfer
+*              handling and application error reporting are performed only for regular
+*              CS data (isSniffing == FALSE).
 *
-*\param  [in]  pEvent       Pointer to Channel Souding Results event.
+*\param  [in]  pEvent       Pointer to Channel Sounding Results event.
+*\param  [in]  pResultData  Destination measurement data buffer.
+*\param  [in]  deviceId     Device identifier used for timers/callbacks.
+*\param  [in]  isSniffing   TRUE for sniffed CS data, FALSE for regular local CS data.
 *
 *\retval       bleResult_t      Result of the operation.
 ********************************************************************************** */
-static bleResult_t processCsResultsEvent
+bleResult_t AppLocalization_StoreCsResultData
 (
-    csSubeventResultEvent_t* pEvent
+    csSubeventResultEvent_t* pEvent,
+    rasMeasurementData_t* pResultData,
+    deviceId_t deviceId,
+    bool_t isSniffing
 )
 {
     bleResult_t result = gBleOutOfMemory_c;
     uint16_t eventIdx = 0;
-    deviceId_t deviceId = pEvent->deviceId;
-    uint8_t subeventIndex = mResultData[deviceId].subeventIndex;
+    uint8_t subeventIndex = pResultData->subeventIndex;
 
     if (subeventIndex < gMaxNumCsSubevents_c)
     {
-        csRasSubeventHeader_t *pSubevtHeader = &mResultData[deviceId].aSubEventData[subeventIndex].subevtHeader;
+        csRasSubeventHeader_t *pSubevtHeader = &pResultData->aSubEventData[subeventIndex].subevtHeader;
 
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
 #if defined(gRasRREQ_d) && (gRasRREQ_d == 1U)
@@ -3960,40 +3973,53 @@ static bleResult_t processCsResultsEvent
 
         if (pEvent->subeventDoneStatus == (uint8_t)gCsNoResultsProcAborted_c)
         {
-            if (mpfAppCsCallback != NULL)
+            if ((isSniffing == FALSE) && (mpfAppCsCallback != NULL))
             {
                 mpfAppCsCallback(deviceId, (void*)&pEvent->abortReason, gErrorSubeventAborted_c);
             }
         }
 
         /* Set results data parameters */
-        if (mResultData[deviceId].dataIndex == 0U)
+        if (pResultData->dataIndex == 0U)
         {
-            mResultData[deviceId].deviceId = pEvent->deviceId;
-            mResultData[deviceId].configId = pEvent->configId;
-            mResultData[deviceId].procedureCounter = pEvent->procedureCounter;
-            mResultData[deviceId].numAntennaPaths = pEvent->numAntennaPaths;
+            pResultData->deviceId = pEvent->deviceId;
+            pResultData->configId = pEvent->configId;
+            pResultData->procedureCounter = pEvent->procedureCounter;
+            pResultData->numAntennaPaths = pEvent->numAntennaPaths;
 
-            if (mResultData[deviceId].numAntennaPaths > 0U && mResultData[deviceId].numAntennaPaths <= gMaxNumAntennaPaths_c)
+            if (pResultData->numAntennaPaths > 0U && pResultData->numAntennaPaths <= gMaxNumAntennaPaths_c)
             {
 #if defined(gAppCsTimeInfo_d) && (gAppCsTimeInfo_d == 1U)
-                gCsTimeInfo.csDistMeasStart = TM_GetTimestamp();
-                gCsTimeInfo.csDistMeasDuration  = 0U;
+                if (isSniffing == FALSE)
+                {
+                    gCsTimeInfo.csDistMeasStart = TM_GetTimestamp();
+                    gCsTimeInfo.csDistMeasDuration  = 0U;
+                }
 #endif
 
+                /* RAS/BTCS transfer handling only applies to regular CS data: sniffed
+                 * data is processed locally and is never forwarded over RAS/BTCS, and
+                 * the anchor may run regular BTCS and sniffing in the same image, so
+                 * the timer must be gated at runtime rather than only at compile time. */
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
 #if defined(gRasRREQ_d) && (gRasRREQ_d == 1U)
-                /* First results event - Expecting Data Ready from peer */
-                mRreqTimeoutData.deviceId = deviceId;
-                mRreqTimeoutData.reason = (uint8_t)rreqWaitingForDataReady_c;
-                /* Start Data Ready (On demad)/Real-time data timer */
-                RasClient_SartRapTimer(deviceId, mRreqTimeoutData);
+                if (isSniffing == FALSE)
+                {
+                    /* First results event - Expecting Data Ready from peer */
+                    mRreqTimeoutData.deviceId = deviceId;
+                    mRreqTimeoutData.reason = (uint8_t)rreqWaitingForDataReady_c;
+                    /* Start Data Ready (On demad)/Real-time data timer */
+                    RasClient_SartRapTimer(deviceId, mRreqTimeoutData);
+                }
 #endif /* gRasRREQ_d */
 #elif defined(gAppBtcsClient_d) && (gAppBtcsClient_d == 1U)
-                /* First local results event - arm the BTCS transfer watchdog so the
-                 * CS procedure auto-restart loop recovers if the peer L2CAP transfer
-                 * never completes. */
-                BtcsClient_StartTimer(deviceId);
+                if (isSniffing == FALSE)
+                {
+                    /* First local results event - arm the BTCS transfer watchdog so the
+                     * CS procedure auto-restart loop recovers if the peer L2CAP transfer
+                     * never completes. */
+                    BtcsClient_StartTimer(deviceId);
+                }
 #endif /* gAppRasDataTransfer_d */
             }
             else
@@ -4013,7 +4039,7 @@ static bleResult_t processCsResultsEvent
             pSubevtHeader->abortReason = pEvent->abortReason;
             pSubevtHeader->numStepsReported = pEvent->numStepsReported;
 
-            mResultData[deviceId].totalNumSteps += pEvent->numStepsReported;
+            pResultData->totalNumSteps = IncrementU8Saturating(pResultData->totalNumSteps, pEvent->numStepsReported);
 
             if (pEvent->pData != NULL)
             {
@@ -4021,9 +4047,86 @@ static bleResult_t processCsResultsEvent
                 eventIdx = (uint16_t)((uint32_t)pEvent->startACLConnEvent - (uint32_t)pSubevtHeader->startACLConnEvent);
                 *(pEvent->pData + 3U * sizeof(uint8_t)) |= (uint8_t)(eventIdx << CS_EVTIDX_SHIFT);
 
-                result = processEventResultData(deviceId, pEvent->numStepsReported,
-                                                pEvent->subeventDoneStatus, pEvent->procedureDoneStatus, pEvent->pData);
+                result = processEventResultData(pResultData, deviceId, pEvent->numStepsReported,
+                                                pEvent->subeventDoneStatus, pEvent->procedureDoneStatus,
+                                                pEvent->pData, isSniffing);
             }
+        }
+    }
+
+    return result;
+}
+
+/*! *********************************************************************************
+*\fn           static bleResult_t processCsResultsEvent(csSubeventResultEvent_t* pEvent)
+*
+*\brief        Handles Channel Sounding Results Meta event for regular (local) CS data.
+*
+*\param  [in]  pEvent       Pointer to Channel Souding Results event.
+*
+*\retval       bleResult_t      Result of the operation.
+********************************************************************************** */
+static bleResult_t processCsResultsEvent
+(
+    csSubeventResultEvent_t* pEvent
+)
+{
+    return AppLocalization_StoreCsResultData(pEvent, &mResultData[pEvent->deviceId],
+                                             pEvent->deviceId, FALSE);
+}
+
+/*! *********************************************************************************
+*\fn           bleResult_t AppLocalization_StoreCsResultContinueData(csSubeventResultContinueEvent_t* pEvent,
+*                                                                    rasMeasurementData_t* pResultData,
+*                                                                    deviceId_t deviceId, bool_t isSniffing)
+*
+*\brief        Generic Channel Sounding Results Continue handler. Stores a CS subevent
+*              result continuation into the caller-provided result buffer. Shared by
+*              the regular CS path (local data) and the CS sniffing path (sniffed data).
+*              Application error reporting is performed only for regular CS data
+*              (isSniffing == FALSE).
+*
+*\param  [in]  pEvent       Pointer to Channel Sounding Results Continue event.
+*\param  [in]  pResultData  Destination measurement data buffer.
+*\param  [in]  deviceId     Device identifier used for callbacks.
+*\param  [in]  isSniffing   TRUE for sniffed CS data, FALSE for regular local CS data.
+*
+*\retval       bleResult_t      Result of the operation.
+********************************************************************************** */
+bleResult_t AppLocalization_StoreCsResultContinueData
+(
+    csSubeventResultContinueEvent_t* pEvent,
+    rasMeasurementData_t* pResultData,
+    deviceId_t deviceId,
+    bool_t isSniffing
+)
+{
+    bleResult_t result = gBleOutOfMemory_c;
+    uint8_t subeventIndex = pResultData->subeventIndex;
+
+    if (subeventIndex < gMaxNumCsSubevents_c)
+    {
+        csRasSubeventHeader_t *pSubevtHeader = &pResultData->aSubEventData[subeventIndex].subevtHeader;
+
+        if (pEvent->subeventDoneStatus == (uint8_t)gCsNoResultsProcAborted_c)
+        {
+            if ((isSniffing == FALSE) && (mpfAppCsCallback != NULL))
+            {
+                mpfAppCsCallback(deviceId, (void*)&pEvent->abortReason, gErrorSubeventAborted_c);
+            }
+        }
+
+        /* Update results data parameters */
+        pResultData->totalNumSteps = IncrementU8Saturating(pResultData->totalNumSteps, pEvent->numStepsReported);
+        pSubevtHeader->subeventDoneStatus = pEvent->subeventDoneStatus;
+        pSubevtHeader->procedureDoneStatus = pEvent->procedureDoneStatus;
+        pSubevtHeader->numStepsReported += pEvent->numStepsReported;
+
+        if (pEvent->pData != NULL)
+        {
+            result = processEventResultData(pResultData, deviceId, pEvent->numStepsReported,
+                                            pEvent->subeventDoneStatus, pEvent->procedureDoneStatus,
+                                            pEvent->pData, isSniffing);
         }
     }
 
@@ -4033,7 +4136,7 @@ static bleResult_t processCsResultsEvent
 /*! *********************************************************************************
 *\fn           static bleResult_t processCsResultsContinueEvent(csSubeventResultContinueEvent_t* pEvent)
 *
-*\brief        Handles Channel Sounding Results Continue Meta event.
+*\brief        Handles Channel Sounding Results Continue Meta event for regular (local) CS data.
 *
 *\param  [in]  pEvent       Pointer to Channel Souding Results Continue event.
 *
@@ -4044,36 +4147,8 @@ static bleResult_t processCsResultsContinueEvent
     csSubeventResultContinueEvent_t* pEvent
 )
 {
-    bleResult_t result = gBleOutOfMemory_c;
-    deviceId_t deviceId = pEvent->deviceId;
-    uint8_t subeventIndex = mResultData[deviceId].subeventIndex;
-
-    if (subeventIndex < gMaxNumCsSubevents_c)
-    {
-        csRasSubeventHeader_t *pSubevtHeader = &mResultData[deviceId].aSubEventData[subeventIndex].subevtHeader;
-
-        if (pEvent->subeventDoneStatus == (uint8_t)gCsNoResultsProcAborted_c)
-        {
-            if (mpfAppCsCallback != NULL)
-            {
-                mpfAppCsCallback(deviceId, (void*)&pEvent->abortReason, gErrorSubeventAborted_c);
-            }
-        }
-
-        /* Update results data parameters */
-        mResultData[deviceId].totalNumSteps += pEvent->numStepsReported;
-        pSubevtHeader->subeventDoneStatus = pEvent->subeventDoneStatus;
-        pSubevtHeader->procedureDoneStatus = pEvent->procedureDoneStatus;
-        pSubevtHeader->numStepsReported += pEvent->numStepsReported;
-
-        if (pEvent->pData != NULL)
-        {
-            result = processEventResultData(deviceId, pEvent->numStepsReported,
-                                            pEvent->subeventDoneStatus, pEvent->procedureDoneStatus, pEvent->pData);
-        }
-    }
-
-    return result;
+    return AppLocalization_StoreCsResultContinueData(pEvent, &mResultData[pEvent->deviceId],
+                                                     pEvent->deviceId, FALSE);
 }
 
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
@@ -4099,33 +4174,38 @@ static void RASEventCallback(deviceId_t deviceId, rasControlPointRspCodeValues_t
 #endif
 
 /*! *********************************************************************************
-*\fn           static bleResult_t processEventResultData(deviceId_t deviceId, uint8_t nbSteps,
-*              uint8_t subEventStatus, uint8_t procDoneStatus, uint8_t *pEventData)
+*\fn           static bleResult_t processEventResultData(rasMeasurementData_t *pResultData,
+*              deviceId_t deviceId, uint8_t nbSteps, uint8_t subEventStatus,
+*              uint8_t procDoneStatus, uint8_t *pEventData, bool_t isSniffing)
 *
 *\brief        Process Channel Sounding measurement result data.
 *
-*\param  [in]  deviceId      Device ID.
-*\param  [in]  nbSteps         Number of steps included in measurement data.
+*\param  [in]  pResultData      Destination measurement data buffer.
+*\param  [in]  deviceId         Device ID (used for error reporting / server transfer).
+*\param  [in]  nbSteps          Number of steps included in measurement data.
 *\param  [in]  subEventStatus   SubEvent status.
 *\param  [in]  procDoneStatus   Procedure done status
 *\param  [in]  pEventData       Pointer to Channel Souding measurement data.
+*\param  [in]  isSniffing       TRUE for sniffed CS data, FALSE for regular local CS data.
 *
 *\retval       bleResult_t      Result of the operation.
 ********************************************************************************** */
 static bleResult_t processEventResultData
 (
+    rasMeasurementData_t *pResultData,
     deviceId_t deviceId,
     uint8_t nbSteps,
     uint8_t subEventStatus,
     uint8_t procDoneStatus,
-    uint8_t *pEventData
+    uint8_t *pEventData,
+    bool_t isSniffing
 )
 {
     bleResult_t result = gBleSuccess_c;
     uint32_t dataSize = 0;
     uint32_t bufferSize = 0U;
     uint8_t *stepDataLenPtr = pEventData + 2U * sizeof(uint8_t); /* Skip mode, channel */
-    uint8_t subeventIndex = mResultData[deviceId].subeventIndex;
+    uint8_t subeventIndex = pResultData->subeventIndex;
 
     /* Compute results data size */
     for (uint32_t i = 0; i < nbSteps; i++)
@@ -4134,96 +4214,134 @@ static bleResult_t processEventResultData
     }
 
     /* Memorized size of the destination buffer that receives this data:
-       client stores into the pData block, servers into the ranging-data body. */
-#if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U)) || (defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1U))
-    if (mResultData[deviceId].pData != NULL)
+       client (and sniffed data) store into the pData block, servers into the
+       ranging-data body. */
+    if (isSniffing == TRUE)
     {
-        bufferSize = ((csAppData_t*)(void*)mResultData[deviceId].pData)->allocatedDataSize;
+        if (pResultData->pData != NULL)
+        {
+            bufferSize = ((csAppData_t*)(void*)pResultData->pData)->allocatedDataSize;
+        }
     }
+    else
+    {
+#if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U)) || (defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1U))
+        if (pResultData->pData != NULL)
+        {
+            bufferSize = ((csAppData_t*)(void*)pResultData->pData)->allocatedDataSize;
+        }
 #else
-    bufferSize = (uint32_t)AppLocalizationAlgo_GetRangingDataSize(deviceId);
+        bufferSize = (uint32_t)AppLocalizationAlgo_GetRangingDataSize(deviceId);
 #endif
+    }
 
     if ((dataSize >= bufferSize) ||
-        (mResultData[deviceId].dataIndex >= (bufferSize - dataSize)))
+        (pResultData->dataIndex >= (bufferSize - dataSize)))
     {
         result = gBleOutOfMemory_c;
-        AppLocalizationError(deviceId, gAppLclNoSubeventMemoryAvailable_c);
+        if (isSniffing == FALSE)
+        {
+            AppLocalizationError(deviceId, gAppLclNoSubeventMemoryAvailable_c);
+        }
     }
     else
     {
         /* Increment subevent data size */
-        mResultData[deviceId].aSubEventData[subeventIndex].dataSize += (uint16_t)dataSize;
+        pResultData->aSubEventData[subeventIndex].dataSize += (uint16_t)dataSize;
 
+        /* Uncompress data on-the-fly. Sniffed data is always uncompressed into the
+           sniff result buffer; regular local data is uncompressed only for the client
+           (RAS/BTCS) build variants. */
+        if (isSniffing == TRUE)
+        {
+            if (pResultData->pData != NULL)
+            {
+                AppLocalizationAlgo_UncompressResponse(pEventData, dataSize, pResultData, TRUE);
+            }
+        }
+        else
+        {
 #if (defined (gRasRREQ_d) && (gRasRREQ_d == 1U)) || (defined (gAppBtcsClient_d) && (gAppBtcsClient_d == 1U))
-        /* Uncompress local data on-the-fly */
-        AppLocalizationAlgo_UncompressResponse(pEventData, dataSize, &mResultData[deviceId], FALSE);
+            /* Uncompress local data on-the-fly */
+            AppLocalizationAlgo_UncompressResponse(pEventData, dataSize, pResultData, FALSE);
 #endif
-        mResultData[deviceId].dataIndex += dataSize;
+        }
+        pResultData->dataIndex += dataSize;
 
+        /* RAS/BTCS ranging-data body building only applies to regular (non-sniffed)
+           CS data: sniffed data is processed locally and never forwarded. The
+           anchor may run regular BTCS and sniffing in the same image, so the
+           transfer handling is gated at runtime (isSniffing) as well as at compile
+           time. */
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1)
 #if defined (gRasRRSP_d) && (gRasRRSP_d == 1U)
-        /* Parse new subevent data */
-        Ras_SetDataPointer(deviceId, &mResultData[deviceId]);
-        Ras_SetEventCallback(RASEventCallback);
-
-        /* This is continuation data for the current subevent */
-        if ((subeventIndex == 0U) &&
-            (mResultData[deviceId].aSubEventData[subeventIndex].dataSize == (uint16_t)dataSize))
+        if (isSniffing == FALSE)
         {
-            if (subEventStatus == (uint8_t)gCsCompleteResults_c ||
-                subEventStatus == (uint8_t)gCsNoResultsProcAborted_c)
+            /* Parse new subevent data */
+            Ras_SetDataPointer(deviceId, pResultData);
+            Ras_SetEventCallback(RASEventCallback);
+
+            /* This is continuation data for the current subevent */
+            if ((subeventIndex == 0U) &&
+                (pResultData->aSubEventData[subeventIndex].dataSize == (uint16_t)dataSize))
             {
-                /* The first chunk includes a complete subevent, pack its header as well */
-                result = Ras_BuildRangingDataBody(deviceId, pEventData, TRUE, TRUE);
+                if (subEventStatus == (uint8_t)gCsCompleteResults_c ||
+                    subEventStatus == (uint8_t)gCsNoResultsProcAborted_c)
+                {
+                    /* The first chunk includes a complete subevent, pack its header as well */
+                    result = Ras_BuildRangingDataBody(deviceId, pEventData, TRUE, TRUE);
+                }
+                else
+                {
+                    /* The first chunk does not include a complete subevent, pack only the procedure header */
+                    result = Ras_BuildRangingDataBody(deviceId, pEventData, TRUE, FALSE);
+                }
+            }
+            else if (subEventStatus == (uint8_t)gCsCompleteResults_c ||
+                     subEventStatus == (uint8_t)gCsNoResultsProcAborted_c)
+            {
+                /* The subevent is complete, can pack its header */
+                result = Ras_BuildRangingDataBody(deviceId, pEventData, FALSE, TRUE);
             }
             else
             {
-                /* The first chunk does not include a complete subevent, pack only the procedure header */
-                result = Ras_BuildRangingDataBody(deviceId, pEventData, TRUE, FALSE);
+                /* Intermediate chunk, no header to be packed */
+                result = Ras_BuildRangingDataBody(deviceId, pEventData, FALSE, FALSE);
             }
-        }
-        else if (subEventStatus == (uint8_t)gCsCompleteResults_c ||
-                 subEventStatus == (uint8_t)gCsNoResultsProcAborted_c)
-        {
-            /* The subevent is complete, can pack its header */
-            result = Ras_BuildRangingDataBody(deviceId, pEventData, FALSE, TRUE);
-        }
-        else
-        {
-            /* Intermediate chunk, no header to be packed */
-            result = Ras_BuildRangingDataBody(deviceId, pEventData, FALSE, FALSE);
         }
 #endif /* gRasRRSP_d */
 #elif defined(gAppBtcsServer_d) && (gAppBtcsServer_d == 1U)
-        if ((subeventIndex == 0U) &&
-            (mResultData[deviceId].aSubEventData[subeventIndex].dataSize == (uint16_t)dataSize))
+        if (isSniffing == FALSE)
         {
-            result = BtcsServer_BuildRangingData(deviceId, pEventData, nbSteps, gCsProcHeader_c);
-        }
-        else if ((subeventIndex > 0U) &&
-            (mResultData[deviceId].aSubEventData[subeventIndex].dataSize == (uint16_t)dataSize))
-        {
-            result = BtcsServer_BuildRangingData(deviceId, pEventData, nbSteps, gCsSubEvtHeader_c);
-        }
-        else
-        {
-            result = BtcsServer_BuildRangingData(deviceId, pEventData, nbSteps, gCsSubEvtContHeader_c);
+            if ((subeventIndex == 0U) &&
+                (pResultData->aSubEventData[subeventIndex].dataSize == (uint16_t)dataSize))
+            {
+                result = BtcsServer_BuildRangingData(deviceId, pEventData, nbSteps, gCsProcHeader_c);
+            }
+            else if ((subeventIndex > 0U) &&
+                (pResultData->aSubEventData[subeventIndex].dataSize == (uint16_t)dataSize))
+            {
+                result = BtcsServer_BuildRangingData(deviceId, pEventData, nbSteps, gCsSubEvtHeader_c);
+            }
+            else
+            {
+                result = BtcsServer_BuildRangingData(deviceId, pEventData, nbSteps, gCsSubEvtContHeader_c);
+            }
         }
 #endif /* gAppRasDataTransfer_d */
 
         if (((subEventStatus == (uint8_t)gCsCompleteResults_c) ||
              (subEventStatus == (uint8_t)gCsNoResultsProcAborted_c)) &&
-            (mResultData[deviceId].subeventIndex < (gMaxNumCsSubevents_c - 1U))
+            (pResultData->subeventIndex < (gMaxNumCsSubevents_c - 1U))
            )
         {
             /* Subevent Done - move to next subevent */
             if (procDoneStatus == (uint8_t)gCsPartialResults_c)
             {
-                mResultData[deviceId].subeventIndex++;
-                subeventIndex = mResultData[deviceId].subeventIndex;
+                pResultData->subeventIndex++;
+                subeventIndex = pResultData->subeventIndex;
                 /* Set data index for next sub event. There is no need to set the data index for the first sub event as it is 0*/
-                mResultData[deviceId].aSubEventData[subeventIndex].dataIdx = mResultData[deviceId].dataIndex;
+                pResultData->aSubEventData[subeventIndex].dataIdx = pResultData->dataIndex;
             }
          }
     }
