@@ -78,7 +78,7 @@
 
 #define gAppUseShellInApplication_d           1
 
-#define gAppDisableControllerLowPower_d     1
+#define gAppDisableControllerLowPower_d     0
 
 /*! Enable/Disable PowerDown functionality in Application */
 #define gAppLowpowerEnabled_d           0

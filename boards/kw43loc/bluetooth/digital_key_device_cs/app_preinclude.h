@@ -70,7 +70,7 @@
 
 #define gAppLowpowerEnabled_d           0
 
-#define gAppDisableControllerLowPower_d     1
+#define gAppDisableControllerLowPower_d     0
 
 /* Disable LEDs when enabling low power */
 #if (defined(gAppLowpowerEnabled_d) && (gAppLowpowerEnabled_d>0))
