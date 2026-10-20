@@ -637,7 +637,6 @@ bleResult_t App_NvmRead
     {
 #if gAppUseNvm_d
 #if gUnmirroredFeatureSet_d == TRUE
-        uint32_t mSize = 0UL;
         void**   ppNvmData = NULL;
         void*    pRamData = NULL;
         for(uint8_t idx = 0U; idx < 6U; idx++)
@@ -651,7 +650,6 @@ bleResult_t App_NvmRead
                     {
                         ppNvmData = (void**)&aBondingHeader[mEntryIdx];
                         pRamData  = pBondHeader;
-                        mSize     = gBleBondIdentityHeaderSize_c - gIdentityHeaderOverhead_c;
                     }
                 }
                 break;
@@ -661,7 +659,6 @@ bleResult_t App_NvmRead
                     {
                         ppNvmData = (void**)&aBondingDataDynamic[mEntryIdx];
                         pRamData  = pBondDataDynamic;
-                        mSize     = gBleBondDataDynamicSize_c;
                     }
                 }
                 break;
@@ -671,7 +668,6 @@ bleResult_t App_NvmRead
                     {
                         ppNvmData = (void**)&aBondingDataStatic[mEntryIdx];
                         pRamData  = pBondDataStatic;
-                        mSize     = gBleBondDataStaticSize_c;
                     }
                 }
                 break;
@@ -681,7 +677,6 @@ bleResult_t App_NvmRead
                     {
                         ppNvmData = (void**)&aBondingDataLegacy[mEntryIdx];
                         pRamData  = pBondDataLegacy;
-                        mSize     = gBleBondDataLegacySize_c;
                     }
                 }
                 break;
@@ -691,7 +686,6 @@ bleResult_t App_NvmRead
                     {
                         ppNvmData = (void**)&aBondingDataDeviceInfo[mEntryIdx];
                         pRamData  = pBondDataDeviceInfo;
-                        mSize     = gBleBondDataDeviceInfoSize_c;
                     }
                 }
                 break;
@@ -706,7 +700,6 @@ bleResult_t App_NvmRead
                                 gcGapMaximumSavedCccds_c +
                                     mDescriptorIndex];
                             pRamData  = pBondDataDescriptor;
-                            mSize     = gBleBondDataDescriptorSize_c;
                         }
                     }
                 }
@@ -716,7 +709,10 @@ bleResult_t App_NvmRead
             /* if ppNvmData is not NULL the same holds for pRamData */
             if((NULL != ppNvmData) && (NULL != *ppNvmData))
             {
-                FLib_MemCpy(pRamData, *ppNvmData, mSize);
+                if(NvRead(ppNvmData, pRamData) != gNVM_OK_c)
+                {
+                    status = gBleUnavailable_c;
+                }
             }
             if((NULL != ppNvmData) && (NULL == *ppNvmData))
             {
@@ -985,11 +981,7 @@ void*    pLocalKey
 
 #if gUnmirroredFeatureSet_d == TRUE
         void**   ppNvmData = (void**)&aBleLocalKeys[mEntryIdx];
-        if(NULL != *ppNvmData)
-        {
-            FLib_MemCpy(pLocalKey, *ppNvmData, sizeof(bleLocalKeysBlob_t));
-        }
-        else
+        if(NvRead(ppNvmData, pLocalKey) != gNVM_OK_c)
         {
             status = gBleUnavailable_c;
         }
