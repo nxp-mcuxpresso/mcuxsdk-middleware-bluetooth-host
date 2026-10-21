@@ -256,6 +256,13 @@ static bool_t HandleLocalMciqPresent
     csAppData_t *pDstAppBuffer,
     bool_t bSniffing
 );
+static bool_t HandleLocalMode0Present
+(
+    uint8_t **ppEventData,
+    uint32_t *pDataSize,
+    csAppData_t *pDstAppBuffer,
+    bool_t bSniffing
+);
 
 /************************************************************************************
 *************************************************************************************
@@ -335,27 +342,11 @@ void AppLocalizationAlgo_UncompressResponse
 
         if (mode == (uint8_t)gCsStepMode0_c)
         {
-            assert(pDstAppBuffer->mode0BufferOffset < (gMaxNumCsStepsMode0_c * gMaxNumCsSubevents_c));
-            CheckSkipBytes(pEventData, dataSize, sizeof(uint8_t), bIncomplete,
-                pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].quality = *pEventData;
-            );
-            CheckSkipBytes(pEventData, dataSize, sizeof(uint8_t), bIncomplete,
-                pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].rssi = (int8_t)*pEventData;
-            );
-            CheckSkipBytes(pEventData, dataSize, sizeof(uint8_t), bIncomplete,
-                pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].antenna = *pEventData;
-            );
-            if ((bSniffing == TRUE) || (mGlobalRangeSettings.role == gCsRoleInitiator_c))
+            bIncomplete = HandleLocalMode0Present(&pEventData, &dataSize, pDstAppBuffer, bSniffing);
+            if (bIncomplete == TRUE)
             {
-                CheckSkipBytes(pEventData, dataSize, sizeof(uint16_t), bIncomplete,
-                    pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].measuredFreqOffset = Utils_ExtractTwoByteValue(pEventData);
-                );
+                break;
             }
-            else
-            {
-                pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].measuredFreqOffset = 0U;
-            }
-            pDstAppBuffer->mode0BufferOffset++;
             pLocalData->step++;
             continue;
         }
@@ -1087,6 +1078,64 @@ uint32_t AppLocalizationAlgo_UncompressRemoteResponseL2CAP
 * Private functions
 *************************************************************************************
 ************************************************************************************/
+
+/*! *********************************************************************************
+ *\fn           static bool_t HandleLocalMode0Present(uint8_t **ppEventData,
+ *                                                     uint32_t *pDataSize,
+ *                                                     csAppData_t *pDstAppBuffer,
+ *                                                     bool_t bSniffing)
+ *
+ * \brief       Parse and store a mode-0 step record from local CS event.
+ *              Extracts quality, RSSI, antenna and, for initiator or sniffed data,
+ *              the measured frequency offset, then stores them in the mode-0 buffer.
+ *
+ * \param[in,out] ppEventData       Pointer to pointer of event data. Updated to point
+ *                                  after parsed mode-0 data.
+ * \param[in,out] pDataSize         Pointer to remaining data size. Updated after parsing.
+ * \param[out]    pDstAppBuffer     Pointer to destination application buffer for storing
+ *                                  parsed mode-0 data
+ * \param[in]     bSniffing         TRUE if the data set is sniffed CS data
+ *
+ *\retval       bool_t              TRUE if data is incomplete, FALSE if parsing succeeded
+ ********************************************************************************** */
+static bool_t HandleLocalMode0Present
+(
+    uint8_t **ppEventData,
+    uint32_t *pDataSize,
+    csAppData_t *pDstAppBuffer,
+    bool_t bSniffing
+)
+{
+    bool_t bIncomplete = FALSE;
+
+    assert(pDstAppBuffer->mode0BufferOffset < (gMaxNumCsStepsMode0_c * gMaxNumCsSubevents_c));
+
+    do
+    {
+        CheckSkipBytes(*ppEventData, *pDataSize, sizeof(uint8_t), bIncomplete,
+            pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].quality = **ppEventData;
+        );
+        CheckSkipBytes(*ppEventData, *pDataSize, sizeof(uint8_t), bIncomplete,
+            pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].rssi = (int8_t)**ppEventData;
+        );
+        CheckSkipBytes(*ppEventData, *pDataSize, sizeof(uint8_t), bIncomplete,
+            pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].antenna = **ppEventData;
+        );
+        if ((bSniffing == TRUE) || (mGlobalRangeSettings.role == gCsRoleInitiator_c))
+        {
+            CheckSkipBytes(*ppEventData, *pDataSize, sizeof(uint16_t), bIncomplete,
+                pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].measuredFreqOffset = Utils_ExtractTwoByteValue(*ppEventData);
+            );
+        }
+        else
+        {
+            pDstAppBuffer->mode0Buffer[pDstAppBuffer->mode0BufferOffset].measuredFreqOffset = 0U;
+        }
+        pDstAppBuffer->mode0BufferOffset++;
+    } while(FALSE);
+
+    return bIncomplete;
+}
 
 /*! *********************************************************************************
  *\fn           static bool_t HandleLocalTofPresent(uint8_t **ppEventData,
