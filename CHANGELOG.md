@@ -5,6 +5,26 @@ All notable changes to NXP Bluetooth LE Host will be documented in this file.
 **NXP Bluetooth LE Host Stack** is certified **Bluetooth 6.3**
 
 
+## [1.10.25] - mcux v2026-12-00-pvw2
+
+### Added
+- loc_reader Localization Data Export now outputs CDE (Channel Distance Estimate) distance results
+
+### Improved
+- KW43 BLE Host: Flash/RAM optimization for the Connection Subrating feature
+- Simplified Inline PCT Transfer (IPT) configuration (no longer requires enabling LL Experimental Features)
+
+### Fixed
+- NVM: replaced direct flash reads with the FlashRead API for async flash driver consistency
+- Fixed missing comma in `gGapDefaultConnectionRequestParameters_d` (gap_types.h)
+- Miscellaneous Coverity fixes
+- Miscellaneous MISRA fixes
+- Miscellaneous MSG fixes
+
+### Changed
+- Removed unused BLE_HCI.xml package descriptor
+
+
 ## [1.10.24] - mcux v2026-12-00-pvw1
 
 ### Added
