@@ -98,7 +98,7 @@ typedef PACKED_STRUCT rasMeasurementData_tag
     uint8_t             configId;
     uint16_t            procedureCounter;
     uint8_t             numAntennaPaths;
-    uint8_t             totalNumSteps;
+    uint16_t            totalNumSteps;
     int8_t              selectedTxPower;
     uint32_t            dataIndex;
     uint16_t            totalSentRcvDataIndex;
@@ -107,8 +107,8 @@ typedef PACKED_STRUCT rasMeasurementData_tag
     uint8_t             crtNumSteps;
     measSubEvtData_t    aSubEventData[gMaxNumCsSubevents_c];
 
-    uint8_t             crtStep;
-    uint8_t             step;
+    uint16_t            crtStep;
+    uint16_t            step;
     uint32_t            position;
     uint8_t             *pRemaining;
     uint32_t            remainingLen;

@@ -231,7 +231,8 @@ static void unpackDataHeader
         pDstData->procedureCounter = Utils_ExtractTwoByteValue(pSrcAux);
         pSrcAux = &pSrcAux[2U];
         pDstData->numAntennaPaths = *pSrcAux++;
-        pDstData->totalNumSteps = *pSrcAux++;
+        pDstData->totalNumSteps = Utils_ExtractTwoByteValue(pSrcAux);
+        pSrcAux = &pSrcAux[2U];
         pDstData->selectedTxPower = (int8_t)(*pSrcAux++);
         pDstData->dataIndex = Utils_ExtractFourByteValue(pSrcAux);
         pSrcAux = &pSrcAux[4U];

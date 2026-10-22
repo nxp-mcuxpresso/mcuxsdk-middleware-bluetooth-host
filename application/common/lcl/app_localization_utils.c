@@ -879,7 +879,7 @@ bool_t AppLocalizationAlgo_UncompressRemoteResponse
     uint8_t *pLastOk = NULL;
     uint8_t *pTemp = NULL;
     uint8_t crtNumSteps = 0U;
-    uint8_t totalNumSteps = 0U;
+    uint16_t totalNumSteps = 0U;
 
     /* Make sure the number of antenna paths is set at the begining of the uncompress procedure */
     if (pDstAppBuffer->mciq_data.n_ap == 0U)

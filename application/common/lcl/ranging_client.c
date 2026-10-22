@@ -19,6 +19,7 @@
 #if defined (gAppRasDataTransfer_d) && (gAppRasDataTransfer_d == 1U)
 #if defined (gRasRREQ_d) && (gRasRREQ_d == 1U)
 #include "ranging_client_interface.h"
+#include "ble_utils.h"
 #include "fsl_component_timer_manager.h"
 #include "fsl_component_mem_manager.h"
 #include "channel_sounding.h"
@@ -959,7 +960,7 @@ void RasClient_ParseReceivedSubeventHeader
     pSubevtHeader->abortReason = *pAuxData++;
     pSubevtHeader->referencePowerLevel = (int8_t)(*pAuxData++);
     pSubevtHeader->numStepsReported = *pAuxData++;
-    mPeerResultData[deviceId].totalNumSteps += pSubevtHeader->numStepsReported;
+    mPeerResultData[deviceId].totalNumSteps = IncrementU16Saturating(mPeerResultData[deviceId].totalNumSteps, pSubevtHeader->numStepsReported);
 }
 
 /*! *********************************************************************************

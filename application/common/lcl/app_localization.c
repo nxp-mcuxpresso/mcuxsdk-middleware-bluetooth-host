@@ -18,6 +18,7 @@
 #include "EmbeddedTypes.h"
 #include "fsl_component_timer_manager.h"
 #include "ble_general.h"
+#include "ble_utils.h"
 #include "hci_types.h"
 #include "fsl_port.h"
 #include "fsl_component_mem_manager.h"
@@ -4040,7 +4041,7 @@ bleResult_t AppLocalization_StoreCsResultData
             pSubevtHeader->abortReason = pEvent->abortReason;
             pSubevtHeader->numStepsReported = pEvent->numStepsReported;
 
-            pResultData->totalNumSteps = IncrementU8Saturating(pResultData->totalNumSteps, pEvent->numStepsReported);
+            pResultData->totalNumSteps = IncrementU16Saturating(pResultData->totalNumSteps, pEvent->numStepsReported);
 
             if (pEvent->pData != NULL)
             {
@@ -4118,7 +4119,7 @@ bleResult_t AppLocalization_StoreCsResultContinueData
         }
 
         /* Update results data parameters */
-        pResultData->totalNumSteps = IncrementU8Saturating(pResultData->totalNumSteps, pEvent->numStepsReported);
+        pResultData->totalNumSteps = IncrementU16Saturating(pResultData->totalNumSteps, pEvent->numStepsReported);
         pSubevtHeader->subeventDoneStatus = pEvent->subeventDoneStatus;
         pSubevtHeader->procedureDoneStatus = pEvent->procedureDoneStatus;
         pSubevtHeader->numStepsReported += pEvent->numStepsReported;
