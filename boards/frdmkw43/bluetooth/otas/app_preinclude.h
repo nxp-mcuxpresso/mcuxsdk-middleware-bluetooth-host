@@ -107,7 +107,7 @@
 #define TM_TASK_STACK_SIZE              256
 
 /* The size used for the Idle task, in dwords. */
-#define configMINIMAL_STACK_SIZE        165
+#define configMINIMAL_STACK_SIZE        192
 
 #endif
 
