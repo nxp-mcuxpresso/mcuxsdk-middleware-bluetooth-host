@@ -187,6 +187,10 @@ static void BleApp_ControllerNotificationCallback(bleCtrlNotificationEvent_t *pN
 #endif
 #endif
 
+#if defined(gAppCeRssiMonitoring_c) && (gAppCeRssiMonitoring_c)
+static void BleApp_HandleCeRssiMonitoring(bleCeRssiMonitoringEvent_t *pCeRssiMonitoringEvent);
+#endif
+
 static uint8_t *Serial_LaunderConstStr(const char *pStr);
 static void BleApp_SerialInit(void);
 static void BluetoothLEHost_Initialized(void);
@@ -794,6 +798,12 @@ static void BleApp_HandleConnectedEvent(deviceId_t peerDeviceId, gapConnectionEv
 
 #if defined(gUseControllerNotifications_c) && (gUseControllerNotifications_c)
         (void)Gap_ControllerEnhancedNotification((uint16_t)gNotifConnRxPdu_c, peerDeviceId);
+#endif
+
+#if defined(gAppCeRssiMonitoring_c) && (gAppCeRssiMonitoring_c)
+        /* Start CE RSSI monitoring: the controller buffers the configured number of
+           connection-event RSSI samples before reporting them in a single batch. */
+        (void)Gap_ControllerConfigureCeRssiMonitoring((uint8_t)gAppCeRssiMonitoringConnIntervals_c);
 #endif
 
 #if gAppUseBonding_d
@@ -1934,6 +1944,59 @@ static void BleApp_ControllerNotificationCallback
 
 #endif
 
+#if defined(gAppCeRssiMonitoring_c) && (gAppCeRssiMonitoring_c)
+/*! *********************************************************************************
+ * \brief        Function handling the CE RSSI Monitoring report event.
+ *
+ * Prints every buffered connection-event RSSI sample and frees the batch, which
+ * the application owns.
+ *
+ * \param[in]    pCeRssiMonitoringEvent Pointer to the CE RSSI Monitoring event.
+ ********************************************************************************** */
+static void BleApp_HandleCeRssiMonitoring
+(
+    bleCeRssiMonitoringEvent_t *pCeRssiMonitoringEvent
+)
+{
+    if (pCeRssiMonitoringEvent->status != gBleSuccess_c)
+    {
+        Serial_Print("CE RSSI Monitoring error, status ", gAllowToBlock_d);
+        Serial_PrintDec((uint16_t)pCeRssiMonitoringEvent->status);
+        Serial_Print("\n\r", gAllowToBlock_d);
+    }
+    else
+    {
+        for (uint8_t i = 0U; i < pCeRssiMonitoringEvent->numEntries; i++)
+        {
+            bleCeRssiMonitorEntry_t *pEntry = &pCeRssiMonitoringEvent->pEntries[i];
+            int32_t rssiVal                 = (int32_t)pEntry->rssi;
+
+            Serial_Print("CE RSSI Monitoring: device ", gAllowToBlock_d);
+            Serial_PrintDec((uint8_t)pEntry->deviceId);
+            Serial_Print(" with event counter ", gAllowToBlock_d);
+            Serial_PrintDec((uint16_t)pEntry->connEvtCounter);
+            Serial_Print(" with RSSI ", gAllowToBlock_d);
+            if (rssiVal < 0)
+            {
+                Serial_Print("-", gAllowToBlock_d);
+                rssiVal = -rssiVal;
+            }
+            Serial_PrintDec((uint8_t)rssiVal);
+            Serial_Print(" on channel ", gAllowToBlock_d);
+            Serial_PrintDec((uint8_t)pEntry->channelIndex);
+            Serial_Print("\n\r", gAllowToBlock_d);
+        }
+        Serial_Print("\n\r", gAllowToBlock_d);
+
+        /* The application owns pEntries and must free it. */
+        if (pCeRssiMonitoringEvent->pEntries != NULL)
+        {
+            (void)MEM_BufferFree(pCeRssiMonitoringEvent->pEntries);
+        }
+    }
+}
+#endif /* gAppCeRssiMonitoring_c */
+
 /*! *********************************************************************************
  * \brief        Launder a read-only string pointer into the non-const uint8_t*
  *               pointer type expected by the SerialManager write API.
@@ -2084,6 +2147,14 @@ static void BluetoothLEHost_GenericCallback(gapGenericEvent_t *pGenericEvent)
         BleApp_HandleControllerNotification(&pGenericEvent->eventData.notifEvent);
     }
 #endif /* gUseControllerNotifications_c */
+
+#if defined(gAppCeRssiMonitoring_c) && (gAppCeRssiMonitoring_c)
+    if (pGenericEvent->eventType == gControllerCeRssiMonitoringEvent_c)
+    {
+        BleApp_HandleCeRssiMonitoring(&pGenericEvent->eventData.ceRssiMonitoringEvent);
+    }
+#endif /* gAppCeRssiMonitoring_c */
+
     if(pGenericEvent->eventType == gInternalError_c)
     {
         if((pGenericEvent->eventData.internalError.errorCode == gBleOverflow_c) && (pGenericEvent->eventData.internalError.errorSource == gAddNewConnection_c))

@@ -1952,6 +1952,35 @@ bleResult_t Gap_ControllerEnhancedNotification
     deviceId_t  deviceId
 );
 
+/*! *********************************************************************************
+* \brief  Configures the controller CE (Connection Event) RSSI monitoring feature.
+*
+* This is a low-power alternative to the Enhanced Notification gNotifConnEventOver_c event:
+* the controller buffers RSSI samples internally and reports them to the host only once
+* numConnRssi samples have been collected, reducing host wake-ups.
+*
+* \param[in]  numConnRssi   Number of connection-event RSSI samples to buffer before the
+*                           controller sends a report. Set to 0 to disable the feature.
+*                           Must not exceed the controller maximum gGapMaxCeRssiSamples_c.
+*
+* \retval  gBleSuccess_c
+* \retval  gBleInvalidParameter_c       numConnRssi exceeds the maximum allowed value.
+* \retval  gBleOutOfMemory_c            Cannot allocate memory for the Host task.
+*
+* \remarks When numConnRssi > 0 the application should listen for the
+*          gControllerCeRssiMonitoringEvent_c generic event. The event carries a batch of
+*          bleCeRssiMonitorEntry_t samples; the application owns and must free pEntries.
+* \remarks This function executes synchronously: it sends the vendor HCI command and returns
+*          as soon as it has been queued to the Controller (it does not block waiting for the
+*          Command Complete event). The return value reflects host-side parameter validation and
+*          command queueing only, not the Controller's acceptance.
+*
+********************************************************************************** */
+bleResult_t Gap_ControllerConfigureCeRssiMonitoring
+(
+    uint8_t     numConnRssi
+);
+
 /*!*************************************************************************************************
 * \brief This function configures the advertising index type.
 *

@@ -205,6 +205,11 @@
 #define gLeModulationTestOptionPhy2M_c          (1U << 0U)  /*!< bit 0: 0=1M PHY, 1=2M PHY */
 #define gLeModulationTestOptionGenericChannel_c (1U << 1U)  /*!< bit 1: 0=BLE RF index, 1=generic channel */
 #define gLeModulationTestOptionPowerIndex_c     (1U << 2U)  /*!< bit 2: 0=tx power in dBm, 1=power index */
+
+/*! CE RSSI Monitoring maximum number of connection-event samples the controller can buffer.
+ *  The whole batch is reported in a single HCI event, so the limit is set by the 255-byte
+ *  HCI parameter length divided by the 6-byte sample entry size. */
+#define gGapMaxCeRssiSamples_c      (42U)
 /************************************************************************************
 *************************************************************************************
 * Public type definitions
@@ -953,6 +958,7 @@ typedef enum {
     gCsMonitorStopComplete_c                                = 0x5EU, /*!< CS Monitor Stop command complete */
     gCsMonitorChannelMapUpdateComplete_c                    = 0x5FU, /*!< CS Monitor Channel Map Update command complete */
     gCsMonitorChannelMapUpdateEvent_c                       = 0x60U, /*!< Event received from Controller - CS Monitor Channel Map Update */
+    gControllerCeRssiMonitoringEvent_c                      = 0x61U, /*!< Controller CE RSSI Monitoring report received. Contains a batch of per-connection-event RSSI samples. pEntries must be freed by the application. */
 } gapGenericEventType_t;
 
 /*! Internal Error Source - the command that triggered the error */
@@ -1215,6 +1221,25 @@ typedef struct {
     uint8_t                    adv_handle;      /*!< Advertising Handle, valid for advertising events, if multiple ADV sets supported */
     bleDeviceAddress_t         scanned_addr;    /*!< Scanned address, valid for gNotifScanAdvPktRx_c event, all-zeroes otherwise */
 } bleNotificationEvent_t;
+
+/*! CE RSSI Monitoring - per-connection-event sample (host-decoded form). */
+typedef struct {
+    deviceId_t                 deviceId;            /*!< Device id of the peer the sample belongs to. */
+    uint16_t                   connEvtCounter;      /*!< Connection event counter at the time of the measurement. */
+    int8_t                     rssi;                /*!< RSSI value for the connection event. */
+    uint8_t                    channelIndex;        /*!< Channel index used for the connection event. */
+} bleCeRssiMonitorEntry_t;
+
+/*! CE RSSI Monitoring Report Event.
+ *  Delivered as the gControllerCeRssiMonitoringEvent_c generic event once the controller has buffered
+ *  the configured number of samples. The host demultiplexes entries by deviceId if several
+ *  connections are monitored at the same time (controller uses a single shared buffer).
+ *  The application MUST free pEntries when done (unless status indicates an allocation failure). */
+typedef struct {
+    bleResult_t                status;          /*!< gBleSuccess_c, or gBleOutOfMemory_c if the host could not allocate the batch (numEntries is then 0 and pEntries NULL). */
+    uint8_t                    numEntries;      /*!< Number of valid entries in pEntries. */
+    bleCeRssiMonitorEntry_t   *pEntries;        /*!< Array of numEntries samples. Must be freed by the application when status is gBleSuccess_c and numEntries > 0. */
+} bleCeRssiMonitoringEvent_t;
 
 /*! gInitializationComplete_c event data */
 typedef struct {
@@ -1555,6 +1580,7 @@ typedef struct {
         gapInitComplete_t           initCompleteData;           /*!< Data for the gInitializationComplete_c event. Contains the supported features, number of advertising sets
                                                                      and the size of the periodic advertiser list */
         bleNotificationEvent_t      notifEvent;                 /*!< Data for the gControllerNotificationEvent_c event. Contains status and adv/scan/conn event data. */
+        bleCeRssiMonitoringEvent_t  ceRssiMonitoringEvent;      /*!< Data for the gControllerCeRssiMonitoringEvent_c event. pEntries must be freed by the application. */
         bleBondCreatedEvent_t       bondCreatedEvent;           /*!< Data for the gBondCreatedEvent_c event. Contains the NVM index and the address of the bond. */
         bleDeviceAddress_t          aControllerLocalRPA;        /*!< Data for the gControllerLocalRPARead_c event. Contains the requested device address. */
         getConnParams_t             getConnParams;              /*!< Data for the gGetConnParamsComplete_c event */

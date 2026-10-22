@@ -44,6 +44,27 @@
 #define gUseControllerNotificationsCallback_c 0
 #endif
 
+/* Enable/Disable the controller CE (Connection Event) RSSI Monitoring demo.
+   This is a low-power alternative to the gNotifConnEventOver_c notification: the
+   controller buffers RSSI samples and reports a whole batch after a configurable
+   number of connection events. It is not role specific and works on both the
+   central and the peripheral. Requires a controller that supports CE RSSI
+   Monitoring. Disabled by default. */
+#ifndef gAppCeRssiMonitoring_c
+#define gAppCeRssiMonitoring_c 0
+#endif
+
+/* Number of connection events (RSSI samples) the controller buffers before it
+   sends a CE RSSI Monitoring report to the host. Used only when
+   gAppCeRssiMonitoring_c is enabled. Must not exceed gGapMaxCeRssiSamples_c. */
+#ifndef gAppCeRssiMonitoringConnIntervals_c
+#define gAppCeRssiMonitoringConnIntervals_c 20
+#endif
+
+#if (gAppCeRssiMonitoringConnIntervals_c > gGapMaxCeRssiSamples_c)
+#error "gAppCeRssiMonitoringConnIntervals_c must not exceed gGapMaxCeRssiSamples_c"
+#endif
+
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c == 1))
   /* switch press timer timeout */
   #ifndef gSwitchPressTimeout_c

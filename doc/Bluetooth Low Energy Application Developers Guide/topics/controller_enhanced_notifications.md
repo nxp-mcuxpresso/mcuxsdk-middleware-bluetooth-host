@@ -107,6 +107,42 @@ The user can choose between two options:
     |timestamp|uint16\_t|Timestamp in 625 μs slots, valid for Conn RX event and Conn Created event|
     |adv\_handle|uint8\_t|Advertising Handle, valid for advertising events, if multiple ADV sets supported|
 
+## Low-power CE RSSI monitoring
+
+For connection-event RSSI reporting the application can use a dedicated low-power feature instead of the per-event `gNotifConnEventOver_c` enhanced notification. With CE RSSI monitoring the Controller buffers RSSI samples internally and reports a whole batch to the host only after a configurable number of connection events, reducing host wake-ups. This feature is proprietary to NXP and requires a Controller built with CE RSSI monitoring support.
+
+The application configures the feature from the GAP layer:
+
+```
+bleResult_t Gap_ControllerConfigureCeRssiMonitoring
+(
+    uint8_t numConnRssi
+);
+```
+
+`numConnRssi` is the number of connection-event RSSI samples the Controller buffers before sending a report. Set it to `0` to disable the feature. The value must not exceed `gGapMaxCeRssiSamples_c`; otherwise the call returns `gBleInvalidParameter_c`.
+
+When enabled, the application receives a `gControllerCeRssiMonitoringEvent_c` GAP Generic Event once the Controller has collected the configured number of samples. The event carries a batch of samples:
+
+```
+typedef struct {
+    deviceId_t deviceId;          /* Device id of the peer the sample belongs to */
+    uint16_t connEvtCounter;      /* Connection event counter at the time of the measurement */
+    int8_t   rssi;                /* RSSI value for the connection event */
+    uint8_t  channelIndex;        /* Channel index used for the connection event */
+} bleCeRssiMonitorEntry_t;
+
+typedef struct {
+    bleResult_t              status;       /* gBleSuccess_c, or gBleOutOfMemory_c if the host could not allocate the batch */
+    uint8_t                  numEntries;   /* Number of valid entries in pEntries */
+    bleCeRssiMonitorEntry_t *pEntries;     /* Array of numEntries samples - must be freed by the application */
+} bleCeRssiMonitoringEvent_t;
+```
+
+The event data is available as `pGenericEvent->eventData.ceRssiMonitoringEvent`.
+
+> **Note:** The Controller uses a single shared buffer, so when several connections are monitored at the same time, entries from different connections are interleaved in arrival order; the application must demultiplex them by `deviceId`. The application takes ownership of `pEntries` and **must free it** (with `MEM_BufferFree`) after processing the event. If the host runs out of memory while building the batch, the event is still delivered with `status == gBleOutOfMemory_c`, `numEntries == 0` and `pEntries == NULL` (so an OOM can be told apart from a legitimate empty report).
+
 
 **Parent topic:**[Generic Access Profile \(GAP\) Layer](../topics/generic_access_profile_gap_layer.md)
 

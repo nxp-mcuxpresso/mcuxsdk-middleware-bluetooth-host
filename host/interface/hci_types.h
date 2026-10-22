@@ -263,6 +263,7 @@ the data portion (excluding header) contained in the packets is 500 - header siz
 #define gHciVendorSpecificDebugCommands_c                       0x03FU
 #define gHciSetTxPowerCommand_c                                 0x012DU
 #define gHciVendorEnhancedNotificationCommand_c                 0x01F0U
+#define gHciVendorCeRssiMonitoringCommand_c                     0x00C3U     /* LE_Configure_CE_RSSI_Monitoring (full opcode 0xFCC3) */
 #define gHciVendorUnitaryTestCommand_c                          0x009EU
 #define gHciVendorGetConnectionParameters_c                     0x00A3U
         /*! HCI Commands OCF for OGF : 0x3F : Vendor Specific Debug Commands */
@@ -446,6 +447,9 @@ typedef enum
     gHciLeMonAdvReportEvent_c                                = 0x34,
     gHciLeCsReadRemoteSupportedCapabilitiesCompleteV2Event_c = 0x38,
     gHciLeCsSubeventDebugResultEvent_c                       = 0xF0,
+
+    /* NXP vendor-specific - CE RSSI Monitoring Report. Payload: N x tRssiMonitorEntry_t (6 bytes each). */
+    gHciLeCeRssiMonitoringEvent_c                            = 0xFE,
 
     gHciLeVendorEnhancedNotificationEvent_c                  = 0xFF,
 } hciLeMetaSubEventCode_tag;

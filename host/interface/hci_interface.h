@@ -32,6 +32,9 @@
 ************************************************************************************/
 #define gDecisionInstructionParamSize_c  16U
 #define gLeFeaturesSize_c                248U
+
+/*! Size in bytes of one raw CE RSSI monitor entry on the HCI wire: Handle[2] + ConnEvtCntr[2] + RSSI[1] + ChIndex[1]. */
+#define gCeRssiMonitorEntrySize_c   (6U)
 /************************************************************************************
 *************************************************************************************
 * Public type definitions
@@ -757,6 +760,17 @@ typedef struct hciVendorEnhancedNotificationEvent_tag
     bleDeviceAddress_t          scanned_addr;
 } hciVendorEnhancedNotificationEvent_t;
 
+/*! Vendor Specific CE RSSI Monitoring Report Event : LE Meta Event : 0x3E - Sub-event Code : 0xFE.
+ *  The controller buffers N connection-event RSSI samples and reports them in a single event.
+ *  pEntries points to numEntries x 6 raw bytes: {Handle[2], ConnEvtCntr[2], RSSI[1], ChIndex[1]} per entry.
+ *  The buffer is allocated by the HCI layer and ownership is transferred to the upper layer (GAP),
+ *  which must free it after use. */
+typedef struct hciCeRssiMonitoringEvent_tag
+{
+    uint8_t                     numEntries;     /*!< Number of 6-byte RSSI monitor entries present in pEntries. Bounded by the HCI parameter length; the GAP handler further validates it before converting. */
+    uint8_t                    *pEntries;       /*!< Raw entry buffer (numEntries x 6 bytes). Freed by the upper layer. */
+} hciCeRssiMonitoringEvent_t;
+
 /*! HCI_Vendor_Get_Connection_Parameters - Return Parameters */
 typedef struct hciVendorGetConnParamsCommandComplete_tag
 {
@@ -1330,6 +1344,12 @@ typedef struct
     uint16_t    connectionHandle;
     uint16_t    eventType;      /*! bleNotificationEventType_t */
 } hciVendorEnhancedNotificationCommand_t;
+
+/*! OCF 0xC3 - HCI_Vendor_Configure_CE_RSSI_Monitoring */
+typedef struct
+{
+    uint8_t     numConnRssi;    /*!< Number of connection-event RSSI samples to buffer before reporting. 0 disables the feature. Max MAX_NUM_OF_CE_RSSI_SAVED (50). */
+} hciVendorCeRssiMonitoringCommand_t;
 
 /*! OCF 0x0035 */
 /*! HCI Vendor BLE Advertising Index Change */
@@ -2671,6 +2691,7 @@ typedef struct
         hciLeEnhancedConnectionCompleteV2Event_t        hciLeEnhancedConnCompleteV2Event;
 #endif /* (defined gBLE54_PawrSupport_d) && (gBLE54_PawrSupport_d == TRUE) */
         hciVendorEnhancedNotificationEvent_t            hciEnhancedNotificationEvent;
+        hciCeRssiMonitoringEvent_t                      hciCeRssiMonitoringEvent;
         hciVendorLeSkdReportEvent_t                     hciLeSkdReportEvent;
 #if defined(gBLE53_d) && (gBLE53_d == TRUE)
 #if defined(gBLE53_ConnectionSubratingSupport_d) && (gBLE53_ConnectionSubratingSupport_d == TRUE)
@@ -3902,6 +3923,21 @@ bleResult_t Hci_VendorSpecificSetTxPowerLevel(const hciSetTxPowerLevelCommand_t 
 *
 ********************************************************************************** */
 bleResult_t Hci_VendorSpecificEnhancedNotification(const hciVendorEnhancedNotificationCommand_t *pParam);
+
+/*! *********************************************************************************
+* \brief        The function sends the HCI Vendor Configure CE RSSI Monitoring
+*               (OGF : 0x3F; OCF : 0xC3) command to the Controller.
+*
+* \param[in]    pParam  pointer to a structure containing the number of connection-event
+*                       RSSI samples to buffer before reporting (0 disables the feature).
+* \param[out]   None
+*
+* \return       Status
+*
+* \remarks      HCI Vendor Specific Command
+*
+********************************************************************************** */
+bleResult_t Hci_VendorSpecificCeRssiMonitoring(const hciVendorCeRssiMonitoringCommand_t *pParam);
 
 /* v4.2 specific interface */
 
