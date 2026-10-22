@@ -486,6 +486,7 @@ appLocalization_rangeCfg_t mDefaultRangeSettings =
     .txPwrDelta = 0, /* 0dBm */
     .snr_control_init = gSNRControlNotApplied_c,
     .snr_control_refl = gSNRControlNotApplied_c,
+    .sniffAntSwMode = gCSSniffAntSwitchModeSingleAntenna_c,
     .csAlgoBuf = NULL  /* Used by algorithm */
 };
 

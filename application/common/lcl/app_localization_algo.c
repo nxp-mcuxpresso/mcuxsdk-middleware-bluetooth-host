@@ -944,6 +944,7 @@ static void isp_mciq_ranging_compute
         radeCsPara.subevtDoneStatus_local   = meas_response->cs_data->subevtDoneStatusLocal;
         radeCsPara.subevtDoneStatus_remote  = meas_response->cs_data->subevtDoneStatusRemote;
         radeCsPara.pctTransMode             = (bIptEnabled == TRUE) ? 1U : 0U;
+        radeCsPara.sniffAntSwMode           = mDefaultRangeSettings.sniffAntSwMode;
         radeResult.rng_est                  = &mciq_result->rade_dist;
         radeResult.rng_est_qi               = &mciq_result->rade_dqi;
         radeResult.mn_ref_qi                = &mciq_result->rade_mn_ref_qi;

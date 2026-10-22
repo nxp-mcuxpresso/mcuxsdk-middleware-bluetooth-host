@@ -26,6 +26,7 @@
 #include "isp_debug_helpers.h"
 #include "dm_phasebased.h"
 #include "pde_rade.h"
+#include "channel_sounding.h"
 
 /* === Macros =============================================================== */
 
@@ -280,6 +281,7 @@ void isp_mciq_ranging_compute(isp_meas_response_t *meas_response, mciq_result_t 
         radeCsPara.subevtDoneStatus_local = meas_response->cs_data->subevtDoneStatusLocal  ;
         radeCsPara.subevtDoneStatus_remote = meas_response->cs_data->subevtDoneStatusRemote ;
         radeCsPara.pctTransMode         =  (meas_response->mparams->cfg.inlinePctEnabled) ? 1U : 0U;
+        radeCsPara.sniffAntSwMode       = gCSSniffAntSwitchModeSingleAntenna_c;
         radeResult.rng_est              =  &mciq_result->rade_dist;
         radeResult.rng_trk              =  &mciq_result->rade_dist_trk;
         radeResult.rng_est_qi           =  &mciq_result->rade_dqi;
