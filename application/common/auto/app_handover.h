@@ -158,6 +158,7 @@ typedef enum appHandoverEvent_tag {
     mAppHandoverPacketContinueMonitor_c,
     mAppHandoverAnchorMonitorStarted_c,
     mAppHandoverAnchorMonitorStopped_c,
+    mAppHandoverAnchorMonitorRssi_c,
 } appHandoverEvent_t;
 
 typedef enum appHandoverError_tag {

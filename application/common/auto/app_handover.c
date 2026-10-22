@@ -120,6 +120,11 @@ typedef struct appMonitorFilter_tag
     int32_t rssiActiveSum;
     uint32_t rssiRemoteCount;
     uint32_t rssiActiveCount;
+    /* LL Access Address of the monitored connection. Unique per connection and
+       known at AnchorStartSearch receive time, before a connection handle is
+       assigned. Used to detect an already-active monitor and skip a duplicate
+       search. */
+    uint8_t  aAccessAddress[4];
 } appMonitorFilter_t;
 
 /***********************************************************************************************************************
@@ -191,8 +196,9 @@ static appMonitorContext_t* allocMonitorCtx(deviceId_t deviceId);
 static void freeMonitorCtx(appMonitorContext_t *pCtx);
 static deviceId_t getMonitoredDeviceId(uint16_t monitorConnectionHandle);
 static bool_t checkMonitorFilterCounter(uint16_t connHandle, int8_t rssiRemote, int8_t rssiActive, bool_t rssiRemoteValid, bool_t rssiActiveValid);
-static void addMonitorFilter(uint16_t connHandle, bool_t silent);
+static void addMonitorFilter(uint16_t connHandle, bool_t silent, const uint8_t *pAccessAddress);
 static void removeMonitorFilter(uint16_t connHandle);
+static bool_t findActiveMonitorFilterByAccessAddress(const uint8_t *pAccessAddress, uint16_t *pOutConnHandle);
 static int8_t getMonitorFilterAverageActiveRssi(uint16_t connHandle);
 static int8_t getMonitorFilterAverageRemoteRssi(uint16_t connHandle);
 static bleResult_t anchorMonitorStop(uint16_t connHandle);
@@ -1648,15 +1654,16 @@ static bool_t checkMonitorFilterCounter(uint16_t connHandle, int8_t rssiRemote, 
 }
 
 /*! ********************************************************************************************************************
-*\fn            static void addMonitorFilter(uint16_t connHandle, bool_t silent)
+*\fn            static void addMonitorFilter(uint16_t connHandle, bool_t silent, const uint8_t *pAccessAddress)
 *\brief         Add anchor/packet monitoring filter
 *
-*\param  [in]   connHandle  Connection identifier.
-*\param  [in]   silent      TRUE to suppress all monitor reports over A2A, FALSE otherwise.
+*\param  [in]   connHandle      Connection identifier.
+*\param  [in]   silent          TRUE to suppress all monitor reports over A2A, FALSE otherwise.
+*\param  [in]   pAccessAddress  4-byte LL Access Address of the monitored connection, or NULL.
 *
 *\return        none
 ********************************************************************************************************************* */
-static void addMonitorFilter(uint16_t connHandle, bool_t silent)
+static void addMonitorFilter(uint16_t connHandle, bool_t silent, const uint8_t *pAccessAddress)
 {
     uint32_t firstFreeIdx = gAppMaxConnections_c;
 
@@ -1690,9 +1697,53 @@ static void addMonitorFilter(uint16_t connHandle, bool_t silent)
         maMonitorFilter[firstFreeIdx].rssiRemoteSum = 0;
         maMonitorFilter[firstFreeIdx].rssiActiveCount = 0U;
         maMonitorFilter[firstFreeIdx].rssiRemoteCount = 0U;
+        if (pAccessAddress != NULL)
+        {
+            FLib_MemCpy(maMonitorFilter[firstFreeIdx].aAccessAddress, pAccessAddress, 4U);
+        }
+        else
+        {
+            FLib_MemSet(maMonitorFilter[firstFreeIdx].aAccessAddress, 0x00, 4U);
+        }
     }
 
     return;
+}
+
+/*! ********************************************************************************************************************
+*\fn            static bool_t findActiveMonitorFilterByAccessAddress(const uint8_t *pAccessAddress, uint16_t *pOutConnHandle)
+*\brief         Look up an active monitor filter by its LL Access Address. Used on a sniffer
+*               (S2) to detect that anchor monitoring for a given connection is already running
+*               when a duplicate broadcast AnchorStartSearch arrives, so the redundant search is
+*               skipped instead of starting a second monitor for the same connection.
+*
+*\param  [in]   pAccessAddress   4-byte LL Access Address to match.
+*\param  [out]  pOutConnHandle   Resolved monitor connection handle when a match is found.
+*
+*\return        bool_t  TRUE if an active monitor filter matches the access address.
+********************************************************************************************************************* */
+static bool_t findActiveMonitorFilterByAccessAddress(const uint8_t *pAccessAddress, uint16_t *pOutConnHandle)
+{
+    bool_t found = FALSE;
+
+    for (uint8_t i = 0U; i < (uint8_t)gAppMaxConnections_c; i++)
+    {
+        /* A resolved (non-pending, valid) handle marks an active monitor. Match its
+           stored access address against the one carried by the AnchorStartSearch. */
+        if ((maMonitorFilter[i].connHandle != gInvalidConnectionHandle_c) &&
+            (maMonitorFilter[i].connHandle != gMonitorConnectionHandlePending) &&
+            (FLib_MemCmp((const void *)maMonitorFilter[i].aAccessAddress, (const void *)pAccessAddress, 4U) != FALSE))
+        {
+            if (pOutConnHandle != NULL)
+            {
+                *pOutConnHandle = maMonitorFilter[i].connHandle;
+            }
+            found = TRUE;
+            break;
+        }
+    }
+
+    return found;
 }
 
 /*! ********************************************************************************************************************
@@ -2209,6 +2260,13 @@ static bleResult_t HandleAnchorMonitorEvent
                 if (checkMonitorFilterCounter(pAnchMntEvt->connectionHandle, pAnchMntEvt->rssiRemote, pAnchMntEvt->rssiActive, rssiRemoteValid, rssiActiveValid))
                 {
                     uint8_t buf[gHandoverAnchorMonitorLen_c] = {0U};
+                    /* getMonitorFilterAverage*Rssi() return and RESET the accumulated
+                       sum/count, so read each average exactly once and reuse the local
+                       for both the A2A report and the local app event. A second call
+                       would see count == 0 and return 0. */
+                    int8_t activeAvg = getMonitorFilterAverageActiveRssi(pAnchMntEvt->connectionHandle);
+                    int8_t remoteAvg = getMonitorFilterAverageRemoteRssi(pAnchMntEvt->connectionHandle);
+
                     Utils_PackTwoByteValue(pAnchMntEvt->connectionHandle, &buf[0]);
                     Utils_PackTwoByteValue(pAnchMntEvt->connEvent, &buf[2]);
                     buf[4] = (uint8_t)(pAnchMntEvt->rssiRemote);
@@ -2221,10 +2279,23 @@ static bleResult_t HandleAnchorMonitorEvent
                     Utils_PackTwoByteValue(pAnchMntEvt->anchorDelay, &buf[14]);
                     buf[16] = pAnchMntEvt->chIdx;
                     buf[17] = pAnchMntEvt->ucNbReports;
-                    buf[18] = (uint8_t)getMonitorFilterAverageActiveRssi(pAnchMntEvt->connectionHandle);
-                    buf[19] = (uint8_t)getMonitorFilterAverageRemoteRssi(pAnchMntEvt->connectionHandle);
+                    buf[18] = (uint8_t)activeAvg;
+                    buf[19] = (uint8_t)remoteAvg;
                     /* Send data to remote anchor */
                     notifyRemoteDevice(gHandoverAnchorMonitorCommandOpCode_c, gHandoverAnchorMonitorLen_c, buf);
+
+                    /* Can also report the averaged RSSI locally (used by a sniffer anchor
+                       that monitors a connection it is not part of, to show link quality). */
+                    if (mpfAppEventCb != NULL)
+                    {
+                        appHandoverAnchorMonitorEvent_t appAnchMntRssiEvt;
+
+                        appAnchMntRssiEvt.deviceId = getMonitoredDeviceId(pAnchMntEvt->connectionHandle);
+                        appAnchMntRssiEvt.anchorMntEvt = *pAnchMntEvt;
+                        appAnchMntRssiEvt.rssiActiveAverage = activeAvg;
+                        appAnchMntRssiEvt.rssiRemoteAverage = remoteAvg;
+                        mpfAppEventCb(mAppHandoverAnchorMonitorRssi_c, &appAnchMntRssiEvt);
+                    }
                 }
             }
             if ((pAnchMntEvt->ucNbReports == 1U) && (pMonCtx != NULL) && (pMonCtx->continuous == FALSE))
@@ -3089,7 +3160,22 @@ static bleResult_t HandleAnchorStartSearchCommand(uint8_t *pCmdData, appHandover
     /* Do not start anchor monitoring if connection handover is in progress. */
     if ((searchParams.mode == gRssiSniffingMode_c) || (searchParams.mode == gPacketMode_c))
     {
-        if (mHandoverCtx.state == gHandoverContextRx_c)
+        uint16_t activeConnHandle = gInvalidConnectionHandle_c;
+
+        /* Match by the connection's LL Access Address (unique, known here before a
+           connection handle exists). If already monitoring, skip the redundant
+           Gap_HandoverAnchorSearchStart and re-send the AnchMonStarted confirm. This
+           avoids starting a second monitor for the same connection (multi-anchor
+           sniffing restart). */
+        if (findActiveMonitorFilterByAccessAddress(searchParams.accessAddress, &activeConnHandle) != FALSE)
+        {
+            uint8_t buf[gHandoverAnchMonStartedCommandLen_c] = {0U};
+
+            Utils_PackTwoByteValue(activeConnHandle, &buf[0]);
+            notifyRemoteDevice(gHandoverAnchMonStartedCommandOpCode_c, gHandoverAnchMonStartedCommandLen_c, buf);
+            result = gBleSuccess_c;
+        }
+        else if (mHandoverCtx.state == gHandoverContextRx_c)
         {
             mHandoverCtx.state = gHandoverAnchorMonitorLocal_c;
             if (searchParams.ucNbReports == 0U)
@@ -3105,11 +3191,12 @@ static bleResult_t HandleAnchorStartSearchCommand(uint8_t *pCmdData, appHandover
                 }
             }
 
-            /* Add the monitor filter now, keyed by the pending handle. It is resolved
-               to the real connection handle in HandleAnchorSearchStarted on success,
-               or removed there if the anchor search fails to start. The silent flag
-               is decided by the initiating anchor. */
-            addMonitorFilter(gMonitorConnectionHandlePending, silent);
+            /* Add the monitor filter now, keyed by the pending handle and tagged with
+               the connection's access address. It is resolved to the real connection
+               handle in HandleAnchorSearchStarted on success, or removed there if the
+               anchor search fails to start. The silent flag is decided by the
+               initiating anchor. */
+            addMonitorFilter(gMonitorConnectionHandlePending, silent, searchParams.accessAddress);
 
             result = Gap_HandoverAnchorSearchStart(&searchParams);
 
@@ -3446,10 +3533,21 @@ static bleResult_t HandleInformConnectCommand(appHandoverError_t *pError)
 static bleResult_t HandleInformFailureCommand(appHandoverError_t *pError)
 {
     bleResult_t result = gBleSuccess_c;
-    
-    /* Error reported by the other device, abort connection handover. */
-    AppHandover_Abort(FALSE, mAppHandover_UnexpectedError_c);
-    
+
+    /* InformFailure unwinds an in-progress handover/monitor setup. It does not
+       apply to already-established monitoring: if no local process is running
+       (state and time sync both idle), ignore it. This prevents a cross-sniffer
+       InformFailure storm in the multi-anchor sniffing demo. */
+    if ((mHandoverCtx.state == gHandoverIdle_c) && (mHandoverCtx.timeSyncState == gTimeSyncIdle_c))
+    {
+        /* Ignore: no local handover/monitor setup is in progress. */
+    }
+    else
+    {
+        /* Error reported by the other device, abort connection handover. */
+        AppHandover_Abort(FALSE, mAppHandover_UnexpectedError_c);
+    }
+
     return result;
 }
 
