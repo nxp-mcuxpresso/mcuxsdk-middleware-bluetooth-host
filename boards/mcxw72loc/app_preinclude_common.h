@@ -204,7 +204,7 @@
  *   NVM Module Configuration - gAppUseNvm_d shall be defined above as 1 or 0
  ********************************************************************************** */
 
-#if gAppUseNvm_d
+#if defined(gAppUseNvm_d) && (gAppUseNvm_d > 0)
     /* configure NVM module */
     #define  gNvStorageIncluded_d               (1)
     #define  gNvFragmentation_Enabled_d         (1)
