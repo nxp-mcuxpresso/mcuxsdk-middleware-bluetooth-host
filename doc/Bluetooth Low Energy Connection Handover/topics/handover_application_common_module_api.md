@@ -115,4 +115,42 @@ bleResult_t AppHandover_SetPeerSkd(uint8_t *pSkd, uint8_t nvmIndex);
 
 **Parameters**:
 - `nvmIndex`: Peer device NVM index.
-- `pSkd`:
+- `pSkd`: LL Session Key Diversifier.
+
+**Returns**: `bleResult_t`
+
+### AppHandover_SetMonitorMode
+```
+bleResult_t AppHandover_SetMonitorMode(deviceId_t deviceId, bleHandoverAnchorSearchMode_t mode, bool_t silent);
+```
+**Description**: Sets the Anchor Monitor mode for the given connection. The `silent` parameter was added to support Channel Sounding monitoring, where the monitor must stay active at the Link Layer level while suppressing the application monitoring reports normally forwarded over the anchor-to-anchor (A2A) interface.
+
+**Parameters**:
+- `deviceId`: Connection to be monitored.
+- `mode`: Anchor monitor mode.
+- `silent`: TRUE to keep monitoring active at Link Layer level but suppress application monitoring reports over A2A; FALSE to report normally.
+
+**Returns**: `bleResult_t`
+
+### AppHandover_AnchorMonitorReset
+```
+void AppHandover_AnchorMonitorReset(deviceId_t deviceId);
+```
+**Description**: Stops remote anchor monitoring and frees the local monitor slot in a single call. Use on a live-connection disconnect so that a subsequent `AppHandover_SetMonitorMode()` for the same device cannot fail with `gBleInvalidState_c`.
+
+**Parameters**:
+- `deviceId`: Peer device identifier.
+
+**Returns**: None
+
+### AppHandover_GetMonitoredConnHandle
+```
+uint16_t AppHandover_GetMonitoredConnHandle(deviceId_t deviceId);
+```
+**Description**: Returns the monitored connection handle associated with a device identifier.
+
+**Parameters**:
+- `deviceId`: Connection identifier.
+
+**Returns**: `uint16_t`
+- Monitored connection handle, or `gInvalidConnectionHandle_c` if the device is not currently monitored.

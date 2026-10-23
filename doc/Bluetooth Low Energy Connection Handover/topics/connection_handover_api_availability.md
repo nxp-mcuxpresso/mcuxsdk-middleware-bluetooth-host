@@ -287,6 +287,42 @@ bleResult_t Gap_HandoverApplyConnectionUpdateProcedure(gapHandoverApplyConnectio
 
 **Returns**: `gBleSuccess_c` or error.
 
+### Gap_CsMonitorStart
+```
+bleResult_t Gap_CsMonitorStart(uint16_t connHandle);
+```
+**Description**: Starts monitoring the Channel Sounding procedure of another pair of connected devices, identified by the given connection handle. Completion is reported via the `gCsMonitorStartComplete_c` event.
+
+**Parameters**:
+- `connHandle`: Connection handle of the monitored Channel Sounding procedure.
+
+**Returns**: `gBleSuccess_c` or error.
+
+### Gap_CsMonitorStop
+```
+bleResult_t Gap_CsMonitorStop(uint16_t connHandle);
+```
+**Description**: Stops monitoring the Channel Sounding procedure identified by the given connection handle. Completion is reported via the `gCsMonitorStopComplete_c` event.
+
+**Parameters**:
+- `connHandle`: Connection handle of the monitored Channel Sounding procedure.
+
+**Returns**: `gBleSuccess_c` or error.
+
+### Gap_CsMonitorChannelMapUpdate
+```
+bleResult_t Gap_CsMonitorChannelMapUpdate(gapCsMonitorChannelMapUpdateParams_t *pParams);
+```
+**Description**: Updates the channel map used to monitor a Channel Sounding procedure. Completion is reported via the `gCsMonitorChannelMapUpdateComplete_c` event.
+
+**Parameters**:
+- `pParams`: Pointer to structure containing the channel map update parameters. The structure contains:
+  - `connHandle`: Connection handle of the monitored Channel Sounding procedure.
+  - `aChannelMap`: Channel Sounding channel map (10 octets).
+  - `instant`: Connection event counter indicating when the new channel map is applied.
+
+**Returns**: `gBleSuccess_c` or error.
+
 # Connection Handover Events
 
 The following events can be received through the GAP generic callback during the handover operations:
@@ -490,3 +526,32 @@ The following events can be received through the GAP generic callback during the
 
 **Event Data**: `handoverApplyConnectionUpdateProcedure_t` containing:
 - `connectionHandle`: Connection identifier.
+
+### gCsMonitorStartComplete_c (0x5D)
+**Description**: Event generated when a `Gap_CsMonitorStart` command is complete.
+
+**Event Data**: `csMonitorStartStopComplete_t` containing:
+- `status`: Command status.
+- `connectionHandle`: Connection handle of the monitored Channel Sounding procedure.
+
+### gCsMonitorStopComplete_c (0x5E)
+**Description**: Event generated when a `Gap_CsMonitorStop` command is complete.
+
+**Event Data**: `csMonitorStartStopComplete_t` containing:
+- `status`: Command status.
+- `connectionHandle`: Connection handle of the monitored Channel Sounding procedure.
+
+### gCsMonitorChannelMapUpdateComplete_c (0x5F)
+**Description**: Event generated when a `Gap_CsMonitorChannelMapUpdate` command is complete.
+
+**Event Data**: `csMonitorChannelMapUpdateComplete_t` containing:
+- `status`: Command status.
+- `connectionHandle`: Connection handle of the monitored Channel Sounding procedure.
+
+### gCsMonitorChannelMapUpdateEvent_c (0x60)
+**Description**: Event received from Controller indicating that the channel map for a monitored Channel Sounding procedure has been updated.
+
+**Event Data**: `csMonitorChannelMapUpdateEvent_t` containing:
+- `deviceId`: Device identifier of the monitored (active) connection, resolved by the host from the HCI connection handle.
+- `aChannelMap`: Updated Channel Sounding channel map (10 octets).
+- `instant`: Connection event counter value indicating when the new channel map was applied.
