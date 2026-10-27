@@ -141,6 +141,9 @@ static void ServiceAMeasurementTimerCallback(void * pParam);
 static void ServiceBMeasurementTimerCallback(void * pParam);
 
 /* Application functions */
+static void Battery_SendMeasurement(appCallbackParam_t pParam);
+static void ServiceA_SendMeasurement(appCallbackParam_t pParam);
+static void ServiceB_SendMeasurement(appCallbackParam_t pParam);
 static void BleApp_Advertise(void);
 static void BluetoothLEHost_Initialized(void);
 static void Service_SendNotifications(uint16_t handle, bearerId_t bearerId);
@@ -434,6 +437,15 @@ static void BleApp_ConnectionCallback (deviceId_t peerDeviceId, gapConnectionEve
             /* Unsubscribe client */
             (void)Bas_Unsubscribe(&basServiceConfig, peerDeviceId);
 
+            /* Stop periodic data timers */
+            (void)TM_Stop((timer_handle_t)mBatteryMeasurementTimerId);
+            (void)TM_Stop((timer_handle_t)mServiceADataTimerId);
+            (void)TM_Stop((timer_handle_t)mServiceBDataTimerId);
+
+            /* Reset EATT bearer information */
+            mPeerCBearers = 0U;
+            FLib_MemSet(mABearerIds, gUnenhancedBearerId_c, sizeof(mABearerIds));
+
             mPeerDeviceId = gInvalidDeviceId_c;
 
             /* Restart advertising */
@@ -518,75 +530,135 @@ static void BleApp_GattServerCallback (deviceId_t deviceId, gattServerEvent_t* p
 
 /*! *********************************************************************************
 * \brief        Handles battery measurement timer callback.
+*               Runs in the timer task context: only defer the work to the
+*               application task, no host stack calls are allowed here.
 *
 * \param[in]    pParam        Callback parameters.
 ********************************************************************************** */
 static void BatteryMeasurementTimerCallback(void * pParam)
 {
-    basServiceConfig.batteryLevel = SENSORS_GetBatteryLevel();
-    (void)Bas_RecordBatteryMeasurement(&basServiceConfig);
+    (void)pParam;
+    (void)App_PostCallbackMessage(Battery_SendMeasurement, NULL);
+}
+
+/*! *********************************************************************************
+* \brief        Reads battery level and records the measurement. Runs in the
+*               application task context.
+*
+* \param[in]    pParam        Callback parameters (unused).
+********************************************************************************** */
+static void Battery_SendMeasurement(appCallbackParam_t pParam)
+{
+    (void)pParam;
+
+    /* Connection may have been closed after the message was queued */
+    if (mPeerDeviceId != gInvalidDeviceId_c)
+    {
+        basServiceConfig.batteryLevel = SENSORS_GetBatteryLevel();
+        (void)Bas_RecordBatteryMeasurement(&basServiceConfig);
+    }
 }
 
 /*! *********************************************************************************
 * \brief        Handles service A measurement timer callback.
+*               Runs in the timer task context: only defer the work to the
+*               application task, no host stack calls are allowed here.
 *
 * \param[in]    pParam        Callback parameters.
 ********************************************************************************** */
 static void ServiceAMeasurementTimerCallback(void * pParam)
+{
+    (void)pParam;
+    (void)App_PostCallbackMessage(ServiceA_SendMeasurement, NULL);
+}
+
+/*! *********************************************************************************
+* \brief        Updates service A value and sends notification. Runs in the
+*               application task context.
+*
+* \param[in]    pParam        Callback parameters (unused).
+********************************************************************************** */
+static void ServiceA_SendMeasurement(appCallbackParam_t pParam)
 {
     uint16_t  handle = 0U;
     bleResult_t result;
     bleUuid_t uuid = Uuid16(gBleSig_Report_d);
     static uint16_t char_value = 0U;
 
-    /* Get handle of characteristic */
-    result = GattDb_FindCharValueHandleInService((uint16_t)service_A, gBleUuidType16_c, &uuid, &handle);
+    (void)pParam;
 
-    if (result == gBleSuccess_c)
+    /* Connection may have been closed after the message was queued */
+    if (mPeerDeviceId != gInvalidDeviceId_c)
     {
-        /* Update characteristic value and send notification */
-        result = GattDb_WriteAttribute(handle, 2, (uint8_t const*)&char_value);
-        char_value++;
-        if (char_value == 10U)
-        {
-            char_value = 0U;
-        }
+        /* Get handle of characteristic */
+        result = GattDb_FindCharValueHandleInService((uint16_t)service_A, gBleUuidType16_c, &uuid, &handle);
 
         if (result == gBleSuccess_c)
         {
-            Service_SendNotifications(handle, mABearerIds[mServiceABearerIdx]);
+            /* Update characteristic value and send notification */
+            result = GattDb_WriteAttribute(handle, 2, (uint8_t const*)&char_value);
+            char_value++;
+            if (char_value == 10U)
+            {
+                char_value = 0U;
+            }
+
+            if (result == gBleSuccess_c)
+            {
+                Service_SendNotifications(handle, mABearerIds[mServiceABearerIdx]);
+            }
         }
     }
 }
 
 /*! *********************************************************************************
 * \brief        Handles service B measurement timer callback.
+*               Runs in the timer task context: only defer the work to the
+*               application task, no host stack calls are allowed here.
 *
 * \param[in]    pParam        Callback parameters.
 ********************************************************************************** */
 static void ServiceBMeasurementTimerCallback(void * pParam)
+{
+    (void)pParam;
+    (void)App_PostCallbackMessage(ServiceB_SendMeasurement, NULL);
+}
+
+/*! *********************************************************************************
+* \brief        Updates service B value and sends notification. Runs in the
+*               application task context.
+*
+* \param[in]    pParam        Callback parameters (unused).
+********************************************************************************** */
+static void ServiceB_SendMeasurement(appCallbackParam_t pParam)
 {
     uint16_t  handle = 0U;
     bleResult_t result;
     bleUuid_t uuid = Uuid16(gBleSig_Report_d);
     static uint16_t char_value = 0U;
 
-    /* Get handle of  characteristic */
-    result = GattDb_FindCharValueHandleInService((uint16_t)service_B, gBleUuidType16_c, &uuid, &handle);
+    (void)pParam;
 
-    if (result == gBleSuccess_c)
+    /* Connection may have been closed after the message was queued */
+    if (mPeerDeviceId != gInvalidDeviceId_c)
     {
-        /* Update characteristic value and send notification */
-        result = GattDb_WriteAttribute(handle, 2, (uint8_t const*)&char_value);
-        char_value++;
-        if (char_value == 10U)
-        {
-            char_value = 0U;
-        }
+        /* Get handle of characteristic */
+        result = GattDb_FindCharValueHandleInService((uint16_t)service_B, gBleUuidType16_c, &uuid, &handle);
 
         if (result == gBleSuccess_c)
         {
-            Service_SendNotifications(handle, mABearerIds[mServiceBBearerIdx]);
+            /* Update characteristic value and send notification */
+            result = GattDb_WriteAttribute(handle, 2, (uint8_t const*)&char_value);
+            char_value++;
+            if (char_value == 10U)
+            {
+                char_value = 0U;
+            }
+
+            if (result == gBleSuccess_c)
+            {
+                Service_SendNotifications(handle, mABearerIds[mServiceBBearerIdx]);
+            }
         }
     }
 }
