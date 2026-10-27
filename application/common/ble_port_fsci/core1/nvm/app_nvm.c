@@ -1164,7 +1164,7 @@ static bleResult_t App_HostNvmWrite
 ********************************************************************************** */
 void App_FactoryReset(void)
 {
-#if defined(gAppUseNvm_d) && (gAppUseNvm_d == 1)
+#if (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U))
     /* Erase NVM Datasets */
     NVM_Status_t status = NvFormat();
     if (status != gNVM_OK_c)
@@ -1172,7 +1172,7 @@ void App_FactoryReset(void)
         /* NvFormat exited with an error status */
         panic(0, (uint32_t)App_FactoryReset, 0, 0);
     }
-#endif /* gAppUseNvm_d */
+#endif /* (defined(gAppUseNvmNcp_d) && (gAppUseNvmNcp_d > 0U)) */
 
     /* Reset MCU (forwarded to the host over FSCI) */
     PLATFORM_NvicSystemReset();
