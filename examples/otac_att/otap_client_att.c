@@ -140,6 +140,7 @@ static void BluetoothLEHost_Initialized(void);
 static void BleApp_Advertise(void);
 static void AdvertisingTimerCallback (void *pParam);
 static void BatteryMeasurementTimerCallback (void *pParam);
+static void Battery_SendMeasurement(appCallbackParam_t pParam);
 
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c > 0))
 static button_status_t BleApp_HandleKeys0(void *pButtonHandle, button_callback_message_t *pMessage,void *pCallbackParam);
@@ -576,13 +577,34 @@ static void AdvertisingTimerCallback(void * pParam)
 }
 
 /*! *********************************************************************************
-* \brief      Reads the battery level at mBatteryLevelReportInterval_c time interval.
+* \brief        Handles battery measurement timer callback.
+*               Runs in the timer task context: only defer the work to the
+*               application task, no host stack calls are allowed here.
 *
+* \param[in]    pParam        Callback parameters.
 ********************************************************************************** */
 static void BatteryMeasurementTimerCallback(void * pParam)
 {
-    basServiceConfig.batteryLevel = SENSORS_GetBatteryLevel();
-    (void)Bas_RecordBatteryMeasurement(&basServiceConfig);
+    (void)pParam;
+    (void)App_PostCallbackMessage(Battery_SendMeasurement, NULL);
+}
+
+/*! *********************************************************************************
+* \brief        Reads the battery level and records the measurement. Runs in the
+*               application task context.
+*
+* \param[in]    pParam        Callback parameters (unused).
+********************************************************************************** */
+static void Battery_SendMeasurement(appCallbackParam_t pParam)
+{
+    (void)pParam;
+
+    /* Connection may have been closed after the message was queued */
+    if (mPeerDeviceId != gInvalidDeviceId_c)
+    {
+        basServiceConfig.batteryLevel = SENSORS_GetBatteryLevel();
+        (void)Bas_RecordBatteryMeasurement(&basServiceConfig);
+    }
 }
 
 

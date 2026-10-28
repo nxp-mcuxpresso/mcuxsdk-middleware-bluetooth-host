@@ -243,6 +243,7 @@ static bool_t OtapClient_IsRemoteImageNewer (uint8_t* pRemoteImgId, uint8_t* pRe
 static otapStatus_t OtapClient_IsImageFileHeaderValid (bleOtaImageFileHeader_t* imgFileHeader);
 static bleResult_t OtapClient_SendImageRequest(void);
 static void OtapClient_TimerCb(void * param);
+static void OtapClient_CheckTransferStatus(appCallbackParam_t param);
 static void OtapClient_CancelOTA(void *param);
 static void OtapClient_NewImageInfoRequest(deviceId_t deviceId);
 
@@ -1808,45 +1809,66 @@ static bleResult_t OtapClient_SendImageRequest(void)
 
 /*! *********************************************************************************
 * \brief        Callback for periodic timer that checks the OTA transfer progress.
+*               Runs in the timer task context: only defer the work to the
+*               application task, no host stack calls are allowed here.
 *
+* \param[in]    param        Callback parameters.
 ********************************************************************************** */
 static void OtapClient_TimerCb(void * param)
+{
+    (void)param;
+    (void)App_PostCallbackMessage(OtapClient_CheckTransferStatus, NULL);
+}
+
+/*! *********************************************************************************
+* \brief        Checks the OTA transfer progress. Retries a stalled transfer or
+*               cancels it and disconnects. Runs in the application task context.
+*
+* \param[in]    param        Callback parameters (unused).
+********************************************************************************** */
+static void OtapClient_CheckTransferStatus(appCallbackParam_t param)
 {
     static uint32_t prevOffset = 0;
     static uint8_t mNbRetriesSent = 0U;
 
-    if (otapClientData.currentPos != prevOffset)
-    {
-        /* OTA transfer is in progress. Update offset */
-        prevOffset = otapClientData.currentPos;
+    (void)param;
 
-        /* Reset retry number */
-        if (mNbRetriesSent > 0U)
-        {
-            mNbRetriesSent = 0U;
-        }
-    }
-    else
+    /* Connection may have been closed after the message was queued */
+    if (otapClientData.peerOtapServer != gInvalidDeviceId_c)
     {
-        /* OTA transfer is stuck. Retry sending Image Info Request to Server */
-        if (mNbRetriesSent < gOTAPMaxNbRetries)
+        if (otapClientData.currentPos != prevOffset)
         {
-            bleResult_t bleResult = OtapClient_SendImageRequest();
-            if (gBleSuccess_c == bleResult)
+            /* OTA transfer is in progress. Update offset */
+            prevOffset = otapClientData.currentPos;
+
+            /* Reset retry number */
+            if (mNbRetriesSent > 0U)
             {
-                mNbRetriesSent++;
+                mNbRetriesSent = 0U;
             }
         }
         else
         {
-            /* Reset retries */
-            mNbRetriesSent = 0U;
+            /* OTA transfer is stuck. Retry sending Image Info Request to Server */
+            if (mNbRetriesSent < gOTAPMaxNbRetries)
+            {
+                bleResult_t bleResult = OtapClient_SendImageRequest();
+                if (gBleSuccess_c == bleResult)
+                {
+                    mNbRetriesSent++;
+                }
+            }
+            else
+            {
+                /* Reset retries */
+                mNbRetriesSent = 0U;
 
-            /* Cancel OTA transfer */
-            OtapClient_CancelOTA(NULL);
+                /* Cancel OTA transfer */
+                OtapClient_CancelOTA(NULL);
 
-            /* Disconnect. Transfer parameters will be reset on disconnect event */
-            (void)Gap_Disconnect(otapClientData.peerOtapServer);
+                /* Disconnect. Transfer parameters will be reset on disconnect event */
+                (void)Gap_Disconnect(otapClientData.peerOtapServer);
+            }
         }
     }
 }

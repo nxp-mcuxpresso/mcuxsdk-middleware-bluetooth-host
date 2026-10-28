@@ -157,7 +157,9 @@ static void BluetoothLEHost_GenericCallback (gapGenericEvent_t* pGenericEvent);
 /* Timer Callbacks */
 static void AdvertisingTimerCallback (void * pParam);
 static void TimerHidMouseCallback (void * pParam);
+static void HidMouse_SendReport(appCallbackParam_t pParam);
 static void BatteryMeasurementTimerCallback (void * pParam);
+static void Battery_SendMeasurement(appCallbackParam_t pParam);
 
 #if (defined(gSwiftPairMode_d) && (gSwiftPairMode_d == 1))
 static void SwiftPairTimerCallback(void * pParam);
@@ -640,11 +642,27 @@ static void AdvertisingTimerCallback(void * pParam)
 
 /*! *********************************************************************************
 * \brief        Handles HID Mouse timer callback.
+*               Runs in the timer task context: only defer the work to the
+*               application task, no host stack calls are allowed here.
 *
 * \param[in]    pParam        Callback parameters.
 ********************************************************************************** */
 static void TimerHidMouseCallback(void * pParam)
 {
+    (void)pParam;
+    (void)App_PostCallbackMessage(HidMouse_SendReport, NULL);
+}
+
+/*! *********************************************************************************
+* \brief        Moves the mouse pointer, sends the HID report and restarts the HID
+*               demo timer. Runs in the application task context.
+*
+* \param[in]    pParam        Callback parameters (unused).
+********************************************************************************** */
+static void HidMouse_SendReport(appCallbackParam_t pParam)
+{
+    (void)pParam;
+
     if ((xAxis < AXIS_MAX) && (yAxis == AXIS_MIN))
     {
         MoveMouseRight(MOUSE_STEP);
@@ -677,13 +695,33 @@ static void TimerHidMouseCallback(void * pParam)
 
 /*! *********************************************************************************
 * \brief        Handles battery measurement timer callback.
+*               Runs in the timer task context: only defer the work to the
+*               application task, no host stack calls are allowed here.
 *
 * \param[in]    pParam        Callback parameters.
 ********************************************************************************** */
 static void BatteryMeasurementTimerCallback(void * pParam)
 {
-    basServiceConfig.batteryLevel = SENSORS_GetBatteryLevel();
-    (void)Bas_RecordBatteryMeasurement(&basServiceConfig);
+    (void)pParam;
+    (void)App_PostCallbackMessage(Battery_SendMeasurement, NULL);
+}
+
+/*! *********************************************************************************
+* \brief        Reads the battery level and records the measurement. Runs in the
+*               application task context.
+*
+* \param[in]    pParam        Callback parameters (unused).
+********************************************************************************** */
+static void Battery_SendMeasurement(appCallbackParam_t pParam)
+{
+    (void)pParam;
+
+    /* Connection may have been closed after the message was queued */
+    if (mPeerDeviceId != gInvalidDeviceId_c)
+    {
+        basServiceConfig.batteryLevel = SENSORS_GetBatteryLevel();
+        (void)Bas_RecordBatteryMeasurement(&basServiceConfig);
+    }
 }
 
 #if (defined(gSwiftPairMode_d) && (gSwiftPairMode_d == 1))

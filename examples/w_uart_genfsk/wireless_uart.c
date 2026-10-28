@@ -168,6 +168,7 @@ static void ScanningTimerCallback(void *pParam);
 #endif /* gWuart_CentralRole_c */
 static void UartStreamFlushTimerCallback(void *pData);
 static void BatteryMeasurementTimerCallback(void *pParam);
+static void Battery_SendMeasurement(appCallbackParam_t pParam);
 #if (defined(gAppButtonCnt_c) && (gAppButtonCnt_c == 1))
 static void SwitchPressTimerCallback(void *pParam);
 #endif
@@ -1695,6 +1696,8 @@ static void Uart_TxCallBack
 
 /*! *********************************************************************************
 * \brief        Handles battery measurement timer callback.
+*               Runs in the timer task context: only defer the work to the
+*               application task, no host stack calls are allowed here.
 *
 * \param[in]    pParam        Callback parameters.
 ********************************************************************************** */
@@ -1703,6 +1706,23 @@ static void BatteryMeasurementTimerCallback
     void *pParam
 )
 {
+    (void)pParam;
+    (void)App_PostCallbackMessage(Battery_SendMeasurement, NULL);
+}
+
+/*! *********************************************************************************
+* \brief        Reads the battery level and records the measurement. Runs in the
+*               application task context.
+*
+* \param[in]    pParam        Callback parameters (unused).
+********************************************************************************** */
+static void Battery_SendMeasurement
+(
+    appCallbackParam_t pParam
+)
+{
+    (void)pParam;
+
     mBasServiceConfig.batteryLevel = SENSORS_GetBatteryLevel();
     (void)Bas_RecordBatteryMeasurement(&mBasServiceConfig);
 }

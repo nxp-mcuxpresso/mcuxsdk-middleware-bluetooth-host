@@ -585,8 +585,11 @@ static void BleApp_ServiceDiscoveryErrorHandler(void);
 /* Timer Callbacks */
 static void AdvertisingTimerCallback(void *pParam);
 static void BatteryMeasurementTimerCallback(void *pParam);
+static void Battery_SendMeasurement(appCallbackParam_t pParam);
 static void CTSTickTimerCallback(void *pParam);
+static void CurrentTime_RecordTick(appCallbackParam_t pParam);
 static void RTUSReferenceUpdateTimerCallback(void *pParam);
+static void ReferenceTime_RecordUpdate(appCallbackParam_t pParam);
 static void AllowNotificationsTimerCallback(void *pParam);
 
 static void BleApp_Advertise(void);
@@ -3874,23 +3877,53 @@ static void AdvertisingTimerCallback(void *pParam)
 
 /*! *********************************************************************************
 * \brief        Handles current time tick callback.
+*               Runs in the timer task context: only defer the work to the
+*               application task, no host stack calls are allowed here.
 *
 * \param[in]    pParam        Callback parameters.
 ********************************************************************************** */
 static void CTSTickTimerCallback(void *pParam)
 {
+    (void)pParam;
     ctsServiceConfig.localTime++;
+    (void)App_PostCallbackMessage(CurrentTime_RecordTick, NULL);
+}
+
+/*! *********************************************************************************
+* \brief        Records the current time. Runs in the application task context.
+*
+* \param[in]    pParam        Callback parameters (unused).
+********************************************************************************** */
+static void CurrentTime_RecordTick(appCallbackParam_t pParam)
+{
+    (void)pParam;
     ctsServiceConfig.adjustReason = gCts_UnknownReason;
-   (void)Cts_RecordCurrentTime(&ctsServiceConfig);
+    (void)Cts_RecordCurrentTime(&ctsServiceConfig);
 }
 
 /*! *********************************************************************************
 * \brief        Handles time update callback.
+*               Runs in the timer task context: only defer the work to the
+*               application task, no host stack calls are allowed here.
 *
 * \param[in]    pParam        Callback parameters.
 ********************************************************************************** */
 static void RTUSReferenceUpdateTimerCallback(void *pParam)
 {
+    (void)pParam;
+    (void)App_PostCallbackMessage(ReferenceTime_RecordUpdate, NULL);
+}
+
+/*! *********************************************************************************
+* \brief        Simulates a reference time update and records the new time update
+*               state and current time. Runs in the application task context.
+*
+* \param[in]    pParam        Callback parameters (unused).
+********************************************************************************** */
+static void ReferenceTime_RecordUpdate(appCallbackParam_t pParam)
+{
+    (void)pParam;
+
     if (rtusServiceConfig.timeUpdateState.currentState == gRtusUpdatePending_c)
     {
         rtusResult_t result = gRtusSuccessful_c;
@@ -3906,13 +3939,33 @@ static void RTUSReferenceUpdateTimerCallback(void *pParam)
 
 /*! *********************************************************************************
 * \brief        Handles battery measurement timer callback.
+*               Runs in the timer task context: only defer the work to the
+*               application task, no host stack calls are allowed here.
 *
 * \param[in]    pParam        Callback parameters.
 ********************************************************************************** */
 static void BatteryMeasurementTimerCallback(void *pParam)
 {
-    basServiceConfig.batteryLevel = SENSORS_GetBatteryLevel();
-   (void)Bas_RecordBatteryMeasurement(&basServiceConfig);
+    (void)pParam;
+    (void)App_PostCallbackMessage(Battery_SendMeasurement, NULL);
+}
+
+/*! *********************************************************************************
+* \brief        Reads the battery level and records the measurement. Runs in the
+*               application task context.
+*
+* \param[in]    pParam        Callback parameters (unused).
+********************************************************************************** */
+static void Battery_SendMeasurement(appCallbackParam_t pParam)
+{
+    (void)pParam;
+
+    /* Connection may have been closed after the message was queued */
+    if (mPeerInformation.deviceId != gInvalidDeviceId_c)
+    {
+        basServiceConfig.batteryLevel = SENSORS_GetBatteryLevel();
+        (void)Bas_RecordBatteryMeasurement(&basServiceConfig);
+    }
 }
 
 /*! *********************************************************************************
