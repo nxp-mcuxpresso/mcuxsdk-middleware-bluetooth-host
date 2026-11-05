@@ -129,6 +129,9 @@
 #define gNvmErasePartitionWhenFlashing_c 1U
 #endif
 
+/*! The minimum heap size needed (measured with MEM_STATISTICS) */
+#define MinimalHeapSize_c               60000
+
 #define SHELL_BUFFER_SIZE               (128U)
 #define SHELL_TASK_STACK_SIZE           (1400U)
 
@@ -191,7 +194,7 @@
 /* Configure high speed CPU clock (96 MHz) */
 #define gAppHighSystemClockFrequency_d          1
 
-#define gHost_TaskStackSize_c                   2200
+#define gHost_TaskStackSize_c                   3800
 
 #define gMainThreadStackSize_c                  3600
 /*! *********************************************************************************
